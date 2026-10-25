@@ -568,14 +568,38 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
       which the method rule does not follow yet.
   - 59.0% of the bytes to port are named (was 58.3%). Converges in two `--reanalyze` passes.
 
+- [x] Methods called through pointer globals (in `tools/recover_layouts.py`):
+  - A call with `ECX = [P]`, `P` a dword in `.data`, is a call on the object `P` points to.
+    There are 793 such sites on 89 pointers.
+  - `P`'s class is its curated `ptr:<Class>` type, or the common base of what is stored
+    into it: the address of a global object, or the result of a constructor. A
+    non-virtual call through a pointer of that static type must be a method of that
+    class.
+  - The methods called through `P` are only a check, since they show just a lower bound.
+    `0x686584` is a scratch pointer that CRagEffect code points at whatever primitive it
+    last made. Calls through it only show `CRenderObject`, and using them put 153 fields
+    of derived classes onto `CRenderObject`.
+  - Result: 4 pointers with a class, 3 of them newly typed and named (`g_pCLanguage`,
+    `g_pCGPak`, `g_pmg_mgType1_CMiniGame001`), and 55 new methods: 42 on
+    `SceneRenderer`, 10 on `CLanguage`, 3 on `CMiniGame001`. None of the named methods
+    called through a typed pointer contradicts its type. 1,019 methods in all.
+- [x] `tools/recover_objects.py`:
+  - A known constructor called with `ECX` = a `.data` address outside the initializers
+    builds a function-local static. An `atexit` stub registered there names its
+    destructor.
+  - This gives 4 more global objects: the three language objects that `g_pCLanguage`
+    points to, and `mg::mgType1::CWorld`.
+  - Constructors that copy `this` into `EAX` at the start and keep it there until `ret`
+    are now recognised: `CLanguage`, `mg::CMGEngine` and a second `CSurface` overload.
+  - `CLanguage` now shows three `std::string` members.
+  - 60.0% of the bytes to port are named (was 59.0%). Converges in two `--reanalyze`
+    passes.
+
 ### Next actions (M1)
 1. Size the global singletons whose size is only estimated (`ClientState`, `UIWindowMgr`,
    `C3dDevice`): the accesses past their estimated ends need a rule for where an object
    stops before the next global begins.
-2. Methods called through pointer globals: `mov ecx, [G]; call f` with `G` typed
-   `ptr:<Class>` makes `f` a method of `<Class>`. `g_pSceneRenderer` alone has six such
-   methods, curated by hand so far.
-3. Name the packet handlers from the two dispatch tables (`0x526188` for the game mode,
+2. Name the packet handlers from the two dispatch tables (`0x526188` for the game mode,
    `0x53d190` and `0x53d1d8` for login) as `HandlePacket_<id>`, the way the 0x01C7
    handlers are named.
-4. Extend the oracle with the D3D7/DirectDraw COM fakes that record calls, for M4.
+3. Extend the oracle with the D3D7/DirectDraw COM fakes that record calls, for M4.

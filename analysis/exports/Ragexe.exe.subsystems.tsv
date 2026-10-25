@@ -34,17 +34,17 @@ entry	subsystem	rule	evidence
 004025b0	core	previous	after 004025a0, nothing references it
 004025d0	render	callers	2 referencing functions
 00402600	render	callers	1 referencing function
-00402630	render	neighbours	between 00402600 and 00402da0
-00402680	render	neighbours	between 00402600 and 00402da0
-004026d0	render	neighbours	between 00402600 and 00402da0
-00402710	render	neighbours	between 00402600 and 00402da0
-00402770	render	neighbours	between 00402600 and 00402da0
-00402a30	render	neighbours	between 00402600 and 00402da0
-00402a70	render	neighbours	between 00402600 and 00402da0
-00402b40	render	neighbours	between 00402600 and 00402da0
-00402bb0	render	neighbours	between 00402600 and 00402da0
-00402c20	render	neighbours	between 00402600 and 00402da0
-00402c90	render	neighbours	between 00402600 and 00402da0
+00402630	render	neighbours	between 00402600 and 00402a70
+00402680	render	neighbours	between 00402600 and 00402a70
+004026d0	render	neighbours	between 00402600 and 00402a70
+00402710	render	neighbours	between 00402600 and 00402a70
+00402770	render	neighbours	between 00402600 and 00402a70
+00402a30	render	neighbours	between 00402600 and 00402a70
+00402a70	render	callers	1 referencing function
+00402b40	render	neighbours	between 00402a70 and 00402da0
+00402bb0	render	neighbours	between 00402a70 and 00402da0
+00402c20	render	neighbours	between 00402a70 and 00402da0
+00402c90	render	neighbours	between 00402a70 and 00402da0
 00402da0	render	import	DDRAW.DLL!DirectDrawCreate
 00402e30	render	neighbours	between 00402da0 and 00402f40
 00402ea0	render	neighbours	between 00402da0 and 00402f40
@@ -248,16 +248,16 @@ entry	subsystem	rule	evidence
 0040c030	render	neighbours	between 0040c010 and 0040c040
 0040c040	render	callers	3 referencing functions
 0040c0f0	render	callers	1 referencing function
-0040c1b0	render	callers	5 referencing functions
-0040c1e0	render	neighbours	between 0040c1b0 and 0040c3a0
-0040c200	render	neighbours	between 0040c1b0 and 0040c3a0
-0040c240	render	neighbours	between 0040c1b0 and 0040c3a0
-0040c280	render	neighbours	between 0040c1b0 and 0040c3a0
-0040c2e0	render	neighbours	between 0040c1b0 and 0040c3a0
-0040c3a0	render	callers	9 referencing functions
-0040c3e0	render	callers	2 referencing functions
-0040c570	render	neighbours	between 0040c3e0 and 0040c590
-0040c590	render	callers	1 referencing function
+0040c1b0	render	callers	6 referencing functions
+0040c1e0	render	neighbours	between 0040c1b0 and 0040c280
+0040c200	render	neighbours	between 0040c1b0 and 0040c280
+0040c240	render	neighbours	between 0040c1b0 and 0040c280
+0040c280	render	class	class SceneRenderer
+0040c2e0	render	neighbours	between 0040c280 and 0040c3a0
+0040c3a0	render	class	class SceneRenderer
+0040c3e0	render	neighbours	between 0040c3a0 and 0040c5f0
+0040c570	render	neighbours	between 0040c3a0 and 0040c5f0
+0040c590	render	neighbours	between 0040c3a0 and 0040c5f0
 0040c5f0	render	class	class RenderTriangle
 0040c620	render	class	class RenderTriangle
 0040c660	render	neighbours	between 0040c620 and 0040c680
@@ -296,157 +296,157 @@ entry	subsystem	rule	evidence
 0040dd30	render	class	class SceneRenderer
 0040dd40	render	class	class SceneRenderer
 0040ddb0	render	class	class SceneRenderer
-0040ddc0	render	neighbours	between 0040ddb0 and 0040deb0
+0040ddc0	render	class	class SceneRenderer
 0040deb0	render	class	class SceneRenderer
-0040df90	render	neighbours	between 0040deb0 and 00410c50
-0040e000	render	neighbours	between 0040deb0 and 00410c50
-0040e030	render	neighbours	between 0040deb0 and 00410c50
-0040e130	render	neighbours	between 0040deb0 and 00410c50
-0040e510	render	neighbours	between 0040deb0 and 00410c50
-0040e540	render	neighbours	between 0040deb0 and 00410c50
-0040e610	render	neighbours	between 0040deb0 and 00410c50
-0040e6a0	render	neighbours	between 0040deb0 and 00410c50
-0040e6e0	render	neighbours	between 0040deb0 and 00410c50
-0040e980	render	neighbours	between 0040deb0 and 00410c50
-0040ecf0	render	neighbours	between 0040deb0 and 00410c50
-0040eed0	render	neighbours	between 0040deb0 and 00410c50
-0040ef20	render	neighbours	between 0040deb0 and 00410c50
-0040ef30	render	neighbours	between 0040deb0 and 00410c50
-0040efd0	render	neighbours	between 0040deb0 and 00410c50
-0040f300	render	neighbours	between 0040deb0 and 00410c50
-0040f440	render	neighbours	between 0040deb0 and 00410c50
-0040f480	render	neighbours	between 0040deb0 and 00410c50
-0040f580	render	neighbours	between 0040deb0 and 00410c50
-0040f6e0	render	neighbours	between 0040deb0 and 00410c50
-0040f700	render	neighbours	between 0040deb0 and 00410c50
-0040f800	render	neighbours	between 0040deb0 and 00410c50
-0040f900	render	neighbours	between 0040deb0 and 00410c50
-0040fa40	render	neighbours	between 0040deb0 and 00410c50
-0040fb60	render	neighbours	between 0040deb0 and 00410c50
-0040fc60	render	neighbours	between 0040deb0 and 00410c50
-0040fdb0	render	neighbours	between 0040deb0 and 00410c50
-0040fec0	render	neighbours	between 0040deb0 and 00410c50
-0040ffd0	render	neighbours	between 0040deb0 and 00410c50
-004100e0	render	neighbours	between 0040deb0 and 00410c50
-004101f0	render	neighbours	between 0040deb0 and 00410c50
-00410340	render	neighbours	between 0040deb0 and 00410c50
-00410450	render	neighbours	between 0040deb0 and 00410c50
-00410560	render	neighbours	between 0040deb0 and 00410c50
-00410620	render	neighbours	between 0040deb0 and 00410c50
-00410ab0	render	neighbours	between 0040deb0 and 00410c50
+0040df90	render	neighbours	between 0040deb0 and 0040e130
+0040e000	render	neighbours	between 0040deb0 and 0040e130
+0040e030	render	neighbours	between 0040deb0 and 0040e130
+0040e130	render	class	class SceneRenderer
+0040e510	render	neighbours	between 0040e130 and 0040e540
+0040e540	render	class	class SceneRenderer
+0040e610	render	class	class SceneRenderer
+0040e6a0	render	class	class SceneRenderer
+0040e6e0	render	neighbours	between 0040e6a0 and 0040e980
+0040e980	render	class	class SceneRenderer
+0040ecf0	render	class	class SceneRenderer
+0040eed0	render	neighbours	between 0040ecf0 and 0040ef30
+0040ef20	render	neighbours	between 0040ecf0 and 0040ef30
+0040ef30	render	class	class SceneRenderer
+0040efd0	render	class	class SceneRenderer
+0040f300	render	class	class SceneRenderer
+0040f440	render	neighbours	between 0040f300 and 0040f480
+0040f480	render	class	class SceneRenderer
+0040f580	render	class	class SceneRenderer
+0040f6e0	render	neighbours	between 0040f580 and 0040f700
+0040f700	render	class	class SceneRenderer
+0040f800	render	class	class SceneRenderer
+0040f900	render	class	class SceneRenderer
+0040fa40	render	class	class SceneRenderer
+0040fb60	render	class	class SceneRenderer
+0040fc60	render	neighbours	between 0040fb60 and 0040fdb0
+0040fdb0	render	class	class SceneRenderer
+0040fec0	render	class	class SceneRenderer
+0040ffd0	render	class	class SceneRenderer
+004100e0	render	class	class SceneRenderer
+004101f0	render	class	class SceneRenderer
+00410340	render	class	class SceneRenderer
+00410450	render	class	class SceneRenderer
+00410560	render	class	class SceneRenderer
+00410620	render	class	class SceneRenderer
+00410ab0	render	class	class SceneRenderer
 00410c50	render	class	class SceneRenderer
 00410c80	render	neighbours	between 00410c50 and 00410cd0
 00410cd0	render	class	class SceneRenderer
-00410cf0	render	previous	after 00410cd0, nothing references it
-00410df0	core	shared	game 1, ui 1
-00410eb0	ui	callers	3 referencing functions
-00411010	game	callers	1 referencing function
-00411090	render	callers	1 referencing function
-004112d0	render	callers	1 referencing function
-00411c50	game	callers	2 referencing functions
+00410cf0	render	neighbours	between 00410cd0 and 00410df0
+00410df0	render	class	class SceneRenderer
+00410eb0	render	class	class SceneRenderer
+00411010	render	class	class SceneRenderer
+00411090	render	class	class SceneRenderer
+004112d0	render	class	class SceneRenderer
+00411c50	render	class	class SceneRenderer
 00411d40	game	callers	1 referencing function
 00412150	res	import	IJL15.DLL!#2, IJL15.DLL!#5
-00412550	core	shared	game 3, render 1, res 3, world 23
-00412720	world	callers	6 referencing functions
-004128e0	world	callers	1 referencing function
-00412aa0	world	callers	1 referencing function
-00412b40	world	neighbours	between 00412aa0 and 00412c80
-00412be0	world	neighbours	between 00412aa0 and 00412c80
-00412c80	world	callers	1 referencing function
-00412e70	game	callers	1 referencing function
-00412f00	game	callers	1 referencing function
-00412f10	game	callers	1 referencing function
-00412f20	render	callers	1 referencing function
-00412f40	render	callers	1 referencing function
-00412f70	render	callers	1 referencing function
-00413010	render	callers	1 referencing function
-00413040	render	callers	1 referencing function
-004130e0	render	neighbours	between 00413040 and 00413110
-00413110	render	callers	1 referencing function
-004131b0	render	callers	1 referencing function
-004131e0	render	callers	1 referencing function
-00413290	render	callers	2 referencing functions
-00413300	render	neighbours	between 00413290 and 00413350
-00413350	render	callers	1 referencing function
-00413370	render	neighbours	between 00413350 and 004133c0
-004133c0	render	callers	1 referencing function
-004133e0	render	callers	1 referencing function
-00413490	render	neighbours	between 004133e0 and 004134c0
-004134c0	render	callers	1 referencing function
-00413590	render	neighbours	between 004134c0 and 004135b0
-004135b0	render	callers	1 referencing function
-00413600	render	callers	1 referencing function
-00413630	render	callers	2 referencing functions
-00413a60	render	callers	3 referencing functions
-00413ab0	render	callers	1 referencing function
-00413da0	render	callers	1 referencing function
-00413df0	render	callers	1 referencing function
-00413e00	render	neighbours	between 00413df0 and 00413e20
-00413e20	render	callers	1 referencing function
-00413e60	render	callers	2 referencing functions
-00413e70	render	neighbours	between 00413e60 and 00413ea0
-00413ea0	render	callers	1 referencing function
-00413ec0	render	callers	1 referencing function
-00413ee0	render	callers	1 referencing function
-00413f20	render	callers	3 referencing functions
-00413f30	render	callers	1 referencing function
-00413f60	render	callers	1 referencing function
-00413fa0	render	callers	1 referencing function
-00413fb0	render	neighbours	between 00413fa0 and 00413fe0
-00413fe0	render	callers	1 referencing function
-00414000	render	callers	1 referencing function
-00414020	render	callers	1 referencing function
-00414060	render	callers	2 referencing functions
-00414070	render	callers	1 referencing function
-004140b0	render	callers	1 referencing function
-00414110	render	callers	1 referencing function
-00414180	render	callers	1 referencing function
-004141d0	render	callers	1 referencing function
-00414200	render	callers	1 referencing function
-00414250	render	callers	1 referencing function
-00414280	render	neighbours	between 00414250 and 004144f0
-004144f0	render	callers	1 referencing function
-00414500	render	neighbours	between 004144f0 and 004151a0
-00414540	render	neighbours	between 004144f0 and 004151a0
-00414830	render	neighbours	between 004144f0 and 004151a0
-00414840	render	neighbours	between 004144f0 and 004151a0
-004148a0	render	neighbours	between 004144f0 and 004151a0
-00414b30	render	neighbours	between 004144f0 and 004151a0
-00414d40	render	neighbours	between 004144f0 and 004151a0
-00414f50	render	neighbours	between 004144f0 and 004151a0
-004151a0	render	callers	1 referencing function
-00415240	render	neighbours	between 004151a0 and 00415300
-004152a0	render	neighbours	between 004151a0 and 00415300
-004152d0	render	neighbours	between 004151a0 and 00415300
-00415300	render	callers	1 referencing function
-00415330	render	callers	1 referencing function
-00415360	render	callers	1 referencing function
-00415390	render	neighbours	between 00415360 and 004155a0
-004153d0	render	neighbours	between 00415360 and 004155a0
-004154d0	render	neighbours	between 00415360 and 004155a0
-004154e0	render	neighbours	between 00415360 and 004155a0
-00415550	render	neighbours	between 00415360 and 004155a0
-00415570	render	neighbours	between 00415360 and 004155a0
-004155a0	render	callers	3 referencing functions
-00415700	render	callers	1 referencing function
-00415740	render	callers	4 referencing functions
-00415830	render	callers	1 referencing function
-00415920	render	callers	1 referencing function
-004159f0	render	callers	6 referencing functions
-00415ba0	render	callers	1 referencing function
-00415c70	render	callers	1 referencing function
-00415ca0	render	callers	3 referencing functions
-00415d40	render	callers	4 referencing functions
-00415db0	render	callers	1 referencing function
-00415e20	render	callers	1 referencing function
-00415e90	render	callers	6 referencing functions
-00415f50	render	neighbours	between 00415e90 and 00415f90
-00415f90	render	callers	1 referencing function
-00416000	render	callers	1 referencing function
-00416030	render	callers	1 referencing function
+00412550	render	class	class SceneRenderer
+00412720	render	class	class SceneRenderer
+004128e0	render	class	class SceneRenderer
+00412aa0	render	class	class SceneRenderer
+00412b40	render	class	class SceneRenderer
+00412be0	render	neighbours	between 00412b40 and 00412e70
+00412c80	render	neighbours	between 00412b40 and 00412e70
+00412e70	render	class	class SceneRenderer
+00412f00	render	neighbours	between 00412e70 and 00416080
+00412f10	render	neighbours	between 00412e70 and 00416080
+00412f20	render	neighbours	between 00412e70 and 00416080
+00412f40	render	neighbours	between 00412e70 and 00416080
+00412f70	render	neighbours	between 00412e70 and 00416080
+00413010	render	neighbours	between 00412e70 and 00416080
+00413040	render	neighbours	between 00412e70 and 00416080
+004130e0	render	neighbours	between 00412e70 and 00416080
+00413110	render	neighbours	between 00412e70 and 00416080
+004131b0	render	neighbours	between 00412e70 and 00416080
+004131e0	render	neighbours	between 00412e70 and 00416080
+00413290	render	neighbours	between 00412e70 and 00416080
+00413300	render	neighbours	between 00412e70 and 00416080
+00413350	render	neighbours	between 00412e70 and 00416080
+00413370	render	neighbours	between 00412e70 and 00416080
+004133c0	render	neighbours	between 00412e70 and 00416080
+004133e0	render	neighbours	between 00412e70 and 00416080
+00413490	render	neighbours	between 00412e70 and 00416080
+004134c0	render	neighbours	between 00412e70 and 00416080
+00413590	render	neighbours	between 00412e70 and 00416080
+004135b0	render	neighbours	between 00412e70 and 00416080
+00413600	render	neighbours	between 00412e70 and 00416080
+00413630	render	neighbours	between 00412e70 and 00416080
+00413a60	render	neighbours	between 00412e70 and 00416080
+00413ab0	render	neighbours	between 00412e70 and 00416080
+00413da0	render	neighbours	between 00412e70 and 00416080
+00413df0	render	neighbours	between 00412e70 and 00416080
+00413e00	render	neighbours	between 00412e70 and 00416080
+00413e20	render	neighbours	between 00412e70 and 00416080
+00413e60	render	neighbours	between 00412e70 and 00416080
+00413e70	render	neighbours	between 00412e70 and 00416080
+00413ea0	render	neighbours	between 00412e70 and 00416080
+00413ec0	render	neighbours	between 00412e70 and 00416080
+00413ee0	render	neighbours	between 00412e70 and 00416080
+00413f20	render	neighbours	between 00412e70 and 00416080
+00413f30	render	neighbours	between 00412e70 and 00416080
+00413f60	render	neighbours	between 00412e70 and 00416080
+00413fa0	render	neighbours	between 00412e70 and 00416080
+00413fb0	render	neighbours	between 00412e70 and 00416080
+00413fe0	render	neighbours	between 00412e70 and 00416080
+00414000	render	neighbours	between 00412e70 and 00416080
+00414020	render	neighbours	between 00412e70 and 00416080
+00414060	render	neighbours	between 00412e70 and 00416080
+00414070	render	neighbours	between 00412e70 and 00416080
+004140b0	render	neighbours	between 00412e70 and 00416080
+00414110	render	neighbours	between 00412e70 and 00416080
+00414180	render	neighbours	between 00412e70 and 00416080
+004141d0	render	neighbours	between 00412e70 and 00416080
+00414200	render	neighbours	between 00412e70 and 00416080
+00414250	render	neighbours	between 00412e70 and 00416080
+00414280	render	neighbours	between 00412e70 and 00416080
+004144f0	render	neighbours	between 00412e70 and 00416080
+00414500	render	neighbours	between 00412e70 and 00416080
+00414540	render	neighbours	between 00412e70 and 00416080
+00414830	render	neighbours	between 00412e70 and 00416080
+00414840	render	neighbours	between 00412e70 and 00416080
+004148a0	render	neighbours	between 00412e70 and 00416080
+00414b30	render	neighbours	between 00412e70 and 00416080
+00414d40	render	neighbours	between 00412e70 and 00416080
+00414f50	render	neighbours	between 00412e70 and 00416080
+004151a0	render	neighbours	between 00412e70 and 00416080
+00415240	render	neighbours	between 00412e70 and 00416080
+004152a0	render	neighbours	between 00412e70 and 00416080
+004152d0	render	neighbours	between 00412e70 and 00416080
+00415300	render	neighbours	between 00412e70 and 00416080
+00415330	render	neighbours	between 00412e70 and 00416080
+00415360	render	neighbours	between 00412e70 and 00416080
+00415390	render	neighbours	between 00412e70 and 00416080
+004153d0	render	neighbours	between 00412e70 and 00416080
+004154d0	render	neighbours	between 00412e70 and 00416080
+004154e0	render	neighbours	between 00412e70 and 00416080
+00415550	render	neighbours	between 00412e70 and 00416080
+00415570	render	neighbours	between 00412e70 and 00416080
+004155a0	render	neighbours	between 00412e70 and 00416080
+00415700	render	neighbours	between 00412e70 and 00416080
+00415740	render	neighbours	between 00412e70 and 00416080
+00415830	render	neighbours	between 00412e70 and 00416080
+00415920	render	neighbours	between 00412e70 and 00416080
+004159f0	render	neighbours	between 00412e70 and 00416080
+00415ba0	render	neighbours	between 00412e70 and 00416080
+00415c70	render	neighbours	between 00412e70 and 00416080
+00415ca0	render	neighbours	between 00412e70 and 00416080
+00415d40	render	neighbours	between 00412e70 and 00416080
+00415db0	render	neighbours	between 00412e70 and 00416080
+00415e20	render	neighbours	between 00412e70 and 00416080
+00415e90	render	neighbours	between 00412e70 and 00416080
+00415f50	render	neighbours	between 00412e70 and 00416080
+00415f90	render	neighbours	between 00412e70 and 00416080
+00416000	render	neighbours	between 00412e70 and 00416080
+00416030	render	neighbours	between 00412e70 and 00416080
 00416080	render	class	class CSurface
 004160b0	render	class	class CSurface
-004160e0	render	neighbours	between 004160b0 and 00416110
+004160e0	render	class	class CSurface
 00416110	render	class	class CSurface
 00416130	render	class	class CSurface
 00416330	render	class	class CSurface
@@ -2614,11 +2614,11 @@ entry	subsystem	rule	evidence
 004a27e0	ui	class	class UIWindow, base of UIMiniGameWnd
 004a27f0	ui	stub	jumps to 00448880
 004a2800	ui	class	class UIWindow, base of UIMiniGameWnd
-004a2900	ui	neighbours	between 004a2800 and 004a2a90
-004a2950	ui	neighbours	between 004a2800 and 004a2a90
-004a2990	ui	neighbours	between 004a2800 and 004a2a90
-004a29f0	ui	neighbours	between 004a2800 and 004a2a90
-004a2a50	ui	neighbours	between 004a2800 and 004a2a90
+004a2900	game	class	namespace mg
+004a2950	game	class	namespace mg
+004a2990	game	neighbours	between 004a2950 and 004a2a50
+004a29f0	game	neighbours	between 004a2950 and 004a2a50
+004a2a50	game	class	namespace mg
 004a2a90	ui	class	class UIWindow, base of UISelectMiniGameWnd
 004a2ac0	ui	class	class UIWindow, base of UISelectMiniGameWnd
 004a2af0	ui	class	class UIWindow, base of UISelectMiniGameWnd
@@ -3188,16 +3188,16 @@ entry	subsystem	rule	evidence
 004c7aa0	core	class	class CLanguage
 004c7ab0	core	class	class CLanguage
 004c7ae0	core	class	class CLanguage
-004c7c30	core	neighbours	between 004c7ae0 and 004c7f70
-004c7d60	core	neighbours	between 004c7ae0 and 004c7f70
-004c7ea0	core	neighbours	between 004c7ae0 and 004c7f70
-004c7ec0	core	neighbours	between 004c7ae0 and 004c7f70
-004c7ef0	core	neighbours	between 004c7ae0 and 004c7f70
-004c7f40	core	neighbours	between 004c7ae0 and 004c7f70
+004c7c30	core	class	class CLanguage
+004c7d60	core	class	class CLanguage
+004c7ea0	core	class	class CLanguage
+004c7ec0	core	neighbours	between 004c7ea0 and 004c7ef0
+004c7ef0	core	class	class CLanguage
+004c7f40	core	class	class CLanguage
 004c7f70	core	class	class CLanguage
-004c8120	core	neighbours	between 004c7f70 and 004c8330
-004c82a0	core	neighbours	between 004c7f70 and 004c8330
-004c8320	core	neighbours	between 004c7f70 and 004c8330
+004c8120	core	class	class CLanguage
+004c82a0	core	class	class CLanguage
+004c8320	core	class	class CLanguage
 004c8330	core	class	class CLanguage
 004c8350	core	class	class CLanguage
 004c84d0	ui	import	IMM32.DLL!ImmGetCompositionStringA, IMM32.DLL!ImmGetContext, IMM32.DLL!ImmReleaseContext
@@ -3209,8 +3209,8 @@ entry	subsystem	rule	evidence
 004c89e0	core	callers	1 referencing function
 004c8a30	core	callers	1 referencing function
 004c8a50	core	callers	1 referencing function
-004c8aa0	core	callers	2 referencing functions
-004c8b00	core	callers	3 referencing functions
+004c8aa0	core	class	class CLanguage
+004c8b00	core	class	class CLanguage
 004c8c40	core	class	class CLanguage, base of CLanguageTC
 004c8de0	core	class	class CLanguage, base of CLanguageTC
 004c8e30	core	class	class CLanguage, base of CLanguageTC
@@ -5116,8 +5116,8 @@ entry	subsystem	rule	evidence
 00550590	world	neighbours	between 00550070 and 005505a0
 005505a0	world	class	class CGameObject, base of CRagEffect
 00550c60	world	class	class CGameObject, base of CRagEffect
-00550ff0	world	neighbours	between 00550c60 and 005510b0
-00551050	world	neighbours	between 00550c60 and 005510b0
+00550ff0	world	callers	20 referencing functions
+00551050	render	class	class SceneRenderer
 005510b0	world	class	class CGameObject, base of CRagEffect
 005516e0	world	class	class CGameObject, base of CRagEffect
 00551bf0	world	class	class CGameObject, base of CRagEffect
@@ -6129,8 +6129,8 @@ entry	subsystem	rule	evidence
 005d4a50	render	funclet	EH tables of 0040deb0
 005d4a70	render	funclet	EH tables of 0040e130
 005d4a7b	render	funclet	EH tables of 0040e130
-005d4a90	core	funclet	EH tables of 00410df0
-005d4ab0	ui	funclet	EH tables of 00410eb0
+005d4a90	render	funclet	EH tables of 00410df0
+005d4ab0	render	funclet	EH tables of 00410eb0
 005d4b10	render	funclet	EH tables of 00416550
 005d4b30	render	funclet	EH tables of 004165e0
 005d4b50	render	funclet	EH tables of 004166b0

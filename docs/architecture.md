@@ -13,14 +13,14 @@ Every function of the game's own code has a subsystem in the ledger's `subsystem
 
 | Subsystem | Functions | Bytes | What it covers |
 |-----------|----------:|------:|----------------|
-| `core` | 211 | 37,331 | `WinMain`, the window and message loop, the mode switcher, the frame timer, client configuration (clientinfo.xml, registry), input devices, language and code-page handling, vector and matrix math, the crash handler |
+| `core` | 209 | 36,694 | `WinMain`, the window and message loop, the mode switcher, the frame timer, client configuration (clientinfo.xml, registry), input devices, language and code-page handling, vector and matrix math, the crash handler |
 | `res` | 673 | 129,019 | the GRF archive (`CGPak`), `ResourceManager`, every file-backed resource type (`CRes` and its 15 subclasses: sprites, acts, models, maps, palettes, waves), `DataFile`, `XmlDocument`, JPEG decoding |
-| `render` | 384 | 65,529 | DirectDraw and Direct3D 7 (`C3dDevice`, `SceneRenderer`), surfaces and textures, render primitives, GDI drawing onto surfaces, fonts, Bink movies, screenshots |
-| `world` | 1,167 | 431,791 | the map (`CWorld`, `C3dGround`, scene nodes), the camera (`CView`), the objects placed in the world (the `CGameObject` hierarchy: actors, items, effects), path finding |
+| `render` | 399 | 68,952 | DirectDraw and Direct3D 7 (`C3dDevice`, `SceneRenderer`), surfaces and textures, render primitives, GDI drawing onto surfaces, fonts, Bink movies, screenshots |
+| `world` | 1,160 | 429,851 | the map (`CWorld`, `C3dGround`, scene nodes), the camera (`CView`), the objects placed in the world (the `CGameObject` hierarchy: actors, items, effects), path finding |
 | `net` | 85 | 27,335 | `CConnection` and `CRagConnection`, Winsock start-up, the server-sent packet filter code |
-| `ui` | 1,872 | 501,146 | the 153 `UIWindow` classes, `UIWindowMgr`, skins, window snapping, the IME, Thai line breaking, the cursor object (`CMousePointer`) |
+| `ui` | 1,866 | 500,449 | the 153 `UIWindow` classes, `UIWindowMgr`, skins, window snapping, the IME, Thai line breaking, the cursor object (`CMousePointer`) |
 | `audio` | 38 | 4,751 | the Miles Sound System wrapper, DirectSound and mixer set-up, `CSoundMaker` |
-| `game` | 1,573 | 473,894 | the login and game modes (`CLoginMode`, `CGameMode`), the packet dispatchers and handlers, `ClientState` (character, inventory, options, message tables), guild state, item and skill tables, the chat filter, the mini-game engine (`mg::`) |
+| `game` | 1,573 | 473,745 | the login and game modes (`CLoginMode`, `CGameMode`), the packet dispatchers and handlers, `ClientState` (character, inventory, options, message tables), guild state, item and skill tables, the chat filter, the mini-game engine (`mg::`) |
 
 The library code is `crt` (728 functions, the static MSVC 6 C runtime from `0x5b325c`)
 and `stl` (384, Dinkumware templates in a `std` namespace). Thunks and exception funclets
@@ -33,7 +33,7 @@ take the subsystem of the function they belong to.
 row per function with the rule and evidence that placed it.
 
 1. **Seeds.**
-   - 2,811 functions are seeded by their class or namespace. A class rule also covers the
+   - 2,867 functions are seeded by their class or namespace. A class rule also covers the
      classes derived from it (RTTI bases): `UIWindow` covers all 153 windows and controls.
    - 80 by an address range: three source files identified by their strings (math, frame
      timer, client configuration).
@@ -42,21 +42,21 @@ row per function with the rule and evidence that placed it.
      saves window positions in the registry just as `WinMain` reads its settings there.
    - 3 by single-function rules.
 2. **Propagation**, repeated until nothing changes, strongest rule first:
-   - *neighbours* (2,567): the nearest assigned functions before and after it agree.
+   - *neighbours* (2,590): the nearest assigned functions before and after it agree.
    - *initializer* (45): a dynamic initializer takes the subsystem of the code after it.
-   - *callers* (408): every assigned function that references it agrees.
-   - *shared* (9): it is referenced from several subsystems, so it is a `core` helper.
+   - *callers* (332): every assigned function that references it agrees.
+   - *shared* (7): it is referenced from several subsystems, so it is a `core` helper.
    - *callees* (22): everything it references agrees, leaving out shared helpers.
-   - *previous* (24): nothing references it, so it takes the function before it.
+   - *previous* (23): nothing references it, so it takes the function before it.
 
 The order follows the evidence. The tool predicts each class-seeded function from the
 other seeds and reports how often each rule agrees with the class:
 
 | Rule | Agrees with the class |
 |------|----------------------:|
-| neighbours | 99.9% of 2,733 |
-| callees | 96.9% of 1,600 |
-| callers | 87.5% of 1,263 |
+| neighbours | 99.8% of 2,783 |
+| callees | 96.0% of 1,620 |
+| callers | 86.8% of 1,307 |
 
 The linker lays out each translation unit's functions together, and a small helper sits
 with the file that defines it, whoever calls it. Ordering callers first split the
@@ -87,8 +87,9 @@ In order:
 4. `LoadClientInfo` (`0x4ca090`) parses clientinfo.xml into `g_XmlDocument`. It sets:
    - the service type `0x67c9d4`;
    - the server list;
-   - the language object `0x67c99c`, a `CLanguage` subclass chosen by the service type
-     in `0x4ca940`.
+   - the language pointer `g_pCLanguage` (`0x67c99c`). On its first call `0x4ca940`
+     builds three function-local statics (`g_CLanguage`, `g_CLanguageTC`,
+     `g_CLanguageTH`), then points it at the one for the service type.
 5. `LoadVideoSettings` reads `ISFULLSCREENMODE`, `WIDTH`, `HEIGHT` and `BITPERPIXEL` from
    the registry. While that fails, `WinMain` runs `setup.exe` and waits for it.
 6. `timeBeginPeriod` with the device's minimum period (at least 1 ms), `ResetFrameTimer`
@@ -242,14 +243,14 @@ mouse, UI, cursor, fade, present.
 ## 5. Input
 
 - **Keyboard.**
-  - Every message first goes to the language object `0x67c99c` (its fifth slot), which
+  - Every message first goes to the language object `g_pCLanguage` (its fifth slot), which
     takes the IME messages.
   - `WM_KEYDOWN` goes to `MoviePlayer::OnKey`, then to `UIWindowMgr::method_004b25f0`,
-    then to `0x4c8120` if the UI did not take it. `WM_SYSKEYDOWN` goes straight to
+    then to `CLanguage::method_004c8120` if the UI did not take it. `WM_SYSKEYDOWN` goes straight to
     `UIWindowMgr::method_004b25f0`. That is a large switch over the key and the state of
     Ctrl, Alt and Shift, read with `GetAsyncKeyState`: window shortcuts, and the debug
     thread in §7.
-  - `WM_CHAR` goes to `0x4c82a0`.
+  - `WM_CHAR` goes to `CLanguage::method_004c82a0`.
   - `PumpMessages` hands `VK_PROCESSKEY` to the language object's IME handler.
 - **Mouse.** DirectInput, not window messages. `DirectInputMouse::method_0041e730` polls
   the SysMouse device once per frame: from `CLoginMode::OnFrame`, and from
@@ -312,10 +313,10 @@ Each subsystem is reached through global objects; nothing passes them as argumen
 | `g_TextureCache` | `0x625e88` | `TextureCache` | textures by name |
 | `g_FontCache` | `0x623c48` | `FontCache` | GDI fonts |
 | `GetResourceManager()` | `0x4dfa10`, static `0x67cd88` | `ResourceManager` | resources by name, created on first use |
-| `g_CGPak` | `0x67cd00` | `CGPak` | the archive; the active archive pointer is `0x67cd84` |
+| `g_CGPak` | `0x67cd00` | `CGPak` | the archive; `g_pCGPak` (`0x67cd84`) points to the one in use |
 | `g_DirectInputMouse` | `0x628b48` | `DirectInputMouse` | the mouse |
 | `g_KeyPadDispatcher` | `0x628b88` | `KeyPadDispatcher` | key bindings |
-| language object | pointer `0x67c99c` | a `CLanguage` subclass | code page, IME, text rules |
+| `g_pCLanguage` | `0x67c99c` | `CLanguage *` | code page, IME, text rules; points to `g_CLanguage`, `g_CLanguageTC` or `g_CLanguageTH` (`0x67c8e8`, `0x67c448`, `0x67c3b8`) |
 | `g_MoviePlayer` | `0x688480` | `MoviePlayer` | Bink movies |
 | `g_GrannyMotionTable` | `0x63edc0` | `GrannyMotionTable` | 3D monster animations |
 | `g_CActorPickNode` | `0x67ca60` | `CActorPickNode` | picking under the cursor |

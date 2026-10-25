@@ -29,6 +29,9 @@ address	namespace	name	evidence	type
 00641d20	Global	g_CSnapMgr	constructed by 004391d0 from static initializer 00438ab0	class:CSnapMgr
 00641fa8	Global	g_UIWindowMgr	constructed by 004a7660 from static initializer 004a7060	class:UIWindowMgr
 0067bf98	Global	g_ThaiWordBreaker	constructed by 004c26b0 from static initializer 004c9390	class:ThaiWordBreaker
+0067c3b8	Global	g_CLanguageTH	constructed on first use by 004c93d0 in 004ca940	class:CLanguageTH
+0067c448	Global	g_CLanguageTC	constructed on first use by 004c8c40 in 004ca940	class:CLanguageTC
+0067c8e8	Global	g_CLanguage	constructed on first use by 004c79c0 in 004ca940	class:CLanguage
 0067c9a0	Global	g_XmlDocument	constructed by 004c95b0 from static initializer 004c9590	class:XmlDocument
 0067c9e8	Global	g_ModeSwitcher	constructed by 004cbf10 from static initializer 004cbef0	class:ModeSwitcher
 0067ca60	Global	g_CActorPickNode	constructed by 004ce4f0 from static initializer 004ce460	class:CActorPickNode
@@ -36,6 +39,7 @@ address	namespace	name	evidence	type
 0067cbe8	Global	g_MannerFilter	constructed by 004d2a00 from static initializer 004d2030	class:MannerFilter
 0067ccd0	Global	g_TipOfTheDayList	constructed by 004db1d0 from static initializer 004db1b0	class:TipOfTheDayList
 0067cd00	Global	g_CGPak	constructed by 004dd820 from static initializer 004dd740	class:CGPak
+0067ce90	Global	g_mg_mgType1_CWorld	constructed on first use by 004fcfc0 in 004fcf70	class:mg::mgType1::CWorld
 0067d4b8	Global	g_DataFile	constructed by 004dd2f0 from static initializer 00519440	class:DataFile
 00684e30	Global	g_PathFinder	constructed by 004cc1b0 from static initializer 0050c1f0	class:PathFinder
 00686598	Global	g_WorldColorFade	constructed by 00586400 from static initializer 0057cf60	class:WorldColorFade

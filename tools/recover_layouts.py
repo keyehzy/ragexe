@@ -25,6 +25,17 @@ plus n from anywhere, is a method of:
   std::_Tree member at n.
 Global objects and their classes come from the type column of the data label files.
 
+Pointer globals: a call with ECX = [P], P a dword in .data, is a call on the object P
+points to. P's class is its `ptr:<Class>` type in a curated data label file, or else
+the most-derived class common to what is stored into P: global objects' addresses and
+constructors' results. Holding objects of those classes, P's static type is at most
+their common base, and a non-virtual call through it is a method of that class. The
+methods called through P only show that the object is at least of their class (CRagEffect
+stores whatever primitive it last made in 00686584), so they are checked against P's
+class but never decide it. Calls through a pointer with a class then count like calls
+with ECX = this, and pointers that are not inside a global object are typed and named
+g_p<Class>.
+
 Global objects: an absolute memory operand [G + n] anywhere in the program, with G a
 global object of class X, is an access to X's field at n, typed like the this-relative
 ones, and a call with ECX = G + n to a container or member-constructor function places
@@ -57,7 +68,7 @@ Writes:
   analysis/labels/layouts.fields.tsv   class offset size type name evidence
   analysis/labels/layouts.classes.tsv  estimated sizes for classes never created with new
   analysis/labels/methods.functions.tsv  non-virtual methods and _Tree::_Init instances
-  analysis/labels/layouts.data.tsv     global std::_Tree objects, typed
+  analysis/labels/layouts.data.tsv     global std::_Tree objects and pointer globals, typed
   analysis/exports/Ragexe.exe.layouts.tsv  per-class coverage and notes
 """
 import os
@@ -155,6 +166,11 @@ class Layouts:
                               for r in read_tsv(os.path.join(LABELS, name))}
         self.globals = self.global_objects()
         self.global_calls = self.find_global_calls()
+        self.pointer_types = self.curated_pointer_types()
+        self.pointer_calls = self.find_pointer_calls()
+        self.pointer_stores = self.find_pointer_stores()
+        self.slot_class = {}
+        self.via_pointer = defaultdict(set)
         # classes whose object starts with a tree: a global of the class is initialised as one
         self.tree_at0 = {cls for g, cls in self.globals.items() if g in self.global_trees() and cls != "std::_Tree"}
         self.uses_tree_statics = set()
@@ -360,7 +376,7 @@ class Layouts:
     def ecx_before(self, ins, k):
         """('global', addr) when the closest write to ECX before instruction k, within ten
         instructions and with no call or branch target in between, is mov ecx, addr with
-        addr in .data; otherwise None."""
+        addr in .data; ('pointer', addr) when it is mov ecx, dword ptr [addr]; otherwise None."""
         for p in reversed(ins[max(0, k - 10):k]):
             ops = p.operands
             if p.id in (x86.X86_INS_CALL, x86.X86_INS_RET, x86.X86_INS_JMP):
@@ -369,6 +385,10 @@ class Layouts:
                     and ops[0].reg == x86.X86_REG_ECX:
                 if ops[1].type == x86.X86_OP_IMM and self.bx.section_of(ops[1].imm & 0xFFFFFFFF) == ".data":
                     return ("global", ops[1].imm & 0xFFFFFFFF)
+                m = ops[1].mem if ops[1].type == x86.X86_OP_MEM else None
+                if m is not None and m.base == 0 and m.index == 0 and m.segment == 0 and ops[1].size == 4 \
+                        and self.bx.section_of(m.disp & 0xFFFFFFFF) == ".data":
+                    return ("pointer", m.disp & 0xFFFFFFFF)
                 return None
             try:
                 if x86.X86_REG_ECX in p.regs_access()[1]:
@@ -408,7 +428,7 @@ class Layouts:
                     continue
                 t = self.bx.call_target(i)
                 held = self.ecx_before(ins, k) if isinstance(t, int) else None
-                if not held:
+                if not held or held[0] != "global":
                     continue
                 j = bisect_right(starts, held[1]) - 1
                 if j < 0:
@@ -416,6 +436,85 @@ class Layouts:
                 cls = self.globals[starts[j]]
                 off = held[1] - starts[j]
                 out.append((t, cls, off, fn.entry, i.address))
+        return out
+
+    def curated_pointer_types(self):
+        out = {}
+        for name in sorted(os.listdir(LABELS)):
+            if name.endswith(".data.tsv") and name != "layouts.data.tsv":
+                for r in read_tsv(os.path.join(LABELS, name)):
+                    if r.get("type", "").startswith("ptr:"):
+                        out[int(r["address"], 16)] = r["type"][4:]
+        return out
+
+    def find_pointer_calls(self):
+        """(callee, pointer, caller, site) for every call made with ECX = [pointer]."""
+        out = []
+        for fn in self.bx.functions.values():
+            if fn.kind != "code":
+                continue
+            ins = self.bx.insns(fn)
+            for k, i in enumerate(ins):
+                if i.id != x86.X86_INS_CALL:
+                    continue
+                t = self.bx.call_target(i)
+                held = self.ecx_before(ins, k) if isinstance(t, int) else None
+                if held and held[0] == "pointer":
+                    out.append((t, held[1], fn.entry, i.address))
+        return out
+
+    def find_pointer_stores(self):
+        """pointer -> [(class, site)] for mov [P], G with G a global object, and for
+        mov [P], eax after a constructor call (with only the null path's xor eax, eax
+        in between)."""
+        out = defaultdict(list)
+        for fn in self.bx.functions.values():
+            if fn.kind != "code" or fn.library:
+                continue
+            ins = self.bx.insns(fn)
+            built = None                     # class whose constructor result is in EAX
+            for i in ins:
+                ops = i.operands
+                if i.id == x86.X86_INS_MOV and len(ops) == 2 and ops[0].type == x86.X86_OP_MEM \
+                        and ops[0].mem.base == 0 and ops[0].mem.index == 0 and ops[0].size == 4:
+                    p = ops[0].mem.disp & 0xFFFFFFFF
+                    if self.bx.section_of(p) == ".data":
+                        if ops[1].type == x86.X86_OP_IMM and (ops[1].imm & 0xFFFFFFFF) in self.globals:
+                            out[p].append((self.globals[ops[1].imm & 0xFFFFFFFF], i.address))
+                        elif ops[1].type == x86.X86_OP_REG and ops[1].reg == x86.X86_REG_EAX and built:
+                            out[p].append((built, i.address))
+                if i.id == x86.X86_INS_CALL:
+                    t = self.bx.call_target(i)
+                    built = self.ctor_class.get(t) if isinstance(t, int) else None
+                    continue
+                if i.id == x86.X86_INS_XOR and len(ops) == 2 and ops[0].type == x86.X86_OP_REG \
+                        and ops[0].reg == x86.X86_REG_EAX and ops[1].type == x86.X86_OP_REG \
+                        and ops[1].reg == x86.X86_REG_EAX:
+                    continue
+                try:
+                    if x86.X86_REG_EAX in i.regs_access()[1]:
+                        built = None
+                except Exception:
+                    built = None
+        return out
+
+    def slot_classes(self):
+        """pointer -> class, from the curated type or the common base of what is stored."""
+        out = dict(self.pointer_types)
+        for p, stores in self.pointer_stores.items():
+            classes = {cls for cls, _ in stores if cls in self.classes}
+            if p in out or not classes:
+                continue
+            cls = self.common_base(classes)
+            if cls is None:
+                self.notes["(unassigned)"].append(f"pointer {p:08x} holds unrelated {sorted(classes)}")
+                continue
+            out[p] = cls
+        for t, p, _, _ in self.pointer_calls:
+            fn = self.bx.functions.get(t)
+            if p in out and fn is not None and fn.namespace in self.classes and not fn.name.startswith("method_") \
+                    and fn.namespace != out[p] and fn.namespace not in (b for b, _ in self.bases.get(out[p], [])):
+                self.notes["(unassigned)"].append(f"pointer {p:08x} ({out[p]}) is passed to {fn.qualified}")
         return out
 
     def find_tree_ctors(self):
@@ -566,6 +665,12 @@ class Layouts:
             for t, cls, off, caller, _ in self.global_calls:
                 if off == 0 or off < self.sizes.get(cls, CONTAINER_SIZE.get(cls, 0)):
                     self.this_calls[t].append((cls, off, caller))
+            self.slot_class = self.slot_classes()
+            self.via_pointer = defaultdict(set)
+            for t, p, caller, _ in self.pointer_calls:
+                if p in self.slot_class:
+                    self.this_calls[t].append((self.slot_class[p], 0, caller))
+                    self.via_pointer[t].add(p)
             new = self.assign()
             if {t: o for t, (o, _) in new.items()} == {t: o for t, (o, _) in self.assigned.items()}:
                 self.assigned = new
@@ -601,8 +706,11 @@ class Layouts:
                     continue
             callers = sorted({c for _, _, c in calls})
             via = sorted({cls for cls, _, _ in calls})
+            ptrs = sorted(self.via_pointer.get(t, ()))
+            through = f"; through the pointer at {', '.join(f'{p:08x}' for p in ptrs[:3])}" if ptrs else ""
             out[t] = (owner, f"__thiscall; called with this from {len(callers)} functions of "
-                             f"{', '.join(via[:4])}{' and more' if len(via) > 4 else ''}, e.g. {callers[0]:08x}")
+                             f"{', '.join(via[:4])}{' and more' if len(via) > 4 else ''}, e.g. {callers[0]:08x}"
+                             f"{through}")
         return out
 
     # -- inheritance ---------------------------------------------------------------
@@ -797,6 +905,17 @@ class Layouts:
             self.own_fields[cls] = self.resolve(cls, 0, self.extent(cls))
         self.write()
 
+    def standalone_pointers(self, trees):
+        """Pointers with a class that no data label names and no global object contains."""
+        labeled = set(trees)
+        for name in os.listdir(LABELS):
+            if name.endswith(".data.tsv") and name != "layouts.data.tsv":
+                labeled.update(int(r["address"], 16) for r in read_tsv(os.path.join(LABELS, name)))
+        spans = [(g, g + max(self.extent(cls) if cls in self.classes else 0, CONTAINER_SIZE.get(cls, 0), 1))
+                 for g, cls in self.globals.items()]
+        return {p: cls for p, cls in self.slot_class.items()
+                if p not in labeled and not any(lo <= p < hi for lo, hi in spans)}
+
     def flattened(self, cls, disp=0, seen=None):
         seen = seen if seen is not None else set()
         out = []
@@ -862,12 +981,30 @@ class Layouts:
             for t, (owner, ev) in sorted(self.assigned.items()):
                 f.write(f"{t:08x}\t{owner}\tmethod_{t:08x}\t__thiscall\t{ev}\n")
         trees = {g: v for g, v in self.global_trees().items() if g not in self.curated_data}
+        pointers = self.standalone_pointers(trees)
+        per_class = Counter(pointers.values())
         with open(os.path.join(LABELS, "layouts.data.tsv"), "w", encoding="utf-8") as f:
             f.write("address\tnamespace\tname\tevidence\ttype\n" + gen)
-            for g, (node, t, c) in sorted(trees.items()):
-                f.write(f"{g:08x}\tGlobal\tg_tree_{g:08x}\t{c:08x} calls {t:08x} with ECX = this global; "
-                        f"value size {node - 16}\tstd_tree\n")
+            rows = {g: f"{g:08x}\tGlobal\tg_tree_{g:08x}\t{c:08x} calls {t:08x} with ECX = this global; "
+                       f"value size {node - 16}\tstd_tree\n" for g, (node, t, c) in trees.items()}
+            for p, cls in pointers.items():
+                short = cls.replace("::", "_")
+                name = f"g_p{short}" if per_class[cls] == 1 else f"g_p{short}_{p:08x}"
+                calls = [(t, c) for t, q, c, _ in self.pointer_calls if q == p and (
+                    self.assigned.get(t, (None,))[0] in self.classes or self.bx.functions[t].namespace in self.classes)]
+                stores = self.pointer_stores.get(p, [])
+                ev = []
+                if calls:
+                    ev.append(f"{len(calls)} method calls with ECX = this pointer, e.g. {calls[0][1]:08x} calls {calls[0][0]:08x}")
+                if stores:
+                    ev.append(f"{len(stores)} stores of a {', '.join(sorted({c for c, _ in stores}))}, e.g. at {stores[0][1]:08x}")
+                rows[p] = f"{p:08x}\tGlobal\t{name}\t{'; '.join(ev)}\tptr:{cls}\n"
+            for g in sorted(rows):
+                f.write(rows[g])
         by_owner = Counter("container" if o in CONTAINERS.values() else "class" for o, _ in self.assigned.values())
+        print(f"calls through pointer globals: {len(self.pointer_calls)} sites on "
+              f"{len({p for _, p, _, _ in self.pointer_calls})} pointers, {len(self.slot_class)} with a class; "
+              f"methods reached that way: {len(self.via_pointer)}; pointer globals labeled: {len(pointers)}")
         print(f"calls through global objects: {len(self.global_calls)} sites on {len(self.globals)} globals; "
               f"direct accesses and member calls added: {sum(self.global_access_counts.values())} "
               f"to {sum(1 for n in self.global_access_counts.values() if n)} classes")

@@ -6,6 +6,7 @@ for ApplyLabels.java and a per-class report:
   analysis/labels/objects.functions.tsv     constructors, destructors, deleting destructors
   analysis/labels/initializers.functions.tsv  the C++ static initializer table entries
   analysis/labels/globals.data.tsv          global objects built by static initializers
+                                            or on first use
   analysis/labels/objects.classes.tsv       class sizes
   analysis/exports/Ragexe.exe.objects.tsv   per-class evidence and conflicts
 
@@ -14,7 +15,11 @@ Rules, in order of strength:
      argument and calls operator delete is a deleting destructor of the slot's owner.
      The function it calls first, on `this`, is that class's destructor.
   2. A static initializer stub `mov ecx, G; call/jmp F` constructs the global G with F;
-     the matching atexit stub `mov ecx, G; jmp D` destroys it with D.
+     the matching atexit stub `mov ecx, G; jmp D` destroys it with D. Elsewhere in the
+     game's code, `mov ecx, G; call F` with F a constructor found by the other rules
+     constructs G on first use (a function-local static); a vtable stored into [G]
+     right after the call, by an inlined derived constructor, decides the class. The
+     atexit stubs such code registers name G's destructor as in the initializers.
   3. A function that stores a vtable into `this` (ECX on entry, or a copy of it) and
      whose last such store at the vfptr offset is the class's own vtable, and which
      returns `this`, is a constructor. A destructor stores its own vtable first.
@@ -87,6 +92,7 @@ class Recovery:
         self.sizes = defaultdict(Counter)   # class -> Counter(size -> sites)
         self.size_sites = defaultdict(list)
         self.globals = {}           # global address -> (class, constructor, evidence)
+        self.local_statics = set()  # globals constructed on first use, not by an initializer
         self.notes = defaultdict(list)
         self.ctors = defaultdict(set)
         self.dtors = defaultdict(set)
@@ -158,6 +164,8 @@ class Recovery:
         stores = []
         returns_this = False
         for k, i in enumerate(insns):
+            if i.id == x86.X86_INS_RET and x86.X86_REG_EAX in this:
+                returns_this = True
             st = self.is_vtable_store(i)
             if st and st[0] in this and st[2] in self.vtables:
                 stores.append((i.address, st[1], st[2]))
@@ -285,6 +293,57 @@ class Recovery:
                 self.dtors[cls].add(t)
                 self.globals.setdefault(g, (cls, None, stub))
             return
+
+    def first_use_statics(self):
+        ctor_of = {a: ns for a, (ns, name, _) in self.names.items() if name == short_name(ns)}
+        ctor_of.update(self.curated_ctors)
+        for fn in self.bx.functions.values():
+            if fn.kind != "code" or fn.library:
+                continue
+            ins = self.bx.insns(fn)
+            for k, i in enumerate(ins):
+                if i.id != x86.X86_INS_MOV or len(i.operands) != 2 or i.operands[0].type != x86.X86_OP_REG \
+                        or i.operands[0].reg != x86.X86_REG_ECX or i.operands[1].type != x86.X86_OP_IMM:
+                    continue
+                g = i.operands[1].imm & 0xFFFFFFFF
+                if self.bx.section_of(g) != ".data" or g in self.globals:
+                    continue
+                call = None
+                for j in range(k + 1, min(k + 9, len(ins))):
+                    n = ins[j]
+                    if n.id == x86.X86_INS_CALL:
+                        call = j
+                        break
+                    try:
+                        if n.group(x86.X86_GRP_JUMP) or x86.X86_REG_ECX in n.regs_access()[1]:
+                            break
+                    except Exception:
+                        break
+                t = self.bx.call_target(ins[call]) if call is not None else None
+                if t not in ctor_of or ctor_of[t].startswith("std"):
+                    continue
+                classes = [ctor_of[t]]
+                for n in ins[call + 1:call + 8]:
+                    if n.id == x86.X86_INS_CALL:
+                        break
+                    if n.id == x86.X86_INS_MOV and len(n.operands) == 2 and n.operands[0].type == x86.X86_OP_MEM \
+                            and n.operands[0].mem.base == 0 and n.operands[0].mem.index == 0 \
+                            and n.operands[0].mem.disp & 0xFFFFFFFF == g and n.operands[1].type == x86.X86_OP_IMM:
+                        vt = self.vtables.get(n.operands[1].imm & 0xFFFFFFFF)
+                        if vt and vt[1] == 0:
+                            classes.append(vt[0])
+                cls = self.most_derived(classes)
+                if cls is None:
+                    self.notes["(unrelated)"].append(f"global {g:08x} built by {t:08x} gets vtables of {sorted(set(classes))}")
+                    continue
+                self.globals[g] = (cls, t, fn.entry)
+                self.local_statics.add(g)
+            for k, i in enumerate(ins[1:], start=1):
+                p = ins[k - 1]
+                if self.bx.call_target(i) == ATEXIT and p.id == x86.X86_INS_PUSH and p.operands[0].type == x86.X86_OP_IMM:
+                    stub = p.operands[0].imm & 0xFFFFFFFF
+                    if self.bx.section_of(stub) == ".text":
+                        self.global_from_stub(stub, stub, "dtor")
 
     # -- rule 3: constructors and destructors from vtable stores --------------------
 
@@ -419,6 +478,7 @@ class Recovery:
         self.initializers()
         self.new_sites()
         self.from_vtable_stores()
+        self.first_use_statics()
         self.resolve_sizes()
         self.write()
 
@@ -452,8 +512,12 @@ class Recovery:
                 ctor_fn = self.bx.functions.get(ctor) if ctor else None
                 if not cls and ctor_fn is not None and ctor_fn.namespace.startswith("std::"):
                     continue
-                how = f"constructed by {ctor:08x} from static initializer {entry:08x}" if ctor else \
-                    f"destroyed by atexit stub {entry:08x}"
+                if g in self.local_statics:
+                    how = f"constructed on first use by {ctor:08x} in {entry:08x}"
+                elif ctor:
+                    how = f"constructed by {ctor:08x} from static initializer {entry:08x}"
+                else:
+                    how = f"destroyed by atexit stub {entry:08x}"
                 if not cls:
                     self.unnamed_globals += 1
                     f.write(f"{g:08x}\tGlobal\tg_obj_{g:08x}\t{how}; the class has no RTTI\t\n")
@@ -498,8 +562,8 @@ class Recovery:
         print(f"classes sized: {sized}; new() sites resolved to a class: {sum(sum(c.values()) for c in self.sizes.values())}; "
               f"to STL helpers: {len(self.stl_sized)}; to an unknown callee: {len(self.unknown_sized)}")
         print(f"static initializers: {len(self.initializer_rows)}; global objects of known class: "
-              f"{sum(1 for v in self.globals.values() if v[0])} of {len(self.globals)}; "
-              f"left as g_obj_: {self.unnamed_globals}")
+              f"{sum(1 for v in self.globals.values() if v[0])} of {len(self.globals)} "
+              f"({len(self.local_statics)} constructed on first use); left as g_obj_: {self.unnamed_globals}")
         conflicts = [c for c in self.notes if any("conflict" in n or "smaller" in n or "named both" in n for n in self.notes[c])]
         print(f"classes with conflicts: {len(conflicts)} {conflicts[:12]}")
 

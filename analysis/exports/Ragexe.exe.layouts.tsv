@@ -42,9 +42,9 @@ CGroundScope	220	new	61	211	0.96
 CImfRes	6588	new	7	29	0.00		
 CItem	192	new	53	183	0.95		4 overlapping uses dropped
 CKeyPad	188	new	14	51	0.27		
-CLanguage	136	estimated	28	119	0.88		4 overlapping uses dropped
-CLanguageTC	160	estimated	31	133	0.83	0x9c,0x9d,0x9e,0x9f	3 overlapping uses dropped
-CLanguageTH	144	estimated	29	120	0.83		
+CLanguage	140	estimated	23	126	0.90		12 overlapping uses dropped
+CLanguageTC	160	estimated	26	140	0.88	0x9c,0x9d,0x9e,0x9f	3 overlapping uses dropped
+CLanguageTH	144	estimated	24	127	0.88		
 CLoginMode	4964	new	28	119	0.02		4 overlapping uses dropped
 CMandraAttackEffect	164	new	49	155	0.95		
 CMasterChaser	164	estimated	49	155	0.95		
@@ -92,7 +92,7 @@ RenderQuad	196	new	4	16	0.08
 RenderTriangle	156	new	3	12	0.08		
 ResourceManager	172	estimated	35	134	0.78		3 overlapping uses dropped
 SceneGraphNode	128	new	19	73	0.57		
-SceneRenderer	672	new	114	581	0.86		
+SceneRenderer	672	new	115	585	0.87	0x0,0x198,0x194	0xc used as float and as ['dword', 'pointer']
 SnapObject	60	new	3	60	1.00		
 TextureCache	16	estimated	1	16	1.00		2 overlapping uses dropped
 ThaiLexicon	300	new	11	41	0.14		

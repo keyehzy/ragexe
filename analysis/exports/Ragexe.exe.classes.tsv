@@ -3,7 +3,7 @@ type_info	Global	4	1
 CDCSurface	Global	12	1
 CDC	Global	1	1
 CDCBitmap	Global	13	1
-CSurface	Global	8	1
+CSurface	Global	9	1
 CSurfaceWallpaper	Global	4	1
 CTexture	Global	12	1
 CConnection	Global	7	1
@@ -191,7 +191,7 @@ C3dNodeHAL	Global	4	1
 C3dGround	Global	19	1
 CWorld	Global	3	1
 C3dGround15	Global	23	1
-CLanguage	Global	12	1
+CLanguage	Global	22	1
 CLanguageTC	Global	9	1
 CLanguageTH	Global	4	1
 CMode	Global	13	1
@@ -212,7 +212,7 @@ CPc	Global	39	1
 CMGPc	mg	3	1
 CNpc	Global	17	1
 CMGNpc	mg	3	1
-CMGEngine	mg	10	1
+CMGEngine	mg	11	1
 CObject	mg	9	1
 CEntity	mg	8	1
 CItemObj	mg::mgType1	9	2
@@ -227,7 +227,7 @@ CArrowEffect	Global	8	1
 CArrow	mg	3	1
 CScript	mg	4	1
 CWorld	mg::mgType1	3	1
-CMiniGame001	mg::mgType1	21	1
+CMiniGame001	mg::mgType1	23	1
 CMousePointer	Global	6	1
 C3dGrannyGameActor	Global	15	1
 CGrannyCorpse3d	Global	8	1
@@ -309,7 +309,7 @@ ModelInstance	Global	1	0
 ModelResMesh	Global	1	0
 ModelResNode	Global	1	0
 SceneGraphNode	Global	2	0
-SceneRenderer	Global	11	0
+SceneRenderer	Global	53	0
 ThaiLexicon	Global	2	0
 TriangleSet	Global	2	0
 VertexBuffer	Global	4	0

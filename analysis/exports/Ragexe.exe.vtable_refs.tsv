@@ -11,7 +11,7 @@ CDC	005e2608	00402fbb	CDC::CDC
 CDC	005e2608	00402fa0	FUN_00402fa0
 CDCBitmap	005e2630	00403611	CDCBitmap::CDCBitmap
 CDCBitmap	005e2630	004036a3	CDCBitmap::~CDCBitmap
-CSurface	005e26dc	004160f7	FUN_004160e0
+CSurface	005e26dc	004160f7	CSurface::CSurface
 CSurface	005e26dc	00416097	CSurface::CSurface
 CSurface	005e26dc	00416116	CSurface::~CSurface
 CSurfaceWallpaper	005e26f4	004164f5	CSurfaceWallpaper::CSurfaceWallpaper
@@ -423,7 +423,7 @@ C3dGround	005e8900	004bc3a0	C3dGround::~C3dGround
 CWorld	005e8970	004c3694	CWorld::CWorld
 CWorld	005e8970	004c3703	CWorld::~CWorld
 C3dGround15	005e897c	004c3d54	FUN_004c3ab0
-CLanguage	005e89cc	004c7a37	CLanguage::method_004c79c0
+CLanguage	005e89cc	004c7a37	CLanguage::CLanguage
 CLanguage	005e89cc	004c7ae9	CLanguage::~CLanguage
 CLanguageTC	005e89f8	004c8ca8	CLanguageTC::CLanguageTC
 CLanguageTH	005e8a24	004c9400	CLanguageTH::CLanguageTH
@@ -508,7 +508,7 @@ mg::CMGPc	005e8eac	004eb0d0	mg::CMGPc::~CMGPc
 mg::CMGNpc	005e8f54	004eb0e8	mg::CMGNpc::CMGNpc
 mg::CMGNpc	005e8f54	004eb250	mg::CMGNpc::~CMGNpc
 mg::CMGEngine	005e9014	004eb873	mg::CMGEngine::~CMGEngine
-mg::CMGEngine	005e9014	004eb5e1	mg::mgType1::CMiniGame001::method_004eb4f0
+mg::CMGEngine	005e9014	004eb5e1	mg::CMGEngine::CMGEngine
 mg::mgType1::CItemObj	005e90ec	004ed878	mg::mgType1::CItemObj::CItemObj
 mg::mgType1::CItemObj	005e90ec	004ed948	mg::mgType1::CItemObj::~CItemObj
 mg::mgType1::CItemObj	005e90d0	004ed8b0	mg::mgType1::CItemObj::CItemObj

@@ -11,6 +11,7 @@ address	namespace	name	calling_convention	evidence
 00405de0	CTexture	~CTexture	__thiscall	atexit stub 0040c920 destroys global 00625eb8 with it; stores the CTexture vtable
 00416080	CSurface	CSurface	__thiscall	stores the CSurface vtable into this last (1 vtable stores) and returns this
 004160b0	CSurface	`scalar_deleting_destructor'	__thiscall	vtable slot of CSurface; tests bit 0 of the flags argument and calls operator delete
+004160e0	CSurface	CSurface	__thiscall	stores the CSurface vtable into this last (1 vtable stores) and returns this
 00416110	CSurface	~CSurface	__thiscall	called on this by CSurface::`scalar_deleting_destructor' 004160b0 before operator delete
 004164e0	CSurfaceWallpaper	CSurfaceWallpaper	__thiscall	stores the CSurfaceWallpaper vtable into this last (1 vtable stores) and returns this
 00416510	CSurfaceWallpaper	`scalar_deleting_destructor'	__thiscall	vtable slot of CSurfaceWallpaper; tests bit 0 of the flags argument and calls operator delete
@@ -376,7 +377,7 @@ address	namespace	name	calling_convention	evidence
 0046f5a0	UIChatRoomMakeWnd	UIChatRoomMakeWnd	__thiscall	stores the UIChatRoomMakeWnd vtable into this last (1 vtable stores) and returns this
 0046f730	UIChatRoomMakeWnd	`scalar_deleting_destructor'	__thiscall	vtable slot of UIChatRoomMakeWnd; tests bit 0 of the flags argument and calls operator delete
 0046f760	UIChatRoomMakeWnd	~UIChatRoomMakeWnd	__thiscall	called on this by UIChatRoomMakeWnd::`scalar_deleting_destructor' 0046f730 before operator delete
-00470ee0	UIChatRoomChangeWnd	UIChatRoomChangeWnd	__thiscall	called on the result of operator new(224) at 004afc1e and stores the UIChatRoomChangeWnd vtable
+00470ee0	UIChatRoomChangeWnd	UIChatRoomChangeWnd	__thiscall	stores the UIChatRoomChangeWnd vtable into this last (1 vtable stores) and returns this
 00470ff0	UIChatRoomChangeWnd	`scalar_deleting_destructor'	__thiscall	vtable slot of UIChatRoomChangeWnd; tests bit 0 of the flags argument and calls operator delete
 00471020	UIChatRoomChangeWnd	~UIChatRoomChangeWnd	__thiscall	called on this by UIChatRoomChangeWnd::`scalar_deleting_destructor' 00470ff0 before operator delete
 00471650	UIExchangeWnd	UIExchangeWnd	__thiscall	stores the UIExchangeWnd vtable into this last (1 vtable stores) and returns this
@@ -420,7 +421,7 @@ address	namespace	name	calling_convention	evidence
 00479de0	UIGuildWnd	`scalar_deleting_destructor'	__thiscall	vtable slot of UIGuildWnd; tests bit 0 of the flags argument and calls operator delete
 00479e20	UIGuildInfoManageWnd	`scalar_deleting_destructor'	__thiscall	vtable slot of UIGuildInfoManageWnd; tests bit 0 of the flags argument and calls operator delete
 00479e50	UIGuildInfoManageWnd	~UIGuildInfoManageWnd	__thiscall	called on this by UIGuildInfoManageWnd::`scalar_deleting_destructor' 00479e20 before operator delete
-0047b620	UIGuildMemberManageWnd	UIGuildMemberManageWnd	__thiscall	called on the result of operator new(304) at 004ae959 and stores the UIGuildMemberManageWnd vtable
+0047b620	UIGuildMemberManageWnd	UIGuildMemberManageWnd	__thiscall	stores the UIGuildMemberManageWnd vtable into this last (2 vtable stores) and returns this
 0047b7a0	UIGuildMemberManageWnd	`scalar_deleting_destructor'	__thiscall	vtable slot of UIGuildMemberManageWnd; tests bit 0 of the flags argument and calls operator delete
 0047b7d0	UIGuildMemberManageWnd	~UIGuildMemberManageWnd	__thiscall	called on this by UIGuildMemberManageWnd::`scalar_deleting_destructor' 0047b7a0 before operator delete
 0047e0e0	UIGuildPositionManageWnd	UIGuildPositionManageWnd	__thiscall	stores the UIGuildPositionManageWnd vtable into this last (2 vtable stores) and returns this
@@ -563,14 +564,15 @@ address	namespace	name	calling_convention	evidence
 004c36e0	CWorld	~CWorld	__thiscall	called on this by CWorld::`scalar_deleting_destructor' 004c36b0 before operator delete
 004c4250	C3dGround15	`scalar_deleting_destructor'	__thiscall	vtable slot of C3dGround15; tests bit 0 of the flags argument and calls operator delete
 004c4280	C3dGround15	~C3dGround15	__thiscall	called on this by C3dGround15::`scalar_deleting_destructor' 004c4250 before operator delete
+004c79c0	CLanguage	CLanguage	__thiscall	stores the CLanguage vtable into this last (1 vtable stores) and returns this
 004c7ab0	CLanguage	`scalar_deleting_destructor'	__thiscall	vtable slot of CLanguage; tests bit 0 of the flags argument and calls operator delete
-004c7ae0	CLanguage	~CLanguage	__thiscall	called on this by CLanguage::`scalar_deleting_destructor' 004c7ab0 before operator delete
+004c7ae0	CLanguage	~CLanguage	__thiscall	atexit stub 004cab00 destroys global 0067c8e8 with it; stores the CLanguage vtable
 004c8c40	CLanguageTC	CLanguageTC	__thiscall	stores the CLanguageTC vtable into this last (1 vtable stores) and returns this
 004c8e30	CLanguageTC	`scalar_deleting_destructor'	__thiscall	vtable slot of CLanguageTC; tests bit 0 of the flags argument and calls operator delete
-004c8e60	CLanguageTC	~CLanguageTC	__thiscall	called on this by CLanguageTC::`scalar_deleting_destructor' 004c8e30 before operator delete
+004c8e60	CLanguageTC	~CLanguageTC	__thiscall	atexit stub 004caaf0 destroys global 0067c448 with it; stores the CLanguageTC vtable
 004c93d0	CLanguageTH	CLanguageTH	__thiscall	stores the CLanguageTH vtable into this last (1 vtable stores) and returns this
 004c9430	CLanguageTH	`scalar_deleting_destructor'	__thiscall	vtable slot of CLanguageTH; tests bit 0 of the flags argument and calls operator delete
-004c9460	CLanguageTH	~CLanguageTH	__thiscall	called on this by CLanguageTH::`scalar_deleting_destructor' 004c9430 before operator delete
+004c9460	CLanguageTH	~CLanguageTH	__thiscall	atexit stub 004caae0 destroys global 0067c3b8 with it; stores the CLanguageTH vtable
 004cb270	CMode	CMode	__thiscall	stores the CMode vtable into this last (1 vtable stores) and returns this
 004cb310	CMode	`scalar_deleting_destructor'	__thiscall	vtable slot of CMode; tests bit 0 of the flags argument and calls operator delete
 004cb340	CMode	~CMode	__thiscall	called on this by CMode::`scalar_deleting_destructor' 004cb310 before operator delete
@@ -601,12 +603,13 @@ address	namespace	name	calling_convention	evidence
 004eb0e0	mg::CMGNpc	CMGNpc	__thiscall	stores the mg::CMGNpc vtable into this last (1 vtable stores) and returns this
 004eb220	mg::CMGNpc	`scalar_deleting_destructor'	__thiscall	vtable slot of mg::CMGNpc; tests bit 0 of the flags argument and calls operator delete
 004eb250	mg::CMGNpc	~CMGNpc	__thiscall	called on this by mg::CMGNpc::`scalar_deleting_destructor' 004eb220 before operator delete
+004eb4f0	mg::CMGEngine	CMGEngine	__thiscall	stores the mg::CMGEngine vtable into this last (1 vtable stores) and returns this
 004eb6e0	mg::CMGEngine	`scalar_deleting_destructor'	__thiscall	vtable slot of mg::CMGEngine; tests bit 0 of the flags argument and calls operator delete
 004eb850	mg::CMGEngine	~CMGEngine	__thiscall	called on this by mg::CMGEngine::`scalar_deleting_destructor' 004eb6e0 before operator delete
 004ed840	mg::mgType1::CItemObj	CItemObj	__thiscall	stores the mg::mgType1::CItemObj vtable into this last (1 vtable stores) and returns this
 004ed8f0	mg::mgType1::CItemObj	`scalar_deleting_destructor'	__thiscall	vtable slot of mg::mgType1::CItemObj; tests bit 0 of the flags argument and calls operator delete
 004ed920	mg::mgType1::CItemObj	~CItemObj	__thiscall	called on this by mg::mgType1::CItemObj::`scalar_deleting_destructor' 004ed8f0 before operator delete
-004ee4e0	mg::CTile	CTile	__thiscall	called on the result of operator new(36) at 004ee961 and stores the mg::CTile vtable
+004ee4e0	mg::CTile	CTile	__thiscall	stores the mg::CTile vtable into this last (1 vtable stores) and returns this
 004ee510	mg::CTile	`scalar_deleting_destructor'	__thiscall	vtable slot of mg::CTile; tests bit 0 of the flags argument and calls operator delete
 004ee540	mg::CTile	~CTile	__thiscall	called on this by mg::CTile::`scalar_deleting_destructor' 004ee510 before operator delete
 004ee910	mg::CMap	CMap	__thiscall	stores the mg::CMap vtable into this last (1 vtable stores) and returns this
@@ -638,7 +641,7 @@ address	namespace	name	calling_convention	evidence
 004f1b70	mg::CScript	~CScript	__thiscall	called on this by mg::CScript::`scalar_deleting_destructor' 004f1aa0 before operator delete
 004fcfc0	mg::mgType1::CWorld	CWorld	__thiscall	stores the mg::mgType1::CWorld vtable into this last (1 vtable stores) and returns this
 004fd180	mg::mgType1::CWorld	`scalar_deleting_destructor'	__thiscall	vtable slot of mg::mgType1::CWorld; tests bit 0 of the flags argument and calls operator delete
-004fd1b0	mg::mgType1::CWorld	~CWorld	__thiscall	called on this by mg::mgType1::CWorld::`scalar_deleting_destructor' 004fd180 before operator delete
+004fd1b0	mg::mgType1::CWorld	~CWorld	__thiscall	atexit stub 004fcfb0 destroys global 0067ce90 with it; stores the mg::mgType1::CWorld vtable
 004fec70	mg::mgType1::CMiniGame001	CMiniGame001	__thiscall	stores the mg::mgType1::CMiniGame001 vtable into this last (1 vtable stores) and returns this
 004fec90	mg::mgType1::CMiniGame001	`scalar_deleting_destructor'	__thiscall	vtable slot of mg::mgType1::CMiniGame001; tests bit 0 of the flags argument and calls operator delete
 004fecc0	mg::mgType1::CMiniGame001	~CMiniGame001	__thiscall	called on this by mg::mgType1::CMiniGame001::`scalar_deleting_destructor' 004fec90 before operator delete
@@ -712,7 +715,7 @@ address	namespace	name	calling_convention	evidence
 0054d220	CRagEffect	CRagEffect	__thiscall	stores the CRagEffect vtable into this last (1 vtable stores) and returns this
 0054d340	CRagEffect	`scalar_deleting_destructor'	__thiscall	vtable slot of CRagEffect; tests bit 0 of the flags argument and calls operator delete
 0054d370	CRagEffect	~CRagEffect	__thiscall	called on this by CRagEffect::`scalar_deleting_destructor' 0054d340 before operator delete
-0057cfa0	CEffectPrim	CEffectPrim	__thiscall	called on the result of operator new(88464) at 0054f9c3 and stores the CEffectPrim vtable
+0057cfa0	CEffectPrim	CEffectPrim	__thiscall	stores the CEffectPrim vtable into this last (1 vtable stores) and returns this
 0057d380	CEffectPrim	`scalar_deleting_destructor'	__thiscall	vtable slot of CEffectPrim; tests bit 0 of the flags argument and calls operator delete
 0057d3b0	CEffectPrim	~CEffectPrim	__thiscall	called on this by CEffectPrim::`scalar_deleting_destructor' 0057d380 before operator delete
 005ab960	CSkill	CSkill	__thiscall	stores the CSkill vtable into this last (1 vtable stores) and returns this
