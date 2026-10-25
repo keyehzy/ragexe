@@ -424,9 +424,48 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     any `std` namespace is `stl`, now including the container methods.
   - A fresh import needs three `analyze.sh` passes before the function set stops growing.
 
+- [x] Classes without RTTI (curated in `analysis/labels/inferred.{classes,functions,data}.tsv`):
+  - Started from what `WinMain` touches, then every global left as `g_obj_<address>` and every
+    game-code `new()` site whose callee had no RTTI class. Each name cites strings, imports and use.
+  - 29 classes and 95 function names. Two class names come from strings in the binary: `C3dDevice`
+    (`"HRESULT C3dDevice::RestoreSurfaces()"`) and `SceneGraphNode` (`"SceneGraphNode Load."`).
+    The rest are descriptive and carry no `C` prefix, e.g. `ModeSwitcher` (creates
+    `CLoginMode`/`CGameMode`), `TextureCache`, `ResourceManager` (`ResNameTable.txt`),
+    `ClientState` (registry options, inventory, message tables), `MannerFilter` (`manner.txt`),
+    `MoviePlayer` (Bink), `PathFinder`, `DataFile`, `XmlDocument` (`clientinfo.xml`).
+  - The global with the `_Tree` at `+0xf8` is `GuildInfo`.
+  - All 23 `g_obj_` globals are named. Six were STL maps; five are now named by what they hold,
+    from the files that fill them (`g_itemInfoById`, `g_cardInfoById`, `g_skillInfoById`,
+    `g_metalProcessItems`, `g_prevFontByDc`). The sixth, `0067cd88`, is the
+    `ResourceManager` that `GetResourceManager` constructs on first use: its constructor had
+    been taken for a tree constructor. A tree constructor must now write nothing past 16 bytes.
+  - Of the 74 unresolved `new()` sites, 24 construct the new classes and 29 go to STL code:
+    12 `std::_Construct` instances (placement copies into fresh list and tree nodes), the
+    `std::string` copy constructor, and one inlined constructor. The 21 left are in the static
+    CRT's locale code.
+- Pipeline changes:
+  - Curated files win: generators skip curated addresses, and `ApplyLabels` applies curated
+    files after generated ones. A curated constructor (a row named after its class) drives
+    the generators like a recovered one: global names (`g_<Class>`) and sizes from `new()`.
+    8 classes are sized that way; 2 have curated sizes (`RenderTriangle` 156, allocated two at
+    a time; `RenderQuad` 196).
+  - `ApplyLabels` creates classes listed in a classes file and types every global with its
+    class struct (`class:<Class>` in the data type column), skipping any that would cover
+    another label. When a labeled function lies inside another (`ModeSwitcher`'s constructor
+    is the tail-jump target of its initializer stub), it splits it off.
+  - Methods are also assigned from calls made with `ECX = &global + n`, anywhere in the
+    program: 3,276 call sites on 49 globals.
+  - In a class that starts with a map (`TextureCache`), a function called at offset 0 that
+    reads that map type's shared nil-node global is a `std::_Tree` method.
+  - Result: **974 methods** (896 on classes, 78 on containers; was 550). 10,112 fields;
+    median coverage of sized classes still 92%.
+  - Ledger: 58.2% of the bytes to port are named (was 47.3%); 6,003 functions left to port,
+    1,112 library.
+  - Converges in two `--reanalyze` passes: the second regenerates identical label files.
+
 ### Next actions (M1)
-1. Name the 23 non-RTTI globals and the 74 non-RTTI `new` targets from their use, starting
-   with what `WinMain` touches. One of them has a `_Tree` member at `+0xf8` (built by `FUN_004cfcb0`).
-2. Make `std::string`, `std::list` and `std::_Tree` Ghidra classes typed with their structs, so
-   `this` in the 80 container methods is typed.
+1. Make `std::string`, `std::list` and `std::_Tree` Ghidra classes typed with their structs, so
+   `this` in the container methods is typed.
+2. Count direct `[global + n]` accesses as field uses of global objects; singletons such as
+   `ClientState` are mostly reached that way.
 3. Emulation oracle harness and the static runtime-code check.

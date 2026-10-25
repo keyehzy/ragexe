@@ -1,6 +1,8 @@
 class	size	size_source	fields	covered_bytes	coverage	indexed_bases	notes
+AnimModelResNode	88	new	17	70	0.80		3 overlapping uses dropped
 C3dAnimModelRes	356	new	18	89	0.25		6 overlapping uses dropped
 C3dAttr	300	new	8	33	0.11		
+C3dDevice	572	estimated	54	205	0.36		
 C3dGrannyGameActor	3132	new	152	584	0.19	0x4c8,0x304,0x288	
 C3dGrannyModelRes	948	new	9	40	0.04		
 C3dGround	236	new	40	164	0.69		
@@ -11,12 +13,12 @@ C3dNodeHAL	388	new	55	214	0.55
 C3dWorldRes	448	new	10	98	0.22		18 overlapping uses dropped
 CAbleToMakeEffect	192	estimated	54	183	0.95		3 overlapping uses dropped
 CActRes	324	new	14	51	0.16		
-CActorPickNode	48	new	5	32	0.67		3 overlapping uses dropped
+CActorPickNode	48	new	9	48	1.00	0x14	3 overlapping uses dropped
 CArrowEffect	208	new	60	199	0.96		
 CBitmapRes	288	new	5	24	0.08		
 CBlowEffect	160	new	48	151	0.94		
 CBlurPC	796	new	152	596	0.75		
-CConnection	124	estimated	11	42	0.34		
+CConnection	124	estimated	12	44	0.35		
 CController	172	estimated	9	40	0.23		
 CCorpse	160	new	48	151	0.94		
 CDC	4	estimated	0	4	1.00		
@@ -25,7 +27,7 @@ CDCSurface	20	estimated	4	20	1.00
 CDummyEffectLauncher	196	new	55	187	0.95		
 CEZeffectRes	54196	new	4	53776	0.99		
 CEffectMaker	220	new	61	211	0.96		
-CEffectPrim	88464	new	176	645	0.01		1 overlapping uses dropped
+CEffectPrim	88464	new	175	793	0.01		3 overlapping uses dropped
 CEmblemRes	560	new	2	296	0.53		1 overlapping uses dropped
 CGPak	132	estimated	24	91	0.69		
 CGameActor	636	estimated	122	473	0.74		10 overlapping uses dropped
@@ -54,14 +56,14 @@ CNumEffect	168	new	50	159	0.95
 CPaletteRes	1296	new	1	8	0.01		
 CPc	776	new	150	588	0.76		4 overlapping uses dropped
 CPlayer	988	new	172	676	0.68		
-CRagConnection	204	estimated	22	82	0.40		3 overlapping uses dropped
-CRagEffect	16876	estimated	78	279	0.02	0x4168,0x0	4 overlapping uses dropped
+CRagConnection	204	estimated	23	84	0.41		3 overlapping uses dropped
+CRagEffect	17540	estimated	79	435	0.02	0x4168,0x0	4 overlapping uses dropped
 CRenderObject	160	estimated	48	151	0.94		5 overlapping uses dropped
 CRes	8	estimated	1	8	1.00		
 CRmaRes	344	new	19	71	0.21		
 CSakGPak	136	estimated	25	95	0.70		
 CSkill	656	new	127	493	0.75		
-CSkinMgr	84	estimated	17	72	0.86		4 overlapping uses dropped
+CSkinMgr	88	estimated	18	76	0.86		4 overlapping uses dropped
 CSnapMgr	20	estimated	2	20	1.00		3 overlapping uses dropped
 CSoundMaker	204	new	56	195	0.96		4 overlapping uses dropped
 CSprRes	1332	new	3	44	0.03		6 overlapping uses dropped
@@ -70,8 +72,32 @@ CSurfaceWallpaper	16	new	3	16	1.00
 CTexture	296	new	10	41	0.14		1 overlapping uses dropped
 CView	448	new	26	105	0.23		
 CWave	280	new	3	16	0.06		
-CWorld	244	new	17	101	0.41		12 overlapping uses dropped
+CWorld	244	new	18	229	0.94		12 overlapping uses dropped
+ClientState	6356	estimated	524	4482	0.71	0x17fc,0x173c,0x179c,0xe60,0x17cc,0x394	39 overlapping uses dropped
+DataFile	12	estimated	3	12	1.00		
+DirectInputMouse	60	estimated	12	48	0.80		
+FontCache	16	estimated	4	13	0.81		
+GrannyMotionTable	644	estimated	9	33	0.05	0x0	1 overlapping uses dropped
+GuildInfo	296	estimated	36	258	0.87		25 overlapping uses dropped
+KeyPadDispatcher	108	estimated	7	25	0.23		
+MannerFilter	48	estimated	12	45	0.94		
+ModeSwitcher	96	estimated	6	24	0.25		1 overlapping uses dropped
+ModelInstance	512	new	24	98	0.19		3 overlapping uses dropped
+ModelResMesh	564	new	10	560	0.99		
+ModelResNode	364	new	14	58	0.16		3 overlapping uses dropped
+MoviePlayer	16	estimated	4	13	0.81		
+PathFinder	4248	estimated	13	40	0.01	0x10	
+RenderQuad	196	new	4	16	0.08		
+RenderTriangle	156	new	3	12	0.08		
+ResourceManager	172	estimated	35	134	0.78		3 overlapping uses dropped
+SceneGraphNode	128	new	19	73	0.57		
+SceneRenderer	672	new	110	565	0.84		
 SnapObject	60	new	3	60	1.00		
+TextureCache	16	estimated	1	16	1.00		2 overlapping uses dropped
+ThaiLexicon	300	new	11	41	0.14		
+ThaiWordBreaker	8	estimated	2	8	1.00	0x4	
+TipOfTheDayList	16	estimated	4	13	0.81		
+TriangleSet	28	new	1	4	0.14		
 UIAllyGuildAcceptWnd	112	new	25	112	1.00		
 UIBalloonText	108	estimated	24	102	0.94		
 UIBarGraph	80	estimated	17	80	1.00		
@@ -223,7 +249,10 @@ UIWhisperEditCtrl	164	new	35	152	0.93
 UIWhisperListWnd	196	new	39	173	0.88		3 overlapping uses dropped
 UIWhisperWnd	152	new	35	146	0.96		
 UIWindow	76	estimated	16	76	1.00		3 overlapping uses dropped
-UIWindowMgr	580	estimated	122	541	0.93		18 overlapping uses dropped
+UIWindowMgr	1152	estimated	137	601	0.52		21 overlapping uses dropped
+VertexBuffer	16	new	4	16	1.00		
+WorldColorFade	72	estimated	22	70	0.97		
+XmlDocument	40	estimated	1	4	0.10		
 __non_rtti_object	12	estimated	2	12	1.00		
 bad_cast	12	estimated	2	12	1.00		
 bad_typeid	12	estimated	2	12	1.00		

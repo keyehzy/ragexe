@@ -1,12 +1,12 @@
 program            Ragexe.exe
 language           x86:LE:32:default / windows
-functions          10811
+functions          10813
 external functions 329
-function bytes     1859525
+function bytes     1859539
 thunks             95
-non-default names  6634
+non-default names  7155
 FID matches        55 (4069 bytes, 0.2% of function bytes)
-class namespaces   298
+class namespaces   327
 source ANALYSIS    4929
-source DEFAULT     4177
-source USER_DEFINED 1705
+source DEFAULT     3658
+source USER_DEFINED 2226

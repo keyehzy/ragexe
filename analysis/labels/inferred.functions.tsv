@@ -1,0 +1,125 @@
+address	namespace	name	calling_convention	evidence
+# Constructors and clearly identified methods of the classes in inferred.classes.tsv,
+# plus STL helpers that operator new results are passed to.
+# A row whose name is its class's name is that class's constructor; tools/recover_objects.py
+# uses those rows to name globals and size classes from operator new.
+# C3dDevice
+00404240	C3dDevice	C3dDevice	__thiscall	static initializer 004041c0 runs mov ecx, 006239d0; jmp 00404240
+00404410	C3dDevice	Init	__thiscall	calls DirectDrawCreateEx, SetWindowLongA and SetRect; a start-up step of WinMain (via 005b1d20)
+004042e0	C3dDevice	Release	__thiscall	releases the DirectDraw and Direct3D objects, reporting " : D3D object is still referenced %d times"; WinMain calls it at shutdown
+00405200	C3dDevice	RestoreSurfaces	__thiscall	prints its own name, "HRESULT C3dDevice::RestoreSurfaces()"
+004054b0	C3dDevice	CreateRenderer	__thiscall	operator new(0x2a0) and the SceneRenderer constructor, configured from the device's pixel format and viewport; WinMain stores the result in g_pSceneRenderer
+00404f50	C3dDevice	DestroyRenderer	__thiscall	WinMain passes it g_pSceneRenderer at shutdown; calls operator delete
+# VertexBuffer
+00405f60	VertexBuffer	VertexBuffer	__thiscall	zeroes +0, +8 and +0xc; static initializers construct globals 00625e68 and 00625e78 with it
+00405f80	VertexBuffer	Release	__thiscall	calls 004060b0, then Release (slot 2) on the buffer at +0xc and clears it
+00405fa0	VertexBuffer	Create	__thiscall	(d3d, fvf, count, caps): stores fvf at +0 and count at +4, then IDirect3D7 slot 0x14 (CreateVertexBuffer) into +0xc
+# FontCache
+00406b60	FontCache	FontCache	__thiscall	static initializer 00406b20 constructs global 00623c48 with it
+00407ac0	FontCache	GetFont	__thiscall	searches the 20-byte records of the vector at +4 and returns the handle at record + 0x10; on a miss reaches CreateFontA
+# TextureCache: the constructor is inlined into its static initializer, which calls _Tree::_Init
+0040cc00	TextureCache	GetTexture	__thiscall	(name, ...): looks the name up (0040cf80), on a miss creates the texture (0040cff0) or returns g_CTexture; stamps timeGetTime at +0x124; 140 call sites
+0040cca0	TextureCache	Unload	__thiscall	(texture): unless it is g_CTexture or still referenced (+0x120), finds its name, deletes it and erases the map node
+0040cd30	TextureCache	Clear	__thiscall	deletes every texture in the map and empties it; WinMain calls it at shutdown
+0040ce20	TextureCache	Reload	__thiscall	for every texture, fetches its resource from GetResourceManager by name and reloads the pixels (004053f0)
+0040cec0	TextureCache	PurgeUnused	__thiscall	deletes textures whose reference count (+0x120) is 0 and whose last use (+0x124) is older than a timeout, then GetProcessHeap / HeapCompact
+# SceneRenderer
+0040d1a0	SceneRenderer	SceneRenderer	__thiscall	called on operator new(0x2a0) in C3dDevice::CreateRenderer; reserves 1000-entry render lists (operator new(4000) and (8000))
+0040db70	SceneRenderer	SetSize	__thiscall	(width, height): stores them at +0x24 / +0x28 and their halves, and derives the projection from tan of the field of view
+0040dc90	SceneRenderer	SetPixelMode	__thiscall	stores its argument at +0x88; C3dDevice::CreateRenderer passes 2, 3 or 4 for 565, 555 or 32-bit surfaces
+# RenderTriangle and RenderQuad
+0040c5f0	RenderTriangle	RenderTriangle	__thiscall	points +0 at three 32-byte vertices at +0x24 (0040c1b0), primitive type 4 at +0x20, vertex colours 0xff000000
+0040c620	RenderTriangle	RenderTriangle	__thiscall	same as 0040c5f0, then copies its argument (0040c680)
+0040c6b0	RenderQuad	RenderQuad	__thiscall	points +0 at four 32-byte vertices at +0x24 (0040c1b0), vertex colours 0xff000000, primitive type 5 at +0x20
+0040c6f0	RenderQuad	RenderQuad	__thiscall	same vertex set-up as 0040c6b0, then copies its argument (0040c750); std::_Construct 00415500 copies quads into 0xcc-byte list nodes with it
+# TriangleSet
+0040c780	TriangleSet	TriangleSet	__thiscall	zeroes +0; called on operator new(0x1c) for each Granny mesh in CGrannyPc::vf14
+0040c890	TriangleSet	Alloc	__thiscall	(count): operator new(count * 0x60), sets the colour of every 32-byte vertex to 0xff000000 and stores the block at +0
+# DirectInputMouse
+0041e630	DirectInputMouse	Init	__thiscall	DirectInputCreateA, then CreateDevice(SysMouse), SetDataFormat, SetCooperativeLevel and Acquire; "DirectInput not available"
+0041e6f0	DirectInputMouse	Release	__thiscall	unacquires (slot 8) and releases the device at +4, then releases the DirectInput object at +0; WinMain calls it at shutdown
+# KeyPadDispatcher
+0041e190	KeyPadDispatcher	KeyPadDispatcher	__thiscall	static initializer 0041da30 constructs global 00628b88 with it; zeroes the vector at +0x60
+0041e2e0	KeyPadDispatcher	CreateKeyPad	__thiscall	operator new(0xbc) and CKeyPad::CKeyPad, appended to the vector at +0x60; returns the keypad
+0041e270	KeyPadDispatcher	Dispatch	__thiscall	calls virtual functions 1..3 of every keypad in the vector at +0x60 according to the mode at +0
+# Model resources
+0042b350	ModelResNode	ModelResNode	__thiscall	called on operator new(0x16c) for each node read by C3dModelRes::vf03; initialises a list at +0x10c
+00408d30	ModelResMesh	ModelResMesh	__thiscall	called on operator new(0x234) in C3dModelRes::vf03; constructs 32 16-byte elements at +0x24 and a VertexBuffer at +0x224
+0042ccd0	AnimModelResNode	AnimModelResNode	__thiscall	called on operator new(0x58) for each node read by C3dAnimModelRes::vf03; initialises strings at +0 and +0x10 and a list at +0x2c
+004b9340	ModelInstance	ModelInstance	__thiscall	called on operator new(0x200) for each world model (004c3ab0) and for "skybox.rsm" (00433a10); scale floats at +0x18..+0x20 = 1.0, a list at +0x1f8
+# GrannyMotionTable
+0042fce0	GrannyMotionTable	GrannyMotionTable	__thiscall	static initializer 0042b310 constructs global 0063edc0 with it; zeroes 2000 dwords at +0x280
+0042fd20	GrannyMotionTable	LoadMotion	__thiscall	(path, type, action): GrannyVersionsMatch, then reads the file through DataFile and Granny; stores the animation at +0x280 + (type * 20 + action) * 4; "Cannot load animation : "
+# Thai word breaking
+004c2000	ThaiLexicon	ThaiLexicon	__thiscall	called on operator new(300) in ThaiWordBreaker::LoadLexicon; zeroes the header area
+004c2580	ThaiLexicon	Load	__thiscall	(path): reads a 0x118-byte header at +0x14 and the dictionary data into +0x10 through DataFile
+004c26b0	ThaiWordBreaker	ThaiWordBreaker	__thiscall	static initializer 004c9390 constructs global 0067bf98 with it
+004c26e0	ThaiWordBreaker	LoadLexicon	__thiscall	replaces the ThaiLexicon at +0 with a new one loaded from "..\ftwrk.lex" and copies a 256-dword table to +4
+# XmlDocument
+004c95b0	XmlDocument	XmlDocument	__thiscall	static initializer 004c9590 constructs global 0067c9a0 with it; constructs the root element (004e61e0) named "XMLDocument"
+004e6590	XmlDocument	Parse	__thiscall	(begin, end): parses the text (004e65c0) and returns whether a root element was produced at +0x24
+004ca090	Global	LoadClientInfo	__cdecl	WinMain passes it "clientinfo.xml" or the /account: argument; reads the file through DataFile, parses it into g_XmlDocument and sets the service and executable globals ("Please run Ragnarok.exe", ...)
+# ModeSwitcher
+004cbf10	ModeSwitcher	ModeSwitcher	__thiscall	static initializer 004cbef0 jumps to 004cbf00 (mov ecx, 0067c9e8; jmp 004cbf10); stores 1 at +0
+004cbf20	ModeSwitcher	GetLoginMode	__thiscall	returns the mode at +4 when the mode number at +0x58 is 0 (CLoginMode), else null
+004cbf30	ModeSwitcher	GetGameMode	__thiscall	returns the mode at +4 when the mode number at +0x58 is 1 (CGameMode), else null; 319 call sites
+004cbf40	ModeSwitcher	Run	__thiscall	(mode, world name): WinMain passes (0, "login.rsw"); creates CLoginMode or CGameMode, runs its virtual functions 1..3 and deletes it, until +0 is cleared
+004cc0a0	ModeSwitcher	RequestMode	__thiscall	(mode, world name): stops the current mode's loop (+0x14 = 0), copies the name to +0x30 and the mode to +0x5c
+004cc0f0	ModeSwitcher	Quit	__thiscall	stops the current mode's loop (+0x14 = 0) and clears the running flag at +0
+# GuildInfo
+004cfcb0	GuildInfo	GuildInfo	__thiscall	static initializer 004cfc70 constructs global 0067cab8 with it: five strings, lists and maps
+004d0360	GuildInfo	Reset	__thiscall	zeroes the counters at +0x80..+0x90 and the arrays at +0x94 and +0xa8, and empties the strings; called by CLoginMode::vf01 and CGameMode
+004d0800	GuildInfo	ClearMembers	__thiscall	unlinks and deletes every node of the list at +0xcc
+# MannerFilter
+004d2a00	MannerFilter	MannerFilter	__thiscall	static initializer 004d2030 constructs global 0067cbe8 with it
+004d25e0	MannerFilter	Load	__thiscall	WinMain passes "manner.txt"; "Cannot find File : "
+004d2220	MannerFilter	IsClean	__thiscall	(text): lower-cases a copy and returns 0 as soon as one of the stored 16-byte strings matches (strncmp) at a character position
+004d2200	MannerFilter	ContainsBannedWord	__thiscall	returns the negation of IsClean
+# TipOfTheDayList
+004db1d0	TipOfTheDayList	TipOfTheDayList	__thiscall	static initializer 004db1b0 constructs global 0067ccd0 with it
+004db290	TipOfTheDayList	Load	__thiscall	fopen of tipOfTheday.txt, tipOfTheday_e.txt or tipOfTheday_j.txt by service; splits at '#' and newlines; WinMain calls it at start-up
+004db4f0	TipOfTheDayList	GetTip	__thiscall	(index): the 16-byte entry at index in the vector at +4, or the first one when out of range
+# DataFile
+004dd2f0	DataFile	DataFile	__thiscall	constructed on the stack before every file read (LoadClientInfo, GrannyMotionTable::LoadMotion, ResourceManager::LoadResNameTable)
+004dd310	DataFile	Open	__thiscall	(name, mode): mode 0 loads the name through the archive object at [0067cd84]; mode bit 0 opens it with CreateFileA for writing
+004dd3f0	DataFile	Close	__thiscall	CloseHandle on the handle at +0, or frees the loaded buffer at +4
+004dd430	DataFile	Read	__thiscall	(buffer, n): ReadFile on the handle at +0, or copies n bytes from the buffer at +4 at the position +8, bounded by the size +0xc
+004dd4b0	DataFile	Write	__thiscall	WriteFile on the handle at +0
+# ResourceManager
+004dfa10	Global	GetResourceManager	__cdecl	constructs the static at 0067cd88 on first use (guard bit 0 of 0067ce34, atexit 004dfa50) and returns it
+004dfa60	ResourceManager	ResourceManager	__thiscall	called by GetResourceManager; a map at +0 (_Tree::_Init), strings, InitializeCriticalSection at +0x40, a second map at +0x58
+004dff60	ResourceManager	GetResource	__thiscall	(name): looks the resource up under the critical section at +0x40; used by actors, CActRes and CGameMode
+004e0940	ResourceManager	LoadResNameTable	__thiscall	reads "ResNameTable.txt" through DataFile into the map at +0x58, '#'-separated pairs
+004e0310	ResourceManager	Clear	__thiscall	deletes every resource of the per-type maps in the vector at +0x34; WinMain calls it at shutdown (via thunk 004dff50)
+# PathFinder
+004cc1b0	PathFinder	PathFinder	__thiscall	static initializer 0050c1f0 constructs global 00684e30 with it
+004cc5c0	PathFinder	FindPath	__thiscall	searches between two cells, keeping the second at +4 / +8: "find path failed : no path found", "find path aborted : buffer overflow"
+# SceneGraphNode
+004c5270	SceneGraphNode	SceneGraphNode	__thiscall	called on operator new(0x80) in C3dWorldRes::vf03 ("SceneGraphNode Load.") and for each child in 004c5340; returns this
+004c5340	SceneGraphNode	Subdivide	__thiscall	(depth): unless depth is 5, creates four SceneGraphNode children at +4..+0x10, each with this at +0, splitting the bounds at the midpoints
+# WorldColorFade
+00586400	WorldColorFade	WorldColorFade	__thiscall	static initializer 0057cf60 constructs global 00686598 with it; colours at +0x14..+0x1c and +0x38..+0x40 start at 1.0
+00586460	WorldColorFade	Update	__thiscall	moves the RGB floats at +0x14..+0x1c up or down towards the targets at +0x20..+0x28 depending on the flags at +8, +9 and +0xe
+# ClientState
+00586860	ClientState	ClientState	__thiscall	static initializer 00586820 constructs global 00686670 with it; strings, lists, XML documents ("XMLDocument") and timeGetTime
+00588520	ClientState	SaveOptions	__thiscall	RegCreateKeyExA, then writes the option values ("SPRITEMODE", "TEXTUREMODE", "isSoundOn", ...); WinMain calls it at shutdown
+0058e310	ClientState	InitWhenServerMove	__thiscall	prints its own name, "InitWhenServerMove()"
+# MoviePlayer
+004dbbe0	MoviePlayer	MoviePlayer	__thiscall	static initializer 005b1030 constructs global 00688480 with it
+004dbfc0	MoviePlayer	Play	__thiscall	plays the Bink movie at +0, pumping window messages (PeekMessageA, DispatchMessageA) and waiting with BinkWait until it ends or is stopped; WinMain calls it at start-up
+004dbec0	MoviePlayer	Pause	__thiscall	BinkPause on the movie at +0
+004dbe60	MoviePlayer	OnKey	__thiscall	(key): while playing, key 0x67 jumps to frame 1500 (BinkGoto); any other key stops the movie and sets +0xc, except 0x52, which clears it
+# STL helpers (Dinkumware): placement copy into a node fresh from operator new
+00404170	std	_Construct	__cdecl	(p, v): if p is not null, copies the 4-byte value v into it; on a 12-byte node at 00403f7e
+004153f0	std	_Construct	__cdecl	(p, v): if p is not null, copy-constructs a 44-byte value holding a vector of 36-byte elements; on a 52-byte node at 004140c3
+00415500	std	_Construct	__cdecl	(p, v): if p is not null, RenderQuad copy constructor 0040c6f0 on it; on a 0xcc-byte list node at 00413408 (value at +8)
+00425480	std	_Construct	__cdecl	(p, v): if p is not null, copy-constructs a std::string into it; on 24-byte list nodes
+00479160	std	_Construct	__cdecl	(p, v): if p is not null, copies a 68-byte value with a std::string at +0x2c; on 76-byte nodes
+004863a0	std	_Construct	__cdecl	(p, v): if p is not null, copies a 44-byte value with a std::string at +0x1c; on 52-byte nodes
+004866c0	std	_Construct	__cdecl	(p, v): if p is not null, copies a 92-byte value with std::strings at +8, +0x2c and +0x40; on 100-byte nodes
+0049f4b0	std	_Construct	__cdecl	(p, v): if p is not null, copies a 52-byte value with std::strings at +8 and +0x18; on 60-byte nodes
+004c73f0	std	_Construct	__cdecl	(p, v): if p is not null, copies the 4-byte value v into it; on 12-byte nodes
+004d1eb0	std	_Construct	__cdecl	(p, v): if p is not null, copy-constructs three std::strings at +0, +0x10 and +0x20; on 56-byte nodes
+0053a410	std	_Construct	__cdecl	(p, v): if p is not null, copies a 24-byte value with a std::string at +8; on 32-byte nodes
+0053a590	std	_Construct	__cdecl	(p, v): if p is not null, copies a 20-byte value starting with a std::string; on 28-byte nodes
+004305f0	std::string	string	__thiscall	copy constructor: copies the allocator byte, zeroes _Ptr/_Len/_Res, assigns the other string and returns this

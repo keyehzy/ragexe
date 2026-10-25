@@ -21,6 +21,12 @@ Rules, in order of strength:
   4. `push n; call operator new` followed by a call on the result (ECX = EAX) gives
      sizeof = n for the class constructed by the callee. An inlined constructor that
      stores a vtable into the result gives the same.
+
+Classes without RTTI come from the curated analysis/labels/inferred.*.tsv files: a
+function row named after its class is that class's constructor, and rules 2 and 4 use
+it like a recovered one. A curated size wins over operator new, and a curated global
+name wins over a generated one; globals built by STL code (std::_Tree) are left to
+recover_layouts.py.
 """
 import os
 import sys
@@ -61,7 +67,7 @@ def read_tsv(path):
     with open(path, encoding="utf-8") as f:
         lines = f.read().splitlines()
     header = lines[0].split("\t")
-    return [dict(zip(header, line.split("\t"))) for line in lines[1:] if line]
+    return [dict(zip(header, line.split("\t"))) for line in lines[1:] if line and not line.startswith("#")]
 
 
 class Recovery:
@@ -85,6 +91,17 @@ class Recovery:
         self.ctors = defaultdict(set)
         self.dtors = defaultdict(set)
         self.deleting = defaultdict(set)
+        self.curated = {}           # class without RTTI -> curated size or None
+        for r in read_tsv(os.path.join(LABELS, "inferred.classes.tsv")):
+            self.curated[r["class"]] = int(r["size"]) if r["size"] else None
+        self.curated_ctors = {}     # constructor -> class without RTTI
+        for r in read_tsv(os.path.join(LABELS, "inferred.functions.tsv")):
+            if r["namespace"] in self.curated and r["name"] == short_name(r["namespace"]):
+                self.curated_ctors[int(r["address"], 16)] = r["namespace"]
+                self.ctors[r["namespace"]].add(int(r["address"], 16))
+        self.curated_data = {int(r["address"], 16) for r in read_tsv(os.path.join(LABELS, "inferred.data.tsv"))}
+        self.curated_funcs = {int(r["address"], 16) for name in ("crt.functions.tsv", "inferred.functions.tsv")
+                              for r in read_tsv(os.path.join(LABELS, name))}
 
     # -- helpers ---------------------------------------------------------------------
 
@@ -112,6 +129,8 @@ class Recovery:
         return self.bx.insns(fn) if fn else self.disasm_at(addr)
 
     def name(self, addr, namespace, name, evidence):
+        if addr in self.curated_funcs:
+            return
         prev = self.names.get(addr)
         if prev and prev[:2] != (namespace, name):
             # A weaker rule that only sees a base vtable agrees with a more specific name.
@@ -244,6 +263,10 @@ class Recovery:
             t = self.bx.call_target(nxt) if nxt.id == x86.X86_INS_CALL else self.bx.jump_target(nxt)
             if not isinstance(t, int):
                 continue
+            if t in self.curated_ctors:
+                if role == "ctor":
+                    self.globals[g] = (self.curated_ctors[t], t, entry)
+                return
             stores, _ = self.this_analysis(self.insns_of(t))
             classes = [self.vtables[v][0] for _, off, v in stores if off == 0]
             cls = self.most_derived(classes) if classes else None
@@ -376,7 +399,13 @@ class Recovery:
                     self.name(t, cls, short, f"called on the result of operator new({size}) at {site:08x} and stores the {cls} vtable")
                     self.ctors[cls].add(t)
             if cls is None:
-                self.unknown_sized.append((t, size, site))
+                callee = self.bx.functions.get(t)
+                if callee is not None and (callee.namespace == "std" or callee.namespace.startswith("std::")):
+                    self.stl_sized.append((t, size, site))
+                else:
+                    self.unknown_sized.append((t, size, site))
+                continue
+            if self.curated.get(cls) is not None:
                 continue
             self.sizes[cls][size] += 1
             self.size_sites[cls].append(f"{site:08x}")
@@ -385,6 +414,7 @@ class Recovery:
 
     def run(self):
         self.pending_sizes = []
+        self.stl_sized = []
         self.deleting_destructors()
         self.initializers()
         self.new_sites()
@@ -413,17 +443,24 @@ class Recovery:
             for entry, idx in self.initializer_rows:
                 f.write(f"{entry:08x}\tGlobal\tstatic_init_{idx:03d}\t__cdecl\tentry {idx} of the C++ initializer table run by _cinit\n")
         per_class = Counter(cls for cls, _, _ in self.globals.values() if cls)
+        self.unnamed_globals = 0
         with open(os.path.join(LABELS, "globals.data.tsv"), "w", encoding="utf-8") as f:
-            f.write("address\tnamespace\tname\tevidence\n" + gen)
+            f.write("address\tnamespace\tname\tevidence\ttype\n" + gen)
             for g, (cls, ctor, entry) in sorted(self.globals.items()):
+                if g in self.curated_data:
+                    continue
+                ctor_fn = self.bx.functions.get(ctor) if ctor else None
+                if not cls and ctor_fn is not None and ctor_fn.namespace.startswith("std::"):
+                    continue
                 how = f"constructed by {ctor:08x} from static initializer {entry:08x}" if ctor else \
                     f"destroyed by atexit stub {entry:08x}"
                 if not cls:
-                    f.write(f"{g:08x}\tGlobal\tg_obj_{g:08x}\t{how}; the class has no RTTI\n")
+                    self.unnamed_globals += 1
+                    f.write(f"{g:08x}\tGlobal\tg_obj_{g:08x}\t{how}; the class has no RTTI\t\n")
                     continue
                 short = cls.replace("::", "_")
                 name = f"g_{short}" if per_class[cls] == 1 else f"g_{short}_{g:08x}"
-                f.write(f"{g:08x}\tGlobal\t{name}\t{how}\n")
+                f.write(f"{g:08x}\tGlobal\t{name}\t{how}\tclass:{cls}\n")
         sized = 0
         with open(os.path.join(LABELS, "objects.classes.tsv"), "w", encoding="utf-8") as f:
             f.write("class\tsize\tevidence\n" + gen)
@@ -459,9 +496,10 @@ class Recovery:
         print(f"classes with vtables: {len(classes)}")
         print(f"constructors {n_ctor}, destructors {n_dtor}, deleting destructors {n_dd}")
         print(f"classes sized: {sized}; new() sites resolved to a class: {sum(sum(c.values()) for c in self.sizes.values())}; "
-              f"to a non-RTTI callee: {len(self.unknown_sized)}")
+              f"to STL helpers: {len(self.stl_sized)}; to an unknown callee: {len(self.unknown_sized)}")
         print(f"static initializers: {len(self.initializer_rows)}; global objects of known class: "
-              f"{sum(1 for v in self.globals.values() if v[0])} of {len(self.globals)}")
+              f"{sum(1 for v in self.globals.values() if v[0])} of {len(self.globals)}; "
+              f"left as g_obj_: {self.unnamed_globals}")
         conflicts = [c for c in self.notes if any("conflict" in n or "smaller" in n or "named both" in n for n in self.notes[c])]
         print(f"classes with conflicts: {len(conflicts)} {conflicts[:12]}")
 

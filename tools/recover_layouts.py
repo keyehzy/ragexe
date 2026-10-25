@@ -19,20 +19,26 @@ Field types come from how a field is used:
 
 Non-virtual methods: a default-named function that reads ECX before writing it (a
 `push ecx` that only reserves stack space does not count) and is called with
-ECX = this + n from a class's functions is a method of:
+ECX = this + n from a class's functions, or with ECX = the address of a global object
+plus n from anywhere, is a method of:
   the class itself (n = 0), the most-derived base at n, or the std::string / std::list /
   std::_Tree member at n.
+Global objects and their classes come from the type column of the data label files.
 With several calling classes the owner is the most-derived class all of them derive
 from; callers from unrelated classes leave the function unassigned. New methods are
 scanned in turn, until no more are found.
 
 std::_Tree (map and set) members: a function that takes the STL lock, allocates a node
 with operator new and writes this + 4 (_Head) and this + 0xc (_Size) is an MSVC 6
-_Tree::_Init. A function that calls an _Init on its own `this` is a tree constructor.
+_Tree::_Init. A function that calls an _Init on its own `this`, and writes nothing
+past the tree's 16 bytes, is a tree constructor.
 Calling either on this + n puts a 16-byte tree at n; the value size is the node size
 minus 12 (left, parent, right) and 4 (color). Calling one with ECX = a global address
 makes that global a tree. A call to any method already assigned to std::string,
 std::list or std::_Tree on this + n also marks the member.
+
+Classes without RTTI, and their constructors, come from the curated
+analysis/labels/inferred.*.tsv files; they have no bases.
 
 Inheritance: accesses inside a base class's extent belong to that base (they are
 merged into the base's fields with the derived function as evidence). The extent is
@@ -49,10 +55,12 @@ Writes:
 """
 import os
 import sys
+from bisect import bisect_right
 from collections import Counter, defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from binindex import BinIndex, ROOT  # noqa: E402
+import capstone  # noqa: E402
 from capstone import x86  # noqa: E402
 
 EXPORTS = os.path.join(ROOT, "analysis", "exports")
@@ -65,6 +73,8 @@ UNLOCKIT = 0x5B3303
 CONTAINERS = {"std_string": "std::string", "std_list": "std::list", "std_tree": "std::_Tree"}
 CONTAINER_SIZE = {"std::string": 16, "std::list": 12, "std::_Tree": 16}
 EH_VECTOR_CTOR = 0x5C2002
+# the critical section _Lockit enters
+LOCK_GLOBALS = {0x688A88}
 
 X87_MEM = {
     x86.X86_INS_FLD, x86.X86_INS_FST, x86.X86_INS_FSTP, x86.X86_INS_FADD, x86.X86_INS_FSUB,
@@ -100,9 +110,15 @@ class Layouts:
     def __init__(self):
         self.bx = BinIndex()
         self.sizes = {r["class"]: int(r["size"]) for r in read_tsv(os.path.join(LABELS, "objects.classes.tsv"))}
+        curated = read_tsv(os.path.join(LABELS, "inferred.classes.tsv"))
+        self.sizes.update({r["class"]: int(r["size"]) for r in curated if r["size"]})
         self.ctor_class = {}
         for r in read_tsv(os.path.join(LABELS, "objects.functions.tsv")):
             if not r["name"].startswith(("~", "`")):
+                self.ctor_class[int(r["address"], 16)] = r["namespace"]
+        curated_names = {r["class"] for r in curated}
+        for r in read_tsv(os.path.join(LABELS, "inferred.functions.tsv")):
+            if r["namespace"] in curated_names and r["name"] == r["namespace"]:
                 self.ctor_class[int(r["address"], 16)] = r["namespace"]
         self.vfptrs = defaultdict(set)
         for r in read_tsv(os.path.join(EXPORTS, "Ragexe.exe.vtables.tsv")):
@@ -114,6 +130,8 @@ class Layouts:
                 name, disp = b.rsplit("@", 1)
                 out.append((name, None if "v" in disp else int(disp)))
             self.bases[r["class"]] = out
+        for c in curated_names:
+            self.bases.setdefault(c, [])
         self.classes = set(self.bases)
         self.methods = defaultdict(list)
         for fn in self.bx.functions.values():
@@ -121,9 +139,22 @@ class Layouts:
                 self.methods[fn.namespace].append(fn)
         self.this_calls = defaultdict(list)   # callee -> [(class, offset of ECX from this, caller)]
         self.assigned = {}                    # callee -> (owner namespace, evidence)
+        self.tree_statics = set()             # each _Tree instantiation's nil node and its count
         self.tree_inits = self.find_tree_inits()
         self.tree_ctors = self.find_tree_ctors()
         self.tree_nodes = {**self.tree_inits, **self.tree_ctors}
+        self.curated_data = {int(r["address"], 16) for r in read_tsv(os.path.join(LABELS, "inferred.data.tsv"))}
+        self.curated_funcs = {int(r["address"], 16) for name in ("crt.functions.tsv", "inferred.functions.tsv")
+                              for r in read_tsv(os.path.join(LABELS, name))}
+        self.globals = self.global_objects()
+        self.global_calls = self.find_global_calls()
+        # classes whose object starts with a tree: a global of the class is initialised as one
+        self.tree_at0 = {cls for g, cls in self.globals.items() if g in self.global_trees() and cls != "std::_Tree"}
+        self.uses_tree_statics = set()
+        for fn in self.bx.functions.values():
+            if fn.kind == "code" and fn.entry not in self.tree_inits and any(
+                    v in self.tree_statics for i in self.bx.insns(fn) for v in self.bx.data_refs(i)):
+                self.uses_tree_statics.add(fn.entry)
         self.raw = defaultdict(list)      # class -> [Access] at class-relative offsets
         self.indexed = defaultdict(Counter)
         self.notes = defaultdict(list)
@@ -326,29 +357,86 @@ class Layouts:
                     pass
             if {4, 0xC} <= wrote and node:
                 out[fn.entry] = node
+                for i in ins:
+                    for v in self.bx.data_refs(i):
+                        if self.bx.section_of(v) == ".data" and v not in LOCK_GLOBALS:
+                            self.tree_statics.add(v)
         return out
 
     def ecx_before(self, ins, k):
-        """What ECX holds at instruction k: ('this', 0), ('global', addr) or None."""
+        """('global', addr) when the closest write to ECX before instruction k, within ten
+        instructions and with no call or branch target in between, is mov ecx, addr with
+        addr in .data; otherwise None."""
         for p in reversed(ins[max(0, k - 10):k]):
             ops = p.operands
-            if p.id == x86.X86_INS_CALL:
+            if p.id in (x86.X86_INS_CALL, x86.X86_INS_RET, x86.X86_INS_JMP):
                 return None
             if p.id == x86.X86_INS_MOV and len(ops) == 2 and ops[0].type == x86.X86_OP_REG \
                     and ops[0].reg == x86.X86_REG_ECX:
                 if ops[1].type == x86.X86_OP_IMM and self.bx.section_of(ops[1].imm & 0xFFFFFFFF) == ".data":
                     return ("global", ops[1].imm & 0xFFFFFFFF)
                 return None
+            try:
+                if x86.X86_REG_ECX in p.regs_access()[1]:
+                    return None
+            except Exception:
+                return None
         return None
 
+    def global_objects(self):
+        """Global address -> class, from the type column of the data label files (other
+        than this script's own) and the global trees found here."""
+        out = {}
+        for name in sorted(os.listdir(LABELS)):
+            if not name.endswith(".data.tsv") or name == "layouts.data.tsv":
+                continue
+            for r in read_tsv(os.path.join(LABELS, name)):
+                t = r.get("type", "")
+                if t.startswith("class:"):
+                    out[int(r["address"], 16)] = t[6:]
+                elif t == "std_tree":
+                    out[int(r["address"], 16)] = "std::_Tree"
+        for g in self.global_trees():
+            out.setdefault(g, "std::_Tree")
+        return out
+
+    def find_global_calls(self):
+        """(callee, class, offset, caller) for every call made with ECX = an address inside
+        a global object: its own address, or one inside its known size."""
+        starts = sorted(self.globals)
+        out = []
+        for fn in self.bx.functions.values():
+            if fn.kind != "code":
+                continue
+            ins = self.bx.insns(fn)
+            for k, i in enumerate(ins):
+                if i.id != x86.X86_INS_CALL:
+                    continue
+                t = self.bx.call_target(i)
+                held = self.ecx_before(ins, k) if isinstance(t, int) else None
+                if not held:
+                    continue
+                j = bisect_right(starts, held[1]) - 1
+                if j < 0:
+                    continue
+                cls = self.globals[starts[j]]
+                off = held[1] - starts[j]
+                if off and off >= self.sizes.get(cls, CONTAINER_SIZE.get(cls, 0)):
+                    continue
+                out.append((t, cls, off, fn.entry))
+        return out
+
     def find_tree_ctors(self):
-        """Functions that call an _Init with ECX still holding their own this."""
+        """Functions that call an _Init with ECX still holding their own this, and write
+        nothing past the tree's 16 bytes."""
         callees, callers = self.bx.build_calls()
         out = {}
         for t, node in self.tree_inits.items():
             for site, c in callers.get(t, []):
                 fn = self.bx.functions[c]
                 if c in self.tree_inits or fn.kind != "code" or not self.is_thiscall(fn):
+                    continue
+                if self.writes_past(fn, 16):
                     continue
                 this = {x86.X86_REG_ECX}
                 for i in self.bx.insns(fn):
@@ -371,16 +459,48 @@ class Layouts:
                         pass
         return out
 
+    def writes_past(self, fn, size):
+        """True when the function writes [this + n] with n >= size, this being ECX on entry
+        or a register copy of it."""
+        this = {x86.X86_REG_ECX}
+        for i in self.bx.insns(fn):
+            ops = i.operands
+            if ops and ops[0].type == x86.X86_OP_MEM and ops[0].access & capstone.CS_AC_WRITE \
+                    and ops[0].mem.base in this and ops[0].mem.index == 0 and ops[0].mem.disp >= size:
+                return True
+            if i.id == x86.X86_INS_MOV and len(ops) == 2 and ops[0].type == x86.X86_OP_REG \
+                    and ops[1].type == x86.X86_OP_REG:
+                (this.add if ops[1].reg in this else this.discard)(ops[0].reg)
+                continue
+            if i.id == x86.X86_INS_CALL:
+                this -= set(CLOBBERED_BY_CALL)
+                continue
+            try:
+                for r in i.regs_access()[1]:
+                    this.discard(r)
+            except Exception:
+                pass
+        return False
+
     def global_trees(self):
-        callees, callers = self.bx.build_calls()
+        """Globals passed as ECX to an _Init or tree constructor, by a call or by the tail
+        jump of an initializer stub."""
+        if getattr(self, "_global_trees", None) is not None:
+            return self._global_trees
         out = {}
-        for t, node in self.tree_nodes.items():
-            for site, c in callers.get(t, []):
-                ins = self.bx.insns(self.bx.functions[c])
-                k = next(j for j, i in enumerate(ins) if i.address == site)
+        for fn in self.bx.functions.values():
+            if fn.kind != "code":
+                continue
+            ins = self.bx.insns(fn)
+            for k, i in enumerate(ins):
+                t = self.bx.call_target(i) if i.id == x86.X86_INS_CALL else \
+                    self.bx.jump_target(i) if i.id == x86.X86_INS_JMP else None
+                if t not in self.tree_nodes:
+                    continue
                 held = self.ecx_before(ins, k)
                 if held and held[0] == "global":
-                    out[held[1]] = (node, t, c)
+                    out[held[1]] = (self.tree_nodes[t], t, fn.entry)
+        self._global_trees = out
         return out
 
     # -- non-virtual methods -------------------------------------------------------
@@ -406,8 +526,12 @@ class Layouts:
                 return False
         return False
 
-    def owner_at(self, cls, off):
+    def owner_at(self, cls, off, callee=None):
         if off == 0:
+            # a class that starts with a tree: the tree's own methods use its nil node
+            if callee in self.uses_tree_statics and (cls in self.tree_at0 or any(
+                    a.off == 0 and type_kind(a.type) == "std_tree" for a in self.raw[cls])):
+                return "std::_Tree"
             return cls
         for b, disp in self.bases.get(cls, []):
             if disp == off and b in self.classes:
@@ -447,6 +571,8 @@ class Layouts:
             for cls in sorted(methods):
                 for fn in methods[cls].values():
                     self.scan(cls, fn)
+            for t, cls, off, caller in self.global_calls:
+                self.this_calls[t].append((cls, off, caller))
             new = self.assign()
             if {t: o for t, (o, _) in new.items()} == {t: o for t, (o, _) in self.assigned.items()}:
                 self.assigned = new
@@ -460,14 +586,14 @@ class Layouts:
     def assign(self):
         out = {}
         for t, calls in sorted(self.this_calls.items()):
-            if t in self.tree_nodes or t in STRING_FUNCS:
+            if t in self.tree_nodes or t in STRING_FUNCS or t in self.curated_funcs:
                 continue
             fn = self.bx.functions.get(t)
             ours = fn is not None and fn.name == f"method_{t:08x}"  # named by an earlier run
             if fn is None or fn.kind != "code" or (fn.library and not ours) or not self.is_thiscall(fn) \
                     or not (ours or (fn.namespace == "Global" and fn.name.startswith("FUN_"))):
                 continue
-            owners = {self.owner_at(cls, off) for cls, off, _ in calls}
+            owners = {self.owner_at(cls, off, t) for cls, off, _ in calls}
             if None in owners:
                 continue
             containers = owners & set(CONTAINERS.values())
@@ -639,13 +765,14 @@ class Layouts:
                 f.write(f"{t:08x}\tstd::_Tree\t_Tree\t__thiscall\tcalls a _Tree::_Init (node {node} bytes) on its own this\n")
             for t, (owner, ev) in sorted(self.assigned.items()):
                 f.write(f"{t:08x}\t{owner}\tmethod_{t:08x}\t__thiscall\t{ev}\n")
-        trees = self.global_trees()
+        trees = {g: v for g, v in self.global_trees().items() if g not in self.curated_data}
         with open(os.path.join(LABELS, "layouts.data.tsv"), "w", encoding="utf-8") as f:
             f.write("address\tnamespace\tname\tevidence\ttype\n" + gen)
             for g, (node, t, c) in sorted(trees.items()):
                 f.write(f"{g:08x}\tGlobal\tg_tree_{g:08x}\t{c:08x} calls {t:08x} with ECX = this global; "
                         f"value size {node - 16}\tstd_tree\n")
         by_owner = Counter("container" if o in CONTAINERS.values() else "class" for o, _ in self.assigned.values())
+        print(f"calls through global objects: {len(self.global_calls)} sites on {len(self.globals)} globals")
         print(f"non-virtual methods assigned: {len(self.assigned)} ({dict(by_owner)}) in {self.rounds} rounds; "
               f"_Tree::_Init instances: {len(self.tree_inits)}, tree constructors: {len(self.tree_ctors)}, "
               f"global trees: {len(trees)}")

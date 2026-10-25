@@ -5,12 +5,17 @@
 //
 //   *.functions.tsv  address  namespace  name  calling_convention  evidence
 //       Creates the function if needed. namespace is "Global" or a :: path; class
-//       namespaces must already exist (from RTTI). calling_convention may be empty.
+//       namespaces must already exist (from RTTI or a classes file). calling_convention
+//       may be empty. An address inside another function's body (a tail-jump target that
+//       analysis merged into its caller) is split off into a function of its own.
 //   *.data.tsv       address  namespace  name  evidence  [type]
 //       A label on data, such as a global object. The optional type is one of the
-//       field types below and is applied as data at the address.
+//       field types below, or class:<Class> for the class struct itself, and is applied
+//       as data at the address. A class struct is applied only once it has a size and
+//       when no other data label lies inside it.
 //   *.classes.tsv    class  size  evidence
-//       Grows the class struct to size bytes; it never shrinks one.
+//       Creates the class if it does not exist (classes without RTTI) and grows its
+//       struct to size bytes, which may be empty; it never shrinks one.
 //   *.fields.tsv     class  offset  size  type  name  evidence
 //       Rebuilds each listed class struct from these fields, keeping its size and the
 //       vftable fields ApplyRtti put there. Types: byte word dword qword int float
@@ -19,7 +24,9 @@
 //       array:<elem>:<count>,
 //       where elem is class:<Class> or bytes<N>. Member objects and arrays are applied
 //       as byte ranges with their type in the field comment.
-// Kinds are applied in this order: classes, fields, functions, data.
+// Kinds are applied in this order: classes, fields, functions, data. Within a kind,
+// generated files (those with a "# generated" line) come first and curated files last,
+// so a curated name wins over a generated one at the same address.
 // Arguments: <labels directory>
 //@category Ragexe
 
@@ -32,6 +39,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 
 import ghidra.app.script.GhidraScript;
 import ghidra.app.util.NamespaceUtils;
@@ -66,6 +74,8 @@ public class ApplyLabels extends GhidraScript {
 
 	private final List<String> warnings = new ArrayList<>();
 	private final Map<String, GhidraClass> classesByPath = new HashMap<>();
+	private final TreeSet<Address> dataLabels = new TreeSet<>();
+	private int untypedData = 0;
 
 	@Override
 	protected void run() throws Exception {
@@ -77,8 +87,24 @@ public class ApplyLabels extends GhidraScript {
 			return;
 		}
 		Arrays.sort(files);
+		List<File> ordered = new ArrayList<>();
+		for (boolean generated : new boolean[] { true, false }) {
+			for (File f : files) {
+				if (isGenerated(f) == generated) {
+					ordered.add(f);
+				}
+			}
+		}
+		files = ordered.toArray(new File[0]);
 		for (GhidraClass c : iterable(currentProgram.getSymbolTable().getClassNamespaces())) {
 			classesByPath.put(c.getName(true), c);
+		}
+		for (File f : files) {
+			if (f.getName().endsWith(".data.tsv")) {
+				for (String[] r : read(f)) {
+					dataLabels.add(toAddr(Long.parseLong(r[0], 16)));
+				}
+			}
 		}
 		int functions = 0, data = 0, classes = 0, fields = 0;
 		for (String kind : new String[] { ".classes.tsv", ".fields.tsv", ".functions.tsv", ".data.tsv" }) {
@@ -108,11 +134,23 @@ public class ApplyLabels extends GhidraScript {
 				}
 			}
 		}
-		println(String.format("labels: %d class sizes, %d fields, %d functions, %d data labels applied", classes,
+		println(String.format("labels: %d classes, %d fields, %d functions, %d data labels applied", classes,
 			fields, functions, data));
+		if (untypedData > 0) {
+			println(untypedData + " data labels left untyped: their class struct has no size yet");
+		}
 		for (String w : warnings) {
 			println("warning: " + w);
 		}
+	}
+
+	private static boolean isGenerated(File f) throws Exception {
+		for (String line : Files.readAllLines(f.toPath(), StandardCharsets.UTF_8)) {
+			if (line.startsWith("# generated")) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private List<String[]> read(File f) throws Exception {
@@ -133,11 +171,12 @@ public class ApplyLabels extends GhidraScript {
 		if (fn == null) {
 			Function container = getFunctionContaining(a);
 			if (container != null) {
-				warnings.add(file + ": " + r[0] + " lies inside " + container.getName(true));
-				return false;
+				fn = splitOff(container, a);
 			}
-			disassemble(a);
-			fn = createFunction(a, null);
+			else {
+				disassemble(a);
+				fn = createFunction(a, null);
+			}
 			if (fn == null) {
 				warnings.add(file + ": could not create a function at " + r[0]);
 				return false;
@@ -161,6 +200,30 @@ public class ApplyLabels extends GhidraScript {
 		return true;
 	}
 
+	/**
+	 * Makes a function at a, which analysis put inside container (typically the target of
+	 * a tail jump). The container is recreated afterwards, so its body now stops at the
+	 * jump; its name, namespace and calling convention are kept.
+	 */
+	private Function splitOff(Function container, Address a) throws Exception {
+		Address entry = container.getEntryPoint();
+		String name = container.getName();
+		Namespace ns = container.getParentNamespace();
+		SourceType source = container.getSymbol().getSource();
+		String cc = container.getCallingConventionName();
+		removeFunction(container);
+		Function fn = createFunction(a, null);
+		Function again = createFunction(entry, null);
+		if (again != null && source != SourceType.DEFAULT) {
+			again.getSymbol().setNameAndNamespace(name, ns, source);
+			again.setCallingConvention(cc);
+		}
+		if (again == null) {
+			warnings.add("could not recreate " + name + " at " + entry + " after splitting off " + a);
+		}
+		return fn;
+	}
+
 	private boolean applyData(String file, String[] r) throws Exception {
 		Address a = toAddr(Long.parseLong(r[0], 16));
 		Namespace ns = namespace(r[1]);
@@ -171,8 +234,29 @@ public class ApplyLabels extends GhidraScript {
 		}
 		s.setPrimary();
 		if (r.length > 4 && !r[4].isEmpty()) {
-			DataType dt = fieldType(r[4], 0, currentProgram.getDataTypeManager());
-			currentProgram.getListing().clearCodeUnits(a, a.add(dt.getLength() - 1), false);
+			DataType dt;
+			if (r[4].startsWith("class:")) {
+				GhidraClass c = classesByPath.get(r[4].substring(6));
+				if (c == null) {
+					warnings.add(file + ": " + r[0] + " " + r[2] + ": no class " + r[4].substring(6));
+					return true;
+				}
+				dt = classStruct(c, currentProgram.getDataTypeManager());
+				if (dt.isZeroLength()) {
+					untypedData++;
+					return true;
+				}
+			}
+			else {
+				dt = fieldType(r[4], 0, currentProgram.getDataTypeManager());
+			}
+			Address end = a.add(dt.getLength() - 1);
+			Address inside = dataLabels.higher(a);
+			if (inside != null && inside.compareTo(end) <= 0) {
+				warnings.add(file + ": " + r[2] + " (" + r[4] + ", " + dt.getLength() + " bytes) would cover the label at " + inside);
+				return true;
+			}
+			currentProgram.getListing().clearCodeUnits(a, end, false);
 			createData(a, dt);
 		}
 		return true;
@@ -181,8 +265,11 @@ public class ApplyLabels extends GhidraScript {
 	private boolean applyClassSize(String file, String[] r) throws Exception {
 		Namespace ns = classOrNamespace(r[0]);
 		if (!(ns instanceof GhidraClass)) {
-			warnings.add(file + ": " + r[0] + " is not a class");
-			return false;
+			ns = NamespaceUtils.convertNamespaceToClass(ns);
+			classesByPath.put(r[0], (GhidraClass) ns);
+		}
+		if (r[1].isEmpty()) {
+			return true;
 		}
 		int size = Integer.parseInt(r[1]);
 		Structure s = classStruct((GhidraClass) ns, currentProgram.getDataTypeManager());

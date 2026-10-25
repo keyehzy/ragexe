@@ -1,0 +1,13 @@
+address	namespace	name	evidence	type
+# Globals that the generators cannot name: no static constructor, a constructor
+# inlined into its initializer, a function-local static, a pointer, or an STL map
+# named after what it holds. Names here win over generated ones at the same address.
+00625e88	Global	g_TextureCache	static initializer 0040bf80 runs _Tree::_Init on it; TextureCache methods are called with ECX = this address	class:TextureCache
+00625e98	Global	g_pSceneRenderer	WinMain stores C3dDevice::CreateRenderer's result here and passes it to DestroyRenderer at shutdown	ptr:SceneRenderer
+00628b48	Global	g_DirectInputMouse	WinMain calls DirectInputMouse::Init and Release with ECX = this address; no static constructor	class:DirectInputMouse
+0067cd88	Global	g_ResourceManager	the function-local static that GetResourceManager 004dfa10 constructs and returns	class:ResourceManager
+00623c38	Global	g_prevFontByDc	map from HDC to the object it had selected: 00407680 selects a FontCache::GetFont font into a surface's DC and inserts (DC, SelectObject's result); 00407770 selects the saved object back	std_tree
+0067cc20	Global	g_metalProcessItems	004d48e0 fills it from "MetalProcessItemList.txt"; value size 20	std_tree
+0067cc38	Global	g_cardInfoById	004d48e0 fills it from "CardItemNameTable.txt", "Num2CardIllustNameTable.txt", "CardPrefixNameTable.txt" and "CardPostfixNameTable.txt"; value size 52	std_tree
+0067cc50	Global	g_itemInfoById	004d48e0 fills it, keyed by atoi of the first column, from "Num2ItemDisplayNameTable.txt", "Num2ItemResNameTable.txt", "Num2itemDescTable.txt", "itemSlotTable.txt" and others; value size 124	std_tree
+0067ccb8	Global	g_skillInfoById	004d95b0 fills it from "skillnametable.txt", "skilldesctable.txt" and "leveluseskillspamount.txt"; value size 64	std_tree

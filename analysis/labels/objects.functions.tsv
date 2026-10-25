@@ -739,12 +739,10 @@ address	namespace	name	calling_convention	evidence
 005b3372	std::length_error	~length_error	__thiscall	called on this by std::length_error::`scalar_deleting_destructor' 005b33cc before operator delete
 005b33cc	std::length_error	`scalar_deleting_destructor'	__thiscall	vtable slot of std::length_error; tests bit 0 of the flags argument and calls operator delete
 005b33e8	std::length_error	length_error	__thiscall	stores the std::length_error vtable into this last (1 vtable stores) and returns this
-005b349d	std::istrstream	~istrstream	__thiscall	called on this by std::istrstream::`scalar_deleting_destructor' 00422d70 before operator delete
 005b35f6	std::ostrstream	`scalar_deleting_destructor'	__thiscall	vtable slot of std::ostrstream; tests bit 0 of the flags argument and calls operator delete
 005b3621	std::ostrstream	~ostrstream	__thiscall	called on this by std::ostrstream::`scalar_deleting_destructor' 005b35f6 before operator delete
 005b372a	std::strstream	`scalar_deleting_destructor'	__thiscall	vtable slot of std::strstream; tests bit 0 of the flags argument and calls operator delete
 005b3755	std::strstream	~strstream	__thiscall	called on this by std::strstream::`scalar_deleting_destructor' 005b372a before operator delete
-005b3798	std::strstreambuf	~strstreambuf	__thiscall	called on this by std::strstreambuf::`scalar_deleting_destructor' 00422ca0 before operator delete
 005b3e49	std::basic_iostream<char,std::char_traits<char>_>	~basic_iostream<char,std::char_traits<char>_>	__thiscall	called on this by std::basic_iostream<char,std::char_traits<char>_>::`scalar_deleting_destructor' 005b3ea2 before operator delete
 005b3e83	std::basic_ostream<char,std::char_traits<char>_>	`scalar_deleting_destructor'	__thiscall	vtable slot of std::basic_ostream<char,std::char_traits<char>_>; tests bit 0 of the flags argument and calls operator delete
 005b3ea2	std::basic_iostream<char,std::char_traits<char>_>	`scalar_deleting_destructor'	__thiscall	vtable slot of std::basic_iostream<char,std::char_traits<char>_>; tests bit 0 of the flags argument and calls operator delete
@@ -819,8 +817,6 @@ address	namespace	name	calling_convention	evidence
 005c1963	type_info	~type_info	__thiscall	called on this by type_info::`scalar_deleting_destructor' 005c198c before operator delete
 005c198c	type_info	`scalar_deleting_destructor'	__thiscall	vtable slot of type_info; tests bit 0 of the flags argument and calls operator delete
 005c36a3	exception	`scalar_deleting_destructor'	__thiscall	vtable slot of exception; tests bit 0 of the flags argument and calls operator delete
-005c36bf	exception	exception	__thiscall	stores the exception vtable into this last (1 vtable stores) and returns this
-005c36fc	exception	exception	__thiscall	stores the exception vtable into this last (1 vtable stores) and returns this
 005c3765	exception	~exception	__thiscall	called on this by exception::`scalar_deleting_destructor' 005c36a3 before operator delete
 005c3a3d	__non_rtti_object	__non_rtti_object	__thiscall	stores the __non_rtti_object vtable into this last (1 vtable stores) and returns this
 005c3a5f	__non_rtti_object	`scalar_deleting_destructor'	__thiscall	vtable slot of __non_rtti_object; tests bit 0 of the flags argument and calls operator delete
