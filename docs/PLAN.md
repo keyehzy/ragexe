@@ -884,6 +884,64 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - Converges in three `--reanalyze` passes: the namespace rename needs one more. Still
     65.9% named or library-tagged; this step names nothing new.
 
+- [x] Naming run 1: the 305 unnamed functions of four areas, split into 15 source-file
+  batches:
+  - vector and matrix math (`0x409540`–`0x40bf50`);
+  - DirectSound (`0x41ff40`–`0x420320`);
+  - the resource loaders (`0x420790`–`0x435250`);
+  - Miles (`0x5b0600`–`0x5b0fa0`).
+
+  The rows are in `inferred.functions.tsv`.
+  - **Procedure.** Two agents in one workflow. One named every function, batch by
+    batch, writing its rows to a file after each batch. A second checked every row
+    against the code and accepted, revised or rejected it. Each function's context
+    and decompiled code were prepared in advance (one `fn_context.py` run, one
+    `decompile.sh` run), so the agents never opened the Ghidra project.
+  - **Quality.**
+    - The namer's confidence: 159 high, 130 medium, 16 low.
+    - The reviewer accepted 296 rows, revised 9 and rejected none. The revisions were
+      allocator members named as free functions (now `std::allocator::construct` and
+      `destroy`), evidence that misread the code (the magenta colour key in
+      `CBitmapRes::LoadJpeg`; a float tolerance in `IsIdentityMatrix` that is really
+      after integer truncation), off-by-one guard bits, and one unnamed function.
+    - My checks: every address has one row, every namespace exists or is a standard
+      type, and no name uses a library-internal name. An evenly spaced sample of 8
+      accepted rows was all correct against the disassembly.
+    - I changed 7 `CImfRes` names: layer, action and frame became entry, record and
+      index (`GetEntryCount`, `GetRecordLength`, ...). No string or caller in the
+      binary shows those terms, so they could only have come from knowledge of the
+      format.
+    - The other domain words have sources in the binary: "hair_pivot", "#rsxname",
+      "#action", the `AIL_` imports, "Failed PlayDigital".
+  - **Result.** 132 of the 305 are STL template code, now library; 173 are named game
+    functions. Code functions named or library-tagged: 65.9% → **70.1%**; game-code
+    bytes named: 69.5%. Converges in two passes.
+  - **Cost.** 797k agent tokens, 195 tool calls, 36 minutes: 2.6k tokens a function
+    including the review, less than half the pilot's 5.6k, which had no review.
+    Preparing the context in advance and one long-running agent instead of many
+    account for the difference. For the remaining 2,124 functions (500 KB): about
+    5.5–7M agent tokens with the same setup.
+  - **Fed back into `docs/naming.md`.**
+    - Fixed names for what the table lacked: `std::allocator` members, vector `size`,
+      `capacity` and `operator=`, the sort helpers, `AllocateElements`, the string's
+      `ReallocateBufferTail` and `GetRefCountByte`.
+    - A function with no arguments whose callers set ECX is `__thiscall`.
+    - Classes are proposed, not invented, while naming.
+    - A file format's parts are named by their shape unless the binary names them.
+  - **Class proposals from the run, not yet decided:**
+    - math: `Matrix` (48 bytes; the identity at `0x605598`; 30 of the math functions
+      are its `__thiscall` methods, in `Global` for now), `Quaternion`, `Vector3`;
+    - sound: `MixerVolumeControl`, `SoundBuffer`, and a Miles `SoundSystem` for the
+      globals `0x687fb8`–`0x68851c`;
+    - resources: the record structs `ActMotion`, `RmaActionRecord`, `ImfRecord`,
+      `GndCell`, `AttrCell`; `LensFlareTable`, `TexturedSkyBox`, `ModelSkyBox`,
+      `EffectEntry`;
+    - and a remark that `GrannyMotionTable` shares `C3dGrannyModelRes`'s layout, 0x110
+      bytes lower.
+
 ### Next actions (M1)
-1. Name the remaining 2,429 game functions by reading them, with `docs/naming.md`'s
-   procedure, in source-file batches. About 1,725 more are needed for 90%.
+1. Decide on the class proposals from naming run 1. Then the `Global` `__thiscall`
+   functions can move into those classes, and `recover_layouts` gives the classes their
+   fields.
+2. Name the remaining 2,124 game functions the same way, in source-file batches. About
+   1,420 more are needed for 90%.

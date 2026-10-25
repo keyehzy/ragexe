@@ -607,14 +607,14 @@ entry	subsystem	rule	evidence
 00420400	res	callers	1 referencing function
 00420520	res	neighbours	between 00420400 and 00420560
 00420560	res	callers	1 referencing function
-004206a0	res	callers	5 referencing functions
+004206a0	res	callers	2 referencing functions
 004206e0	res	callers	1 referencing function
 00420750	res	neighbours	between 004206e0 and 004207c0
 00420780	res	neighbours	between 004206e0 and 004207c0
 00420790	res	neighbours	between 004206e0 and 004207c0
 004207a0	res	neighbours	between 004206e0 and 004207c0
 004207c0	res	class	class CRes, base of CActRes
-00420870	res	neighbours	between 004207c0 and 00420880
+00420870	res	class	class CRes
 00420880	res	class	class CRes
 00420890	res	class	class CRes
 004208a0	res	class	class CRes
@@ -625,19 +625,17 @@ entry	subsystem	rule	evidence
 00420a60	res	neighbours	between 00420960 and 00420a70
 00420a70	res	class	class CRes, base of CActRes
 00420af0	res	class	class CRes, base of CActRes
-00420c90	res	neighbours	between 00420af0 and 00420d60
 00420d60	res	class	class CRes, base of CActRes
 00420e70	res	class	class CRes, base of CActRes
-00420f20	res	neighbours	between 00420e70 and 00420f60
+00420f20	res	class	class CRes, base of CActRes
 00420f60	res	class	class CRes, base of CActRes
-00421990	res	neighbours	between 00420f60 and 00421b30
-004219d0	res	neighbours	between 00420f60 and 00421b30
-00421a30	res	neighbours	between 00420f60 and 00421b30
-00421a50	res	neighbours	between 00420f60 and 00421b30
-00421a60	res	neighbours	between 00420f60 and 00421b30
-00421a80	res	neighbours	between 00420f60 and 00421b30
-00421b00	res	neighbours	between 00420f60 and 00421b30
-00421b10	res	neighbours	between 00420f60 and 00421b30
+00421990	res	class	class CRes, base of CActRes
+004219d0	res	class	class CRes, base of CActRes
+00421a50	res	neighbours	between 004219d0 and 00421a60
+00421a60	res	class	class CRes, base of CActRes
+00421a80	res	class	class CRes, base of CActRes
+00421b00	res	neighbours	between 00421a80 and 00421b30
+00421b10	res	neighbours	between 00421a80 and 00421b30
 00421b30	res	class	class CRes, base of CRmaRes
 00421be0	res	class	class CRes, base of CRmaRes
 00421c40	res	class	class CRes, base of CRmaRes
@@ -646,78 +644,20 @@ entry	subsystem	rule	evidence
 00421c90	res	class	class CRes, base of CRmaRes
 00421d30	res	class	class CRes, base of CRmaRes
 00421e40	res	class	class CRes, base of CRmaRes
-00421f50	res	neighbours	between 00421e40 and 004220d0
-00421f70	res	neighbours	between 00421e40 and 004220d0
-00421f90	res	neighbours	between 00421e40 and 004220d0
-00421fb0	res	neighbours	between 00421e40 and 004220d0
-00421fd0	res	neighbours	between 00421e40 and 004220d0
-00422010	res	neighbours	between 00421e40 and 004220d0
-00422070	res	neighbours	between 00421e40 and 004220d0
+00421f50	res	class	class CRes, base of CRmaRes
+00421f70	res	class	class CRes, base of CRmaRes
+00421f90	res	class	class CRes, base of CRmaRes
+00421fb0	res	class	class CRes, base of CRmaRes
+00421fd0	res	class	class CRes, base of CRmaRes
+00422010	res	class	class CRes, base of CRmaRes
+00422070	res	class	class CRes, base of CRmaRes
 004220d0	res	class	class CRes, base of CRmaRes
 00422b30	res	neighbours	between 004220d0 and 00426a20
-00422cd0	res	neighbours	between 004220d0 and 00426a20
 00422d40	res	neighbours	between 004220d0 and 00426a20
-00422da0	res	neighbours	between 004220d0 and 00426a20
-00422dc0	res	neighbours	between 004220d0 and 00426a20
-00422e20	res	neighbours	between 004220d0 and 00426a20
-00422ed0	res	neighbours	between 004220d0 and 00426a20
-00423160	res	neighbours	between 004220d0 and 00426a20
-004231a0	res	neighbours	between 004220d0 and 00426a20
-004231e0	res	neighbours	between 004220d0 and 00426a20
-00423200	res	neighbours	between 004220d0 and 00426a20
-00423270	res	neighbours	between 004220d0 and 00426a20
-00423290	res	neighbours	between 004220d0 and 00426a20
-00423400	res	neighbours	between 004220d0 and 00426a20
-00423430	res	neighbours	between 004220d0 and 00426a20
-00423450	res	neighbours	between 004220d0 and 00426a20
-00423470	res	neighbours	between 004220d0 and 00426a20
-004234b0	res	neighbours	between 004220d0 and 00426a20
-004234f0	res	neighbours	between 004220d0 and 00426a20
-00423520	res	neighbours	between 004220d0 and 00426a20
-00423650	res	neighbours	between 004220d0 and 00426a20
-004239d0	res	neighbours	between 004220d0 and 00426a20
-00423a10	res	neighbours	between 004220d0 and 00426a20
-00423d00	res	neighbours	between 004220d0 and 00426a20
-00424030	res	neighbours	between 004220d0 and 00426a20
-00424040	res	neighbours	between 004220d0 and 00426a20
-00424410	res	neighbours	between 004220d0 and 00426a20
-004246b0	res	neighbours	between 004220d0 and 00426a20
-004246e0	res	neighbours	between 004220d0 and 00426a20
-004249a0	res	neighbours	between 004220d0 and 00426a20
-004249f0	res	neighbours	between 004220d0 and 00426a20
-00424c00	res	neighbours	between 004220d0 and 00426a20
-00424c10	res	neighbours	between 004220d0 and 00426a20
-004250d0	res	neighbours	between 004220d0 and 00426a20
-004251c0	res	neighbours	between 004220d0 and 00426a20
-004251e0	res	neighbours	between 004220d0 and 00426a20
-004251f0	res	neighbours	between 004220d0 and 00426a20
-00425200	res	neighbours	between 004220d0 and 00426a20
-00425290	res	neighbours	between 004220d0 and 00426a20
-00425320	res	neighbours	between 004220d0 and 00426a20
-00425450	res	neighbours	between 004220d0 and 00426a20
-004255f0	res	neighbours	between 004220d0 and 00426a20
-00425780	res	neighbours	between 004220d0 and 00426a20
-004257b0	res	neighbours	between 004220d0 and 00426a20
-004259b0	res	neighbours	between 004220d0 and 00426a20
-004259d0	res	neighbours	between 004220d0 and 00426a20
-00425a00	res	neighbours	between 004220d0 and 00426a20
-00425a20	res	neighbours	between 004220d0 and 00426a20
-00425a40	res	neighbours	between 004220d0 and 00426a20
 00425af0	res	neighbours	between 004220d0 and 00426a20
-00425cb0	res	neighbours	between 004220d0 and 00426a20
-00425ce0	res	neighbours	between 004220d0 and 00426a20
 00425d00	res	neighbours	between 004220d0 and 00426a20
-00425f20	res	neighbours	between 004220d0 and 00426a20
-00425f50	res	neighbours	between 004220d0 and 00426a20
-00425f60	res	neighbours	between 004220d0 and 00426a20
 00425fa0	res	neighbours	between 004220d0 and 00426a20
-00425fd0	res	neighbours	between 004220d0 and 00426a20
-00426030	res	neighbours	between 004220d0 and 00426a20
-004262a0	res	neighbours	between 004220d0 and 00426a20
-00426530	res	neighbours	between 004220d0 and 00426a20
 004267c0	res	neighbours	between 004220d0 and 00426a20
-004267f0	res	neighbours	between 004220d0 and 00426a20
-00426980	res	neighbours	between 004220d0 and 00426a20
 004269c0	res	neighbours	between 004220d0 and 00426a20
 004269f0	res	neighbours	between 004220d0 and 00426a20
 00426a00	res	neighbours	between 004220d0 and 00426a20
@@ -729,22 +669,17 @@ entry	subsystem	rule	evidence
 00426b80	res	neighbours	between 00426b30 and 00426ba0
 00426b90	res	neighbours	between 00426b30 and 00426ba0
 00426ba0	res	class	class CRes, base of C3dAttr
-00426bf0	res	neighbours	between 00426ba0 and 00426eb0
+00426bf0	res	class	class CRes, base of C3dAttr
 00426eb0	res	class	class CRes, base of C3dAttr
 00426ec0	res	class	class CRes, base of C3dAttr
-00427050	res	neighbours	between 00426ec0 and 00427610
-00427100	res	neighbours	between 00426ec0 and 00427610
-00427150	res	neighbours	between 00426ec0 and 00427610
-00427230	res	neighbours	between 00426ec0 and 00427610
-00427390	res	neighbours	between 00426ec0 and 00427610
-004274c0	res	neighbours	between 00426ec0 and 00427610
-004274f0	res	neighbours	between 00426ec0 and 00427610
-00427520	res	neighbours	between 00426ec0 and 00427610
-00427530	res	neighbours	between 00426ec0 and 00427610
-00427570	res	neighbours	between 00426ec0 and 00427610
-004275b0	res	neighbours	between 00426ec0 and 00427610
-004275e0	res	neighbours	between 00426ec0 and 00427610
-004275f0	res	neighbours	between 00426ec0 and 00427610
+00427050	res	class	class CRes, base of C3dAttr
+00427100	res	class	class CRes, base of C3dAttr
+00427150	res	class	class CRes, base of C3dAttr
+00427230	res	class	class CRes, base of C3dAttr
+00427390	res	class	class CRes, base of C3dAttr
+004275b0	res	neighbours	between 00427390 and 00427610
+004275e0	res	neighbours	between 00427390 and 00427610
+004275f0	res	neighbours	between 00427390 and 00427610
 00427610	res	class	class CRes, base of CBitmapRes
 00427670	res	class	class CRes, base of CBitmapRes
 004276d0	res	class	class CRes, base of CBitmapRes
@@ -764,11 +699,11 @@ entry	subsystem	rule	evidence
 004278a0	res	class	class CRes, base of CBitmapRes
 00427940	res	class	class CRes, base of CBitmapRes
 00427980	res	class	class CRes, base of CBitmapRes
-004279d0	res	neighbours	between 00427980 and 00427b90
-00427b30	res	neighbours	between 00427980 and 00427b90
+004279d0	res	class	class CRes, base of CBitmapRes
+00427b30	res	class	class CRes, base of CBitmapRes
 00427b90	res	class	class CRes, base of CBitmapRes
-00427e30	res	neighbours	between 00427b90 and 004280d0
-004280d0	res	import	IJL15.DLL!#2, IJL15.DLL!#3, IJL15.DLL!#4
+00427e30	res	class	class CRes, base of CBitmapRes
+004280d0	res	class	class CRes, base of CBitmapRes
 00428300	res	neighbours	between 004280d0 and 00428360
 00428330	res	neighbours	between 004280d0 and 00428360
 00428340	res	neighbours	between 004280d0 and 00428360
@@ -782,14 +717,14 @@ entry	subsystem	rule	evidence
 004284b0	res	class	class CRes, base of CEmblemRes
 00428500	res	class	class CRes, base of CEmblemRes
 00428670	res	class	class CRes, base of CEmblemRes
-00428680	res	neighbours	between 00428670 and 00428790
-00428730	res	neighbours	between 00428670 and 00428790
-00428760	res	neighbours	between 00428670 and 00428790
-00428770	res	neighbours	between 00428670 and 00428790
+00428680	res	class	class CRes, base of CEmblemRes
+00428730	res	neighbours	between 00428680 and 00428790
+00428760	res	neighbours	between 00428680 and 00428790
+00428770	res	neighbours	between 00428680 and 00428790
 00428790	res	class	class CRes, base of CEZeffectRes
 00428820	res	class	class CRes, base of CEZeffectRes
 00428880	res	class	class CRes, base of CEZeffectRes
-004288b0	res	neighbours	between 00428880 and 004288d0
+004288b0	res	class	class CRes, base of CEZeffectRes
 004288d0	res	class	class CRes, base of CEZeffectRes
 00428940	res	neighbours	between 004288d0 and 00428aa0
 00428950	res	neighbours	between 004288d0 and 00428aa0
@@ -815,18 +750,12 @@ entry	subsystem	rule	evidence
 00429170	res	class	class CRes, base of CGndRes
 00429200	res	class	class CRes, base of CGndRes
 00429270	res	class	class CRes, base of CGndRes
-004292e0	res	neighbours	between 00429270 and 004299c0
-004293f0	res	neighbours	between 00429270 and 004299c0
-004295f0	res	neighbours	between 00429270 and 004299c0
-00429680	res	neighbours	between 00429270 and 004299c0
-004296b0	res	neighbours	between 00429270 and 004299c0
-004296d0	res	neighbours	between 00429270 and 004299c0
-004298e0	res	neighbours	between 00429270 and 004299c0
-00429920	res	neighbours	between 00429270 and 004299c0
-00429930	res	neighbours	between 00429270 and 004299c0
-00429960	res	neighbours	between 00429270 and 004299c0
-00429990	res	neighbours	between 00429270 and 004299c0
-004299a0	res	neighbours	between 00429270 and 004299c0
+004292e0	res	class	class CRes, base of CGndRes
+004293f0	res	class	class CRes, base of CGndRes
+004295f0	res	class	class CRes, base of CGndRes
+00429960	res	neighbours	between 004295f0 and 004299c0
+00429990	res	neighbours	between 004295f0 and 004299c0
+004299a0	res	neighbours	between 004295f0 and 004299c0
 004299c0	res	class	class CRes, base of CImfRes
 00429a40	res	class	class CRes, base of CImfRes
 00429aa0	res	class	class CRes, base of CImfRes
@@ -835,66 +764,49 @@ entry	subsystem	rule	evidence
 00429ba0	res	neighbours	between 00429ad0 and 00429bb0
 00429bb0	res	class	class CRes, base of CImfRes
 00429c40	res	class	class CRes, base of CImfRes
-00429f40	res	neighbours	between 00429c40 and 0042b350
-00429fa0	res	neighbours	between 00429c40 and 0042b350
-0042a100	res	neighbours	between 00429c40 and 0042b350
-0042a120	res	neighbours	between 00429c40 and 0042b350
-0042a160	res	neighbours	between 00429c40 and 0042b350
-0042a1a0	res	neighbours	between 00429c40 and 0042b350
-0042a220	res	neighbours	between 00429c40 and 0042b350
-0042a2a0	res	neighbours	between 00429c40 and 0042b350
-0042a2d0	res	neighbours	between 00429c40 and 0042b350
-0042a310	res	neighbours	between 00429c40 and 0042b350
-0042a390	res	neighbours	between 00429c40 and 0042b350
-0042a3d0	res	neighbours	between 00429c40 and 0042b350
-0042a3e0	res	neighbours	between 00429c40 and 0042b350
-0042a680	res	neighbours	between 00429c40 and 0042b350
-0042a9e0	res	neighbours	between 00429c40 and 0042b350
-0042a9f0	res	neighbours	between 00429c40 and 0042b350
-0042abf0	res	neighbours	between 00429c40 and 0042b350
-0042ad40	res	neighbours	between 00429c40 and 0042b350
-0042ad70	res	neighbours	between 00429c40 and 0042b350
-0042afd0	res	neighbours	between 00429c40 and 0042b350
-0042b200	res	neighbours	between 00429c40 and 0042b350
-0042b220	res	neighbours	between 00429c40 and 0042b350
-0042b250	res	neighbours	between 00429c40 and 0042b350
-0042b280	res	neighbours	between 00429c40 and 0042b350
-0042b310	res	neighbours	between 00429c40 and 0042b350
-0042b320	res	neighbours	between 00429c40 and 0042b350
-0042b330	res	neighbours	between 00429c40 and 0042b350
-0042b340	res	neighbours	between 00429c40 and 0042b350
+00429f40	res	neighbours	between 00429c40 and 00429fa0
+00429fa0	res	class	class CRes, base of CImfRes
+0042a100	res	class	class CRes, base of CImfRes
+0042a120	res	class	class CRes, base of CImfRes
+0042a160	res	class	class CRes, base of CImfRes
+0042a1a0	res	class	class CRes, base of CImfRes
+0042a220	res	class	class CRes, base of CImfRes
+0042a2a0	res	class	class CRes, base of CImfRes
+0042a2d0	res	class	class CRes, base of CImfRes
+0042ad40	res	neighbours	between 0042a2d0 and 0042b350
+0042afd0	res	neighbours	between 0042a2d0 and 0042b350
+0042b250	res	neighbours	between 0042a2d0 and 0042b350
+0042b310	res	neighbours	between 0042a2d0 and 0042b350
+0042b320	res	neighbours	between 0042a2d0 and 0042b350
+0042b330	res	neighbours	between 0042a2d0 and 0042b350
+0042b340	res	neighbours	between 0042a2d0 and 0042b350
 0042b350	res	class	class ModelResNode
-0042b3f0	res	neighbours	between 0042b350 and 0042b620
-0042b4d0	res	neighbours	between 0042b350 and 0042b620
-0042b500	res	neighbours	between 0042b350 and 0042b620
-0042b530	res	neighbours	between 0042b350 and 0042b620
-0042b5f0	res	neighbours	between 0042b350 and 0042b620
-0042b600	res	neighbours	between 0042b350 and 0042b620
+0042b3f0	res	class	class ModelResNode
+0042b530	res	class	class ModelResNode
+0042b5f0	res	neighbours	between 0042b530 and 0042b620
+0042b600	res	neighbours	between 0042b530 and 0042b620
 0042b620	res	class	class CRes, base of C3dModelRes
 0042b7a0	res	class	class CRes, base of C3dModelRes
 0042b800	res	class	class CRes, base of C3dModelRes
-0042b830	res	neighbours	between 0042b800 and 0042b930
 0042b930	res	class	class CRes, base of C3dModelRes
 0042bae0	res	neighbours	between 0042b930 and 0042bb00
 0042baf0	res	neighbours	between 0042b930 and 0042bb00
 0042bb00	res	class	class CRes, base of C3dModelRes
 0042bc70	res	class	class CRes, base of C3dModelRes
 0042be00	res	class	class CRes, base of C3dModelRes
-0042cbb0	res	neighbours	between 0042be00 and 0042cbd0
 0042cbd0	res	class	class CRes, base of C3dModelRes
 0042cc40	res	neighbours	between 0042cbd0 and 0042ccd0
 0042cc80	res	neighbours	between 0042cbd0 and 0042ccd0
 0042cca0	res	neighbours	between 0042cbd0 and 0042ccd0
 0042ccd0	res	class	class AnimModelResNode
-0042cd60	res	neighbours	between 0042ccd0 and 0042da20
-0042ce40	res	neighbours	between 0042ccd0 and 0042da20
-0042d8a0	res	neighbours	between 0042ccd0 and 0042da20
-0042d8b0	res	neighbours	between 0042ccd0 and 0042da20
-0042d8c0	res	neighbours	between 0042ccd0 and 0042da20
-0042d8f0	res	neighbours	between 0042ccd0 and 0042da20
-0042d990	res	neighbours	between 0042ccd0 and 0042da20
-0042d9f0	res	neighbours	between 0042ccd0 and 0042da20
-0042da00	res	neighbours	between 0042ccd0 and 0042da20
+0042cd60	res	class	class AnimModelResNode
+0042ce40	res	class	class AnimModelResNode
+0042d8a0	res	neighbours	between 0042ce40 and 0042d8f0
+0042d8b0	res	neighbours	between 0042ce40 and 0042d8f0
+0042d8f0	res	class	class AnimModelResNode
+0042d990	res	neighbours	between 0042d8f0 and 0042da20
+0042d9f0	res	neighbours	between 0042d8f0 and 0042da20
+0042da00	res	neighbours	between 0042d8f0 and 0042da20
 0042da20	res	class	class CRes, base of C3dAnimModelRes
 0042daf0	res	class	class CRes, base of C3dAnimModelRes
 0042db50	res	stub	jumps to 0042ddc0
@@ -917,75 +829,40 @@ entry	subsystem	rule	evidence
 0042ea40	res	class	class CRes, base of C3dGrannyModelRes
 0042ea70	res	class	class CRes, base of C3dGrannyModelRes
 0042eac0	res	class	class CRes, base of C3dGrannyModelRes
-0042ef10	res	neighbours	between 0042eac0 and 0042efa0
-0042ef80	res	neighbours	between 0042eac0 and 0042efa0
+0042ef10	res	class	class CRes, base of C3dGrannyModelRes
+0042ef80	res	class	class CRes, base of C3dGrannyModelRes
 0042efa0	res	class	class CRes, base of C3dGrannyModelRes
-0042f0b0	res	neighbours	between 0042efa0 and 0042fce0
-0042f100	res	neighbours	between 0042efa0 and 0042fce0
-0042f250	res	neighbours	between 0042efa0 and 0042fce0
-0042f2f0	res	neighbours	between 0042efa0 and 0042fce0
-0042f410	res	neighbours	between 0042efa0 and 0042fce0
-0042f4a0	res	neighbours	between 0042efa0 and 0042fce0
-0042f4c0	res	neighbours	between 0042efa0 and 0042fce0
-0042f550	res	neighbours	between 0042efa0 and 0042fce0
-0042f580	res	neighbours	between 0042efa0 and 0042fce0
-0042f5c0	res	neighbours	between 0042efa0 and 0042fce0
-0042f620	res	neighbours	between 0042efa0 and 0042fce0
-0042f840	res	neighbours	between 0042efa0 and 0042fce0
-0042fa90	res	neighbours	between 0042efa0 and 0042fce0
-0042fca0	res	neighbours	between 0042efa0 and 0042fce0
+0042f0b0	res	class	class CRes, base of C3dGrannyModelRes
+0042f100	res	neighbours	between 0042f0b0 and 0042f250
+0042f250	res	class	class CRes, base of C3dGrannyModelRes
+0042f2f0	res	class	class CRes, base of C3dGrannyModelRes
+0042f410	res	class	class CRes, base of C3dGrannyModelRes
+0042f4a0	res	class	class CRes, base of C3dGrannyModelRes
+0042f4c0	res	class	class CRes, base of C3dGrannyModelRes
+0042f550	res	class	class CRes, base of C3dGrannyModelRes
+0042f580	res	class	class CRes, base of C3dGrannyModelRes
+0042f5c0	res	class	class CRes, base of C3dGrannyModelRes
+0042f620	res	class	class CRes, base of C3dGrannyModelRes
+0042f840	res	class	class CRes, base of C3dGrannyModelRes
+0042fa90	res	neighbours	between 0042f840 and 0042fca0
+0042fca0	res	class	class CRes, base of C3dGrannyModelRes
 0042fce0	res	class	class GrannyMotionTable
-0042fd00	res	neighbours	between 0042fce0 and 0042fd20
-0042fd10	res	neighbours	between 0042fce0 and 0042fd20
+0042fd00	res	class	class GrannyMotionTable
+0042fd10	res	class	class GrannyMotionTable
 0042fd20	res	class	class GrannyMotionTable
-004300a0	res	neighbours	between 0042fd20 and 004300c0
+004300a0	res	class	class GrannyMotionTable
 004300c0	res	class	class GrannyMotionTable
-00430160	res	neighbours	between 004300c0 and 004301b0
+00430160	res	class	class GrannyMotionTable
 004301b0	res	class	class GrannyMotionTable
 00430250	res	class	class GrannyMotionTable
-00430310	res	neighbours	between 00430250 and 00430330
+00430310	res	class	class GrannyMotionTable
 00430330	res	class	class GrannyMotionTable
-004303a0	res	neighbours	between 00430330 and 00431f90
-004305b0	res	neighbours	between 00430330 and 00431f90
-00430720	res	neighbours	between 00430330 and 00431f90
-00430770	res	neighbours	between 00430330 and 00431f90
-00430790	res	neighbours	between 00430330 and 00431f90
-00430800	res	neighbours	between 00430330 and 00431f90
-00430850	res	neighbours	between 00430330 and 00431f90
-00430870	res	neighbours	between 00430330 and 00431f90
-004308c0	res	neighbours	between 00430330 and 00431f90
-00430910	res	neighbours	between 00430330 and 00431f90
-00430990	res	neighbours	between 00430330 and 00431f90
-00430a30	res	neighbours	between 00430330 and 00431f90
-00430a50	res	neighbours	between 00430330 and 00431f90
-00430a70	res	neighbours	between 00430330 and 00431f90
-00430bd0	res	neighbours	between 00430330 and 00431f90
-00430c00	res	neighbours	between 00430330 and 00431f90
-00430c60	res	neighbours	between 00430330 and 00431f90
-00430d10	res	neighbours	between 00430330 and 00431f90
-00430f70	res	neighbours	between 00430330 and 00431f90
-004313c0	res	neighbours	between 00430330 and 00431f90
-00431410	res	neighbours	between 00430330 and 00431f90
-00431430	res	neighbours	between 00430330 and 00431f90
-004316b0	res	neighbours	between 00430330 and 00431f90
-00431710	res	neighbours	between 00430330 and 00431f90
-00431730	res	neighbours	between 00430330 and 00431f90
-00431790	res	neighbours	between 00430330 and 00431f90
-004317b0	res	neighbours	between 00430330 and 00431f90
-00431810	res	neighbours	between 00430330 and 00431f90
-00431860	res	neighbours	between 00430330 and 00431f90
-00431880	res	neighbours	between 00430330 and 00431f90
-004318a0	res	neighbours	between 00430330 and 00431f90
-00431a00	res	neighbours	between 00430330 and 00431f90
-00431a30	res	neighbours	between 00430330 and 00431f90
-00431a90	res	neighbours	between 00430330 and 00431f90
-00431b00	res	neighbours	between 00430330 and 00431f90
-00431b30	res	neighbours	between 00430330 and 00431f90
-00431cf0	res	neighbours	between 00430330 and 00431f90
-00431d40	res	neighbours	between 00430330 and 00431f90
-00431de0	res	neighbours	between 00430330 and 00431f90
-00431f60	res	neighbours	between 00430330 and 00431f90
-00431f70	res	neighbours	between 00430330 and 00431f90
+004303a0	res	class	class GrannyMotionTable
+004305b0	res	class	class GrannyMotionTable
+00431b00	res	neighbours	between 004305b0 and 00431f90
+00431cf0	res	neighbours	between 004305b0 and 00431f90
+00431f60	res	neighbours	between 004305b0 and 00431f90
+00431f70	res	neighbours	between 004305b0 and 00431f90
 00431f90	res	class	class CRes, base of CPaletteRes
 00431ff0	res	class	class CRes, base of CPaletteRes
 00432050	res	class	class CRes, base of CPaletteRes
@@ -1016,28 +893,19 @@ entry	subsystem	rule	evidence
 00433f00	res	class	class CRes, base of CSprRes
 00433f80	res	class	class CRes, base of CSprRes
 00433fe0	res	class	class CRes, base of CSprRes
-00434010	res	neighbours	between 00433fe0 and 00434030
 00434030	res	class	class CRes, base of CSprRes
 00434080	res	neighbours	between 00434030 and 004340a0
 00434090	res	neighbours	between 00434030 and 004340a0
 004340a0	res	class	class CRes, base of CSprRes
 00434110	res	class	class CRes, base of CSprRes
 004341d0	res	class	class CRes, base of CSprRes
-00434cb0	res	neighbours	between 004341d0 and 00435320
-00434e50	res	neighbours	between 004341d0 and 00435320
-00434ed0	res	neighbours	between 004341d0 and 00435320
-00434f80	res	neighbours	between 004341d0 and 00435320
-00434fb0	res	neighbours	between 004341d0 and 00435320
-00434fe0	res	neighbours	between 004341d0 and 00435320
-00434ff0	res	neighbours	between 004341d0 and 00435320
-004351d0	res	neighbours	between 004341d0 and 00435320
-004351f0	res	neighbours	between 004341d0 and 00435320
-00435220	res	neighbours	between 004341d0 and 00435320
-00435250	res	neighbours	between 004341d0 and 00435320
-00435270	res	neighbours	between 004341d0 and 00435320
-004352a0	res	neighbours	between 004341d0 and 00435320
-004352f0	res	neighbours	between 004341d0 and 00435320
-00435300	res	neighbours	between 004341d0 and 00435320
+00434cb0	res	class	class CRes, base of CSprRes
+00434e50	res	class	class CRes, base of CSprRes
+00434ed0	res	class	class CRes, base of CSprRes
+00435270	res	neighbours	between 00434ed0 and 00435320
+004352a0	res	neighbours	between 00434ed0 and 00435320
+004352f0	res	neighbours	between 00434ed0 and 00435320
+00435300	res	neighbours	between 00434ed0 and 00435320
 00435320	res	class	class CRes, base of CWave
 00435380	res	class	class CRes, base of CWave
 004353e0	res	class	class CRes, base of CWave
@@ -6150,14 +6018,6 @@ entry	subsystem	rule	evidence
 005d4f08	res	funclet	EH tables of 004220d0
 005d4f13	res	funclet	EH tables of 004220d0
 005d4f1b	res	funclet	EH tables of 004220d0
-005d4f50	res	funclet	EH tables of 00422e20
-005d4f90	res	funclet	EH tables of 00425320
-005d4fd0	res	funclet	EH tables of 004255f0
-005d4fe1	res	funclet	EH tables of 004255f0
-005d5000	res	funclet	EH tables of 004257b0
-005d5011	res	funclet	EH tables of 004257b0
-005d5022	res	funclet	EH tables of 004257b0
-005d5040	res	funclet	EH tables of 00425a40
 005d5060	res	funclet	EH tables of 00426a20
 005d5068	res	funclet	EH tables of 00426a20
 005d5080	res	funclet	EH tables of 00426aa0
@@ -6202,13 +6062,6 @@ entry	subsystem	rule	evidence
 005d53a3	res	funclet	EH tables of 00429c40
 005d53ab	res	funclet	EH tables of 00429c40
 005d53b3	res	funclet	EH tables of 00429c40
-005d53d0	res	funclet	EH tables of 0042a9f0
-005d53e1	res	funclet	EH tables of 0042a9f0
-005d53f2	res	funclet	EH tables of 0042a9f0
-005d53fa	res	funclet	EH tables of 0042a9f0
-005d5410	res	funclet	EH tables of 0042abf0
-005d5421	res	funclet	EH tables of 0042abf0
-005d5429	res	funclet	EH tables of 0042abf0
 005d5440	res	funclet	EH tables of 0042b3f0
 005d544e	res	funclet	EH tables of 0042b3f0
 005d545c	res	funclet	EH tables of 0042b3f0
@@ -6282,7 +6135,6 @@ entry	subsystem	rule	evidence
 005d588b	res	funclet	EH tables of 004303a0
 005d5893	res	funclet	EH tables of 004303a0
 005d589b	res	funclet	EH tables of 004303a0
-005d58b0	res	funclet	EH tables of 004318a0
 005d58d0	res	funclet	EH tables of 00431f90
 005d58f0	res	funclet	EH tables of 00431ff0
 005d5910	res	funclet	EH tables of 004320e0

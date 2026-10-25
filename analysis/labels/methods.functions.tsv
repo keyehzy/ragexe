@@ -131,14 +131,14 @@ address	namespace	name	calling_convention	evidence
 0042ddc0	C3dAnimModelRes	method_0042ddc0	__thiscall	__thiscall; called with this from 1 functions of C3dAnimModelRes, e.g. 0042dcb0
 0042de70	C3dAnimModelRes	method_0042de70	__thiscall	__thiscall; called with this from 1 functions of C3dAnimModelRes, e.g. 0042df00
 0042efa0	C3dGrannyModelRes	method_0042efa0	__thiscall	__thiscall; called with this from 1 functions of C3dGrannyModelRes, e.g. 0042ea70
-004300c0	GrannyMotionTable	method_004300c0	__thiscall	__thiscall; called with this from 1 functions of GrannyMotionTable, e.g. 0042fd20
+004300c0	GrannyMotionTable	method_004300c0	__thiscall	__thiscall; called with this from 2 functions of GrannyMotionTable, e.g. 0042fd20
 004301b0	GrannyMotionTable	method_004301b0	__thiscall	__thiscall; called with this from 1 functions of GrannyMotionTable, e.g. 0042fd20
 00430250	GrannyMotionTable	method_00430250	__thiscall	__thiscall; called with this from 1 functions of GrannyMotionTable, e.g. 004301b0
 00430330	GrannyMotionTable	method_00430330	__thiscall	__thiscall; called with this from 1 functions of GrannyMotionTable, e.g. 0042fd20
 00430950	std::list	method_00430950	__thiscall	__thiscall; called with this from 2 functions of C3dModelRes, e.g. 0042b930
 004309c0	std::list	method_004309c0	__thiscall	__thiscall; called with this from 5 functions of C3dAnimModelRes, C3dModelRes, UIGuildInfoManageWnd, UIWhisperListWnd, e.g. 0042b930
 00430b50	std::list	method_00430b50	__thiscall	__thiscall; called with this from 1 functions of C3dModelRes, e.g. 0042b930
-00430b90	std::list	method_00430b90	__thiscall	__thiscall; called with this from 1 functions of C3dAnimModelRes, e.g. 0042dcb0
+00430b90	std::list	method_00430b90	__thiscall	__thiscall; called with this from 2 functions of AnimModelResNode, C3dAnimModelRes, e.g. 0042cd60
 00436a10	std::list	method_00436a10	__thiscall	__thiscall; called with this from 1 functions of C3dWorldRes, e.g. 004359d0
 00436b60	std::list	method_00436b60	__thiscall	__thiscall; called with this from 1 functions of C3dWorldRes, e.g. 00435c90
 00436ba0	std::list	method_00436ba0	__thiscall	__thiscall; called with this from 2 functions of C3dWorldRes, e.g. 004359d0

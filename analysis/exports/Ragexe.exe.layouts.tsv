@@ -1,10 +1,10 @@
 class	size	size_source	max_size	fields	covered_bytes	coverage	indexed_bases	notes
-AnimModelResNode	88	new	88	17	70	0.80		3 overlapping uses dropped
+AnimModelResNode	88	new	88	19	78	0.89		3 overlapping uses dropped
 C3dAnimModelRes	356	new	356	18	89	0.25		6 overlapping uses dropped
 C3dAttr	300	new	300	8	33	0.11		
 C3dDevice	572	estimated	616	57	217	0.38	0x134	the global at 006239d0 is followed by a variable at 00623c38 (another data label); 9 addresses before it, 00623c0c first, are used only by other code: fields or variables; probably a variable from 00623c18 (+0x248) on, which only source files naming nothing else of the object use; 2 of them named with an absolute address by the class's own methods, e.g. 00623c10 by 00405f20
 C3dGrannyGameActor	3132	new	3132	152	584	0.19	0x4c8,0x304,0x288	
-C3dGrannyModelRes	948	new	948	9	40	0.04		
+C3dGrannyModelRes	948	new	948	18	76	0.08		
 C3dGround	236	new	236	40	164	0.69		
 C3dGround15	236	estimated		40	164	0.69		
 C3dModelRes	424	new	424	12	64	0.15		9 overlapping uses dropped
@@ -33,13 +33,13 @@ CGPak	132	estimated	132	24	91	0.69		the global at 0067cd00 is followed by a vari
 CGameActor	636	estimated		122	473	0.74		10 overlapping uses dropped
 CGameMode	956	new	956	139	800	0.84		44 overlapping uses dropped
 CGameObject	4	estimated		0	4	1.00		
-CGndRes	488	new	488	15	61	0.12		
+CGndRes	488	new	488	21	82	0.17		
 CGndRiser	204	estimated		57	195	0.96		
 CGraffiSkill	948	new	948	137	524	0.55		
 CGrannyCorpse3d	588	new	588	23	93	0.16		
 CGrannyPc	9220	estimated		195	747	0.08	0x0,0xea8,0x8ac,0x2dc,0x380	1 overlapping uses dropped
 CGroundScope	220	new	220	61	211	0.96		
-CImfRes	6588	new	6588	7	29	0.00		
+CImfRes	6588	new	6588	7	29	0.00	0x120,0x15c	
 CItem	192	new	192	53	183	0.95		4 overlapping uses dropped
 CKeyPad	188	new	188	10	56	0.30		5 overlapping uses dropped
 CLanguage	140	estimated	144	23	126	0.90		the global at 0067c8e8 is followed by a variable at 0067c978 (written by the dynamic initializer 004c9740); 1 addresses before it, 0067c974 first, are used only by other code: fields or variables | 12 overlapping uses dropped
@@ -78,7 +78,7 @@ ClientState	6356	estimated	6360	552	4613	0.73	0x17fc,0x179c,0x173c,0x17cc,0x176c
 DataFile	16	estimated	31064	4	16	1.00		the global at 0067d4b8 is followed by a variable at 00684e10 (written by the dynamic initializer 0050c270); 16 addresses before it, 0067d4c8 first, are used only by other code: fields or variables; probably a variable from 0067d548 (+0x90) on, which only source files naming nothing else of the object use
 DirectInputMouse	60	estimated	64	13	52	0.87		the global at 00628b48 is followed by a variable at 00628b88 (another data label)
 FontCache	16	estimated	16	4	13	0.81		the global at 00623c48 is followed by a variable at 00623c58 (written by the dynamic initializer 00407550)
-GrannyMotionTable	644	estimated	8648	9	33	0.05	0x0	the global at 0063edc0 is followed by a variable at 00640f88 (another data label); 2 addresses before it, 00640f80 first, are used only by other code: fields or variables; probably a variable from 00640f80 (+0x21c0) on, which only source files naming nothing else of the object use | 1 overlapping uses dropped
+GrannyMotionTable	644	estimated	8648	11	41	0.06	0x0	the global at 0063edc0 is followed by a variable at 00640f88 (another data label); 2 addresses before it, 00640f80 first, are used only by other code: fields or variables; probably a variable from 00640f80 (+0x21c0) on, which only source files naming nothing else of the object use | 1 overlapping uses dropped
 GuildInfo	296	estimated	296	44	290	0.98		the global at 0067cab8 is followed by a variable at 0067cbe0 (another data label) | 32 overlapping uses dropped
 KeyPadDispatcher	108	estimated	120	7	25	0.23		the global at 00628b88 is followed by a variable at 00628c00 (another data label); 3 addresses before it, 00628bf4 first, are used only by other code: fields or variables; probably a variable from 00628bf4 (+0x6c) on, which only source files naming nothing else of the object use
 MannerFilter	48	estimated	56	12	45	0.94		the global at 0067cbe8 is followed by a variable at 0067cc20 (another data label); 1 addresses before it, 0067cc18 first, are used only by other code: fields or variables; probably a variable from 0067cc18 (+0x30) on, which only source files naming nothing else of the object use
@@ -281,8 +281,8 @@ std::_Mpunct<unsigned_short>	40	estimated		9	36	0.90
 std::bad_alloc	12	estimated		2	12	1.00		
 std::bad_cast	12	estimated		2	12	1.00		
 std::basic_ios<char,std::char_traits<char>_>	40	estimated		7	32	0.80		
-std::basic_iostream<char,std::char_traits<char>_>	16	estimated		1	8	0.50		
-std::basic_istream<char,std::char_traits<char>_>	12	estimated		0	4	0.33		
+std::basic_iostream<char,std::char_traits<char>_>	48	estimated		4	20	0.42		
+std::basic_istream<char,std::char_traits<char>_>	48	estimated		3	16	0.33		
 std::basic_ostream<char,std::char_traits<char>_>	8	estimated		1	8	1.00		
 std::basic_streambuf<char,std::char_traits<char>_>	56	estimated		8	36	0.64		
 std::codecvt<char,char,int>	16	new	16	0	4	0.25		
@@ -293,7 +293,7 @@ std::ctype<char>	24	new	24	5	24	1.00
 std::ctype<unsigned_short>	24	new	24	2	12	0.50		
 std::ios_base	32	estimated		6	28	0.88		
 std::ios_base::failure	20	estimated		3	16	0.80		
-std::istrstream	92	estimated		0	4	0.04		
+std::istrstream	92	estimated		3	16	0.17		
 std::length_error	28	estimated		5	24	0.86		
 std::locale::_Locimp	4	estimated		0	4	1.00		
 std::locale::facet	4	estimated		0	4	1.00		
@@ -317,7 +317,7 @@ std::numpunct<unsigned_short>	24	new	24	5	20	0.83
 std::ostrstream	88	estimated		1	8	0.09		
 std::out_of_range	28	estimated		5	24	0.86		
 std::runtime_error	20	estimated		3	16	0.80		
-std::strstream	96	estimated		1	8	0.08		
+std::strstream	96	estimated		4	20	0.21		
 std::strstreambuf	80	estimated		14	60	0.75		1 overlapping uses dropped
 std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	16	new	16	2	12	0.75		
 std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	16	new	16	2	12	0.75		

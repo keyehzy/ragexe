@@ -76,8 +76,8 @@ std::_Mpunct<unsigned_short>	40	estimated: end of the last field the class or it
 std::bad_alloc	12	estimated: end of the last field the class or its bases use
 std::bad_cast	12	estimated: end of the last field the class or its bases use
 std::basic_ios<char,std::char_traits<char>_>	40	estimated: end of the last field the class or its bases use
-std::basic_iostream<char,std::char_traits<char>_>	16	estimated: end of the last field the class or its bases use
-std::basic_istream<char,std::char_traits<char>_>	12	estimated: end of the last field the class or its bases use
+std::basic_iostream<char,std::char_traits<char>_>	48	estimated: end of the last field the class or its bases use
+std::basic_istream<char,std::char_traits<char>_>	48	estimated: end of the last field the class or its bases use
 std::basic_ostream<char,std::char_traits<char>_>	8	estimated: end of the last field the class or its bases use
 std::basic_streambuf<char,std::char_traits<char>_>	56	estimated: end of the last field the class or its bases use
 std::ios_base	32	estimated: end of the last field the class or its bases use

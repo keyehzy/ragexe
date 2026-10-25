@@ -41,7 +41,7 @@ CRes	005e27f4	00429b6f	CImfRes::~CImfRes
 CRes	005e27f4	0042dda3	C3dAnimModelRes::~C3dAnimModelRes
 CRes	005e27f4	00421e25	CRmaRes::~CRmaRes
 CRes	005e27f4	00435410	CWave::~CWave
-CRes	005e27f4	00420870	FUN_00420870
+CRes	005e27f4	00420870	CRes::~CRes
 CRes	005e27f4	00428920	CEZeffectRes::~CEZeffectRes
 CRes	005e27f4	004208ab	CRes::CRes
 CRes	005e27f4	00420a3a	CActRes::~CActRes
@@ -64,12 +64,12 @@ std::basic_ios<char,std::char_traits<char>_>	005e287c	005b350d	FUN_005b34e3
 std::basic_ios<char,std::char_traits<char>_>	005e287c	005b369e	FUN_005b3667
 std::basic_ios<char,std::char_traits<char>_>	005e287c	00422e19	std::basic_ios<char,std::char_traits<char>_>::basic_ios<char,std::char_traits<char>_>
 std::basic_ios<char,std::char_traits<char>_>	005e287c	00422e00	std::basic_ios<char,std::char_traits<char>_>::~basic_ios<char,std::char_traits<char>_>
-std::basic_ios<char,std::char_traits<char>_>	005e287c	00422e58	FUN_00422e20
+std::basic_ios<char,std::char_traits<char>_>	005e287c	00422e58	std::basic_istream<char,std::char_traits<char>_>::basic_istream<char,std::char_traits<char>_>
 std::basic_istream<char,std::char_traits<char>_>	005e2884	005b3e7a	std::basic_iostream<char,std::char_traits<char>_>::~basic_iostream<char,std::char_traits<char>_>
 std::basic_istream<char,std::char_traits<char>_>	005e2884	005b34d1	std::istrstream::~istrstream
 std::basic_istream<char,std::char_traits<char>_>	005e2884	004235ef	std::basic_istream<char,std::char_traits<char>_>::`scalar_deleting_destructor'
-std::basic_istream<char,std::char_traits<char>_>	005e2884	00422e74	FUN_00422e20
-std::basic_istream<char,std::char_traits<char>_>	005e2884	00422ed6	FUN_00422ed0
+std::basic_istream<char,std::char_traits<char>_>	005e2884	00422e74	std::basic_istream<char,std::char_traits<char>_>::basic_istream<char,std::char_traits<char>_>
+std::basic_istream<char,std::char_traits<char>_>	005e2884	00422ed6	std::basic_istream<char,std::char_traits<char>_>::~basic_istream<char,std::char_traits<char>_>
 std::basic_streambuf<char,std::char_traits<char>_>	005e2894	005b355d	FUN_005b34e3
 std::basic_streambuf<char,std::char_traits<char>_>	005e2894	005b36e6	FUN_005b3667
 std::basic_streambuf<char,std::char_traits<char>_>	005e2894	005b37bb	std::strstreambuf::~strstreambuf

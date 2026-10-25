@@ -72,14 +72,21 @@ to say what the code is.
 | | `insert`, `erase`, `find`, `lower_bound`, `upper_bound`, `clear`, `operator[]`, `count` | public members, when the behaviour matches |
 | `std::list` | `list`, `~list` | constructor, destructor |
 | | `AllocNode`, `EraseNode`, `EraseRange` | allocate a node; unlink and free one node or a range, returning the next position |
+| | `IncrementIterator` | step an iterator to the next node |
 | | `push_back`, `push_front`, `insert`, `erase`, `clear`, `remove`, `sort`, `splice` | public members |
-| `std::vector` | `insert`, `push_back`, `erase`, `resize`, `reserve`, `clear` | public members |
+| `std::vector` | `vector`, `~vector`, `operator=` | constructor, destructor, assignment |
+| | `insert`, `push_back`, `erase`, `resize`, `reserve`, `clear`, `size`, `capacity` | public members |
 | | `FillUninitialized`, `CopyUninitialized`, `DestroyRange` | construct n copies or a copy of a range in raw memory, destroy a range |
+| `std::allocator` | `allocate`, `deallocate`, `construct`, `destroy`, `max_size` | public members: called with ECX = the allocator, the container's first byte |
 | `std::string` | `string`, `~string` | constructor, destructor |
 | | `FreeBuffer`, `GrowBuffer`, `ReallocateBuffer` | release (or drop a reference to) the copy-on-write buffer; make room for n characters; allocate a larger buffer and copy into it |
-| | `assign`, `append`, `insert`, `erase`, `compare`, `find`, `substr`, `resize`, `operator+=` | public members |
+| | `ReallocateBufferTail`, `GetRefCountByte` | the part of `ReallocateBuffer` reached only by its jump; the address of the reference count, the byte before the characters |
+| | `assign`, `append`, `insert`, `erase`, `compare`, `find`, `substr`, `resize`, `max_size`, `operator+=` | public members |
 | `std::pair` | `pair` | the pair constructor |
-| `std` | `ConstructAt`, `DestroyAt` | copy-construct a value at a pointer when it is not null; destroy the value at a pointer |
+| `std` | `ConstructAt`, `DestroyAt` | copy-construct a value at a pointer when it is not null; destroy the value at a pointer. `__cdecl`; the same operation called with ECX = an allocator is `std::allocator::construct` / `destroy` |
+| | `AllocateElements` | `operator new` of n elements, as the containers' allocation helper |
+| | `QuickSortRange`, `InsertionSort`, `ShiftInsertSorted` | the parts of a sort: partition and recurse; sort a short range; move one element back to its place |
+| | `copy`, `operator+` | public algorithms and operators, when the behaviour matches |
 | | `ThrowLengthError`, `ThrowOutOfRange` | throw `length_error` or `out_of_range` with the string the binary holds |
 | `std::StlLock` | `StlLock`, `~StlLock` | enter and leave the global critical section that guards the STL (`0x688a88`) |
 | `std::LocaleInfo` | `LocaleInfo`, `~LocaleInfo` | the locale information object built on the stack before facets |
@@ -88,6 +95,9 @@ to say what the code is.
 
 Struct fields follow the same rule. For example, `std::string` is `allocator`, `buffer`,
 `length`, `capacity`.
+
+Template code is instantiated once per element type, so the same name appears many
+times in one namespace; the address and the evidence tell the copies apart.
 
 ## Naming by reading
 
@@ -115,6 +125,7 @@ The procedure:
    - If the body never reads ECX, still `__thiscall` when the callers set ECX just
      before the call (`fn_context.py` counts this) and the function pops its own
      arguments.
+   - A function with no arguments whose callers all set ECX is `__thiscall`.
    - Otherwise `ret N` with N > 0 means `__stdcall`, and a plain `ret` means `__cdecl`.
 4. **Confidence.** High when the evidence pins the purpose. Medium for a descriptive
    name inferred from use. Low, or no row at all, when the purpose is unclear.
@@ -126,3 +137,11 @@ The procedure:
 Batches follow the source files: runs of functions between dynamic initializers
 (`docs/architecture.md` §1). Subsystem tags are not used, because they cut across
 files.
+
+Classes without RTTI are not invented while naming. Functions that look like methods of
+such a class are named in `Global` (as `__thiscall` where the convention says so), and
+the class is proposed separately, with evidence, for `inferred.classes.tsv`.
+
+Terms for a file format's parts need the same evidence as names. When only the shape is
+visible (a vector of vectors of records), name the shape (`GetEntryCount`,
+`GetRecordLength`), not what such a format is known to hold elsewhere.
