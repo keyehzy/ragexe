@@ -14,13 +14,13 @@ Every function of the game's own code has a subsystem in the ledger's `subsystem
 | Subsystem | Functions | Bytes | What it covers |
 |-----------|----------:|------:|----------------|
 | `core` | 210 | 36,897 | `WinMain`, the window and message loop, the mode switcher, the frame timer, client configuration (clientinfo.xml, registry), input devices, language and code-page handling, vector and matrix math, the crash handler |
-| `res` | 672 | 127,998 | the GRF archive (`CGPak`), `ResourceManager`, every file-backed resource type (`CRes` and its 15 subclasses: sprites, acts, models, maps, palettes, waves), `DataFile`, `XmlDocument`, JPEG decoding |
+| `res` | 673 | 128,002 | the GRF archive (`CGPak`), `ResourceManager`, every file-backed resource type (`CRes` and its 15 subclasses: sprites, acts, models, maps, palettes, waves), `DataFile`, `XmlDocument`, JPEG decoding |
 | `render` | 401 | 71,000 | DirectDraw and Direct3D 7 (`C3dDevice`, `SceneRenderer`), surfaces and textures, render primitives, GDI drawing onto surfaces, fonts, Bink movies, screenshots |
 | `world` | 1,152 | 428,769 | the map (`CWorld`, `C3dGround`, scene nodes), the camera (`CView`), the objects placed in the world (the `CGameObject` hierarchy: actors, items, effects), path finding |
 | `net` | 77 | 24,330 | `CConnection` and `CRagConnection`, their byte queues (`PacketQueue`), Winsock start-up, the server-sent packet filter code |
 | `ui` | 1,863 | 499,477 | the 153 `UIWindow` classes, `UIWindowMgr`, skins, window snapping, the IME, Thai line breaking, the cursor object (`CMousePointer`) |
 | `audio` | 38 | 4,751 | the Miles Sound System wrapper, DirectSound and mixer set-up, `CSoundMaker` |
-| `game` | 1,566 | 469,201 | the login and game modes (`CLoginMode`, `CGameMode`), the packet dispatchers and handlers, `ClientState` (character, inventory, options, message tables), guild state, item and skill tables, the chat filter, the mini-game engine (`mg::`) |
+| `game` | 1,565 | 469,197 | the login and game modes (`CLoginMode`, `CGameMode`), the packet dispatchers and handlers, `ClientState` (character, inventory, options, message tables), guild state, item and skill tables, the chat filter, the mini-game engine (`mg::`) |
 
 The library code is `crt` (728 functions, the static MSVC 6 C runtime from `0x5b325c`)
 and `stl` (408, Dinkumware templates in a `std` namespace). Thunks and exception funclets
@@ -33,7 +33,7 @@ take the subsystem of the function they belong to.
 row per function with the rule and evidence that placed it.
 
 1. **Seeds.**
-   - 3,124 functions are seeded by their class or namespace. A class rule also covers the
+   - 3,142 functions are seeded by their class or namespace. A class rule also covers the
      classes derived from it (RTTI bases): `UIWindow` covers all 153 windows and controls.
    - 80 by an address range: three source files identified by their strings (math, frame
      timer, client configuration).
@@ -42,10 +42,10 @@ row per function with the rule and evidence that placed it.
      saves window positions in the registry just as `WinMain` reads its settings there.
    - 3 by single-function rules.
 2. **Propagation**, repeated until nothing changes, strongest rule first:
-   - *neighbours* (2,388): the nearest assigned functions before and after it agree.
+   - *neighbours* (2,376): the nearest assigned functions before and after it agree.
    - *initializer* (45): a dynamic initializer takes the subsystem of the code after it.
-   - *callers* (252): every assigned function that references it agrees.
-   - *shared* (8): it is referenced from several subsystems, so it is a `core` helper.
+   - *callers* (247): every assigned function that references it agrees.
+   - *shared* (7): it is referenced from several subsystems, so it is a `core` helper.
    - *callees* (22): everything it references agrees, leaving out shared helpers.
    - *previous* (24): nothing references it, so it takes the function before it.
 
@@ -54,9 +54,9 @@ other seeds and reports how often each rule agrees with the class:
 
 | Rule | Agrees with the class |
 |------|----------------------:|
-| neighbours | 99.8% of 3,040 |
-| callees | 95.3% of 1,705 |
-| callers | 88.9% of 1,605 |
+| neighbours | 99.8% of 3,057 |
+| callees | 95.4% of 1,714 |
+| callers | 88.9% of 1,619 |
 
 The linker lays out each translation unit's functions together, and a small helper sits
 with the file that defines it, whoever calls it. Ordering callers first split the

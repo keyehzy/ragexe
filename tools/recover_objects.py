@@ -27,6 +27,17 @@ Rules, in order of strength:
      sizeof = n for the class constructed by the callee. An inlined constructor that
      stores a vtable into the result gives the same.
 
+The helpers the initializers call or jump to are named after the global they serve,
+with that global's label (generated or curated):
+  construct_<global>        loads ECX with the global's address and calls or jumps to a
+                            function, after pushing any arguments
+  register_destroy_<global> `push D; call atexit`, D being the destroy stub of the same
+                            global, or of the global the same initializer constructs
+  destroy_<global>          an atexit argument `mov ecx, G; call/jmp F`, wherever registered
+  atexit_no_op              the one-byte `ret` most initializers register for globals
+                            without a destructor
+  static_init_NNN_body      any other function an initializer calls or jumps to
+
 Classes without RTTI come from the curated analysis/labels/inferred.*.tsv files: a
 function row named after its class is that class's constructor, and rules 2 and 4 use
 it like a recovered one. A curated size wins over operator new, and a curated global
@@ -106,6 +117,7 @@ class Recovery:
                 self.curated_ctors[int(r["address"], 16)] = r["namespace"]
                 self.ctors[r["namespace"]].add(int(r["address"], 16))
         self.curated_data = {int(r["address"], 16) for r in read_tsv(os.path.join(LABELS, "inferred.data.tsv"))}
+        self.initializer_bodies = {}  # initializer -> the functions it calls or jumps to
         self.curated_funcs = {int(r["address"], 16) for name in ("crt.functions.tsv", "inferred.functions.tsv")
                               for r in read_tsv(os.path.join(LABELS, name))}
 
@@ -240,6 +252,7 @@ class Recovery:
             if not entry:
                 continue
             self.initializer_rows.append((entry, idx))
+            self.initializer_bodies[entry] = self.stub_bodies(entry)[1:]
             for body in self.stub_bodies(entry):
                 ins = self.disasm_at(body, 16)
                 for k, i in enumerate(ins):
@@ -295,6 +308,102 @@ class Recovery:
                 self.dtors[cls].add(t)
                 self.globals.setdefault(g, (cls, None, stub))
             return
+
+    # -- initializer helpers -----------------------------------------------------------
+
+    def stub_shape(self, addr):
+        """('construct', G, F), ('register', D), ('destroy', G, F), ('no_op',) or None."""
+        fn = self.bx.functions.get(addr)
+        if fn is None or fn.size > 48:
+            return None
+        ins = self.bx.insns(fn)
+        if len(ins) == 1 and ins[0].id == x86.X86_INS_RET:
+            return ("no_op",)
+        calls = [(k, i) for k, i in enumerate(ins) if i.id in (x86.X86_INS_CALL, x86.X86_INS_JMP)]
+        if len(calls) != 1:
+            return None
+        k, c = calls[0]
+        t = self.bx.call_target(c) if c.id == x86.X86_INS_CALL else self.bx.jump_target(c)
+        if t == ATEXIT:
+            p = ins[k - 1] if k > 0 else None
+            if p is not None and p.id == x86.X86_INS_PUSH and p.operands[0].type == x86.X86_OP_IMM:
+                return ("register", p.operands[0].imm & 0xFFFFFFFF)
+            return None
+        if not isinstance(t, int) or self.bx.section_of(t) != ".text":
+            return None
+        g = None
+        for i in ins[:k]:
+            ops = i.operands
+            if i.id == x86.X86_INS_PUSH:
+                continue
+            if i.id == x86.X86_INS_MOV and ops[0].type == x86.X86_OP_REG and ops[0].reg == x86.X86_REG_ECX \
+                    and ops[1].type == x86.X86_OP_IMM and self.bx.section_of(ops[1].imm & 0xFFFFFFFF) == ".data":
+                g = ops[1].imm & 0xFFFFFFFF
+                continue
+            return None
+        if g is None or any(i.id not in (x86.X86_INS_RET, x86.X86_INS_POP, x86.X86_INS_ADD, x86.X86_INS_NOP)
+                            for i in ins[k + 1:]):
+            return None
+        return ("construct", g, t)
+
+    def initializer_helpers(self, global_names):
+        """address -> (name, evidence) for the initializers' helper functions."""
+        def gname(g):
+            return global_names.get(g, f"global_{g:08x}")
+        out = {}
+        atexit_args = Counter()
+        for fn in self.bx.functions.values():
+            if fn.kind != "code":
+                continue
+            ins = self.bx.insns(fn)
+            for k, i in enumerate(ins[1:], start=1):
+                p = ins[k - 1]
+                if self.bx.call_target(i) == ATEXIT and p.id == x86.X86_INS_PUSH and p.operands[0].type == x86.X86_OP_IMM:
+                    atexit_args[p.operands[0].imm & 0xFFFFFFFF] += 1
+        destroys = {}
+        no_ops = sorted((d for d in atexit_args if (self.stub_shape(d) or ("",))[0] == "no_op"),
+                        key=lambda d: -atexit_args[d])
+        for d, n in atexit_args.items():
+            shape = self.stub_shape(d)
+            if shape is None:
+                continue
+            if shape[0] == "no_op":
+                name = "atexit_no_op" if d == no_ops[0] else f"atexit_no_op_{d:08x}"
+                out[d] = (name, f"a lone ret, registered with atexit {n} times")
+            elif shape[0] == "construct":
+                _, g, t = shape
+                destroys[d] = g
+                out[d] = (f"destroy_{gname(g)}", f"atexit handler: mov ecx, {g:08x} and calls {t:08x}")
+        for entry, bodies in sorted(self.initializer_bodies.items()):
+            idx = next(k for e, k in self.initializer_rows if e == entry)
+            built = [self.stub_shape(b) for b in bodies]
+            sibling = next((sh[1] for sh in built if sh and sh[0] == "construct"), None)
+            for body, shape in zip(bodies, built):
+                if body in out or body == entry:
+                    continue
+                if shape and shape[0] == "construct":
+                    _, g, t = shape
+                    out[body] = (f"construct_{gname(g)}",
+                                 f"static_init_{idx:03d} calls it: mov ecx, {g:08x} and calls {t:08x}")
+                elif shape and shape[0] == "register":
+                    d = shape[1]
+                    g = destroys.get(d, sibling)
+                    if g is None:
+                        continue
+                    if d in destroys:
+                        what = f"its destroy stub {d:08x}"
+                    elif (self.stub_shape(d) or ("",))[0] == "no_op":
+                        what = f"{d:08x}, a lone ret"
+                    else:
+                        what = f"{d:08x}"
+                        if d not in out and d in self.bx.functions:
+                            out[d] = (f"destroy_{gname(g)}", f"static_init_{idx:03d} constructs global {g:08x} "
+                                                             f"and registers this with atexit")
+                    out[body] = (f"register_destroy_{gname(g)}",
+                                 f"static_init_{idx:03d} calls it: registers {what} with atexit")
+                elif body in self.bx.functions and self.bx.functions[body].kind == "code":
+                    out[body] = (f"static_init_{idx:03d}_body", f"static_init_{idx:03d} calls or jumps to it")
+        return out
 
     def first_use_statics(self):
         ctor_of = {a: ns for a, (ns, name, _) in self.names.items() if name == short_name(ns)}
@@ -500,11 +609,8 @@ class Recovery:
             f.write("address\tnamespace\tname\tcalling_convention\tevidence\n" + gen)
             for a, (ns, name, ev) in sorted(self.names.items()):
                 f.write(f"{a:08x}\t{ns}\t{name}\t__thiscall\t{ev}\n")
-        with open(os.path.join(LABELS, "initializers.functions.tsv"), "w", encoding="utf-8") as f:
-            f.write("address\tnamespace\tname\tcalling_convention\tevidence\n" + gen)
-            for entry, idx in self.initializer_rows:
-                f.write(f"{entry:08x}\tGlobal\tstatic_init_{idx:03d}\t__cdecl\tentry {idx} of the C++ initializer table run by _cinit\n")
         per_class = Counter(cls for cls, _, _ in self.globals.values() if cls)
+        global_names = {}
         self.unnamed_globals = 0
         with open(os.path.join(LABELS, "globals.data.tsv"), "w", encoding="utf-8") as f:
             f.write("address\tnamespace\tname\tevidence\ttype\n" + gen)
@@ -526,7 +632,22 @@ class Recovery:
                     continue
                 short = cls.replace("::", "_")
                 name = f"g_{short}" if per_class[cls] == 1 else f"g_{short}_{g:08x}"
+                global_names[g] = name
                 f.write(f"{g:08x}\tGlobal\t{name}\t{how}\tclass:{cls}\n")
+        for other in ("layouts.data.tsv", "inferred.data.tsv"):
+            path = os.path.join(LABELS, other)
+            if os.path.exists(path):
+                global_names.update({int(r["address"], 16): r["name"] for r in read_tsv(path)})
+        self.helpers = self.initializer_helpers(global_names)
+        with open(os.path.join(LABELS, "initializers.functions.tsv"), "w", encoding="utf-8") as f:
+            f.write("address\tnamespace\tname\tcalling_convention\tevidence\n" + gen)
+            rows = {entry: f"{entry:08x}\tGlobal\tstatic_init_{idx:03d}\t__cdecl\tentry {idx} of the C++ "
+                           f"initializer table run by _cinit\n" for entry, idx in self.initializer_rows}
+            for a, (name, ev) in self.helpers.items():
+                if a not in rows and a not in self.curated_funcs and a not in self.names:
+                    rows[a] = f"{a:08x}\tGlobal\t{name}\t__cdecl\t{ev}\n"
+            for a in sorted(rows):
+                f.write(rows[a])
         sized = 0
         with open(os.path.join(LABELS, "objects.classes.tsv"), "w", encoding="utf-8") as f:
             f.write("class\tsize\tevidence\n" + gen)

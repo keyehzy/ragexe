@@ -1,6 +1,6 @@
 class	size	evidence
 # Classes without RTTI, named from strings, imports and use (docs/PLAN.md, M1).
-# C3dDevice and SceneGraphNode are taken from strings in the binary; the others are
+# C3dDevice, CTokenizer and SceneGraphNode are taken from strings in the binary; the others are
 # descriptive names made up here and carry no C prefix, so they cannot be mistaken for
 # recovered names.
 # The size column is filled only where operator new does not give it; tools/recover_objects.py
@@ -36,3 +36,4 @@ ClientState		global 00686670; about 260 functions are called with ECX = this glo
 MoviePlayer		global 00688480; 004dbfc0 plays a Bink movie (BinkWait) while pumping window messages; 004dbe60 skips or rewinds on a key
 PacketCodeModules		member of CRagConnection at +0x8c (constructed inline in CRagConnection::CRagConnection, which then calls 0041ead0 on it); two lists of 0x41008-byte nodes holding code received from the server, and at +0x18 the address of the call operand it patches into PacketFilterStub
 PacketQueue	28	CRagConnection holds four at +0x24, +0x40, +0x5c and +0xa8, each built by 0041fa00 and freed by 0041fa80 in the connection's constructor and destructor; +0 the data pointer, +4 the read and +8 the write position, and a std::vector<char> at +0xc that holds the bytes
+CTokenizer		00422b30 reports "Error in CTokenizer :: operator []" when its index is outside the array of 16-byte elements between +4 and +8, and returns the element's address

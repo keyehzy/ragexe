@@ -351,8 +351,8 @@ entry	subsystem	rule	evidence
 004128e0	render	class	class SceneRenderer
 00412aa0	render	class	class SceneRenderer
 00412b40	render	class	class SceneRenderer
-00412be0	render	neighbours	between 00412b40 and 00412e70
-00412c80	render	neighbours	between 00412b40 and 00412e70
+00412be0	render	neighbours	between 00412b40 and 00412c80
+00412c80	render	class	class SceneRenderer
 00412e70	render	class	class SceneRenderer
 00412f00	render	neighbours	between 00412e70 and 00416080
 00412f10	render	neighbours	between 00412e70 and 00416080
@@ -777,9 +777,9 @@ entry	subsystem	rule	evidence
 004277f0	res	class	class CRes, base of CBitmapRes
 004278a0	res	class	class CRes, base of CBitmapRes
 00427940	res	class	class CRes, base of CBitmapRes
-00427980	res	neighbours	between 00427940 and 00427b90
-004279d0	res	neighbours	between 00427940 and 00427b90
-00427b30	res	neighbours	between 00427940 and 00427b90
+00427980	res	class	class CRes, base of CBitmapRes
+004279d0	res	neighbours	between 00427980 and 00427b90
+00427b30	res	neighbours	between 00427980 and 00427b90
 00427b90	res	class	class CRes, base of CBitmapRes
 00427e30	res	neighbours	between 00427b90 and 004280d0
 004280d0	res	import	IJL15.DLL!#2, IJL15.DLL!#3, IJL15.DLL!#4
@@ -1188,12 +1188,12 @@ entry	subsystem	rule	evidence
 00439d30	ui	class	class UIWindow
 00439d40	ui	class	class UIWindow, base of UIStaticText
 00439d70	ui	class	class UIWindow, base of UIStaticText
-00439e00	ui	neighbours	between 00439d70 and 00439e20
+00439e00	ui	class	class UIWindow, base of UIStaticText
 00439e20	ui	class	class UIWindow, base of UIStaticText
-00439f50	ui	neighbours	between 00439e20 and 0043a6e0
-0043a0b0	ui	neighbours	between 00439e20 and 0043a6e0
-0043a220	ui	neighbours	between 00439e20 and 0043a6e0
-0043a550	ui	neighbours	between 00439e20 and 0043a6e0
+00439f50	ui	class	class UIWindow, base of UIStaticText
+0043a0b0	ui	neighbours	between 00439f50 and 0043a6e0
+0043a220	ui	neighbours	between 00439f50 and 0043a6e0
+0043a550	ui	neighbours	between 00439f50 and 0043a6e0
 0043a6e0	ui	class	class UIWindow, base of UIStaticText
 0043a740	ui	class	class UIWindow, base of UIStaticText
 0043a770	ui	class	class UIWindow, base of UIStaticText
@@ -1240,7 +1240,7 @@ entry	subsystem	rule	evidence
 0043b220	ui	class	class UIWindow, base of UIButton
 0043b250	ui	class	class UIWindow, base of UIButton
 0043b280	ui	class	class UIWindow, base of UIButton
-0043b2f0	ui	neighbours	between 0043b280 and 0043b3a0
+0043b2f0	ui	class	class UIWindow, base of UIBitmapButton
 0043b3a0	ui	class	class UIWindow, base of UIButton
 0043b440	ui	class	class UIWindow, base of UIButton
 0043b4d0	ui	class	class UIWindow, base of UIButton
@@ -1255,7 +1255,7 @@ entry	subsystem	rule	evidence
 0043b8e0	ui	class	class UIWindow, base of UIBitmapButton
 0043b950	ui	class	class UIWindow, base of UIBitmapButton
 0043b980	ui	class	class UIWindow, base of UIBitmapButton
-0043ba40	ui	neighbours	between 0043b980 and 0043bc40
+0043ba40	ui	class	class UIWindow, base of UIBitmapButton
 0043bc40	ui	class	class UIWindow, base of UIBitmapButton
 0043bd20	ui	class	class UIWindow, base of UISpriteButton
 0043bd90	ui	class	class UIWindow, base of UISpriteButton
@@ -1593,7 +1593,7 @@ entry	subsystem	rule	evidence
 00449990	ui	class	class UIWindow, base of UIMessageBox
 004499f0	ui	class	class UIWindow, base of UIMessageBox
 00449a20	ui	class	class UIWindow, base of UIMessageBox
-00449ab0	ui	neighbours	between 00449a20 and 0044a3d0
+00449ab0	ui	class	class UIWindow, base of UIMessageBox
 0044a3d0	ui	class	class UIWindow, base of UIMessageBox
 0044a3e0	ui	class	class UIWindow, base of UIMessageBox
 0044a410	ui	class	class UIWindow, base of UIMessageBox
@@ -2712,7 +2712,7 @@ entry	subsystem	rule	evidence
 004a57f0	ui	class	class UIWindow, base of UISelectCharWnd
 004a5850	ui	class	class UIWindow
 004a58b0	ui	neighbours	between 004a5850 and 004a58e0
-004a58e0	ui	class	class UIWindow, base of UIEmblemWnd
+004a58e0	ui	class	class UIWindow
 004a5910	ui	class	class UIWindow
 004a5950	ui	class	class UIWindow
 004a5980	ui	neighbours	between 004a5950 and 004a5ac0
@@ -2918,49 +2918,49 @@ entry	subsystem	rule	evidence
 004b9260	world	class	class C3dNode, base of C3dNodeHAL
 004b92a0	world	class	class C3dNode, base of C3dNodeHAL
 004b9340	world	class	class ModelInstance
-004b93f0	world	neighbours	between 004b9340 and 004bc220
-004b9490	world	neighbours	between 004b9340 and 004bc220
-004b9510	world	neighbours	between 004b9340 and 004bc220
-004b9550	world	neighbours	between 004b9340 and 004bc220
-004b95f0	world	neighbours	between 004b9340 and 004bc220
-004b96a0	world	neighbours	between 004b9340 and 004bc220
-004b9740	world	neighbours	between 004b9340 and 004bc220
-004b9820	world	neighbours	between 004b9340 and 004bc220
-004b98c0	world	neighbours	between 004b9340 and 004bc220
-004ba270	world	neighbours	between 004b9340 and 004bc220
-004ba2b0	world	neighbours	between 004b9340 and 004bc220
-004ba440	world	neighbours	between 004b9340 and 004bc220
-004ba790	world	neighbours	between 004b9340 and 004bc220
-004ba7d0	world	neighbours	between 004b9340 and 004bc220
-004bab30	world	neighbours	between 004b9340 and 004bc220
-004bab60	world	neighbours	between 004b9340 and 004bc220
-004bab80	world	neighbours	between 004b9340 and 004bc220
-004babc0	world	neighbours	between 004b9340 and 004bc220
-004badc0	world	neighbours	between 004b9340 and 004bc220
-004bb030	world	neighbours	between 004b9340 and 004bc220
-004bb060	world	neighbours	between 004b9340 and 004bc220
-004bb0b0	world	neighbours	between 004b9340 and 004bc220
-004bb0d0	world	neighbours	between 004b9340 and 004bc220
-004bb100	world	neighbours	between 004b9340 and 004bc220
-004bb120	world	neighbours	between 004b9340 and 004bc220
-004bb330	world	neighbours	between 004b9340 and 004bc220
-004bb370	world	neighbours	between 004b9340 and 004bc220
-004bb380	world	neighbours	between 004b9340 and 004bc220
-004bb670	world	neighbours	between 004b9340 and 004bc220
-004bb710	world	neighbours	between 004b9340 and 004bc220
-004bb740	world	neighbours	between 004b9340 and 004bc220
-004bb770	world	neighbours	between 004b9340 and 004bc220
-004bba60	world	neighbours	between 004b9340 and 004bc220
-004bbab0	world	neighbours	between 004b9340 and 004bc220
-004bbad0	world	neighbours	between 004b9340 and 004bc220
+004b93f0	world	neighbours	between 004b9340 and 004b9510
+004b9490	world	neighbours	between 004b9340 and 004b9510
+004b9510	world	class	class ModelInstance
+004b9550	world	class	class ModelInstance
+004b95f0	world	class	class ModelInstance
+004b96a0	world	neighbours	between 004b95f0 and 004b9820
+004b9740	world	neighbours	between 004b95f0 and 004b9820
+004b9820	world	class	class ModelInstance
+004b98c0	world	class	class ModelInstance
+004ba270	world	class	class ModelInstance
+004ba2b0	world	neighbours	between 004ba270 and 004bc220
+004ba440	world	neighbours	between 004ba270 and 004bc220
+004ba790	world	neighbours	between 004ba270 and 004bc220
+004ba7d0	world	neighbours	between 004ba270 and 004bc220
+004bab30	world	neighbours	between 004ba270 and 004bc220
+004bab60	world	neighbours	between 004ba270 and 004bc220
+004bab80	world	neighbours	between 004ba270 and 004bc220
+004babc0	world	neighbours	between 004ba270 and 004bc220
+004badc0	world	neighbours	between 004ba270 and 004bc220
+004bb030	world	neighbours	between 004ba270 and 004bc220
+004bb060	world	neighbours	between 004ba270 and 004bc220
+004bb0b0	world	neighbours	between 004ba270 and 004bc220
+004bb0d0	world	neighbours	between 004ba270 and 004bc220
+004bb100	world	neighbours	between 004ba270 and 004bc220
+004bb120	world	neighbours	between 004ba270 and 004bc220
+004bb330	world	neighbours	between 004ba270 and 004bc220
+004bb370	world	neighbours	between 004ba270 and 004bc220
+004bb380	world	neighbours	between 004ba270 and 004bc220
+004bb670	world	neighbours	between 004ba270 and 004bc220
+004bb710	world	neighbours	between 004ba270 and 004bc220
+004bb740	world	neighbours	between 004ba270 and 004bc220
+004bb770	world	neighbours	between 004ba270 and 004bc220
+004bba60	world	neighbours	between 004ba270 and 004bc220
+004bbab0	world	neighbours	between 004ba270 and 004bc220
+004bbad0	world	neighbours	between 004ba270 and 004bc220
 004bbb00	world	stub	jumps to 004bbb10
-004bbb10	world	neighbours	between 004b9340 and 004bc220
+004bbb10	world	neighbours	between 004ba270 and 004bc220
 004bbb20	world	stub	jumps to 004bbb30
-004bbb30	world	neighbours	between 004b9340 and 004bc220
-004bbb90	world	neighbours	between 004b9340 and 004bc220
-004bbbc0	world	neighbours	between 004b9340 and 004bc220
-004bbc30	world	neighbours	between 004b9340 and 004bc220
-004bbcc0	world	neighbours	between 004b9340 and 004bc220
+004bbb30	world	neighbours	between 004ba270 and 004bc220
+004bbb90	world	neighbours	between 004ba270 and 004bc220
+004bbbc0	world	neighbours	between 004ba270 and 004bc220
+004bbc30	world	neighbours	between 004ba270 and 004bc220
+004bbcc0	world	neighbours	between 004ba270 and 004bc220
 004bc220	world	class	class C3dGround
 004bc270	world	class	class C3dGround
 004bc280	world	class	class C3dGround
@@ -3193,11 +3193,11 @@ entry	subsystem	rule	evidence
 004c85f0	ui	import	IMM32.DLL!ImmGetCompositionStringA, IMM32.DLL!ImmGetContext, IMM32.DLL!ImmReleaseContext
 004c86f0	ui	import	IMM32.DLL!ImmGetCandidateListA, IMM32.DLL!ImmGetContext, IMM32.DLL!ImmReleaseContext
 004c8790	ui	import	IMM32.DLL!ImmGetContext, IMM32.DLL!ImmNotifyIME, IMM32.DLL!ImmReleaseContext
-004c87c0	core	shared	core 2, game 1, ui 3
-004c88d0	core	callers	1 referencing function
-004c89e0	core	callers	1 referencing function
-004c8a30	core	callers	1 referencing function
-004c8a50	core	callers	1 referencing function
+004c87c0	core	class	class CLanguage
+004c88d0	core	neighbours	between 004c87c0 and 004c8aa0
+004c89e0	core	neighbours	between 004c87c0 and 004c8aa0
+004c8a30	core	neighbours	between 004c87c0 and 004c8aa0
+004c8a50	core	neighbours	between 004c87c0 and 004c8aa0
 004c8aa0	core	class	class CLanguage
 004c8b00	core	class	class CLanguage
 004c8c40	core	class	class CLanguage, base of CLanguageTC
@@ -3615,8 +3615,8 @@ entry	subsystem	rule	evidence
 004dd3f0	res	class	class DataFile
 004dd430	res	class	class DataFile
 004dd4b0	res	class	class DataFile
-004dd4e0	res	neighbours	between 004dd4b0 and 004dd5a0
-004dd550	res	neighbours	between 004dd4b0 and 004dd5a0
+004dd4e0	res	class	class DataFile
+004dd550	res	neighbours	between 004dd4e0 and 004dd5a0
 004dd5a0	res	class	class DataFile
 004dd710	res	neighbours	between 004dd5a0 and 004dd820
 004dd740	res	neighbours	between 004dd5a0 and 004dd820
@@ -3902,10 +3902,10 @@ entry	subsystem	rule	evidence
 004ed8e0	world	class	class CGameObject, base of CRenderObject
 004ed8f0	game	class	namespace mg
 004ed920	game	class	namespace mg
-004ed980	game	neighbours	between 004ed920 and 004ee040
-004edbf0	game	neighbours	between 004ed920 and 004ee040
-004edf90	game	neighbours	between 004ed920 and 004ee040
-004ee000	game	neighbours	between 004ed920 and 004ee040
+004ed980	game	class	namespace mg
+004edbf0	game	neighbours	between 004ed980 and 004ee000
+004edf90	game	neighbours	between 004ed980 and 004ee000
+004ee000	game	class	namespace mg
 004ee040	game	class	namespace mg
 004ee160	game	class	namespace mg
 004ee170	game	class	namespace mg
@@ -4539,7 +4539,7 @@ entry	subsystem	rule	evidence
 00523a30	ui	class	class UIWindowMgr
 00523a40	ui	class	class UIWindowMgr
 00523a50	ui	class	class UIWindowMgr
-00523a60	game	callers	1 referencing function
+00523a60	res	class	class DataFile
 00523a70	game	callers	1 referencing function
 00523a90	game	callers	1 referencing function
 00523aa0	game	callers	1 referencing function

@@ -753,7 +753,41 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     the display-device enumeration (`0x402da0`, `0x406220`, `0x406960`), and
     `DirectDrawEnumerateA`.
 
+- [x] Toward the naming target (M1 exit: 90% of code functions named or library-tagged):
+  62.6% → **65.5%** (3,525 named game functions and 1,136 library ones of 7,115); 2,454
+  game functions keep default names. 66.1% of the game-code bytes are named.
+  - **Initializer helpers** (`tools/recover_objects.py`, 189 functions), each named after
+    the global it serves, using that global's label:
+    - `construct_<global>`: loads ECX with the global and calls a constructor.
+    - `register_destroy_<global>`: `push D; call atexit`.
+    - `destroy_<global>`: the atexit handler.
+    - `atexit_no_op`: the lone `ret` registered for globals without a destructor.
+    - `static_init_NNN_body`: any other code an initializer reaches.
+  - **Class inference for ECX** (`recover_layouts.py`, `typed_calls`). A direct call with
+    ECX holding an object of a known class counts as a call with `this`, in any function.
+    - Sources: `this`; a global object or typed pointer global; a constructor's result;
+      a stack object once a constructor has run on it. Values are followed through
+      registers and EBP slots.
+    - Checked against the methods already known: 6,527 call sites agree, 18 do not.
+      All 18 are one misassignment: `0x4a58e0` was on `UIEmblemWnd`, but it is called on
+      `UIBitmapButton` and `UIStaticText` too. It moves to `UIWindow`.
+    - Pointer fields are not a source. Their class is only the common one of the calls
+      made through them, and code casts them down: as a source they pulled window
+      classes' methods into `UIWindow` and grew it from 76 to 120 bytes.
+    - 18 more methods.
+  - **Names from strings:** `CTokenizer::operator[]` (`0x422b30`, a new curated class)
+    and `InitDefaultClientInfo` (`0x4c97c0`). These are the only raw functions whose
+    strings name them.
+  - **Measured and left:**
+    - No raw function uses the STL length errors.
+    - No raw function is a pure jump stub.
+    - Following pointer fields as well gained only 23 methods in a trial, and it was
+      unsound.
+    - 1,365 raw functions read ECX. At most of their call sites, ECX is copied from
+      another register whose value no rule types.
+  - Converges in two `--reanalyze` passes.
+
 ### Next actions (M1)
-1. Close the gap to the M1 exit criterion, 90% of functions named or library-tagged.
-   Of the 7,115 code functions, 62.6% are now: 3,315 named game functions and 1,136
-   library ones. The other 2,664 game functions still have default names.
+1. Name the remaining 2,454 game functions by reading them. About 1,750 more are
+   needed for 90%. The automatic rules above have reached their limit: what is left
+   needs a name from what each function does, with an address as evidence.

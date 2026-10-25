@@ -690,6 +690,8 @@ class Layouts:
                 if p in self.slot_class:
                     self.this_calls[t].append((self.slot_class[p], 0, caller))
                     self.via_pointer[t].add(p)
+            for t, cls, caller, _ in self.typed_calls():
+                self.this_calls[t].append((cls, 0, caller))
             new = self.assign()
             if {t: o for t, (o, _) in new.items()} == {t: o for t, (o, _) in self.assigned.items()}:
                 self.assigned = new
@@ -699,6 +701,96 @@ class Layouts:
             self.notes["(unassigned)"].append("method assignment did not settle in 15 rounds")
         self.methods = {cls: list(fns.values()) for cls, fns in methods.items()}
         self.rounds = rounds
+
+    def class_of(self, fn):
+        """The class of a method: its namespace, or the class this script assigned it to."""
+        if fn.namespace in self.classes and not fn.name.startswith("method_"):
+            return fn.namespace
+        owner = self.assigned.get(fn.entry, (None,))[0]
+        return owner if owner in self.classes and owner not in CONTAINERS.values() else None
+
+    def typed_calls(self):
+        """(callee, class, caller, site) for direct calls whose ECX holds an object of a known
+        class, in any function. Values are followed through registers and EBP stack slots
+        from these sources: `this` of a method; a global object's address or a typed pointer
+        global; the result of a constructor; and a stack object, once a constructor has run
+        on its address. A pointer field is not a source: its class is only the common one
+        of the calls made through it, and code casts such pointers down (typing them made
+        UIWindow take methods of its window classes)."""
+        out = []
+        EBP, EAX, ECX, EDX = x86.X86_REG_EBP, x86.X86_REG_EAX, x86.X86_REG_ECX, x86.X86_REG_EDX
+        for fn in self.bx.functions.values():
+            if fn.kind != "code" or fn.library:
+                continue
+            reg, local = {}, {}               # reg -> class of the object it points to / EBP offset
+            objects, slots = {}, {}           # EBP offset -> class of the object there / pointed to
+            own = self.class_of(fn)
+            if own and self.is_thiscall(fn):
+                reg[ECX] = own
+            for i in self.bx.insns(fn):
+                ops = i.operands
+                if i.id == x86.X86_INS_CALL:
+                    t = self.bx.call_target(i)
+                    built = None
+                    if isinstance(t, int):
+                        if ECX in reg:
+                            out.append((t, reg[ECX], fn.entry, i.address))
+                        if t in self.ctor_class:
+                            built = self.ctor_class[t]
+                            if ECX in local:
+                                objects[local[ECX]] = built
+                    for r in CLOBBERED_BY_CALL:
+                        reg.pop(r, None)
+                        local.pop(r, None)
+                    if built:
+                        reg[EAX] = built
+                    continue
+                if i.id == x86.X86_INS_LEA and ops[1].mem.base == EBP and ops[1].mem.index == 0:
+                    r, d = ops[0].reg, ops[1].mem.disp
+                    reg.pop(r, None)
+                    local[r] = d
+                    if d in objects:
+                        reg[r] = objects[d]
+                    continue
+                if i.id == x86.X86_INS_MOV and len(ops) == 2:
+                    d, src = ops
+                    if d.type == x86.X86_OP_REG:
+                        r, val = d.reg, None
+                        if src.type == x86.X86_OP_REG:
+                            val = reg.get(src.reg)
+                            if src.reg in local:
+                                local[r] = local[src.reg]
+                            else:
+                                local.pop(r, None)
+                        else:
+                            local.pop(r, None)
+                            if src.type == x86.X86_OP_IMM:
+                                val = self.globals.get(src.imm & 0xFFFFFFFF)
+                            elif src.type == x86.X86_OP_MEM and src.mem.index == 0:
+                                m = src.mem
+                                if m.base == EBP:
+                                    val = slots.get(m.disp)
+                                elif m.base == 0:
+                                    val = self.slot_class.get(m.disp & 0xFFFFFFFF)
+                        if val in self.classes and val not in CONTAINERS.values():
+                            reg[r] = val
+                        else:
+                            reg.pop(r, None)
+                        continue
+                    if d.type == x86.X86_OP_MEM and d.mem.base == EBP and d.mem.index == 0:
+                        if src.type == x86.X86_OP_REG and src.reg in reg:
+                            slots[d.mem.disp] = reg[src.reg]
+                        else:
+                            slots.pop(d.mem.disp, None)
+                        continue
+                try:
+                    written = i.regs_access()[1]
+                except Exception:
+                    written = ()
+                for r in written:
+                    reg.pop(r, None)
+                    local.pop(r, None)
+        return out
 
     def assign(self):
         out = {}

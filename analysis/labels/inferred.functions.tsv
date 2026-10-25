@@ -58,6 +58,7 @@ address	namespace	name	calling_convention	evidence
 # XmlDocument
 004c95b0	XmlDocument	XmlDocument	__thiscall	static initializer 004c9590 constructs global 0067c9a0 with it; constructs the root element (004e61e0) named "XMLDocument"
 004e6590	XmlDocument	Parse	__thiscall	(begin, end): parses the text (004e65c0) and returns whether a root element was produced at +0x24
+004c97c0	Global	InitDefaultClientInfo	__cdecl	reports "InitDefaultClientInfo() - Unknown ServerType !!!" for a service type it does not know
 004ca090	Global	LoadClientInfo	__cdecl	WinMain passes it "clientinfo.xml" or the /account: argument; reads the file through DataFile, parses it into g_XmlDocument and sets the service and executable globals ("Please run Ragnarok.exe", ...)
 # ModeSwitcher
 004cbf10	ModeSwitcher	ModeSwitcher	__thiscall	static initializer 004cbef0 jumps to 004cbf00 (mov ecx, 0067c9e8; jmp 004cbf10); stores 1 at +0
@@ -211,3 +212,5 @@ address	namespace	name	calling_convention	evidence
 0040ddb0	SceneRenderer	UnlockBackBuffer	__thiscall	IDirectDrawSurface7::Unlock (slot 32) on +0x7c
 00410c50	SceneRenderer	Present	__thiscall	(wait): counts the frame at +0x34 and +0x3c, then C3dDevice::Present
 00405040	C3dDevice	Present	__thiscall	(wait): in full screen IDirectDrawSurface7::Flip (slot 11, DDFLIP_WAIT); in a window a Blt (slot 5) to the client area, after IDirectDraw7::WaitForVerticalBlank (slot 22) when 0061ec58 is set
+# CTokenizer
+00422b30	CTokenizer	operator[]	__thiscall	(index): reports "Error in CTokenizer :: operator []" and the elements when the index is out of range; returns the address of the 16-byte element at +4 + 16 * index

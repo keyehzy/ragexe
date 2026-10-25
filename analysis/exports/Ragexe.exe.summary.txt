@@ -4,9 +4,9 @@ functions          10813
 external functions 329
 function bytes     1859539
 thunks             95
-non-default names  7533
+non-default names  7748
 FID matches        55 (4069 bytes, 0.2% of function bytes)
-class namespaces   332
+class namespaces   333
 source ANALYSIS    4910
-source DEFAULT     3280
-source USER_DEFINED 2623
+source DEFAULT     3065
+source USER_DEFINED 2838
