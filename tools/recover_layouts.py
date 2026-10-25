@@ -1,7 +1,8 @@
 """Recover class field layouts from how each class's own functions use `this`.
 
-Sources, per class: its constructors and destructors (from recover_objects.py) and its
-virtual functions (from ApplyRtti), all __thiscall. Every [this + n] memory operand is
+Sources, per class: its constructors and destructors (from recover_objects.py), its
+virtual functions (from ApplyRtti), and the non-virtual methods found here, all
+__thiscall. Every [this + n] memory operand is
 an access to the field at n. `this` is ECX on entry and is tracked through register
 copies, `lea reg, [this + n]` and EBP stack slots.
 
@@ -16,6 +17,23 @@ Field types come from how a field is used:
   array:<elem>:<n>   eh_vector_constructor_iterator(this + n, size, count, ctor, ...)
   byte/word/dword    otherwise, from the access width
 
+Non-virtual methods: a default-named function that reads ECX before writing it (a
+`push ecx` that only reserves stack space does not count) and is called with
+ECX = this + n from a class's functions is a method of:
+  the class itself (n = 0), the most-derived base at n, or the std::string / std::list /
+  std::_Tree member at n.
+With several calling classes the owner is the most-derived class all of them derive
+from; callers from unrelated classes leave the function unassigned. New methods are
+scanned in turn, until no more are found.
+
+std::_Tree (map and set) members: a function that takes the STL lock, allocates a node
+with operator new and writes this + 4 (_Head) and this + 0xc (_Size) is an MSVC 6
+_Tree::_Init. A function that calls an _Init on its own `this` is a tree constructor.
+Calling either on this + n puts a 16-byte tree at n; the value size is the node size
+minus 12 (left, parent, right) and 4 (color). Calling one with ECX = a global address
+makes that global a tree. A call to any method already assigned to std::string,
+std::list or std::_Tree on this + n also marks the member.
+
 Inheritance: accesses inside a base class's extent belong to that base (they are
 merged into the base's fields with the derived function as evidence). The extent is
 the base's size when known, otherwise estimated from its own accesses. Every class
@@ -25,6 +43,8 @@ the class's vftable field keeps the class's own vtable type.
 Writes:
   analysis/labels/layouts.fields.tsv   class offset size type name evidence
   analysis/labels/layouts.classes.tsv  estimated sizes for classes never created with new
+  analysis/labels/methods.functions.tsv  non-virtual methods and _Tree::_Init instances
+  analysis/labels/layouts.data.tsv     global std::_Tree objects, typed
   analysis/exports/Ragexe.exe.layouts.tsv  per-class coverage and notes
 """
 import os
@@ -40,6 +60,10 @@ LABELS = os.path.join(ROOT, "analysis", "labels")
 
 STRING_FUNCS = {0x423980, 0x424FA0, 0x425210}
 OPERATOR_NEW = 0x5C183B
+LOCKIT = 0x5B3267
+UNLOCKIT = 0x5B3303
+CONTAINERS = {"std_string": "std::string", "std_list": "std::list", "std_tree": "std::_Tree"}
+CONTAINER_SIZE = {"std::string": 16, "std::list": 12, "std::_Tree": 16}
 EH_VECTOR_CTOR = 0x5C2002
 
 X87_MEM = {
@@ -50,7 +74,7 @@ X87_MEM = {
 X87_INT = {x86.X86_INS_FILD, x86.X86_INS_FIST, x86.X86_INS_FISTP, x86.X86_INS_FIADD, x86.X86_INS_FIMUL}
 CLOBBERED_BY_CALL = (x86.X86_REG_EAX, x86.X86_REG_ECX, x86.X86_REG_EDX)
 WIDTH_TYPE = {1: "byte", 2: "word", 4: "dword", 8: "qword"}
-TYPE_RANK = {"class": 0, "array": 0, "std_string": 0, "std_list": 0, "ptr": 1, "double": 2, "float": 2, "pointer": 3,
+TYPE_RANK = {"class": 0, "array": 0, "std_string": 0, "std_list": 0, "std_tree": 0, "ptr": 1, "double": 2, "float": 2, "pointer": 3,
              "int": 4, "dword": 5, "qword": 5, "word": 5, "byte": 5}
 
 
@@ -95,6 +119,11 @@ class Layouts:
         for fn in self.bx.functions.values():
             if fn.kind == "code" and fn.namespace in self.classes:
                 self.methods[fn.namespace].append(fn)
+        self.this_calls = defaultdict(list)   # callee -> [(class, offset of ECX from this, caller)]
+        self.assigned = {}                    # callee -> (owner namespace, evidence)
+        self.tree_inits = self.find_tree_inits()
+        self.tree_ctors = self.find_tree_ctors()
+        self.tree_nodes = {**self.tree_inits, **self.tree_ctors}
         self.raw = defaultdict(list)      # class -> [Access] at class-relative offsets
         self.indexed = defaultdict(Counter)
         self.notes = defaultdict(list)
@@ -226,7 +255,17 @@ class Layouts:
         out = self.raw[cls]
         if x86.X86_REG_ECX in this:
             off = this[x86.X86_REG_ECX]
-            if t in STRING_FUNCS:
+            self.this_calls[t].append((cls, off, fn.entry))
+            owner = self.assigned.get(t, (None,))[0]
+            if t in self.tree_nodes:
+                value = self.tree_nodes[t] - 16
+                out.append(Access(off, 16, f"std_tree:{value}", fn.entry, i.address, True))
+            elif owner in CONTAINER_SIZE and owner != "std::_Tree":
+                kind = next(k for k, v in CONTAINERS.items() if v == owner)
+                out.append(Access(off, CONTAINER_SIZE[owner], kind, fn.entry, i.address, False))
+            elif owner == "std::_Tree":
+                out.append(Access(off, 16, "std_tree", fn.entry, i.address, False))
+            elif t in STRING_FUNCS:
                 out.append(Access(off, 16, "std_string", fn.entry, i.address, False))
             elif t in self.ctor_class and off != 0 and (self.ctor_class[t], off) not in self.bases.get(cls, ()):
                 m = self.ctor_class[t]
@@ -250,6 +289,202 @@ class Layouts:
                 elem = self.ctor_class.get(ctor)
                 et = f"class:{elem}" if elem and self.sizes.get(elem) == size else f"bytes{size}"
                 out.append(Access(off, size * count, f"array:{et}:{count}", fn.entry, i.address, True))
+
+    # -- std::_Tree::_Init ---------------------------------------------------------
+
+    def find_tree_inits(self):
+        """node size by _Init address; see the module docstring for the shape."""
+        out = {}
+        for fn in self.bx.functions.values():
+            if fn.kind != "code" or fn.size > 400:
+                continue
+            ins = self.bx.insns(fn)
+            targets = [self.bx.call_target(i) for i in ins if i.id == x86.X86_INS_CALL]
+            if LOCKIT not in targets or UNLOCKIT not in targets or OPERATOR_NEW not in targets:
+                continue
+            this, wrote, node = {x86.X86_REG_ECX}, set(), None
+            for k, i in enumerate(ins):
+                ops = i.operands
+                if i.id == x86.X86_INS_CALL:
+                    if self.bx.call_target(i) == OPERATOR_NEW and node is None and k > 0 and \
+                            ins[k - 1].id == x86.X86_INS_PUSH and ins[k - 1].operands[0].type == x86.X86_OP_IMM:
+                        node = ins[k - 1].operands[0].imm
+                    this -= set(CLOBBERED_BY_CALL)
+                    continue
+                if i.id == x86.X86_INS_MOV and len(ops) == 2:
+                    d, src = ops
+                    if d.type == x86.X86_OP_REG and src.type == x86.X86_OP_REG:
+                        (this.add if src.reg in this else this.discard)(d.reg)
+                        continue
+                    if d.type == x86.X86_OP_MEM and d.mem.base in this and d.mem.index == 0:
+                        wrote.add(d.mem.disp)
+                        continue
+                try:
+                    for r in i.regs_access()[1]:
+                        this.discard(r)
+                except Exception:
+                    pass
+            if {4, 0xC} <= wrote and node:
+                out[fn.entry] = node
+        return out
+
+    def ecx_before(self, ins, k):
+        """What ECX holds at instruction k: ('this', 0), ('global', addr) or None."""
+        for p in reversed(ins[max(0, k - 10):k]):
+            ops = p.operands
+            if p.id == x86.X86_INS_CALL:
+                return None
+            if p.id == x86.X86_INS_MOV and len(ops) == 2 and ops[0].type == x86.X86_OP_REG \
+                    and ops[0].reg == x86.X86_REG_ECX:
+                if ops[1].type == x86.X86_OP_IMM and self.bx.section_of(ops[1].imm & 0xFFFFFFFF) == ".data":
+                    return ("global", ops[1].imm & 0xFFFFFFFF)
+                return None
+        return None
+
+    def find_tree_ctors(self):
+        """Functions that call an _Init with ECX still holding their own this."""
+        callees, callers = self.bx.build_calls()
+        out = {}
+        for t, node in self.tree_inits.items():
+            for site, c in callers.get(t, []):
+                fn = self.bx.functions[c]
+                if c in self.tree_inits or fn.kind != "code" or not self.is_thiscall(fn):
+                    continue
+                this = {x86.X86_REG_ECX}
+                for i in self.bx.insns(fn):
+                    if i.address == site:
+                        if x86.X86_REG_ECX in this:
+                            out[c] = node
+                        break
+                    ops = i.operands
+                    if i.id == x86.X86_INS_MOV and len(ops) == 2 and ops[0].type == x86.X86_OP_REG \
+                            and ops[1].type == x86.X86_OP_REG:
+                        (this.add if ops[1].reg in this else this.discard)(ops[0].reg)
+                        continue
+                    if i.id == x86.X86_INS_CALL:
+                        this -= set(CLOBBERED_BY_CALL)
+                        continue
+                    try:
+                        for r in i.regs_access()[1]:
+                            this.discard(r)
+                    except Exception:
+                        pass
+        return out
+
+    def global_trees(self):
+        callees, callers = self.bx.build_calls()
+        out = {}
+        for t, node in self.tree_nodes.items():
+            for site, c in callers.get(t, []):
+                ins = self.bx.insns(self.bx.functions[c])
+                k = next(j for j, i in enumerate(ins) if i.address == site)
+                held = self.ecx_before(ins, k)
+                if held and held[0] == "global":
+                    out[held[1]] = (node, t, c)
+        return out
+
+    # -- non-virtual methods -------------------------------------------------------
+
+    def is_thiscall(self, fn):
+        """True when the function reads ECX before writing it."""
+        for i in self.bx.insns(fn):
+            ops = i.operands
+            if i.id == x86.X86_INS_PUSH and ops and ops[0].type == x86.X86_OP_REG and ops[0].reg == x86.X86_REG_ECX:
+                continue  # push ecx reserves a stack slot in MSVC 6 prologues
+            if i.id in (x86.X86_INS_XOR, x86.X86_INS_SUB) and len(ops) == 2 and ops[0].type == x86.X86_OP_REG \
+                    and ops[1].type == x86.X86_OP_REG and ops[0].reg == ops[1].reg:
+                if ops[0].reg == x86.X86_REG_ECX:
+                    return False
+                continue
+            try:
+                read, written = i.regs_access()
+            except Exception:
+                return False
+            if x86.X86_REG_ECX in read:
+                return True
+            if x86.X86_REG_ECX in written or i.id in (x86.X86_INS_CALL, x86.X86_INS_RET, x86.X86_INS_JMP):
+                return False
+        return False
+
+    def owner_at(self, cls, off):
+        if off == 0:
+            return cls
+        for b, disp in self.bases.get(cls, []):
+            if disp == off and b in self.classes:
+                return b  # CHD order lists the most-derived base first
+        for a in self.raw[cls]:
+            if a.off == off and type_kind(a.type) in CONTAINERS:
+                return CONTAINERS[type_kind(a.type)]
+        return None
+
+    def common_base(self, classes):
+        first = sorted(classes)[0]
+        for cand in [first] + [b for b, _ in self.bases.get(first, [])]:
+            if all(c == cand or cand in (b for b, _ in self.bases.get(c, [])) for c in classes):
+                return cand
+        return None
+
+    def discover(self):
+        """Scan, assign, repeat until the assignment stops changing. Every round starts from
+        a fresh scan and recomputes every owner from all callers seen so far, so a method
+        first seen from one derived class moves up once callers from its siblings appear.
+        Names from earlier runs (method_<addr>) are ignored, so the result does not depend
+        on what is already in Ghidra."""
+        base = {cls: [fn for fn in fns if not fn.name.startswith("method_")] for cls, fns in self.methods.items()}
+        self.assigned = {}
+        for rounds in range(1, 16):
+            self.raw = defaultdict(list)
+            self.this_calls = defaultdict(list)
+            self.indexed = defaultdict(Counter)
+            self.notes.pop("(unassigned)", None)
+            methods = defaultdict(dict)
+            for cls, fns in base.items():
+                for fn in fns:
+                    methods[cls][fn.entry] = fn
+            for t, (owner, _) in self.assigned.items():
+                if owner in self.classes:
+                    methods[owner][t] = self.bx.functions[t]
+            for cls in sorted(methods):
+                for fn in methods[cls].values():
+                    self.scan(cls, fn)
+            new = self.assign()
+            if {t: o for t, (o, _) in new.items()} == {t: o for t, (o, _) in self.assigned.items()}:
+                self.assigned = new
+                break
+            self.assigned = new
+        else:
+            self.notes["(unassigned)"].append("method assignment did not settle in 15 rounds")
+        self.methods = {cls: list(fns.values()) for cls, fns in methods.items()}
+        self.rounds = rounds
+
+    def assign(self):
+        out = {}
+        for t, calls in sorted(self.this_calls.items()):
+            if t in self.tree_nodes or t in STRING_FUNCS:
+                continue
+            fn = self.bx.functions.get(t)
+            ours = fn is not None and fn.name == f"method_{t:08x}"  # named by an earlier run
+            if fn is None or fn.kind != "code" or (fn.library and not ours) or not self.is_thiscall(fn) \
+                    or not (ours or (fn.namespace == "Global" and fn.name.startswith("FUN_"))):
+                continue
+            owners = {self.owner_at(cls, off) for cls, off, _ in calls}
+            if None in owners:
+                continue
+            containers = owners & set(CONTAINERS.values())
+            if containers:
+                if len(owners) != 1:
+                    continue
+                owner = next(iter(owners))
+            else:
+                owner = self.common_base(owners)
+                if owner is None:
+                    self.notes["(unassigned)"].append(f"{t:08x} called with this from unrelated {sorted(owners)}")
+                    continue
+            callers = sorted({c for _, _, c in calls})
+            via = sorted({cls for cls, _, _ in calls})
+            out[t] = (owner, f"__thiscall; called with this from {len(callers)} functions of "
+                             f"{', '.join(via[:4])}{' and more' if len(via) > 4 else ''}, e.g. {callers[0]:08x}")
+        return out
 
     # -- inheritance ---------------------------------------------------------------
 
@@ -333,9 +568,7 @@ class Layouts:
         return sorted(fields)
 
     def run(self):
-        for cls in self.classes:
-            for fn in self.methods[cls]:
-                self.scan(cls, fn)
+        self.discover()
         self.attribute()
         self.own_fields = {}
         for cls in self.depth_order():
@@ -397,6 +630,25 @@ class Layouts:
                 idx = ",".join(f"0x{o:x}" for o, _ in self.indexed[cls].most_common(6))
                 f.write(f"{cls}\t{ext}\t{'new' if known else 'estimated'}\t{nf}\t{cov}\t{min(cov, ext) / ext:.2f}\t"
                         f"{idx}\t{' | '.join(sorted(set(self.notes[cls])))}\n")
+        with open(os.path.join(LABELS, "methods.functions.tsv"), "w", encoding="utf-8") as f:
+            f.write("address\tnamespace\tname\tcalling_convention\tevidence\n" + gen)
+            for t, node in sorted(self.tree_inits.items()):
+                f.write(f"{t:08x}\tstd::_Tree\t_Init\t__thiscall\tunder the STL lock creates the shared nil node, "
+                        f"allocates a head node (operator new({node})) into this + 4 and zeroes the size at this + 0xc\n")
+            for t, node in sorted(self.tree_ctors.items()):
+                f.write(f"{t:08x}\tstd::_Tree\t_Tree\t__thiscall\tcalls a _Tree::_Init (node {node} bytes) on its own this\n")
+            for t, (owner, ev) in sorted(self.assigned.items()):
+                f.write(f"{t:08x}\t{owner}\tmethod_{t:08x}\t__thiscall\t{ev}\n")
+        trees = self.global_trees()
+        with open(os.path.join(LABELS, "layouts.data.tsv"), "w", encoding="utf-8") as f:
+            f.write("address\tnamespace\tname\tevidence\ttype\n" + gen)
+            for g, (node, t, c) in sorted(trees.items()):
+                f.write(f"{g:08x}\tGlobal\tg_tree_{g:08x}\t{c:08x} calls {t:08x} with ECX = this global; "
+                        f"value size {node - 16}\tstd_tree\n")
+        by_owner = Counter("container" if o in CONTAINERS.values() else "class" for o, _ in self.assigned.values())
+        print(f"non-virtual methods assigned: {len(self.assigned)} ({dict(by_owner)}) in {self.rounds} rounds; "
+              f"_Tree::_Init instances: {len(self.tree_inits)}, tree constructors: {len(self.tree_ctors)}, "
+              f"global trees: {len(trees)}")
         sized = [r for r in report if r[2]]
         print(f"classes with layouts: {len(report)} ({len(sized)} sized by new, {len(report) - len(sized)} estimated)")
         print(f"fields written: {sum(r[3] for r in report)}")

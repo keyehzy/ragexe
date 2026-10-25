@@ -8,11 +8,14 @@ usage:
   ledger.py sync   [--export TSV] [--ledger TSV]
   ledger.py report [--ledger TSV]
   ledger.py set    ADDR|LO-HI ... [--status S] [--subsystem S|-] [--library 0|1] [--note TEXT]
+  ledger.py classify [--ledger TSV]
+      re-applies the library rules: code at or above LIBRARY_START is the static C
+      runtime (crt); code in a std namespace anywhere is the standard library (stl).
 """
 import argparse
 import os
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_EXPORT = os.path.join(ROOT, "analysis", "exports", "Ragexe.exe.functions.tsv")
@@ -21,6 +24,10 @@ DEFAULT_LEDGER = os.path.join(ROOT, "analysis", "ledger.tsv")
 COLUMNS = ["entry", "size", "kind", "library", "subsystem", "status", "namespace", "name", "notes"]
 STATUSES = ["raw", "named", "typed", "specced", "ported", "verified"]
 SUBSYSTEMS = ["core", "res", "render", "world", "net", "ui", "audio", "game", "crt", "stl"]
+# The static CRT and Dinkumware STL follow the game's own code and the import thunks
+# (docs/PLAN.md, M1 progress).
+LIBRARY_START = 0x5B325C
+
 # Statuses that sync may assign or revoke on its own; anything later was set by hand.
 AUTO_STATUSES = {"raw", "named", "-"}
 
@@ -93,7 +100,8 @@ def cmd_sync(args):
         updated += row != before
 
     for entry in [e for e in ledger if e not in exported]:
-        if ledger[entry]["status"] in AUTO_STATUSES and not ledger[entry]["notes"]:
+        r = ledger[entry]
+        if r["status"] in AUTO_STATUSES and not r["notes"] and not r["subsystem"]:
             del ledger[entry]
             dropped += 1
         else:
@@ -150,6 +158,26 @@ def cmd_report(args):
             print(f"  {sub:14} {b:9} {pct(counts.get('verified', 0), b):9.1f}%")
 
 
+def cmd_classify(args):
+    rows = read_tsv(args.ledger)
+    changed = Counter()
+    for r in rows:
+        if r["kind"] != KIND_CODE:
+            continue
+        ns = r["namespace"]
+        if ns == "std" or ns.startswith("std::"):
+            want = ("1", "stl")
+        elif int(r["entry"], 16) >= LIBRARY_START:
+            want = ("1", "crt")
+        else:
+            continue
+        if (r["library"], r["subsystem"]) != want:
+            r["library"], r["subsystem"] = want
+            changed[want[1]] += 1
+    write_ledger(args.ledger, rows)
+    print(f"classified: {dict(changed) or 'no changes'}")
+
+
 def parse_targets(specs, rows):
     entries = {int(r["entry"], 16): r for r in rows}
     hits = []
@@ -200,6 +228,9 @@ def main():
     r = sub.add_parser("report")
     r.add_argument("--ledger", default=DEFAULT_LEDGER)
     r.set_defaults(func=cmd_report)
+    c = sub.add_parser("classify")
+    c.add_argument("--ledger", default=DEFAULT_LEDGER)
+    c.set_defaults(func=cmd_classify)
     t = sub.add_parser("set")
     t.add_argument("targets", nargs="+", help="hex entry address, or LO-HI half-open range")
     t.add_argument("--status")

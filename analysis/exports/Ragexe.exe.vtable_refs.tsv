@@ -423,7 +423,7 @@ C3dGround	005e8900	004bc3a0	C3dGround::~C3dGround
 CWorld	005e8970	004c3694	CWorld::CWorld
 CWorld	005e8970	004c3703	CWorld::~CWorld
 C3dGround15	005e897c	004c3d54	FUN_004c3ab0
-CLanguage	005e89cc	004c7a37	FUN_004c79c0
+CLanguage	005e89cc	004c7a37	CLanguage::method_004c79c0
 CLanguage	005e89cc	004c7ae9	CLanguage::~CLanguage
 CLanguageTC	005e89f8	004c8ca8	CLanguageTC::CLanguageTC
 CLanguageTH	005e8a24	004c9400	CLanguageTH::CLanguageTH
@@ -508,7 +508,7 @@ mg::CMGPc	005e8eac	004eb0d0	mg::CMGPc::~CMGPc
 mg::CMGNpc	005e8f54	004eb0e8	mg::CMGNpc::CMGNpc
 mg::CMGNpc	005e8f54	004eb250	mg::CMGNpc::~CMGNpc
 mg::CMGEngine	005e9014	004eb873	mg::CMGEngine::~CMGEngine
-mg::CMGEngine	005e9014	004eb5e1	FUN_004eb4f0
+mg::CMGEngine	005e9014	004eb5e1	mg::mgType1::CMiniGame001::method_004eb4f0
 mg::mgType1::CItemObj	005e90ec	004ed878	mg::mgType1::CItemObj::CItemObj
 mg::mgType1::CItemObj	005e90ec	004ed948	mg::mgType1::CItemObj::~CItemObj
 mg::mgType1::CItemObj	005e90d0	004ed8b0	mg::mgType1::CItemObj::CItemObj
@@ -534,7 +534,7 @@ std::out_of_range	005e9160	004f99fc	FUN_004f98b0
 std::logic_error	005e9170	004ef143	std::out_of_range::~out_of_range
 std::logic_error	005e9170	004eef0e	FUN_004eedc0
 std::logic_error	005e9170	004eef63	std::logic_error::~logic_error
-std::logic_error	005e9170	004ef125	FUN_004eefe0
+std::logic_error	005e9170	004ef125	std::length_error::method_004eefe0
 std::logic_error	005e9170	005b3383	std::length_error::~length_error
 mg::mgType1::CMapObj	005e918c	004ef9d4	mg::mgType1::CMapObj::CMapObj
 mg::mgType1::CMapObj	005e918c	004efa10	mg::mgType1::CMapObj::~CMapObj
@@ -570,7 +570,7 @@ CGrannyCorpse3d	005e9734	0050a02f	CGrannyCorpse3d::~CGrannyCorpse3d
 CGrannyCorpse3d	005e9734	00509f8e	CGrannyCorpse3d::CGrannyCorpse3d
 CGameMode	005e9770	0050c5c7	CGameMode::CGameMode
 CDummyEffectLauncher	005e97a4	0050ff51	FUN_0050ff10
-UIVerticalNameBalloonText	005e97dc	00516726	FUN_00516650
+UIVerticalNameBalloonText	005e97dc	00516726	CGameMode::method_00516650
 CItem	005e98ac	0053abfc	CItem::CItem
 CItem	005e98ac	0053ac6f	CItem::~CItem
 CLoginMode	005e98f0	0053b444	CLoginMode::CLoginMode

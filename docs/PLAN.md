@@ -397,11 +397,36 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - Checked in the decompiler: `UIWindow::UIWindow` reads `this->field_0x8._Head = node`,
     `CGameMode::CGameMode` calls `std::string::_Tidy(&this->field_0x104, 0)`.
 
+- [x] Non-virtual methods (in `tools/recover_layouts.py`, written to `analysis/labels/methods.functions.tsv`):
+  - Rule: a default-named function that reads ECX before writing it (a `push ecx` that only
+    reserves stack space doesn't count), called with `ECX = this+n` from a class's functions.
+  - Owner: the class itself at `n = 0`; the most-derived base at `n`; or the `std::string`,
+    `std::list` or `std::_Tree` member at `n`. With several calling classes, the owner is the
+    most-derived class they all derive from.
+  - Every round rescans from scratch and recomputes every owner. An earlier version kept
+    first-seen owners, and that put a `UIWindow` method on `UIIllustWnd`.
+  - Result: **550 methods** (499 on classes, 51 on containers), named `method_<address>`. No
+    assigned method touches memory past its owner's size.
+- [x] `std::map`/`std::set` members:
+  - MSVC 6 `_Tree::_Init` is recognized by shape: the STL lock, a nil node created once,
+    `operator new(node)`, and writes to `this+4` (`_Head`) and `this+0xc` (`_Size`). 20 instances.
+  - 9 more functions call an `_Init` on their own `this`; these are the `_Tree` constructors.
+  - The tree header is 16 bytes (allocator, comparator, `_Head`, `_Multi`, `_Size`). The node
+    is left/parent/right, then the value, then a color word.
+  - Result: 12 tree members (9 in `CGameMode`) and 6 global trees, labeled and typed (`g_tree_<address>`).
+  - `ApplyLabels` gained a `std_tree` type and an optional type column for data labels.
+- Coverage after both: median 92% (quartiles 69%–100%) for the 220 sized classes; 30 are below
+  50% (was 36). `float` fields 69 → 127; 66 pointer fields now point to a known class.
+- Reproducibility:
+  - Regenerating every label file after apply, sync and classify gives identical files.
+  - `ledger.py sync` no longer drops rows that carry a subsystem.
+  - `ledger.py classify` re-applies the library rules: code from `0x005b325c` on is `crt`, and
+    any `std` namespace is `stl`, now including the container methods.
+  - A fresh import needs three `analyze.sh` passes before the function set stops growing.
+
 ### Next actions (M1)
-1. `std::map` members: `CGameMode` shows the pattern (two allocator bytes, a zeroed count,
-   and a tree-init call `0x0051b9d0`).
-2. Assign non-virtual methods to classes. Functions called with `ECX = this` from a class's
-   methods are its members, and their accesses add fields to the 36 low-coverage classes.
-3. Name the 23 non-RTTI globals and the 74 non-RTTI `new` targets from their use, starting
-   with what `WinMain` touches.
-4. Emulation oracle harness and the static runtime-code check.
+1. Name the 23 non-RTTI globals and the 74 non-RTTI `new` targets from their use, starting
+   with what `WinMain` touches. One of them has a `_Tree` member at `+0xf8` (built by `FUN_004cfcb0`).
+2. Make `std::string`, `std::list` and `std::_Tree` Ghidra classes typed with their structs, so
+   `this` in the 80 container methods is typed.
+3. Emulation oracle harness and the static runtime-code check.

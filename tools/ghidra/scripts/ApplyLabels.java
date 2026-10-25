@@ -6,14 +6,16 @@
 //   *.functions.tsv  address  namespace  name  calling_convention  evidence
 //       Creates the function if needed. namespace is "Global" or a :: path; class
 //       namespaces must already exist (from RTTI). calling_convention may be empty.
-//   *.data.tsv       address  namespace  name  evidence
-//       A label on data, such as a global object.
+//   *.data.tsv       address  namespace  name  evidence  [type]
+//       A label on data, such as a global object. The optional type is one of the
+//       field types below and is applied as data at the address.
 //   *.classes.tsv    class  size  evidence
 //       Grows the class struct to size bytes; it never shrinks one.
 //   *.fields.tsv     class  offset  size  type  name  evidence
 //       Rebuilds each listed class struct from these fields, keeping its size and the
 //       vftable fields ApplyRtti put there. Types: byte word dword qword int float
-//       double pointer ptr:<Class> std_string std_list:<elem size> class:<Class>
+//       double pointer ptr:<Class> std_string std_list:<elem size> std_tree:<value size>
+//       class:<Class>
 //       array:<elem>:<count>,
 //       where elem is class:<Class> or bytes<N>. Member objects and arrays are applied
 //       as byte ranges with their type in the field comment.
@@ -168,6 +170,11 @@ public class ApplyLabels extends GhidraScript {
 			s = st.createLabel(a, r[2], ns, SourceType.USER_DEFINED);
 		}
 		s.setPrimary();
+		if (r.length > 4 && !r[4].isEmpty()) {
+			DataType dt = fieldType(r[4], 0, currentProgram.getDataTypeManager());
+			currentProgram.getListing().clearCodeUnits(a, a.add(dt.getLength() - 1), false);
+			createData(a, dt);
+		}
 		return true;
 	}
 
@@ -266,6 +273,8 @@ public class ApplyLabels extends GhidraScript {
 				return stdString(dtm);
 			case "std_list":
 				return stdList(dtm);
+			case "std_tree":
+				return stdTree(dtm);
 			case "ptr": {
 				GhidraClass c = classesByPath.get(p[1]);
 				return c == null ? PointerDataType.dataType : new PointerDataType(classStruct(c, dtm), dtm);
@@ -320,6 +329,24 @@ public class ApplyLabels extends GhidraScript {
 		s.add(ByteDataType.dataType, "_Al", "allocator (empty)");
 		s.add(new ArrayDataType(Undefined1DataType.dataType, 3, 1), "_pad", null);
 		s.add(PointerDataType.dataType, "_Head", "sentinel node: next, prev, then the value");
+		s.add(DWordDataType.dataType, "_Size", null);
+		return dtm.addDataType(s, DataTypeConflictHandler.KEEP_HANDLER);
+	}
+
+	/** MSVC 6 std::_Tree (map, set): allocator and comparator bytes, head node, multi flag, size. */
+	private DataType stdTree(DataTypeManager dtm) {
+		CategoryPath cat = new CategoryPath("/Ragexe/stl");
+		DataType dt = dtm.getDataType(cat, "std_tree");
+		if (dt != null) {
+			return dt;
+		}
+		StructureDataType s = new StructureDataType(cat, "std_tree", 0, dtm);
+		s.add(ByteDataType.dataType, "_Al", "allocator (empty)");
+		s.add(ByteDataType.dataType, "_Comp", "key_compare (empty)");
+		s.add(new ArrayDataType(Undefined1DataType.dataType, 2, 1), "_pad", null);
+		s.add(PointerDataType.dataType, "_Head", "head node: left, parent, right, value, color");
+		s.add(ByteDataType.dataType, "_Multi", "true for multimap and multiset");
+		s.add(new ArrayDataType(Undefined1DataType.dataType, 3, 1), "_pad2", null);
 		s.add(DWordDataType.dataType, "_Size", null);
 		return dtm.addDataType(s, DataTypeConflictHandler.KEEP_HANDLER);
 	}

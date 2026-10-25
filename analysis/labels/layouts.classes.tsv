@@ -9,12 +9,12 @@ CDCSurface	20	estimated: end of the last field the class or its bases use
 CGPak	132	estimated: end of the last field the class or its bases use
 CGameActor	636	estimated: end of the last field the class or its bases use
 CGameObject	4	estimated: end of the last field the class or its bases use
-CGndRiser	196	estimated: end of the last field the class or its bases use
-CGrannyPc	9156	estimated: end of the last field the class or its bases use
-CLanguage	120	estimated: end of the last field the class or its bases use
+CGndRiser	204	estimated: end of the last field the class or its bases use
+CGrannyPc	9220	estimated: end of the last field the class or its bases use
+CLanguage	136	estimated: end of the last field the class or its bases use
 CLanguageTC	160	estimated: end of the last field the class or its bases use
 CLanguageTH	144	estimated: end of the last field the class or its bases use
-CMasterChaser	160	estimated: end of the last field the class or its bases use
+CMasterChaser	164	estimated: end of the last field the class or its bases use
 CMode	64	estimated: end of the last field the class or its bases use
 CRagConnection	204	estimated: end of the last field the class or its bases use
 CRagEffect	16876	estimated: end of the last field the class or its bases use
@@ -31,7 +31,7 @@ UIButton	112	estimated: end of the last field the class or its bases use
 UIColorButton	136	estimated: end of the last field the class or its bases use
 UIFrameWnd	100	estimated: end of the last field the class or its bases use
 UIGage	136	estimated: end of the last field the class or its bases use
-UIGuildWnd	104	estimated: end of the last field the class or its bases use
+UIGuildWnd	108	estimated: end of the last field the class or its bases use
 UIItemBaseWnd	152	estimated: end of the last field the class or its bases use
 UIMiniGameWnd	144	estimated: end of the last field the class or its bases use
 UIShowNeedItemListWnd	308	estimated: end of the last field the class or its bases use
