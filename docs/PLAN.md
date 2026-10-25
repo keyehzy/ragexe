@@ -787,7 +787,59 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
       another register whose value no rule types.
   - Converges in two `--reanalyze` passes.
 
+- [x] Naming pilot on the `net` subsystem: all 25 of its unnamed functions, 4.7 KB of
+  code. Named by reading them, with a reviewed result now in `inferred.functions.tsv`.
+  65.5% → **65.9%** of code functions named or library-tagged.
+  - **Procedure.** One agent got the clean-room rules, the decompile and disassembly
+    helpers and the protocol docs. It wrote one row per function: namespace, name,
+    calling convention, confidence (16 high, 9 medium), and evidence citing addresses.
+    I then checked every row against the code: callers, including exception-unwind
+    funclets, `ret N`, imports and constants. The `OnSocketEvent` jump table confirms
+    the four socket handlers: `FD_READ` → `0x418aa0`, `FD_WRITE` → `0x418a30`,
+    `FD_CONNECT` → `0x418b40`, `FD_CLOSE` → `0x418b50`.
+  - **Quality.** All 25 rows are supported by the code. Two were changed in review:
+    - The MD5 functions went under a curated `Md5Context` class rather than `Global`
+      `__thiscall`.
+    - `0x41d9e0` became `std::_Construct`, like the existing helpers of that shape.
+  - **What the names are.**
+    - `CConnection::OnRecv` (its name is in the binary's "Socket OnRecv Error"),
+      `OnSend`, `OnConnect` and `OnClose`; `CleanupWinsock`.
+    - The destructors of the length map, of `PacketCodeModules` and of `std::list`.
+      They are reached only from unwind funclets.
+    - The map's rotations, iterator steps and node allocation, and list erasure.
+    - A second, unused `PacketQueue` constructor that takes a capacity.
+    - MD5 (`Md5Context::Init`, `Update`, `Final`, `Transform`), recognised from its
+      constants (`0x67452301` at `0x41f840`, `0xd76aa478` in `0x41eea0`).
+    - 14 of the 25 are STL code, so `classify` moves them to `stl`.
+  - **Finding for M6.** `CLoginMode::HandlePacket_01DC` (`0x53ebc0`) hashes the packet
+    body (from `+4`) together with the string at `CLoginMode+0x120`. The flag byte at
+    `0x67c9ce` decides which comes first. It replies with the 47-byte packet `0x1dd`:
+    | Offset | Size | Contents |
+    |---|--:|---|
+    | `+2` | 4 | the dword at `0x67c9c8` |
+    | `+6` | 24 | the bytes at `CLoginMode+0x160` |
+    | `+0x1e` | 16 | the digest |
+    | `+0x2e` | 1 | a byte from `0x53f100` |
+  - **Cost.**
+    - The agent: 139k tokens, 23 tool calls, under 5 minutes. That is 5.6k tokens a
+      function, or about 29 a byte.
+    - The review: roughly another 1k tokens a function.
+    - For the remaining 2,429 functions (560 KB), about 14–16M agent tokens plus
+      2–3M for review.
+  - **Changes before the full run.**
+    - A per-function context script that lists, for each address: callers, including
+      unwind funclets and the function whose exception tables own them; callees with
+      imports resolved; `ret N`; whether it reads ECX first; strings; and data
+      references. The agent had to write its own.
+    - A second `__thiscall` test: the caller sets ECX just before the call, even when
+      the body never reads it.
+    - A fixed set of names for STL internals, to keep runs consistent. 101 container
+      helpers are still `method_xxx`.
+    - Batches by address range (the source files), not by subsystem tag. `net`
+      included MD5 and map code shared with `CKeyPad`.
+    - Say explicitly that recognising a standard algorithm from its constants counts as
+      reading the binary.
+
 ### Next actions (M1)
-1. Name the remaining 2,454 game functions by reading them. About 1,750 more are
-   needed for 90%. The automatic rules above have reached their limit: what is left
-   needs a name from what each function does, with an address as evidence.
+1. Name the remaining 2,429 game functions by reading them, with the procedure from the
+   pilot and its changes. About 1,725 more are needed for 90%.

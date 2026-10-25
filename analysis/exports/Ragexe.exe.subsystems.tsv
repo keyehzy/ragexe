@@ -491,8 +491,7 @@ entry	subsystem	rule	evidence
 00418150	net	class	class CConnection, base of CRagConnection
 00418290	net	class	class CConnection
 004182f0	net	class	class CConnection
-00418320	net	neighbours	between 004182f0 and 004184d0
-00418410	net	neighbours	between 004182f0 and 004184d0
+00418410	net	class	class PacketCodeModules
 004184d0	net	class	class CConnection
 00418540	net	class	class CConnection
 00418590	net	class	class CConnection
@@ -501,10 +500,10 @@ entry	subsystem	rule	evidence
 00418710	net	class	class CConnection, base of CRagConnection
 00418770	net	class	class CConnection, base of CRagConnection
 004189f0	net	class	class CConnection
-00418a30	net	import	WS2_32.DLL!WSAGetLastError
-00418aa0	net	import	WS2_32.DLL!WSAGetLastError
-00418b40	net	neighbours	between 00418aa0 and 00418b60
-00418b50	net	neighbours	between 00418aa0 and 00418b60
+00418a30	net	class	class CConnection
+00418aa0	net	class	class CConnection
+00418b40	net	class	class CConnection
+00418b50	net	class	class CConnection
 00418b60	net	import	WS2_32.DLL!WSACleanup, WS2_32.DLL!WSAStartup
 00418c10	net	import	WS2_32.DLL!WSACleanup
 00418c30	net	class	class CConnection, base of CRagConnection
@@ -520,18 +519,6 @@ entry	subsystem	rule	evidence
 00419270	net	class	class CConnection, base of CRagConnection
 00419370	net	class	class CConnection, base of CRagConnection
 00419400	net	class	class CConnection, base of CRagConnection
-0041cb20	net	neighbours	between 00419400 and 0041cc80
-0041cc80	net	callers	1 referencing function
-0041ceb0	net	callers	1 referencing function
-0041ced0	net	callers	1 referencing function
-0041d590	net	neighbours	between 0041ced0 and 0041d990
-0041d830	net	neighbours	between 0041ced0 and 0041d990
-0041d890	net	neighbours	between 0041ced0 and 0041d990
-0041d8b0	net	neighbours	between 0041ced0 and 0041d990
-0041d910	net	neighbours	between 0041ced0 and 0041d990
-0041d930	net	neighbours	between 0041ced0 and 0041d990
-0041d990	net	callers	1 referencing function
-0041d9e0	net	previous	after 0041d990, nothing references it
 0041da00	core	initializer	initializer of the file starting here, before 0041da40
 0041da30	core	initializer	initializer of the file starting here, before 0041da40
 0041da40	core	callees	1 referenced function
@@ -591,7 +578,7 @@ entry	subsystem	rule	evidence
 0041f950	net	neighbours	between 0041ee10 and 0041fa00
 0041f9d0	net	neighbours	between 0041ee10 and 0041fa00
 0041fa00	net	class	class PacketQueue
-0041fa20	net	neighbours	between 0041fa00 and 0041fa80
+0041fa20	net	class	class PacketQueue
 0041fa80	net	class	class PacketQueue
 0041fab0	net	class	class PacketQueue
 0041fac0	net	class	class PacketQueue
@@ -600,7 +587,6 @@ entry	subsystem	rule	evidence
 0041fcc0	net	class	class PacketQueue
 0041fd00	net	class	class PacketQueue
 0041fd30	game	callers	4 referencing functions
-0041fd60	net	callers	2 referencing functions
 0041ff40	audio	initializer	initializer of the file starting here, before 0041ff70
 0041ff70	audio	import	WINMM.DLL!mixerGetLineControlsA, WINMM.DLL!mixerGetLineInfoA, WINMM.DLL!mixerOpen
 00420020	audio	import	WINMM.DLL!mixerGetControlDetailsA
