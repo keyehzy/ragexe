@@ -1,0 +1,76 @@
+Ragexe.exe static runtime-code check (tools/runtime_code_check.py)
+
+== Sections
+.text    0x60000020 execute -----
+.rdata   0x40000040 ------- -----
+.data    0xc0000040 ------- write
+.rsrc    0x40000040 ------- -----
+
+== Calls to imports that can make memory executable or load code
+KERNEL32.DLL!VirtualProtect: 1 call sites
+  0041ee41 in PacketCodeModules::PatchStub (0041ee10): lpAddress=esi, dwSize=0xa, flNewProtect=0x4, lpflOldProtect=edx  CHANGES PROTECTION: review where lpAddress points
+KERNEL32.DLL!VirtualAlloc: 7 call sites
+  004de8f3 in CGPak::method_004de830 (004de830): lpAddress=0x0, dwSize=ecx, flAllocationType=0x1000, flProtect=0x4
+  004deaef in FUN_004dea90 (004dea90): lpAddress=0x0, dwSize=eax, flAllocationType=0x1000, flProtect=0x4
+  005cc07b in FUN_005cc005 (005cc005): lpAddress=edi, dwSize=0x100000, flAllocationType=0x2000, flProtect=0x4
+  005cc107 in FUN_005cc0b6 (005cc0b6): lpAddress=edi, dwSize=0x8000, flAllocationType=0x1000, flProtect=0x4
+  005cc90e in FUN_005cc8c9 (005cc8c9): lpAddress=0x0, dwSize=0x400000, flAllocationType=0x2000, flProtect=0x4
+  005cc928 in FUN_005cc8c9 (005cc8c9): lpAddress=edi, dwSize=ebx, flAllocationType=0x1000, flProtect=0x4
+  005cccfc in FUN_005ccbc1 (005ccbc1): lpAddress=esi, dwSize=eax, flAllocationType=0x1000, flProtect=0x4
+KERNEL32.DLL!VirtualFree: 6 call sites
+  004dd9fe in FUN_004dd9f0 (004dd9f0): lpAddress=eax, dwSize=0x0, dwFreeType=0x8000
+  005cbc2b in FUN_005cb9d3 (005cb9d3): lpAddress=ecx, dwSize=ebx, dwFreeType=0x4000
+  005cbc86 in FUN_005cb9d3 (005cb9d3): lpAddress=dword ptr [eax + 0xc], dwSize=0x0, dwFreeType=ebx
+  005cc9e9 in FUN_005cc8c9 (005cc8c9): lpAddress=edi, dwSize=0x0, dwFreeType=0x8000
+  005cca1c in FUN_005cca0d (005cca0d): lpAddress=dword ptr [esi + 0x10], dwSize=0x0, dwFreeType=0x8000
+  005ccaa1 in FUN_005cca63 (005cca63): lpAddress=eax, dwSize=0x1000, dwFreeType=0x4000
+KERNEL32.DLL!CreateFileMappingA: 1 call sites
+  004de4ef in CGPak::method_004de4b0 (004de4b0): hFile=eax, lpAttributes=ebx, flProtect=0x2, dwMaximumSizeHigh=ebx, dwMaximumSizeLow=ebx, lpName=edi
+KERNEL32.DLL!MapViewOfFile: 2 call sites
+  004de5bc in CGPak::method_004de530 (004de530): hFileMappingObject=ecx, dwDesiredAccess=0x4, dwFileOffsetHigh=0x0, dwFileOffsetLow=eax, dwNumberOfBytesToMap=0x0
+  004de5eb in CGPak::method_004de530 (004de530): hFileMappingObject=ecx, dwDesiredAccess=eax, dwFileOffsetHigh=0x4, dwFileOffsetLow=0x0, dwNumberOfBytesToMap=eax
+KERNEL32.DLL!LoadLibraryA: 4 call sites
+  00418b8e in FUN_00418b60 (00418b60): lpLibFileName=0x6059dc 'ws2_32.dll'
+  00418c45 in CRagConnection::method_00418c30 (00418c30): lpLibFileName=0x605a18 'cjconnector.dll'
+  004c1a27 in FUN_004c1a10 (004c1a10): lpLibFileName=0x60b25c 'dbghelp.dll'
+  005d2288 in FUN_005d2276 (005d2276): lpLibFileName=0x5edaec 'user32.dll'
+KERNEL32.DLL!GetProcAddress: 11 call sites
+  004061e1 in FUN_004061b0 (004061b0): hModule=eax, lpProcName=0x6054bc 'DirectDrawEnumerateExA'
+  00418ba5 in FUN_00418b60 (00418b60): hModule=eax, lpProcName=0x6059d4 'send'
+  00418bb7 in FUN_00418b60 (00418b60): hModule=eax, lpProcName=0x6059cc 'recv'
+  00418c65 in CRagConnection::method_00418c30 (00418c30): hModule=eax, lpProcName=0x605a08 'ConnectorKey'
+  004c1a46 in FUN_004c1a10 (004c1a10): hModule=ebx, lpProcName=0x60b250 'StackWalk'
+  004c1a51 in FUN_004c1a10 (004c1a10): hModule=ebx, lpProcName=0x60b230 'GetTimestampForLoadedLibrary'
+  004c1a5c in FUN_004c1a10 (004c1a10): hModule=ebx, lpProcName=0x60b218 'EnumerateLoadedModules'
+  005c6a76 in FUN_005c6a61 (005c6a61): hModule=eax, lpProcName=0x5ece60 'IsProcessorFeaturePresent'
+  005d22a0 in FUN_005d2276 (005d2276): hModule=edi, lpProcName=0x5edae0 'MessageBoxA'
+  005d22b1 in FUN_005d2276 (005d2276): hModule=edi, lpProcName=0x5edad0 'GetActiveWindow'
+  005d22be in FUN_005d2276 (005d2276): hModule=edi, lpProcName=0x5edabc 'GetLastActivePopup'
+KERNEL32.DLL!HeapCreate: 1 call sites
+  005cb79a in _heap_init (005cb789): flOptions=eax, dwInitialSize=0x1000, dwMaximumSize=0x0
+KERNEL32.DLL!WriteProcessMemory: not imported
+KERNEL32.DLL!FlushInstructionCache: not imported
+
+== Instructions that write to an absolute address in .text
+  none
+
+== Immediates pointing into .text that are not a function entry
+   (left out: SEH scope tables and C++ EH handlers in a frame set-up or passed to
+   _EH_prolog, and immediates of arithmetic and comparison instructions)
+  0x004040e0 inside FUN_004040c0 (004040c0): 0045b29a mov in UIFrameWnd::method_0045b0c0, 0045b5c0 mov in UIFrameWnd::method_0045b3d0, 0045ba90 mov in UINotifyItemObtainWnd::method_0045b8a0
+  0x00428960 outside every function: 004287b9 push in CEZeffectRes::CEZeffectRes, 00428ac9 push in CEZeffectRes::CEZeffectRes
+  0x00428970 outside every function: 004287b4 push in CEZeffectRes::CEZeffectRes, 004288b0 push in FUN_004288b0, 00428901 push in CEZeffectRes::~CEZeffectRes ...
+  0x0042bdd0 outside every function: 0042bc8d push in C3dModelRes::vf04, 0042ddd7 push in C3dAnimModelRes::method_0042ddc0
+  0x0042cc30 outside every function: 0042e289 push in C3dAnimModelRes::vf03
+  0x004be4f0 outside every function: 004bccae push in C3dGround15::vf03, 0057d04a push in CEffectPrim::CEffectPrim
+  0x004e5a86 inside FUN_004e5880 (004e5880): 004e5a80 mov in FUN_004e5880
+  0x00505050 inside CGameActor::vf02 (00504460): 00464875 push in UIItemParamChangeDisplayWnd::vf20, 0046488d push in UIItemParamChangeDisplayWnd::vf20, 0046496f push in UIItemParamChangeDisplayWnd::vf20 ...
+  0x005b2fc8 outside every function: 00418bfe mov in FUN_00418b60
+  0x005b2fce outside every function: 00418bdb mov in FUN_00418b60
+  0x005c1a83 inside FUN_005c1a5b (005c1a5b): 005c1a6c mov in FUN_005c1a5b
+  0x005c1bfb inside FUN_005c1b73 (005c1b73): 005c1baf mov in FUN_005c1b73
+  0x005c1d3c outside every function: 005c1d68 push in __local_unwind2
+  0x005c6ae4 outside every function: 005c172c mov in FUN_005c1727
+  0x005c6b32 outside every function: 005c174f mov in FUN_005c1727
+
+findings: 1 (writable and executable sections, VirtualProtect calls, executable allocations, absolute writes into .text); immediates into code to review: 15

@@ -19,10 +19,10 @@ for preservation and study.
 | Size | 1.9 MB of code; Ghidra finds **10,138 functions** (1.85 MB) after two analysis passes, plus 329 imported functions, of which an estimated ~20% is CRT/STL |
 | Ghidra coverage | FID matches only 52 functions (VC6 runtime is not in Ghidra's databases). The built-in RTTI analyzer makes 298 class namespaces but applies just 1 vtable, although the binary holds 295 complete object locators → 295 vtables for 292 classes. The M1 RTTI script fills this in |
 
-Step 1 of the brief (unpacking) is not needed. One check remains: compare a memory
-dump at the entry point against the file, to rule out code that is written at runtime.
-This is now done statically in M1, since the original is not run: review every call
-site of `VirtualProtect`/`VirtualAlloc` and every write into the `.text` range.
+Step 1 of the brief (unpacking) is not needed. Code written at run time was ruled out
+statically in M1 (`tools/runtime_code_check.py`), with one exception that is part of the
+protocol: the client patches one small function of its own and runs x86 code that the
+server can send with packet 0x01C7 (`docs/protocol/code-modules.md`).
 
 ### Dependencies to replace
 
@@ -216,6 +216,9 @@ Effort is for one engineer full time, with AI assistance. Treat it as rough.
 - `CConnection`/`CRagConnection`: framing, the packet-length table (generated into
   `packets.def` with addresses), fixed and variable-length packets, the
   login → char → zone handoffs in `CLoginMode`.
+- Packet 0x01C7 and the code modules that follow it in the stream
+  (`docs/protocol/code-modules.md`): parsed and stored, with an identity `PacketFilter`;
+  modules, if a server sends any, run in the emulator.
 - `tools/stubserver`: our own minimal server, written from what the client sends and
   parses: login, server list, char select and create, map enter, spawn, walk, chat,
   a few scripted NPCs and monsters.
@@ -267,6 +270,7 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
 |---|---|
 | Outside knowledge breaks the clean room | Address-citation rule (section 2); specs reviewed before code |
 | No server from 2003 to test against | The stub server comes only from client code; the original exe validates it |
+| The server may send x86 code (packet 0x01C7) that filters every packet, which a portable client cannot run natively | Keep the stream format; identity filter by default; run received modules in the emulator. The stub server never sends them |
 | The original is never run, so there is no ground truth for whole frames, timing or final pixels | Emulation oracle for single functions and recorded D3D calls; careful review of timing and frame-loop code; reviewed regression baselines |
 | Emulation harness becomes expensive for functions with deep state | Limit it to self-contained functions; build state from parsed resources instead of emulating start-up |
 | Granny and Bink are proprietary | Limited RE of the shipped DLL for the 7 models; the intro video is optional |
@@ -485,8 +489,48 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     members. 10,154 fields in all. The decompiler shows `g_ClientState.field_0x1bc._Head`.
   - Labels and ledger are stable after one `--reanalyze` pass.
 
+- [x] Static runtime-code check (`tools/runtime_code_check.py`, report in
+  `analysis/exports/Ragexe.exe.runtime_code.txt`):
+  - No section is both writable and executable; `.text` is read and execute only.
+  - Every call to `VirtualProtect`, `VirtualAlloc`, `VirtualFree`, `CreateFileMappingA`,
+    `MapViewOfFile`, `LoadLibraryA`, `GetProcAddress` and `HeapCreate` is listed with its
+    constant arguments, following `mov reg, [IAT]; call reg`. No allocation asks for
+    executable memory. The libraries loaded by name are `ws2_32.dll` (`send`, `recv`),
+    `cjconnector.dll` (`ConnectorKey`), `dbghelp.dll` (stack walking for the crash
+    handler) and `user32.dll` (the CRT's message box). File mappings are read-only views of
+    the archive (`CGPak`). `WriteProcessMemory` and `FlushInstructionCache` are not imported.
+  - No instruction writes to an absolute address in `.text`. 15 immediates point into code
+    without being a function entry, and all were reviewed: element constructors passed to
+    `eh_vector_constructor_iterator` that Ghidra has not made functions, the `ws2_32`
+    import thunks kept as fallbacks, a catch block's continuation, CRT tables, and two
+    colour constants (`0x4040e0`, `0x505050`). Exception-handling set-up (`push -1;
+    push handler`, `mov eax, handler; call _EH_prolog`) is filtered out.
+  - The one `VirtualProtect` call is real self-modification: `PacketCodeModules::PatchStub`
+    makes 10 bytes of `PacketFilterStub` writable and writes a `call` and a `jmp` into it.
+    The call is later pointed at code that the server sends after packet 0x01C7, held in
+    heap memory; every sent and received packet then passes through it. Specified in
+    `docs/protocol/code-modules.md`; the functions are labeled.
+- [x] Emulation oracle (`tools/emu/`, tests in `tests/emu/test_oracle.py`):
+  - Unicorn maps the image with each section's protection, a flat GDT and an FS segment on a
+    minimal TEB. `call(address, *args, this=)` returns EAX, EDX and ST(0). A sentinel return
+    address ends the run, and there is an instruction limit.
+  - Every import goes to a stub (`winapi.py`); calling one without a stub stops the run and
+    names it. Stubs are deterministic: fixed tick start and step, fixed IDs, the
+    Windows-1252 code page, read-only files resolved case-insensitively in `original/install`.
+  - The CRT heap (`malloc`, `__nh_malloc`, `calloc`, `realloc`, `_msize`, `free`, newly
+    labeled) is hooked to a zero-filling bump allocator. `init_crt()` runs `_ioinit` and the
+    C half of `_cinit`, which stdio and float formatting need; game constructors never run.
+  - Checked: `atoi`, `_itoa`, `atof` (result in ST(0)), `_strlwr`, `_stricmp`, `sprintf`,
+    `fopen`/`fread` on `data.grf`, and the first game function, `CGPak::GetFileName`.
+    `sprintf("%e")` gives `3.141590e+000`: MSVC 6 prints three exponent digits, which the
+    port has to reproduce where it formats numbers the same way.
+  - CLI: `cd tools && python -m emu [--crt] ADDRESS [ARG ...]` with `s:TEXT` and `buf:N` arguments.
+  - Dependencies pinned in `tools/requirements.txt`; 12 tests run in under a second.
+
 ### Next actions (M1)
-1. Emulation oracle harness and the static runtime-code check.
-2. Size the global singletons whose size is only estimated (`ClientState`, `UIWindowMgr`,
+1. Size the global singletons whose size is only estimated (`ClientState`, `UIWindowMgr`,
    `C3dDevice`): the accesses past their estimated ends need a rule for where an object
    stops before the next global begins.
+2. Assign every function to a subsystem in the ledger, and write `docs/architecture.md`
+   (main loop, mode switcher, singletons, threads).
+3. Extend the oracle with the D3D7/DirectDraw COM fakes that record calls, for M4.

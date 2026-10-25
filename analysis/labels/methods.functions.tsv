@@ -71,7 +71,6 @@ address	namespace	name	calling_convention	evidence
 00418c30	CRagConnection	method_00418c30	__thiscall	__thiscall; called with this from 1 functions of CRagConnection, e.g. 005b2280
 00418f70	CRagConnection	method_00418f70	__thiscall	__thiscall; called with this from 12 functions of CRagConnection, e.g. 0050dc90
 004191e0	CRagConnection	method_004191e0	__thiscall	__thiscall; called with this from 12 functions of CRagConnection, e.g. 0050dc90
-00419250	CRagConnection	method_00419250	__thiscall	__thiscall; called with this from 2 functions of CRagConnection, e.g. 00537a40
 00419400	CRagConnection	method_00419400	__thiscall	__thiscall; called with this from 1 functions of CRagConnection, e.g. 00418d90
 0041daf0	CController	method_0041daf0	__thiscall	__thiscall; called with this from 1 functions of CController, e.g. 0041da90
 0041db70	CKeyPad	method_0041db70	__thiscall	__thiscall; called with this from 1 functions of CKeyPad, e.g. 0041ded0
@@ -377,7 +376,6 @@ address	namespace	name	calling_convention	evidence
 004de530	CGPak	method_004de530	__thiscall	__thiscall; called with this from 2 functions of CGPak, e.g. 004ddae0
 004de830	CGPak	method_004de830	__thiscall	__thiscall; called with this from 2 functions of CGPak, CSakGPak, e.g. 004dd9a0
 004deb20	CGPak	method_004deb20	__thiscall	__thiscall; called with this from 2 functions of CGPak, CSakGPak, e.g. 004dda10
-004dec00	CGPak	method_004dec00	__thiscall	__thiscall; called with this from 1 functions of CGPak, e.g. 004de830
 004decd0	CGPak	method_004decd0	__thiscall	__thiscall; called with this from 1 functions of CGPak, e.g. 004de830
 004e65c0	XmlDocument	method_004e65c0	__thiscall	__thiscall; called with this from 1 functions of XmlDocument, e.g. 004e6590
 004eb4f0	mg::mgType1::CMiniGame001	method_004eb4f0	__thiscall	__thiscall; called with this from 1 functions of mg::mgType1::CMiniGame001, e.g. 004fec70

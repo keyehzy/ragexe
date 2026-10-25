@@ -34,3 +34,4 @@ SceneGraphNode		operator new(0x80) in C3dWorldRes::vf03, which logs "SceneGraphN
 WorldColorFade		global 00686598; 00586460 moves the RGB floats at +0x14..+0x1c towards targets at +0x20..+0x28 each frame; used by C3dWorldRes::vf03 and CGameMode
 ClientState		global 00686670; about 260 functions are called with ECX = this global; 00588520 writes the options to the registry ("SPRITEMODE", "isSoundOn", ...); its methods keep the inventory ("DecItem"), message tables ("msgStringTable.txt") and guild emblems
 MoviePlayer		global 00688480; 004dbfc0 plays a Bink movie (BinkWait) while pumping window messages; 004dbe60 skips or rewinds on a key
+PacketCodeModules		member of CRagConnection at +0x8c (constructed inline in CRagConnection::CRagConnection, which then calls 0041ead0 on it); two lists of 0x41008-byte nodes holding code received from the server, and at +0x18 the address of the call operand it patches into PacketFilterStub

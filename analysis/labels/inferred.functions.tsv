@@ -123,3 +123,21 @@ address	namespace	name	calling_convention	evidence
 0053a410	std	_Construct	__cdecl	(p, v): if p is not null, copies a 24-byte value with a std::string at +8; on 32-byte nodes
 0053a590	std	_Construct	__cdecl	(p, v): if p is not null, copies a 20-byte value starting with a std::string; on 28-byte nodes
 004305f0	std::string	string	__thiscall	copy constructor: copies the allocator byte, zeroes _Ptr/_Len/_Res, assigns the other string and returns this
+# Server-supplied packet filter code (packet 0x01C7; docs/protocol/code-modules.md)
+0041ea70	Global	PacketFilterStub	__cdecl	(buffer, length, out length): copies the buffer to a 1 KB stack area and back and stores the length; its body is bracketed by two copies of the marker 33c0 33db 33c9 (xor eax, xor ebx, xor ecx) at 0041ea7c and 0041eabd, which PacketCodeModules::PatchStub overwrites with a call and a jmp
+0041ed70	Global	FindStubMarker	__stdcall	(address): scans forward byte by byte for the 6-byte marker at 00605b08 (33c0 33db 33c9) and returns its address
+0041edb0	Global	WriteJmp	__stdcall	(at, target): writes 0xe9 at at and the rel32 to target after it (WriteRel32)
+0041edd0	Global	WriteCall	__stdcall	(at, target): writes 0xe8 at at and the rel32 to target after it (WriteRel32)
+0041edf0	Global	WriteRel32	__stdcall	(at, target): stores target - at - 4 at at
+0041ead0	PacketCodeModules	Reset	__thiscall	frees every node of the lists at +4 and +0x10, then PatchStub(PacketFilterStub); called by CRagConnection::CRagConnection and CRagConnection::vf01
+0041ee10	PacketCodeModules	PatchStub	__thiscall	(function): follows e9 jumps from function, finds the first marker, VirtualProtect(marker + 6, 10, PAGE_READWRITE), writes 0xe8 there and keeps the address of its rel32 at +0x18, then a jmp from marker + 11 to just past the second marker
+0041eb50	PacketCodeModules	AddSendModule	__thiscall	(header, data): XOR-decodes (header[0] ^ header[1]) bytes of data with the low byte of header[1] into a 4 KB buffer, pads it with _rand bytes, appends a node holding it to the list at +0x10; FUN_00418fc0 calls it while the send-module count (CRagConnection +0xc8) is non-zero
+0041ec10	PacketCodeModules	AddRecvModule	__thiscall	same as AddSendModule for the list at +4; FUN_00418fc0 calls it while the receive-module count (CRagConnection +0xc4) is non-zero
+0041ecd0	PacketCodeModules	RunSendModules	__thiscall	(buffer, length): for each node of the list at +0x10, points the patched call (WriteRel32 at [+0x18]) at the node's code buffer (node + 0x40008) and calls PacketFilterStub(buffer, length, node + 8, 1); CRagConnection::method_00418f70 runs it on every packet before sending
+0041ed20	PacketCodeModules	RunRecvModules	__thiscall	same as RunSendModules over the list at +4; run by FUN_00418fc0 on received data
+00418fc0	CRagConnection	RecvPacket	__thiscall	(buffer): first reads the expected code modules from the receive stream (4-byte header whose two halves XOR to the length, then the bytes) into PacketCodeModules, then runs queued outgoing data through RunSendModules and received data through RunRecvModules, and extracts a packet (00419370); the game and login dispatchers call it before their packet switch
+00419250	CRagConnection	SetExpectedModules	__thiscall	(receive count, send count): stores them at +0xc4 and +0xc8; called only by the 0x01C7 handlers with the globals 00614d74 and 00614d78
+00537a40	Global	HandlePacket_01C7	__thiscall	case 0x01C7 of the game-mode dispatcher 00524d80 (index table 00526188, id - 0x73); calls CRagConnection::SetExpectedModules
+0053eba0	Global	HandlePacket_01C7	__thiscall	case 0x01C7 of the login-mode dispatcher CLoginMode::method_0053cfa0 (index table 0053d1d8, id - 0x187); calls CRagConnection::SetExpectedModules
+# CGPak
+004dec00	CGPak	GetFileName	__thiscall	(dst, path): copies the part of path after its last '\' or '/' (all of it when there is none) to dst; checked against that rule in the emulation oracle (tests/emu/test_oracle.py)

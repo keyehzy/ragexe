@@ -35,6 +35,7 @@ KeyPadDispatcher	108	estimated: end of the last field the class or its bases use
 MannerFilter	48	estimated: end of the last field the class or its bases use
 ModeSwitcher	96	estimated: end of the last field the class or its bases use
 MoviePlayer	16	estimated: end of the last field the class or its bases use
+PacketCodeModules	28	estimated: end of the last field the class or its bases use
 PathFinder	4248	estimated: end of the last field the class or its bases use
 ResourceManager	172	estimated: end of the last field the class or its bases use
 TextureCache	16	estimated: end of the last field the class or its bases use

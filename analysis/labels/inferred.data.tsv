@@ -11,3 +11,5 @@ address	namespace	name	evidence	type
 0067cc38	Global	g_cardInfoById	004d48e0 fills it from "CardItemNameTable.txt", "Num2CardIllustNameTable.txt", "CardPrefixNameTable.txt" and "CardPostfixNameTable.txt"; value size 52	std_tree
 0067cc50	Global	g_itemInfoById	004d48e0 fills it, keyed by atoi of the first column, from "Num2ItemDisplayNameTable.txt", "Num2ItemResNameTable.txt", "Num2itemDescTable.txt", "itemSlotTable.txt" and others; value size 124	std_tree
 0067ccb8	Global	g_skillInfoById	004d95b0 fills it from "skillnametable.txt", "skilldesctable.txt" and "leveluseskillspamount.txt"; value size 64	std_tree
+00614d74	Global	g_recvModuleCount	initialised to 2; the 0x01C7 handlers pass it to CRagConnection::SetExpectedModules as the receive-module count
+00614d78	Global	g_sendModuleCount	initialised to 2; the 0x01C7 handlers pass it to CRagConnection::SetExpectedModules as the send-module count

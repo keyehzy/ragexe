@@ -7,7 +7,7 @@ CSurface	Global	8	1
 CSurfaceWallpaper	Global	4	1
 CTexture	Global	12	1
 CConnection	Global	7	1
-CRagConnection	Global	13	1
+CRagConnection	Global	14	1
 CController	Global	6	1
 CKeyPad	Global	5	1
 CRes	Global	5	1
@@ -329,3 +329,4 @@ MoviePlayer	Global	8	0
 string	std	8	0
 list	std	31	0
 _Tree	std	74	0
+PacketCodeModules	Global	6	0

@@ -4042,6 +4042,11 @@ MoviePlayer	0x0	4	dword	field_0x0	own field; 8 uses (3 writes) in 6 functions, e
 MoviePlayer	0x4	4	dword	field_0x4	own field; 1 uses (1 writes) in 1 functions, e.g. 004dbbe6 in 004dbbe0
 MoviePlayer	0x8	1	byte	field_0x8	own field; 7 uses (3 writes) in 4 functions, e.g. 004dbbe9 in 004dbbe0
 MoviePlayer	0xc	4	dword	field_0xc	own field; 2 uses (1 writes) in 2 functions, e.g. 004dbe87 in 004dbe60
+PacketCodeModules	0x4	4	pointer	field_0x4	own field; 5 uses (0 writes) in 2 functions, e.g. 0041ead8 in 0041ead0
+PacketCodeModules	0x8	4	dword	field_0x8	own field; 2 uses (1 writes) in 1 functions, e.g. 0041eaf7 in 0041ead0
+PacketCodeModules	0x10	4	pointer	field_0x10	own field; 5 uses (0 writes) in 2 functions, e.g. 0041eb08 in 0041ead0
+PacketCodeModules	0x14	4	dword	field_0x14	own field; 2 uses (1 writes) in 1 functions, e.g. 0041eb27 in 0041ead0
+PacketCodeModules	0x18	4	dword	field_0x18	own field; 3 uses (1 writes) in 3 functions, e.g. 0041ece4 in 0041ecd0
 PathFinder	0x0	4	pointer	field_0x0	own field; 15 uses (1 writes) in 4 functions, e.g. 004ccc62 in 004ccc60
 PathFinder	0x4	4	dword	field_0x4	own field; 2 uses (1 writes) in 1 functions, e.g. 004cc5d6 in 004cc5c0
 PathFinder	0x8	4	dword	field_0x8	own field; 2 uses (1 writes) in 1 functions, e.g. 004cc5d9 in 004cc5c0

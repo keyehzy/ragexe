@@ -525,10 +525,10 @@ entry	size	kind	library	subsystem	status	namespace	name	notes
 00418f20	47	code	0		named	CRagConnection	vf01	
 00418f50	28	code	0		named	CRagConnection	vf02	
 00418f70	77	code	0		named	CRagConnection	method_00418f70	
-00418fc0	540	code	0		raw	Global	FUN_00418fc0	
+00418fc0	540	code	0		named	CRagConnection	RecvPacket	
 004191e0	91	code	0		named	CRagConnection	method_004191e0	
 00419240	13	code	0		raw	Global	FUN_00419240	
-00419250	25	code	0		named	CRagConnection	method_00419250	
+00419250	25	code	0		named	CRagConnection	SetExpectedModules	
 00419270	251	code	0		raw	Global	FUN_00419270	
 00419370	132	code	0		raw	Global	FUN_00419370	
 00419400	14109	code	0		named	CRagConnection	method_00419400	
@@ -593,17 +593,17 @@ entry	size	kind	library	subsystem	status	namespace	name	notes
 0041e9f0	38	code	0		raw	Global	FUN_0041e9f0	
 0041ea20	19	code	0		raw	Global	FUN_0041ea20	
 0041ea40	37	code	0		named	Global	static_init_025	
-0041ea70	90	code	0		raw	Global	FUN_0041ea70	
-0041ead0	117	code	0		raw	Global	FUN_0041ead0	
-0041eb50	191	code	0		raw	Global	FUN_0041eb50	
-0041ec10	191	code	0		raw	Global	FUN_0041ec10	
-0041ecd0	73	code	0		raw	Global	FUN_0041ecd0	
-0041ed20	73	code	0		raw	Global	FUN_0041ed20	
-0041ed70	53	code	0		raw	Global	FUN_0041ed70	
-0041edb0	24	code	0		raw	Global	FUN_0041edb0	
-0041edd0	24	code	0		raw	Global	FUN_0041edd0	
-0041edf0	20	code	0		raw	Global	FUN_0041edf0	
-0041ee10	93	code	0		raw	Global	FUN_0041ee10	
+0041ea70	90	code	0		named	Global	PacketFilterStub	
+0041ead0	117	code	0		named	PacketCodeModules	Reset	
+0041eb50	191	code	0		named	PacketCodeModules	AddSendModule	
+0041ec10	191	code	0		named	PacketCodeModules	AddRecvModule	
+0041ecd0	73	code	0		named	PacketCodeModules	RunSendModules	
+0041ed20	73	code	0		named	PacketCodeModules	RunRecvModules	
+0041ed70	53	code	0		named	Global	FindStubMarker	
+0041edb0	24	code	0		named	Global	WriteJmp	
+0041edd0	24	code	0		named	Global	WriteCall	
+0041edf0	20	code	0		named	Global	WriteRel32	
+0041ee10	93	code	0		named	PacketCodeModules	PatchStub	
 0041ee70	37	code	0		named	Global	static_init_026	
 0041eea0	2463	code	0		raw	Global	FUN_0041eea0	
 0041f840	42	code	0		raw	Global	FUN_0041f840	
@@ -3767,7 +3767,7 @@ entry	size	kind	library	subsystem	status	namespace	name	notes
 004dea90	140	code	0		raw	Global	FUN_004dea90	
 004deb20	154	code	0		named	CGPak	method_004deb20	
 004debc0	57	code	0		raw	Global	FUN_004debc0	
-004dec00	119	code	0		named	CGPak	method_004dec00	
+004dec00	119	code	0		named	CGPak	GetFileName	
 004dec80	68	code	0		raw	Global	FUN_004dec80	
 004decd0	119	code	0		named	CGPak	method_004decd0	
 004ded50	37	code	0		named	CSakGPak	CSakGPak	
@@ -4997,7 +4997,7 @@ entry	size	kind	library	subsystem	status	namespace	name	notes
 00537690	426	code	0		raw	Global	FUN_00537690	
 00537840	241	code	0		raw	Global	FUN_00537840	
 00537940	241	code	0		raw	Global	FUN_00537940	
-00537a40	26	code	0		raw	Global	FUN_00537a40	
+00537a40	26	code	0		named	Global	HandlePacket_01C7	
 00537a60	262	code	0		raw	Global	FUN_00537a60	
 00537b70	698	code	0		raw	Global	FUN_00537b70	
 00537e30	3	code	0		raw	Global	FUN_00537e30	
@@ -5081,7 +5081,7 @@ entry	size	kind	library	subsystem	status	namespace	name	notes
 0053e790	442	code	0		raw	Global	FUN_0053e790	
 0053e9a0	375	code	0		raw	Global	FUN_0053e9a0	
 0053eb20	125	code	0		raw	Global	FUN_0053eb20	
-0053eba0	26	code	0		raw	Global	FUN_0053eba0	
+0053eba0	26	code	0		named	Global	HandlePacket_01C7	
 0053ebc0	261	code	0		raw	Global	FUN_0053ebc0	
 0053ecd0	853	code	0		raw	Global	FUN_0053ecd0	
 0053f030	199	code	0		raw	Global	FUN_0053f030	
@@ -6878,7 +6878,7 @@ entry	size	kind	library	subsystem	status	namespace	name	notes
 005c4356	34	code	1	crt	named	Global	__amsg_exit	
 005c437b	35	code	1	crt	named	Global	fast_error_exit	
 005c43a0	123	code	1	crt	named	Global	_strlen	
-005c441c	31	code	1	crt	raw	Global	FUN_005c441c	
+005c441c	31	code	1	crt	named	Global	_EH_prolog	
 005c4440	664	code	1	crt	raw	Global	FUN_005c4440	
 005c4780	172	code	1	crt	named	Global	_memcmp	
 005c482c	582	code	1	crt	raw	Global	FUN_005c482c	
@@ -6888,12 +6888,12 @@ entry	size	kind	library	subsystem	status	namespace	name	notes
 005c4d61	37	code	1	crt	raw	Global	FUN_005c4d61	
 005c4d86	204	code	1	crt	raw	Global	FUN_005c4d86	
 005c4e52	83	code	1	crt	raw	Global	FUN_005c4e52	
-005c4ea5	18	code	1	crt	named	Global	_malloc	
+005c4ea5	18	code	1	crt	named	Global	malloc	
 005c4eb7	44	code	1	crt	named	Global	__nh_malloc	
 005c4ee3	231	code	1	crt	raw	Global	FUN_005c4ee3	
 005c4f4a	9	code	1	crt	raw	Global	FUN_005c4f4a	
 005c4fa9	9	code	1	crt	raw	Global	FUN_005c4fa9	
-005c4fdf	781	code	1	crt	raw	Global	FUN_005c4fdf	
+005c4fdf	781	code	1	crt	named	Global	realloc	
 005c516a	9	code	1	crt	raw	Global	FUN_005c516a	
 005c52b8	11	code	1	crt	raw	Global	FUN_005c52b8	
 005c530e	23	code	1	crt	raw	Global	FUN_005c530e	
@@ -6945,7 +6945,7 @@ entry	size	kind	library	subsystem	status	namespace	name	notes
 005c710c	25	code	1	crt	raw	Global	FUN_005c710c	
 005c7168	22	code	1	crt	raw	Global	FUN_005c7168	
 005c718b	42	code	1	crt	named	Global	__math_exit	
-005c726c	214	code	1	crt	raw	Global	FUN_005c726c	
+005c726c	214	code	1	crt	named	Global	_msize	
 005c72d6	9	code	1	crt	raw	Global	FUN_005c72d6	
 005c7351	9	code	1	crt	raw	Global	FUN_005c7351	
 005c735a	280	code	1	crt	raw	Global	FUN_005c735a	
@@ -7028,7 +7028,7 @@ entry	size	kind	library	subsystem	status	namespace	name	notes
 005ca37e	60	code	1	crt	named	Global	__fload	
 005cabc6	518	code	1	crt	raw	Global	FUN_005cabc6	
 005cadcc	178	code	1	crt	raw	Global	FUN_005cadcc	
-005cb14b	289	code	1	crt	raw	Global	FUN_005cb14b	
+005cb14b	289	code	1	crt	named	Global	calloc	
 005cb1e4	9	code	1	crt	raw	Global	FUN_005cb1e4	
 005cb26d	9	code	1	crt	raw	Global	FUN_005cb26d	
 005cb288	318	code	1	crt	named	Global	_XcptFilter	

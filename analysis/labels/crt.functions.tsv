@@ -18,6 +18,11 @@ address	namespace	name	calling_convention	evidence
 # Memory
 005c37c2	Global	free		frees its pointer argument; reaches HeapFree; called directly by game code
 005b325c	Global	operator_delete		forwards its one argument to free; 2,403 game call sites, typically after member destruction
+005c4ea5	Global	malloc		(size): forwards to __nh_malloc(size, _newmode); operator_new_nothrow calls it in its retry loop
+005c4eb7	Global	__nh_malloc		(size, new-handler flag): operator_new calls it with flag 1
+005c4fdf	Global	realloc		(block, size): HeapAlloc and HeapReAlloc paths and the small-block free; callers pass a block and a new byte count (atexit table growth, STL arrays)
+005cb14b	Global	calloc		(count, size): HeapAlloc; _mtinit and _beginthreadex pass (1, 0x74) for the per-thread data
+005c726c	Global	_msize		(block): HeapSize or the small-block size; atexit table growth calls it before realloc
 005b7cfe	Global	operator_new_nothrow		malloc followed by a new-handler retry loop; called with (size, 005ec6e8)
 # stdio
 005c1908	Global	sprintf		builds a string FILE over argument 1 (_flag 0x42, _cnt 0x7fffffff); call sites pass a buffer and a format such as "%s(%ld): "
@@ -68,6 +73,7 @@ address	namespace	name	calling_convention	evidence
 # C++ runtime
 005c195a	Global	_purecall		push 0x19; call __amsg_exit (fatal runtime error 25); fills 18 vtable slots in 7 unrelated classes
 005c18c7	Global	atexit		wraps 005c1849; static initializers pass their destructor stubs
+005c441c	Global	_EH_prolog		push -1, push eax (the handler), link fs:[0] and set up ebp; 175 functions call it right after mov eax, <EH handler>
 005c22b0	Global	_chkstk		stack probe with the size in EAX; called in the prologue of functions with large frames
 005c2002	Global	eh_vector_constructor_iterator		(array, size, count, ctor, dtor), ret 0x14; walks forward calling ctor
 005c1f0e	Global	eh_vector_destructor_iterator		(array, size, count, dtor), ret 0x10; walks backward calling dtor
