@@ -75,7 +75,7 @@ tests/        unit, emulation-oracle, spec-conformance and screenshot-regression
 
 ### 4.1 Function ledger
 `analysis/ledger.tsv` has one row per function: entry, size, kind, library flag,
-subsystem, status, namespace, name and notes. Status runs
+subsystem, reach, status, namespace, name and notes. Status runs
 `raw → named → typed → specced → ported → verified`.
 It is a sorted text file, so every status change is a readable diff in git.
 `tools/ledger.py` has three commands:
@@ -92,7 +92,12 @@ Kind is one of:
 - `funclet`: an EH `Unwind@`/`Catch@` fragment, ported as part of its parent function.
 - `thunk`: an import stub.
 
-Only non-library `code` counts toward progress, which is reported as
+Reach, written by `tools/find_unreferenced.py`, is empty for code the program can
+reach. Otherwise it is `unreferenced` (nothing refers to the function) or `dead`
+(only unreferenced or dead code refers to it). Such code is never ported and does not
+count toward progress or the naming figure.
+
+Only reachable non-library `code` counts toward progress, which is reported as
 **% of those bytes verified**, not file count.
 
 ### 4.2 From decompilation to C++
@@ -154,7 +159,8 @@ The labels are regenerated in this order, repeated until the label files stop ch
 (two `--reanalyze` passes after a change to a rule or a curated file):
 1. `tools/ghidra/analyze.sh original/client/Ragexe.exe --reanalyze`: applies RTTI and
    every label file, then exports the inventories.
-2. `tools/ledger.py sync`, then `tools/ledger.py classify`.
+2. `tools/ledger.py sync`, then `tools/ledger.py classify`, then
+   `tools/find_unreferenced.py` (the reach column).
 3. `tools/recover_objects.py`: constructors, destructors, sizes, global objects.
 4. `tools/recover_packets.py` (run from `tools/`): the packet handlers.
 5. `tools/recover_layouts.py`: fields, non-virtual methods, global trees and pointers.
@@ -972,6 +978,38 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - Fields 10,208 → 10,261. Code functions named or library-tagged: **70.2%**, with
     `ActFrame::~ActFrame` newly named. Converges in two passes.
 
+- [x] Code nothing reaches (`tools/find_unreferenced.py`; the new ledger column `reach`; the
+  report `analysis/exports/Ragexe.exe.unreferenced.tsv`):
+  - **What counts as a reference:**
+    - a call or jump from another function, funclets included;
+    - an instruction operand holding the function's entry address;
+    - a 4-byte value equal to the entry anywhere outside decoded instructions: the data
+      sections at every alignment, and the gaps between functions in `.text`;
+    - falling through from the function before it, when that one doesn't end in `ret`,
+      `jmp` or `int3`.
+
+    A stray match only keeps a function live, so the scan errs on the safe side.
+  - **Roots** are the entry point and every data match. Funclet slots in the EH
+    FuncInfo tables are the exception: they make a funclet reachable only when its
+    parent is.
+  - **Result for game code:**
+    - 238 functions (81.5 KB) are `unreferenced`: 171 of them still unnamed, 67 named.
+    - 109 functions (27.7 KB) are `dead`, referenced only from those.
+    - Library code adds 149 functions (21.5 KB).
+  - **Examples:** the DirectSound buffer and mixer code, the sky boxes and lens flares,
+    `IsBoxInViewFrustum`, the unused `PacketQueue` capacity constructor, and an
+    out-of-line copy of `CMasterChaser`'s constructor, which every caller inlined.
+  - **Checked:**
+    - A sample of 10 unreferenced functions, with a raw search for each entry's 4 bytes
+      at any offset (inside instructions too) and for any `rel32` call or jump: no hits.
+      The function before each one ends in `ret`.
+    - A sample of `dead` rows: each is referenced only by unreferenced or dead code.
+    - Known live code is reached: `WinMain`, `WindowProc`, the mode slots, the
+      initializer helpers, the packet handlers behind the jump tables.
+  - **The report** now leaves this code out of the port queue (5,486 functions,
+    1.53 MB) and states the naming figure over reachable code: **71.8% of 6,619**.
+
 ### Next actions (M1)
-1. Name the remaining 2,123 game functions the same way, in source-file batches. About
-   1,420 more are needed for 90%.
+1. Name the remaining 1,865 reachable game functions (413 KB) the same way, in
+   source-file batches, skipping unreachable code. About 1,200 more are needed for
+   90%.

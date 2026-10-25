@@ -14,6 +14,8 @@ usage:
 
 The subsystem of the game's own functions is written by tools/assign_subsystems.py from
 the rules in analysis/subsystems.tsv; add a function rule there rather than using set.
+The reach column is written by tools/find_unreferenced.py: "unreferenced" or "dead" code
+is never reached, so it is left out of the code to port and of the naming figure.
 """
 import argparse
 import os
@@ -24,7 +26,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_EXPORT = os.path.join(ROOT, "analysis", "exports", "Ragexe.exe.functions.tsv")
 DEFAULT_LEDGER = os.path.join(ROOT, "analysis", "ledger.tsv")
 
-COLUMNS = ["entry", "size", "kind", "library", "subsystem", "status", "namespace", "name", "notes"]
+COLUMNS = ["entry", "size", "kind", "library", "subsystem", "reach", "status", "namespace", "name", "notes"]
 STATUSES = ["raw", "named", "typed", "specced", "ported", "verified"]
 SUBSYSTEMS = ["core", "res", "render", "world", "net", "ui", "audio", "game", "crt", "stl"]
 # The static CRT and Dinkumware STL follow the game's own code and the import thunks
@@ -59,7 +61,7 @@ def write_ledger(path, rows):
     with open(tmp, "w", encoding="utf-8") as f:
         f.write("\t".join(COLUMNS) + "\n")
         for r in rows:
-            f.write("\t".join(r[c] for c in COLUMNS) + "\n")
+            f.write("\t".join(r.get(c, "") for c in COLUMNS) + "\n")
     os.replace(tmp, path)
 
 
@@ -89,7 +91,7 @@ def cmd_sync(args):
         if row is None:
             ledger[entry] = {
                 "entry": entry, "size": fn["size"], "kind": kind, "library": fn["fid"],
-                "subsystem": "", "status": auto_status(kind, fn["source"]),
+                "subsystem": "", "reach": "", "status": auto_status(kind, fn["source"]),
                 "namespace": fn["namespace"], "name": fn["name"], "notes": "",
             }
             added += 1
@@ -127,12 +129,21 @@ def cmd_report(args):
     lib = [0, 0]
     by_status = defaultdict(lambda: [0, 0])
     by_subsystem = defaultdict(lambda: defaultdict(int))
+    unreached = [0, 0]
+    reached = named = 0
     for r in rows:
         size = int(r["size"])
         kinds[r["kind"]][0] += 1
         kinds[r["kind"]][1] += size
         if r["kind"] != KIND_CODE:
             continue
+        if r.get("reach"):
+            if r["library"] != "1":
+                unreached[0] += 1
+                unreached[1] += size
+            continue
+        reached += 1
+        named += r["library"] == "1" or r["status"] != "raw"
         if r["library"] == "1":
             lib[0] += 1
             lib[1] += size
@@ -148,7 +159,9 @@ def cmd_report(args):
     total_n = sum(v[0] for v in by_status.values())
     total_b = sum(v[1] for v in by_status.values())
     print(f"\nlibrary code (excluded from progress): {lib[0]} functions, {lib[1]} bytes")
-    print(f"code to port: {total_n} functions, {total_b} bytes\n")
+    print(f"game code nothing reaches (excluded): {unreached[0]} functions, {unreached[1]} bytes")
+    print(f"code to port: {total_n} functions, {total_b} bytes")
+    print(f"named or library-tagged: {pct(named, reached):.1f}% of {reached} reachable code functions\n")
     print(f"  {'status':9} {'functions':>9} {'bytes':>9} {'% bytes':>8}")
     for s in STATUSES:
         n, b = by_status.get(s, (0, 0))

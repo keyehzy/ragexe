@@ -1,0 +1,716 @@
+entry	size	kind	library	reach	name	referenced_by
+00401170	330	code	0	unreferenced	Global::FUN_00401170	
+004014c0	88	code	0	unreferenced	Global::FUN_004014c0	
+00401cc0	76	code	0	unreferenced	Global::FUN_00401cc0	
+00402020	76	code	0	unreferenced	Global::FUN_00402020	
+004020c0	519	code	0	unreferenced	Global::FUN_004020c0	
+004025b0	32	code	0	unreferenced	Global::FUN_004025b0	
+00402630	67	code	0	unreferenced	Global::FUN_00402630	
+00402680	80	code	0	unreferenced	Global::FUN_00402680	
+004026d0	62	code	0	unreferenced	Global::FUN_004026d0	
+00402710	83	code	0	unreferenced	Global::FUN_00402710	
+00402770	697	code	0	unreferenced	Global::FUN_00402770	
+00402a30	62	code	0	dead	Global::FUN_00402a30	00402770
+00402b40	110	code	0	unreferenced	Global::FUN_00402b40	
+00402bb0	109	code	0	unreferenced	Global::FUN_00402bb0	
+00402c20	109	code	0	unreferenced	Global::FUN_00402c20	
+00402c90	271	code	0	unreferenced	Global::FUN_00402c90	
+00402da0	134	code	0	unreferenced	Global::FUN_00402da0	
+00402e30	112	code	0	unreferenced	Global::FUN_00402e30	
+00402ed0	26	code	0	dead	Global::FUN_00402ed0	00402770
+00402ef0	38	code	0	dead	Global::FUN_00402ef0	00402770
+00402f20	31	code	0	dead	Global::FUN_00402f20	00402770
+00402f40	85	code	0	unreferenced	CDCSurface::CDCSurface	
+00404700	96	code	0	unreferenced	Global::FUN_00404700	
+00404f70	70	code	0	unreferenced	Global::FUN_00404f70	
+00404fc0	127	code	0	unreferenced	Global::FUN_00404fc0	
+004051c0	59	code	0	dead	C3dDevice::method_004051c0	0040dcd0
+004060c0	38	code	0	unreferenced	Global::FUN_004060c0	
+004061b0	106	code	0	unreferenced	Global::FUN_004061b0	
+00406220	387	code	0	dead	Global::FUN_00406220	004061b0 00406740
+004063b0	540	code	0	dead	Global::FUN_004063b0	00406220
+004065d0	354	code	0	dead	Global::FUN_004065d0	004063b0
+00406740	28	code	0	dead	Global::FUN_00406740	004061b0
+00406760	375	code	0	dead	Global::FUN_00406760	004061b0
+004068e0	121	code	0	unreferenced	Global::FUN_004068e0	
+00406960	147	code	0	dead	Global::FUN_00406960	004068e0
+00406a00	151	code	0	unreferenced	Global::FUN_00406a00	
+00406aa0	54	code	0	unreferenced	Global::FUN_00406aa0	
+00406ae0	6	code	0	dead	Global::FUN_00406ae0	00417e90
+00406b80	1756	code	0	unreferenced	Global::FUN_00406b80	
+00409830	63	code	0	unreferenced	Matrix::PreTranslate	
+00409870	61	code	0	unreferenced	Matrix::PreScale	
+004098b0	277	code	0	unreferenced	Matrix::MakeAxisRotationAt	
+0040a020	502	code	0	unreferenced	Matrix::IsIdentity	
+0040a220	166	code	0	dead	Matrix::MakeViewFromAxes	0040a300
+0040a300	452	code	0	unreferenced	Matrix::MakeLookAtRoll	
+0040a4d0	86	code	0	dead	Matrix::SetAxes	0040a530 0040ab10
+0040a530	449	code	0	unreferenced	Matrix::MakeFacing	
+0040a700	370	code	0	unreferenced	Matrix::MakeViewRotationFromDirection	
+0040a880	27	code	0	unreferenced	Matrix::GetThirdColumn	
+0040a8a0	249	code	0	unreferenced	Matrix::DivideColumnsByRowLengths	
+0040a9a0	361	code	0	unreferenced	Matrix::InvertScaledRotation	
+0040ab10	349	code	0	unreferenced	Matrix::MakeRotationFromDirection	
+0040ac70	145	code	0	unreferenced	Global::QuaternionFromAxisAngle	
+0040ad10	132	code	0	unreferenced	Global::QuaternionToAxisAngle	
+0040ada0	202	code	0	unreferenced	Global::QuaternionFromEuler	
+0040ae70	197	code	0	unreferenced	Global::QuaternionToMatrix	
+0040af40	419	code	0	unreferenced	Global::QuaternionFromMatrix	
+0040b0f0	39	code	0	dead	Global::QuaternionDot	0040b1b0
+0040b120	137	code	0	unreferenced	Global::QuaternionMultiply	
+0040b1b0	312	code	0	unreferenced	Global::QuaternionSlerp	
+0040b440	868	code	0	unreferenced	Global::RayIntersectsBox	
+0040bd00	459	code	0	unreferenced	Global::RayIntersectsTriangleInRange	
+0040bed0	115	code	0	unreferenced	Global::RayPointDistanceSquared	
+0040c240	54	code	0	unreferenced	Global::FUN_0040c240	
+0040c620	64	code	0	unreferenced	RenderTriangle::RenderTriangle	
+0040c660	22	code	0	unreferenced	Global::FUN_0040c660	
+0040c680	47	code	0	dead	RenderTriangle::method_0040c680	0040c620 0040c660
+0040c730	22	code	0	unreferenced	Global::FUN_0040c730	
+0040c7b0	54	code	0	unreferenced	Global::FUN_0040c7b0	
+0040c7f0	54	code	0	unreferenced	Global::FUN_0040c7f0	
+0040c830	85	code	0	unreferenced	Global::FUN_0040c830	
+0040dcd0	21	code	0	unreferenced	Global::FUN_0040dcd0	
+0040eed0	79	code	0	unreferenced	Global::FUN_0040eed0	
+0040fc60	322	code	0	unreferenced	Global::FUN_0040fc60	
+00410c80	51	code	0	unreferenced	Global::FUN_00410c80	
+00410cf0	251	code	0	unreferenced	Global::FUN_00410cf0	
+004128e0	443	code	0	dead	SceneRenderer::method_004128e0	004b8a50
+00412be0	159	code	0	unreferenced	Global::FUN_00412be0	
+00413e00	19	code	0	dead	Global::FUN_00413e00	004128e0
+00413e70	47	code	0	dead	Global::FUN_00413e70	004128e0
+00414b30	521	code	0	dead	Global::FUN_00414b30	004128e0
+004152a0	38	code	0	dead	Global::FUN_004152a0	004128e0
+00415920	203	code	0	dead	Global::FUN_00415920	0040fc60
+00415e20	97	code	0	dead	Global::FUN_00415e20	0040fc60
+00417a10	466	code	0	dead	Global::FUN_00417a10	004068e0
+00417bf0	56	code	0	dead	Global::FUN_00417bf0	00417a10 00417c30
+00417c30	110	code	0	dead	Global::FUN_00417c30	00417a10
+00417ca0	490	code	0	dead	Global::FUN_00417ca0	004068e0
+00417e90	495	code	0	dead	Global::FUN_00417e90	00417ca0
+004180b0	28	code	0	unreferenced	Global::FUN_004180b0	
+0041e090	250	code	0	unreferenced	Global::FUN_0041e090	
+0041e4f0	79	code	0	unreferenced	Global::FUN_0041e4f0	
+0041e540	115	code	0	unreferenced	Global::FUN_0041e540	
+0041e5c0	100	code	0	unreferenced	Global::FUN_0041e5c0	
+0041edd0	24	code	0	unreferenced	Global::WriteCall	
+0041fa20	83	code	0	unreferenced	PacketQueue::PacketQueue	
+0041ff70	158	code	0	unreferenced	Global::OpenMixerVolumeControl	
+00420020	74	code	0	unreferenced	Global::GetMixerVolume	
+00420070	94	code	0	unreferenced	Global::SetMixerVolume	
+004200d0	120	code	0	unreferenced	Global::InitDirectSound	
+00420190	258	code	0	unreferenced	Global::CreateStaticSoundBuffer	
+004202a0	23	code	0	unreferenced	Global::ReleaseSoundBuffer	
+004202c0	29	code	0	unreferenced	Global::PlaySoundBuffer	
+004202e0	29	code	0	unreferenced	Global::PlaySoundBufferLooped	
+00420300	23	code	0	unreferenced	Global::StopSoundBuffer	
+00421f50	30	code	0	unreferenced	CRmaRes::GetActionRsxName	
+00421f70	29	code	0	unreferenced	CRmaRes::GetActionValue1	
+00421f90	28	code	0	unreferenced	CRmaRes::GetActionValue2	
+00421fb0	29	code	0	unreferenced	CRmaRes::GetActionValue3	
+00421fd0	59	code	0	unreferenced	CRmaRes::GetActionFirstListValue	
+00422010	86	code	0	unreferenced	CRmaRes::ActionListContains	
+00422070	92	code	0	unreferenced	CRmaRes::HasAction	
+00427050	171	code	0	dead	C3dAttr::GetCellAttributeAt	004c44a0 004c46e0
+00427100	72	code	0	unreferenced	C3dAttr::CellToWorld	
+004279d0	337	code	0	unreferenced	CBitmapRes::ApplyAlphaBitmap	
+004290f0	55	code	0	unreferenced	GndCell::SetFromRecordCopy2	
+00429130	55	code	0	unreferenced	GndCell::SetFromRecordCopy3	
+00429fa0	341	code	0	unreferenced	CImfRes::ComputeChecksum	
+0042a120	58	code	0	dead	CImfRes::GetRecordCount	0042a1a0
+0042a160	57	code	0	unreferenced	CImfRes::GetRecordLength	
+0042a1a0	126	code	0	unreferenced	CImfRes::GetMaxRecordLength	
+0042a2a0	42	code	0	unreferenced	CImfRes::GetRecordValue	
+0042b280	129	code	1	unreferenced	std::string::`vector_deleting_destructor'	
+0042ce40	2645	code	0	unreferenced	AnimModelResNode::ComputeVertexColors	
+0042d8a0	1	code	0	dead	Global::destroy_static_0063ec10_bit1	0042ce40
+0042d8b0	1	code	0	dead	Global::destroy_static_0063ec10_bit0	0042ce40
+0042d8c0	42	code	1	dead	std::list::list	0042ce40
+0042d990	88	code	0	unreferenced	AnimFrameArrays::`vector_deleting_destructor'	
+0042fa90	519	code	0	unreferenced	Global::ReadGrannyFile	
+004308c0	77	code	1	dead	std::list::~list	0042ce40 005d5620
+00432370	1049	code	0	dead	Global::InitLensFlareTable	00432d60 00433a10
+004327b0	70	code	0	dead	Global::AssignLensFlareElement	00432370
+00432800	67	code	0	dead	Global::MakeLensFlareElement	00432370
+00432850	472	code	0	dead	Global::PlaceLensFlares	004330d0 00433b40
+00432a30	804	code	0	dead	Global::DrawLensFlares	004330d0 00433b40
+00432d60	314	code	0	unreferenced	Global::InitTexturedSkyBox	
+00432ec0	521	code	0	unreferenced	Global::IsBoxInViewFrustum	
+004330d0	2364	code	0	unreferenced	Global::DrawTexturedSkyBox	
+00433a10	208	code	0	unreferenced	Global::InitModelSkyBox	
+00433b40	863	code	0	unreferenced	Global::DrawModelSkyBox	
+00437e30	53	code	0	unreferenced	Global::FUN_00437e30	
+004398c0	243	code	0	unreferenced	Global::FUN_004398c0	
+0043a0b0	361	code	0	unreferenced	Global::FUN_0043a0b0	
+0043b5c0	162	code	0	unreferenced	UIColorButton::UIColorButton	
+0043c120	104	code	0	unreferenced	Global::FUN_0043c120	
+0043c190	105	code	0	unreferenced	Global::FUN_0043c190	
+0043c830	216	code	0	unreferenced	Global::FUN_0043c830	
+00442ef0	16	code	0	unreferenced	Global::FUN_00442ef0	
+004483b0	443	code	0	unreferenced	Global::FUN_004483b0	
+0044d820	121	code	0	unreferenced	Global::FUN_0044d820	
+00477820	54	code	0	unreferenced	UISpellListWnd::UISpellListWnd	
+00481f40	496	code	0	unreferenced	Global::FUN_00481f40	
+004833e0	378	code	0	unreferenced	Global::FUN_004833e0	
+0048aa60	118	code	0	unreferenced	Global::FUN_0048aa60	
+0049ff90	89	code	0	unreferenced	UIShowNeedItemListWnd::UIShowNeedItemListWnd	
+004a2990	81	code	0	unreferenced	Global::FUN_004a2990	
+004a29f0	93	code	0	unreferenced	Global::FUN_004a29f0	
+004a58b0	45	code	0	dead	Global::FUN_004a58b0	004a86e0
+004a5980	71	code	0	unreferenced	Global::FUN_004a5980	
+004a6010	288	code	0	unreferenced	Global::FUN_004a6010	
+004a6460	320	code	0	unreferenced	Global::FUN_004a6460	
+004a6670	28	code	0	unreferenced	Global::FUN_004a6670	
+004a86e0	33	code	0	unreferenced	Global::FUN_004a86e0	
+004a8e50	68	code	0	unreferenced	Global::FUN_004a8e50	
+004a8ea0	114	code	0	unreferenced	Global::FUN_004a8ea0	
+004b1780	3696	code	0	unreferenced	Global::FUN_004b1780	
+004b7de0	71	code	0	dead	Global::FUN_004b7de0	004bab60
+004b89d0	116	code	0	unreferenced	Global::FUN_004b89d0	
+004b8a50	168	code	0	unreferenced	Global::FUN_004b8a50	
+004ba2b0	395	code	0	dead	Global::FUN_004ba2b0	004c44a0 004c45d0 004c4660
+004ba440	835	code	0	dead	Global::FUN_004ba440	004c4660
+004ba790	57	code	0	dead	Global::FUN_004ba790	004ba7d0
+004ba7d0	853	code	0	dead	Global::FUN_004ba7d0	004c4de0
+004bab30	37	code	0	dead	Global::FUN_004bab30	004ba7d0
+004bab60	19	code	0	unreferenced	Global::FUN_004bab60	
+004c1fa0	27	code	0	unreferenced	Global::FUN_004c1fa0	
+004c1fc0	22	code	0	unreferenced	Global::FUN_004c1fc0	
+004c1fe0	19	code	0	unreferenced	Global::FUN_004c1fe0	
+004c2090	275	code	0	unreferenced	Global::FUN_004c2090	
+004c21b0	53	code	0	unreferenced	Global::FUN_004c21b0	
+004c21f0	243	code	0	dead	Global::FUN_004c21f0	004c21b0 004c2330
+004c22f0	24	code	0	dead	Global::FUN_004c22f0	004c21f0
+004c2310	32	code	0	dead	Global::FUN_004c2310	004c21f0
+004c2330	144	code	0	dead	Global::FUN_004c2330	004c21f0
+004c23c0	228	code	0	unreferenced	Global::FUN_004c23c0	
+004c24b0	204	code	0	unreferenced	Global::FUN_004c24b0	
+004c44a0	302	code	0	unreferenced	Global::FUN_004c44a0	
+004c45d0	142	code	0	unreferenced	Global::FUN_004c45d0	
+004c4660	127	code	0	unreferenced	Global::FUN_004c4660	
+004c46e0	529	code	0	unreferenced	Global::FUN_004c46e0	
+004c4900	89	code	0	unreferenced	Global::FUN_004c4900	
+004c4960	83	code	0	unreferenced	Global::FUN_004c4960	
+004c49c0	65	code	0	unreferenced	Global::FUN_004c49c0	
+004c4de0	127	code	0	unreferenced	Global::FUN_004c4de0	
+004c6100	340	code	0	unreferenced	Global::FUN_004c6100	
+004c6260	76	code	0	dead	Global::FUN_004c6260	004c44a0 004c45d0 004c4660 004c4de0
+004c6330	62	code	0	unreferenced	Global::FUN_004c6330	
+004c6370	57	code	0	unreferenced	Global::FUN_004c6370	
+004cbf20	14	code	0	unreferenced	ModeSwitcher::GetLoginMode	
+004cc140	60	code	0	dead	Global::FUN_004cc140	00427050
+004ccf70	425	code	0	unreferenced	Global::FUN_004ccf70	
+004cd150	13	code	0	unreferenced	Global::FUN_004cd150	
+004cf240	16	code	0	unreferenced	Global::FUN_004cf240	
+004cf250	16	code	0	unreferenced	Global::FUN_004cf250	
+004d95b0	866	code	0	unreferenced	Global::FUN_004d95b0	
+004d9b30	6	code	0	dead	Global::FUN_004d9b30	004d95b0
+004da100	407	code	0	dead	Global::FUN_004da100	004d95b0
+004da2a0	275	code	0	dead	Global::FUN_004da2a0	004d95b0
+004da3c0	341	code	0	dead	Global::FUN_004da3c0	004d95b0
+004da520	10	code	0	dead	Global::destroy_global_006890a0	004da3c0
+004da530	10	code	0	dead	Global::FUN_004da530	004da2a0
+004da540	150	code	0	dead	Global::FUN_004da540	004da520 004da530 005dc0b8
+004da6f0	322	code	0	dead	Global::FUN_004da6f0	004da100
+004da840	607	code	0	dead	Global::FUN_004da840	004da100
+004daaa0	87	code	0	dead	Global::FUN_004daaa0	004da840
+004dab00	91	code	0	dead	Global::FUN_004dab00	004da840
+004dab60	29	code	0	dead	Global::FUN_004dab60	004da840
+004dab80	176	code	0	dead	Global::FUN_004dab80	004da100
+004dac30	24	code	0	dead	Global::FUN_004dac30	004da840
+004dac50	101	code	0	dead	Global::FUN_004dac50	004da3c0
+004dacc0	634	code	0	dead	Global::FUN_004dacc0	004da840
+004daf40	141	code	0	dead	Global::FUN_004daf40	004da2a0
+004dafd0	81	code	0	dead	Global::FUN_004dafd0	004da840
+004db030	324	code	0	dead	Global::FUN_004db030	004da840 004dacc0
+004dc0e0	186	code	0	unreferenced	Global::FUN_004dc0e0	
+004dc3d0	797	code	0	unreferenced	Global::FUN_004dc3d0	
+004dce30	367	code	0	unreferenced	Global::FUN_004dce30	
+004dd0a0	331	code	0	dead	Global::FUN_004dd0a0	004dce30
+004dd1f0	201	code	0	unreferenced	Global::FUN_004dd1f0	
+004dd7b0	56	code	0	unreferenced	Global::FUN_004dd7b0	
+004ded50	37	code	0	unreferenced	CSakGPak::CSakGPak	
+004df810	21	code	0	unreferenced	Global::FUN_004df810	
+004e0c80	218	code	0	unreferenced	Global::FUN_004e0c80	
+004e4500	383	code	0	unreferenced	Global::FUN_004e4500	
+004e4680	383	code	0	unreferenced	Global::FUN_004e4680	
+004e6ca0	596	code	0	unreferenced	Global::FUN_004e6ca0	
+004e6f00	741	code	0	unreferenced	Global::FUN_004e6f00	
+004eb040	18	code	0	unreferenced	mg::CMGPc::CMGPc	
+004ee610	328	code	0	unreferenced	Global::FUN_004ee610	
+004ee760	201	code	0	dead	Global::FUN_004ee760	004ee610
+004ee830	49	code	0	unreferenced	Global::FUN_004ee830	
+004eec40	24	code	0	unreferenced	Global::FUN_004eec40	
+004eec60	341	code	0	dead	Global::FUN_004eec60	004eec40
+004ef430	49	code	0	unreferenced	Global::FUN_004ef430	
+004ef560	521	code	0	dead	Global::FUN_004ef560	004ee760
+004ef770	521	code	0	dead	Global::FUN_004ef770	004eec60
+004f0d50	73	code	0	unreferenced	Global::FUN_004f0d50	
+004f0fd0	214	code	0	unreferenced	mg::CObject::CObject	
+004f1ed0	163	code	0	unreferenced	Global::FUN_004f1ed0	
+004f1f80	148	code	0	dead	Global::FUN_004f1f80	004f3d00
+004f2270	114	code	0	dead	Global::FUN_004f2270	004f1ed0
+004f22f0	111	code	0	dead	Global::FUN_004f22f0	004f2b20 004f3d00
+004f2360	108	code	0	dead	Global::FUN_004f2360	004f3d00
+004f23d0	61	code	0	dead	Global::FUN_004f23d0	004f2410
+004f2410	1583	code	0	dead	Global::FUN_004f2410	004f2b20 004f3760 004f3d00
+004f2ac0	42	code	0	dead	Global::FUN_004f2ac0	004f3d00
+004f2af0	46	code	0	unreferenced	Global::FUN_004f2af0	
+004f2b20	2266	code	0	dead	Global::FUN_004f2b20	004f3d00
+004f3470	741	code	0	dead	Global::FUN_004f3470	004f2b20 004f3d00
+004f3760	1426	code	0	dead	Global::FUN_004f3760	004f3d00
+004f3d00	21114	code	0	unreferenced	Global::FUN_004f3d00	
+004f8f80	13	code	0	dead	Global::FUN_004f8f80	004f3d00
+004f9cb0	460	code	0	unreferenced	Global::FUN_004f9cb0	
+004fa110	439	code	0	dead	Global::FUN_004fa110	004f3d00
+004fa2d0	397	code	0	dead	Global::FUN_004fa2d0	004f3760
+004fa460	487	code	0	dead	Global::FUN_004fa460	004f2b20 004f3760 004f3d00
+004fa9d0	4	code	0	dead	Global::FUN_004fa9d0	004f3d00
+004fa9e0	11	code	0	dead	Global::FUN_004fa9e0	004f3d00
+004faca0	685	code	0	dead	Global::FUN_004faca0	004f3d00
+004faf50	19	code	0	dead	Global::FUN_004faf50	004f3d00
+004fb6a0	176	code	0	dead	Global::FUN_004fb6a0	004fa2d0
+004fb8a0	58	code	0	dead	Global::FUN_004fb8a0	004faca0
+004fbc60	862	code	0	dead	Global::FUN_004fbc60	004f2b20
+004fe440	99	code	0	unreferenced	Global::FUN_004fe440	
+004fff80	36	code	0	unreferenced	Global::FUN_004fff80	
+00502c20	62	code	0	unreferenced	Global::FUN_00502c20	
+00502c60	95	code	0	unreferenced	Global::FUN_00502c60	
+00507880	21	code	0	unreferenced	Global::FUN_00507880	
+00508e50	1034	code	0	unreferenced	Global::FUN_00508e50	
+00509a90	706	code	0	unreferenced	Global::FUN_00509a90	
+0050fd90	90	code	0	unreferenced	Global::FUN_0050fd90	
+00511650	425	code	0	unreferenced	Global::FUN_00511650	
+00511800	204	code	0	unreferenced	Global::FUN_00511800	
+005119f0	67	code	0	unreferenced	Global::FUN_005119f0	
+00512fc0	225	code	0	unreferenced	Global::FUN_00512fc0	
+00515f70	78	code	0	unreferenced	Global::FUN_00515f70	
+00516080	216	code	0	unreferenced	Global::FUN_00516080	
+005162f0	354	code	0	unreferenced	Global::FUN_005162f0	
+00519710	33	code	0	unreferenced	Global::FUN_00519710	
+00540410	180	code	0	unreferenced	Global::FUN_00540410	
+00540950	73	code	0	dead	CBlowEffect::CBlowEffect	00511800
+00540a20	34	code	0	dead	CBlowEffect::method_00540a20	00540950
+00541320	73	code	0	unreferenced	CMasterChaser::CMasterChaser	
+005413f0	11	code	0	dead	CMasterChaser::method_005413f0	00541320
+00541410	73	code	0	dead	CNumEffect::CNumEffect	00511650
+005414e0	41	code	0	dead	CNumEffect::method_005414e0	00541410
+00541c90	73	code	0	unreferenced	CGndRiser::CGndRiser	
+00541d70	1	code	0	dead	Global::FUN_00541d70	00541c90
+00544420	1954	code	0	unreferenced	Global::FUN_00544420	
+00546b30	451	code	0	unreferenced	CGrannyPc::CGrannyPc	
+00546f40	771	code	0	dead	CGrannyPc::method_00546f40	00546b30
+0054a7c0	152	code	0	unreferenced	Global::FUN_0054a7c0	
+0054a870	152	code	0	unreferenced	Global::FUN_0054a870	
+00563130	538	code	0	unreferenced	Global::FUN_00563130	
+005635c0	1787	code	0	unreferenced	Global::FUN_005635c0	
+00563cc0	239	code	0	unreferenced	Global::FUN_00563cc0	
+00566d90	88	code	0	unreferenced	Global::FUN_00566d90	
+005671e0	165	code	0	unreferenced	Global::FUN_005671e0	
+0056d030	127	code	0	unreferenced	Global::FUN_0056d030	
+0056d0f0	274	code	0	unreferenced	Global::FUN_0056d0f0	
+0056d210	161	code	0	unreferenced	Global::FUN_0056d210	
+00574c40	346	code	0	unreferenced	Global::FUN_00574c40	
+005754a0	516	code	0	unreferenced	Global::FUN_005754a0	
+0057a560	341	code	0	unreferenced	Global::FUN_0057a560	
+0057cc40	109	code	0	unreferenced	Global::FUN_0057cc40	
+0057cce0	415	code	0	unreferenced	Global::FUN_0057cce0	
+0057fa50	307	code	0	unreferenced	Global::FUN_0057fa50	
+00582350	1587	code	0	unreferenced	Global::FUN_00582350	
+00586660	133	code	0	unreferenced	Global::FUN_00586660	
+0058ea30	228	code	0	unreferenced	Global::FUN_0058ea30	
+0058edc0	230	code	0	unreferenced	Global::FUN_0058edc0	
+0058f780	229	code	0	unreferenced	Global::FUN_0058f780	
+005922f0	42	code	0	unreferenced	Global::FUN_005922f0	
+005924f0	41	code	0	unreferenced	Global::FUN_005924f0	
+00592690	42	code	0	unreferenced	Global::FUN_00592690	
+005926c0	110	code	0	unreferenced	Global::FUN_005926c0	
+00592ba0	43	code	0	unreferenced	Global::FUN_00592ba0	
+005930d0	112	code	0	unreferenced	Global::FUN_005930d0	
+005935e0	92	code	0	unreferenced	Global::FUN_005935e0	
+0059a350	117	code	0	unreferenced	Global::FUN_0059a350	
+0059b820	32	code	0	unreferenced	Global::FUN_0059b820	
+0059b840	35	code	0	unreferenced	Global::FUN_0059b840	
+0059c6a0	338	code	0	unreferenced	Global::FUN_0059c6a0	
+0059d3f0	13	code	0	unreferenced	Global::FUN_0059d3f0	
+0059d530	21	code	0	unreferenced	Global::FUN_0059d530	
+005a8560	63	code	0	unreferenced	Global::FUN_005a8560	
+005a8f30	1117	code	0	unreferenced	Global::FUN_005a8f30	
+005a9390	1128	code	0	unreferenced	Global::FUN_005a9390	
+005a9c60	457	code	0	unreferenced	Global::FUN_005a9c60	
+005aa5e0	35	code	0	unreferenced	Global::FUN_005aa5e0	
+005aa790	87	code	0	dead	Global::FUN_005aa790	005a9390
+005aa820	500	code	0	unreferenced	Global::FUN_005aa820	
+005aaa20	68	code	0	unreferenced	Global::FUN_005aaa20	
+005aaa70	29	code	0	dead	Global::FUN_005aaa70	005aaa90
+005aaa90	458	code	0	unreferenced	Global::FUN_005aaa90	
+005ab250	19	code	0	dead	Global::FUN_005ab250	005aa820
+005ab560	3	code	0	dead	Global::FUN_005ab560	005aa820
+005ab570	53	code	0	dead	Global::FUN_005ab570	005aa820
+005ab5b0	44	code	0	dead	Global::FUN_005ab5b0	005aa820
+005ab5e0	25	code	0	dead	Global::FUN_005ab5e0	005aa820
+005b2ef2	6	thunk	0	dead	DDRAW.DLL::DirectDrawCreate	00402da0 00406220 00406960
+005b2efe	6	thunk	0	dead	DDRAW.DLL::DirectDrawEnumerateA	004061b0
+005b2f04	6	thunk	0	dead	DSOUND.DLL::Ordinal_1	004200d0
+005b34e3	191	code	1	unreferenced	Global::FUN_005b34e3	
+005b3667	195	code	1	unreferenced	Global::FUN_005b3667	
+005b3d04	106	code	1	dead	Global::FUN_005b3d04	005b34e3 005b3dcf
+005b3dcf	122	code	1	dead	Global::FUN_005b3dcf	005b3667
+005b3ef7	64	code	1	dead	Global::FUN_005b3ef7	005b3d04
+005b3faa	32	code	1	unreferenced	Global::FUN_005b3faa	
+005b3fca	71	code	1	unreferenced	std::locale::empty	
+005b40a2	207	code	1	unreferenced	Global::FUN_005b40a2	
+005b4171	55	code	1	dead	Global::FUN_005b4171	005b40a2
+005b4689	145	code	1	unreferenced	Global::FUN_005b4689	
+005b471a	47	code	1	dead	Global::FUN_005b471a	005b4689 005b4749
+005b4749	95	code	1	unreferenced	Global::FUN_005b4749	
+005b47a8	54	code	1	unreferenced	Global::FUN_005b47a8	
+005b486c	209	code	1	dead	Global::FUN_005b486c	005b4689
+005b4a05	168	code	1	unreferenced	Global::FUN_005b4a05	
+005b4aad	269	code	1	unreferenced	Global::FUN_005b4aad	
+005b4bba	54	code	1	dead	Global::FUN_005b4bba	005b4aad 005b4bf0 005b4e8f
+005b4bf0	289	code	1	unreferenced	Global::FUN_005b4bf0	
+005b4d11	131	code	1	unreferenced	Global::FUN_005b4d11	
+005b4d94	251	code	1	unreferenced	Global::FUN_005b4d94	
+005b4e8f	628	code	1	dead	Global::FUN_005b4e8f	005b4a05 005b4aad 005b4bf0 005b5163
+005b510e	85	code	1	dead	Global::FUN_005b510e	005b4e8f
+005b5163	288	code	1	dead	Global::FUN_005b5163	005b4a05 005b4bf0 005b4d11 005b4d94
+005b5283	179	code	1	dead	Global::FUN_005b5283	005b4d11 005b4e8f 005b7deb 005be010
+005b53ef	119	code	1	dead	Global::FUN_005b53ef	005b4a05 005b4aad 005b4bf0
+005b54db	111	code	1	dead	Global::FUN_005b54db	005b4a05 005b4bf0 005b53ef
+005b70ab	220	code	1	dead	Global::FUN_005b70ab	005b4e8f
+005b7187	220	code	1	dead	Global::FUN_005b7187	005b4e8f 005b70ab
+005b76e1	78	code	1	dead	Global::FUN_005b76e1	005b70ab
+005b772f	78	code	1	dead	Global::FUN_005b772f	005b7187
+005b7819	77	code	1	dead	Global::FUN_005b7819	005b76e1
+005b7866	77	code	1	dead	Global::FUN_005b7866	005b772f
+005b7d21	75	code	1	dead	Global::FUN_005b7d21	005b47a8 005b486c 005b5163 005b5283
+005b7d6c	25	code	1	dead	std::bad_alloc::bad_alloc	005b7d21
+005b7de1	10	code	1	dead	Global::destroy_global_00688b28	005b7d21
+005b7deb	1362	code	1	dead	Global::FUN_005b7deb	005b4e8f
+005ba099	40	code	1	dead	Global::FUN_005ba099	005b7deb
+005baf1c	40	code	1	dead	Global::FUN_005baf1c	005b7deb
+005bbe57	64	code	1	dead	Global::FUN_005bbe57	005b7deb
+005be010	856	code	1	dead	Global::FUN_005be010	005b4e8f
+005bef5f	40	code	1	dead	Global::FUN_005bef5f	005be010
+005bfda7	64	code	1	dead	Global::FUN_005bfda7	005be010
+005bff51	40	code	1	dead	Global::FUN_005bff51	005be010
+005c018f	196	code	1	dead	Global::FUN_005c018f	005be010
+005c0253	196	code	1	dead	Global::FUN_005c0253	005be010 005c018f
+005c0317	220	code	1	dead	Global::FUN_005c0317	005be010 005c0253
+005c03f3	220	code	1	dead	Global::FUN_005c03f3	005be010 005c0317
+005c0849	114	code	1	dead	Global::FUN_005c0849	005c0253
+005c0981	78	code	1	dead	Global::FUN_005c0981	005c018f
+005c09cf	78	code	1	dead	Global::FUN_005c09cf	005c0253
+005c0a1d	78	code	1	dead	Global::FUN_005c0a1d	005c0317
+005c0a6b	78	code	1	dead	Global::FUN_005c0a6b	005c03f3
+005c0c50	77	code	1	dead	Global::FUN_005c0c50	005c0981
+005c0c9d	77	code	1	dead	Global::FUN_005c0c9d	005c09cf
+005c0cea	77	code	1	dead	Global::FUN_005c0cea	005c0a1d
+005c0d37	77	code	1	dead	Global::FUN_005c0d37	005c0a6b
+005c101e	360	code	1	unreferenced	Global::FUN_005c101e	
+005c121a	249	code	1	unreferenced	Global::FUN_005c121a	
+005c151e	107	code	1	unreferenced	Global::FUN_005c151e	
+005c1589	145	code	1	unreferenced	Global::FUN_005c1589	
+005c161a	245	code	1	unreferenced	Global::FUN_005c161a	
+005c1a12	45	code	1	dead	Global::FUN_005c1a12	005c810d
+005c1a46	7	code	1	dead	Global::FUN_005c1a46	005c8491
+005c1a4d	7	code	1	dead	Global::FUN_005c1a4d	005c82cd
+005c1a54	7	code	1	dead	Global::FUN_005c1a54	005c82cd
+005c1a5b	79	code	1	dead	Global::FUN_005c1a5b	005c1c29 005c810d
+005c1aaa	54	code	1	unreferenced	Global::FUN_005c1aaa	
+005c1afa	84	code	1	dead	Global::FUN_005c1afa	005c8188
+005c1b4e	37	code	1	dead	Global::FUN_005c1b4e	005c1afa
+005c1b73	182	code	1	dead	Global::FUN_005c1b73	005c7f52
+005c1c29	114	code	1	dead	Global::FUN_005c1c29	005c1b73
+005c1c9e	123	code	1	dead	Global::FUN_005c1c9e	005c7d9f 005c7f52
+005c1dc6	35	code	1	dead	Global::__abnormal_termination	005c8255
+005c1de9	9	code	1	dead	Global::__NLG_Notify1	005c8520
+005c29fd	27	code	1	unreferenced	Global::__seh_longjmp_unwind@4	
+005c2e81	81	code	1	dead	Global::vsprintf	004a2990 004a29f0
+005c2fca	10	code	1	dead	Global::_CIfmod	004c46e0
+005c3181	40	code	1	dead	Global::islower	004e4680
+005c3474	6	thunk	1	dead	KERNEL32.DLL::GetCurrentProcessId	004dc0e0
+005c3746	31	code	1	unreferenced	exception::operator=	
+005c39bb	80	code	1	unreferenced	Global::FUN_005c39bb	
+005c3fe0	49	code	1	dead	Global::fgetc	004f22f0 004f2360
+005c4780	172	code	1	dead	Global::_memcmp	005c121a
+005c6eb0	103	code	1	dead	Global::__trandisp1	005ca18e 005ca34b
+005c6f17	140	code	1	dead	Global::__trandisp2	005ca150 005ca1cb
+005c7080	23	code	1	unreferenced	Global::FUN_005c7080	
+005c7d04	155	code	1	dead	Global::FUN_005c7d04	005c1aaa 005c1b4e 005c1c29
+005c7d9f	435	code	1	dead	Global::FUN_005c7d9f	005c7d04
+005c7f52	170	code	1	dead	Global::FUN_005c7f52	005c7d9f
+005c7ffc	93	code	1	dead	Global::FUN_005c7ffc	005c7d9f
+005c8059	132	code	1	dead	Global::FUN_005c8059	005c7d04 005c810d
+005c810d	123	code	1	dead	Global::FUN_005c810d	005c7d9f 005c7f52
+005c8188	165	code	1	dead	Global::FUN_005c8188	005c810d
+005c8255	78	code	1	dead	Global::FUN_005c8255	005c8188
+005c82cd	440	code	1	dead	Global::FUN_005c82cd	005c810d
+005c8491	86	code	1	dead	Global::FUN_005c8491	005c7d9f 005c8255
+005c84f8	35	code	1	dead	Global::FUN_005c84f8	005c82cd
+005c8520	76	code	1	dead	Global::__CallSettingFrame@12	005c1afa 005c8059
+005c877d	79	code	1	dead	Global::FUN_005c877d	005c1c9e 005c7d04 005c7d9f 005c8059 005c82cd
+005c8a3e	47	code	1	unreferenced	Global::FUN_005c8a3e	
+005c8a6d	46	code	1	dead	Global::FUN_005c8a6d	005c8a3e 005c8b00
+005c8b00	164	code	1	dead	Global::FUN_005c8b00	005c8a3e
+005c9521	84	code	1	unreferenced	Global::FUN_005c9521	
+005c96a1	96	code	1	unreferenced	Global::FUN_005c96a1	
+005c9799	165	code	1	unreferenced	Global::FUN_005c9799	
+005c9e85	36	code	1	unreferenced	Global::FUN_005c9e85	
+005ca150	62	code	1	dead	Global::__cintrindisp2	005c2fca
+005ca18e	61	code	1	unreferenced	Global::__cintrindisp1	
+005ca1cb	72	code	1	unreferenced	Global::__ctrandisp2	
+005ca213	7	code	1	dead	Global::FUN_005ca213	005ca1cb 005ca34b
+005ca21a	305	code	1	dead	Global::FUN_005ca21a	005ca150 005ca18e 005ca213
+005ca34b	51	code	1	unreferenced	Global::__ctrandisp1	
+005ca37e	60	code	1	dead	Global::__fload	005ca1cb 005ca34b
+005cabc6	518	code	1	dead	Global::FUN_005cabc6	005cadcc
+005cadcc	178	code	1	unreferenced	Global::FUN_005cadcc	
+005cb288	318	code	1	unreferenced	Global::_XcptFilter	
+005cb3c6	58	code	1	dead	Global::FUN_005cb3c6	005cb288
+005cb8ad	179	code	1	unreferenced	Global::FUN_005cb8ad	
+005cc578	815	code	1	unreferenced	Global::FUN_005cc578	
+005ccf96	350	code	1	unreferenced	Global::FUN_005ccf96	
+005cea27	846	code	1	unreferenced	Global::FUN_005cea27	
+005ced75	400	code	1	unreferenced	Global::___free_lc_time	
+005cf0da	55	code	1	unreferenced	Global::FUN_005cf0da	
+005cf1dc	290	code	1	unreferenced	Global::FUN_005cf1dc	
+005cf2fe	55	code	1	dead	Global::FUN_005cf2fe	005cf1dc
+005cf335	78	code	1	unreferenced	Global::FUN_005cf335	
+005d0210	19	code	1	unreferenced	Global::FUN_005d0210	
+005d0223	20	code	1	unreferenced	Global::FUN_005d0223	
+005d03c8	53	code	1	dead	Global::FUN_005d03c8	005d0210 005d0223
+005d08d1	122	code	1	dead	Global::FUN_005d08d1	005d0978 005d1a9f
+005d0978	46	code	1	unreferenced	Global::FUN_005d0978	
+005d0de5	28	code	1	dead	Global::FUN_005d0de5	005c7d9f 005c82cd
+005d0e01	28	code	1	dead	Global::FUN_005d0e01	005c82cd
+005d0e35	23	code	1	unreferenced	Global::FUN_005d0e35	
+005d112d	167	code	1	unreferenced	Global::FUN_005d112d	
+005d1255	147	code	1	dead	Global::FUN_005d1255	005c8a6d
+005d1a9f	60	code	1	unreferenced	Global::FUN_005d1a9f	
+005d2685	42	code	1	unreferenced	Global::FUN_005d2685	
+005d26ca	49	code	1	unreferenced	Global::FUN_005d26ca	
+005d26fb	134	code	1	dead	Global::FUN_005d26fb	005d26ca 005d2781
+005d2781	27	code	1	unreferenced	Global::FUN_005d2781	
+005d28a1	386	code	1	unreferenced	Global::FUN_005d28a1	
+005d2a23	98	code	1	dead	Global::FUN_005d2a23	005d28a1
+005d2a85	386	code	1	dead	Global::FUN_005d2a85	005d0e35
+005d2c07	61	code	1	dead	Global::FUN_005d2c07	005d28a1 005d2a85
+005d308a	89	code	1	unreferenced	Global::FUN_005d308a	
+005d3782	89	code	1	unreferenced	Global::FUN_005d3782	
+005d45e0	8	funclet	0	dead	Global::Unwind@005d45e0	00402f40
+005d4d00	11	funclet	0	dead	Global::Unwind@005d4d00	0041fa20
+005d5120	11	funclet	0	dead	Global::Unwind@005d5120	004279d0
+005d5620	22	funclet	0	dead	Global::Unwind@005d5620	0042ce40
+005d5820	11	funclet	0	dead	Global::Unwind@005d5820	0042fa90
+005d582b	8	funclet	0	dead	Global::Unwind@005d582b	0042fa90
+005d5833	8	funclet	0	dead	Global::Unwind@005d5833	0042fa90
+005d583b	8	funclet	0	dead	Global::Unwind@005d583b	0042fa90
+005d5940	15	funclet	0	dead	Global::Unwind@005d5940	00432d60
+005d5960	11	funclet	0	dead	Global::Unwind@005d5960	00433a10
+005d596b	11	funclet	0	dead	Global::Unwind@005d596b	00433a10
+005d5e70	8	funclet	0	dead	Global::Unwind@005d5e70	0043b5c0
+005d5e90	8	funclet	0	dead	Global::Unwind@005d5e90	0043c830
+005d9190	8	funclet	0	dead	Global::Unwind@005d9190	00481f40
+005d9198	8	funclet	0	dead	Global::Unwind@005d9198	00481f40
+005d91a0	8	funclet	0	dead	Global::Unwind@005d91a0	00481f40
+005d91a8	8	funclet	0	dead	Global::Unwind@005d91a8	00481f40
+005d91b0	11	funclet	0	dead	Global::Unwind@005d91b0	00481f40
+005d91bb	8	funclet	0	dead	Global::Unwind@005d91bb	00481f40
+005d91c3	8	funclet	0	dead	Global::Unwind@005d91c3	00481f40
+005d91cb	8	funclet	0	dead	Global::Unwind@005d91cb	00481f40
+005d91d3	11	funclet	0	dead	Global::Unwind@005d91d3	00481f40
+005d91de	23	funclet	0	dead	Global::Unwind@005d91de	00481f40
+005d91f5	8	funclet	0	dead	Global::Unwind@005d91f5	00481f40
+005d91fd	8	funclet	0	dead	Global::Unwind@005d91fd	00481f40
+005d92c0	8	funclet	0	dead	Global::Unwind@005d92c0	004833e0
+005da7c0	8	funclet	0	dead	Global::Unwind@005da7c0	0049ff90
+005dc050	8	funclet	0	dead	Global::Unwind@005dc050	004d95b0
+005dc058	8	funclet	0	dead	Global::Unwind@005dc058	004d95b0
+005dc0a0	8	funclet	0	dead	Global::Unwind@005dc0a0	004da100
+005dc0a8	8	funclet	0	dead	Global::Unwind@005dc0a8	004da100
+005dc0b0	8	funclet	0	dead	Global::Unwind@005dc0b0	004da100
+005dc0b8	8	funclet	0	dead	Global::Unwind@005dc0b8	004da100
+005dc0c0	11	funclet	0	dead	Global::Unwind@005dc0c0	004da100
+005dc0cb	11	funclet	0	dead	Global::Unwind@005dc0cb	004da100
+005dc0d6	11	funclet	0	dead	Global::Unwind@005dc0d6	004da100
+005dc0e1	8	funclet	0	dead	Global::Unwind@005dc0e1	004da100
+005dc0e9	11	funclet	0	dead	Global::Unwind@005dc0e9	004da100
+005dc0f4	8	funclet	0	dead	Global::Unwind@005dc0f4	004da100
+005dc0fc	8	funclet	0	dead	Global::Unwind@005dc0fc	004da100
+005dc110	8	funclet	0	dead	Global::Unwind@005dc110	004da2a0
+005dc130	8	funclet	0	dead	Global::Unwind@005dc130	004da3c0
+005dc170	8	funclet	0	dead	Global::Unwind@005dc170	004da6f0
+005dc178	17	funclet	0	dead	Global::Unwind@005dc178	004da6f0
+005dc189	11	funclet	0	dead	Global::Unwind@005dc189	004da6f0
+005dc1a0	17	funclet	0	dead	Global::Unwind@005dc1a0	004db030
+005dc1b1	8	funclet	0	dead	Global::Unwind@005dc1b1	004db030
+005dc1b9	8	funclet	0	dead	Global::Unwind@005dc1b9	004db030
+005dc1c1	11	funclet	0	dead	Global::Unwind@005dc1c1	004db030
+005dc880	8	funclet	0	dead	Global::Unwind@005dc880	004ee610
+005dc8a0	8	funclet	0	dead	Global::Unwind@005dc8a0	004ee760
+005dc900	11	funclet	0	dead	Global::Unwind@005dc900	004eec60
+005dc90b	8	funclet	0	dead	Global::Unwind@005dc90b	004eec60
+005dcb50	8	funclet	0	dead	Global::Unwind@005dcb50	004f2b20
+005dcb58	8	funclet	0	dead	Global::Unwind@005dcb58	004f2b20
+005dcb60	8	funclet	0	dead	Global::Unwind@005dcb60	004f2b20
+005dcb68	8	funclet	0	dead	Global::Unwind@005dcb68	004f2b20
+005dcb70	8	funclet	0	dead	Global::Unwind@005dcb70	004f2b20
+005dcb78	8	funclet	0	dead	Global::Unwind@005dcb78	004f2b20
+005dcb90	8	funclet	0	dead	Global::Unwind@005dcb90	004f3470
+005dcbb0	8	funclet	0	dead	Global::Unwind@005dcbb0	004f3760
+005dcbb8	8	funclet	0	dead	Global::Unwind@005dcbb8	004f3760
+005dcbc0	8	funclet	0	dead	Global::Unwind@005dcbc0	004f3760
+005dcbc8	8	funclet	0	dead	Global::Unwind@005dcbc8	004f3760
+005dcbe0	8	funclet	0	dead	Global::Unwind@005dcbe0	004f3d00
+005dcbe8	8	funclet	0	dead	Global::Unwind@005dcbe8	004f3d00
+005dcbf0	8	funclet	0	dead	Global::Unwind@005dcbf0	004f3d00
+005dcbf8	8	funclet	0	dead	Global::Unwind@005dcbf8	004f3d00
+005dcc00	11	funclet	0	dead	Global::Unwind@005dcc00	004f3d00
+005dcc0b	11	funclet	0	dead	Global::Unwind@005dcc0b	004f3d00
+005dcc16	8	funclet	0	dead	Global::Unwind@005dcc16	004f3d00
+005dcc80	8	funclet	0	dead	Global::Unwind@005dcc80	004f9cb0
+005dcc88	8	funclet	0	dead	Global::Unwind@005dcc88	004f9cb0
+005dccc0	8	funclet	0	dead	Global::Unwind@005dccc0	004fa110
+005dcce0	8	funclet	0	dead	Global::Unwind@005dcce0	004fa2d0
+005dcce8	8	funclet	0	dead	Global::Unwind@005dcce8	004fa2d0
+005dccf0	8	funclet	0	dead	Global::Unwind@005dccf0	004fa2d0
+005dccf8	8	funclet	0	dead	Global::Unwind@005dccf8	004fa2d0
+005dcd00	8	funclet	0	dead	Global::Unwind@005dcd00	004fa2d0
+005dcd20	8	funclet	0	dead	Global::Unwind@005dcd20	004fa460
+005dd710	11	funclet	0	dead	Global::Unwind@005dd710	00511650
+005dd730	11	funclet	0	dead	Global::Unwind@005dd730	00511800
+005dd870	11	funclet	0	dead	Global::Unwind@005dd870	00516080
+005dd87b	11	funclet	0	dead	Global::Unwind@005dd87b	00516080
+005dd886	11	funclet	0	dead	Global::Unwind@005dd886	00516080
+005dd8c0	8	funclet	0	dead	Global::Unwind@005dd8c0	005162f0
+005de9a0	8	funclet	0	dead	Global::Unwind@005de9a0	00540950
+005dea70	8	funclet	0	dead	Global::Unwind@005dea70	00541320
+005deab0	8	funclet	0	dead	Global::Unwind@005deab0	00541410
+005deb30	8	funclet	0	dead	Global::Unwind@005deb30	00541c90
+005decd0	8	funclet	0	dead	Global::Unwind@005decd0	00546b30
+005decd8	14	funclet	0	dead	Global::Unwind@005decd8	00546b30
+005dece6	14	funclet	0	dead	Global::Unwind@005dece6	00546b30
+005decf4	14	funclet	0	dead	Global::Unwind@005decf4	00546b30
+005ded02	11	funclet	0	dead	Global::Unwind@005ded02	00546b30
+005ded60	11	funclet	0	dead	Global::Unwind@005ded60	00546f40
+005dee10	8	funclet	0	dead	Global::Unwind@005dee10	0054a7c0
+005dee30	8	funclet	0	dead	Global::Unwind@005dee30	0054a870
+005dfa00	8	funclet	0	dead	Global::Unwind@005dfa00	0058ea30
+005dfa60	8	funclet	0	dead	Global::Unwind@005dfa60	0058edc0
+005e03f0	8	funclet	0	dead	Global::Unwind@005e03f0	005a8f30
+005e03f8	8	funclet	0	dead	Global::Unwind@005e03f8	005a8f30
+005e0400	8	funclet	0	dead	Global::Unwind@005e0400	005a8f30
+005e0408	8	funclet	0	dead	Global::Unwind@005e0408	005a8f30
+005e0410	8	funclet	0	dead	Global::Unwind@005e0410	005a8f30
+005e0430	8	funclet	0	dead	Global::Unwind@005e0430	005a9390
+005e0438	8	funclet	0	dead	Global::Unwind@005e0438	005a9390
+005e0440	8	funclet	0	dead	Global::Unwind@005e0440	005a9390
+005e0448	8	funclet	0	dead	Global::Unwind@005e0448	005a9390
+005e0450	8	funclet	0	dead	Global::Unwind@005e0450	005a9390
+005e0458	8	funclet	0	dead	Global::Unwind@005e0458	005a9390
+005e0460	8	funclet	0	dead	Global::Unwind@005e0460	005a9390
+005e0500	11	funclet	0	dead	Global::Unwind@005e0500	005aaa90
+005e07a4	26	funclet	0	dead	Global::Unwind@005e07a4	005b34e3
+005e07be	11	funclet	0	dead	Global::Unwind@005e07be	005b34e3
+005e07c9	11	funclet	0	dead	Global::Unwind@005e07c9	005b34e3
+005e07d4	8	funclet	0	dead	Global::Unwind@005e07d4	005b34e3
+005e0800	26	funclet	0	dead	Global::Unwind@005e0800	005b3667
+005e081a	11	funclet	0	dead	Global::Unwind@005e081a	005b3667
+005e0825	11	funclet	0	dead	Global::Unwind@005e0825	005b3667
+005e0830	8	funclet	0	dead	Global::Unwind@005e0830	005b3667
+005e0870	26	funclet	0	dead	Global::Unwind@005e0870	005b3d04
+005e0894	26	funclet	0	dead	Global::Unwind@005e0894	005b3dcf
+005e08ae	11	funclet	0	dead	Global::Unwind@005e08ae	005b3dcf
+005e08c4	10	funclet	0	dead	Global::Unwind@005e08c4	005b3fca
+005e08d8	8	funclet	0	dead	Global::Unwind@005e08d8	005b40a2
+005e08e0	8	funclet	0	dead	Global::Unwind@005e08e0	005b40a2
+005e08e8	8	funclet	0	dead	Global::Unwind@005e08e8	005b40a2
+005e09cc	8	funclet	0	dead	Global::Unwind@005e09cc	005b4749
+005e09f8	8	funclet	0	dead	Global::Unwind@005e09f8	005b486c
+005e0a0c	10	funclet	0	dead	Global::Unwind@005e0a0c	005b4a05
+005e0a16	8	funclet	0	dead	Global::Unwind@005e0a16	005b4a05
+005e0a28	10	funclet	0	dead	Global::Unwind@005e0a28	005b4aad
+005e0a32	8	funclet	0	dead	Global::Unwind@005e0a32	005b4aad
+005e0a3a	8	funclet	0	dead	Global::Unwind@005e0a3a	005b4aad
+005e0a42	8	funclet	0	dead	Global::Unwind@005e0a42	005b4aad
+005e0a54	10	funclet	0	dead	Global::Unwind@005e0a54	005b4bf0
+005e0a5e	8	funclet	0	dead	Global::Unwind@005e0a5e	005b4bf0
+005e0a66	8	funclet	0	dead	Global::Unwind@005e0a66	005b4bf0
+005e0a6e	8	funclet	0	dead	Global::Unwind@005e0a6e	005b4bf0
+005e0a80	10	funclet	0	dead	Global::Unwind@005e0a80	005b4d11
+005e0a94	8	funclet	0	dead	Global::Unwind@005e0a94	005b4d94
+005e0a9c	8	funclet	0	dead	Global::Unwind@005e0a9c	005b4d94
+005e0aa4	10	funclet	0	dead	Global::Unwind@005e0aa4	005b4d94
+005e0aae	23	funclet	0	dead	Global::Unwind@005e0aae	005b4d94
+005e0ad0	8	funclet	0	dead	Global::Unwind@005e0ad0	005b4e8f
+005e0ad8	10	funclet	0	dead	Global::Unwind@005e0ad8	005b4e8f
+005e0ae2	8	funclet	0	dead	Global::Unwind@005e0ae2	005b4e8f
+005e0aea	10	funclet	0	dead	Global::Unwind@005e0aea	005b4e8f
+005e0af4	8	funclet	0	dead	Global::Unwind@005e0af4	005b4e8f
+005e0afc	8	funclet	0	dead	Global::Unwind@005e0afc	005b4e8f
+005e0b10	8	funclet	0	dead	Global::Unwind@005e0b10	005b5163
+005e0b18	11	funclet	0	dead	Global::Unwind@005e0b18	005b5163
+005e0b23	8	funclet	0	dead	Global::Unwind@005e0b23	005b5163
+005e0b2b	8	funclet	0	dead	Global::Unwind@005e0b2b	005b5163
+005e0b33	8	funclet	0	dead	Global::Unwind@005e0b33	005b5163
+005e0b48	8	funclet	0	dead	Global::Unwind@005e0b48	005b5283
+005e0b90	8	funclet	0	dead	Global::Unwind@005e0b90	005b53ef
+005e0b98	11	funclet	0	dead	Global::Unwind@005e0b98	005b53ef
+005e0ba3	11	funclet	0	dead	Global::Unwind@005e0ba3	005b53ef
+005e0bae	11	funclet	0	dead	Global::Unwind@005e0bae	005b53ef
+005e0d38	8	funclet	0	dead	Global::Unwind@005e0d38	005b70ab
+005e0d40	10	funclet	0	dead	Global::Unwind@005e0d40	005b70ab
+005e0d4a	8	funclet	0	dead	Global::Unwind@005e0d4a	005b70ab
+005e0d5c	8	funclet	0	dead	Global::Unwind@005e0d5c	005b7187
+005e0d64	10	funclet	0	dead	Global::Unwind@005e0d64	005b7187
+005e0d6e	8	funclet	0	dead	Global::Unwind@005e0d6e	005b7187
+005e0dfc	8	funclet	0	dead	Global::Unwind@005e0dfc	005b76e1
+005e0e10	8	funclet	0	dead	Global::Unwind@005e0e10	005b772f
+005e0e4c	8	funclet	0	dead	Global::Unwind@005e0e4c	005b7819
+005e0e60	8	funclet	0	dead	Global::Unwind@005e0e60	005b7866
+005e0e9c	8	funclet	0	dead	Global::Unwind@005e0e9c	005b7deb
+005e0ea4	10	funclet	0	dead	Global::Unwind@005e0ea4	005b7deb
+005e0eae	8	funclet	0	dead	Global::Unwind@005e0eae	005b7deb
+005e0eb6	10	funclet	0	dead	Global::Unwind@005e0eb6	005b7deb
+005e0ec0	8	funclet	0	dead	Global::Unwind@005e0ec0	005b7deb
+005e0ec8	10	funclet	0	dead	Global::Unwind@005e0ec8	005b7deb
+005e0ed2	10	funclet	0	dead	Global::Unwind@005e0ed2	005b7deb
+005e0edc	10	funclet	0	dead	Global::Unwind@005e0edc	005b7deb
+005e0ee6	8	funclet	0	dead	Global::Unwind@005e0ee6	005b7deb
+005e0eee	10	funclet	0	dead	Global::Unwind@005e0eee	005b7deb
+005e0ef8	8	funclet	0	dead	Global::Unwind@005e0ef8	005b7deb
+005e0f00	11	funclet	0	dead	Global::Unwind@005e0f00	005b7deb
+005e1204	8	funclet	0	dead	Global::Unwind@005e1204	005bbe57
+005e1698	8	funclet	0	dead	Global::Unwind@005e1698	005be010
+005e16a0	10	funclet	0	dead	Global::Unwind@005e16a0	005be010
+005e16aa	8	funclet	0	dead	Global::Unwind@005e16aa	005be010
+005e16b2	10	funclet	0	dead	Global::Unwind@005e16b2	005be010
+005e16bc	10	funclet	0	dead	Global::Unwind@005e16bc	005be010
+005e16c6	10	funclet	0	dead	Global::Unwind@005e16c6	005be010
+005e16d0	8	funclet	0	dead	Global::Unwind@005e16d0	005be010
+005e16d8	10	funclet	0	dead	Global::Unwind@005e16d8	005be010
+005e16e2	8	funclet	0	dead	Global::Unwind@005e16e2	005be010
+005e16ea	11	funclet	0	dead	Global::Unwind@005e16ea	005be010
+005e1888	8	funclet	0	dead	Global::Unwind@005e1888	005bfda7
+005e189c	8	funclet	0	dead	Global::Unwind@005e189c	005c018f
+005e18a4	10	funclet	0	dead	Global::Unwind@005e18a4	005c018f
+005e18b8	8	funclet	0	dead	Global::Unwind@005e18b8	005c0253
+005e18c0	10	funclet	0	dead	Global::Unwind@005e18c0	005c0253
+005e18d4	8	funclet	0	dead	Global::Unwind@005e18d4	005c0317
+005e18dc	10	funclet	0	dead	Global::Unwind@005e18dc	005c0317
+005e18e6	8	funclet	0	dead	Global::Unwind@005e18e6	005c0317
+005e18f8	8	funclet	0	dead	Global::Unwind@005e18f8	005c03f3
+005e1900	10	funclet	0	dead	Global::Unwind@005e1900	005c03f3
+005e190a	8	funclet	0	dead	Global::Unwind@005e190a	005c03f3
+005e19a0	8	funclet	0	dead	Global::Unwind@005e19a0	005c0849
+005e19a8	8	funclet	0	dead	Global::Unwind@005e19a8	005c0849
+005e19f8	8	funclet	0	dead	Global::Unwind@005e19f8	005c0981
+005e1a0c	8	funclet	0	dead	Global::Unwind@005e1a0c	005c09cf
+005e1a20	8	funclet	0	dead	Global::Unwind@005e1a20	005c0a1d
+005e1a34	8	funclet	0	dead	Global::Unwind@005e1a34	005c0a6b
+005e1ab4	8	funclet	0	dead	Global::Unwind@005e1ab4	005c0c50
+005e1ac8	8	funclet	0	dead	Global::Unwind@005e1ac8	005c0c9d
+005e1adc	8	funclet	0	dead	Global::Unwind@005e1adc	005c0cea
+005e1af0	8	funclet	0	dead	Global::Unwind@005e1af0	005c0d37

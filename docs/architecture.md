@@ -431,5 +431,10 @@ When `ModeSwitcher::Run` returns, `WinMain` tears down in this order:
   - A map change rebuilds the game mode, so world state that survives it lives in
     `ClientState`.
   - The singletons become members of an application object passed by reference.
+- **Unreachable code.** 347 of the game's functions (109 KB) are never reached. Nothing
+  references 238 of them, and only those reference the other 109. Among them are a
+  DirectSound buffer and mixer layer the client replaced with Miles, sky boxes and lens
+  flares, and out-of-line copies of inlined constructors. The ledger's `reach` column
+  marks them, and they need no port (`analysis/exports/Ragexe.exe.unreferenced.tsv`).
 - **Source layout.** The subsystem column and the 141 initializer-bounded runs give a
   first layout for `src/`.

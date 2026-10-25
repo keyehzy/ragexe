@@ -138,6 +138,9 @@ Batches follow the source files: runs of functions between dynamic initializers
 (`docs/architecture.md` §1). Subsystem tags are not used, because they cut across
 files.
 
+Functions with a `reach` value in the ledger (`unreferenced` or `dead`, from
+`tools/find_unreferenced.py`) are never reached, so they are left out of the batches.
+
 Classes without RTTI are not invented while naming. Functions that look like methods of
 such a class are named in `Global` (as `__thiscall` where the convention says so), and
 the class is proposed separately, with evidence, for `inferred.classes.tsv`.
