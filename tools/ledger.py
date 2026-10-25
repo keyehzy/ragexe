@@ -7,7 +7,7 @@ the ExportInventory output while keeping everything set by hand.
 usage:
   ledger.py sync   [--export TSV] [--ledger TSV]
   ledger.py report [--ledger TSV]
-  ledger.py set    ADDR|LO-HI ... [--status S] [--subsystem S] [--library 0|1] [--note TEXT]
+  ledger.py set    ADDR|LO-HI ... [--status S] [--subsystem S|-] [--library 0|1] [--note TEXT]
 """
 import argparse
 import os
@@ -171,8 +171,8 @@ def parse_targets(specs, rows):
 def cmd_set(args):
     if args.status and args.status not in STATUSES:
         raise SystemExit(f"status must be one of {', '.join(STATUSES)}")
-    if args.subsystem and args.subsystem not in SUBSYSTEMS:
-        raise SystemExit(f"subsystem must be one of {', '.join(SUBSYSTEMS)}")
+    if args.subsystem and args.subsystem != "-" and args.subsystem not in SUBSYSTEMS:
+        raise SystemExit(f"subsystem must be one of {', '.join(SUBSYSTEMS)}, or - to clear it")
     rows = read_tsv(args.ledger)
     targets = parse_targets(args.targets, rows)
     for r in targets:
@@ -181,7 +181,7 @@ def cmd_set(args):
                 raise SystemExit(f"{r['entry']} is a {r['kind']}, which has no status of its own")
             r["status"] = args.status
         if args.subsystem:
-            r["subsystem"] = args.subsystem
+            r["subsystem"] = "" if args.subsystem == "-" else args.subsystem
         if args.library is not None:
             r["library"] = args.library
         if args.note is not None:

@@ -38,7 +38,6 @@ import ghidra.program.model.data.Undefined;
 import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.GhidraClass;
 import ghidra.program.model.listing.Instruction;
-import ghidra.program.model.listing.VariableUtilities;
 import ghidra.program.model.mem.MemoryBlock;
 import ghidra.program.model.symbol.Namespace;
 import ghidra.program.model.symbol.Reference;
@@ -493,9 +492,30 @@ public class ApplyRtti extends GhidraScript {
 		return vtType;
 	}
 
+	/**
+	 * The class struct at the namespace's own category path (/mg/mgType1/CPlayer for
+	 * mg::mgType1::CPlayer). VariableUtilities.findOrCreateClassStruct matches by name
+	 * only, so a global CPlayer would otherwise resolve to mg::mgType1::CPlayer's struct.
+	 */
+	static Structure classStruct(GhidraClass ns, DataTypeManager dtm) {
+		List<String> parts = new ArrayList<>();
+		for (Namespace p = ns.getParentNamespace(); p != null && !p.isGlobal(); p = p.getParentNamespace()) {
+			parts.add(0, p.getName());
+		}
+		CategoryPath cat = CategoryPath.ROOT;
+		for (String part : parts) {
+			cat = new CategoryPath(cat, part);
+		}
+		DataType dt = dtm.getDataType(cat, ns.getName());
+		if (dt instanceof Structure) {
+			return (Structure) dt;
+		}
+		return (Structure) dtm.addDataType(new StructureDataType(cat, ns.getName(), 0, dtm),
+			DataTypeConflictHandler.KEEP_HANDLER);
+	}
+
 	private boolean addVfptr(ClassInfo c, VTable vt, DataType vtType) throws Exception {
-		Structure s = VariableUtilities.findOrCreateClassStruct(c.ns, dtm);
-		s = (Structure) dtm.resolve(s, DataTypeConflictHandler.KEEP_HANDLER);
+		Structure s = classStruct(c.ns, dtm);
 		int need = vt.offset + 4;
 		if (s.isZeroLength() || s.getLength() < need) {
 			s.growStructure(need - (s.isZeroLength() ? 0 : s.getLength()));

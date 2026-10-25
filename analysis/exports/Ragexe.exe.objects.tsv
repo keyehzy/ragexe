@@ -1,0 +1,293 @@
+class	size	new_sites	constructors	destructors	deleting_destructors	notes
+C3dAnimModelRes	356	1	0042da20,0042dbb0	0042dcb0	0042db60	
+C3dAttr	300	1	00426a20,00426ba0	00426b30	00426b00	
+C3dGrannyGameActor	3132	1	00507b10	00507ed0	00507ea0	
+C3dGrannyModelRes	948	1	0042e920,0042ea40	0042ea70	0042e9f0	
+C3dGround	236	1	004bc220	004bc3a0	004bc370	
+C3dGround15		0		004c4280	004c4250	
+C3dModelRes	424	1	0042b620,0042bb00	0042b930	0042b800	
+C3dNode	336	2	004b6960	004b6ac0	004b6a90	
+C3dNodeHAL	388	1		004b9260	004b9230	
+C3dWorldRes	448	1	00435830,00435b90	004359d0	004359a0	
+CAbleToMakeEffect		0	00501be0	00501c90	00501c60	
+CActRes	324	1	004207c0,00420a70	00420960	00420930	
+CActorPickNode	48	1	004ce4f0	004ce790	004ce540	
+CArrowEffect	208	2	005afa80	005afb00	005afad0	
+CBitmapRes	288	1	00427610,004277d0	00427700	004276d0	
+CBlowEffect	160	1	00540950	005409d0	005409a0	
+CBlurPC	796	3	00540d20	005410a0	00541070	
+CConnection		0	004184d0	00418290	004182f0	
+CController		0	0041da90,0041dac0			
+CCorpse	160	1	00540b70	00540bf0	00540bc0	
+CDC		0	00402fb0			
+CDCBitmap	44	1	004035c0	00403680	00403650	
+CDCSurface		0	00402f40,00403010	00403070	00402fe0	
+CDummyEffectLauncher	196	1		00510010	0050ffe0	
+CEZeffectRes	54196	1	00428790,00428aa0	004288d0	00428880	
+CEffectMaker	220	1	005af4c0	005af550	005af520	
+CEffectPrim	88464	1	0057cfa0	0057d3b0	0057d380	
+CEmblemRes	560	1	00428360,004284b0	00428470	00428440	
+CGPak		0	004dd820	004dd900	004dd8d0	
+CGameActor		0	00502570	00502700	005026a0	
+CGameMode	956	1	0050c320	0050ccb0	0050c5f0	
+CGameObject		0	00500030	00500090	00500060	
+CGndRes	488	1	00428ec0,00429170	00428fe0	00428fb0	
+CGndRiser		0	00541c90	00541d20	00541cf0	
+CGraffiSkill	948	1	005ad310	005ad360	005ad330	
+CGrannyCorpse3d	588	1	00509f60	0050a010	00509fe0	
+CGrannyPc		0	00546b30	00546d50	00546d20	
+CGroundScope	220	1	005b00f0	005b0150	005b0120	
+CImfRes	6588	1	004299c0,00429bb0	00429ad0	00429aa0	
+CItem	192	2	0053abb0	0053ac50	0053ac20	
+CKeyPad	188	1	0041dc70	0041dda0	0041dd70	
+CLanguage		0		004c7ae0	004c7ab0	
+CLanguageTC		0	004c8c40	004c8e60	004c8e30	
+CLanguageTH		0	004c93d0	004c9460	004c9430	
+CLoginMode	4964	1	0053b400	0053b4a0	0053b470	
+CMandraAttackEffect	164	1	005af7d0	005af850	005af820	
+CMasterChaser		0	00541320	005413a0	00541370	
+CMode		0	004cb270	004cb340	004cb310	
+CMousePointer	164	1	00501980	00501a00	005019d0	
+CMsgEffect	284	5	005ad910	005ad990	005ad960	
+CNpc	664	3	0053f950	0053f9d0	0053f9a0	
+CNumEffect	168	1	00541410	00541490	00541460	
+CPaletteRes	1296	1	00431f90,004320b0	00432080	00432050	
+CPc	776	7	00541fb0	00542160	00542130	
+CPlayer	988	1	0054b1d0	0054b420	0054b3f0	
+CRagConnection		0	00418d90	00418150	00418ef0	
+CRagEffect		0	0054d220	0054d370	0054d340	
+CRenderObject		0	005002b0	00500350	00500320	
+CRes		0	004208a0,004df920			
+CRmaRes	344	1	00421b30,00421c90	00421d30	00421c40	
+CSakGPak		0	004ded50	004dedb0	004ded80	
+CSkill	656	2	005ab960	005ab9e0	005ab9b0	
+CSkinMgr		0	00436e20	00437030	00437000	
+CSnapMgr		0	004391d0	00439240	00439210	
+CSoundMaker	204	1	00541680	00541730	00541700	
+CSprRes	1332	1	00433f00,004340a0	00434030	00433fe0	
+CSurface		0	00416080	00416110	004160b0	
+CSurfaceWallpaper	16	1	004164e0	00416540	00416510	
+CTexture	296	7	004165e0,004166b0	00405de0	00416680	
+CView	448	1	004cef80	004cefe0	004cefb0	
+CWave	280	1	00435320,00435440	00435410	004353e0	
+CWorld	244	1	004c35c0	004c36e0	004c36b0	
+SnapObject	60	2	00438af0	00438b90	00438b30	
+UIAllyGuildAcceptWnd	112	1	00455e60	00455eb0	00455e80	
+UIBalloonText		0	0043c570	0043c610	0043c5e0	
+UIBarGraph		0	00441d10	00441d60	00441d30	
+UIBarGraph2	108	3	00442070	004420e0	004420b0	
+UIBarGraph3		0	00442260	004422b0	00442280	
+UIBarGraph4	84	2		0045cdd0	0045cda0	
+UIBarGraphPlayerHp	76	1	004422e0	00442330	00442300	
+UIBarGraphPlayerSp	76	1	00442690	004426e0	004426b0	
+UIBasicInfoWnd	156	1	0045c480	0045c4e0	0045c4b0	
+UIBitmapButton	168	100	0043b8e0	0043b980	0043b950	
+UIBitmapEditCtrl	160	1		0044fb00	0044fad0	
+UIButton		0	0043b100	0043b170	0043b140	
+UICandidateWnd	260	1	00487310	004873a0	00487370	
+UICardItemIllustWnd	136	1	00469720	00469790	00469760	
+UIChatEditCtrl	180	3	0043f9e0	0043fb70	0043fb40	
+UIChatHisBox	164	1	004446d0	004448e0	004448b0	
+UIChatHisBox2	176	2	00444ff0	00445060	00445030	
+UIChatRoomChangeWnd	224	1	00470ee0	00471020	00470ff0	
+UIChatRoomMakeWnd	224	1	0046f5a0	0046f760	0046f730	
+UIChatRoomTitle	128	1	004407e0	00440850	00440820	
+UIChatRoomWnd	208	1	004531a0	00453360	004532c0	
+UIChatWnd	164	1	00451780	004517e0	004517b0	
+UICheckBox	128	15	0043ab20	0043abd0	0043aba0	
+UIChooseSellBuyWnd	108	1	0046d6d0	0046d720	0046d6f0	
+UIChooseWarpWnd	124	1	00469f60	0046a0c0	0046a090	
+UIChooseWnd	132	1	0046a990	0046aa10	0046a9e0	
+UICntWnd	112	2	00458d10	00458d60	00458d30	
+UIColorButton		0	0043b5c0	0043b6a0	0043b670	
+UICombinedCardItemCollectionWnd	260	1	00468d00	00468d50	00468d20	
+UIComboBox	148	1	00443f30	00443f80	00443f50	
+UIComboBoxWnd	104	1	00475e80	00475ed0	00475ea0	
+UICompositionWnd	116	1	00487a20	00487a80	00487a50	
+UIDetailLevelWnd	132	1	00462890	004628e0	004628b0	
+UIEditCtrl	144	16	0043ddf0	0043dee0	0043deb0	
+UIEditCtrl2	144	2	0043f140	0043f190	0043f160	
+UIEditCtrlVarId	144	4		0047ec40	0047ec10	
+UIEditCtrlWheel	144	1		004990a0	00499070	
+UIEmailAddressWnd	104	1	004665e0	00466630	00466600	
+UIEmblemWnd	128	1	004413c0	00441520	004414f0	
+UIEmotionListWnd	248	1		004b13e0	004b13b0	
+UIEmotionWnd	192	1		004b13a0	004b1370	
+UIEquipWnd	128	1	0045f4e0	0045f540	0045f510	
+UIExchangeAcceptWnd	112	1	0046dbf0	0046dc40	0046dc10	
+UIExchangeWnd	176	1	00471650	00471730	00471700	
+UIFrameWnd		0	00448810	00448870	00448840	
+UIFriendOptionWnd	120	1	0049e9c0	0049ea10	0049e9e0	
+UIGage		0	00442c30	00442cf0	00442cc0	
+UIGraffiStrboxWnd	120	1	00477fb0	00478000	00477fd0	
+UIGuildBanReasonDescWnd	120	1	00483be0	00483c30	00483c00	
+UIGuildBanishedMemberWnd	240	1	00481770	004817e0	004817b0	
+UIGuildInfoManageWnd	200	1	00479cf0	00479e50	00479e20	
+UIGuildLeaveReasonDescWnd	108	1	004836d0	00483730	00483700	
+UIGuildMemberManageWnd	304	1	0047b620	0047b7d0	0047b7a0	
+UIGuildNoticeWnd	180	1	00482300	00482370	00482340	
+UIGuildPositionManageWnd	448	1	0047e0e0	0047e270	0047e240	
+UIGuildSkillWnd	276	1	0047ff60	00480070	00480040	
+UIGuildTotalInfoWnd	200	1	00482c60	00482cd0	00482ca0	
+UIGuildWnd		0		00479dd0	00479de0	
+UIIllustWnd	124	1	00486b70	00486bd0	00486ba0	
+UIItemBaseWnd		0	004890b0	00489170	00489140	
+UIItemCollectionWnd	256	1	00467710	00467810	004677e0	
+UIItemCompositionWnd	164	1	0046c4b0	0046c500	0046c4d0	
+UIItemDropCntWnd	108	1	00487f10	00487f60	00487f30	
+UIItemIdentifyWnd	156	1	0046b330	0046b3f0	0046b3c0	
+UIItemParamChangeDisplayWnd	156	1	004645e0	00464760	00464730	
+UIItemPurchaseWnd	164	1	0048d1d0	0048d230	0048d200	
+UIItemSellWnd	164	1	004901c0	00490220	004901f0	
+UIItemShopWnd	172	1	00489d70	00489de0	00489db0	
+UIItemStoreWnd	176	1	00494950	004949d0	004949a0	
+UIItemWnd	192	1	00493030	004930c0	00493090	
+UIJoinGuildAcceptWnd	112	1	0046f280	0046f2d0	0046f2a0	
+UIJoinPartyAcceptWnd	112	1	0046ef60	0046efb0	0046ef80	
+UIKeyStrokeWnd	100	1	00487c70	00487cc0	00487c90	
+UIListBox	144	6	004434b0	00443550	00443520	
+UILoadingWnd	108	1	0045bf60	0045bfb0	0045bf80	
+UILoginWnd	116	1	0044b090	0044b0e0	0044b0b0	
+UIMakeCharWnd	472	1	0044f0e0	0044f7f0	0044f7c0	
+UIMakeTargetListWnd	120	1	0049f670	0049f6d0	0049f6a0	
+UIMakeTargetProcessWnd	308	1	004a0c80	004a0d10	004a0ce0	
+UIMakeTargetResultWnd	108	1	004a1b20	004a1b70	004a1b40	
+UIMakingArrowListWnd	156	1	004763c0	00476410	004763e0	
+UIMemberListBox	176	1	00445280	004452d0	004452a0	
+UIMenuWnd	128	1	00475520	00475590	00475560	
+UIMerchantItemMyShopWnd	160	1	0048b280	0048b2e0	0048b2b0	
+UIMerchantItemPurchaseWnd	168	1	0048e8d0	0048e940	0048e910	
+UIMerchantItemShopWnd	168	1	0048bf30	0048bf90	0048bf60	
+UIMerchantItemWnd	164	1	00491850	004918b0	00491880	
+UIMerchantMirrorItemWnd	156	1	00492670	004926d0	004926a0	
+UIMerchantShopMakeWnd	220	1	00498900	004989e0	004989b0	
+UIMerchantShopTitle	84	1	00440ec0	00440f10	00440ee0	
+UIMessageBox	160	1	00449990	00449a20	004499f0	
+UIMessageBoxAutoreturn	160	1	00449040	004490d0	004490a0	
+UIMessengerGroupWnd	200	1	0049a060	0049a140	0049a110	
+UIMiniGameScoreWnd	180	1	004a3220	004a32e0	004a32b0	
+UIMiniGameWnd		0	004a2200	004a2260	004a2230	
+UIMinimapZoomWnd	100	1		004b12e0	004b12b0	
+UIMonsterInfoWnd	132	1	00456190	004561f0	004561c0	
+UINameBalloonText	128	3	0043cbd0	0043cc40	0043cc10	
+UINoneVisibleButton	112	2	0043b550	0043b5a0	0043b570	
+UINoticeConfirmWnd	108	1	0046d230	0046d280	0046d250	
+UINoticeWnd	292	1	0044bd60	0044be50	0044be20	
+UINotifyItemObtainWnd	212	1	00465330	004653e0	004653b0	
+UINotifyJobLevelUpWnd	100	1		004b1360	004b1330	
+UINotifyLevelUpWnd	100	1		004b1320	004b12f0	
+UINpcEditDialogWnd	108	1	004658f0	00465940	00465910	
+UINpcTextEditDialogWnd	108	1	00465ce0	00465d30	00465d00	
+UIOptionWnd	152	1	004635f0	00463640	00463610	
+UIPartySettingWnd	128	1	00472c00	00472c50	00472c20	
+UIPasswordWnd	112	1	004669d0	00466a20	004669f0	
+UIPcGage	168	2	00442e60	00442ee0	00442eb0	
+UIPetEggListWnd	156	1	00475fe0	00476030	00476000	
+UIPetInfoWnd	116	1	00456e90	00456ee0	00456eb0	
+UIPetTamingDeceiveWnd	132	1	004767a0	00476810	004767e0	
+UIPlayerGage	148	1	004431f0	00443260	00443230	
+UIProhibitListWnd	104	1	004786e0	00478730	00478700	
+UIQuitWnd	100	1	0046c900	0046c950	0046c920	
+UIRadioBtn	96	5	00440560	004405d0	004405a0	
+UIRechargeGage	144	1	00442d00	00442d60	00442d30	
+UIResizer	120	17	00440030	004400a0	00440070	
+UIRestartWnd	104	1	0046cd00	0046cd50	0046cd20	
+UISayDialogWnd	144	1	00466e50	00466f20	00466ef0	
+UIScrollBar	116	24	00445930	004459a0	00445970	
+UIScrollBar2	116	3	004464e0	00446530	00446500	
+UISelectCartWnd	120	1	00476ab0	00476b00	00476ad0	
+UISelectCharWnd	992	1	0044cf70	0044d230	0044d030	
+UISelectMiniGameWnd	128	1	004a2a90	004a2af0	004a2ac0	
+UISelectServerWnd	132	1	0044a6c0	0044a730	0044a700	
+UIShortCutWnd	432	1	0045ddc0	0045de20	0045ddf0	
+UIShowNeedItemListWnd		0	0049ff90	004a0050	004a0020	
+UISkillDescribeWnd	152	1	00468e90	00468f20	00468ef0	
+UISkillListWnd	252	1	00495eb0	00495fa0	00495f70	
+UISkillNameChangeWnd	124	1	004660a0	00466100	004660d0	
+UISlotBitmap	92	1	0043b010	0043b060	0043b030	
+UISpellListWnd		0	00477820	00477890	00477860	
+UISpriteButton	168	16	0043bd20	0043bdc0	0043bd90	
+UIStaticBitmap		0	0043a8b0	0043a960	0043a930	
+UIStaticText	144	40	00439b80	00439d70	00439d40	
+UIStatusWnd	132	1	00461770	004617d0	004617a0	
+UITab	76	1	00440420	00440470	00440440	
+UITalkboxTrapInputWnd	120	1	004585a0	004585f0	004585c0	
+UITextViewer	156	10	00445540	00445630	00445600	
+UITipOfTheDayWnd	112	1	0046e310	0046e360	0046e330	
+UIToolTipWnd	104	1	0045d990	0045d9f0	0045d9c0	
+UITransBalloonText	136	8	0043ca10	0043ca60	0043ca30	
+UIVerticalNameBalloonText	132	1		00516800	005167d0	
+UIWaitWnd	104	1	0045bda0	0045bdf0	0045bdc0	
+UIWebBrowserWnd	100	1		004b1450	004b1420	
+UIWhisperEditCtrl	164	1	0043f350	0043f3c0	0043f390	
+UIWhisperListWnd	196	1	0049ca60	0049cb20	0049caf0	
+UIWhisperWnd	152	1	00473880	00473900	004738d0	
+UIWindow		0	004a5600	004a56b0	004a5680	
+UIWindowMgr		0	004a7660	004a7ab0	004a7890	
+__non_rtti_object		0	005c3a3d,005c3a80	005c3a7b	005c3a5f	
+bad_cast		0	005c3cc7,005c3d00	005c3cfb	005c3cdf	
+bad_typeid		0	005c3a98,005c3b97	005c3acc	005c3ab0	
+exception		0	005c36bf,005c36fc	005c3765	005c36a3	
+mg::CArrow	236	1		004f0f10	004f0ee0	
+mg::CEntity		0	004f12a0	004f1320	004f12f0	
+mg::CMGEngine		0		004eb850	004eb6e0	
+mg::CMGNpc		0	004eb0e0	004eb250	004eb220	
+mg::CMGPc		0	004eb040	004eb0d0	004eb0a0	
+mg::CMap	176	1	004ee910	004eeae0	004eeab0	
+mg::CObject		0	004eea40,004f0f60,004f0fd0			
+mg::CScript		0	004f1880	004f1b70	004f1aa0	
+mg::CTile	36	1	004ee4e0	004ee540	004ee510	
+mg::mgType1::CItemObj	308	1	004ed840	004ed920	004ed8f0	
+mg::mgType1::CMapObj	140	1	004ef9b0	004efa10	004ef9e0	
+mg::mgType1::CMiniGame001	1108	1	004fec70	004fecc0	004fec90	
+mg::mgType1::CMonster	840	1	004f0020	004f0100	004f00d0	
+mg::mgType1::CPlayer	920	1	004f1530	004f1600	004f15d0	
+mg::mgType1::CWorld		0	004fcfc0	004fd1b0	004fd180	
+std::_Mpunct<char>		0		005beee4	005bef18	
+std::_Mpunct<unsigned_short>		0		005ba044	005ba078	
+std::bad_alloc		0	005b7d6c,005b7dc9	005b7d85	005b7dad	
+std::bad_cast		0	004e5b30,004e5bb0	004e5b50	004e5b80	
+std::basic_ios<char,std::char_traits<char>_>		0	00422e10	00422e00	004235b0	
+std::basic_iostream<char,std::char_traits<char>_>		0		005b3e49	005b3ea2	
+std::basic_istream<char,std::char_traits<char>_>		0		00422e00	004235e0	00422e00 named both std::basic_ios<char,std::char_traits<char>_>::~basic_ios<char,std::char_traits<char>_> and ~basic_istream<char,std::char_traits<char>_>
+std::basic_ostream<char,std::char_traits<char>_>		0		005b3ecd	005b3e83	
+std::basic_streambuf<char,std::char_traits<char>_>		0		00422ee0	00423620	
+std::codecvt<char,char,int>	16	1		005b6205	005b61e9	
+std::codecvt<unsigned_short,char,int>	16	1		005b8510	005b84f4	
+std::collate<char>	16	1		005beda6	005bed8a	
+std::collate<unsigned_short>	16	1		005b9f3c	005b9f20	
+std::ctype<char>	24	3	004e5c10	004e5e60	004e5e30	
+std::ctype<unsigned_short>	24	1		005b9e3c	005b9e20	
+std::ios_base		0		005b47de	005b482e	
+std::ios_base::failure		0	005b4671	005b45fb	005b4655	
+std::istrstream		0		005b349d	00422d70	
+std::length_error		0	005b33e8	005b3372	005b33cc	
+std::locale::_Locimp		0		005b4351	005b4335	
+std::locale::facet		0	004e5d30			
+std::logic_error		0		004eef60	004eefb0	
+std::messages<char>	16	1		005bedc9	005bedad	
+std::messages<unsigned_short>	16	1		005b9f5f	005b9f43	
+std::money_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	8	2		005bee08	005bedec	
+std::money_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	8	2		005b9f9e	005b9f82	
+std::money_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	8	2		005bee2b	005bee0f	
+std::money_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	8	2		005b9fc1	005b9fa5	
+std::moneypunct<char,0>	44	2		005beedf	005bee32	
+std::moneypunct<char,1>	44	2		005bef34	005bee4e	
+std::moneypunct<unsigned_short,0>	44	2		005ba03f	005b9fc8	
+std::moneypunct<unsigned_short,1>	44	2		005ba094	005b9fe4	
+std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	8	2		005b6228	005b620c	
+std::num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	8	2		005b9eae	005b9e92	
+std::num_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	8	2		005b624b	005b622f	
+std::num_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	8	2		005b9ed1	005b9eb5	
+std::numpunct<char>	24	1		005b626e	005b6252	
+std::numpunct<unsigned_short>	24	1		005b9ef4	005b9ed8	
+std::ostrstream		0		005b3621	005b35f6	
+std::out_of_range		0		004ef140	004ef1b0	
+std::runtime_error		0		005b4545	005b4582	
+std::strstream		0		005b3755	005b372a	
+std::strstreambuf		0	00422bb0	005b3798	00422ca0	
+std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	16	1		005bee86	005bee6a	
+std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	16	1		005ba01c	005ba000	
+std::time_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	12	1		005beec5	005beea9	
+std::time_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	12	1		005b9e78	005b9e5c	
+type_info		0		005c1963	005c198c	

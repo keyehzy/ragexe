@@ -1,5 +1,5 @@
 class	vftable	vfptr_offset	slot	target	function	note
-CDCSurface	005e25e0	0	0	00402fe0	CDCSurface::vf00	
+CDCSurface	005e25e0	0	0	00402fe0	CDCSurface::`scalar_deleting_destructor'	
 CDCSurface	005e25e0	0	1	00403130	CDCSurface::vf01	
 CDCSurface	005e25e0	0	2	004030c0	CDCSurface::vf02	
 CDCSurface	005e25e0	0	3	004030f0	CDCSurface::vf03	
@@ -8,16 +8,16 @@ CDCSurface	005e25e0	0	5	00403160	CDCSurface::vf05
 CDCSurface	005e25e0	0	6	004031a0	CDCSurface::vf06	
 CDCSurface	005e25e0	0	7	00403110	CDCSurface::vf07	
 CDCSurface	005e25e0	0	8	00403590	CDCSurface::vf08	
-CDC	005e2608	0	0	00402fb0	CDC::vf00	
-CDC	005e2608	0	1	005c195a	FUN_005c195a	shared:7-unrelated-classes
-CDC	005e2608	0	2	005c195a	FUN_005c195a	shared:7-unrelated-classes
-CDC	005e2608	0	3	005c195a	FUN_005c195a	shared:7-unrelated-classes
-CDC	005e2608	0	4	005c195a	FUN_005c195a	shared:7-unrelated-classes
-CDC	005e2608	0	5	005c195a	FUN_005c195a	shared:7-unrelated-classes
-CDC	005e2608	0	6	005c195a	FUN_005c195a	shared:7-unrelated-classes
-CDC	005e2608	0	7	005c195a	FUN_005c195a	shared:7-unrelated-classes
-CDC	005e2608	0	8	005c195a	FUN_005c195a	shared:7-unrelated-classes
-CDCBitmap	005e2630	0	0	00403650	CDCBitmap::vf00	
+CDC	005e2608	0	0	00402fb0	CDC::CDC	
+CDC	005e2608	0	1	005c195a	_purecall	shared:7-unrelated-classes
+CDC	005e2608	0	2	005c195a	_purecall	shared:7-unrelated-classes
+CDC	005e2608	0	3	005c195a	_purecall	shared:7-unrelated-classes
+CDC	005e2608	0	4	005c195a	_purecall	shared:7-unrelated-classes
+CDC	005e2608	0	5	005c195a	_purecall	shared:7-unrelated-classes
+CDC	005e2608	0	6	005c195a	_purecall	shared:7-unrelated-classes
+CDC	005e2608	0	7	005c195a	_purecall	shared:7-unrelated-classes
+CDC	005e2608	0	8	005c195a	_purecall	shared:7-unrelated-classes
+CDCBitmap	005e2630	0	0	00403650	CDCBitmap::`scalar_deleting_destructor'	
 CDCBitmap	005e2630	0	1	00403c40	CDCBitmap::vf01	
 CDCBitmap	005e2630	0	2	00403790	CDCBitmap::vf02	
 CDCBitmap	005e2630	0	3	004037b0	CDCBitmap::vf03	
@@ -26,55 +26,55 @@ CDCBitmap	005e2630	0	5	00403880	CDCBitmap::vf05
 CDCBitmap	005e2630	0	6	00403940	CDCBitmap::vf06	
 CDCBitmap	005e2630	0	7	004037c0	CDCBitmap::vf07	
 CDCBitmap	005e2630	0	8	00403d10	CDCBitmap::vf08	
-CSurface	005e26dc	0	0	004160b0	CSurface::vf00	
+CSurface	005e26dc	0	0	004160b0	CSurface::`scalar_deleting_destructor'	
 CSurface	005e26dc	0	1	00416130	CSurface::vf01	
 CSurface	005e26dc	0	2	00416330	CSurface::vf02	
 CSurface	005e26dc	0	3	004163c0	CSurface::vf03	
 CSurface	005e26dc	0	4	004163f0	CSurface::vf04	
-CSurfaceWallpaper	005e26f4	0	0	00416510	CSurfaceWallpaper::vf00	
+CSurfaceWallpaper	005e26f4	0	0	00416510	CSurfaceWallpaper::`scalar_deleting_destructor'	
 CSurfaceWallpaper	005e26f4	0	1	00416550	CSurfaceWallpaper::vf01	
 CSurfaceWallpaper	005e26f4	0	2	00416330	CSurface::vf02	
 CSurfaceWallpaper	005e26f4	0	3	004163c0	CSurface::vf03	
 CSurfaceWallpaper	005e26f4	0	4	004163f0	CSurface::vf04	
-CTexture	005e270c	0	0	00416680	CTexture::vf00	
+CTexture	005e270c	0	0	00416680	CTexture::`scalar_deleting_destructor'	
 CTexture	005e270c	0	1	00416990	CTexture::vf01	
 CTexture	005e270c	0	2	00416750	CTexture::vf02	
 CTexture	005e270c	0	3	00416f10	CTexture::vf03	
 CTexture	005e270c	0	4	00416fc0	CTexture::vf04	
-CConnection	005e2740	0	0	004182f0	CConnection::vf00	
+CConnection	005e2740	0	0	004182f0	CConnection::`scalar_deleting_destructor'	
 CConnection	005e2740	0	1	00418590	CConnection::vf01	
 CConnection	005e2740	0	2	004189f0	CConnection::vf02	
-CRagConnection	005e2750	0	0	00418ef0	CRagConnection::vf00	
+CRagConnection	005e2750	0	0	00418ef0	CRagConnection::`scalar_deleting_destructor'	
 CRagConnection	005e2750	0	1	00418f20	CRagConnection::vf01	
 CRagConnection	005e2750	0	2	00418f50	CRagConnection::vf02	
-CController	005e2760	0	0	0041dac0	CController::vf00	
+CController	005e2760	0	0	0041dac0	CController::CController	
 CController	005e2760	0	1	0041db10	CController::vf01	
 CController	005e2760	0	2	0041dab0	CController::vf02	
 CController	005e2760	0	3	0041db40	CController::vf03	
-CKeyPad	005e2774	0	0	0041dd70	CKeyPad::vf00	
+CKeyPad	005e2774	0	0	0041dd70	CKeyPad::`scalar_deleting_destructor'	
 CKeyPad	005e2774	0	1	0041db10	CController::vf01	
 CKeyPad	005e2774	0	2	0041ded0	CKeyPad::vf02	
 CKeyPad	005e2774	0	3	0041db40	CController::vf03	
-CActRes	005e27d8	0	0	00420930	CActRes::vf00	
+CActRes	005e27d8	0	0	00420930	CActRes::`scalar_deleting_destructor'	
 CActRes	005e27d8	0	1	00420880	CRes::vf01	
 CActRes	005e27d8	0	2	004208d0	CActRes::vf02	
 CActRes	005e27d8	0	3	00420f60	CActRes::vf03	
 CActRes	005e27d8	0	4	00420d60	CActRes::vf04	
 CActRes	005e27d8	0	5	004df9d0	CRes::vf05	
-CRes	005e27f4	0	0	004208a0	CRes::vf00	
+CRes	005e27f4	0	0	004208a0	CRes::CRes	
 CRes	005e27f4	0	1	00420880	CRes::vf01	
-CRes	005e27f4	0	2	005c195a	FUN_005c195a	shared:7-unrelated-classes
-CRes	005e27f4	0	3	005c195a	FUN_005c195a	shared:7-unrelated-classes
+CRes	005e27f4	0	2	005c195a	_purecall	shared:7-unrelated-classes
+CRes	005e27f4	0	3	005c195a	_purecall	shared:7-unrelated-classes
 CRes	005e27f4	0	4	00420890	CRes::vf04	
 CRes	005e27f4	0	5	004df9d0	CRes::vf05	
-CRmaRes	005e2818	0	0	00421c40	CRmaRes::vf00	
+CRmaRes	005e2818	0	0	00421c40	CRmaRes::`scalar_deleting_destructor'	
 CRmaRes	005e2818	0	1	00420880	CRes::vf01	
 CRmaRes	005e2818	0	2	00421be0	CRmaRes::vf02	
 CRmaRes	005e2818	0	3	004220d0	CRmaRes::vf03	
 CRmaRes	005e2818	0	4	00421e40	CRmaRes::vf04	
 CRmaRes	005e2818	0	5	004df9d0	CRes::vf05	
-std::istrstream	005e2834	88	0	00422d70	std::istrstream::vf00	
-std::strstreambuf	005e2844	0	0	00422ca0	std::strstreambuf::vf00	
+std::istrstream	005e2834	88	0	00422d70	std::istrstream::`scalar_deleting_destructor'	
+std::strstreambuf	005e2844	0	0	00422ca0	std::strstreambuf::`scalar_deleting_destructor'	
 std::strstreambuf	005e2844	0	1	005b381b	std::strstreambuf::vf01	
 std::strstreambuf	005e2844	0	2	005b3984	std::strstreambuf::vf02	
 std::strstreambuf	005e2844	0	3	00422f50	std::basic_streambuf<char,std::char_traits<char>_>::vf03	
@@ -87,9 +87,9 @@ std::strstreambuf	005e2844	0	9	005b3b56	std::strstreambuf::vf09
 std::strstreambuf	005e2844	0	10	00423130	std::basic_streambuf<char,std::char_traits<char>_>::vf10	
 std::strstreambuf	005e2844	0	11	00423140	std::basic_streambuf<char,std::char_traits<char>_>::vf11	
 std::strstreambuf	005e2844	0	12	00423150	std::basic_streambuf<char,std::char_traits<char>_>::vf12	
-std::basic_ios<char,std::char_traits<char>_>	005e287c	0	0	004235b0	std::basic_ios<char,std::char_traits<char>_>::vf00	
-std::basic_istream<char,std::char_traits<char>_>	005e2884	8	0	004235e0	std::basic_istream<char,std::char_traits<char>_>::vf00	
-std::basic_streambuf<char,std::char_traits<char>_>	005e2894	0	0	00423620	std::basic_streambuf<char,std::char_traits<char>_>::vf00	
+std::basic_ios<char,std::char_traits<char>_>	005e287c	0	0	004235b0	std::basic_ios<char,std::char_traits<char>_>::`scalar_deleting_destructor'	
+std::basic_istream<char,std::char_traits<char>_>	005e2884	8	0	004235e0	std::basic_istream<char,std::char_traits<char>_>::`scalar_deleting_destructor'	
+std::basic_streambuf<char,std::char_traits<char>_>	005e2894	0	0	00423620	std::basic_streambuf<char,std::char_traits<char>_>::`scalar_deleting_destructor'	
 std::basic_streambuf<char,std::char_traits<char>_>	005e2894	0	1	00422f30	std::basic_streambuf<char,std::char_traits<char>_>::vf01	
 std::basic_streambuf<char,std::char_traits<char>_>	005e2894	0	2	00422f40	std::basic_streambuf<char,std::char_traits<char>_>::vf02	
 std::basic_streambuf<char,std::char_traits<char>_>	005e2894	0	3	00422f50	std::basic_streambuf<char,std::char_traits<char>_>::vf03	
@@ -102,88 +102,88 @@ std::basic_streambuf<char,std::char_traits<char>_>	005e2894	0	9	00423110	std::ba
 std::basic_streambuf<char,std::char_traits<char>_>	005e2894	0	10	00423130	std::basic_streambuf<char,std::char_traits<char>_>::vf10	
 std::basic_streambuf<char,std::char_traits<char>_>	005e2894	0	11	00423140	std::basic_streambuf<char,std::char_traits<char>_>::vf11	
 std::basic_streambuf<char,std::char_traits<char>_>	005e2894	0	12	00423150	std::basic_streambuf<char,std::char_traits<char>_>::vf12	
-C3dAttr	005e28dc	0	0	00426b00	C3dAttr::vf00	
+C3dAttr	005e28dc	0	0	00426b00	C3dAttr::`scalar_deleting_destructor'	
 C3dAttr	005e28dc	0	1	00420880	CRes::vf01	
 C3dAttr	005e28dc	0	2	00426aa0	C3dAttr::vf02	
 C3dAttr	005e28dc	0	3	00426ec0	C3dAttr::vf03	
 C3dAttr	005e28dc	0	4	00426eb0	C3dAttr::vf04	
 C3dAttr	005e28dc	0	5	004df9d0	CRes::vf05	
-CBitmapRes	005e28f8	0	0	004276d0	CBitmapRes::vf00	
+CBitmapRes	005e28f8	0	0	004276d0	CBitmapRes::`scalar_deleting_destructor'	
 CBitmapRes	005e28f8	0	1	004278a0	CBitmapRes::vf01	
 CBitmapRes	005e28f8	0	2	00427670	CBitmapRes::vf02	
 CBitmapRes	005e28f8	0	3	004277f0	CBitmapRes::vf03	
 CBitmapRes	005e28f8	0	4	00427940	CBitmapRes::vf04	
 CBitmapRes	005e28f8	0	5	004df9d0	CRes::vf05	
-CEmblemRes	005e2914	0	0	00428440	CEmblemRes::vf00	
+CEmblemRes	005e2914	0	0	00428440	CEmblemRes::`scalar_deleting_destructor'	
 CEmblemRes	005e2914	0	1	00420880	CRes::vf01	
 CEmblemRes	005e2914	0	2	004283d0	CEmblemRes::vf02	
 CEmblemRes	005e2914	0	3	00428500	CEmblemRes::vf03	
 CEmblemRes	005e2914	0	4	00428670	CEmblemRes::vf04	
 CEmblemRes	005e2914	0	5	00428430	CEmblemRes::vf05	
-CEZeffectRes	005e294c	0	0	00428880	CEZeffectRes::vf00	
+CEZeffectRes	005e294c	0	0	00428880	CEZeffectRes::`scalar_deleting_destructor'	
 CEZeffectRes	005e294c	0	1	00420880	CRes::vf01	
 CEZeffectRes	005e294c	0	2	00428820	CEZeffectRes::vf02	
 CEZeffectRes	005e294c	0	3	00428b50	CEZeffectRes::vf03	
 CEZeffectRes	005e294c	0	4	00428b30	CEZeffectRes::vf04	
 CEZeffectRes	005e294c	0	5	004df9d0	CRes::vf05	
-CGndRes	005e2974	0	0	00428fb0	CGndRes::vf00	
+CGndRes	005e2974	0	0	00428fb0	CGndRes::`scalar_deleting_destructor'	
 CGndRes	005e2974	0	1	00420880	CRes::vf01	
 CGndRes	005e2974	0	2	00428f50	CGndRes::vf02	
 CGndRes	005e2974	0	3	00429200	CGndRes::vf03	
 CGndRes	005e2974	0	4	00429270	CGndRes::vf04	
 CGndRes	005e2974	0	5	004df9d0	CRes::vf05	
-CImfRes	005e2990	0	0	00429aa0	CImfRes::vf00	
+CImfRes	005e2990	0	0	00429aa0	CImfRes::`scalar_deleting_destructor'	
 CImfRes	005e2990	0	1	00420880	CRes::vf01	
 CImfRes	005e2990	0	2	00429a40	CImfRes::vf02	
 CImfRes	005e2990	0	3	00429c40	CImfRes::vf03	
 CImfRes	005e2990	0	4	00420890	CRes::vf04	
 CImfRes	005e2990	0	5	004df9d0	CRes::vf05	
-C3dModelRes	005e29c0	0	0	0042b800	C3dModelRes::vf00	
+C3dModelRes	005e29c0	0	0	0042b800	C3dModelRes::`scalar_deleting_destructor'	
 C3dModelRes	005e29c0	0	1	00420880	CRes::vf01	
 C3dModelRes	005e29c0	0	2	0042b7a0	C3dModelRes::vf02	
 C3dModelRes	005e29c0	0	3	0042be00	C3dModelRes::vf03	
 C3dModelRes	005e29c0	0	4	0042bc70	C3dModelRes::vf04	
 C3dModelRes	005e29c0	0	5	004df9d0	CRes::vf05	
-C3dAnimModelRes	005e29e4	0	0	0042db60	C3dAnimModelRes::vf00	
+C3dAnimModelRes	005e29e4	0	0	0042db60	C3dAnimModelRes::`scalar_deleting_destructor'	
 C3dAnimModelRes	005e29e4	0	1	00420880	CRes::vf01	
 C3dAnimModelRes	005e29e4	0	2	0042daf0	C3dAnimModelRes::vf02	
 C3dAnimModelRes	005e29e4	0	3	0042df00	C3dAnimModelRes::vf03	
 C3dAnimModelRes	005e29e4	0	4	0042db50	C3dAnimModelRes::vf04	
 C3dAnimModelRes	005e29e4	0	5	004df9d0	CRes::vf05	
-C3dGrannyModelRes	005e2a00	0	0	0042e9f0	C3dGrannyModelRes::vf00	
+C3dGrannyModelRes	005e2a00	0	0	0042e9f0	C3dGrannyModelRes::`scalar_deleting_destructor'	
 C3dGrannyModelRes	005e2a00	0	1	00420880	CRes::vf01	
 C3dGrannyModelRes	005e2a00	0	2	0042e980	C3dGrannyModelRes::vf02	
 C3dGrannyModelRes	005e2a00	0	3	0042eac0	C3dGrannyModelRes::vf03	
 C3dGrannyModelRes	005e2a00	0	4	0042e9e0	C3dGrannyModelRes::vf04	
 C3dGrannyModelRes	005e2a00	0	5	004df9d0	CRes::vf05	
-CPaletteRes	005e2a24	0	0	00432050	CPaletteRes::vf00	
+CPaletteRes	005e2a24	0	0	00432050	CPaletteRes::`scalar_deleting_destructor'	
 CPaletteRes	005e2a24	0	1	00420880	CRes::vf01	
 CPaletteRes	005e2a24	0	2	00431ff0	CPaletteRes::vf02	
 CPaletteRes	005e2a24	0	3	004320e0	CPaletteRes::vf03	
 CPaletteRes	005e2a24	0	4	004320d0	CPaletteRes::vf04	
 CPaletteRes	005e2a24	0	5	004df9d0	CRes::vf05	
-CSprRes	005e2a74	0	0	00433fe0	CSprRes::vf00	
+CSprRes	005e2a74	0	0	00433fe0	CSprRes::`scalar_deleting_destructor'	
 CSprRes	005e2a74	0	1	00420880	CRes::vf01	
 CSprRes	005e2a74	0	2	00433f80	CSprRes::vf02	
 CSprRes	005e2a74	0	3	004341d0	CSprRes::vf03	
 CSprRes	005e2a74	0	4	00434110	CSprRes::vf04	
 CSprRes	005e2a74	0	5	004df9d0	CRes::vf05	
-CWave	005e2a90	0	0	004353e0	CWave::vf00	
+CWave	005e2a90	0	0	004353e0	CWave::`scalar_deleting_destructor'	
 CWave	005e2a90	0	1	00420880	CRes::vf01	
 CWave	005e2a90	0	2	00435380	CWave::vf02	
 CWave	005e2a90	0	3	004354a0	CWave::vf03	
 CWave	005e2a90	0	4	00435460	CWave::vf04	
 CWave	005e2a90	0	5	004df9d0	CRes::vf05	
-C3dWorldRes	005e2ab8	0	0	004359a0	C3dWorldRes::vf00	
+C3dWorldRes	005e2ab8	0	0	004359a0	C3dWorldRes::`scalar_deleting_destructor'	
 C3dWorldRes	005e2ab8	0	1	00420880	CRes::vf01	
 C3dWorldRes	005e2ab8	0	2	00435940	C3dWorldRes::vf02	
 C3dWorldRes	005e2ab8	0	3	00435dd0	C3dWorldRes::vf03	
 C3dWorldRes	005e2ab8	0	4	00435c90	C3dWorldRes::vf04	
 C3dWorldRes	005e2ab8	0	5	004df9d0	CRes::vf05	
-CSkinMgr	005e2ae0	0	0	00437000	CSkinMgr::vf00	
-SnapObject	005e2af4	0	0	00438b30	SnapObject::vf00	
-CSnapMgr	005e2afc	0	0	00439210	CSnapMgr::vf00	
-UIStaticText	005e2b10	0	0	00439d40	UIStaticText::vf00	
+CSkinMgr	005e2ae0	0	0	00437000	CSkinMgr::`scalar_deleting_destructor'	
+SnapObject	005e2af4	0	0	00438b30	SnapObject::`scalar_deleting_destructor'	
+CSnapMgr	005e2afc	0	0	00439210	CSnapMgr::`scalar_deleting_destructor'	
+UIStaticText	005e2b10	0	0	00439d40	UIStaticText::`scalar_deleting_destructor'	
 UIStaticText	005e2b10	0	1	004a5b40	UIWindow::vf01	
 UIStaticText	005e2b10	0	2	00439bf0	UIWindow::vf02	
 UIStaticText	005e2b10	0	3	004a5910	UIWindow::vf03	
@@ -221,7 +221,7 @@ UIStaticText	005e2b10	0	34	00439d20	UIWindow::vf34
 UIStaticText	005e2b10	0	35	0043a830	UIStaticText::vf35	
 UIStaticText	005e2b10	0	36	00439d30	UIWindow::vf36	
 UIStaticText	005e2b10	0	37	004a6800	UIWindow::vf37	
-UIStaticBitmap	005e2bac	0	0	0043a930	UIStaticBitmap::vf00	
+UIStaticBitmap	005e2bac	0	0	0043a930	UIStaticBitmap::`scalar_deleting_destructor'	
 UIStaticBitmap	005e2bac	0	1	004a5b40	UIWindow::vf01	
 UIStaticBitmap	005e2bac	0	2	00439bf0	UIWindow::vf02	
 UIStaticBitmap	005e2bac	0	3	004a5910	UIWindow::vf03	
@@ -259,7 +259,7 @@ UIStaticBitmap	005e2bac	0	34	00439d20	UIWindow::vf34
 UIStaticBitmap	005e2bac	0	35	0043a920	UIWindow::vf35	
 UIStaticBitmap	005e2bac	0	36	00439d30	UIWindow::vf36	
 UIStaticBitmap	005e2bac	0	37	004a6800	UIWindow::vf37	
-UICheckBox	005e2c48	0	0	0043aba0	UICheckBox::vf00	
+UICheckBox	005e2c48	0	0	0043aba0	UICheckBox::`scalar_deleting_destructor'	
 UICheckBox	005e2c48	0	1	004a5b40	UIWindow::vf01	
 UICheckBox	005e2c48	0	2	00439bf0	UIWindow::vf02	
 UICheckBox	005e2c48	0	3	004a5910	UIWindow::vf03	
@@ -297,7 +297,7 @@ UICheckBox	005e2c48	0	34	00439d20	UIWindow::vf34
 UICheckBox	005e2c48	0	35	0043a920	UIWindow::vf35	
 UICheckBox	005e2c48	0	36	00439d30	UIWindow::vf36	
 UICheckBox	005e2c48	0	37	004a6800	UIWindow::vf37	
-UISlotBitmap	005e2ce4	0	0	0043b030	UISlotBitmap::vf00	
+UISlotBitmap	005e2ce4	0	0	0043b030	UISlotBitmap::`scalar_deleting_destructor'	
 UISlotBitmap	005e2ce4	0	1	004a5b40	UIWindow::vf01	
 UISlotBitmap	005e2ce4	0	2	00439bf0	UIWindow::vf02	
 UISlotBitmap	005e2ce4	0	3	004a5910	UIWindow::vf03	
@@ -335,7 +335,7 @@ UISlotBitmap	005e2ce4	0	34	00439d20	UIWindow::vf34
 UISlotBitmap	005e2ce4	0	35	0043a920	UIWindow::vf35	
 UISlotBitmap	005e2ce4	0	36	00439d30	UIWindow::vf36	
 UISlotBitmap	005e2ce4	0	37	0043b0c0	UISlotBitmap::vf37	
-UIButton	005e2d80	0	0	0043b140	UIButton::vf00	
+UIButton	005e2d80	0	0	0043b140	UIButton::`scalar_deleting_destructor'	
 UIButton	005e2d80	0	1	004a5b40	UIWindow::vf01	
 UIButton	005e2d80	0	2	00439bf0	UIWindow::vf02	
 UIButton	005e2d80	0	3	004a5910	UIWindow::vf03	
@@ -373,7 +373,7 @@ UIButton	005e2d80	0	34	00439d20	UIWindow::vf34
 UIButton	005e2d80	0	35	0043a920	UIWindow::vf35	
 UIButton	005e2d80	0	36	00439d30	UIWindow::vf36	
 UIButton	005e2d80	0	37	004a6800	UIWindow::vf37	
-UINoneVisibleButton	005e2e1c	0	0	0043b570	UINoneVisibleButton::vf00	
+UINoneVisibleButton	005e2e1c	0	0	0043b570	UINoneVisibleButton::`scalar_deleting_destructor'	
 UINoneVisibleButton	005e2e1c	0	1	004a5b40	UIWindow::vf01	
 UINoneVisibleButton	005e2e1c	0	2	00439bf0	UIWindow::vf02	
 UINoneVisibleButton	005e2e1c	0	3	004a5910	UIWindow::vf03	
@@ -411,7 +411,7 @@ UINoneVisibleButton	005e2e1c	0	34	00439d20	UIWindow::vf34
 UINoneVisibleButton	005e2e1c	0	35	0043a920	UIWindow::vf35	
 UINoneVisibleButton	005e2e1c	0	36	00439d30	UIWindow::vf36	
 UINoneVisibleButton	005e2e1c	0	37	004a6800	UIWindow::vf37	
-UIColorButton	005e2eb8	0	0	0043b670	UIColorButton::vf00	
+UIColorButton	005e2eb8	0	0	0043b670	UIColorButton::`scalar_deleting_destructor'	
 UIColorButton	005e2eb8	0	1	004a5b40	UIWindow::vf01	
 UIColorButton	005e2eb8	0	2	00439bf0	UIWindow::vf02	
 UIColorButton	005e2eb8	0	3	004a5910	UIWindow::vf03	
@@ -449,7 +449,7 @@ UIColorButton	005e2eb8	0	34	00439d20	UIWindow::vf34
 UIColorButton	005e2eb8	0	35	0043a920	UIWindow::vf35	
 UIColorButton	005e2eb8	0	36	00439d30	UIWindow::vf36	
 UIColorButton	005e2eb8	0	37	004a6800	UIWindow::vf37	
-UIBitmapButton	005e2f54	0	0	0043b950	UIBitmapButton::vf00	
+UIBitmapButton	005e2f54	0	0	0043b950	UIBitmapButton::`scalar_deleting_destructor'	
 UIBitmapButton	005e2f54	0	1	004a5b40	UIWindow::vf01	
 UIBitmapButton	005e2f54	0	2	00439bf0	UIWindow::vf02	
 UIBitmapButton	005e2f54	0	3	004a5910	UIWindow::vf03	
@@ -487,7 +487,7 @@ UIBitmapButton	005e2f54	0	34	00439d20	UIWindow::vf34
 UIBitmapButton	005e2f54	0	35	0043a920	UIWindow::vf35	
 UIBitmapButton	005e2f54	0	36	00439d30	UIWindow::vf36	
 UIBitmapButton	005e2f54	0	37	004a6800	UIWindow::vf37	
-UISpriteButton	005e2ff0	0	0	0043bd90	UISpriteButton::vf00	
+UISpriteButton	005e2ff0	0	0	0043bd90	UISpriteButton::`scalar_deleting_destructor'	
 UISpriteButton	005e2ff0	0	1	004a5b40	UIWindow::vf01	
 UISpriteButton	005e2ff0	0	2	00439bf0	UIWindow::vf02	
 UISpriteButton	005e2ff0	0	3	004a5910	UIWindow::vf03	
@@ -525,7 +525,7 @@ UISpriteButton	005e2ff0	0	34	00439d20	UIWindow::vf34
 UISpriteButton	005e2ff0	0	35	0043a920	UIWindow::vf35	
 UISpriteButton	005e2ff0	0	36	00439d30	UIWindow::vf36	
 UISpriteButton	005e2ff0	0	37	004a6800	UIWindow::vf37	
-UIBalloonText	005e3090	0	0	0043c5e0	UIBalloonText::vf00	
+UIBalloonText	005e3090	0	0	0043c5e0	UIBalloonText::`scalar_deleting_destructor'	
 UIBalloonText	005e3090	0	1	004a5b40	UIWindow::vf01	
 UIBalloonText	005e3090	0	2	00439bf0	UIWindow::vf02	
 UIBalloonText	005e3090	0	3	004a5910	UIWindow::vf03	
@@ -563,7 +563,7 @@ UIBalloonText	005e3090	0	34	00439d20	UIWindow::vf34
 UIBalloonText	005e3090	0	35	0043a920	UIWindow::vf35	
 UIBalloonText	005e3090	0	36	00439d30	UIWindow::vf36	
 UIBalloonText	005e3090	0	37	004a6800	UIWindow::vf37	
-UITransBalloonText	005e312c	0	0	0043ca30	UITransBalloonText::vf00	
+UITransBalloonText	005e312c	0	0	0043ca30	UITransBalloonText::`scalar_deleting_destructor'	
 UITransBalloonText	005e312c	0	1	004a5b40	UIWindow::vf01	
 UITransBalloonText	005e312c	0	2	00439bf0	UIWindow::vf02	
 UITransBalloonText	005e312c	0	3	0043caa0	UITransBalloonText::vf03	
@@ -601,7 +601,7 @@ UITransBalloonText	005e312c	0	34	00439d20	UIWindow::vf34
 UITransBalloonText	005e312c	0	35	0043a920	UIWindow::vf35	
 UITransBalloonText	005e312c	0	36	00439d30	UIWindow::vf36	
 UITransBalloonText	005e312c	0	37	004a6800	UIWindow::vf37	
-UINameBalloonText	005e31c8	0	0	0043cc10	UINameBalloonText::vf00	
+UINameBalloonText	005e31c8	0	0	0043cc10	UINameBalloonText::`scalar_deleting_destructor'	
 UINameBalloonText	005e31c8	0	1	004a5b40	UIWindow::vf01	
 UINameBalloonText	005e31c8	0	2	00439bf0	UIWindow::vf02	
 UINameBalloonText	005e31c8	0	3	004a5910	UIWindow::vf03	
@@ -642,7 +642,7 @@ UINameBalloonText	005e31c8	0	37	004a6800	UIWindow::vf37
 UINameBalloonText	005e31c8	0	38	0043d430	UINameBalloonText::vf38	
 UINameBalloonText	005e31c8	0	39	0043cdf0	UINameBalloonText::vf39	
 UINameBalloonText	005e31c8	0	40	0043cc90	UINameBalloonText::vf40	
-UIEditCtrl	005e3270	0	0	0043deb0	UIEditCtrl::vf00	
+UIEditCtrl	005e3270	0	0	0043deb0	UIEditCtrl::`scalar_deleting_destructor'	
 UIEditCtrl	005e3270	0	1	004a5b40	UIWindow::vf01	
 UIEditCtrl	005e3270	0	2	00439bf0	UIWindow::vf02	
 UIEditCtrl	005e3270	0	3	004a5910	UIWindow::vf03	
@@ -681,7 +681,7 @@ UIEditCtrl	005e3270	0	35	0043a920	UIWindow::vf35
 UIEditCtrl	005e3270	0	36	00439d30	UIWindow::vf36	
 UIEditCtrl	005e3270	0	37	0043f0f0	UIEditCtrl::vf37	
 UIEditCtrl	005e3270	0	38	0043e040	UIEditCtrl::vf38	
-UIEditCtrl2	005e3310	0	0	0043f160	UIEditCtrl2::vf00	
+UIEditCtrl2	005e3310	0	0	0043f160	UIEditCtrl2::`scalar_deleting_destructor'	
 UIEditCtrl2	005e3310	0	1	004a5b40	UIWindow::vf01	
 UIEditCtrl2	005e3310	0	2	00439bf0	UIWindow::vf02	
 UIEditCtrl2	005e3310	0	3	004a5910	UIWindow::vf03	
@@ -720,7 +720,7 @@ UIEditCtrl2	005e3310	0	35	0043a920	UIWindow::vf35
 UIEditCtrl2	005e3310	0	36	00439d30	UIWindow::vf36	
 UIEditCtrl2	005e3310	0	37	0043f1a0	UIEditCtrl2::vf37	
 UIEditCtrl2	005e3310	0	38	0043e040	UIEditCtrl::vf38	
-UIWhisperEditCtrl	005e33b0	0	0	0043f390	UIWhisperEditCtrl::vf00	
+UIWhisperEditCtrl	005e33b0	0	0	0043f390	UIWhisperEditCtrl::`scalar_deleting_destructor'	
 UIWhisperEditCtrl	005e33b0	0	1	004a5b40	UIWindow::vf01	
 UIWhisperEditCtrl	005e33b0	0	2	00439bf0	UIWindow::vf02	
 UIWhisperEditCtrl	005e33b0	0	3	004a5910	UIWindow::vf03	
@@ -759,7 +759,7 @@ UIWhisperEditCtrl	005e33b0	0	35	0043a920	UIWindow::vf35
 UIWhisperEditCtrl	005e33b0	0	36	00439d30	UIWindow::vf36	
 UIWhisperEditCtrl	005e33b0	0	37	0043f800	UIWhisperEditCtrl::vf37	
 UIWhisperEditCtrl	005e33b0	0	38	0043f490	UIWhisperEditCtrl::vf38	
-UIChatEditCtrl	005e3450	0	0	0043fb40	UIChatEditCtrl::vf00	
+UIChatEditCtrl	005e3450	0	0	0043fb40	UIChatEditCtrl::`scalar_deleting_destructor'	
 UIChatEditCtrl	005e3450	0	1	004a5b40	UIWindow::vf01	
 UIChatEditCtrl	005e3450	0	2	00439bf0	UIWindow::vf02	
 UIChatEditCtrl	005e3450	0	3	004a5910	UIWindow::vf03	
@@ -798,7 +798,7 @@ UIChatEditCtrl	005e3450	0	35	0043a920	UIWindow::vf35
 UIChatEditCtrl	005e3450	0	36	00439d30	UIWindow::vf36	
 UIChatEditCtrl	005e3450	0	37	0043fc60	UIChatEditCtrl::vf37	
 UIChatEditCtrl	005e3450	0	38	0043e040	UIEditCtrl::vf38	
-UIResizer	005e34f0	0	0	00440070	UIResizer::vf00	
+UIResizer	005e34f0	0	0	00440070	UIResizer::`scalar_deleting_destructor'	
 UIResizer	005e34f0	0	1	004a5b40	UIWindow::vf01	
 UIResizer	005e34f0	0	2	00439bf0	UIWindow::vf02	
 UIResizer	005e34f0	0	3	004a5910	UIWindow::vf03	
@@ -836,7 +836,7 @@ UIResizer	005e34f0	0	34	00439d20	UIWindow::vf34
 UIResizer	005e34f0	0	35	0043a920	UIWindow::vf35	
 UIResizer	005e34f0	0	36	00439d30	UIWindow::vf36	
 UIResizer	005e34f0	0	37	004a6800	UIWindow::vf37	
-UITab	005e358c	0	0	00440440	UITab::vf00	
+UITab	005e358c	0	0	00440440	UITab::`scalar_deleting_destructor'	
 UITab	005e358c	0	1	004a5b40	UIWindow::vf01	
 UITab	005e358c	0	2	00439bf0	UIWindow::vf02	
 UITab	005e358c	0	3	004a5910	UIWindow::vf03	
@@ -874,7 +874,7 @@ UITab	005e358c	0	34	00439d20	UIWindow::vf34
 UITab	005e358c	0	35	0043a920	UIWindow::vf35	
 UITab	005e358c	0	36	00439d30	UIWindow::vf36	
 UITab	005e358c	0	37	00440540	UITab::vf37	
-UIRadioBtn	005e3628	0	0	004405a0	UIRadioBtn::vf00	
+UIRadioBtn	005e3628	0	0	004405a0	UIRadioBtn::`scalar_deleting_destructor'	
 UIRadioBtn	005e3628	0	1	004a5b40	UIWindow::vf01	
 UIRadioBtn	005e3628	0	2	00439bf0	UIWindow::vf02	
 UIRadioBtn	005e3628	0	3	004a5910	UIWindow::vf03	
@@ -912,7 +912,7 @@ UIRadioBtn	005e3628	0	34	00439d20	UIWindow::vf34
 UIRadioBtn	005e3628	0	35	0043a920	UIWindow::vf35	
 UIRadioBtn	005e3628	0	36	00439d30	UIWindow::vf36	
 UIRadioBtn	005e3628	0	37	004407c0	UIRadioBtn::vf37	
-UIChatRoomTitle	005e36c4	0	0	00440820	UIChatRoomTitle::vf00	
+UIChatRoomTitle	005e36c4	0	0	00440820	UIChatRoomTitle::`scalar_deleting_destructor'	
 UIChatRoomTitle	005e36c4	0	1	004a5b40	UIWindow::vf01	
 UIChatRoomTitle	005e36c4	0	2	00439bf0	UIWindow::vf02	
 UIChatRoomTitle	005e36c4	0	3	004a5910	UIWindow::vf03	
@@ -950,7 +950,7 @@ UIChatRoomTitle	005e36c4	0	34	00439d20	UIWindow::vf34
 UIChatRoomTitle	005e36c4	0	35	0043a920	UIWindow::vf35	
 UIChatRoomTitle	005e36c4	0	36	00439d30	UIWindow::vf36	
 UIChatRoomTitle	005e36c4	0	37	00440c50	UIChatRoomTitle::vf37	
-UIMerchantShopTitle	005e3760	0	0	00440ee0	UIMerchantShopTitle::vf00	
+UIMerchantShopTitle	005e3760	0	0	00440ee0	UIMerchantShopTitle::`scalar_deleting_destructor'	
 UIMerchantShopTitle	005e3760	0	1	004a5b40	UIWindow::vf01	
 UIMerchantShopTitle	005e3760	0	2	00439bf0	UIWindow::vf02	
 UIMerchantShopTitle	005e3760	0	3	004a5910	UIWindow::vf03	
@@ -988,7 +988,7 @@ UIMerchantShopTitle	005e3760	0	34	00439d20	UIWindow::vf34
 UIMerchantShopTitle	005e3760	0	35	0043a920	UIWindow::vf35	
 UIMerchantShopTitle	005e3760	0	36	00439d30	UIWindow::vf36	
 UIMerchantShopTitle	005e3760	0	37	00441260	UIMerchantShopTitle::vf37	
-UIEmblemWnd	005e37fc	0	0	004414f0	UIEmblemWnd::vf00	
+UIEmblemWnd	005e37fc	0	0	004414f0	UIEmblemWnd::`scalar_deleting_destructor'	
 UIEmblemWnd	005e37fc	0	1	004a5b40	UIWindow::vf01	
 UIEmblemWnd	005e37fc	0	2	00439bf0	UIWindow::vf02	
 UIEmblemWnd	005e37fc	0	3	004a5910	UIWindow::vf03	
@@ -1026,7 +1026,7 @@ UIEmblemWnd	005e37fc	0	34	00439d20	UIWindow::vf34
 UIEmblemWnd	005e37fc	0	35	0043a920	UIWindow::vf35	
 UIEmblemWnd	005e37fc	0	36	00448880	UIFrameWnd::vf36	
 UIEmblemWnd	005e37fc	0	37	004415e0	UIEmblemWnd::vf37	
-UIBarGraph	005e38a4	0	0	00441d30	UIBarGraph::vf00	
+UIBarGraph	005e38a4	0	0	00441d30	UIBarGraph::`scalar_deleting_destructor'	
 UIBarGraph	005e38a4	0	1	004a5b40	UIWindow::vf01	
 UIBarGraph	005e38a4	0	2	00439bf0	UIWindow::vf02	
 UIBarGraph	005e38a4	0	3	004a5910	UIWindow::vf03	
@@ -1064,7 +1064,7 @@ UIBarGraph	005e38a4	0	34	00439d20	UIWindow::vf34
 UIBarGraph	005e38a4	0	35	0043a920	UIWindow::vf35	
 UIBarGraph	005e38a4	0	36	00439d30	UIWindow::vf36	
 UIBarGraph	005e38a4	0	37	004a6800	UIWindow::vf37	
-UIBarGraph2	005e3944	0	0	004420b0	UIBarGraph2::vf00	
+UIBarGraph2	005e3944	0	0	004420b0	UIBarGraph2::`scalar_deleting_destructor'	
 UIBarGraph2	005e3944	0	1	004a5b40	UIWindow::vf01	
 UIBarGraph2	005e3944	0	2	00439bf0	UIWindow::vf02	
 UIBarGraph2	005e3944	0	3	004a5910	UIWindow::vf03	
@@ -1102,7 +1102,7 @@ UIBarGraph2	005e3944	0	34	00439d20	UIWindow::vf34
 UIBarGraph2	005e3944	0	35	0043a920	UIWindow::vf35	
 UIBarGraph2	005e3944	0	36	00439d30	UIWindow::vf36	
 UIBarGraph2	005e3944	0	37	004a6800	UIWindow::vf37	
-UIBarGraph3	005e39e4	0	0	00442280	UIBarGraph3::vf00	
+UIBarGraph3	005e39e4	0	0	00442280	UIBarGraph3::`scalar_deleting_destructor'	
 UIBarGraph3	005e39e4	0	1	004a5b40	UIWindow::vf01	
 UIBarGraph3	005e39e4	0	2	00439bf0	UIWindow::vf02	
 UIBarGraph3	005e39e4	0	3	004a5910	UIWindow::vf03	
@@ -1122,7 +1122,7 @@ UIBarGraph3	005e39e4	0	16	00439c90	UIWindow::vf16
 UIBarGraph3	005e39e4	0	17	00439ca0	UIWindow::vf17	
 UIBarGraph3	005e39e4	0	18	00439cb0	UIWindow::vf18	
 UIBarGraph3	005e39e4	0	19	00439cc0	UIWindow::vf19	
-UIBarGraph3	005e39e4	0	20	005c195a	FUN_005c195a	shared:7-unrelated-classes
+UIBarGraph3	005e39e4	0	20	005c195a	_purecall	shared:7-unrelated-classes
 UIBarGraph3	005e39e4	0	21	00439cd0	UIWindow::vf21	
 UIBarGraph3	005e39e4	0	22	00439ce0	UIWindow::vf22	
 UIBarGraph3	005e39e4	0	23	00439cf0	UIWindow::vf23	
@@ -1140,7 +1140,7 @@ UIBarGraph3	005e39e4	0	34	00439d20	UIWindow::vf34
 UIBarGraph3	005e39e4	0	35	0043a920	UIWindow::vf35	
 UIBarGraph3	005e39e4	0	36	00439d30	UIWindow::vf36	
 UIBarGraph3	005e39e4	0	37	004a6800	UIWindow::vf37	
-UIBarGraphPlayerHp	005e3a80	0	0	00442300	UIBarGraphPlayerHp::vf00	
+UIBarGraphPlayerHp	005e3a80	0	0	00442300	UIBarGraphPlayerHp::`scalar_deleting_destructor'	
 UIBarGraphPlayerHp	005e3a80	0	1	004a5b40	UIWindow::vf01	
 UIBarGraphPlayerHp	005e3a80	0	2	00439bf0	UIWindow::vf02	
 UIBarGraphPlayerHp	005e3a80	0	3	004a5910	UIWindow::vf03	
@@ -1178,7 +1178,7 @@ UIBarGraphPlayerHp	005e3a80	0	34	00439d20	UIWindow::vf34
 UIBarGraphPlayerHp	005e3a80	0	35	0043a920	UIWindow::vf35	
 UIBarGraphPlayerHp	005e3a80	0	36	00439d30	UIWindow::vf36	
 UIBarGraphPlayerHp	005e3a80	0	37	004a6800	UIWindow::vf37	
-UIBarGraphPlayerSp	005e3b1c	0	0	004426b0	UIBarGraphPlayerSp::vf00	
+UIBarGraphPlayerSp	005e3b1c	0	0	004426b0	UIBarGraphPlayerSp::`scalar_deleting_destructor'	
 UIBarGraphPlayerSp	005e3b1c	0	1	004a5b40	UIWindow::vf01	
 UIBarGraphPlayerSp	005e3b1c	0	2	00439bf0	UIWindow::vf02	
 UIBarGraphPlayerSp	005e3b1c	0	3	004a5910	UIWindow::vf03	
@@ -1216,7 +1216,7 @@ UIBarGraphPlayerSp	005e3b1c	0	34	00439d20	UIWindow::vf34
 UIBarGraphPlayerSp	005e3b1c	0	35	0043a920	UIWindow::vf35	
 UIBarGraphPlayerSp	005e3b1c	0	36	00439d30	UIWindow::vf36	
 UIBarGraphPlayerSp	005e3b1c	0	37	004a6800	UIWindow::vf37	
-UIGage	005e3bc4	0	0	00442cc0	UIGage::vf00	
+UIGage	005e3bc4	0	0	00442cc0	UIGage::`scalar_deleting_destructor'	
 UIGage	005e3bc4	0	1	004a5b40	UIWindow::vf01	
 UIGage	005e3bc4	0	2	00439bf0	UIWindow::vf02	
 UIGage	005e3bc4	0	3	004a5910	UIWindow::vf03	
@@ -1254,7 +1254,7 @@ UIGage	005e3bc4	0	34	00439d20	UIWindow::vf34
 UIGage	005e3bc4	0	35	0043a920	UIWindow::vf35	
 UIGage	005e3bc4	0	36	00439d30	UIWindow::vf36	
 UIGage	005e3bc4	0	37	004a6800	UIWindow::vf37	
-UIRechargeGage	005e3c60	0	0	00442d30	UIRechargeGage::vf00	
+UIRechargeGage	005e3c60	0	0	00442d30	UIRechargeGage::`scalar_deleting_destructor'	
 UIRechargeGage	005e3c60	0	1	004a5b40	UIWindow::vf01	
 UIRechargeGage	005e3c60	0	2	00439bf0	UIWindow::vf02	
 UIRechargeGage	005e3c60	0	3	004a5910	UIWindow::vf03	
@@ -1292,7 +1292,7 @@ UIRechargeGage	005e3c60	0	34	00439d20	UIWindow::vf34
 UIRechargeGage	005e3c60	0	35	0043a920	UIWindow::vf35	
 UIRechargeGage	005e3c60	0	36	00439d30	UIWindow::vf36	
 UIRechargeGage	005e3c60	0	37	004a6800	UIWindow::vf37	
-UIPcGage	005e3d00	0	0	00442eb0	UIPcGage::vf00	
+UIPcGage	005e3d00	0	0	00442eb0	UIPcGage::`scalar_deleting_destructor'	
 UIPcGage	005e3d00	0	1	004a5b40	UIWindow::vf01	
 UIPcGage	005e3d00	0	2	00439bf0	UIWindow::vf02	
 UIPcGage	005e3d00	0	3	004a5910	UIWindow::vf03	
@@ -1330,7 +1330,7 @@ UIPcGage	005e3d00	0	34	00439d20	UIWindow::vf34
 UIPcGage	005e3d00	0	35	0043a920	UIWindow::vf35	
 UIPcGage	005e3d00	0	36	00439d30	UIWindow::vf36	
 UIPcGage	005e3d00	0	37	004a6800	UIWindow::vf37	
-UIPlayerGage	005e3d9c	0	0	00443230	UIPlayerGage::vf00	
+UIPlayerGage	005e3d9c	0	0	00443230	UIPlayerGage::`scalar_deleting_destructor'	
 UIPlayerGage	005e3d9c	0	1	004a5b40	UIWindow::vf01	
 UIPlayerGage	005e3d9c	0	2	00439bf0	UIWindow::vf02	
 UIPlayerGage	005e3d9c	0	3	004a5910	UIWindow::vf03	
@@ -1368,7 +1368,7 @@ UIPlayerGage	005e3d9c	0	34	00439d20	UIWindow::vf34
 UIPlayerGage	005e3d9c	0	35	0043a920	UIWindow::vf35	
 UIPlayerGage	005e3d9c	0	36	00439d30	UIWindow::vf36	
 UIPlayerGage	005e3d9c	0	37	004a6800	UIWindow::vf37	
-UIListBox	005e3e38	0	0	00443520	UIListBox::vf00	
+UIListBox	005e3e38	0	0	00443520	UIListBox::`scalar_deleting_destructor'	
 UIListBox	005e3e38	0	1	004a5b40	UIWindow::vf01	
 UIListBox	005e3e38	0	2	00439bf0	UIWindow::vf02	
 UIListBox	005e3e38	0	3	00443700	UIListBox::vf03	
@@ -1410,7 +1410,7 @@ UIListBox	005e3e38	0	38	004435d0	UIListBox::vf38
 UIListBox	005e3e38	0	39	00443c70	UIListBox::vf39	
 UIListBox	005e3e38	0	40	00443e30	UIListBox::vf40	
 UIListBox	005e3e38	0	41	00443d80	UIListBox::vf41	
-UIComboBox	005e3ee4	0	0	00443f50	UIComboBox::vf00	
+UIComboBox	005e3ee4	0	0	00443f50	UIComboBox::`scalar_deleting_destructor'	
 UIComboBox	005e3ee4	0	1	004a5b40	UIWindow::vf01	
 UIComboBox	005e3ee4	0	2	00439bf0	UIWindow::vf02	
 UIComboBox	005e3ee4	0	3	00444420	UIComboBox::vf03	
@@ -1452,7 +1452,7 @@ UIComboBox	005e3ee4	0	38	00443f90	UIComboBox::vf38
 UIComboBox	005e3ee4	0	39	00443c70	UIListBox::vf39	
 UIComboBox	005e3ee4	0	40	00443e30	UIListBox::vf40	
 UIComboBox	005e3ee4	0	41	00443fd0	UIComboBox::vf41	
-UIChatHisBox	005e3f90	0	0	004448b0	UIChatHisBox::vf00	
+UIChatHisBox	005e3f90	0	0	004448b0	UIChatHisBox::`scalar_deleting_destructor'	
 UIChatHisBox	005e3f90	0	1	004a5b40	UIWindow::vf01	
 UIChatHisBox	005e3f90	0	2	00439bf0	UIWindow::vf02	
 UIChatHisBox	005e3f90	0	3	00444a40	UIChatHisBox::vf03	
@@ -1495,7 +1495,7 @@ UIChatHisBox	005e3f90	0	39	00443c70	UIListBox::vf39
 UIChatHisBox	005e3f90	0	40	00444d90	UIChatHisBox::vf40	
 UIChatHisBox	005e3f90	0	41	00443d80	UIListBox::vf41	
 UIChatHisBox	005e3f90	0	42	00444cb0	UIChatHisBox::vf42	
-UIChatHisBox2	005e4040	0	0	00445030	UIChatHisBox2::vf00	
+UIChatHisBox2	005e4040	0	0	00445030	UIChatHisBox2::`scalar_deleting_destructor'	
 UIChatHisBox2	005e4040	0	1	004a5b40	UIWindow::vf01	
 UIChatHisBox2	005e4040	0	2	00439bf0	UIWindow::vf02	
 UIChatHisBox2	005e4040	0	3	00444a40	UIChatHisBox::vf03	
@@ -1538,7 +1538,7 @@ UIChatHisBox2	005e4040	0	39	00443c70	UIListBox::vf39
 UIChatHisBox2	005e4040	0	40	00444d90	UIChatHisBox::vf40	
 UIChatHisBox2	005e4040	0	41	00443d80	UIListBox::vf41	
 UIChatHisBox2	005e4040	0	42	00444cb0	UIChatHisBox::vf42	
-UIMemberListBox	005e40f0	0	0	004452a0	UIMemberListBox::vf00	
+UIMemberListBox	005e40f0	0	0	004452a0	UIMemberListBox::`scalar_deleting_destructor'	
 UIMemberListBox	005e40f0	0	1	004a5b40	UIWindow::vf01	
 UIMemberListBox	005e40f0	0	2	00439bf0	UIWindow::vf02	
 UIMemberListBox	005e40f0	0	3	00444a40	UIChatHisBox::vf03	
@@ -1581,7 +1581,7 @@ UIMemberListBox	005e40f0	0	39	00443c70	UIListBox::vf39
 UIMemberListBox	005e40f0	0	40	00444d90	UIChatHisBox::vf40	
 UIMemberListBox	005e40f0	0	41	00443d80	UIListBox::vf41	
 UIMemberListBox	005e40f0	0	42	00444cb0	UIChatHisBox::vf42	
-UITextViewer	005e41a0	0	0	00445600	UITextViewer::vf00	
+UITextViewer	005e41a0	0	0	00445600	UITextViewer::`scalar_deleting_destructor'	
 UITextViewer	005e41a0	0	1	004a5b40	UIWindow::vf01	
 UITextViewer	005e41a0	0	2	00439bf0	UIWindow::vf02	
 UITextViewer	005e41a0	0	3	00443700	UIListBox::vf03	
@@ -1623,7 +1623,7 @@ UITextViewer	005e41a0	0	38	00445640	UITextViewer::vf38
 UITextViewer	005e41a0	0	39	00443c70	UIListBox::vf39	
 UITextViewer	005e41a0	0	40	00443e30	UIListBox::vf40	
 UITextViewer	005e41a0	0	41	00443d80	UIListBox::vf41	
-UIScrollBar	005e424c	0	0	00445970	UIScrollBar::vf00	
+UIScrollBar	005e424c	0	0	00445970	UIScrollBar::`scalar_deleting_destructor'	
 UIScrollBar	005e424c	0	1	004a5b40	UIWindow::vf01	
 UIScrollBar	005e424c	0	2	00439bf0	UIWindow::vf02	
 UIScrollBar	005e424c	0	3	00445a90	UIScrollBar::vf03	
@@ -1661,7 +1661,7 @@ UIScrollBar	005e424c	0	34	00439d20	UIWindow::vf34
 UIScrollBar	005e424c	0	35	00445a00	UIScrollBar::vf35	
 UIScrollBar	005e424c	0	36	00439d30	UIWindow::vf36	
 UIScrollBar	005e424c	0	37	004a6800	UIWindow::vf37	
-UIScrollBar2	005e42e8	0	0	00446500	UIScrollBar2::vf00	
+UIScrollBar2	005e42e8	0	0	00446500	UIScrollBar2::`scalar_deleting_destructor'	
 UIScrollBar2	005e42e8	0	1	004a5b40	UIWindow::vf01	
 UIScrollBar2	005e42e8	0	2	00439bf0	UIWindow::vf02	
 UIScrollBar2	005e42e8	0	3	00445a90	UIScrollBar::vf03	
@@ -1699,7 +1699,7 @@ UIScrollBar2	005e42e8	0	34	00439d20	UIWindow::vf34
 UIScrollBar2	005e42e8	0	35	00445a00	UIScrollBar::vf35	
 UIScrollBar2	005e42e8	0	36	00439d30	UIWindow::vf36	
 UIScrollBar2	005e42e8	0	37	004a6800	UIWindow::vf37	
-UIFrameWnd	005e43a8	0	0	00448840	UIFrameWnd::vf00	
+UIFrameWnd	005e43a8	0	0	00448840	UIFrameWnd::`scalar_deleting_destructor'	
 UIFrameWnd	005e43a8	0	1	004a5b40	UIWindow::vf01	
 UIFrameWnd	005e43a8	0	2	00439bf0	UIWindow::vf02	
 UIFrameWnd	005e43a8	0	3	004a5910	UIWindow::vf03	
@@ -1737,7 +1737,7 @@ UIFrameWnd	005e43a8	0	34	00439d20	UIWindow::vf34
 UIFrameWnd	005e43a8	0	35	0043a920	UIWindow::vf35	
 UIFrameWnd	005e43a8	0	36	00448880	UIFrameWnd::vf36	
 UIFrameWnd	005e43a8	0	37	00448b00	UIFrameWnd::vf37	
-UIMessageBoxAutoreturn	005e4444	0	0	004490a0	UIMessageBoxAutoreturn::vf00	
+UIMessageBoxAutoreturn	005e4444	0	0	004490a0	UIMessageBoxAutoreturn::`scalar_deleting_destructor'	
 UIMessageBoxAutoreturn	005e4444	0	1	004a5b40	UIWindow::vf01	
 UIMessageBoxAutoreturn	005e4444	0	2	00439bf0	UIWindow::vf02	
 UIMessageBoxAutoreturn	005e4444	0	3	004a5910	UIWindow::vf03	
@@ -1775,7 +1775,7 @@ UIMessageBoxAutoreturn	005e4444	0	34	00439d20	UIWindow::vf34
 UIMessageBoxAutoreturn	005e4444	0	35	0043a920	UIWindow::vf35	
 UIMessageBoxAutoreturn	005e4444	0	36	00448880	UIFrameWnd::vf36	
 UIMessageBoxAutoreturn	005e4444	0	37	00449950	UIMessageBoxAutoreturn::vf37	
-UIMessageBox	005e44e0	0	0	004499f0	UIMessageBox::vf00	
+UIMessageBox	005e44e0	0	0	004499f0	UIMessageBox::`scalar_deleting_destructor'	
 UIMessageBox	005e44e0	0	1	004a5b40	UIWindow::vf01	
 UIMessageBox	005e44e0	0	2	00439bf0	UIWindow::vf02	
 UIMessageBox	005e44e0	0	3	004a5910	UIWindow::vf03	
@@ -1813,7 +1813,7 @@ UIMessageBox	005e44e0	0	34	00439d20	UIWindow::vf34
 UIMessageBox	005e44e0	0	35	0043a920	UIWindow::vf35	
 UIMessageBox	005e44e0	0	36	00448880	UIFrameWnd::vf36	
 UIMessageBox	005e44e0	0	37	0044a590	UIMessageBox::vf37	
-UISelectServerWnd	005e457c	0	0	0044a700	UISelectServerWnd::vf00	
+UISelectServerWnd	005e457c	0	0	0044a700	UISelectServerWnd::`scalar_deleting_destructor'	
 UISelectServerWnd	005e457c	0	1	004a5b40	UIWindow::vf01	
 UISelectServerWnd	005e457c	0	2	00439bf0	UIWindow::vf02	
 UISelectServerWnd	005e457c	0	3	004a5910	UIWindow::vf03	
@@ -1851,7 +1851,7 @@ UISelectServerWnd	005e457c	0	34	00439d20	UIWindow::vf34
 UISelectServerWnd	005e457c	0	35	0043a920	UIWindow::vf35	
 UISelectServerWnd	005e457c	0	36	00448880	UIFrameWnd::vf36	
 UISelectServerWnd	005e457c	0	37	0044ae00	UISelectServerWnd::vf37	
-UILoginWnd	005e4618	0	0	0044b0b0	UILoginWnd::vf00	
+UILoginWnd	005e4618	0	0	0044b0b0	UILoginWnd::`scalar_deleting_destructor'	
 UILoginWnd	005e4618	0	1	004a5b40	UIWindow::vf01	
 UILoginWnd	005e4618	0	2	00439bf0	UIWindow::vf02	
 UILoginWnd	005e4618	0	3	004a5910	UIWindow::vf03	
@@ -1889,7 +1889,7 @@ UILoginWnd	005e4618	0	34	00439d20	UIWindow::vf34
 UILoginWnd	005e4618	0	35	0043a920	UIWindow::vf35	
 UILoginWnd	005e4618	0	36	00448880	UIFrameWnd::vf36	
 UILoginWnd	005e4618	0	37	0044bad0	UILoginWnd::vf37	
-UINoticeWnd	005e46b4	0	0	0044be20	UINoticeWnd::vf00	
+UINoticeWnd	005e46b4	0	0	0044be20	UINoticeWnd::`scalar_deleting_destructor'	
 UINoticeWnd	005e46b4	0	1	004a5b40	UIWindow::vf01	
 UINoticeWnd	005e46b4	0	2	00439bf0	UIWindow::vf02	
 UINoticeWnd	005e46b4	0	3	004a5910	UIWindow::vf03	
@@ -1927,7 +1927,7 @@ UINoticeWnd	005e46b4	0	34	00439d20	UIWindow::vf34
 UINoticeWnd	005e46b4	0	35	0044caf0	UINoticeWnd::vf35	
 UINoticeWnd	005e46b4	0	36	00448880	UIFrameWnd::vf36	
 UINoticeWnd	005e46b4	0	37	0044cb30	UINoticeWnd::vf37	
-UISelectCharWnd	005e4750	0	0	0044d030	UISelectCharWnd::vf00	
+UISelectCharWnd	005e4750	0	0	0044d030	UISelectCharWnd::`scalar_deleting_destructor'	
 UISelectCharWnd	005e4750	0	1	004a5b40	UIWindow::vf01	
 UISelectCharWnd	005e4750	0	2	0044dac0	UISelectCharWnd::vf02	
 UISelectCharWnd	005e4750	0	3	004a5910	UIWindow::vf03	
@@ -1965,7 +1965,7 @@ UISelectCharWnd	005e4750	0	34	00439d20	UIWindow::vf34
 UISelectCharWnd	005e4750	0	35	0043a920	UIWindow::vf35	
 UISelectCharWnd	005e4750	0	36	00448880	UIFrameWnd::vf36	
 UISelectCharWnd	005e4750	0	37	0044eb50	UISelectCharWnd::vf37	
-UIMakeCharWnd	005e47ec	0	0	0044f7c0	UIMakeCharWnd::vf00	
+UIMakeCharWnd	005e47ec	0	0	0044f7c0	UIMakeCharWnd::`scalar_deleting_destructor'	
 UIMakeCharWnd	005e47ec	0	1	004a5b40	UIWindow::vf01	
 UIMakeCharWnd	005e47ec	0	2	00439bf0	UIWindow::vf02	
 UIMakeCharWnd	005e47ec	0	3	004a5910	UIWindow::vf03	
@@ -2003,7 +2003,7 @@ UIMakeCharWnd	005e47ec	0	34	00439d20	UIWindow::vf34
 UIMakeCharWnd	005e47ec	0	35	0043a920	UIWindow::vf35	
 UIMakeCharWnd	005e47ec	0	36	00448880	UIFrameWnd::vf36	
 UIMakeCharWnd	005e47ec	0	37	0044ffb0	UIMakeCharWnd::vf37	
-UIBitmapEditCtrl	005e4888	0	0	0044fad0	UIBitmapEditCtrl::vf00	
+UIBitmapEditCtrl	005e4888	0	0	0044fad0	UIBitmapEditCtrl::`scalar_deleting_destructor'	
 UIBitmapEditCtrl	005e4888	0	1	004a5b40	UIWindow::vf01	
 UIBitmapEditCtrl	005e4888	0	2	00439bf0	UIWindow::vf02	
 UIBitmapEditCtrl	005e4888	0	3	004a5910	UIWindow::vf03	
@@ -2042,7 +2042,7 @@ UIBitmapEditCtrl	005e4888	0	35	0043a920	UIWindow::vf35
 UIBitmapEditCtrl	005e4888	0	36	00439d30	UIWindow::vf36	
 UIBitmapEditCtrl	005e4888	0	37	0043f0f0	UIEditCtrl::vf37	
 UIBitmapEditCtrl	005e4888	0	38	0043e040	UIEditCtrl::vf38	
-UIChatWnd	005e4928	0	0	004517b0	UIChatWnd::vf00	
+UIChatWnd	005e4928	0	0	004517b0	UIChatWnd::`scalar_deleting_destructor'	
 UIChatWnd	005e4928	0	1	004a5b40	UIWindow::vf01	
 UIChatWnd	005e4928	0	2	00439bf0	UIWindow::vf02	
 UIChatWnd	005e4928	0	3	004521b0	UIChatWnd::vf03	
@@ -2080,7 +2080,7 @@ UIChatWnd	005e4928	0	34	00439d20	UIWindow::vf34
 UIChatWnd	005e4928	0	35	0043a920	UIWindow::vf35	
 UIChatWnd	005e4928	0	36	00448880	UIFrameWnd::vf36	
 UIChatWnd	005e4928	0	37	00452500	UIChatWnd::vf37	
-UIChatRoomWnd	005e49c4	0	0	004532c0	UIChatRoomWnd::vf00	
+UIChatRoomWnd	005e49c4	0	0	004532c0	UIChatRoomWnd::`scalar_deleting_destructor'	
 UIChatRoomWnd	005e49c4	0	1	004a5b40	UIWindow::vf01	
 UIChatRoomWnd	005e49c4	0	2	00439bf0	UIWindow::vf02	
 UIChatRoomWnd	005e49c4	0	3	004a5910	UIWindow::vf03	
@@ -2118,7 +2118,7 @@ UIChatRoomWnd	005e49c4	0	34	00439d20	UIWindow::vf34
 UIChatRoomWnd	005e49c4	0	35	0043a920	UIWindow::vf35	
 UIChatRoomWnd	005e49c4	0	36	00448880	UIFrameWnd::vf36	
 UIChatRoomWnd	005e49c4	0	37	00454170	UIChatRoomWnd::vf37	
-UIAllyGuildAcceptWnd	005e4a60	0	0	00455e80	UIAllyGuildAcceptWnd::vf00	
+UIAllyGuildAcceptWnd	005e4a60	0	0	00455e80	UIAllyGuildAcceptWnd::`scalar_deleting_destructor'	
 UIAllyGuildAcceptWnd	005e4a60	0	1	004a5b40	UIWindow::vf01	
 UIAllyGuildAcceptWnd	005e4a60	0	2	00439bf0	UIWindow::vf02	
 UIAllyGuildAcceptWnd	005e4a60	0	3	004a5910	UIWindow::vf03	
@@ -2156,7 +2156,7 @@ UIAllyGuildAcceptWnd	005e4a60	0	34	00439d20	UIWindow::vf34
 UIAllyGuildAcceptWnd	005e4a60	0	35	0043a920	UIWindow::vf35	
 UIAllyGuildAcceptWnd	005e4a60	0	36	00448880	UIFrameWnd::vf36	
 UIAllyGuildAcceptWnd	005e4a60	0	37	00455ec0	UIAllyGuildAcceptWnd::vf37	
-UIMonsterInfoWnd	005e4afc	0	0	004561c0	UIMonsterInfoWnd::vf00	
+UIMonsterInfoWnd	005e4afc	0	0	004561c0	UIMonsterInfoWnd::`scalar_deleting_destructor'	
 UIMonsterInfoWnd	005e4afc	0	1	004a5b40	UIWindow::vf01	
 UIMonsterInfoWnd	005e4afc	0	2	00439bf0	UIWindow::vf02	
 UIMonsterInfoWnd	005e4afc	0	3	004a5910	UIWindow::vf03	
@@ -2194,7 +2194,7 @@ UIMonsterInfoWnd	005e4afc	0	34	00439d20	UIWindow::vf34
 UIMonsterInfoWnd	005e4afc	0	35	0043a920	UIWindow::vf35	
 UIMonsterInfoWnd	005e4afc	0	36	00448880	UIFrameWnd::vf36	
 UIMonsterInfoWnd	005e4afc	0	37	00456d50	UIMonsterInfoWnd::vf37	
-UIPetInfoWnd	005e4b98	0	0	00456eb0	UIPetInfoWnd::vf00	
+UIPetInfoWnd	005e4b98	0	0	00456eb0	UIPetInfoWnd::`scalar_deleting_destructor'	
 UIPetInfoWnd	005e4b98	0	1	004a5b40	UIWindow::vf01	
 UIPetInfoWnd	005e4b98	0	2	00439bf0	UIWindow::vf02	
 UIPetInfoWnd	005e4b98	0	3	004a5910	UIWindow::vf03	
@@ -2232,7 +2232,7 @@ UIPetInfoWnd	005e4b98	0	34	00439d20	UIWindow::vf34
 UIPetInfoWnd	005e4b98	0	35	0043a920	UIWindow::vf35	
 UIPetInfoWnd	005e4b98	0	36	00448880	UIFrameWnd::vf36	
 UIPetInfoWnd	005e4b98	0	37	00457e60	UIPetInfoWnd::vf37	
-UITalkboxTrapInputWnd	005e4c34	0	0	004585c0	UITalkboxTrapInputWnd::vf00	
+UITalkboxTrapInputWnd	005e4c34	0	0	004585c0	UITalkboxTrapInputWnd::`scalar_deleting_destructor'	
 UITalkboxTrapInputWnd	005e4c34	0	1	004a5b40	UIWindow::vf01	
 UITalkboxTrapInputWnd	005e4c34	0	2	00439bf0	UIWindow::vf02	
 UITalkboxTrapInputWnd	005e4c34	0	3	004a5910	UIWindow::vf03	
@@ -2270,7 +2270,7 @@ UITalkboxTrapInputWnd	005e4c34	0	34	00439d20	UIWindow::vf34
 UITalkboxTrapInputWnd	005e4c34	0	35	0043a920	UIWindow::vf35	
 UITalkboxTrapInputWnd	005e4c34	0	36	00448880	UIFrameWnd::vf36	
 UITalkboxTrapInputWnd	005e4c34	0	37	00458c40	UITalkboxTrapInputWnd::vf37	
-UICntWnd	005e4cd0	0	0	00458d30	UICntWnd::vf00	
+UICntWnd	005e4cd0	0	0	00458d30	UICntWnd::`scalar_deleting_destructor'	
 UICntWnd	005e4cd0	0	1	004a5b40	UIWindow::vf01	
 UICntWnd	005e4cd0	0	2	00439bf0	UIWindow::vf02	
 UICntWnd	005e4cd0	0	3	004a5910	UIWindow::vf03	
@@ -2308,7 +2308,7 @@ UICntWnd	005e4cd0	0	34	00439d20	UIWindow::vf34
 UICntWnd	005e4cd0	0	35	0043a920	UIWindow::vf35	
 UICntWnd	005e4cd0	0	36	00448880	UIFrameWnd::vf36	
 UICntWnd	005e4cd0	0	37	00459080	UICntWnd::vf37	
-UIWaitWnd	005e4d78	0	0	0045bdc0	UIWaitWnd::vf00	
+UIWaitWnd	005e4d78	0	0	0045bdc0	UIWaitWnd::`scalar_deleting_destructor'	
 UIWaitWnd	005e4d78	0	1	004a5b40	UIWindow::vf01	
 UIWaitWnd	005e4d78	0	2	00439bf0	UIWindow::vf02	
 UIWaitWnd	005e4d78	0	3	004a5910	UIWindow::vf03	
@@ -2346,7 +2346,7 @@ UIWaitWnd	005e4d78	0	34	00439d20	UIWindow::vf34
 UIWaitWnd	005e4d78	0	35	0043a920	UIWindow::vf35	
 UIWaitWnd	005e4d78	0	36	00448880	UIFrameWnd::vf36	
 UIWaitWnd	005e4d78	0	37	0045bf50	UIWaitWnd::vf37	
-UILoadingWnd	005e4e14	0	0	0045bf80	UILoadingWnd::vf00	
+UILoadingWnd	005e4e14	0	0	0045bf80	UILoadingWnd::`scalar_deleting_destructor'	
 UILoadingWnd	005e4e14	0	1	004a5b40	UIWindow::vf01	
 UILoadingWnd	005e4e14	0	2	00439bf0	UIWindow::vf02	
 UILoadingWnd	005e4e14	0	3	004a5910	UIWindow::vf03	
@@ -2384,7 +2384,7 @@ UILoadingWnd	005e4e14	0	34	00439d20	UIWindow::vf34
 UILoadingWnd	005e4e14	0	35	0043a920	UIWindow::vf35	
 UILoadingWnd	005e4e14	0	36	00448880	UIFrameWnd::vf36	
 UILoadingWnd	005e4e14	0	37	0045c420	UILoadingWnd::vf37	
-UIBasicInfoWnd	005e4eb0	0	0	0045c4b0	UIBasicInfoWnd::vf00	
+UIBasicInfoWnd	005e4eb0	0	0	0045c4b0	UIBasicInfoWnd::`scalar_deleting_destructor'	
 UIBasicInfoWnd	005e4eb0	0	1	004a5b40	UIWindow::vf01	
 UIBasicInfoWnd	005e4eb0	0	2	00439bf0	UIWindow::vf02	
 UIBasicInfoWnd	005e4eb0	0	3	004a5910	UIWindow::vf03	
@@ -2422,7 +2422,7 @@ UIBasicInfoWnd	005e4eb0	0	34	00439d20	UIWindow::vf34
 UIBasicInfoWnd	005e4eb0	0	35	0043a920	UIWindow::vf35	
 UIBasicInfoWnd	005e4eb0	0	36	00448880	UIFrameWnd::vf36	
 UIBasicInfoWnd	005e4eb0	0	37	0045d540	UIBasicInfoWnd::vf37	
-UIBarGraph4	005e4f4c	0	0	0045cda0	UIBarGraph4::vf00	
+UIBarGraph4	005e4f4c	0	0	0045cda0	UIBarGraph4::`scalar_deleting_destructor'	
 UIBarGraph4	005e4f4c	0	1	004a5b40	UIWindow::vf01	
 UIBarGraph4	005e4f4c	0	2	00439bf0	UIWindow::vf02	
 UIBarGraph4	005e4f4c	0	3	004a5910	UIWindow::vf03	
@@ -2460,7 +2460,7 @@ UIBarGraph4	005e4f4c	0	34	00439d20	UIWindow::vf34
 UIBarGraph4	005e4f4c	0	35	0043a920	UIWindow::vf35	
 UIBarGraph4	005e4f4c	0	36	00439d30	UIWindow::vf36	
 UIBarGraph4	005e4f4c	0	37	004a6800	UIWindow::vf37	
-UIToolTipWnd	005e4fe8	0	0	0045d9c0	UIToolTipWnd::vf00	
+UIToolTipWnd	005e4fe8	0	0	0045d9c0	UIToolTipWnd::`scalar_deleting_destructor'	
 UIToolTipWnd	005e4fe8	0	1	004a5b40	UIWindow::vf01	
 UIToolTipWnd	005e4fe8	0	2	00439bf0	UIWindow::vf02	
 UIToolTipWnd	005e4fe8	0	3	004a5910	UIWindow::vf03	
@@ -2498,7 +2498,7 @@ UIToolTipWnd	005e4fe8	0	34	00439d20	UIWindow::vf34
 UIToolTipWnd	005e4fe8	0	35	0043a920	UIWindow::vf35	
 UIToolTipWnd	005e4fe8	0	36	00448880	UIFrameWnd::vf36	
 UIToolTipWnd	005e4fe8	0	37	0045dd70	UIToolTipWnd::vf37	
-UIShortCutWnd	005e5084	0	0	0045ddf0	UIShortCutWnd::vf00	
+UIShortCutWnd	005e5084	0	0	0045ddf0	UIShortCutWnd::`scalar_deleting_destructor'	
 UIShortCutWnd	005e5084	0	1	004a5b40	UIWindow::vf01	
 UIShortCutWnd	005e5084	0	2	00439bf0	UIWindow::vf02	
 UIShortCutWnd	005e5084	0	3	004a5910	UIWindow::vf03	
@@ -2536,7 +2536,7 @@ UIShortCutWnd	005e5084	0	34	00439d20	UIWindow::vf34
 UIShortCutWnd	005e5084	0	35	0043a920	UIWindow::vf35	
 UIShortCutWnd	005e5084	0	36	00448880	UIFrameWnd::vf36	
 UIShortCutWnd	005e5084	0	37	0045ee00	UIShortCutWnd::vf37	
-UIEquipWnd	005e5120	0	0	0045f510	UIEquipWnd::vf00	
+UIEquipWnd	005e5120	0	0	0045f510	UIEquipWnd::`scalar_deleting_destructor'	
 UIEquipWnd	005e5120	0	1	004a5b40	UIWindow::vf01	
 UIEquipWnd	005e5120	0	2	00439bf0	UIWindow::vf02	
 UIEquipWnd	005e5120	0	3	004a5910	UIWindow::vf03	
@@ -2574,7 +2574,7 @@ UIEquipWnd	005e5120	0	34	00439d20	UIWindow::vf34
 UIEquipWnd	005e5120	0	35	0043a920	UIWindow::vf35	
 UIEquipWnd	005e5120	0	36	00448880	UIFrameWnd::vf36	
 UIEquipWnd	005e5120	0	37	004612d0	UIEquipWnd::vf37	
-UIStatusWnd	005e51bc	0	0	004617a0	UIStatusWnd::vf00	
+UIStatusWnd	005e51bc	0	0	004617a0	UIStatusWnd::`scalar_deleting_destructor'	
 UIStatusWnd	005e51bc	0	1	004a5b40	UIWindow::vf01	
 UIStatusWnd	005e51bc	0	2	00439bf0	UIWindow::vf02	
 UIStatusWnd	005e51bc	0	3	004a5910	UIWindow::vf03	
@@ -2612,7 +2612,7 @@ UIStatusWnd	005e51bc	0	34	00439d20	UIWindow::vf34
 UIStatusWnd	005e51bc	0	35	0043a920	UIWindow::vf35	
 UIStatusWnd	005e51bc	0	36	00448880	UIFrameWnd::vf36	
 UIStatusWnd	005e51bc	0	37	00462510	UIStatusWnd::vf37	
-UIDetailLevelWnd	005e5258	0	0	004628b0	UIDetailLevelWnd::vf00	
+UIDetailLevelWnd	005e5258	0	0	004628b0	UIDetailLevelWnd::`scalar_deleting_destructor'	
 UIDetailLevelWnd	005e5258	0	1	004a5b40	UIWindow::vf01	
 UIDetailLevelWnd	005e5258	0	2	00439bf0	UIWindow::vf02	
 UIDetailLevelWnd	005e5258	0	3	004a5910	UIWindow::vf03	
@@ -2650,7 +2650,7 @@ UIDetailLevelWnd	005e5258	0	34	00439d20	UIWindow::vf34
 UIDetailLevelWnd	005e5258	0	35	0043a920	UIWindow::vf35	
 UIDetailLevelWnd	005e5258	0	36	00448880	UIFrameWnd::vf36	
 UIDetailLevelWnd	005e5258	0	37	00463310	UIDetailLevelWnd::vf37	
-UIOptionWnd	005e52f4	0	0	00463610	UIOptionWnd::vf00	
+UIOptionWnd	005e52f4	0	0	00463610	UIOptionWnd::`scalar_deleting_destructor'	
 UIOptionWnd	005e52f4	0	1	004a5b40	UIWindow::vf01	
 UIOptionWnd	005e52f4	0	2	00439bf0	UIWindow::vf02	
 UIOptionWnd	005e52f4	0	3	004a5910	UIWindow::vf03	
@@ -2688,7 +2688,7 @@ UIOptionWnd	005e52f4	0	34	00439d20	UIWindow::vf34
 UIOptionWnd	005e52f4	0	35	0043a920	UIWindow::vf35	
 UIOptionWnd	005e52f4	0	36	00448880	UIFrameWnd::vf36	
 UIOptionWnd	005e52f4	0	37	00464060	UIOptionWnd::vf37	
-UIItemParamChangeDisplayWnd	005e5390	0	0	00464730	UIItemParamChangeDisplayWnd::vf00	
+UIItemParamChangeDisplayWnd	005e5390	0	0	00464730	UIItemParamChangeDisplayWnd::`scalar_deleting_destructor'	
 UIItemParamChangeDisplayWnd	005e5390	0	1	004a5b40	UIWindow::vf01	
 UIItemParamChangeDisplayWnd	005e5390	0	2	00439bf0	UIWindow::vf02	
 UIItemParamChangeDisplayWnd	005e5390	0	3	004a5910	UIWindow::vf03	
@@ -2726,7 +2726,7 @@ UIItemParamChangeDisplayWnd	005e5390	0	34	00439d20	UIWindow::vf34
 UIItemParamChangeDisplayWnd	005e5390	0	35	0043a920	UIWindow::vf35	
 UIItemParamChangeDisplayWnd	005e5390	0	36	00448880	UIFrameWnd::vf36	
 UIItemParamChangeDisplayWnd	005e5390	0	37	00464dc0	UIItemParamChangeDisplayWnd::vf37	
-UINotifyItemObtainWnd	005e542c	0	0	004653b0	UINotifyItemObtainWnd::vf00	
+UINotifyItemObtainWnd	005e542c	0	0	004653b0	UINotifyItemObtainWnd::`scalar_deleting_destructor'	
 UINotifyItemObtainWnd	005e542c	0	1	004a5b40	UIWindow::vf01	
 UINotifyItemObtainWnd	005e542c	0	2	00439bf0	UIWindow::vf02	
 UINotifyItemObtainWnd	005e542c	0	3	004a5910	UIWindow::vf03	
@@ -2764,7 +2764,7 @@ UINotifyItemObtainWnd	005e542c	0	34	00439d20	UIWindow::vf34
 UINotifyItemObtainWnd	005e542c	0	35	0043a920	UIWindow::vf35	
 UINotifyItemObtainWnd	005e542c	0	36	00448880	UIFrameWnd::vf36	
 UINotifyItemObtainWnd	005e542c	0	37	00465550	UINotifyItemObtainWnd::vf37	
-UINpcEditDialogWnd	005e54c8	0	0	00465910	UINpcEditDialogWnd::vf00	
+UINpcEditDialogWnd	005e54c8	0	0	00465910	UINpcEditDialogWnd::`scalar_deleting_destructor'	
 UINpcEditDialogWnd	005e54c8	0	1	004a5b40	UIWindow::vf01	
 UINpcEditDialogWnd	005e54c8	0	2	00439bf0	UIWindow::vf02	
 UINpcEditDialogWnd	005e54c8	0	3	004a5910	UIWindow::vf03	
@@ -2802,7 +2802,7 @@ UINpcEditDialogWnd	005e54c8	0	34	00439d20	UIWindow::vf34
 UINpcEditDialogWnd	005e54c8	0	35	0043a920	UIWindow::vf35	
 UINpcEditDialogWnd	005e54c8	0	36	00448880	UIFrameWnd::vf36	
 UINpcEditDialogWnd	005e54c8	0	37	00465c50	UINpcEditDialogWnd::vf37	
-UINpcTextEditDialogWnd	005e5564	0	0	00465d00	UINpcTextEditDialogWnd::vf00	
+UINpcTextEditDialogWnd	005e5564	0	0	00465d00	UINpcTextEditDialogWnd::`scalar_deleting_destructor'	
 UINpcTextEditDialogWnd	005e5564	0	1	004a5b40	UIWindow::vf01	
 UINpcTextEditDialogWnd	005e5564	0	2	00439bf0	UIWindow::vf02	
 UINpcTextEditDialogWnd	005e5564	0	3	004a5910	UIWindow::vf03	
@@ -2840,7 +2840,7 @@ UINpcTextEditDialogWnd	005e5564	0	34	00439d20	UIWindow::vf34
 UINpcTextEditDialogWnd	005e5564	0	35	0043a920	UIWindow::vf35	
 UINpcTextEditDialogWnd	005e5564	0	36	00448880	UIFrameWnd::vf36	
 UINpcTextEditDialogWnd	005e5564	0	37	00466020	UINpcTextEditDialogWnd::vf37	
-UISkillNameChangeWnd	005e5600	0	0	004660d0	UISkillNameChangeWnd::vf00	
+UISkillNameChangeWnd	005e5600	0	0	004660d0	UISkillNameChangeWnd::`scalar_deleting_destructor'	
 UISkillNameChangeWnd	005e5600	0	1	004a5b40	UIWindow::vf01	
 UISkillNameChangeWnd	005e5600	0	2	00439bf0	UIWindow::vf02	
 UISkillNameChangeWnd	005e5600	0	3	004a5910	UIWindow::vf03	
@@ -2878,7 +2878,7 @@ UISkillNameChangeWnd	005e5600	0	34	00439d20	UIWindow::vf34
 UISkillNameChangeWnd	005e5600	0	35	0043a920	UIWindow::vf35	
 UISkillNameChangeWnd	005e5600	0	36	00448880	UIFrameWnd::vf36	
 UISkillNameChangeWnd	005e5600	0	37	00466460	UISkillNameChangeWnd::vf37	
-UIEmailAddressWnd	005e569c	0	0	00466600	UIEmailAddressWnd::vf00	
+UIEmailAddressWnd	005e569c	0	0	00466600	UIEmailAddressWnd::`scalar_deleting_destructor'	
 UIEmailAddressWnd	005e569c	0	1	004a5b40	UIWindow::vf01	
 UIEmailAddressWnd	005e569c	0	2	00439bf0	UIWindow::vf02	
 UIEmailAddressWnd	005e569c	0	3	004a5910	UIWindow::vf03	
@@ -2916,7 +2916,7 @@ UIEmailAddressWnd	005e569c	0	34	00439d20	UIWindow::vf34
 UIEmailAddressWnd	005e569c	0	35	0043a920	UIWindow::vf35	
 UIEmailAddressWnd	005e569c	0	36	00448880	UIFrameWnd::vf36	
 UIEmailAddressWnd	005e569c	0	37	00466970	UIEmailAddressWnd::vf37	
-UIPasswordWnd	005e5738	0	0	004669f0	UIPasswordWnd::vf00	
+UIPasswordWnd	005e5738	0	0	004669f0	UIPasswordWnd::`scalar_deleting_destructor'	
 UIPasswordWnd	005e5738	0	1	004a5b40	UIWindow::vf01	
 UIPasswordWnd	005e5738	0	2	00439bf0	UIWindow::vf02	
 UIPasswordWnd	005e5738	0	3	004a5910	UIWindow::vf03	
@@ -2954,7 +2954,7 @@ UIPasswordWnd	005e5738	0	34	00439d20	UIWindow::vf34
 UIPasswordWnd	005e5738	0	35	0043a920	UIWindow::vf35	
 UIPasswordWnd	005e5738	0	36	00448880	UIFrameWnd::vf36	
 UIPasswordWnd	005e5738	0	37	00466dd0	UIPasswordWnd::vf37	
-UISayDialogWnd	005e57d4	0	0	00466ef0	UISayDialogWnd::vf00	
+UISayDialogWnd	005e57d4	0	0	00466ef0	UISayDialogWnd::`scalar_deleting_destructor'	
 UISayDialogWnd	005e57d4	0	1	004a5b40	UIWindow::vf01	
 UISayDialogWnd	005e57d4	0	2	00439bf0	UIWindow::vf02	
 UISayDialogWnd	005e57d4	0	3	004670e0	UISayDialogWnd::vf03	
@@ -2992,7 +2992,7 @@ UISayDialogWnd	005e57d4	0	34	00439d20	UIWindow::vf34
 UISayDialogWnd	005e57d4	0	35	0043a920	UIWindow::vf35	
 UISayDialogWnd	005e57d4	0	36	00448880	UIFrameWnd::vf36	
 UISayDialogWnd	005e57d4	0	37	00467110	UISayDialogWnd::vf37	
-UIItemCollectionWnd	005e5870	0	0	004677e0	UIItemCollectionWnd::vf00	
+UIItemCollectionWnd	005e5870	0	0	004677e0	UIItemCollectionWnd::`scalar_deleting_destructor'	
 UIItemCollectionWnd	005e5870	0	1	004a5b40	UIWindow::vf01	
 UIItemCollectionWnd	005e5870	0	2	00439bf0	UIWindow::vf02	
 UIItemCollectionWnd	005e5870	0	3	004a5910	UIWindow::vf03	
@@ -3030,7 +3030,7 @@ UIItemCollectionWnd	005e5870	0	34	00439d20	UIWindow::vf34
 UIItemCollectionWnd	005e5870	0	35	0043a920	UIWindow::vf35	
 UIItemCollectionWnd	005e5870	0	36	00448880	UIFrameWnd::vf36	
 UIItemCollectionWnd	005e5870	0	37	004682a0	UIItemCollectionWnd::vf37	
-UICombinedCardItemCollectionWnd	005e590c	0	0	00468d20	UICombinedCardItemCollectionWnd::vf00	
+UICombinedCardItemCollectionWnd	005e590c	0	0	00468d20	UICombinedCardItemCollectionWnd::`scalar_deleting_destructor'	
 UICombinedCardItemCollectionWnd	005e590c	0	1	004a5b40	UIWindow::vf01	
 UICombinedCardItemCollectionWnd	005e590c	0	2	00439bf0	UIWindow::vf02	
 UICombinedCardItemCollectionWnd	005e590c	0	3	004a5910	UIWindow::vf03	
@@ -3068,7 +3068,7 @@ UICombinedCardItemCollectionWnd	005e590c	0	34	00439d20	UIWindow::vf34
 UICombinedCardItemCollectionWnd	005e590c	0	35	0043a920	UIWindow::vf35	
 UICombinedCardItemCollectionWnd	005e590c	0	36	00448880	UIFrameWnd::vf36	
 UICombinedCardItemCollectionWnd	005e590c	0	37	00468dd0	UICombinedCardItemCollectionWnd::vf37	
-UISkillDescribeWnd	005e59a8	0	0	00468ef0	UISkillDescribeWnd::vf00	
+UISkillDescribeWnd	005e59a8	0	0	00468ef0	UISkillDescribeWnd::`scalar_deleting_destructor'	
 UISkillDescribeWnd	005e59a8	0	1	004a5b40	UIWindow::vf01	
 UISkillDescribeWnd	005e59a8	0	2	00439bf0	UIWindow::vf02	
 UISkillDescribeWnd	005e59a8	0	3	004a5910	UIWindow::vf03	
@@ -3106,7 +3106,7 @@ UISkillDescribeWnd	005e59a8	0	34	00439d20	UIWindow::vf34
 UISkillDescribeWnd	005e59a8	0	35	0043a920	UIWindow::vf35	
 UISkillDescribeWnd	005e59a8	0	36	00448880	UIFrameWnd::vf36	
 UISkillDescribeWnd	005e59a8	0	37	00469380	UISkillDescribeWnd::vf37	
-UICardItemIllustWnd	005e5a44	0	0	00469760	UICardItemIllustWnd::vf00	
+UICardItemIllustWnd	005e5a44	0	0	00469760	UICardItemIllustWnd::`scalar_deleting_destructor'	
 UICardItemIllustWnd	005e5a44	0	1	004a5b40	UIWindow::vf01	
 UICardItemIllustWnd	005e5a44	0	2	00439bf0	UIWindow::vf02	
 UICardItemIllustWnd	005e5a44	0	3	004a5910	UIWindow::vf03	
@@ -3144,7 +3144,7 @@ UICardItemIllustWnd	005e5a44	0	34	00439d20	UIWindow::vf34
 UICardItemIllustWnd	005e5a44	0	35	0043a920	UIWindow::vf35	
 UICardItemIllustWnd	005e5a44	0	36	00448880	UIFrameWnd::vf36	
 UICardItemIllustWnd	005e5a44	0	37	00469cc0	UICardItemIllustWnd::vf37	
-UIChooseWarpWnd	005e5ae0	0	0	0046a090	UIChooseWarpWnd::vf00	
+UIChooseWarpWnd	005e5ae0	0	0	0046a090	UIChooseWarpWnd::`scalar_deleting_destructor'	
 UIChooseWarpWnd	005e5ae0	0	1	004a5b40	UIWindow::vf01	
 UIChooseWarpWnd	005e5ae0	0	2	00439bf0	UIWindow::vf02	
 UIChooseWarpWnd	005e5ae0	0	3	004a5910	UIWindow::vf03	
@@ -3182,7 +3182,7 @@ UIChooseWarpWnd	005e5ae0	0	34	00439d20	UIWindow::vf34
 UIChooseWarpWnd	005e5ae0	0	35	0043a920	UIWindow::vf35	
 UIChooseWarpWnd	005e5ae0	0	36	00448880	UIFrameWnd::vf36	
 UIChooseWarpWnd	005e5ae0	0	37	0046a560	UIChooseWarpWnd::vf37	
-UIChooseWnd	005e5b7c	0	0	0046a9e0	UIChooseWnd::vf00	
+UIChooseWnd	005e5b7c	0	0	0046a9e0	UIChooseWnd::`scalar_deleting_destructor'	
 UIChooseWnd	005e5b7c	0	1	004a5b40	UIWindow::vf01	
 UIChooseWnd	005e5b7c	0	2	00439bf0	UIWindow::vf02	
 UIChooseWnd	005e5b7c	0	3	004a5910	UIWindow::vf03	
@@ -3220,7 +3220,7 @@ UIChooseWnd	005e5b7c	0	34	00439d20	UIWindow::vf34
 UIChooseWnd	005e5b7c	0	35	0043a920	UIWindow::vf35	
 UIChooseWnd	005e5b7c	0	36	00448880	UIFrameWnd::vf36	
 UIChooseWnd	005e5b7c	0	37	0046af90	UIChooseWnd::vf37	
-UIItemIdentifyWnd	005e5c18	0	0	0046b3c0	UIItemIdentifyWnd::vf00	
+UIItemIdentifyWnd	005e5c18	0	0	0046b3c0	UIItemIdentifyWnd::`scalar_deleting_destructor'	
 UIItemIdentifyWnd	005e5c18	0	1	004a5b40	UIWindow::vf01	
 UIItemIdentifyWnd	005e5c18	0	2	00439bf0	UIWindow::vf02	
 UIItemIdentifyWnd	005e5c18	0	3	004a5910	UIWindow::vf03	
@@ -3258,7 +3258,7 @@ UIItemIdentifyWnd	005e5c18	0	34	00439d20	UIWindow::vf34
 UIItemIdentifyWnd	005e5c18	0	35	0046c150	UIItemIdentifyWnd::vf35	
 UIItemIdentifyWnd	005e5c18	0	36	00448880	UIFrameWnd::vf36	
 UIItemIdentifyWnd	005e5c18	0	37	0046be00	UIItemIdentifyWnd::vf37	
-UIItemCompositionWnd	005e5cb4	0	0	0046c4d0	UIItemCompositionWnd::vf00	
+UIItemCompositionWnd	005e5cb4	0	0	0046c4d0	UIItemCompositionWnd::`scalar_deleting_destructor'	
 UIItemCompositionWnd	005e5cb4	0	1	004a5b40	UIWindow::vf01	
 UIItemCompositionWnd	005e5cb4	0	2	00439bf0	UIWindow::vf02	
 UIItemCompositionWnd	005e5cb4	0	3	004a5910	UIWindow::vf03	
@@ -3296,7 +3296,7 @@ UIItemCompositionWnd	005e5cb4	0	34	00439d20	UIWindow::vf34
 UIItemCompositionWnd	005e5cb4	0	35	0046c150	UIItemIdentifyWnd::vf35	
 UIItemCompositionWnd	005e5cb4	0	36	00448880	UIFrameWnd::vf36	
 UIItemCompositionWnd	005e5cb4	0	37	0046c660	UIItemCompositionWnd::vf37	
-UIQuitWnd	005e5d50	0	0	0046c920	UIQuitWnd::vf00	
+UIQuitWnd	005e5d50	0	0	0046c920	UIQuitWnd::`scalar_deleting_destructor'	
 UIQuitWnd	005e5d50	0	1	004a5b40	UIWindow::vf01	
 UIQuitWnd	005e5d50	0	2	00439bf0	UIWindow::vf02	
 UIQuitWnd	005e5d50	0	3	004a5910	UIWindow::vf03	
@@ -3334,7 +3334,7 @@ UIQuitWnd	005e5d50	0	34	00439d20	UIWindow::vf34
 UIQuitWnd	005e5d50	0	35	0043a920	UIWindow::vf35	
 UIQuitWnd	005e5d50	0	36	00448880	UIFrameWnd::vf36	
 UIQuitWnd	005e5d50	0	37	0046cc70	UIQuitWnd::vf37	
-UIRestartWnd	005e5dec	0	0	0046cd20	UIRestartWnd::vf00	
+UIRestartWnd	005e5dec	0	0	0046cd20	UIRestartWnd::`scalar_deleting_destructor'	
 UIRestartWnd	005e5dec	0	1	004a5b40	UIWindow::vf01	
 UIRestartWnd	005e5dec	0	2	00439bf0	UIWindow::vf02	
 UIRestartWnd	005e5dec	0	3	004a5910	UIWindow::vf03	
@@ -3372,7 +3372,7 @@ UIRestartWnd	005e5dec	0	34	00439d20	UIWindow::vf34
 UIRestartWnd	005e5dec	0	35	0043a920	UIWindow::vf35	
 UIRestartWnd	005e5dec	0	36	00448880	UIFrameWnd::vf36	
 UIRestartWnd	005e5dec	0	37	0046d110	UIRestartWnd::vf37	
-UINoticeConfirmWnd	005e5e88	0	0	0046d250	UINoticeConfirmWnd::vf00	
+UINoticeConfirmWnd	005e5e88	0	0	0046d250	UINoticeConfirmWnd::`scalar_deleting_destructor'	
 UINoticeConfirmWnd	005e5e88	0	1	004a5b40	UIWindow::vf01	
 UINoticeConfirmWnd	005e5e88	0	2	00439bf0	UIWindow::vf02	
 UINoticeConfirmWnd	005e5e88	0	3	004a5910	UIWindow::vf03	
@@ -3410,7 +3410,7 @@ UINoticeConfirmWnd	005e5e88	0	34	00439d20	UIWindow::vf34
 UINoticeConfirmWnd	005e5e88	0	35	0043a920	UIWindow::vf35	
 UINoticeConfirmWnd	005e5e88	0	36	00448880	UIFrameWnd::vf36	
 UINoticeConfirmWnd	005e5e88	0	37	0046d650	UINoticeConfirmWnd::vf37	
-UIChooseSellBuyWnd	005e5f24	0	0	0046d6f0	UIChooseSellBuyWnd::vf00	
+UIChooseSellBuyWnd	005e5f24	0	0	0046d6f0	UIChooseSellBuyWnd::`scalar_deleting_destructor'	
 UIChooseSellBuyWnd	005e5f24	0	1	004a5b40	UIWindow::vf01	
 UIChooseSellBuyWnd	005e5f24	0	2	00439bf0	UIWindow::vf02	
 UIChooseSellBuyWnd	005e5f24	0	3	004a5910	UIWindow::vf03	
@@ -3448,7 +3448,7 @@ UIChooseSellBuyWnd	005e5f24	0	34	00439d20	UIWindow::vf34
 UIChooseSellBuyWnd	005e5f24	0	35	0043a920	UIWindow::vf35	
 UIChooseSellBuyWnd	005e5f24	0	36	00448880	UIFrameWnd::vf36	
 UIChooseSellBuyWnd	005e5f24	0	37	0046db50	UIChooseSellBuyWnd::vf37	
-UIExchangeAcceptWnd	005e5fc0	0	0	0046dc10	UIExchangeAcceptWnd::vf00	
+UIExchangeAcceptWnd	005e5fc0	0	0	0046dc10	UIExchangeAcceptWnd::`scalar_deleting_destructor'	
 UIExchangeAcceptWnd	005e5fc0	0	1	004a5b40	UIWindow::vf01	
 UIExchangeAcceptWnd	005e5fc0	0	2	00439bf0	UIWindow::vf02	
 UIExchangeAcceptWnd	005e5fc0	0	3	004a5910	UIWindow::vf03	
@@ -3486,7 +3486,7 @@ UIExchangeAcceptWnd	005e5fc0	0	34	00439d20	UIWindow::vf34
 UIExchangeAcceptWnd	005e5fc0	0	35	0043a920	UIWindow::vf35	
 UIExchangeAcceptWnd	005e5fc0	0	36	00448880	UIFrameWnd::vf36	
 UIExchangeAcceptWnd	005e5fc0	0	37	0046e000	UIExchangeAcceptWnd::vf37	
-UITipOfTheDayWnd	005e605c	0	0	0046e330	UITipOfTheDayWnd::vf00	
+UITipOfTheDayWnd	005e605c	0	0	0046e330	UITipOfTheDayWnd::`scalar_deleting_destructor'	
 UITipOfTheDayWnd	005e605c	0	1	004a5b40	UIWindow::vf01	
 UITipOfTheDayWnd	005e605c	0	2	00439bf0	UIWindow::vf02	
 UITipOfTheDayWnd	005e605c	0	3	004a5910	UIWindow::vf03	
@@ -3524,7 +3524,7 @@ UITipOfTheDayWnd	005e605c	0	34	00439d20	UIWindow::vf34
 UITipOfTheDayWnd	005e605c	0	35	0043a920	UIWindow::vf35	
 UITipOfTheDayWnd	005e605c	0	36	00448880	UIFrameWnd::vf36	
 UITipOfTheDayWnd	005e605c	0	37	0046ed50	UITipOfTheDayWnd::vf37	
-UIJoinPartyAcceptWnd	005e60f8	0	0	0046ef80	UIJoinPartyAcceptWnd::vf00	
+UIJoinPartyAcceptWnd	005e60f8	0	0	0046ef80	UIJoinPartyAcceptWnd::`scalar_deleting_destructor'	
 UIJoinPartyAcceptWnd	005e60f8	0	1	004a5b40	UIWindow::vf01	
 UIJoinPartyAcceptWnd	005e60f8	0	2	00439bf0	UIWindow::vf02	
 UIJoinPartyAcceptWnd	005e60f8	0	3	004a5910	UIWindow::vf03	
@@ -3562,7 +3562,7 @@ UIJoinPartyAcceptWnd	005e60f8	0	34	00439d20	UIWindow::vf34
 UIJoinPartyAcceptWnd	005e60f8	0	35	0043a920	UIWindow::vf35	
 UIJoinPartyAcceptWnd	005e60f8	0	36	00448880	UIFrameWnd::vf36	
 UIJoinPartyAcceptWnd	005e60f8	0	37	0046efc0	UIJoinPartyAcceptWnd::vf37	
-UIJoinGuildAcceptWnd	005e6194	0	0	0046f2a0	UIJoinGuildAcceptWnd::vf00	
+UIJoinGuildAcceptWnd	005e6194	0	0	0046f2a0	UIJoinGuildAcceptWnd::`scalar_deleting_destructor'	
 UIJoinGuildAcceptWnd	005e6194	0	1	004a5b40	UIWindow::vf01	
 UIJoinGuildAcceptWnd	005e6194	0	2	00439bf0	UIWindow::vf02	
 UIJoinGuildAcceptWnd	005e6194	0	3	004a5910	UIWindow::vf03	
@@ -3600,7 +3600,7 @@ UIJoinGuildAcceptWnd	005e6194	0	34	00439d20	UIWindow::vf34
 UIJoinGuildAcceptWnd	005e6194	0	35	0043a920	UIWindow::vf35	
 UIJoinGuildAcceptWnd	005e6194	0	36	00448880	UIFrameWnd::vf36	
 UIJoinGuildAcceptWnd	005e6194	0	37	0046f2e0	UIJoinGuildAcceptWnd::vf37	
-UIChatRoomMakeWnd	005e6230	0	0	0046f730	UIChatRoomMakeWnd::vf00	
+UIChatRoomMakeWnd	005e6230	0	0	0046f730	UIChatRoomMakeWnd::`scalar_deleting_destructor'	
 UIChatRoomMakeWnd	005e6230	0	1	004a5b40	UIWindow::vf01	
 UIChatRoomMakeWnd	005e6230	0	2	00439bf0	UIWindow::vf02	
 UIChatRoomMakeWnd	005e6230	0	3	004a5910	UIWindow::vf03	
@@ -3638,7 +3638,7 @@ UIChatRoomMakeWnd	005e6230	0	34	00439d20	UIWindow::vf34
 UIChatRoomMakeWnd	005e6230	0	35	0043a920	UIWindow::vf35	
 UIChatRoomMakeWnd	005e6230	0	36	00448880	UIFrameWnd::vf36	
 UIChatRoomMakeWnd	005e6230	0	37	00470980	UIChatRoomMakeWnd::vf37	
-UIChatRoomChangeWnd	005e62cc	0	0	00470ff0	UIChatRoomChangeWnd::vf00	
+UIChatRoomChangeWnd	005e62cc	0	0	00470ff0	UIChatRoomChangeWnd::`scalar_deleting_destructor'	
 UIChatRoomChangeWnd	005e62cc	0	1	004a5b40	UIWindow::vf01	
 UIChatRoomChangeWnd	005e62cc	0	2	00439bf0	UIWindow::vf02	
 UIChatRoomChangeWnd	005e62cc	0	3	004a5910	UIWindow::vf03	
@@ -3676,7 +3676,7 @@ UIChatRoomChangeWnd	005e62cc	0	34	00439d20	UIWindow::vf34
 UIChatRoomChangeWnd	005e62cc	0	35	0043a920	UIWindow::vf35	
 UIChatRoomChangeWnd	005e62cc	0	36	00448880	UIFrameWnd::vf36	
 UIChatRoomChangeWnd	005e62cc	0	37	00471030	UIChatRoomChangeWnd::vf37	
-UIExchangeWnd	005e6368	0	0	00471700	UIExchangeWnd::vf00	
+UIExchangeWnd	005e6368	0	0	00471700	UIExchangeWnd::`scalar_deleting_destructor'	
 UIExchangeWnd	005e6368	0	1	004a5b40	UIWindow::vf01	
 UIExchangeWnd	005e6368	0	2	00439bf0	UIWindow::vf02	
 UIExchangeWnd	005e6368	0	3	004a5910	UIWindow::vf03	
@@ -3714,7 +3714,7 @@ UIExchangeWnd	005e6368	0	34	00439d20	UIWindow::vf34
 UIExchangeWnd	005e6368	0	35	0043a920	UIWindow::vf35	
 UIExchangeWnd	005e6368	0	36	00448880	UIFrameWnd::vf36	
 UIExchangeWnd	005e6368	0	37	00472510	UIExchangeWnd::vf37	
-UIPartySettingWnd	005e6404	0	0	00472c20	UIPartySettingWnd::vf00	
+UIPartySettingWnd	005e6404	0	0	00472c20	UIPartySettingWnd::`scalar_deleting_destructor'	
 UIPartySettingWnd	005e6404	0	1	004a5b40	UIWindow::vf01	
 UIPartySettingWnd	005e6404	0	2	00439bf0	UIWindow::vf02	
 UIPartySettingWnd	005e6404	0	3	004a5910	UIWindow::vf03	
@@ -3752,7 +3752,7 @@ UIPartySettingWnd	005e6404	0	34	00439d20	UIWindow::vf34
 UIPartySettingWnd	005e6404	0	35	0043a920	UIWindow::vf35	
 UIPartySettingWnd	005e6404	0	36	00448880	UIFrameWnd::vf36	
 UIPartySettingWnd	005e6404	0	37	00473680	UIPartySettingWnd::vf37	
-UIWhisperWnd	005e64a0	0	0	004738d0	UIWhisperWnd::vf00	
+UIWhisperWnd	005e64a0	0	0	004738d0	UIWhisperWnd::`scalar_deleting_destructor'	
 UIWhisperWnd	005e64a0	0	1	004a5b40	UIWindow::vf01	
 UIWhisperWnd	005e64a0	0	2	00439bf0	UIWindow::vf02	
 UIWhisperWnd	005e64a0	0	3	004a5910	UIWindow::vf03	
@@ -3790,7 +3790,7 @@ UIWhisperWnd	005e64a0	0	34	00439d20	UIWindow::vf34
 UIWhisperWnd	005e64a0	0	35	0043a920	UIWindow::vf35	
 UIWhisperWnd	005e64a0	0	36	00448880	UIFrameWnd::vf36	
 UIWhisperWnd	005e64a0	0	37	004745a0	UIWhisperWnd::vf37	
-UIMenuWnd	005e6544	0	0	00475560	UIMenuWnd::vf00	
+UIMenuWnd	005e6544	0	0	00475560	UIMenuWnd::`scalar_deleting_destructor'	
 UIMenuWnd	005e6544	0	1	004a5b40	UIWindow::vf01	
 UIMenuWnd	005e6544	0	2	00439bf0	UIWindow::vf02	
 UIMenuWnd	005e6544	0	3	004a5910	UIWindow::vf03	
@@ -3828,7 +3828,7 @@ UIMenuWnd	005e6544	0	34	00439d20	UIWindow::vf34
 UIMenuWnd	005e6544	0	35	0043a920	UIWindow::vf35	
 UIMenuWnd	005e6544	0	36	00448880	UIFrameWnd::vf36	
 UIMenuWnd	005e6544	0	37	00475cf0	UIMenuWnd::vf37	
-UIComboBoxWnd	005e65e0	0	0	00475ea0	UIComboBoxWnd::vf00	
+UIComboBoxWnd	005e65e0	0	0	00475ea0	UIComboBoxWnd::`scalar_deleting_destructor'	
 UIComboBoxWnd	005e65e0	0	1	004a5b40	UIWindow::vf01	
 UIComboBoxWnd	005e65e0	0	2	00439bf0	UIWindow::vf02	
 UIComboBoxWnd	005e65e0	0	3	00475f60	UIComboBoxWnd::vf03	
@@ -3866,7 +3866,7 @@ UIComboBoxWnd	005e65e0	0	34	00439d20	UIWindow::vf34
 UIComboBoxWnd	005e65e0	0	35	0043a920	UIWindow::vf35	
 UIComboBoxWnd	005e65e0	0	36	00448880	UIFrameWnd::vf36	
 UIComboBoxWnd	005e65e0	0	37	00475fb0	UIComboBoxWnd::vf37	
-UIPetEggListWnd	005e667c	0	0	00476000	UIPetEggListWnd::vf00	
+UIPetEggListWnd	005e667c	0	0	00476000	UIPetEggListWnd::`scalar_deleting_destructor'	
 UIPetEggListWnd	005e667c	0	1	004a5b40	UIWindow::vf01	
 UIPetEggListWnd	005e667c	0	2	00439bf0	UIWindow::vf02	
 UIPetEggListWnd	005e667c	0	3	004a5910	UIWindow::vf03	
@@ -3904,7 +3904,7 @@ UIPetEggListWnd	005e667c	0	34	00439d20	UIWindow::vf34
 UIPetEggListWnd	005e667c	0	35	0046c150	UIItemIdentifyWnd::vf35	
 UIPetEggListWnd	005e667c	0	36	00448880	UIFrameWnd::vf36	
 UIPetEggListWnd	005e667c	0	37	00476120	UIPetEggListWnd::vf37	
-UIMakingArrowListWnd	005e6718	0	0	004763e0	UIMakingArrowListWnd::vf00	
+UIMakingArrowListWnd	005e6718	0	0	004763e0	UIMakingArrowListWnd::`scalar_deleting_destructor'	
 UIMakingArrowListWnd	005e6718	0	1	004a5b40	UIWindow::vf01	
 UIMakingArrowListWnd	005e6718	0	2	00439bf0	UIWindow::vf02	
 UIMakingArrowListWnd	005e6718	0	3	004a5910	UIWindow::vf03	
@@ -3942,7 +3942,7 @@ UIMakingArrowListWnd	005e6718	0	34	00439d20	UIWindow::vf34
 UIMakingArrowListWnd	005e6718	0	35	0046c150	UIItemIdentifyWnd::vf35	
 UIMakingArrowListWnd	005e6718	0	36	00448880	UIFrameWnd::vf36	
 UIMakingArrowListWnd	005e6718	0	37	00476500	UIMakingArrowListWnd::vf37	
-UIPetTamingDeceiveWnd	005e67b4	0	0	004767e0	UIPetTamingDeceiveWnd::vf00	
+UIPetTamingDeceiveWnd	005e67b4	0	0	004767e0	UIPetTamingDeceiveWnd::`scalar_deleting_destructor'	
 UIPetTamingDeceiveWnd	005e67b4	0	1	004a5b40	UIWindow::vf01	
 UIPetTamingDeceiveWnd	005e67b4	0	2	00439bf0	UIWindow::vf02	
 UIPetTamingDeceiveWnd	005e67b4	0	3	004a5910	UIWindow::vf03	
@@ -3980,7 +3980,7 @@ UIPetTamingDeceiveWnd	005e67b4	0	34	00439d20	UIWindow::vf34
 UIPetTamingDeceiveWnd	005e67b4	0	35	0043a920	UIWindow::vf35	
 UIPetTamingDeceiveWnd	005e67b4	0	36	00448880	UIFrameWnd::vf36	
 UIPetTamingDeceiveWnd	005e67b4	0	37	00476a70	UIPetTamingDeceiveWnd::vf37	
-UISelectCartWnd	005e6850	0	0	00476ad0	UISelectCartWnd::vf00	
+UISelectCartWnd	005e6850	0	0	00476ad0	UISelectCartWnd::`scalar_deleting_destructor'	
 UISelectCartWnd	005e6850	0	1	004a5b40	UIWindow::vf01	
 UISelectCartWnd	005e6850	0	2	00439bf0	UIWindow::vf02	
 UISelectCartWnd	005e6850	0	3	004a5910	UIWindow::vf03	
@@ -4018,7 +4018,7 @@ UISelectCartWnd	005e6850	0	34	00439d20	UIWindow::vf34
 UISelectCartWnd	005e6850	0	35	0043a920	UIWindow::vf35	
 UISelectCartWnd	005e6850	0	36	00448880	UIFrameWnd::vf36	
 UISelectCartWnd	005e6850	0	37	00477760	UISelectCartWnd::vf37	
-UISpellListWnd	005e68ec	0	0	00477860	UISpellListWnd::vf00	
+UISpellListWnd	005e68ec	0	0	00477860	UISpellListWnd::`scalar_deleting_destructor'	
 UISpellListWnd	005e68ec	0	1	004a5b40	UIWindow::vf01	
 UISpellListWnd	005e68ec	0	2	00439bf0	UIWindow::vf02	
 UISpellListWnd	005e68ec	0	3	004a5910	UIWindow::vf03	
@@ -4056,7 +4056,7 @@ UISpellListWnd	005e68ec	0	34	00439d20	UIWindow::vf34
 UISpellListWnd	005e68ec	0	35	0046c150	UIItemIdentifyWnd::vf35	
 UISpellListWnd	005e68ec	0	36	00448880	UIFrameWnd::vf36	
 UISpellListWnd	005e68ec	0	37	00477d80	UISpellListWnd::vf37	
-UIGraffiStrboxWnd	005e6988	0	0	00477fd0	UIGraffiStrboxWnd::vf00	
+UIGraffiStrboxWnd	005e6988	0	0	00477fd0	UIGraffiStrboxWnd::`scalar_deleting_destructor'	
 UIGraffiStrboxWnd	005e6988	0	1	004a5b40	UIWindow::vf01	
 UIGraffiStrboxWnd	005e6988	0	2	00439bf0	UIWindow::vf02	
 UIGraffiStrboxWnd	005e6988	0	3	004a5910	UIWindow::vf03	
@@ -4094,7 +4094,7 @@ UIGraffiStrboxWnd	005e6988	0	34	00439d20	UIWindow::vf34
 UIGraffiStrboxWnd	005e6988	0	35	0043a920	UIWindow::vf35	
 UIGraffiStrboxWnd	005e6988	0	36	00448880	UIFrameWnd::vf36	
 UIGraffiStrboxWnd	005e6988	0	37	00478610	UIGraffiStrboxWnd::vf37	
-UIProhibitListWnd	005e6a24	0	0	00478700	UIProhibitListWnd::vf00	
+UIProhibitListWnd	005e6a24	0	0	00478700	UIProhibitListWnd::`scalar_deleting_destructor'	
 UIProhibitListWnd	005e6a24	0	1	004a5b40	UIWindow::vf01	
 UIProhibitListWnd	005e6a24	0	2	00439bf0	UIWindow::vf02	
 UIProhibitListWnd	005e6a24	0	3	004a5910	UIWindow::vf03	
@@ -4132,7 +4132,7 @@ UIProhibitListWnd	005e6a24	0	34	00439d20	UIWindow::vf34
 UIProhibitListWnd	005e6a24	0	35	0043a920	UIWindow::vf35	
 UIProhibitListWnd	005e6a24	0	36	00448880	UIFrameWnd::vf36	
 UIProhibitListWnd	005e6a24	0	37	00478d20	UIProhibitListWnd::vf37	
-UIGuildInfoManageWnd	005e6acc	0	0	00479e20	UIGuildInfoManageWnd::vf00	
+UIGuildInfoManageWnd	005e6acc	0	0	00479e20	UIGuildInfoManageWnd::`scalar_deleting_destructor'	
 UIGuildInfoManageWnd	005e6acc	0	1	004a5b40	UIWindow::vf01	
 UIGuildInfoManageWnd	005e6acc	0	2	00439bf0	UIWindow::vf02	
 UIGuildInfoManageWnd	005e6acc	0	3	004a5910	UIWindow::vf03	
@@ -4171,7 +4171,7 @@ UIGuildInfoManageWnd	005e6acc	0	35	0043a920	UIWindow::vf35
 UIGuildInfoManageWnd	005e6acc	0	36	00448880	UIFrameWnd::vf36	
 UIGuildInfoManageWnd	005e6acc	0	37	0047aec0	UIGuildInfoManageWnd::vf37	
 UIGuildInfoManageWnd	005e6acc	0	38	00479e10	UIGuildInfoManageWnd::vf38	
-UIGuildWnd	005e6b6c	0	0	00479de0	UIGuildWnd::vf00	
+UIGuildWnd	005e6b6c	0	0	00479de0	UIGuildWnd::`scalar_deleting_destructor'	
 UIGuildWnd	005e6b6c	0	1	004a5b40	UIWindow::vf01	
 UIGuildWnd	005e6b6c	0	2	00439bf0	UIWindow::vf02	
 UIGuildWnd	005e6b6c	0	3	004a5910	UIWindow::vf03	
@@ -4188,7 +4188,7 @@ UIGuildWnd	005e6b6c	0	13	00448960	UIFrameWnd::vf13
 UIGuildWnd	005e6b6c	0	14	00448970	UIFrameWnd::vf14	
 UIGuildWnd	005e6b6c	0	15	004a6850	UIWindow::vf15	
 UIGuildWnd	005e6b6c	0	16	00439c90	UIWindow::vf16	
-UIGuildWnd	005e6b6c	0	17	005c195a	FUN_005c195a	shared:7-unrelated-classes
+UIGuildWnd	005e6b6c	0	17	005c195a	_purecall	shared:7-unrelated-classes
 UIGuildWnd	005e6b6c	0	18	00439cb0	UIWindow::vf18	
 UIGuildWnd	005e6b6c	0	19	00439cc0	UIWindow::vf19	
 UIGuildWnd	005e6b6c	0	20	004797f0	UIGuildWnd::vf20	
@@ -4209,8 +4209,8 @@ UIGuildWnd	005e6b6c	0	34	00439d20	UIWindow::vf34
 UIGuildWnd	005e6b6c	0	35	0043a920	UIWindow::vf35	
 UIGuildWnd	005e6b6c	0	36	00448880	UIFrameWnd::vf36	
 UIGuildWnd	005e6b6c	0	37	00479b30	UIGuildWnd::vf37	
-UIGuildWnd	005e6b6c	0	38	005c195a	FUN_005c195a	shared:7-unrelated-classes
-UIGuildMemberManageWnd	005e6c14	0	0	0047b7a0	UIGuildMemberManageWnd::vf00	
+UIGuildWnd	005e6b6c	0	38	005c195a	_purecall	shared:7-unrelated-classes
+UIGuildMemberManageWnd	005e6c14	0	0	0047b7a0	UIGuildMemberManageWnd::`scalar_deleting_destructor'	
 UIGuildMemberManageWnd	005e6c14	0	1	004a5b40	UIWindow::vf01	
 UIGuildMemberManageWnd	005e6c14	0	2	00439bf0	UIWindow::vf02	
 UIGuildMemberManageWnd	005e6c14	0	3	004a5910	UIWindow::vf03	
@@ -4249,7 +4249,7 @@ UIGuildMemberManageWnd	005e6c14	0	35	0047dfa0	UIGuildMemberManageWnd::vf35
 UIGuildMemberManageWnd	005e6c14	0	36	00448880	UIFrameWnd::vf36	
 UIGuildMemberManageWnd	005e6c14	0	37	0047d100	UIGuildMemberManageWnd::vf37	
 UIGuildMemberManageWnd	005e6c14	0	38	0047b790	UIGuildMemberManageWnd::vf38	
-UIGuildPositionManageWnd	005e6cb4	0	0	0047e240	UIGuildPositionManageWnd::vf00	
+UIGuildPositionManageWnd	005e6cb4	0	0	0047e240	UIGuildPositionManageWnd::`scalar_deleting_destructor'	
 UIGuildPositionManageWnd	005e6cb4	0	1	0047fcd0	UIGuildPositionManageWnd::vf01	
 UIGuildPositionManageWnd	005e6cb4	0	2	00439bf0	UIWindow::vf02	
 UIGuildPositionManageWnd	005e6cb4	0	3	004a5910	UIWindow::vf03	
@@ -4288,7 +4288,7 @@ UIGuildPositionManageWnd	005e6cb4	0	35	0047fe20	UIGuildPositionManageWnd::vf35
 UIGuildPositionManageWnd	005e6cb4	0	36	00448880	UIFrameWnd::vf36	
 UIGuildPositionManageWnd	005e6cb4	0	37	0047ec50	UIGuildPositionManageWnd::vf37	
 UIGuildPositionManageWnd	005e6cb4	0	38	0047e230	UIGuildPositionManageWnd::vf38	
-UIEditCtrlVarId	005e6d54	0	0	0047ec10	UIEditCtrlVarId::vf00	
+UIEditCtrlVarId	005e6d54	0	0	0047ec10	UIEditCtrlVarId::`scalar_deleting_destructor'	
 UIEditCtrlVarId	005e6d54	0	1	004a5b40	UIWindow::vf01	
 UIEditCtrlVarId	005e6d54	0	2	00439bf0	UIWindow::vf02	
 UIEditCtrlVarId	005e6d54	0	3	004a5910	UIWindow::vf03	
@@ -4327,7 +4327,7 @@ UIEditCtrlVarId	005e6d54	0	35	0043f970	UIEditCtrlVarId::vf35
 UIEditCtrlVarId	005e6d54	0	36	00439d30	UIWindow::vf36	
 UIEditCtrlVarId	005e6d54	0	37	0043f990	UIEditCtrlVarId::vf37	
 UIEditCtrlVarId	005e6d54	0	38	0043f930	UIEditCtrlVarId::vf38	
-UIGuildSkillWnd	005e6df4	0	0	00480040	UIGuildSkillWnd::vf00	
+UIGuildSkillWnd	005e6df4	0	0	00480040	UIGuildSkillWnd::`scalar_deleting_destructor'	
 UIGuildSkillWnd	005e6df4	0	1	004a5b40	UIWindow::vf01	
 UIGuildSkillWnd	005e6df4	0	2	00439bf0	UIWindow::vf02	
 UIGuildSkillWnd	005e6df4	0	3	004a5910	UIWindow::vf03	
@@ -4366,7 +4366,7 @@ UIGuildSkillWnd	005e6df4	0	35	0043a920	UIWindow::vf35
 UIGuildSkillWnd	005e6df4	0	36	00448880	UIFrameWnd::vf36	
 UIGuildSkillWnd	005e6df4	0	37	00480bc0	UIGuildSkillWnd::vf37	
 UIGuildSkillWnd	005e6df4	0	38	00480030	UIGuildSkillWnd::vf38	
-UIGuildBanishedMemberWnd	005e6e94	0	0	004817b0	UIGuildBanishedMemberWnd::vf00	
+UIGuildBanishedMemberWnd	005e6e94	0	0	004817b0	UIGuildBanishedMemberWnd::`scalar_deleting_destructor'	
 UIGuildBanishedMemberWnd	005e6e94	0	1	004a5b40	UIWindow::vf01	
 UIGuildBanishedMemberWnd	005e6e94	0	2	00439bf0	UIWindow::vf02	
 UIGuildBanishedMemberWnd	005e6e94	0	3	004a5910	UIWindow::vf03	
@@ -4405,7 +4405,7 @@ UIGuildBanishedMemberWnd	005e6e94	0	35	004821d0	UIGuildBanishedMemberWnd::vf35
 UIGuildBanishedMemberWnd	005e6e94	0	36	00448880	UIFrameWnd::vf36	
 UIGuildBanishedMemberWnd	005e6e94	0	37	00481e10	UIGuildBanishedMemberWnd::vf37	
 UIGuildBanishedMemberWnd	005e6e94	0	38	004817a0	UIGuildBanishedMemberWnd::vf38	
-UIGuildNoticeWnd	005e6f34	0	0	00482340	UIGuildNoticeWnd::vf00	
+UIGuildNoticeWnd	005e6f34	0	0	00482340	UIGuildNoticeWnd::`scalar_deleting_destructor'	
 UIGuildNoticeWnd	005e6f34	0	1	004a5b40	UIWindow::vf01	
 UIGuildNoticeWnd	005e6f34	0	2	00439bf0	UIWindow::vf02	
 UIGuildNoticeWnd	005e6f34	0	3	004a5910	UIWindow::vf03	
@@ -4444,7 +4444,7 @@ UIGuildNoticeWnd	005e6f34	0	35	0043a920	UIWindow::vf35
 UIGuildNoticeWnd	005e6f34	0	36	00448880	UIFrameWnd::vf36	
 UIGuildNoticeWnd	005e6f34	0	37	004828c0	UIGuildNoticeWnd::vf37	
 UIGuildNoticeWnd	005e6f34	0	38	00482330	UIGuildNoticeWnd::vf38	
-UIGuildTotalInfoWnd	005e6fd4	0	0	00482ca0	UIGuildTotalInfoWnd::vf00	
+UIGuildTotalInfoWnd	005e6fd4	0	0	00482ca0	UIGuildTotalInfoWnd::`scalar_deleting_destructor'	
 UIGuildTotalInfoWnd	005e6fd4	0	1	004a5b40	UIWindow::vf01	
 UIGuildTotalInfoWnd	005e6fd4	0	2	00439bf0	UIWindow::vf02	
 UIGuildTotalInfoWnd	005e6fd4	0	3	004a5910	UIWindow::vf03	
@@ -4483,7 +4483,7 @@ UIGuildTotalInfoWnd	005e6fd4	0	35	004835a0	UIGuildTotalInfoWnd::vf35
 UIGuildTotalInfoWnd	005e6fd4	0	36	00448880	UIFrameWnd::vf36	
 UIGuildTotalInfoWnd	005e6fd4	0	37	00483310	UIGuildTotalInfoWnd::vf37	
 UIGuildTotalInfoWnd	005e6fd4	0	38	00482c90	UIGuildTotalInfoWnd::vf38	
-UIGuildLeaveReasonDescWnd	005e7074	0	0	00483700	UIGuildLeaveReasonDescWnd::vf00	
+UIGuildLeaveReasonDescWnd	005e7074	0	0	00483700	UIGuildLeaveReasonDescWnd::`scalar_deleting_destructor'	
 UIGuildLeaveReasonDescWnd	005e7074	0	1	004a5b40	UIWindow::vf01	
 UIGuildLeaveReasonDescWnd	005e7074	0	2	00439bf0	UIWindow::vf02	
 UIGuildLeaveReasonDescWnd	005e7074	0	3	004a5910	UIWindow::vf03	
@@ -4521,7 +4521,7 @@ UIGuildLeaveReasonDescWnd	005e7074	0	34	00439d20	UIWindow::vf34
 UIGuildLeaveReasonDescWnd	005e7074	0	35	0043a920	UIWindow::vf35	
 UIGuildLeaveReasonDescWnd	005e7074	0	36	00448880	UIFrameWnd::vf36	
 UIGuildLeaveReasonDescWnd	005e7074	0	37	00483b60	UIGuildLeaveReasonDescWnd::vf37	
-UIGuildBanReasonDescWnd	005e7110	0	0	00483c00	UIGuildBanReasonDescWnd::vf00	
+UIGuildBanReasonDescWnd	005e7110	0	0	00483c00	UIGuildBanReasonDescWnd::`scalar_deleting_destructor'	
 UIGuildBanReasonDescWnd	005e7110	0	1	004a5b40	UIWindow::vf01	
 UIGuildBanReasonDescWnd	005e7110	0	2	00439bf0	UIWindow::vf02	
 UIGuildBanReasonDescWnd	005e7110	0	3	004a5910	UIWindow::vf03	
@@ -4559,7 +4559,7 @@ UIGuildBanReasonDescWnd	005e7110	0	34	00439d20	UIWindow::vf34
 UIGuildBanReasonDescWnd	005e7110	0	35	0043a920	UIWindow::vf35	
 UIGuildBanReasonDescWnd	005e7110	0	36	00448880	UIFrameWnd::vf36	
 UIGuildBanReasonDescWnd	005e7110	0	37	00483c80	UIGuildBanReasonDescWnd::vf37	
-UIIllustWnd	005e71b8	0	0	00486ba0	UIIllustWnd::vf00	
+UIIllustWnd	005e71b8	0	0	00486ba0	UIIllustWnd::`scalar_deleting_destructor'	
 UIIllustWnd	005e71b8	0	1	004a5b40	UIWindow::vf01	
 UIIllustWnd	005e71b8	0	2	00439bf0	UIWindow::vf02	
 UIIllustWnd	005e71b8	0	3	004a5910	UIWindow::vf03	
@@ -4597,7 +4597,7 @@ UIIllustWnd	005e71b8	0	34	00439d20	UIWindow::vf34
 UIIllustWnd	005e71b8	0	35	0043a920	UIWindow::vf35	
 UIIllustWnd	005e71b8	0	36	00448880	UIFrameWnd::vf36	
 UIIllustWnd	005e71b8	0	37	00486c70	UIIllustWnd::vf37	
-UICandidateWnd	005e7260	0	0	00487370	UICandidateWnd::vf00	
+UICandidateWnd	005e7260	0	0	00487370	UICandidateWnd::`scalar_deleting_destructor'	
 UICandidateWnd	005e7260	0	1	004a5b40	UIWindow::vf01	
 UICandidateWnd	005e7260	0	2	00439bf0	UIWindow::vf02	
 UICandidateWnd	005e7260	0	3	004a5910	UIWindow::vf03	
@@ -4635,7 +4635,7 @@ UICandidateWnd	005e7260	0	34	00439d20	UIWindow::vf34
 UICandidateWnd	005e7260	0	35	0043a920	UIWindow::vf35	
 UICandidateWnd	005e7260	0	36	00448880	UIFrameWnd::vf36	
 UICandidateWnd	005e7260	0	37	004877a0	UICandidateWnd::vf37	
-UICompositionWnd	005e72fc	0	0	00487a50	UICompositionWnd::vf00	
+UICompositionWnd	005e72fc	0	0	00487a50	UICompositionWnd::`scalar_deleting_destructor'	
 UICompositionWnd	005e72fc	0	1	004a5b40	UIWindow::vf01	
 UICompositionWnd	005e72fc	0	2	00439bf0	UIWindow::vf02	
 UICompositionWnd	005e72fc	0	3	004a5910	UIWindow::vf03	
@@ -4673,7 +4673,7 @@ UICompositionWnd	005e72fc	0	34	00439d20	UIWindow::vf34
 UICompositionWnd	005e72fc	0	35	0043a920	UIWindow::vf35	
 UICompositionWnd	005e72fc	0	36	00448880	UIFrameWnd::vf36	
 UICompositionWnd	005e72fc	0	37	00487b20	UICompositionWnd::vf37	
-UIKeyStrokeWnd	005e7398	0	0	00487c90	UIKeyStrokeWnd::vf00	
+UIKeyStrokeWnd	005e7398	0	0	00487c90	UIKeyStrokeWnd::`scalar_deleting_destructor'	
 UIKeyStrokeWnd	005e7398	0	1	004a5b40	UIWindow::vf01	
 UIKeyStrokeWnd	005e7398	0	2	00439bf0	UIWindow::vf02	
 UIKeyStrokeWnd	005e7398	0	3	004a5910	UIWindow::vf03	
@@ -4711,7 +4711,7 @@ UIKeyStrokeWnd	005e7398	0	34	00439d20	UIWindow::vf34
 UIKeyStrokeWnd	005e7398	0	35	0043a920	UIWindow::vf35	
 UIKeyStrokeWnd	005e7398	0	36	00448880	UIFrameWnd::vf36	
 UIKeyStrokeWnd	005e7398	0	37	00487ec0	UIKeyStrokeWnd::vf37	
-UIItemDropCntWnd	005e7440	0	0	00487f30	UIItemDropCntWnd::vf00	
+UIItemDropCntWnd	005e7440	0	0	00487f30	UIItemDropCntWnd::`scalar_deleting_destructor'	
 UIItemDropCntWnd	005e7440	0	1	004a5b40	UIWindow::vf01	
 UIItemDropCntWnd	005e7440	0	2	00439bf0	UIWindow::vf02	
 UIItemDropCntWnd	005e7440	0	3	004a5910	UIWindow::vf03	
@@ -4749,7 +4749,7 @@ UIItemDropCntWnd	005e7440	0	34	00439d20	UIWindow::vf34
 UIItemDropCntWnd	005e7440	0	35	0043a920	UIWindow::vf35	
 UIItemDropCntWnd	005e7440	0	36	00448880	UIFrameWnd::vf36	
 UIItemDropCntWnd	005e7440	0	37	00488690	UIItemDropCntWnd::vf37	
-UIItemBaseWnd	005e74dc	0	0	00489140	UIItemBaseWnd::vf00	
+UIItemBaseWnd	005e74dc	0	0	00489140	UIItemBaseWnd::`scalar_deleting_destructor'	
 UIItemBaseWnd	005e74dc	0	1	004a5b40	UIWindow::vf01	
 UIItemBaseWnd	005e74dc	0	2	00439bf0	UIWindow::vf02	
 UIItemBaseWnd	005e74dc	0	3	004a5910	UIWindow::vf03	
@@ -4787,7 +4787,7 @@ UIItemBaseWnd	005e74dc	0	34	00439d20	UIWindow::vf34
 UIItemBaseWnd	005e74dc	0	35	00489b40	UIItemBaseWnd::vf35	
 UIItemBaseWnd	005e74dc	0	36	00448880	UIFrameWnd::vf36	
 UIItemBaseWnd	005e74dc	0	37	00489b80	UIItemBaseWnd::vf37	
-UIItemShopWnd	005e7578	0	0	00489db0	UIItemShopWnd::vf00	
+UIItemShopWnd	005e7578	0	0	00489db0	UIItemShopWnd::`scalar_deleting_destructor'	
 UIItemShopWnd	005e7578	0	1	004a5b40	UIWindow::vf01	
 UIItemShopWnd	005e7578	0	2	00439bf0	UIWindow::vf02	
 UIItemShopWnd	005e7578	0	3	004a5910	UIWindow::vf03	
@@ -4825,7 +4825,7 @@ UIItemShopWnd	005e7578	0	34	00439d20	UIWindow::vf34
 UIItemShopWnd	005e7578	0	35	00489b40	UIItemBaseWnd::vf35	
 UIItemShopWnd	005e7578	0	36	00448880	UIFrameWnd::vf36	
 UIItemShopWnd	005e7578	0	37	0048ac20	UIItemShopWnd::vf37	
-UIMerchantItemMyShopWnd	005e7614	0	0	0048b2b0	UIMerchantItemMyShopWnd::vf00	
+UIMerchantItemMyShopWnd	005e7614	0	0	0048b2b0	UIMerchantItemMyShopWnd::`scalar_deleting_destructor'	
 UIMerchantItemMyShopWnd	005e7614	0	1	004a5b40	UIWindow::vf01	
 UIMerchantItemMyShopWnd	005e7614	0	2	00439bf0	UIWindow::vf02	
 UIMerchantItemMyShopWnd	005e7614	0	3	004a5910	UIWindow::vf03	
@@ -4863,7 +4863,7 @@ UIMerchantItemMyShopWnd	005e7614	0	34	00439d20	UIWindow::vf34
 UIMerchantItemMyShopWnd	005e7614	0	35	00489b40	UIItemBaseWnd::vf35	
 UIMerchantItemMyShopWnd	005e7614	0	36	00448880	UIFrameWnd::vf36	
 UIMerchantItemMyShopWnd	005e7614	0	37	0048b960	UIMerchantItemMyShopWnd::vf37	
-UIMerchantItemShopWnd	005e76b0	0	0	0048bf60	UIMerchantItemShopWnd::vf00	
+UIMerchantItemShopWnd	005e76b0	0	0	0048bf60	UIMerchantItemShopWnd::`scalar_deleting_destructor'	
 UIMerchantItemShopWnd	005e76b0	0	1	004a5b40	UIWindow::vf01	
 UIMerchantItemShopWnd	005e76b0	0	2	00439bf0	UIWindow::vf02	
 UIMerchantItemShopWnd	005e76b0	0	3	004a5910	UIWindow::vf03	
@@ -4901,7 +4901,7 @@ UIMerchantItemShopWnd	005e76b0	0	34	00439d20	UIWindow::vf34
 UIMerchantItemShopWnd	005e76b0	0	35	00489b40	UIItemBaseWnd::vf35	
 UIMerchantItemShopWnd	005e76b0	0	36	00448880	UIFrameWnd::vf36	
 UIMerchantItemShopWnd	005e76b0	0	37	0048cd50	UIMerchantItemShopWnd::vf37	
-UIItemPurchaseWnd	005e774c	0	0	0048d200	UIItemPurchaseWnd::vf00	
+UIItemPurchaseWnd	005e774c	0	0	0048d200	UIItemPurchaseWnd::`scalar_deleting_destructor'	
 UIItemPurchaseWnd	005e774c	0	1	004a5b40	UIWindow::vf01	
 UIItemPurchaseWnd	005e774c	0	2	00439bf0	UIWindow::vf02	
 UIItemPurchaseWnd	005e774c	0	3	004a5910	UIWindow::vf03	
@@ -4939,7 +4939,7 @@ UIItemPurchaseWnd	005e774c	0	34	00439d20	UIWindow::vf34
 UIItemPurchaseWnd	005e774c	0	35	00489b40	UIItemBaseWnd::vf35	
 UIItemPurchaseWnd	005e774c	0	36	00448880	UIFrameWnd::vf36	
 UIItemPurchaseWnd	005e774c	0	37	0048e210	UIItemPurchaseWnd::vf37	
-UIMerchantItemPurchaseWnd	005e77e8	0	0	0048e910	UIMerchantItemPurchaseWnd::vf00	
+UIMerchantItemPurchaseWnd	005e77e8	0	0	0048e910	UIMerchantItemPurchaseWnd::`scalar_deleting_destructor'	
 UIMerchantItemPurchaseWnd	005e77e8	0	1	004a5b40	UIWindow::vf01	
 UIMerchantItemPurchaseWnd	005e77e8	0	2	00439bf0	UIWindow::vf02	
 UIMerchantItemPurchaseWnd	005e77e8	0	3	004a5910	UIWindow::vf03	
@@ -4977,7 +4977,7 @@ UIMerchantItemPurchaseWnd	005e77e8	0	34	00439d20	UIWindow::vf34
 UIMerchantItemPurchaseWnd	005e77e8	0	35	00489b40	UIItemBaseWnd::vf35	
 UIMerchantItemPurchaseWnd	005e77e8	0	36	00448880	UIFrameWnd::vf36	
 UIMerchantItemPurchaseWnd	005e77e8	0	37	0048f950	UIMerchantItemPurchaseWnd::vf37	
-UIItemSellWnd	005e7884	0	0	004901f0	UIItemSellWnd::vf00	
+UIItemSellWnd	005e7884	0	0	004901f0	UIItemSellWnd::`scalar_deleting_destructor'	
 UIItemSellWnd	005e7884	0	1	004a5b40	UIWindow::vf01	
 UIItemSellWnd	005e7884	0	2	00439bf0	UIWindow::vf02	
 UIItemSellWnd	005e7884	0	3	004a5910	UIWindow::vf03	
@@ -5015,7 +5015,7 @@ UIItemSellWnd	005e7884	0	34	00439d20	UIWindow::vf34
 UIItemSellWnd	005e7884	0	35	00489b40	UIItemBaseWnd::vf35	
 UIItemSellWnd	005e7884	0	36	00448880	UIFrameWnd::vf36	
 UIItemSellWnd	005e7884	0	37	00491220	UIItemSellWnd::vf37	
-UIMerchantItemWnd	005e7920	0	0	00491880	UIMerchantItemWnd::vf00	
+UIMerchantItemWnd	005e7920	0	0	00491880	UIMerchantItemWnd::`scalar_deleting_destructor'	
 UIMerchantItemWnd	005e7920	0	1	004a5b40	UIWindow::vf01	
 UIMerchantItemWnd	005e7920	0	2	00439bf0	UIWindow::vf02	
 UIMerchantItemWnd	005e7920	0	3	004a5910	UIWindow::vf03	
@@ -5053,7 +5053,7 @@ UIMerchantItemWnd	005e7920	0	34	00439d20	UIWindow::vf34
 UIMerchantItemWnd	005e7920	0	35	00489b40	UIItemBaseWnd::vf35	
 UIMerchantItemWnd	005e7920	0	36	00448880	UIFrameWnd::vf36	
 UIMerchantItemWnd	005e7920	0	37	00492170	UIMerchantItemWnd::vf37	
-UIMerchantMirrorItemWnd	005e79bc	0	0	004926a0	UIMerchantMirrorItemWnd::vf00	
+UIMerchantMirrorItemWnd	005e79bc	0	0	004926a0	UIMerchantMirrorItemWnd::`scalar_deleting_destructor'	
 UIMerchantMirrorItemWnd	005e79bc	0	1	004a5b40	UIWindow::vf01	
 UIMerchantMirrorItemWnd	005e79bc	0	2	00439bf0	UIWindow::vf02	
 UIMerchantMirrorItemWnd	005e79bc	0	3	004a5910	UIWindow::vf03	
@@ -5091,7 +5091,7 @@ UIMerchantMirrorItemWnd	005e79bc	0	34	00439d20	UIWindow::vf34
 UIMerchantMirrorItemWnd	005e79bc	0	35	00489b40	UIItemBaseWnd::vf35	
 UIMerchantMirrorItemWnd	005e79bc	0	36	00448880	UIFrameWnd::vf36	
 UIMerchantMirrorItemWnd	005e79bc	0	37	00492c00	UIMerchantMirrorItemWnd::vf37	
-UIItemWnd	005e7a58	0	0	00493090	UIItemWnd::vf00	
+UIItemWnd	005e7a58	0	0	00493090	UIItemWnd::`scalar_deleting_destructor'	
 UIItemWnd	005e7a58	0	1	004a5b40	UIWindow::vf01	
 UIItemWnd	005e7a58	0	2	00439bf0	UIWindow::vf02	
 UIItemWnd	005e7a58	0	3	004a5910	UIWindow::vf03	
@@ -5129,7 +5129,7 @@ UIItemWnd	005e7a58	0	34	00439d20	UIWindow::vf34
 UIItemWnd	005e7a58	0	35	00489b40	UIItemBaseWnd::vf35	
 UIItemWnd	005e7a58	0	36	00448880	UIFrameWnd::vf36	
 UIItemWnd	005e7a58	0	37	00494110	UIItemWnd::vf37	
-UIItemStoreWnd	005e7af4	0	0	004949a0	UIItemStoreWnd::vf00	
+UIItemStoreWnd	005e7af4	0	0	004949a0	UIItemStoreWnd::`scalar_deleting_destructor'	
 UIItemStoreWnd	005e7af4	0	1	004a5b40	UIWindow::vf01	
 UIItemStoreWnd	005e7af4	0	2	00439bf0	UIWindow::vf02	
 UIItemStoreWnd	005e7af4	0	3	004a5910	UIWindow::vf03	
@@ -5167,7 +5167,7 @@ UIItemStoreWnd	005e7af4	0	34	00439d20	UIWindow::vf34
 UIItemStoreWnd	005e7af4	0	35	00489b40	UIItemBaseWnd::vf35	
 UIItemStoreWnd	005e7af4	0	36	00448880	UIFrameWnd::vf36	
 UIItemStoreWnd	005e7af4	0	37	00495a10	UIItemStoreWnd::vf37	
-UISkillListWnd	005e7b90	0	0	00495f70	UISkillListWnd::vf00	
+UISkillListWnd	005e7b90	0	0	00495f70	UISkillListWnd::`scalar_deleting_destructor'	
 UISkillListWnd	005e7b90	0	1	004a5b40	UIWindow::vf01	
 UISkillListWnd	005e7b90	0	2	00439bf0	UIWindow::vf02	
 UISkillListWnd	005e7b90	0	3	004a5910	UIWindow::vf03	
@@ -5205,7 +5205,7 @@ UISkillListWnd	005e7b90	0	34	00439d20	UIWindow::vf34
 UISkillListWnd	005e7b90	0	35	004987f0	UISkillListWnd::vf35	
 UISkillListWnd	005e7b90	0	36	00448880	UIFrameWnd::vf36	
 UISkillListWnd	005e7b90	0	37	00497ca0	UISkillListWnd::vf37	
-UIMerchantShopMakeWnd	005e7c2c	0	0	004989b0	UIMerchantShopMakeWnd::vf00	
+UIMerchantShopMakeWnd	005e7c2c	0	0	004989b0	UIMerchantShopMakeWnd::`scalar_deleting_destructor'	
 UIMerchantShopMakeWnd	005e7c2c	0	1	004a5b40	UIWindow::vf01	
 UIMerchantShopMakeWnd	005e7c2c	0	2	00439bf0	UIWindow::vf02	
 UIMerchantShopMakeWnd	005e7c2c	0	3	004a5910	UIWindow::vf03	
@@ -5243,7 +5243,7 @@ UIMerchantShopMakeWnd	005e7c2c	0	34	00439d20	UIWindow::vf34
 UIMerchantShopMakeWnd	005e7c2c	0	35	00499780	UIMerchantShopMakeWnd::vf35	
 UIMerchantShopMakeWnd	005e7c2c	0	36	00448880	UIFrameWnd::vf36	
 UIMerchantShopMakeWnd	005e7c2c	0	37	004998a0	UIMerchantShopMakeWnd::vf37	
-UIEditCtrlWheel	005e7cc8	0	0	00499070	UIEditCtrlWheel::vf00	
+UIEditCtrlWheel	005e7cc8	0	0	00499070	UIEditCtrlWheel::`scalar_deleting_destructor'	
 UIEditCtrlWheel	005e7cc8	0	1	004a5b40	UIWindow::vf01	
 UIEditCtrlWheel	005e7cc8	0	2	00439bf0	UIWindow::vf02	
 UIEditCtrlWheel	005e7cc8	0	3	004a5910	UIWindow::vf03	
@@ -5282,7 +5282,7 @@ UIEditCtrlWheel	005e7cc8	0	35	00499050	UIEditCtrlWheel::vf35
 UIEditCtrlWheel	005e7cc8	0	36	00439d30	UIWindow::vf36	
 UIEditCtrlWheel	005e7cc8	0	37	0043f0f0	UIEditCtrl::vf37	
 UIEditCtrlWheel	005e7cc8	0	38	0043e040	UIEditCtrl::vf38	
-UIMessengerGroupWnd	005e7d74	0	0	0049a110	UIMessengerGroupWnd::vf00	
+UIMessengerGroupWnd	005e7d74	0	0	0049a110	UIMessengerGroupWnd::`scalar_deleting_destructor'	
 UIMessengerGroupWnd	005e7d74	0	1	004a5b40	UIWindow::vf01	
 UIMessengerGroupWnd	005e7d74	0	2	00439bf0	UIWindow::vf02	
 UIMessengerGroupWnd	005e7d74	0	3	004a5910	UIWindow::vf03	
@@ -5320,7 +5320,7 @@ UIMessengerGroupWnd	005e7d74	0	34	00439d20	UIWindow::vf34
 UIMessengerGroupWnd	005e7d74	0	35	0049b200	UIMessengerGroupWnd::vf35	
 UIMessengerGroupWnd	005e7d74	0	36	00448880	UIFrameWnd::vf36	
 UIMessengerGroupWnd	005e7d74	0	37	0049b910	UIMessengerGroupWnd::vf37	
-UIWhisperListWnd	005e7e10	0	0	0049caf0	UIWhisperListWnd::vf00	
+UIWhisperListWnd	005e7e10	0	0	0049caf0	UIWhisperListWnd::`scalar_deleting_destructor'	
 UIWhisperListWnd	005e7e10	0	1	004a5b40	UIWindow::vf01	
 UIWhisperListWnd	005e7e10	0	2	00439bf0	UIWindow::vf02	
 UIWhisperListWnd	005e7e10	0	3	004a5910	UIWindow::vf03	
@@ -5358,7 +5358,7 @@ UIWhisperListWnd	005e7e10	0	34	00439d20	UIWindow::vf34
 UIWhisperListWnd	005e7e10	0	35	0049e810	UIWhisperListWnd::vf35	
 UIWhisperListWnd	005e7e10	0	36	00448880	UIFrameWnd::vf36	
 UIWhisperListWnd	005e7e10	0	37	0049daf0	UIWhisperListWnd::vf37	
-UIFriendOptionWnd	005e7eac	0	0	0049e9e0	UIFriendOptionWnd::vf00	
+UIFriendOptionWnd	005e7eac	0	0	0049e9e0	UIFriendOptionWnd::`scalar_deleting_destructor'	
 UIFriendOptionWnd	005e7eac	0	1	004a5b40	UIWindow::vf01	
 UIFriendOptionWnd	005e7eac	0	2	00439bf0	UIWindow::vf02	
 UIFriendOptionWnd	005e7eac	0	3	004a5910	UIWindow::vf03	
@@ -5396,7 +5396,7 @@ UIFriendOptionWnd	005e7eac	0	34	00439d20	UIWindow::vf34
 UIFriendOptionWnd	005e7eac	0	35	0043a920	UIWindow::vf35	
 UIFriendOptionWnd	005e7eac	0	36	00448880	UIFrameWnd::vf36	
 UIFriendOptionWnd	005e7eac	0	37	0049f1c0	UIFriendOptionWnd::vf37	
-UIMakeTargetListWnd	005e7f54	0	0	0049f6a0	UIMakeTargetListWnd::vf00	
+UIMakeTargetListWnd	005e7f54	0	0	0049f6a0	UIMakeTargetListWnd::`scalar_deleting_destructor'	
 UIMakeTargetListWnd	005e7f54	0	1	004a5b40	UIWindow::vf01	
 UIMakeTargetListWnd	005e7f54	0	2	00439bf0	UIWindow::vf02	
 UIMakeTargetListWnd	005e7f54	0	3	004a5910	UIWindow::vf03	
@@ -5434,7 +5434,7 @@ UIMakeTargetListWnd	005e7f54	0	34	00439d20	UIWindow::vf34
 UIMakeTargetListWnd	005e7f54	0	35	0043a920	UIWindow::vf35	
 UIMakeTargetListWnd	005e7f54	0	36	00448880	UIFrameWnd::vf36	
 UIMakeTargetListWnd	005e7f54	0	37	0049fd50	UIMakeTargetListWnd::vf37	
-UIShowNeedItemListWnd	005e7ff0	0	0	004a0020	UIShowNeedItemListWnd::vf00	
+UIShowNeedItemListWnd	005e7ff0	0	0	004a0020	UIShowNeedItemListWnd::`scalar_deleting_destructor'	
 UIShowNeedItemListWnd	005e7ff0	0	1	004a5b40	UIWindow::vf01	
 UIShowNeedItemListWnd	005e7ff0	0	2	00439bf0	UIWindow::vf02	
 UIShowNeedItemListWnd	005e7ff0	0	3	004a5910	UIWindow::vf03	
@@ -5472,7 +5472,7 @@ UIShowNeedItemListWnd	005e7ff0	0	34	00439d20	UIWindow::vf34
 UIShowNeedItemListWnd	005e7ff0	0	35	0043a920	UIWindow::vf35	
 UIShowNeedItemListWnd	005e7ff0	0	36	00448880	UIFrameWnd::vf36	
 UIShowNeedItemListWnd	005e7ff0	0	37	004a0820	UIShowNeedItemListWnd::vf37	
-UIMakeTargetProcessWnd	005e808c	0	0	004a0ce0	UIMakeTargetProcessWnd::vf00	
+UIMakeTargetProcessWnd	005e808c	0	0	004a0ce0	UIMakeTargetProcessWnd::`scalar_deleting_destructor'	
 UIMakeTargetProcessWnd	005e808c	0	1	004a5b40	UIWindow::vf01	
 UIMakeTargetProcessWnd	005e808c	0	2	00439bf0	UIWindow::vf02	
 UIMakeTargetProcessWnd	005e808c	0	3	004a5910	UIWindow::vf03	
@@ -5510,7 +5510,7 @@ UIMakeTargetProcessWnd	005e808c	0	34	00439d20	UIWindow::vf34
 UIMakeTargetProcessWnd	005e808c	0	35	0043a920	UIWindow::vf35	
 UIMakeTargetProcessWnd	005e808c	0	36	00448880	UIFrameWnd::vf36	
 UIMakeTargetProcessWnd	005e808c	0	37	004a16c0	UIMakeTargetProcessWnd::vf37	
-UIMakeTargetResultWnd	005e8128	0	0	004a1b40	UIMakeTargetResultWnd::vf00	
+UIMakeTargetResultWnd	005e8128	0	0	004a1b40	UIMakeTargetResultWnd::`scalar_deleting_destructor'	
 UIMakeTargetResultWnd	005e8128	0	1	004a5b40	UIWindow::vf01	
 UIMakeTargetResultWnd	005e8128	0	2	00439bf0	UIWindow::vf02	
 UIMakeTargetResultWnd	005e8128	0	3	004a5910	UIWindow::vf03	
@@ -5548,7 +5548,7 @@ UIMakeTargetResultWnd	005e8128	0	34	00439d20	UIWindow::vf34
 UIMakeTargetResultWnd	005e8128	0	35	0043a920	UIWindow::vf35	
 UIMakeTargetResultWnd	005e8128	0	36	00448880	UIFrameWnd::vf36	
 UIMakeTargetResultWnd	005e8128	0	37	004a2170	UIMakeTargetResultWnd::vf37	
-UIMiniGameWnd	005e81d0	0	0	004a2230	UIMiniGameWnd::vf00	
+UIMiniGameWnd	005e81d0	0	0	004a2230	UIMiniGameWnd::`scalar_deleting_destructor'	
 UIMiniGameWnd	005e81d0	0	1	004a5b40	UIWindow::vf01	
 UIMiniGameWnd	005e81d0	0	2	00439bf0	UIWindow::vf02	
 UIMiniGameWnd	005e81d0	0	3	004a5910	UIWindow::vf03	
@@ -5586,9 +5586,9 @@ UIMiniGameWnd	005e81d0	0	34	004a27d0	UIMiniGameWnd::vf34
 UIMiniGameWnd	005e81d0	0	35	004a27e0	UIMiniGameWnd::vf35	
 UIMiniGameWnd	005e81d0	0	36	004a27f0	UIMiniGameWnd::vf36	
 UIMiniGameWnd	005e81d0	0	37	004a2800	UIMiniGameWnd::vf37	
-UIMiniGameWnd	005e81d0	0	38	005c195a	FUN_005c195a	shared:7-unrelated-classes
-UIMiniGameWnd	005e81d0	0	39	005c195a	FUN_005c195a	shared:7-unrelated-classes
-UISelectMiniGameWnd	005e8274	0	0	004a2ac0	UISelectMiniGameWnd::vf00	
+UIMiniGameWnd	005e81d0	0	38	005c195a	_purecall	shared:7-unrelated-classes
+UIMiniGameWnd	005e81d0	0	39	005c195a	_purecall	shared:7-unrelated-classes
+UISelectMiniGameWnd	005e8274	0	0	004a2ac0	UISelectMiniGameWnd::`scalar_deleting_destructor'	
 UISelectMiniGameWnd	005e8274	0	1	004a5b40	UIWindow::vf01	
 UISelectMiniGameWnd	005e8274	0	2	00439bf0	UIWindow::vf02	
 UISelectMiniGameWnd	005e8274	0	3	004a5910	UIWindow::vf03	
@@ -5626,7 +5626,7 @@ UISelectMiniGameWnd	005e8274	0	34	00439d20	UIWindow::vf34
 UISelectMiniGameWnd	005e8274	0	35	0043a920	UIWindow::vf35	
 UISelectMiniGameWnd	005e8274	0	36	00448880	UIFrameWnd::vf36	
 UISelectMiniGameWnd	005e8274	0	37	004a3090	UISelectMiniGameWnd::vf37	
-UIMiniGameScoreWnd	005e8310	0	0	004a32b0	UIMiniGameScoreWnd::vf00	
+UIMiniGameScoreWnd	005e8310	0	0	004a32b0	UIMiniGameScoreWnd::`scalar_deleting_destructor'	
 UIMiniGameScoreWnd	005e8310	0	1	004a5b40	UIWindow::vf01	
 UIMiniGameScoreWnd	005e8310	0	2	00439bf0	UIWindow::vf02	
 UIMiniGameScoreWnd	005e8310	0	3	004a5910	UIWindow::vf03	
@@ -5664,7 +5664,7 @@ UIMiniGameScoreWnd	005e8310	0	34	00439d20	UIWindow::vf34
 UIMiniGameScoreWnd	005e8310	0	35	0043a920	UIWindow::vf35	
 UIMiniGameScoreWnd	005e8310	0	36	00448880	UIFrameWnd::vf36	
 UIMiniGameScoreWnd	005e8310	0	37	004a3c70	UIMiniGameScoreWnd::vf37	
-UIWindow	005e83c4	0	0	004a5680	UIWindow::vf00	
+UIWindow	005e83c4	0	0	004a5680	UIWindow::`scalar_deleting_destructor'	
 UIWindow	005e83c4	0	1	004a5b40	UIWindow::vf01	
 UIWindow	005e83c4	0	2	00439bf0	UIWindow::vf02	
 UIWindow	005e83c4	0	3	004a5910	UIWindow::vf03	
@@ -5702,8 +5702,8 @@ UIWindow	005e83c4	0	34	00439d20	UIWindow::vf34
 UIWindow	005e83c4	0	35	0043a920	UIWindow::vf35	
 UIWindow	005e83c4	0	36	00439d30	UIWindow::vf36	
 UIWindow	005e83c4	0	37	004a6800	UIWindow::vf37	
-UIWindowMgr	005e846c	0	0	004a7890	UIWindowMgr::vf00	
-UINotifyLevelUpWnd	005e8648	0	0	004b12f0	UINotifyLevelUpWnd::vf00	
+UIWindowMgr	005e846c	0	0	004a7890	UIWindowMgr::`scalar_deleting_destructor'	
+UINotifyLevelUpWnd	005e8648	0	0	004b12f0	UINotifyLevelUpWnd::`scalar_deleting_destructor'	
 UINotifyLevelUpWnd	005e8648	0	1	004a5b40	UIWindow::vf01	
 UINotifyLevelUpWnd	005e8648	0	2	00439bf0	UIWindow::vf02	
 UINotifyLevelUpWnd	005e8648	0	3	004a5910	UIWindow::vf03	
@@ -5741,7 +5741,7 @@ UINotifyLevelUpWnd	005e8648	0	34	00439d20	UIWindow::vf34
 UINotifyLevelUpWnd	005e8648	0	35	0043a920	UIWindow::vf35	
 UINotifyLevelUpWnd	005e8648	0	36	00448880	UIFrameWnd::vf36	
 UINotifyLevelUpWnd	005e8648	0	37	00475460	UINotifyLevelUpWnd::vf37	
-UIMinimapZoomWnd	005e8780	0	0	004b12b0	UIMinimapZoomWnd::vf00	
+UIMinimapZoomWnd	005e8780	0	0	004b12b0	UIMinimapZoomWnd::`scalar_deleting_destructor'	
 UIMinimapZoomWnd	005e8780	0	1	004a5b40	UIWindow::vf01	
 UIMinimapZoomWnd	005e8780	0	2	00439bf0	UIWindow::vf02	
 UIMinimapZoomWnd	005e8780	0	3	004a5910	UIWindow::vf03	
@@ -5779,7 +5779,7 @@ UIMinimapZoomWnd	005e8780	0	34	00439d20	UIWindow::vf34
 UIMinimapZoomWnd	005e8780	0	35	0043a920	UIWindow::vf35	
 UIMinimapZoomWnd	005e8780	0	36	00448880	UIFrameWnd::vf36	
 UIMinimapZoomWnd	005e8780	0	37	00475190	UIMinimapZoomWnd::vf37	
-UIEmotionListWnd	005e8474	0	0	004b13b0	UIEmotionListWnd::vf00	
+UIEmotionListWnd	005e8474	0	0	004b13b0	UIEmotionListWnd::`scalar_deleting_destructor'	
 UIEmotionListWnd	005e8474	0	1	004a5b40	UIWindow::vf01	
 UIEmotionListWnd	005e8474	0	2	00439bf0	UIWindow::vf02	
 UIEmotionListWnd	005e8474	0	3	004a5910	UIWindow::vf03	
@@ -5817,7 +5817,7 @@ UIEmotionListWnd	005e8474	0	34	00439d20	UIWindow::vf34
 UIEmotionListWnd	005e8474	0	35	0043a920	UIWindow::vf35	
 UIEmotionListWnd	005e8474	0	36	00448880	UIFrameWnd::vf36	
 UIEmotionListWnd	005e8474	0	37	00446f40	UIEmotionListWnd::vf37	
-UIEmotionWnd	005e8510	0	0	004b1370	UIEmotionWnd::vf00	
+UIEmotionWnd	005e8510	0	0	004b1370	UIEmotionWnd::`scalar_deleting_destructor'	
 UIEmotionWnd	005e8510	0	1	004a5b40	UIWindow::vf01	
 UIEmotionWnd	005e8510	0	2	00439bf0	UIWindow::vf02	
 UIEmotionWnd	005e8510	0	3	004a5910	UIWindow::vf03	
@@ -5855,7 +5855,7 @@ UIEmotionWnd	005e8510	0	34	00439d20	UIWindow::vf34
 UIEmotionWnd	005e8510	0	35	0043a920	UIWindow::vf35	
 UIEmotionWnd	005e8510	0	36	00448880	UIFrameWnd::vf36	
 UIEmotionWnd	005e8510	0	37	00448020	UIEmotionWnd::vf37	
-UIWebBrowserWnd	005e85ac	0	0	004b1420	UIWebBrowserWnd::vf00	
+UIWebBrowserWnd	005e85ac	0	0	004b1420	UIWebBrowserWnd::`scalar_deleting_destructor'	
 UIWebBrowserWnd	005e85ac	0	1	004a5b40	UIWindow::vf01	
 UIWebBrowserWnd	005e85ac	0	2	00439bf0	UIWindow::vf02	
 UIWebBrowserWnd	005e85ac	0	3	004a5910	UIWindow::vf03	
@@ -5893,7 +5893,7 @@ UIWebBrowserWnd	005e85ac	0	34	00439d20	UIWindow::vf34
 UIWebBrowserWnd	005e85ac	0	35	0043a920	UIWindow::vf35	
 UIWebBrowserWnd	005e85ac	0	36	00448880	UIFrameWnd::vf36	
 UIWebBrowserWnd	005e85ac	0	37	00448b00	UIFrameWnd::vf37	
-UINotifyJobLevelUpWnd	005e86e4	0	0	004b1330	UINotifyJobLevelUpWnd::vf00	
+UINotifyJobLevelUpWnd	005e86e4	0	0	004b1330	UINotifyJobLevelUpWnd::`scalar_deleting_destructor'	
 UINotifyJobLevelUpWnd	005e86e4	0	1	004a5b40	UIWindow::vf01	
 UINotifyJobLevelUpWnd	005e86e4	0	2	00439bf0	UIWindow::vf02	
 UINotifyJobLevelUpWnd	005e86e4	0	3	004a5910	UIWindow::vf03	
@@ -5934,12 +5934,12 @@ UINotifyJobLevelUpWnd	005e86e4	0	37	004754d0	UINotifyJobLevelUpWnd::vf37
 C3dNode	005e88b8	0	0	004b6e50	C3dNode::vf00	
 C3dNode	005e88b8	0	1	004b7580	C3dNode::vf01	
 C3dNode	005e88b8	0	2	004b7e30	C3dNode::vf02	
-C3dNode	005e88b8	0	3	004b6a90	C3dNode::vf03	
+C3dNode	005e88b8	0	3	004b6a90	C3dNode::`scalar_deleting_destructor'	
 C3dNodeHAL	005e88d4	0	0	004b6e50	C3dNode::vf00	
 C3dNodeHAL	005e88d4	0	1	004b8b00	C3dNodeHAL::vf01	
 C3dNodeHAL	005e88d4	0	2	004b92a0	C3dNodeHAL::vf02	
-C3dNodeHAL	005e88d4	0	3	004b9230	C3dNodeHAL::vf03	
-C3dGround	005e8900	0	0	004bc370	C3dGround::vf00	
+C3dNodeHAL	005e88d4	0	3	004b9230	C3dNodeHAL::`scalar_deleting_destructor'	
+C3dGround	005e8900	0	0	004bc370	C3dGround::`scalar_deleting_destructor'	
 C3dGround	005e8900	0	1	004bc270	C3dGround::vf01	
 C3dGround	005e8900	0	2	004bc280	C3dGround::vf02	
 C3dGround	005e8900	0	3	004bc290	C3dGround::vf03	
@@ -5956,8 +5956,8 @@ C3dGround	005e8900	0	13	004bc330	C3dGround::vf13
 C3dGround	005e8900	0	14	004bc350	C3dGround::vf14	
 C3dGround	005e8900	0	15	004bc360	C3dGround::vf15	
 C3dGround	005e8900	0	16	004bc500	C3dGround::vf16	
-CWorld	005e8970	0	0	004c36b0	CWorld::vf00	
-C3dGround15	005e897c	0	0	004c4250	C3dGround15::vf00	
+CWorld	005e8970	0	0	004c36b0	CWorld::`scalar_deleting_destructor'	
+C3dGround15	005e897c	0	0	004c4250	C3dGround15::`scalar_deleting_destructor'	
 C3dGround15	005e897c	0	1	004bc810	C3dGround15::vf01	
 C3dGround15	005e897c	0	2	004bc9c0	C3dGround15::vf02	
 C3dGround15	005e897c	0	3	004bcc30	C3dGround15::vf03	
@@ -5974,7 +5974,7 @@ C3dGround15	005e897c	0	13	004c0040	C3dGround15::vf13
 C3dGround15	005e897c	0	14	004bfff0	C3dGround15::vf14	
 C3dGround15	005e897c	0	15	004c0240	C3dGround15::vf15	
 C3dGround15	005e897c	0	16	004c02d0	C3dGround15::vf16	
-CLanguage	005e89cc	0	0	004c7ab0	CLanguage::vf00	
+CLanguage	005e89cc	0	0	004c7ab0	CLanguage::`scalar_deleting_destructor'	
 CLanguage	005e89cc	0	1	004c7a50	CLanguage::vf01	
 CLanguage	005e89cc	0	2	004c7a60	CLanguage::vf02	
 CLanguage	005e89cc	0	3	004c7a70	CLanguage::vf03	
@@ -5984,7 +5984,7 @@ CLanguage	005e89cc	0	6	004c8350	CLanguage::vf06
 CLanguage	005e89cc	0	7	004c7a80	CLanguage::vf07	
 CLanguage	005e89cc	0	8	004c7a90	CLanguage::vf08	
 CLanguage	005e89cc	0	9	004c7aa0	CLanguage::vf09	
-CLanguageTC	005e89f8	0	0	004c8e30	CLanguageTC::vf00	
+CLanguageTC	005e89f8	0	0	004c8e30	CLanguageTC::`scalar_deleting_destructor'	
 CLanguageTC	005e89f8	0	1	004c8ed0	CLanguageTC::vf01	
 CLanguageTC	005e89f8	0	2	004c8f90	CLanguageTC::vf02	
 CLanguageTC	005e89f8	0	3	004c8fc0	CLanguageTC::vf03	
@@ -5994,7 +5994,7 @@ CLanguageTC	005e89f8	0	6	004c91a0	CLanguageTC::vf06
 CLanguageTC	005e89f8	0	7	004c7a80	CLanguage::vf07	
 CLanguageTC	005e89f8	0	8	004c8de0	CLanguageTC::vf08	
 CLanguageTC	005e89f8	0	9	004c90e0	CLanguageTC::vf09	
-CLanguageTH	005e8a24	0	0	004c9430	CLanguageTH::vf00	
+CLanguageTH	005e8a24	0	0	004c9430	CLanguageTH::`scalar_deleting_destructor'	
 CLanguageTH	005e8a24	0	1	004c7a50	CLanguage::vf01	
 CLanguageTH	005e8a24	0	2	004c7a60	CLanguage::vf02	
 CLanguageTH	005e8a24	0	3	004c7a70	CLanguage::vf03	
@@ -6004,35 +6004,35 @@ CLanguageTH	005e8a24	0	6	004c8350	CLanguage::vf06
 CLanguageTH	005e8a24	0	7	004c7a80	CLanguage::vf07	
 CLanguageTH	005e8a24	0	8	004c7a90	CLanguage::vf08	
 CLanguageTH	005e8a24	0	9	004c7aa0	CLanguage::vf09	
-CMode	005e8a5c	0	0	004cb310	CMode::vf00	
+CMode	005e8a5c	0	0	004cb310	CMode::`scalar_deleting_destructor'	
 CMode	005e8a5c	0	1	004cb2c0	CMode::vf01	
 CMode	005e8a5c	0	2	004cb2d0	CMode::vf02	
 CMode	005e8a5c	0	3	004cb2e0	CMode::vf03	
 CMode	005e8a5c	0	4	004cb2f0	CMode::vf04	
 CMode	005e8a5c	0	5	004cb380	CMode::vf05	
 CMode	005e8a5c	0	6	004cb300	CMode::vf06	
-CActorPickNode	005e8a8c	0	0	004ce540	CActorPickNode::vf00	
-CView	005e8aa0	0	0	004cefb0	CView::vf00	
+CActorPickNode	005e8a8c	0	0	004ce540	CActorPickNode::`scalar_deleting_destructor'	
+CView	005e8aa0	0	0	004cefb0	CView::`scalar_deleting_destructor'	
 CView	005e8aa0	0	1	004cf1d0	CView::vf01	
 CView	005e8aa0	0	2	004cf220	CView::vf02	
 CView	005e8aa0	0	3	004cf4d0	CView::vf03	
 CView	005e8aa0	0	4	004cf260	CView::vf04	
-CGPak	005e8e50	0	0	004dd8d0	CGPak::vf00	
+CGPak	005e8e50	0	0	004dd8d0	CGPak::`scalar_deleting_destructor'	
 CGPak	005e8e50	0	1	004dd9a0	CGPak::vf01	
 CGPak	005e8e50	0	2	004dda10	CGPak::vf02	
-CSakGPak	005e8e60	0	0	004ded80	CSakGPak::vf00	
+CSakGPak	005e8e60	0	0	004ded80	CSakGPak::`scalar_deleting_destructor'	
 CSakGPak	005e8e60	0	1	004dedc0	CSakGPak::vf01	
 CSakGPak	005e8e60	0	2	004dee30	CSakGPak::vf02	
-std::bad_cast	005e8e70	0	0	004e5b80	std::bad_cast::vf00	
+std::bad_cast	005e8e70	0	0	004e5b80	std::bad_cast::`scalar_deleting_destructor'	
 std::bad_cast	005e8e70	0	1	005c377b	exception::vf01	
 std::bad_cast	005e8e70	0	2	004e5b60	std::bad_cast::vf02	
-std::ctype<char>	005e8e80	0	0	004e5e30	std::ctype<char>::vf00	
+std::ctype<char>	005e8e80	0	0	004e5e30	std::ctype<char>::`scalar_deleting_destructor'	
 std::ctype<char>	005e8e80	0	1	004e5d90	std::ctype<char>::vf01	
 std::ctype<char>	005e8e80	0	2	004e5d70	std::ctype<char>::vf02	
 std::ctype<char>	005e8e80	0	3	004e5df0	std::ctype<char>::vf03	
 std::ctype<char>	005e8e80	0	4	004e5dd0	std::ctype<char>::vf04	
-std::locale::facet	005e8e98	0	0	004e5d30	std::locale::facet::vf00	
-mg::CMGPc	005e8eac	0	0	004eb0a0	mg::CMGPc::vf00	
+std::locale::facet	005e8e98	0	0	004e5d30	std::locale::facet::facet	
+mg::CMGPc	005e8eac	0	0	004eb0a0	mg::CMGPc::`scalar_deleting_destructor'	
 mg::CMGPc	005e8eac	0	1	00542e40	CPc::vf01	
 mg::CMGPc	005e8eac	0	2	00543540	CPc::vf02	
 mg::CMGPc	005e8eac	0	3	00544380	CPc::vf03	
@@ -6073,7 +6073,7 @@ mg::CMGPc	005e8eac	0	37	00543510	CPc::vf37
 mg::CMGPc	005e8eac	0	38	00504390	CGameActor::vf38	
 mg::CMGPc	005e8eac	0	39	004eb070	CGameActor::vf39	
 mg::CMGPc	005e8eac	0	40	004eb080	CGameActor::vf40	
-mg::CMGNpc	005e8f54	0	0	004eb220	mg::CMGNpc::vf00	
+mg::CMGNpc	005e8f54	0	0	004eb220	mg::CMGNpc::`scalar_deleting_destructor'	
 mg::CMGNpc	005e8f54	0	1	005404d0	CNpc::vf01	
 mg::CMGNpc	005e8f54	0	2	0053fa60	CNpc::vf02	
 mg::CMGNpc	005e8f54	0	3	00540610	CNpc::vf03	
@@ -6114,7 +6114,7 @@ mg::CMGNpc	005e8f54	0	37	004eb1d0	CGameActor::vf37
 mg::CMGNpc	005e8f54	0	38	00504390	CGameActor::vf38	
 mg::CMGNpc	005e8f54	0	39	004eb070	CGameActor::vf39	
 mg::CMGNpc	005e8f54	0	40	004eb080	CGameActor::vf40	
-mg::CMGEngine	005e9014	0	0	004eb6e0	mg::CMGEngine::vf00	
+mg::CMGEngine	005e9014	0	0	004eb6e0	mg::CMGEngine::`scalar_deleting_destructor'	
 mg::CMGEngine	005e9014	0	1	004a5b40	UIWindow::vf01	
 mg::CMGEngine	005e9014	0	2	00439bf0	UIWindow::vf02	
 mg::CMGEngine	005e9014	0	3	004a5910	UIWindow::vf03	
@@ -6155,8 +6155,8 @@ mg::CMGEngine	005e9014	0	37	004a2800	UIMiniGameWnd::vf37
 mg::CMGEngine	005e9014	0	38	004ebac0	mg::CMGEngine::vf38	
 mg::CMGEngine	005e9014	0	39	004ebab0	mg::CMGEngine::vf39	
 mg::CMGEngine	005e9014	0	40	004ebc40	mg::CMGEngine::vf40	
-mg::CMGEngine	005e9014	0	41	005c195a	FUN_005c195a	shared:7-unrelated-classes
-mg::CMGEngine	005e9014	0	42	005c195a	FUN_005c195a	shared:7-unrelated-classes
+mg::CMGEngine	005e9014	0	41	005c195a	_purecall	shared:7-unrelated-classes
+mg::CMGEngine	005e9014	0	42	005c195a	_purecall	shared:7-unrelated-classes
 mg::mgType1::CItemObj	005e90ec	116	0	004ee4d0	mg::mgType1::CItemObj::vf00_for_CRenderObject	adjustor:-116
 mg::mgType1::CItemObj	005e90ec	116	1	004ed8e0	CRenderObject::vf01	
 mg::mgType1::CItemObj	005e90ec	116	2	00500e40	CRenderObject::vf02	
@@ -6171,24 +6171,24 @@ mg::mgType1::CItemObj	005e90d0	0	1	004ee220	mg::mgType1::CItemObj::vf01
 mg::mgType1::CItemObj	005e90d0	0	2	004ee170	mg::mgType1::CItemObj::vf02	
 mg::mgType1::CItemObj	005e90d0	0	3	004ee160	mg::mgType1::CItemObj::vf03	
 mg::mgType1::CItemObj	005e90d0	0	4	004ed8d0	mg::CObject::vf04	
-mg::mgType1::CItemObj	005e90d0	0	5	004ed8f0	mg::mgType1::CItemObj::vf05	
-mg::CTile	005e9120	0	0	004ee510	mg::CTile::vf00	
+mg::mgType1::CItemObj	005e90d0	0	5	004ed8f0	mg::mgType1::CItemObj::`scalar_deleting_destructor'	
+mg::CTile	005e9120	0	0	004ee510	mg::CTile::`scalar_deleting_destructor'	
 mg::CMap	005e9128	0	0	004f10b0	mg::CObject::vf00	
 mg::CMap	005e9128	0	1	004ef4c0	mg::CMap::vf01	
 mg::CMap	005e9128	0	2	004ef4b0	mg::CMap::vf02	
 mg::CMap	005e9128	0	3	004f1100	mg::CObject::vf03	
 mg::CMap	005e9128	0	4	004ed8d0	mg::CObject::vf04	
-mg::CMap	005e9128	0	5	004eeab0	mg::CMap::vf05	
+mg::CMap	005e9128	0	5	004eeab0	mg::CMap::`scalar_deleting_destructor'	
 mg::CObject	005e9144	0	0	004f10b0	mg::CObject::vf00	
 mg::CObject	005e9144	0	1	004f10f0	mg::CObject::vf01	
 mg::CObject	005e9144	0	2	004eea30	mg::CObject::vf02	
 mg::CObject	005e9144	0	3	004f1100	mg::CObject::vf03	
 mg::CObject	005e9144	0	4	004ed8d0	mg::CObject::vf04	
-mg::CObject	005e9144	0	5	004eea40	mg::CObject::vf05	
-std::out_of_range	005e9160	0	0	004ef1b0	std::out_of_range::vf00	
+mg::CObject	005e9144	0	5	004eea40	mg::CObject::CObject	
+std::out_of_range	005e9160	0	0	004ef1b0	std::out_of_range::`scalar_deleting_destructor'	
 std::out_of_range	005e9160	0	1	004eef30	std::logic_error::vf01	
 std::out_of_range	005e9160	0	2	004ef190	std::out_of_range::vf02	
-std::logic_error	005e9170	0	0	004eefb0	std::logic_error::vf00	
+std::logic_error	005e9170	0	0	004eefb0	std::logic_error::`scalar_deleting_destructor'	
 std::logic_error	005e9170	0	1	004eef30	std::logic_error::vf01	
 std::logic_error	005e9170	0	2	004eef40	std::logic_error::vf02	
 mg::mgType1::CMapObj	005e918c	0	0	004efa20	mg::mgType1::CMapObj::vf00	
@@ -6196,7 +6196,7 @@ mg::mgType1::CMapObj	005e918c	0	1	004efa50	mg::mgType1::CMapObj::vf01
 mg::mgType1::CMapObj	005e918c	0	2	004efa40	mg::mgType1::CMapObj::vf02	
 mg::mgType1::CMapObj	005e918c	0	3	004efa30	mg::mgType1::CMapObj::vf03	
 mg::mgType1::CMapObj	005e918c	0	4	004ed8d0	mg::CObject::vf04	
-mg::mgType1::CMapObj	005e918c	0	5	004ef9e0	mg::mgType1::CMapObj::vf05	
+mg::mgType1::CMapObj	005e918c	0	5	004ef9e0	mg::mgType1::CMapObj::`scalar_deleting_destructor'	
 mg::mgType1::CMonster	005e91d8	116	0	004f0f50	mg::mgType1::CMonster::vf00_for_CMGNpc	adjustor:-116
 mg::mgType1::CMonster	005e91d8	116	1	005404d0	CNpc::vf01	
 mg::mgType1::CMonster	005e91d8	116	2	0053fa60	CNpc::vf02	
@@ -6243,8 +6243,8 @@ mg::mgType1::CMonster	005e91bc	0	1	004f0b30	mg::mgType1::CMonster::vf01
 mg::mgType1::CMonster	005e91bc	0	2	004f0a60	mg::mgType1::CMonster::vf02	
 mg::mgType1::CMonster	005e91bc	0	3	004f0860	mg::mgType1::CMonster::vf03	
 mg::mgType1::CMonster	005e91bc	0	4	004f0270	mg::mgType1::CMonster::vf04	
-mg::mgType1::CMonster	005e91bc	0	5	004f00d0	mg::mgType1::CMonster::vf05	
-mg::CArrow	005e9280	0	0	004f0ee0	mg::CArrow::vf00	
+mg::mgType1::CMonster	005e91bc	0	5	004f00d0	mg::mgType1::CMonster::`scalar_deleting_destructor'	
+mg::CArrow	005e9280	0	0	004f0ee0	mg::CArrow::`scalar_deleting_destructor'	
 mg::CArrow	005e9280	0	1	004eb260	mg::CArrow::vf01	
 mg::CArrow	005e9280	0	2	005afe60	CArrowEffect::vf02	
 mg::CArrow	005e9280	0	3	00501870	CRenderObject::vf03	
@@ -6258,7 +6258,7 @@ mg::CEntity	005e92b4	0	1	004f13b0	mg::CEntity::vf01
 mg::CEntity	005e92b4	0	2	004f13c0	mg::CEntity::vf02	
 mg::CEntity	005e92b4	0	3	004f13d0	mg::CEntity::vf03	
 mg::CEntity	005e92b4	0	4	004ed8d0	mg::CObject::vf04	
-mg::CEntity	005e92b4	0	5	004f12f0	mg::CEntity::vf05	
+mg::CEntity	005e92b4	0	5	004f12f0	mg::CEntity::`scalar_deleting_destructor'	
 mg::mgType1::CPlayer	005e92e0	104	0	004f1870	mg::mgType1::CPlayer::vf00_for_CPc	adjustor:-104
 mg::mgType1::CPlayer	005e92e0	104	1	00542e40	CPc::vf01	
 mg::mgType1::CPlayer	005e92e0	104	2	00543540	CPc::vf02	
@@ -6305,10 +6305,10 @@ mg::mgType1::CPlayer	005e9388	0	1	004f1740	mg::mgType1::CPlayer::vf01
 mg::mgType1::CPlayer	005e9388	0	2	004f1730	mg::mgType1::CPlayer::vf02	
 mg::mgType1::CPlayer	005e9388	0	3	004f1720	mg::mgType1::CPlayer::vf03	
 mg::mgType1::CPlayer	005e9388	0	4	004ed8d0	mg::CObject::vf04	
-mg::mgType1::CPlayer	005e9388	0	5	004f15d0	mg::mgType1::CPlayer::vf05	
-mg::CScript	005e93b0	0	0	004f1aa0	mg::CScript::vf00	
-mg::mgType1::CWorld	005e93ec	0	0	004fd180	mg::mgType1::CWorld::vf00	
-mg::mgType1::CMiniGame001	005e9434	0	0	004fec90	mg::mgType1::CMiniGame001::vf00	
+mg::mgType1::CPlayer	005e9388	0	5	004f15d0	mg::mgType1::CPlayer::`scalar_deleting_destructor'	
+mg::CScript	005e93b0	0	0	004f1aa0	mg::CScript::`scalar_deleting_destructor'	
+mg::mgType1::CWorld	005e93ec	0	0	004fd180	mg::mgType1::CWorld::`scalar_deleting_destructor'	
+mg::mgType1::CMiniGame001	005e9434	0	0	004fec90	mg::mgType1::CMiniGame001::`scalar_deleting_destructor'	
 mg::mgType1::CMiniGame001	005e9434	0	1	004a5b40	UIWindow::vf01	
 mg::mgType1::CMiniGame001	005e9434	0	2	00439bf0	UIWindow::vf02	
 mg::mgType1::CMiniGame001	005e9434	0	3	004a5910	UIWindow::vf03	
@@ -6351,12 +6351,12 @@ mg::mgType1::CMiniGame001	005e9434	0	39	004fecf0	mg::mgType1::CMiniGame001::vf39
 mg::mgType1::CMiniGame001	005e9434	0	40	004fedf0	mg::mgType1::CMiniGame001::vf40	
 mg::mgType1::CMiniGame001	005e9434	0	41	004fed20	mg::mgType1::CMiniGame001::vf41	
 mg::mgType1::CMiniGame001	005e9434	0	42	004fede0	mg::mgType1::CMiniGame001::vf42	
-CGameObject	005e9504	0	0	00500060	CGameObject::vf00	
+CGameObject	005e9504	0	0	00500060	CGameObject::`scalar_deleting_destructor'	
 CGameObject	005e9504	0	1	005000c0	CGameObject::vf01	
 CGameObject	005e9504	0	2	005002a0	CGameObject::vf02	
 CGameObject	005e9504	0	3	00500050	CGameObject::vf03	
 CGameObject	005e9504	0	4	005000d0	CGameObject::vf04	
-CRenderObject	005e953c	0	0	00500320	CRenderObject::vf00	
+CRenderObject	005e953c	0	0	00500320	CRenderObject::`scalar_deleting_destructor'	
 CRenderObject	005e953c	0	1	004ed8e0	CRenderObject::vf01	
 CRenderObject	005e953c	0	2	00500e40	CRenderObject::vf02	
 CRenderObject	005e953c	0	3	00501870	CRenderObject::vf03	
@@ -6365,7 +6365,7 @@ CRenderObject	005e953c	0	5	00501830	CRenderObject::vf05
 CRenderObject	005e953c	0	6	00501840	CRenderObject::vf06	
 CRenderObject	005e953c	0	7	00500de0	CRenderObject::vf07	
 CRenderObject	005e953c	0	8	00500830	CRenderObject::vf08	
-CMousePointer	005e9570	0	0	005019d0	CMousePointer::vf00	
+CMousePointer	005e9570	0	0	005019d0	CMousePointer::`scalar_deleting_destructor'	
 CMousePointer	005e9570	0	1	00501ab0	CMousePointer::vf01	
 CMousePointer	005e9570	0	2	00501b30	CMousePointer::vf02	
 CMousePointer	005e9570	0	3	00501870	CRenderObject::vf03	
@@ -6374,7 +6374,7 @@ CMousePointer	005e9570	0	5	00501830	CRenderObject::vf05
 CMousePointer	005e9570	0	6	00501840	CRenderObject::vf06	
 CMousePointer	005e9570	0	7	00500de0	CRenderObject::vf07	
 CMousePointer	005e9570	0	8	00500830	CRenderObject::vf08	
-CAbleToMakeEffect	005e9598	0	0	00501c60	CAbleToMakeEffect::vf00	
+CAbleToMakeEffect	005e9598	0	0	00501c60	CAbleToMakeEffect::`scalar_deleting_destructor'	
 CAbleToMakeEffect	005e9598	0	1	004ed8e0	CRenderObject::vf01	
 CAbleToMakeEffect	005e9598	0	2	005020d0	CAbleToMakeEffect::vf02	
 CAbleToMakeEffect	005e9598	0	3	00501870	CRenderObject::vf03	
@@ -6383,8 +6383,8 @@ CAbleToMakeEffect	005e9598	0	5	00501830	CRenderObject::vf05
 CAbleToMakeEffect	005e9598	0	6	00501840	CRenderObject::vf06	
 CAbleToMakeEffect	005e9598	0	7	00500de0	CRenderObject::vf07	
 CAbleToMakeEffect	005e9598	0	8	00500830	CRenderObject::vf08	
-CGameActor	005e95c0	0	0	005026a0	CGameActor::vf00	
-CGameActor	005e95c0	0	1	005c195a	FUN_005c195a	shared:7-unrelated-classes
+CGameActor	005e95c0	0	0	005026a0	CGameActor::`scalar_deleting_destructor'	
+CGameActor	005e95c0	0	1	005c195a	_purecall	shared:7-unrelated-classes
 CGameActor	005e95c0	0	2	00504460	CGameActor::vf02	
 CGameActor	005e95c0	0	3	00501870	CRenderObject::vf03	
 CGameActor	005e95c0	0	4	00502b00	CGameActor::vf04	
@@ -6424,7 +6424,7 @@ CGameActor	005e95c0	0	37	004eb1d0	CGameActor::vf37
 CGameActor	005e95c0	0	38	00504390	CGameActor::vf38	
 CGameActor	005e95c0	0	39	004eb070	CGameActor::vf39	
 CGameActor	005e95c0	0	40	004eb080	CGameActor::vf40	
-C3dGrannyGameActor	005e967c	0	0	00507ea0	C3dGrannyGameActor::vf00	
+C3dGrannyGameActor	005e967c	0	0	00507ea0	C3dGrannyGameActor::`scalar_deleting_destructor'	
 C3dGrannyGameActor	005e967c	0	1	00508250	C3dGrannyGameActor::vf01	
 C3dGrannyGameActor	005e967c	0	2	00504460	CGameActor::vf02	
 C3dGrannyGameActor	005e967c	0	3	005083b0	C3dGrannyGameActor::vf03	
@@ -6465,19 +6465,19 @@ C3dGrannyGameActor	005e967c	0	37	004eb1d0	CGameActor::vf37
 C3dGrannyGameActor	005e967c	0	38	00504390	CGameActor::vf38	
 C3dGrannyGameActor	005e967c	0	39	004eb070	CGameActor::vf39	
 C3dGrannyGameActor	005e967c	0	40	004eb080	CGameActor::vf40	
-CGrannyCorpse3d	005e9734	0	0	00509fe0	CGrannyCorpse3d::vf00	
+CGrannyCorpse3d	005e9734	0	0	00509fe0	CGrannyCorpse3d::`scalar_deleting_destructor'	
 CGrannyCorpse3d	005e9734	0	1	0050a2b0	CGrannyCorpse3d::vf01	
 CGrannyCorpse3d	005e9734	0	2	005002a0	CGameObject::vf02	
 CGrannyCorpse3d	005e9734	0	3	0050a380	CGrannyCorpse3d::vf03	
 CGrannyCorpse3d	005e9734	0	4	005000d0	CGameObject::vf04	
-CGameMode	005e9770	0	0	0050c5f0	CGameMode::vf00	
+CGameMode	005e9770	0	0	0050c5f0	CGameMode::`scalar_deleting_destructor'	
 CGameMode	005e9770	0	1	0050cfb0	CGameMode::vf01	
 CGameMode	005e9770	0	2	0050d5d0	CGameMode::vf02	
 CGameMode	005e9770	0	3	0050d630	CGameMode::vf03	
 CGameMode	005e9770	0	4	0050d400	CGameMode::vf04	
 CGameMode	005e9770	0	5	0051d990	CGameMode::vf05	
 CGameMode	005e9770	0	6	00515f60	CGameMode::vf06	
-CDummyEffectLauncher	005e97a4	0	0	0050ffe0	CDummyEffectLauncher::vf00	
+CDummyEffectLauncher	005e97a4	0	0	0050ffe0	CDummyEffectLauncher::`scalar_deleting_destructor'	
 CDummyEffectLauncher	005e97a4	0	1	005affc0	CDummyEffectLauncher::vf01	
 CDummyEffectLauncher	005e97a4	0	2	005020d0	CAbleToMakeEffect::vf02	
 CDummyEffectLauncher	005e97a4	0	3	00501870	CRenderObject::vf03	
@@ -6487,7 +6487,7 @@ CDummyEffectLauncher	005e97a4	0	6	00501840	CRenderObject::vf06
 CDummyEffectLauncher	005e97a4	0	7	00500de0	CRenderObject::vf07	
 CDummyEffectLauncher	005e97a4	0	8	00500830	CRenderObject::vf08	
 CDummyEffectLauncher	005e97a4	0	9	005b0010	CDummyEffectLauncher::vf09	
-UIVerticalNameBalloonText	005e97dc	0	0	005167d0	UIVerticalNameBalloonText::vf00	
+UIVerticalNameBalloonText	005e97dc	0	0	005167d0	UIVerticalNameBalloonText::`scalar_deleting_destructor'	
 UIVerticalNameBalloonText	005e97dc	0	1	004a5b40	UIWindow::vf01	
 UIVerticalNameBalloonText	005e97dc	0	2	00439bf0	UIWindow::vf02	
 UIVerticalNameBalloonText	005e97dc	0	3	004a5910	UIWindow::vf03	
@@ -6528,7 +6528,7 @@ UIVerticalNameBalloonText	005e97dc	0	37	004a6800	UIWindow::vf37
 UIVerticalNameBalloonText	005e97dc	0	38	0043dcf0	UIVerticalNameBalloonText::vf38	
 UIVerticalNameBalloonText	005e97dc	0	39	0043d6b0	UIVerticalNameBalloonText::vf39	
 UIVerticalNameBalloonText	005e97dc	0	40	0043d510	UIVerticalNameBalloonText::vf40	
-CItem	005e98ac	0	0	0053ac20	CItem::vf00	
+CItem	005e98ac	0	0	0053ac20	CItem::`scalar_deleting_destructor'	
 CItem	005e98ac	0	1	0053ad60	CItem::vf01	
 CItem	005e98ac	0	2	0053afb0	CItem::vf02	
 CItem	005e98ac	0	3	0053ad20	CItem::vf03	
@@ -6537,14 +6537,14 @@ CItem	005e98ac	0	5	0053ae40	CItem::vf05
 CItem	005e98ac	0	6	00501840	CRenderObject::vf06	
 CItem	005e98ac	0	7	00500de0	CRenderObject::vf07	
 CItem	005e98ac	0	8	00500830	CRenderObject::vf08	
-CLoginMode	005e98f0	0	0	0053b470	CLoginMode::vf00	
+CLoginMode	005e98f0	0	0	0053b470	CLoginMode::`scalar_deleting_destructor'	
 CLoginMode	005e98f0	0	1	0053b5a0	CLoginMode::vf01	
 CLoginMode	005e98f0	0	2	0053b720	CLoginMode::vf02	
 CLoginMode	005e98f0	0	3	0053ba70	CLoginMode::vf03	
 CLoginMode	005e98f0	0	4	0053b810	CLoginMode::vf04	
 CLoginMode	005e98f0	0	5	0053d230	CLoginMode::vf05	
 CLoginMode	005e98f0	0	6	0053baa0	CLoginMode::vf06	
-CNpc	005e991c	0	0	0053f9a0	CNpc::vf00	
+CNpc	005e991c	0	0	0053f9a0	CNpc::`scalar_deleting_destructor'	
 CNpc	005e991c	0	1	005404d0	CNpc::vf01	
 CNpc	005e991c	0	2	0053fa60	CNpc::vf02	
 CNpc	005e991c	0	3	00540610	CNpc::vf03	
@@ -6585,7 +6585,7 @@ CNpc	005e991c	0	37	004eb1d0	CGameActor::vf37
 CNpc	005e991c	0	38	00504390	CGameActor::vf38	
 CNpc	005e991c	0	39	004eb070	CGameActor::vf39	
 CNpc	005e991c	0	40	004eb080	CGameActor::vf40	
-CBlowEffect	005e99c8	0	0	005409a0	CBlowEffect::vf00	
+CBlowEffect	005e99c8	0	0	005409a0	CBlowEffect::`scalar_deleting_destructor'	
 CBlowEffect	005e99c8	0	1	00540a60	CBlowEffect::vf01	
 CBlowEffect	005e99c8	0	2	00540af0	CBlowEffect::vf02	
 CBlowEffect	005e99c8	0	3	00501870	CRenderObject::vf03	
@@ -6594,7 +6594,7 @@ CBlowEffect	005e99c8	0	5	00501830	CRenderObject::vf05
 CBlowEffect	005e99c8	0	6	00501840	CRenderObject::vf06	
 CBlowEffect	005e99c8	0	7	00500de0	CRenderObject::vf07	
 CBlowEffect	005e99c8	0	8	00500830	CRenderObject::vf08	
-CCorpse	005e99f0	0	0	00540bc0	CCorpse::vf00	
+CCorpse	005e99f0	0	0	00540bc0	CCorpse::`scalar_deleting_destructor'	
 CCorpse	005e99f0	0	1	00540c70	CCorpse::vf01	
 CCorpse	005e99f0	0	2	00540d00	CCorpse::vf02	
 CCorpse	005e99f0	0	3	00501870	CRenderObject::vf03	
@@ -6603,7 +6603,7 @@ CCorpse	005e99f0	0	5	00501830	CRenderObject::vf05
 CCorpse	005e99f0	0	6	00501840	CRenderObject::vf06	
 CCorpse	005e99f0	0	7	00500de0	CRenderObject::vf07	
 CCorpse	005e99f0	0	8	00500830	CRenderObject::vf08	
-CBlurPC	005e9a18	0	0	00541070	CBlurPC::vf00	
+CBlurPC	005e9a18	0	0	00541070	CBlurPC::`scalar_deleting_destructor'	
 CBlurPC	005e9a18	0	1	00541120	CBlurPC::vf01	
 CBlurPC	005e9a18	0	2	00541270	CBlurPC::vf02	
 CBlurPC	005e9a18	0	3	00541140	CBlurPC::vf03	
@@ -6644,7 +6644,7 @@ CBlurPC	005e9a18	0	37	00543510	CPc::vf37
 CBlurPC	005e9a18	0	38	00504390	CGameActor::vf38	
 CBlurPC	005e9a18	0	39	004eb070	CGameActor::vf39	
 CBlurPC	005e9a18	0	40	004eb080	CGameActor::vf40	
-CMasterChaser	005e9ac0	0	0	00541370	CMasterChaser::vf00	
+CMasterChaser	005e9ac0	0	0	00541370	CMasterChaser::`scalar_deleting_destructor'	
 CMasterChaser	005e9ac0	0	1	004ed8e0	CRenderObject::vf01	
 CMasterChaser	005e9ac0	0	2	00500e40	CRenderObject::vf02	
 CMasterChaser	005e9ac0	0	3	00501870	CRenderObject::vf03	
@@ -6653,7 +6653,7 @@ CMasterChaser	005e9ac0	0	5	00501830	CRenderObject::vf05
 CMasterChaser	005e9ac0	0	6	00501840	CRenderObject::vf06	
 CMasterChaser	005e9ac0	0	7	00500de0	CRenderObject::vf07	
 CMasterChaser	005e9ac0	0	8	00500830	CRenderObject::vf08	
-CNumEffect	005e9ae8	0	0	00541460	CNumEffect::vf00	
+CNumEffect	005e9ae8	0	0	00541460	CNumEffect::`scalar_deleting_destructor'	
 CNumEffect	005e9ae8	0	1	00541520	CNumEffect::vf01	
 CNumEffect	005e9ae8	0	2	005415e0	CNumEffect::vf02	
 CNumEffect	005e9ae8	0	3	00501870	CRenderObject::vf03	
@@ -6662,7 +6662,7 @@ CNumEffect	005e9ae8	0	5	00501830	CRenderObject::vf05
 CNumEffect	005e9ae8	0	6	00501840	CRenderObject::vf06	
 CNumEffect	005e9ae8	0	7	00500de0	CRenderObject::vf07	
 CNumEffect	005e9ae8	0	8	00500830	CRenderObject::vf08	
-CSoundMaker	005e9b20	0	0	00541700	CSoundMaker::vf00	
+CSoundMaker	005e9b20	0	0	00541700	CSoundMaker::`scalar_deleting_destructor'	
 CSoundMaker	005e9b20	0	1	005418e0	CSoundMaker::vf01	
 CSoundMaker	005e9b20	0	2	00541b00	CSoundMaker::vf02	
 CSoundMaker	005e9b20	0	3	005416f0	CSoundMaker::vf03	
@@ -6671,7 +6671,7 @@ CSoundMaker	005e9b20	0	5	00501830	CRenderObject::vf05
 CSoundMaker	005e9b20	0	6	00501840	CRenderObject::vf06	
 CSoundMaker	005e9b20	0	7	00500de0	CRenderObject::vf07	
 CSoundMaker	005e9b20	0	8	00500830	CRenderObject::vf08	
-CGndRiser	005e9b58	0	0	00541cf0	CGndRiser::vf00	
+CGndRiser	005e9b58	0	0	00541cf0	CGndRiser::`scalar_deleting_destructor'	
 CGndRiser	005e9b58	0	1	00541dc0	CGndRiser::vf01	
 CGndRiser	005e9b58	0	2	00541ec0	CGndRiser::vf02	
 CGndRiser	005e9b58	0	3	00541ce0	CGndRiser::vf03	
@@ -6680,7 +6680,7 @@ CGndRiser	005e9b58	0	5	00501830	CRenderObject::vf05
 CGndRiser	005e9b58	0	6	00501840	CRenderObject::vf06	
 CGndRiser	005e9b58	0	7	00500de0	CRenderObject::vf07	
 CGndRiser	005e9b58	0	8	00500830	CRenderObject::vf08	
-CPc	005e9b94	0	0	00542130	CPc::vf00	
+CPc	005e9b94	0	0	00542130	CPc::`scalar_deleting_destructor'	
 CPc	005e9b94	0	1	00542e40	CPc::vf01	
 CPc	005e9b94	0	2	00543540	CPc::vf02	
 CPc	005e9b94	0	3	00544380	CPc::vf03	
@@ -6721,7 +6721,7 @@ CPc	005e9b94	0	37	00543510	CPc::vf37
 CPc	005e9b94	0	38	00504390	CGameActor::vf38	
 CPc	005e9b94	0	39	004eb070	CGameActor::vf39	
 CPc	005e9b94	0	40	004eb080	CGameActor::vf40	
-CGrannyPc	005e9c40	0	0	00546d20	CGrannyPc::vf00	
+CGrannyPc	005e9c40	0	0	00546d20	CGrannyPc::`scalar_deleting_destructor'	
 CGrannyPc	005e9c40	0	1	00547ea0	CGrannyPc::vf01	
 CGrannyPc	005e9c40	0	2	005486a0	CGrannyPc::vf02	
 CGrannyPc	005e9c40	0	3	005494e0	CGrannyPc::vf03	
@@ -6762,7 +6762,7 @@ CGrannyPc	005e9c40	0	37	00548670	CGrannyPc::vf37
 CGrannyPc	005e9c40	0	38	00504390	CGameActor::vf38	
 CGrannyPc	005e9c40	0	39	004eb070	CGameActor::vf39	
 CGrannyPc	005e9c40	0	40	004eb080	CGameActor::vf40	
-CPlayer	005e9cf4	0	0	0054b3f0	CPlayer::vf00	
+CPlayer	005e9cf4	0	0	0054b3f0	CPlayer::`scalar_deleting_destructor'	
 CPlayer	005e9cf4	0	1	0054b770	CPlayer::vf01	
 CPlayer	005e9cf4	0	2	0054c5d0	CPlayer::vf02	
 CPlayer	005e9cf4	0	3	00544380	CPc::vf03	
@@ -6803,7 +6803,7 @@ CPlayer	005e9cf4	0	37	00543510	CPc::vf37
 CPlayer	005e9cf4	0	38	00504390	CGameActor::vf38	
 CPlayer	005e9cf4	0	39	004eb070	CGameActor::vf39	
 CPlayer	005e9cf4	0	40	004eb080	CGameActor::vf40	
-CRagEffect	005e9dc8	0	0	0054d340	CRagEffect::vf00	
+CRagEffect	005e9dc8	0	0	0054d340	CRagEffect::`scalar_deleting_destructor'	
 CRagEffect	005e9dc8	0	1	0054d4c0	CRagEffect::vf01	
 CRagEffect	005e9dc8	0	2	0054eba0	CRagEffect::vf02	
 CRagEffect	005e9dc8	0	3	0054ee50	CRagEffect::vf03	
@@ -6812,7 +6812,7 @@ CRagEffect	005e9dc8	0	5	00501830	CRenderObject::vf05
 CRagEffect	005e9dc8	0	6	00501840	CRenderObject::vf06	
 CRagEffect	005e9dc8	0	7	00500de0	CRenderObject::vf07	
 CRagEffect	005e9dc8	0	8	00500830	CRenderObject::vf08	
-CEffectPrim	005e9f6c	0	0	0057d380	CEffectPrim::vf00	
+CEffectPrim	005e9f6c	0	0	0057d380	CEffectPrim::`scalar_deleting_destructor'	
 CEffectPrim	005e9f6c	0	1	0057dce0	CEffectPrim::vf01	
 CEffectPrim	005e9f6c	0	2	00586050	CEffectPrim::vf02	
 CEffectPrim	005e9f6c	0	3	00586070	CEffectPrim::vf03	
@@ -6821,7 +6821,7 @@ CEffectPrim	005e9f6c	0	5	00501830	CRenderObject::vf05
 CEffectPrim	005e9f6c	0	6	00501840	CRenderObject::vf06	
 CEffectPrim	005e9f6c	0	7	00500de0	CRenderObject::vf07	
 CEffectPrim	005e9f6c	0	8	00500830	CRenderObject::vf08	
-CSkill	005e9fe0	0	0	005ab9b0	CSkill::vf00	
+CSkill	005e9fe0	0	0	005ab9b0	CSkill::`scalar_deleting_destructor'	
 CSkill	005e9fe0	0	1	005abaa0	CSkill::vf01	
 CSkill	005e9fe0	0	2	005ac830	CSkill::vf02	
 CSkill	005e9fe0	0	3	005ac720	CSkill::vf03	
@@ -6862,7 +6862,7 @@ CSkill	005e9fe0	0	37	004eb1d0	CGameActor::vf37
 CSkill	005e9fe0	0	38	00504390	CGameActor::vf38	
 CSkill	005e9fe0	0	39	004eb070	CGameActor::vf39	
 CSkill	005e9fe0	0	40	004eb080	CGameActor::vf40	
-CGraffiSkill	005ea08c	0	0	005ad330	CGraffiSkill::vf00	
+CGraffiSkill	005ea08c	0	0	005ad330	CGraffiSkill::`scalar_deleting_destructor'	
 CGraffiSkill	005ea08c	0	1	005ad610	CGraffiSkill::vf01	
 CGraffiSkill	005ea08c	0	2	005ad870	CGraffiSkill::vf02	
 CGraffiSkill	005ea08c	0	3	005ad620	CGraffiSkill::vf03	
@@ -6905,7 +6905,7 @@ CGraffiSkill	005ea08c	0	39	004eb070	CGameActor::vf39
 CGraffiSkill	005ea08c	0	40	004eb080	CGameActor::vf40	
 CGraffiSkill	005ea08c	0	41	005ad3b0	CGraffiSkill::vf41	
 CGraffiSkill	005ea08c	0	42	005ad5f0	CGraffiSkill::vf42	
-CMsgEffect	005ea140	0	0	005ad960	CMsgEffect::vf00	
+CMsgEffect	005ea140	0	0	005ad960	CMsgEffect::`scalar_deleting_destructor'	
 CMsgEffect	005ea140	0	1	005ae0e0	CMsgEffect::vf01	
 CMsgEffect	005ea140	0	2	005aee50	CMsgEffect::vf02	
 CMsgEffect	005ea140	0	3	00501870	CRenderObject::vf03	
@@ -6914,7 +6914,7 @@ CMsgEffect	005ea140	0	5	00501830	CRenderObject::vf05
 CMsgEffect	005ea140	0	6	00501840	CRenderObject::vf06	
 CMsgEffect	005ea140	0	7	00500de0	CRenderObject::vf07	
 CMsgEffect	005ea140	0	8	00500830	CRenderObject::vf08	
-CEffectMaker	005ea18c	0	0	005af520	CEffectMaker::vf00	
+CEffectMaker	005ea18c	0	0	005af520	CEffectMaker::`scalar_deleting_destructor'	
 CEffectMaker	005ea18c	0	1	005af5f0	CEffectMaker::vf01	
 CEffectMaker	005ea18c	0	2	005af6b0	CEffectMaker::vf02	
 CEffectMaker	005ea18c	0	3	005af510	CEffectMaker::vf03	
@@ -6923,7 +6923,7 @@ CEffectMaker	005ea18c	0	5	00501830	CRenderObject::vf05
 CEffectMaker	005ea18c	0	6	00501840	CRenderObject::vf06	
 CEffectMaker	005ea18c	0	7	00500de0	CRenderObject::vf07	
 CEffectMaker	005ea18c	0	8	00500830	CRenderObject::vf08	
-CMandraAttackEffect	005ea1b4	0	0	005af820	CMandraAttackEffect::vf00	
+CMandraAttackEffect	005ea1b4	0	0	005af820	CMandraAttackEffect::`scalar_deleting_destructor'	
 CMandraAttackEffect	005ea1b4	0	1	005af8e0	CMandraAttackEffect::vf01	
 CMandraAttackEffect	005ea1b4	0	2	005af9a0	CMandraAttackEffect::vf02	
 CMandraAttackEffect	005ea1b4	0	3	00501870	CRenderObject::vf03	
@@ -6932,7 +6932,7 @@ CMandraAttackEffect	005ea1b4	0	5	00501830	CRenderObject::vf05
 CMandraAttackEffect	005ea1b4	0	6	00501840	CRenderObject::vf06	
 CMandraAttackEffect	005ea1b4	0	7	00500de0	CRenderObject::vf07	
 CMandraAttackEffect	005ea1b4	0	8	00500830	CRenderObject::vf08	
-CArrowEffect	005ea1dc	0	0	005afad0	CArrowEffect::vf00	
+CArrowEffect	005ea1dc	0	0	005afad0	CArrowEffect::`scalar_deleting_destructor'	
 CArrowEffect	005ea1dc	0	1	005afbc0	CArrowEffect::vf01	
 CArrowEffect	005ea1dc	0	2	005afe60	CArrowEffect::vf02	
 CArrowEffect	005ea1dc	0	3	00501870	CRenderObject::vf03	
@@ -6941,7 +6941,7 @@ CArrowEffect	005ea1dc	0	5	00501830	CRenderObject::vf05
 CArrowEffect	005ea1dc	0	6	00501840	CRenderObject::vf06	
 CArrowEffect	005ea1dc	0	7	00500de0	CRenderObject::vf07	
 CArrowEffect	005ea1dc	0	8	00500830	CRenderObject::vf08	
-CGroundScope	005ea204	0	0	005b0120	CGroundScope::vf00	
+CGroundScope	005ea204	0	0	005b0120	CGroundScope::`scalar_deleting_destructor'	
 CGroundScope	005ea204	0	1	005b0160	CGroundScope::vf01	
 CGroundScope	005ea204	0	2	005b03f0	CGroundScope::vf02	
 CGroundScope	005ea204	0	3	005b0180	CGroundScope::vf03	
@@ -6950,36 +6950,36 @@ CGroundScope	005ea204	0	5	00501830	CRenderObject::vf05
 CGroundScope	005ea204	0	6	00501840	CRenderObject::vf06	
 CGroundScope	005ea204	0	7	00500de0	CRenderObject::vf07	
 CGroundScope	005ea204	0	8	00500830	CRenderObject::vf08	
-std::length_error	005ec504	0	0	005b33cc	std::length_error::vf00	
+std::length_error	005ec504	0	0	005b33cc	std::length_error::`scalar_deleting_destructor'	
 std::length_error	005ec504	0	1	004eef30	std::logic_error::vf01	
 std::length_error	005ec504	0	2	005b33af	std::length_error::vf02	
-std::ostrstream	005ec53c	84	0	005b35f6	std::ostrstream::vf00	
-std::basic_ostream<char,std::char_traits<char>_>	005ec54c	4	0	005b3e83	std::basic_ostream<char,std::char_traits<char>_>::vf00	
-std::strstream	005ec554	92	0	005b372a	std::strstream::vf00	
-std::basic_iostream<char,std::char_traits<char>_>	005ec574	12	0	005b3ea2	std::basic_iostream<char,std::char_traits<char>_>::vf00	
-std::locale::_Locimp	005ec590	0	0	005b4335	std::locale::_Locimp::vf00	
-std::ios_base::failure	005ec5a4	0	0	005b4655	std::ios_base::failure::vf00	
+std::ostrstream	005ec53c	84	0	005b35f6	std::ostrstream::`scalar_deleting_destructor'	
+std::basic_ostream<char,std::char_traits<char>_>	005ec54c	4	0	005b3e83	std::basic_ostream<char,std::char_traits<char>_>::`scalar_deleting_destructor'	
+std::strstream	005ec554	92	0	005b372a	std::strstream::`scalar_deleting_destructor'	
+std::basic_iostream<char,std::char_traits<char>_>	005ec574	12	0	005b3ea2	std::basic_iostream<char,std::char_traits<char>_>::`scalar_deleting_destructor'	
+std::locale::_Locimp	005ec590	0	0	005b4335	std::locale::_Locimp::`scalar_deleting_destructor'	
+std::ios_base::failure	005ec5a4	0	0	005b4655	std::ios_base::failure::`scalar_deleting_destructor'	
 std::ios_base::failure	005ec5a4	0	1	005b451b	std::runtime_error::vf01	
 std::ios_base::failure	005ec5a4	0	2	005b4638	std::ios_base::failure::vf02	
-std::runtime_error	005ec5e8	0	0	005b4582	std::runtime_error::vf00	
+std::runtime_error	005ec5e8	0	0	005b4582	std::runtime_error::`scalar_deleting_destructor'	
 std::runtime_error	005ec5e8	0	1	005b451b	std::runtime_error::vf01	
 std::runtime_error	005ec5e8	0	2	005b4528	std::runtime_error::vf02	
-std::ios_base	005ec5f8	0	0	005b482e	std::ios_base::vf00	
-std::num_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	005ec66c	0	0	005b622f	std::num_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>::vf00	
+std::ios_base	005ec5f8	0	0	005b482e	std::ios_base::`scalar_deleting_destructor'	
+std::num_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	005ec66c	0	0	005b622f	std::num_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>::`scalar_deleting_destructor'	
 std::num_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	005ec66c	0	1	005b6075	std::num_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>::vf01	
 std::num_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	005ec66c	0	2	005b5ff7	std::num_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>::vf02	
 std::num_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	005ec66c	0	3	005b5f79	std::num_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>::vf03	
 std::num_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	005ec66c	0	4	005b5f21	std::num_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>::vf04	
 std::num_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	005ec66c	0	5	005b5ec9	std::num_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>::vf05	
 std::num_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	005ec66c	0	6	005b5d21	std::num_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>::vf06	
-std::codecvt<char,char,int>	005ec630	0	0	005b61e9	std::codecvt<char,char,int>::vf00	
+std::codecvt<char,char,int>	005ec630	0	0	005b61e9	std::codecvt<char,char,int>::`scalar_deleting_destructor'	
 std::codecvt<char,char,int>	005ec630	0	1	005b5103	std::codecvt<char,char,int>::vf01	
 std::codecvt<char,char,int>	005ec630	0	2	005b5106	std::codecvt<char,char,int>::vf02	
 std::codecvt<char,char,int>	005ec630	0	3	005b510a	std::codecvt<char,char,int>::vf03	
 std::codecvt<char,char,int>	005ec630	0	4	005b554a	std::codecvt<char,char,int>::vf04	
 std::codecvt<char,char,int>	005ec630	0	5	005b5564	std::codecvt<char,char,int>::vf05	
 std::codecvt<char,char,int>	005ec630	0	6	005b557e	std::codecvt<char,char,int>::vf06	
-std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005ec68c	0	0	005b620c	std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::vf00	
+std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005ec68c	0	0	005b620c	std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::`scalar_deleting_destructor'	
 std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005ec68c	0	1	005b5c2b	std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::vf01	
 std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005ec68c	0	2	005b5b81	std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::vf02	
 std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005ec68c	0	3	005b5ad7	std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::vf03	
@@ -6989,23 +6989,23 @@ std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005ec
 std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005ec68c	0	7	005b5809	std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::vf07	
 std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005ec68c	0	8	005b573d	std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::vf08	
 std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005ec68c	0	9	005b5593	std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::vf09	
-std::numpunct<char>	005ec650	0	0	005b6252	std::numpunct<char>::vf00	
+std::numpunct<char>	005ec650	0	0	005b6252	std::numpunct<char>::`scalar_deleting_destructor'	
 std::numpunct<char>	005ec650	0	1	005b613f	std::numpunct<char>::vf01	
 std::numpunct<char>	005ec650	0	2	005b6143	std::numpunct<char>::vf02	
 std::numpunct<char>	005ec650	0	3	005b6147	std::numpunct<char>::vf03	
 std::numpunct<char>	005ec650	0	4	005b617d	std::numpunct<char>::vf04	
 std::numpunct<char>	005ec650	0	5	005b61b3	std::numpunct<char>::vf05	
-std::bad_alloc	005ec700	0	0	005b7dad	std::bad_alloc::vf00	
+std::bad_alloc	005ec700	0	0	005b7dad	std::bad_alloc::`scalar_deleting_destructor'	
 std::bad_alloc	005ec700	0	1	005c377b	exception::vf01	
 std::bad_alloc	005ec700	0	2	005b7d90	std::bad_alloc::vf02	
-std::num_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec818	0	0	005b9eb5	std::num_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf00	
+std::num_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec818	0	0	005b9eb5	std::num_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::`scalar_deleting_destructor'	
 std::num_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec818	0	1	005b92e5	std::num_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf01	
 std::num_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec818	0	2	005b9267	std::num_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf02	
 std::num_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec818	0	3	005b91e9	std::num_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf03	
 std::num_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec818	0	4	005b9191	std::num_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf04	
 std::num_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec818	0	5	005b9139	std::num_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf05	
 std::num_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec818	0	6	005b8f86	std::num_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf06	
-std::num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec838	0	0	005b9e92	std::num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf00	
+std::num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec838	0	0	005b9e92	std::num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::`scalar_deleting_destructor'	
 std::num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec838	0	1	005b8e88	std::num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf01	
 std::num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec838	0	2	005b8dde	std::num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf02	
 std::num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec838	0	3	005b8d34	std::num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf03	
@@ -7015,16 +7015,16 @@ std::num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_tr
 std::num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec838	0	7	005b8a66	std::num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf07	
 std::num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec838	0	8	005b899a	std::num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf08	
 std::num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec838	0	9	005b87f0	std::num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf09	
-std::time_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec730	0	0	005b9e5c	std::time_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf00	
+std::time_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec730	0	0	005b9e5c	std::time_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::`scalar_deleting_destructor'	
 std::time_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec730	0	1	005b8714	std::time_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf01	
-std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec73c	0	0	005ba000	std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf00	
+std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec73c	0	0	005ba000	std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::`scalar_deleting_destructor'	
 std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec73c	0	1	005b9b45	std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf01	
 std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec73c	0	2	005b9b49	std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf02	
 std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec73c	0	3	005b9c0d	std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf03	
 std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec73c	0	4	005b9d3e	std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf04	
 std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec73c	0	5	005b9d7c	std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf05	
 std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec73c	0	6	005b9dba	std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf06	
-std::moneypunct<unsigned_short,1>	005ec75c	0	0	005b9fe4	std::moneypunct<unsigned_short,1>::vf00	
+std::moneypunct<unsigned_short,1>	005ec75c	0	0	005b9fe4	std::moneypunct<unsigned_short,1>::`scalar_deleting_destructor'	
 std::moneypunct<unsigned_short,1>	005ec75c	0	1	005b9a47	std::_Mpunct<unsigned_short>::vf01	
 std::moneypunct<unsigned_short,1>	005ec75c	0	2	005b9a4c	std::_Mpunct<unsigned_short>::vf02	
 std::moneypunct<unsigned_short,1>	005ec75c	0	3	005b9a51	std::_Mpunct<unsigned_short>::vf03	
@@ -7034,7 +7034,7 @@ std::moneypunct<unsigned_short,1>	005ec75c	0	6	005b9af3	std::_Mpunct<unsigned_sh
 std::moneypunct<unsigned_short,1>	005ec75c	0	7	005b9b29	std::_Mpunct<unsigned_short>::vf07	
 std::moneypunct<unsigned_short,1>	005ec75c	0	8	005b9b2d	std::_Mpunct<unsigned_short>::vf08	
 std::moneypunct<unsigned_short,1>	005ec75c	0	9	005b9b39	std::_Mpunct<unsigned_short>::vf09	
-std::moneypunct<unsigned_short,0>	005ec788	0	0	005b9fc8	std::moneypunct<unsigned_short,0>::vf00	
+std::moneypunct<unsigned_short,0>	005ec788	0	0	005b9fc8	std::moneypunct<unsigned_short,0>::`scalar_deleting_destructor'	
 std::moneypunct<unsigned_short,0>	005ec788	0	1	005b9a47	std::_Mpunct<unsigned_short>::vf01	
 std::moneypunct<unsigned_short,0>	005ec788	0	2	005b9a4c	std::_Mpunct<unsigned_short>::vf02	
 std::moneypunct<unsigned_short,0>	005ec788	0	3	005b9a51	std::_Mpunct<unsigned_short>::vf03	
@@ -7044,13 +7044,13 @@ std::moneypunct<unsigned_short,0>	005ec788	0	6	005b9af3	std::_Mpunct<unsigned_sh
 std::moneypunct<unsigned_short,0>	005ec788	0	7	005b9b29	std::_Mpunct<unsigned_short>::vf07	
 std::moneypunct<unsigned_short,0>	005ec788	0	8	005b9b2d	std::_Mpunct<unsigned_short>::vf08	
 std::moneypunct<unsigned_short,0>	005ec788	0	9	005b9b39	std::_Mpunct<unsigned_short>::vf09	
-std::money_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec7b4	0	0	005b9fa5	std::money_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf00	
+std::money_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec7b4	0	0	005b9fa5	std::money_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::`scalar_deleting_destructor'	
 std::money_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec7b4	0	1	005b990b	std::money_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf01	
 std::money_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec7b4	0	2	005b97d7	std::money_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf02	
-std::money_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec7c4	0	0	005b9f82	std::money_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf00	
+std::money_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec7c4	0	0	005b9f82	std::money_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::`scalar_deleting_destructor'	
 std::money_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec7c4	0	1	005b974d	std::money_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf01	
 std::money_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec7c4	0	2	005b9618	std::money_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::vf02	
-std::ctype<unsigned_short>	005ec864	0	0	005b9e20	std::ctype<unsigned_short>::vf00	
+std::ctype<unsigned_short>	005ec864	0	0	005b9e20	std::ctype<unsigned_short>::`scalar_deleting_destructor'	
 std::ctype<unsigned_short>	005ec864	0	1	005b854c	std::ctype<unsigned_short>::vf01	
 std::ctype<unsigned_short>	005ec864	0	2	005b8525	std::ctype<unsigned_short>::vf02	
 std::ctype<unsigned_short>	005ec864	0	3	005b858b	std::ctype<unsigned_short>::vf03	
@@ -7063,28 +7063,28 @@ std::ctype<unsigned_short>	005ec864	0	9	005b86ae	std::ctype<unsigned_short>::vf0
 std::ctype<unsigned_short>	005ec864	0	10	005b869f	std::ctype<unsigned_short>::vf10	
 std::ctype<unsigned_short>	005ec864	0	11	005b86e8	std::ctype<unsigned_short>::vf11	
 std::ctype<unsigned_short>	005ec864	0	12	005b86db	std::ctype<unsigned_short>::vf12	
-std::messages<unsigned_short>	005ec7d4	0	0	005b9f43	std::messages<unsigned_short>::vf00	
+std::messages<unsigned_short>	005ec7d4	0	0	005b9f43	std::messages<unsigned_short>::`scalar_deleting_destructor'	
 std::messages<unsigned_short>	005ec7d4	0	1	005b959f	std::messages<unsigned_short>::vf01	
 std::messages<unsigned_short>	005ec7d4	0	2	005b95a4	std::messages<unsigned_short>::vf02	
 std::messages<unsigned_short>	005ec7d4	0	3	005b9615	std::messages<unsigned_short>::vf03	
-std::collate<unsigned_short>	005ec7e8	0	0	005b9f20	std::collate<unsigned_short>::vf00	
+std::collate<unsigned_short>	005ec7e8	0	0	005b9f20	std::collate<unsigned_short>::`scalar_deleting_destructor'	
 std::collate<unsigned_short>	005ec7e8	0	1	005b9463	std::collate<unsigned_short>::vf01	
 std::collate<unsigned_short>	005ec7e8	0	2	005b94a6	std::collate<unsigned_short>::vf02	
 std::collate<unsigned_short>	005ec7e8	0	3	005b957d	std::collate<unsigned_short>::vf03	
-std::numpunct<unsigned_short>	005ec7fc	0	0	005b9ed8	std::numpunct<unsigned_short>::vf00	
+std::numpunct<unsigned_short>	005ec7fc	0	0	005b9ed8	std::numpunct<unsigned_short>::`scalar_deleting_destructor'	
 std::numpunct<unsigned_short>	005ec7fc	0	1	005b93b7	std::numpunct<unsigned_short>::vf01	
 std::numpunct<unsigned_short>	005ec7fc	0	2	005b93bc	std::numpunct<unsigned_short>::vf02	
 std::numpunct<unsigned_short>	005ec7fc	0	3	005b93c1	std::numpunct<unsigned_short>::vf03	
 std::numpunct<unsigned_short>	005ec7fc	0	4	005b93f7	std::numpunct<unsigned_short>::vf04	
 std::numpunct<unsigned_short>	005ec7fc	0	5	005b942d	std::numpunct<unsigned_short>::vf05	
-std::codecvt<unsigned_short,char,int>	005ec710	0	0	005b84f4	std::codecvt<unsigned_short,char,int>::vf00	
+std::codecvt<unsigned_short,char,int>	005ec710	0	0	005b84f4	std::codecvt<unsigned_short,char,int>::`scalar_deleting_destructor'	
 std::codecvt<unsigned_short,char,int>	005ec710	0	1	005b84ea	std::codecvt<unsigned_short,char,int>::vf01	
 std::codecvt<unsigned_short,char,int>	005ec710	0	2	005b84ed	std::codecvt<unsigned_short,char,int>::vf02	
 std::codecvt<unsigned_short,char,int>	005ec710	0	3	005b84f1	std::codecvt<unsigned_short,char,int>::vf03	
 std::codecvt<unsigned_short,char,int>	005ec710	0	4	005b8346	std::codecvt<unsigned_short,char,int>::vf04	
 std::codecvt<unsigned_short,char,int>	005ec710	0	5	005b83c8	std::codecvt<unsigned_short,char,int>::vf05	
 std::codecvt<unsigned_short,char,int>	005ec710	0	6	005b849b	std::codecvt<unsigned_short,char,int>::vf06	
-std::_Mpunct<unsigned_short>	005ec8c4	0	0	005ba078	std::_Mpunct<unsigned_short>::vf00	
+std::_Mpunct<unsigned_short>	005ec8c4	0	0	005ba078	std::_Mpunct<unsigned_short>::`scalar_deleting_destructor'	
 std::_Mpunct<unsigned_short>	005ec8c4	0	1	005b9a47	std::_Mpunct<unsigned_short>::vf01	
 std::_Mpunct<unsigned_short>	005ec8c4	0	2	005b9a4c	std::_Mpunct<unsigned_short>::vf02	
 std::_Mpunct<unsigned_short>	005ec8c4	0	3	005b9a51	std::_Mpunct<unsigned_short>::vf03	
@@ -7094,16 +7094,16 @@ std::_Mpunct<unsigned_short>	005ec8c4	0	6	005b9af3	std::_Mpunct<unsigned_short>:
 std::_Mpunct<unsigned_short>	005ec8c4	0	7	005b9b29	std::_Mpunct<unsigned_short>::vf07	
 std::_Mpunct<unsigned_short>	005ec8c4	0	8	005b9b2d	std::_Mpunct<unsigned_short>::vf08	
 std::_Mpunct<unsigned_short>	005ec8c4	0	9	005b9b39	std::_Mpunct<unsigned_short>::vf09	
-std::time_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	005eca34	0	0	005beea9	std::time_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>::vf00	
+std::time_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	005eca34	0	0	005beea9	std::time_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>::`scalar_deleting_destructor'	
 std::time_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	005eca34	0	1	005becb1	std::time_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>::vf01	
-std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005eca40	0	0	005bee6a	std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::vf00	
+std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005eca40	0	0	005bee6a	std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::`scalar_deleting_destructor'	
 std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005eca40	0	1	005bea05	std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::vf01	
 std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005eca40	0	2	005bea09	std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::vf02	
 std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005eca40	0	3	005beaba	std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::vf03	
 std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005eca40	0	4	005bebcf	std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::vf04	
 std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005eca40	0	5	005bec0d	std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::vf05	
 std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005eca40	0	6	005bec4b	std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::vf06	
-std::moneypunct<char,1>	005eca60	0	0	005bee4e	std::moneypunct<char,1>::vf00	
+std::moneypunct<char,1>	005eca60	0	0	005bee4e	std::moneypunct<char,1>::`scalar_deleting_destructor'	
 std::moneypunct<char,1>	005eca60	0	1	005be909	std::_Mpunct<char>::vf01	
 std::moneypunct<char,1>	005eca60	0	2	005be90d	std::_Mpunct<char>::vf02	
 std::moneypunct<char,1>	005eca60	0	3	005be911	std::_Mpunct<char>::vf03	
@@ -7113,7 +7113,7 @@ std::moneypunct<char,1>	005eca60	0	6	005be9b3	std::_Mpunct<char>::vf06
 std::moneypunct<char,1>	005eca60	0	7	005be9e9	std::_Mpunct<char>::vf07	
 std::moneypunct<char,1>	005eca60	0	8	005be9ed	std::_Mpunct<char>::vf08	
 std::moneypunct<char,1>	005eca60	0	9	005be9f9	std::_Mpunct<char>::vf09	
-std::moneypunct<char,0>	005eca8c	0	0	005bee32	std::moneypunct<char,0>::vf00	
+std::moneypunct<char,0>	005eca8c	0	0	005bee32	std::moneypunct<char,0>::`scalar_deleting_destructor'	
 std::moneypunct<char,0>	005eca8c	0	1	005be909	std::_Mpunct<char>::vf01	
 std::moneypunct<char,0>	005eca8c	0	2	005be90d	std::_Mpunct<char>::vf02	
 std::moneypunct<char,0>	005eca8c	0	3	005be911	std::_Mpunct<char>::vf03	
@@ -7123,21 +7123,21 @@ std::moneypunct<char,0>	005eca8c	0	6	005be9b3	std::_Mpunct<char>::vf06
 std::moneypunct<char,0>	005eca8c	0	7	005be9e9	std::_Mpunct<char>::vf07	
 std::moneypunct<char,0>	005eca8c	0	8	005be9ed	std::_Mpunct<char>::vf08	
 std::moneypunct<char,0>	005eca8c	0	9	005be9f9	std::_Mpunct<char>::vf09	
-std::money_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	005ecab8	0	0	005bee0f	std::money_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>::vf00	
+std::money_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	005ecab8	0	0	005bee0f	std::money_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>::`scalar_deleting_destructor'	
 std::money_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	005ecab8	0	1	005be7f1	std::money_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>::vf01	
 std::money_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	005ecab8	0	2	005be6c7	std::money_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>::vf02	
-std::money_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005ecac8	0	0	005bedec	std::money_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::vf00	
+std::money_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005ecac8	0	0	005bedec	std::money_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::`scalar_deleting_destructor'	
 std::money_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005ecac8	0	1	005be63d	std::money_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::vf01	
 std::money_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005ecac8	0	2	005be50f	std::money_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::vf02	
-std::messages<char>	005ecad8	0	0	005bedad	std::messages<char>::vf00	
+std::messages<char>	005ecad8	0	0	005bedad	std::messages<char>::`scalar_deleting_destructor'	
 std::messages<char>	005ecad8	0	1	005be496	std::messages<char>::vf01	
 std::messages<char>	005ecad8	0	2	005be49b	std::messages<char>::vf02	
 std::messages<char>	005ecad8	0	3	005be50c	std::messages<char>::vf03	
-std::collate<char>	005ecaec	0	0	005bed8a	std::collate<char>::vf00	
+std::collate<char>	005ecaec	0	0	005bed8a	std::collate<char>::`scalar_deleting_destructor'	
 std::collate<char>	005ecaec	0	1	005be368	std::collate<char>::vf01	
 std::collate<char>	005ecaec	0	2	005be3a6	std::collate<char>::vf02	
 std::collate<char>	005ecaec	0	3	005be475	std::collate<char>::vf03	
-std::_Mpunct<char>	005ecb00	0	0	005bef18	std::_Mpunct<char>::vf00	
+std::_Mpunct<char>	005ecb00	0	0	005bef18	std::_Mpunct<char>::`scalar_deleting_destructor'	
 std::_Mpunct<char>	005ecb00	0	1	005be909	std::_Mpunct<char>::vf01	
 std::_Mpunct<char>	005ecb00	0	2	005be90d	std::_Mpunct<char>::vf02	
 std::_Mpunct<char>	005ecb00	0	3	005be911	std::_Mpunct<char>::vf03	
@@ -7147,12 +7147,12 @@ std::_Mpunct<char>	005ecb00	0	6	005be9b3	std::_Mpunct<char>::vf06
 std::_Mpunct<char>	005ecb00	0	7	005be9e9	std::_Mpunct<char>::vf07	
 std::_Mpunct<char>	005ecb00	0	8	005be9ed	std::_Mpunct<char>::vf08	
 std::_Mpunct<char>	005ecb00	0	9	005be9f9	std::_Mpunct<char>::vf09	
-type_info	005ecb34	0	0	005c198c	type_info::vf00	
-exception	005ecb78	0	0	005c36a3	exception::vf00	
+type_info	005ecb34	0	0	005c198c	type_info::`scalar_deleting_destructor'	
+exception	005ecb78	0	0	005c36a3	exception::`scalar_deleting_destructor'	
 exception	005ecb78	0	1	005c377b	exception::vf01	
-__non_rtti_object	005ecc08	0	0	005c3a5f	__non_rtti_object::vf00	
+__non_rtti_object	005ecc08	0	0	005c3a5f	__non_rtti_object::`scalar_deleting_destructor'	
 __non_rtti_object	005ecc08	0	1	005c377b	exception::vf01	
-bad_typeid	005ecc14	0	0	005c3ab0	bad_typeid::vf00	
+bad_typeid	005ecc14	0	0	005c3ab0	bad_typeid::`scalar_deleting_destructor'	
 bad_typeid	005ecc14	0	1	005c377b	exception::vf01	
-bad_cast	005ecc98	0	0	005c3cdf	bad_cast::vf00	
+bad_cast	005ecc98	0	0	005c3cdf	bad_cast::`scalar_deleting_destructor'	
 bad_cast	005ecc98	0	1	005c377b	exception::vf01	

@@ -317,12 +317,59 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - Exports: `analysis/exports/Ragexe.exe.{rtti,vtables,vtable_refs}.tsv`.
     `vtable_refs` lists 1,013 code references to vtables from 617 functions; these are the
     constructor/destructor candidates.
-- Ledger after sync: 6,761 functions to port, 1,559 of them `named` (27.5% of code bytes).
+- [x] Curated labels: `tools/ghidra/scripts/ApplyLabels.java` (run by `analyze.sh` after `ApplyRtti`)
+  applies `analysis/labels/*.tsv`. Every row carries the evidence for its name. The label files win
+  over analysis names, and they are re-applied on every run.
+  - `*.functions.tsv`: functions are created when missing.
+  - `*.data.tsv`: data labels.
+  - `*.classes.tsv`: class struct sizes. A struct is grown, never shrunk.
+  - Class structs are looked up by their exact namespace category (`/mg/mgType1/CPlayer`).
+    Ghidra's `findOrCreateClassStruct` matches by name only and had merged the global `CPlayer`
+    into the mini-game one.
+- [x] VC6 runtime located and labeled:
+  - Layout:
+    - Game code is `[0x00401000, 0x005b3060)`: 5,881 of its 5,883 functions start on a 16-byte
+      boundary. It ends with the start-up module, `WinMain` at `0x005b2280`.
+    - Linker import thunks follow, up to `0x005b325c`.
+    - From there to the end of `.text` is the static C runtime plus Dinkumware STL
+      (8% 16-byte aligned).
+    - EH funclets (`Unwind@…`) for game functions are also placed at the end of `.text`. The
+      ledger keeps them non-library.
+  - `tools/binindex.py` is a capstone index of the binary (instructions, calls, import calls,
+    data references) for analysis scripts.
+  - Only **90 library functions are called from game code** (VC6 inlines `strcpy`, `memcpy` and
+    similar). `analysis/labels/crt.functions.tsv` names them all from their code and call sites,
+    plus the start-up chain: `WinMainCRTStartup` → `_heap_init`, `_mtinit`, `_ioinit`,
+    `_setargv`, `_setenvp`, `_cinit` → `_initterm`, `WinMain`, `exit`.
+  - The game uses: `sprintf`/`vsprintf`/`fprintf`/`sscanf`, `fopen`…`ftell`, `strtok`, `_itoa`,
+    `atoi`/`atof`, `rand`/`srand`, `time`/`ctime`, `floor`/`acos`/`fmod`, `_spawnl` (`runzip.exe`,
+    `findhack.exe`), `_beginthreadex`, `typeid` and `dynamic_cast`, `std::string`, `strstream`.
+  - The game also uses the MSVC array constructor/destructor iterators.
+  - Ledger: `[0x005b325c, end)` and the 41 `std::` template functions in the game region are
+    `library` (`crt`/`stl`), 985 functions in all.
+- [x] Constructors, destructors, object sizes and globals: `tools/recover_objects.py` writes
+  `analysis/labels/{objects.functions,objects.classes,initializers.functions,globals.data}.tsv`
+  and a per-class report, `analysis/exports/Ragexe.exe.objects.tsv`.
+  - Deleting destructors are vtable slots that test bit 0 or 1 of the flags argument and call
+    `operator delete` (287 of them). The call before the test is the destructor.
+  - The C++ initializer table `[0x00605000, 0x00605340)` has 207 entries, which Ghidra had not
+    made into functions. They construct 47 global objects. 24 of those have RTTI classes:
+    `g_CRagConnection`, `g_UIWindowMgr`, `g_CSkinMgr`, `g_CSnapMgr`, one prototype object per
+    resource type, and others. The other 23 are labeled `g_obj_<address>`.
+  - Constructors store their own vtable into `this` last and return `this`; destructors store it
+    first. In all: 261 constructors and 286 destructors.
+  - Sizes come from `push n; call operator new` before a constructor call or an inlined vtable
+    store. When an inlined derived constructor follows a base constructor call, the derived
+    vtable decides the class. That gives **sizes for 220 classes**, consistent with their bases.
+    For example `CPc` 776 < `CPlayer` 988, and `UIEditCtrl` 144 < `UIBitmapEditCtrl` 160.
+  - 74 `new` sites construct classes without RTTI. They are listed in
+    `analysis/exports/Ragexe.exe.unknown_new.tsv` for later.
+  - Known gap: the virtual-inheritance `std` stream destructors (one note in the report).
+- Ledger now: 10,811 rows, **6,128 functions (1.69 MB) to port**, 32.0% of those bytes `named`.
+  A further pipeline pass adds nothing.
 
 ### Next actions (M1)
-1. Hand-label the VC6 CRT/STL, since FID does not cover it. Start from the
-   `0x005b…–0x005c…` cluster (`_purecall` at `0x005c195a` is in it) and mark it with
-   `ledger.py set LO-HI --library 1`.
-2. Constructors, destructors and object sizes from `vtable_refs.tsv` and the
-   `operator new(n)` calls in front of each constructor.
+1. Field layouts: start with the 220 sized classes and the constructors, which write every field.
+2. Name the 23 non-RTTI globals and the 74 non-RTTI `new` targets from their use, starting
+   with what `WinMain` touches.
 3. Emulation oracle harness and the static runtime-code check.

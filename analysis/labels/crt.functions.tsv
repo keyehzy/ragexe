@@ -1,0 +1,97 @@
+address	namespace	name	calling_convention	evidence
+# Start-up: the PE entry point follows the MSVC 6 WinMainCRTStartup sequence.
+005c424e	Global	WinMainCRTStartup		PE entry point; GetVersion, start-up calls, GetCommandLineA, GetStartupInfoA, GetModuleHandleA, then calls 005b2280
+005b2280	Global	WinMain	__stdcall	called by the entry point with (GetModuleHandleA(0), 0, command line, show command); its result is passed to exit
+005cb789	Global	_heap_init		first start-up call, argument 1; on failure the entry calls 005c437b(0x1c)
+005c437b	Global	fast_error_exit		called by the entry point with error codes 0x1c and 0x10 when a start-up step fails
+005c856c	Global	_mtinit		second start-up step; on failure the entry calls 005c437b(0x10)
+005c9365	Global	_ioinit		start-up step after _mtinit, before GetCommandLineA
+005ce6a7	Global	__crtGetEnvironmentStringsA		start-up step right after GetCommandLineA; result stored in a global
+005ce45a	Global	_setargv		start-up step after the environment block is fetched
+005ce3a1	Global	_setenvp		start-up step after _setargv
+005c347a	Global	_cinit		start-up step; runs 005c359e over [00605344,00605358) and [00605000,00605340)
+005c359e	Global	_initterm		called twice by _cinit with (first, last) bounds of function-pointer tables
+005ce349	Global	_wincmdln		start-up step; its result is passed to WinMain as the command line
+005c34a7	Global	exit		called by the entry point with WinMain's return value
+005cb288	Global	_XcptFilter		called from the entry point's SEH filter with the exception code and pointers
+005c2940	Global	_except_handler3		handler pushed by the entry point and by every SEH frame (push -1; push scope table; push 005c2940)
+# Memory
+005c37c2	Global	free		frees its pointer argument; reaches HeapFree; called directly by game code
+005b325c	Global	operator_delete		forwards its one argument to free; 2,403 game call sites, typically after member destruction
+005b7cfe	Global	operator_new_nothrow		malloc followed by a new-handler retry loop; called with (size, 005ec6e8)
+# stdio
+005c1908	Global	sprintf		builds a string FILE over argument 1 (_flag 0x42, _cnt 0x7fffffff); call sites pass a buffer and a format such as "%s(%ld): "
+005c2e81	Global	vsprintf		same string FILE as sprintf, passes argument 3 to _output as the argument list
+005c35b8	Global	fprintf		locks FILE argument 1, then _stbuf/_output/_ftbuf; call sites pass (FILE*, format)
+005c38ab	Global	sscanf		string FILE with _flag 0x49 and _cnt strlen(argument 1); call sites pass "%x"
+005c2292	Global	fopen		calls 005c2261(name, mode, 0x40); call sites pass "rb" and "wb"
+005c2261	Global	_fsopen		called by fopen with share mode 0x40 (_SH_DENYNO)
+005c20ab	Global	fclose		locks the FILE, then __fclose_lk
+005c242f	Global	fread		locks FILE argument 4, then the unlocked read with (buffer, size, count, FILE)
+005c2128	Global	fwrite		locks FILE argument 4, then the unlocked write; a call site writes a 'BM' bitmap header
+005c2dc8	Global	fseek		(FILE, offset, origin); called with origin 2 (SEEK_END) right before ftell
+005c2c45	Global	ftell		locks the FILE, then the unlocked tell; follows fseek(f, 0, SEEK_END)
+005c3fe0	Global	fgetc		decrements FILE _cnt and returns the next byte, refilling the buffer when empty
+# Strings and conversions
+005c236a	Global	atoi		forwards its argument to 005c22df; a call site passes the result to htons as a port
+005c22df	Global	atol		called by atoi
+005c28b5	Global	atof		skips isspace characters; result returned in ST0 (call sites fstp it)
+005d25fc	Global	_itoa		(value, buffer, radix); a negative value with radix 10 sets the sign flag
+005d3d6a	Global	_strlwr		in the C locale adds 0x20 to each byte in 'A'..'Z' in place
+005d3e9e	Global	_strupr		in the C locale converts each byte in 'a'..'z' in place
+005d0140	Global	_stricmp		two strings, checks the locale handle; a call site compares the result of strrchr(name, '.')
+005c401c	Global	strtok		keeps its position in per-thread data; game calls pass NULL on later calls with the same delimiters
+005c3159	Global	isupper		ctype table test with mask 1
+005c3181	Global	islower		ctype table test with mask 2
+005c31fe	Global	isspace		ctype table test with mask 8
+005c2580	Global	_memmove		three-argument copy that handles overlapping ranges (MSVC 6 memcpy and memmove share this code)
+# Files and processes
+005d3d24	Global	_access		GetFileAttributesA; mode & 2 on a read-only file fails with EACCES (13)
+005c3653	Global	_chmod		GetFileAttributesA then SetFileAttributesA; mode 0x80 (_S_IWRITE) clears read-only
+005c2b70	Global	_mkdir		CreateDirectoryA(path, NULL)
+005c35f4	Global	_rmdir		RemoveDirectoryA(path)
+005c361e	Global	remove		DeleteFileA(path)
+005c3648	Global	_unlink		forwards its argument to remove
+005c4220	Global	rename		MoveFileA(old, new)
+005d3d0c	Global	_spawnl		variadic; passes the address of arg0 on to 005d3fd2; launches runzip.exe and findhack.exe
+005c2ff2	Global	_beginthreadex		six arguments; allocates 0x74 bytes of per-thread data, then CreateThread
+# Time and random numbers
+005c2546	Global	srand		stores its argument at offset 0x14 of the per-thread data; seeded with GetCurrentProcessId
+005c38df	Global	time		GetLocalTime and GetSystemTime; called with NULL
+005c2fa1	Global	ctime		returns 005ca05a(005c40c0(t)), or NULL when the inner call fails
+005c40c0	Global	localtime		uses GetTimeZoneInformation; called by ctime
+005ca05a	Global	asctime		called by ctime with localtime's result
+# Floating point
+005c2ed2	Global	floor		loads control word 0x173f (round down) before rounding the double argument
+005c1770	Global	_CIacos		x87 intrinsic; computes atan2(sqrt((1+x)(1-x)), x) and reports errors as "acos"
+005c2fca	Global	_CIfmod		two-operand x87 intrinsic dispatched through a table whose name entry is "fmod"
+# C++ runtime
+005c195a	Global	_purecall		push 0x19; call __amsg_exit (fatal runtime error 25); fills 18 vtable slots in 7 unrelated classes
+005c18c7	Global	atexit		wraps 005c1849; static initializers pass their destructor stubs
+005c22b0	Global	_chkstk		stack probe with the size in EAX; called in the prologue of functions with large frames
+005c2002	Global	eh_vector_constructor_iterator		(array, size, count, ctor, dtor), ret 0x14; walks forward calling ctor
+005c1f0e	Global	eh_vector_destructor_iterator		(array, size, count, dtor), ret 0x10; walks backward calling dtor
+005c3ad1	Global	__RTtypeid		returns the type_info of its object argument; the result is compared with type_info::operator==
+005c3bb0	Global	__RTDynamicCast		(object, 0, source type descriptor, target type descriptor, 0)
+005c19a8	type_info	operator==	__thiscall	strcmp of the two decorated names (offset 9), returns 1 when equal
+005c19c3	type_info	operator!=	__thiscall	strcmp of the two decorated names (offset 9), returns 1 when different
+005c36bf	exception	exception	__thiscall	stores the exception vftable 005ecb78, copies the message string; used with "missing locale facet"
+005c36fc	exception	exception	__thiscall	stores the exception vftable 005ecb78 and copies another exception's message (copy constructor)
+# Standard library (Dinkumware, as shipped with MSVC 6)
+005b3318	std	_Xlen		throws length_error("string too long"); called from std::string growth checks
+005b3400	std	_Xran		throws out_of_range("invalid string position")
+005b3267	std::_Lockit	_Lockit	__thiscall	enters the global critical section at 00688a88, initialising it on first use; constructed on the stack
+005b3303	std::_Lockit	~_Lockit	__thiscall	leaves the critical section at 00688a88
+005b441b	std::ios_base	clear	__thiscall	stores state & 7 and throws when state intersects the exception mask; callers OR in failbit (4)
+005b498b	std::ios_base	_Init	__thiscall	sets flags 0x201 (skipws | dec), precision 6 and width 0 on a new stream
+005b3c22	std::strstreambuf	_Init	__thiscall	called right after the strstreambuf vftable 005e2844 is stored
+005b3798	std::strstreambuf	~strstreambuf	__thiscall	stores vftable 005e2844, tidies the buffer, then stores the base streambuf vftable 005e2894
+005b349d	std::istrstream	~istrstream	__thiscall	stores the istrstream (005e2834) and basic_istream (005e2884) vftables, then destroys the strstreambuf
+005b4011	std::locale	_Getfacet	__thiscall	under _Lockit, indexes the locale's facet vector by the id argument
+005b4067	std::locale	_Iscloc	__thiscall	under _Lockit, compares the locale with the classic locale pointer 00688aa8
+005b41a8	std::locale	_Init		under _Lockit, allocates the global locale (operator new 0x28) on first use
+005b5336	std::_Locinfo	_Locinfo	__thiscall	constructed on the stack with a locale name before facets are created
+005b5466	std::_Locinfo	~_Locinfo	__thiscall	destroys the _Locinfo constructed by 005b5336 in the same functions
+005b7af6	Global	_Getctype		returns the ctype vector of the current locale; used when building ctype facets
+005b798f	Global	_Tolower		(c, ctype vector); in the C locale maps 'A'..'Z' to lower case
+005b7b9e	Global	_Toupper		(c, ctype vector); in the C locale maps 'a'..'z' to upper case
