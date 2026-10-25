@@ -939,9 +939,39 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     - and a remark that `GrannyMotionTable` shares `C3dGrannyModelRes`'s layout, 0x110
       bytes lower.
 
+- [x] Class proposals from naming run 1. A proposal was accepted when its functions are
+  `__thiscall` methods that callers apply to one kind of object, with the size shown in
+  the code. Six classes are in `inferred.classes.tsv`, with subsystem rules:
+  - `Matrix` (48 bytes): 28 methods, at 282 call sites on stack matrices, array elements
+    and fields. The `Make*` methods copy the 12-dword identity from `0x605598` first.
+    Names drop the redundant word: `MultiplyMatrix` → `Matrix::Multiply`.
+  - `RmaActionRecord` (28), `ImfRecord` (48), `ActFrame` (76): elements of the action,
+    entry and frame vectors of `CRmaRes`, `CImfRes` and `CActRes`. Each has a
+    destructor, `operator=` and a scalar deleting destructor.
+  - `GndCell` (28): the cell `CGndRes::GetCell` returns, with `SetFromRecord` for the
+    file's two record layouts.
+  - `AnimFrameArrays` (8): the per-frame entries at `AnimModelResNode+0x48`, with two
+    array allocators, a destructor and a vector deleting destructor.
+
+  `recover_layouts` fills them from their methods: `Matrix` gets 12 floats (all 48
+  bytes); `GndCell` and `AnimFrameArrays` are covered completely; the others 75–89%.
+  - **Renamed by the shape rule.** `ActMotion`, `CActRes::GetMotion` and
+    `GetMotionCount` became `ActFrame`, `GetFrame` and `GetFrameCount`. The binary has
+    no "motion" (only "emotion" strings), but the elements are stepped through with a
+    per-action delay, which shows they are frames.
+  - **Not accepted:**
+    - `Quaternion` and the Miles `SoundSystem`: their functions are `__cdecl` on
+      pointers or globals, so no methods.
+    - `Vector3`, `ModelFace`, `EffectEntry`, `AttrCell`: one function each.
+    - `MixerVolumeControl`, `SoundBuffer`, `TexturedSkyBox`, `ModelSkyBox` and the
+      lens-flare table: nothing references their functions. The one exception is
+      `CView::~CView`, which destroys a model sky box. Unreferenced code needs no
+      class and no port.
+  - The `GrannyMotionTable` / `C3dGrannyModelRes` layout likeness is noted, not acted
+    on.
+  - Fields 10,208 → 10,261. Code functions named or library-tagged: **70.2%**, with
+    `ActFrame::~ActFrame` newly named. Converges in two passes.
+
 ### Next actions (M1)
-1. Decide on the class proposals from naming run 1. Then the `Global` `__thiscall`
-   functions can move into those classes, and `recover_layouts` gives the classes their
-   fields.
-2. Name the remaining 2,124 game functions the same way, in source-file batches. About
+1. Name the remaining 2,123 game functions the same way, in source-file batches. About
    1,420 more are needed for 90%.

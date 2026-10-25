@@ -33,18 +33,18 @@ take the subsystem of the function they belong to.
 row per function with the rule and evidence that placed it.
 
 1. **Seeds.**
-   - 3,213 functions are seeded by their class or namespace. A class rule also covers the
+   - 3,258 functions are seeded by their class or namespace. A class rule also covers the
      classes derived from it (RTTI bases): `UIWindow` covers all 153 windows and controls.
-   - 80 by an address range: three source files identified by their strings (math, frame
+   - 52 by an address range: three source files identified by their strings (math, frame
      timer, client configuration).
    - 30 by imports that only one subsystem uses: sockets, Miles, DirectDraw, Bink, the
      JPEG library, the IME. Imports used everywhere seed nothing: the UI, for example,
      saves window positions in the registry just as `WinMain` reads its settings there.
    - 3 by single-function rules.
 2. **Propagation**, repeated until nothing changes, strongest rule first:
-   - *neighbours* (2,168): the nearest assigned functions before and after it agree.
+   - *neighbours* (2,153): the nearest assigned functions before and after it agree.
    - *initializer* (45): a dynamic initializer takes the subsystem of the code after it.
-   - *callers* (242): every assigned function that references it agrees.
+   - *callers* (240): every assigned function that references it agrees.
    - *shared* (7): it is referenced from several subsystems, so it is a `core` helper.
    - *callees* (22): everything it references agrees, leaving out shared helpers.
    - *previous* (23): nothing references it, so it takes the function before it.
@@ -54,9 +54,9 @@ other seeds and reports how often each rule agrees with the class:
 
 | Rule | Agrees with the class |
 |------|----------------------:|
-| neighbours | 99.8% of 3,128 |
-| callees | 95.0% of 1,744 |
-| callers | 88.5% of 1,666 |
+| neighbours | 99.9% of 3,170 |
+| callees | 95.0% of 1,752 |
+| callers | 88.3% of 1,683 |
 
 The linker lays out each translation unit's functions together, and a small helper sits
 with the file that defines it, whoever calls it. Ordering callers first split the

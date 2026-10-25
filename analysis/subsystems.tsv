@@ -64,6 +64,12 @@ class	CMode	game	login and game modes (CLoginMode, CGameMode)
 class	ClientState	game	session state: character, inventory, options, message tables
 class	GuildInfo	game	guild state filled by packet handlers
 class	MannerFilter	game	loads manner.txt and matches chat text against it
+class	Matrix	core	the 48-byte matrix of the vector and matrix math file (0x409540-0x40bf50)
+class	RmaActionRecord	res	element of CRmaRes's action vector
+class	ActFrame	res	element of CActRes's frame vectors
+class	ImfRecord	res	element of CImfRes's entry vectors
+class	GndCell	res	the cell CGndRes::GetCell returns
+class	AnimFrameArrays	res	per-frame arrays of AnimModelResNode
 namespace	mg	game	the mini-game engine
 range	004c9740-004cb0d0	core	client configuration, one file from initializer 004c9740: clientinfo.xml (LoadClientInfo 004ca090), service type, connection list, licence.txt
 range	00420320-004203d0	core	the frame timer, one file from initializer 00420320: 00420360(fps) sets the period to 1000 / fps ms from timeGetTime, 00420390 returns the periods due and advances by them

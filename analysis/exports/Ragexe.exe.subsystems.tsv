@@ -186,36 +186,36 @@ entry	subsystem	rule	evidence
 00409570	core	range	00409540-0040bf50
 00409580	core	range	00409540-0040bf50
 00409590	core	range	00409540-0040bf50
-004095a0	core	range	00409540-0040bf50
-004095d0	core	range	00409540-0040bf50
-00409620	core	range	00409540-0040bf50
-00409670	core	range	00409540-0040bf50
-004096c0	core	range	00409540-0040bf50
-004096f0	core	range	00409540-0040bf50
-00409730	core	range	00409540-0040bf50
-00409770	core	range	00409540-0040bf50
-004097b0	core	range	00409540-0040bf50
-004097f0	core	range	00409540-0040bf50
-00409830	core	range	00409540-0040bf50
-00409870	core	range	00409540-0040bf50
-004098b0	core	range	00409540-0040bf50
-004099d0	core	range	00409540-0040bf50
-00409ae0	core	range	00409540-0040bf50
-00409bc0	core	range	00409540-0040bf50
-00409d90	core	range	00409540-0040bf50
-00409ed0	core	range	00409540-0040bf50
-0040a020	core	range	00409540-0040bf50
-0040a220	core	range	00409540-0040bf50
+004095a0	core	class	class Matrix
+004095d0	core	class	class Matrix
+00409620	core	class	class Matrix
+00409670	core	class	class Matrix
+004096c0	core	class	class Matrix
+004096f0	core	class	class Matrix
+00409730	core	class	class Matrix
+00409770	core	class	class Matrix
+004097b0	core	class	class Matrix
+004097f0	core	class	class Matrix
+00409830	core	class	class Matrix
+00409870	core	class	class Matrix
+004098b0	core	class	class Matrix
+004099d0	core	class	class Matrix
+00409ae0	core	class	class Matrix
+00409bc0	core	class	class Matrix
+00409d90	core	class	class Matrix
+00409ed0	core	class	class Matrix
+0040a020	core	class	class Matrix
+0040a220	core	class	class Matrix
 0040a2d0	core	stub	jumps to 0040a2e0
 0040a2e0	core	range	00409540-0040bf50
-0040a300	core	range	00409540-0040bf50
-0040a4d0	core	range	00409540-0040bf50
-0040a530	core	range	00409540-0040bf50
-0040a700	core	range	00409540-0040bf50
-0040a880	core	range	00409540-0040bf50
-0040a8a0	core	range	00409540-0040bf50
-0040a9a0	core	range	00409540-0040bf50
-0040ab10	core	range	00409540-0040bf50
+0040a300	core	class	class Matrix
+0040a4d0	core	class	class Matrix
+0040a530	core	class	class Matrix
+0040a700	core	class	class Matrix
+0040a880	core	class	class Matrix
+0040a8a0	core	class	class Matrix
+0040a9a0	core	class	class Matrix
+0040ab10	core	class	class Matrix
 0040ac70	core	range	00409540-0040bf50
 0040ad10	core	range	00409540-0040bf50
 0040ada0	core	range	00409540-0040bf50
@@ -607,12 +607,12 @@ entry	subsystem	rule	evidence
 00420400	res	callers	1 referencing function
 00420520	res	neighbours	between 00420400 and 00420560
 00420560	res	callers	1 referencing function
-004206a0	res	callers	2 referencing functions
-004206e0	res	callers	1 referencing function
-00420750	res	neighbours	between 004206e0 and 004207c0
-00420780	res	neighbours	between 004206e0 and 004207c0
-00420790	res	neighbours	between 004206e0 and 004207c0
-004207a0	res	neighbours	between 004206e0 and 004207c0
+004206a0	res	class	class ActFrame
+004206e0	res	neighbours	between 004206a0 and 004207c0
+00420750	res	neighbours	between 004206a0 and 004207c0
+00420780	res	neighbours	between 004206a0 and 004207c0
+00420790	res	neighbours	between 004206a0 and 004207c0
+004207a0	res	neighbours	between 004206a0 and 004207c0
 004207c0	res	class	class CRes, base of CActRes
 00420870	res	class	class CRes
 00420880	res	class	class CRes
@@ -652,15 +652,15 @@ entry	subsystem	rule	evidence
 00422010	res	class	class CRes, base of CRmaRes
 00422070	res	class	class CRes, base of CRmaRes
 004220d0	res	class	class CRes, base of CRmaRes
-00422b30	res	neighbours	between 004220d0 and 00426a20
-00422d40	res	neighbours	between 004220d0 and 00426a20
-00425af0	res	neighbours	between 004220d0 and 00426a20
-00425d00	res	neighbours	between 004220d0 and 00426a20
-00425fa0	res	neighbours	between 004220d0 and 00426a20
-004267c0	res	neighbours	between 004220d0 and 00426a20
-004269c0	res	neighbours	between 004220d0 and 00426a20
-004269f0	res	neighbours	between 004220d0 and 00426a20
-00426a00	res	neighbours	between 004220d0 and 00426a20
+00422b30	res	neighbours	between 004220d0 and 00422d40
+00422d40	res	class	class RmaActionRecord
+00425af0	res	class	class RmaActionRecord
+00425d00	res	class	class ActFrame
+00425fa0	res	class	class RmaActionRecord
+004267c0	res	class	class ActFrame
+004269c0	res	neighbours	between 004267c0 and 00426a20
+004269f0	res	neighbours	between 004267c0 and 00426a20
+00426a00	res	neighbours	between 004267c0 and 00426a20
 00426a20	res	class	class CRes, base of C3dAttr
 00426aa0	res	class	class CRes, base of C3dAttr
 00426b00	res	class	class CRes, base of C3dAttr
@@ -741,12 +741,12 @@ entry	subsystem	rule	evidence
 00428f50	res	class	class CRes, base of CGndRes
 00428fb0	res	class	class CRes, base of CGndRes
 00428fe0	res	class	class CRes, base of CGndRes
-00429050	res	neighbours	between 00428fe0 and 00429170
-00429060	res	neighbours	between 00428fe0 and 00429170
-00429070	res	neighbours	between 00428fe0 and 00429170
-004290b0	res	neighbours	between 00428fe0 and 00429170
-004290f0	res	neighbours	between 00428fe0 and 00429170
-00429130	res	neighbours	between 00428fe0 and 00429170
+00429050	res	neighbours	between 00428fe0 and 00429070
+00429060	res	neighbours	between 00428fe0 and 00429070
+00429070	res	class	class GndCell
+004290b0	res	class	class GndCell
+004290f0	res	class	class GndCell
+00429130	res	class	class GndCell
 00429170	res	class	class CRes, base of CGndRes
 00429200	res	class	class CRes, base of CGndRes
 00429270	res	class	class CRes, base of CGndRes
@@ -764,7 +764,7 @@ entry	subsystem	rule	evidence
 00429ba0	res	neighbours	between 00429ad0 and 00429bb0
 00429bb0	res	class	class CRes, base of CImfRes
 00429c40	res	class	class CRes, base of CImfRes
-00429f40	res	neighbours	between 00429c40 and 00429fa0
+00429f40	res	class	class ImfRecord
 00429fa0	res	class	class CRes, base of CImfRes
 0042a100	res	class	class CRes, base of CImfRes
 0042a120	res	class	class CRes, base of CImfRes
@@ -773,13 +773,13 @@ entry	subsystem	rule	evidence
 0042a220	res	class	class CRes, base of CImfRes
 0042a2a0	res	class	class CRes, base of CImfRes
 0042a2d0	res	class	class CRes, base of CImfRes
-0042ad40	res	neighbours	between 0042a2d0 and 0042b350
-0042afd0	res	neighbours	between 0042a2d0 and 0042b350
-0042b250	res	neighbours	between 0042a2d0 and 0042b350
-0042b310	res	neighbours	between 0042a2d0 and 0042b350
-0042b320	res	neighbours	between 0042a2d0 and 0042b350
-0042b330	res	neighbours	between 0042a2d0 and 0042b350
-0042b340	res	neighbours	between 0042a2d0 and 0042b350
+0042ad40	res	class	class ImfRecord
+0042afd0	res	class	class ImfRecord
+0042b250	res	neighbours	between 0042afd0 and 0042b350
+0042b310	res	neighbours	between 0042afd0 and 0042b350
+0042b320	res	neighbours	between 0042afd0 and 0042b350
+0042b330	res	neighbours	between 0042afd0 and 0042b350
+0042b340	res	neighbours	between 0042afd0 and 0042b350
 0042b350	res	class	class ModelResNode
 0042b3f0	res	class	class ModelResNode
 0042b530	res	class	class ModelResNode
@@ -795,18 +795,18 @@ entry	subsystem	rule	evidence
 0042bc70	res	class	class CRes, base of C3dModelRes
 0042be00	res	class	class CRes, base of C3dModelRes
 0042cbd0	res	class	class CRes, base of C3dModelRes
-0042cc40	res	neighbours	between 0042cbd0 and 0042ccd0
-0042cc80	res	neighbours	between 0042cbd0 and 0042ccd0
-0042cca0	res	neighbours	between 0042cbd0 and 0042ccd0
+0042cc40	res	class	class AnimFrameArrays
+0042cc80	res	class	class AnimFrameArrays
+0042cca0	res	class	class AnimFrameArrays
 0042ccd0	res	class	class AnimModelResNode
 0042cd60	res	class	class AnimModelResNode
 0042ce40	res	class	class AnimModelResNode
 0042d8a0	res	neighbours	between 0042ce40 and 0042d8f0
 0042d8b0	res	neighbours	between 0042ce40 and 0042d8f0
 0042d8f0	res	class	class AnimModelResNode
-0042d990	res	neighbours	between 0042d8f0 and 0042da20
-0042d9f0	res	neighbours	between 0042d8f0 and 0042da20
-0042da00	res	neighbours	between 0042d8f0 and 0042da20
+0042d990	res	class	class AnimFrameArrays
+0042d9f0	res	neighbours	between 0042d990 and 0042da20
+0042da00	res	neighbours	between 0042d990 and 0042da20
 0042da20	res	class	class CRes, base of C3dAnimModelRes
 0042daf0	res	class	class CRes, base of C3dAnimModelRes
 0042db50	res	stub	jumps to 0042ddc0
