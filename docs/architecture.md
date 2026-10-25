@@ -284,7 +284,11 @@ Everything runs on the main thread.
    - any other id goes to `CRagConnection::vf02`, which empties the receive buffer, so
      an unknown packet also loses the packets queued behind it.
 
-   `analysis/exports/Ragexe.exe.packets.tsv` lists every id with its handler.
+   `CRagConnection::CutPacket` takes one packet at a time off the receive queue. Its
+   length comes from a table of 371 ids built by `InitPacketLengths`: fixed, or for 61
+   ids the word at offset 2. [protocol/framing.md](protocol/framing.md) describes the
+   queues and the table, and `analysis/exports/Ragexe.exe.packets.tsv` lists every id
+   with its handler and length.
 4. `send` and `recv` are called through the pointers `InitWinsock` fetched. Once the
    server has sent filter code, received and sent data pass through it; see
    [protocol/code-modules.md](protocol/code-modules.md).

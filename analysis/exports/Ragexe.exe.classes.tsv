@@ -330,3 +330,4 @@ string	std	8	0
 list	std	31	0
 _Tree	std	83	0
 PacketCodeModules	Global	6	0
+PacketQueue	Global	8	0

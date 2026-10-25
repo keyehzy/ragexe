@@ -155,6 +155,22 @@ address	namespace	name	calling_convention	evidence
 00420360	Global	SetFrameRate		(fps): resets the timer and sets the step period 00628bf8 to 1000 / fps ms; WinMain passes 60
 00420380	Global	IsDrawFrame		returns 1; both modes test it before drawing
 00420390	Global	GetFrameStepsDue		returns the whole periods elapsed since the timer base and advances the base by them; returns 1 when the flag 0061ec58 (initially 1, toggled by a chat command in CGameMode::method_00516a80) is clear
+# PacketQueue and packet framing (docs/protocol/framing.md)
+0041fa00	PacketQueue	PacketQueue	__thiscall	zeroes the positions and the vector; the CRagConnection constructor runs it on +0x24, +0x40, +0x5c and +0xa8
+0041fa80	PacketQueue	~PacketQueue	__thiscall	frees the vector's block and zeroes it; the CRagConnection destructor runs it on the four queues
+0041fab0	PacketQueue	Size	__thiscall	returns the write position minus the read position
+0041fac0	PacketQueue	Clear	__thiscall	(capacity): zeroes both positions and grows the vector to at least capacity; CRagConnection::vf02 clears the receive queue with 0xa000
+0041fb60	PacketQueue	Append	__thiscall	(count, data): when the data does not fit after the write position, moves the unread bytes to the front, first doubling the vector if even that leaves too little room; then copies the data at the write position
+0041fc70	PacketQueue	Read	__thiscall	(count, out): copies count bytes from the read position and advances it; false when fewer are queued
+0041fcc0	PacketQueue	Peek	__thiscall	(count, out): copies count bytes from the read position without advancing it; false when fewer are queued
+0041fd00	PacketQueue	Skip	__thiscall	(count): advances the read position; false when fewer are queued
+00418f70	CRagConnection	SendPacket	__thiscall	(length, packet): copies the packet to the static buffer 006260d0, runs PacketCodeModules::RunSendModules over it and passes it to CConnection::Send
+00418690	CConnection	Send	__thiscall	(length, data): appends to the queue at +0x24, or to +0x5c while +0x22 is set, then sends what +0x24 holds through the send pointer and skips what went out
+00418540	CConnection	SetHoldSends	__thiscall	(hold): stores it at +0x22; clearing it passes everything queued at +0x5c to Send. CLoginMode::OnChangeState sets it after a send, CGameMode::HandlePacket_0092 also calls it, and the game and login HandlePacket_0073 clear it
+00419370	CRagConnection	CutPacket	__thiscall	(queue, out): peeks at the id; with a fixed length takes GetPacketLength(id) bytes, otherwise peeks at 4 bytes and takes the word at offset 2; true once the whole packet was there; RecvPacket's last step, on the queue at +0xa8
+00419270	CRagConnection	IsFixedLength	__thiscall	(id): looks the id up in the std::map<int, int> at +0x7c (inserting 0 when it is missing) and returns whether its value is not -1
+004191e0	CRagConnection	GetPacketLength	__thiscall	(id): the id's value in the map at +0x7c, or 2 when that is 2 or less
+00419400	CRagConnection	InitPacketLengths	__thiscall	the CRagConnection constructor's last call: inserts 371 (id, length) pairs, ids 0x64 to 0x1e0, into the map at +0x7c; -1 marks a variable length
 00419240	CRagConnection	GetPacketId	__thiscall	(packet): returns its first word, the id; both dispatchers call it with ECX = g_CRagConnection, which it does not use
 00418b60	Global	InitWinsock		WSAStartup(0x101) ("Failed to load Winsock library"), then LoadLibraryA("ws2_32.dll") and GetProcAddress of send and recv into 006288d4 and 006288d0 ("Module Hooking Error")
 00418770	CRagConnection	OnSocketEvent	__thiscall	(socket, lParam): WindowProc's WM_USER+1 handler; logs the WSAGETSELECTERROR code by name, else dispatches FD_READ (00418aa0, recv in 2 KB reads), FD_WRITE (00418a30), FD_CONNECT and FD_CLOSE

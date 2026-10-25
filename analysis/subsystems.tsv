@@ -51,6 +51,7 @@ class	CMousePointer	ui	the cursor, a CGameObject drawn over the UI
 class	CSoundMaker	audio	a CGameObject that plays a positioned sound
 class	CConnection	net	socket connection (CRagConnection)
 class	PacketCodeModules	net	server-sent packet filter code (docs/protocol/code-modules.md)
+class	PacketQueue	net	the connection's send and receive byte queues
 class	UIWindow	ui	base of every window and control
 class	UIWindowMgr	ui	owns the windows
 class	CSkinMgr	ui	window skins

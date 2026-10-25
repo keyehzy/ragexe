@@ -18,7 +18,7 @@ CArrowEffect	208	new	60	199	0.96
 CBitmapRes	288	new	5	24	0.08		
 CBlowEffect	160	new	48	151	0.94		
 CBlurPC	796	new	152	596	0.75		
-CConnection	124	estimated	15	56	0.45		1 overlapping uses dropped
+CConnection	124	estimated	9	104	0.84		10 overlapping uses dropped
 CController	172	estimated	9	40	0.23		
 CCorpse	160	new	48	151	0.94		
 CDC	4	estimated	0	4	1.00		
@@ -56,7 +56,7 @@ CNumEffect	168	new	50	159	0.95
 CPaletteRes	1296	new	1	8	0.01		
 CPc	776	new	150	588	0.76		4 overlapping uses dropped
 CPlayer	988	new	172	676	0.68		
-CRagConnection	204	estimated	29	108	0.53		3 overlapping uses dropped
+CRagConnection	204	estimated	21	172	0.84		6 overlapping uses dropped
 CRagEffect	17540	estimated	79	435	0.02	0x4168,0x0	4 overlapping uses dropped
 CRenderObject	160	estimated	48	151	0.94		5 overlapping uses dropped
 CRes	8	estimated	1	8	1.00		
@@ -87,6 +87,7 @@ ModelResMesh	564	new	10	560	0.99
 ModelResNode	364	new	14	58	0.16		3 overlapping uses dropped
 MoviePlayer	16	estimated	4	13	0.81		
 PacketCodeModules	28	estimated	5	20	0.71		
+PacketQueue	28	new	7	25	0.89		
 PathFinder	4248	estimated	13	40	0.01	0x10	
 RenderQuad	196	new	4	16	0.08		
 RenderTriangle	156	new	3	12	0.08		

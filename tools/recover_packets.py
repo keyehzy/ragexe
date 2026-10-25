@@ -18,9 +18,20 @@ Curated names win (analysis/labels/inferred.functions.tsv). Some handlers print 
 packet's own name in a debug message ("PACKET_ZC_COMPASS"); that name goes into the
 evidence and the report.
 
+Packet lengths: CRagConnection::RecvPacket hands the receive queue to
+CRagConnection::CutPacket, which peeks at the id and looks it up in the std::map<int, int>
+at CRagConnection + 0x7c. A length of -1 means the packet is variable: its total length is
+the word at offset 2. Any other entry is the total length, at least 2, and an id the map
+lacks is added with 0 and read as 2 bytes. The map is filled by
+CRagConnection::InitPacketLengths, which the constructor calls; the table here comes from
+running it in the emulator on an empty map and walking the tree. Each fixed-length
+handler's furthest constant read from the packet is checked against its length.
+
 Writes:
   analysis/labels/packets.functions.tsv  the handlers
-  analysis/exports/Ragexe.exe.packets.tsv  mode, id, kind, handler, name, packet name, call site
+  analysis/exports/Ragexe.exe.packets.tsv  mode, id, kind, handler, name, packet name,
+      length (or variable), furthest read, call site; ids with a length and no handler
+      are listed with mode "-"
 """
 import os
 import re
@@ -42,6 +53,10 @@ RECV_PACKET = 0x418FC0
 GET_PACKET_ID = 0x419240
 DISPATCHERS = [(0x524D80, "CGameMode"), (0x53CFA0, "CLoginMode")]
 PACKET_NAME = re.compile(r"PACKET_[A-Z0-9_]+")
+INIT_PACKET_LENGTHS = 0x419400
+LENGTH_MAP = 0x7C              # std::map<int, int> in CRagConnection: allocator, head +4, size +0xc
+MAP_NIL, MAP_NIL_COUNT = 0x628B3C, 0x628B40   # that map type's shared nil node and its users
+VARIABLE = -1
 THIS = 0x0BAD0000              # a marker for the mode object; the switch never dereferences it
 MAX_ID = 0xFFFF
 STEP_LIMIT = 400
@@ -97,6 +112,86 @@ class Packets:
         self.emu = Emulator()
         self.curated = {int(r["address"], 16): r for r in read_tsv(os.path.join(LABELS, "inferred.functions.tsv"))}
 
+    def packet_lengths(self):
+        """id -> total length, or VARIABLE, as InitPacketLengths leaves the map."""
+        e = Emulator()
+        nil = e.alloc(0x18)
+        e.write_u32(nil + 0x14, 1)                       # black, no children
+        e.write_u32(MAP_NIL, nil)
+        e.write_u32(MAP_NIL_COUNT, 1)
+        conn = e.alloc(0x100)
+        head = e.alloc(0x18)
+        e.write_u32(head, head)                          # leftmost
+        e.write_u32(head + 4, nil)                       # root
+        e.write_u32(head + 8, head)                      # rightmost
+        e.write_u32(conn + LENGTH_MAP + 4, head)
+        e.call(INIT_PACKET_LENGTHS, this=conn)
+        out = {}
+        stack, n = [], e.read_u32(head + 4)
+        while stack or n != nil:
+            while n != nil:
+                stack.append(n)
+                n = e.read_u32(n)
+            n = stack.pop()
+            v = e.read_u32(n + 0x10)
+            out[e.read_u32(n + 0xc)] = v - (1 << 32) if v & 0x80000000 else v
+            n = e.read_u32(n + 8)
+        if len(out) != e.read_u32(conn + LENGTH_MAP + 0xc):
+            raise SystemExit("the walked length map does not match its size")
+        return out
+
+    def furthest_read(self, fn):
+        """End of the furthest [packet + n] read, or 0. The packet is the stack argument
+        [ebp + 8]. A register that only that load writes holds it for the rest of the
+        function; any other copy counts only until the end of its basic block, since the
+        sweep is linear and blocks join from other paths."""
+        ins = self.bx.insns(fn)
+
+        def is_arg_load(i):
+            ops = i.operands
+            return i.id == x86.X86_INS_MOV and len(ops) == 2 and ops[0].type == x86.X86_OP_REG \
+                and ops[1].type == x86.X86_OP_MEM and ops[1].size == 4 and ops[1].mem.base == x86.X86_REG_EBP \
+                and ops[1].mem.index == 0 and ops[1].mem.disp == 8
+
+        writes = defaultdict(int)
+        leaders = set()
+        for k, i in enumerate(ins):
+            try:
+                for r in i.regs_access()[1]:
+                    writes[r] += 1
+            except Exception:
+                pass
+            if i.group(x86.X86_GRP_JUMP):
+                if i.operands and i.operands[0].type == x86.X86_OP_IMM:
+                    leaders.add(i.operands[0].imm)
+                if k + 1 < len(ins):
+                    leaders.add(ins[k + 1].address)
+        stable, held, end = set(), set(), 0
+        for i in ins:
+            if i.address in leaders:
+                held.clear()
+            ops = i.operands
+            if i.id != x86.X86_INS_LEA:
+                for op in ops:
+                    if op.type == x86.X86_OP_MEM and op.mem.index == 0 and op.mem.disp >= 0 \
+                            and (op.mem.base in held or op.mem.base in stable):
+                        end = max(end, op.mem.disp + op.size)
+            if is_arg_load(i):
+                (stable if writes[ops[0].reg] == 1 else held).add(ops[0].reg)
+                continue
+            if i.id == x86.X86_INS_MOV and len(ops) == 2 and ops[0].type == x86.X86_OP_REG \
+                    and ops[1].type == x86.X86_OP_REG and (ops[1].reg in held or ops[1].reg in stable):
+                held.add(ops[0].reg)
+                continue
+            if i.id == x86.X86_INS_CALL:
+                held -= {x86.X86_REG_EAX, x86.X86_REG_ECX, x86.X86_REG_EDX}
+                continue
+            try:
+                held -= set(i.regs_access()[1])
+            except Exception:
+                held.clear()
+        return end
+
     def packet_names(self, fn):
         names = set()
         for i in self.bx.insns(fn):
@@ -131,6 +226,7 @@ class Packets:
     def run(self):
         labels, report = {}, []
         self.binary_names = {}
+        lengths = self.packet_lengths()
         for entry, cls in DISPATCHERS:
             d = Dispatcher(self.bx, self.emu, entry, cls)
             rows, default = self.walk(d)
@@ -162,13 +258,34 @@ class Packets:
             for t, (ns, name, cc, ev) in sorted(labels.items()):
                 if t not in self.curated:
                     f.write(f"{t:08x}\t{ns}\t{name}\t{cc}\t{ev}\n")
+        handled = {pid for _, pid, kind, _, _ in report if kind != "default"}
+        for pid in lengths:
+            if pid not in handled:
+                report.append(("-", pid, "no handler", None, None))
+        reads, past, missing = {}, [], []
         with open(os.path.join(EXPORTS, "Ragexe.exe.packets.tsv"), "w", encoding="utf-8") as f:
-            f.write("mode\tid\tkind\thandler\tname\tpacket_name\tcall_site\n")
-            for cls, pid, kind, target, site in sorted(report):
+            f.write("mode\tid\tkind\thandler\tname\tpacket_name\tlength\tfurthest_read\tcall_site\n")
+            for cls, pid, kind, target, site in sorted(report, key=lambda r: (r[0] == "-", r[0], r[1])):
                 name = self.curated[target]["name"] if target in self.curated else labels.get(target, ("", ""))[1]
+                n = lengths.get(pid)
+                length = "variable" if n == VARIABLE else "" if n is None else str(max(n, 2))
+                far = ""
+                if kind == "handler":
+                    if target not in reads:
+                        reads[target] = self.furthest_read(self.bx.functions[target])
+                    far = str(reads[target]) if reads[target] else ""
+                    if n is None:
+                        missing.append(pid)
+                    elif n != VARIABLE and reads[target] > max(n, 2):
+                        past.append(f"{cls} 0x{pid:04x} reads {reads[target]} of {n}")
                 f.write(f"{cls}\t0x{pid:04x}\t{kind}\t{f'{target:08x}' if target else ''}\t{name if kind == 'handler' else ''}\t"
-                        f"{','.join(self.binary_names.get(target, [])) if kind == 'handler' else ''}\t"
+                        f"{','.join(self.binary_names.get(target, [])) if kind == 'handler' else ''}\t{length}\t{far}\t"
                         f"{f'{site:08x}' if site else ''}\n")
+        print(f"packet lengths: {len(lengths)} ids from 0x{min(lengths):04x} to 0x{max(lengths):04x}, "
+              f"{sum(1 for v in lengths.values() if v == VARIABLE)} variable; handled ids without a length: "
+              f"{', '.join(f'0x{p:04x}' for p in missing) or 'none'}; with a length but no handler: "
+              f"{sum(1 for r in report if r[2] == 'no handler')}")
+        print(f"fixed-length handlers that read past their length: {len(past)} {past[:6]}")
         shared = sum(1 for _, n, _, _ in labels.values() if n.count("_") > 1)
         print(f"handlers named: {len(labels)} ({shared} handle several ids, "
               f"{sum(1 for v in self.binary_names.values() if v)} print their packet's name); "

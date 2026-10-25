@@ -105,16 +105,9 @@ address	namespace	name	calling_convention	evidence
 004168a0	CTexture	method_004168a0	__thiscall	__thiscall; called with this from 1 functions of CTexture, e.g. 00416990
 004172f0	CTexture	method_004172f0	__thiscall	__thiscall; called with this from 1 functions of CTexture, e.g. 004165e0
 00417640	CTexture	method_00417640	__thiscall	__thiscall; called with this from 1 functions of CTexture, e.g. 004166b0
-00418540	CConnection	method_00418540	__thiscall	__thiscall; called with this from 5 functions of CConnection, CRagConnection, e.g. 00418590
 00418670	CRagConnection	method_00418670	__thiscall	__thiscall; called with this from 17 functions of CRagConnection, e.g. 004b25f0
-00418690	CConnection	method_00418690	__thiscall	__thiscall; called with this from 2 functions of CConnection, CRagConnection, e.g. 00418540
 00418710	CRagConnection	method_00418710	__thiscall	__thiscall; called with this from 2 functions of CRagConnection, e.g. 00524d80
 00418c30	CRagConnection	method_00418c30	__thiscall	__thiscall; called with this from 1 functions of CRagConnection, e.g. 005b2280
-00418f70	CRagConnection	method_00418f70	__thiscall	__thiscall; called with this from 12 functions of CRagConnection, e.g. 0050dc90
-004191e0	CRagConnection	method_004191e0	__thiscall	__thiscall; called with this from 13 functions of CRagConnection, e.g. 00419370
-00419270	CRagConnection	method_00419270	__thiscall	__thiscall; called with this from 1 functions of CRagConnection, e.g. 00419370
-00419370	CRagConnection	method_00419370	__thiscall	__thiscall; called with this from 1 functions of CRagConnection, e.g. 00418fc0
-00419400	CRagConnection	method_00419400	__thiscall	__thiscall; called with this from 1 functions of CRagConnection, e.g. 00418d90
 0041daf0	CController	method_0041daf0	__thiscall	__thiscall; called with this from 1 functions of CController, e.g. 0041da90
 0041db70	CKeyPad	method_0041db70	__thiscall	__thiscall; called with this from 1 functions of CKeyPad, e.g. 0041ded0
 0041e730	DirectInputMouse	method_0041e730	__thiscall	__thiscall; called with this from 2 functions of DirectInputMouse, e.g. 00515d10

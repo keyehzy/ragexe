@@ -30,7 +30,7 @@ entry	subsystem	rule	evidence
 00402530	world	neighbours	between 004024c0 and 00402550
 00402550	world	callers	2 referencing functions
 00402570	core	initializer	initializer of the file starting here, before 004025a0
-004025a0	core	shared	audio 3, core 5, game 24, net 2, render 8, res 21, ui 18, world 15
+004025a0	core	shared	audio 3, core 5, game 23, net 3, render 8, res 21, ui 18, world 15
 004025b0	core	previous	after 004025a0, nothing references it
 004025d0	render	callers	2 referencing functions
 00402600	render	callers	1 referencing function
@@ -592,21 +592,21 @@ entry	subsystem	rule	evidence
 0041edd0	net	neighbours	between 0041ed20 and 0041ee10
 0041edf0	net	neighbours	between 0041ed20 and 0041ee10
 0041ee10	net	class	class PacketCodeModules
-0041ee70	game	initializer	initializer of the file starting here, before 0041eea0
-0041eea0	game	callers	1 referencing function
-0041f840	game	callers	1 referencing function
-0041f870	game	callers	1 referencing function
-0041f950	game	callers	1 referencing function
-0041f9d0	net	initializer	initializer of the file starting here, before 0041fa00
-0041fa00	net	callers	2 referencing functions
+0041ee70	net	neighbours	between 0041ee10 and 0041fa00
+0041eea0	net	neighbours	between 0041ee10 and 0041fa00
+0041f840	net	neighbours	between 0041ee10 and 0041fa00
+0041f870	net	neighbours	between 0041ee10 and 0041fa00
+0041f950	net	neighbours	between 0041ee10 and 0041fa00
+0041f9d0	net	neighbours	between 0041ee10 and 0041fa00
+0041fa00	net	class	class PacketQueue
 0041fa20	net	neighbours	between 0041fa00 and 0041fa80
-0041fa80	net	callers	2 referencing functions
-0041fab0	net	callers	4 referencing functions
-0041fac0	net	callers	2 referencing functions
-0041fb60	net	callers	3 referencing functions
-0041fc70	net	callers	3 referencing functions
-0041fcc0	net	callers	2 referencing functions
-0041fd00	net	callers	4 referencing functions
+0041fa80	net	class	class PacketQueue
+0041fab0	net	class	class PacketQueue
+0041fac0	net	class	class PacketQueue
+0041fb60	net	class	class PacketQueue
+0041fc70	net	class	class PacketQueue
+0041fcc0	net	class	class PacketQueue
+0041fd00	net	class	class PacketQueue
 0041fd30	game	callers	4 referencing functions
 0041fd60	net	callers	2 referencing functions
 0041ff40	audio	initializer	initializer of the file starting here, before 0041ff70

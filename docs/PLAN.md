@@ -627,10 +627,34 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - 65.1% of the bytes to port are named (was 60.0%). Converges in two `--reanalyze`
     passes.
 
+- [x] Packet framing (`docs/protocol/framing.md`; lengths in `analysis/exports/Ragexe.exe.packets.tsv`):
+  - `RecvPacket` ends with `CRagConnection::CutPacket`, which peeks at the id and looks it
+    up in a `std::map<int, int>` at `CRagConnection+0x7c`.
+    - −1 means the total length is the word at offset 2.
+    - Otherwise the value is the total length, at least 2.
+    - A missing id is inserted as 0 and read as 2 bytes, and the dispatcher's default
+      then clears the receive queue.
+  - The map is filled by `InitPacketLengths` (`0x419400`). `recover_packets.py` runs it in
+    the emulator on an empty map and walks the tree: 371 ids from 0x64 to 0x1e0, 61
+    variable, fixed lengths from 2 to 186. Every handled id has an entry. 135 ids have no
+    handler, among them those the client only sends.
+  - Check: no fixed-length handler reads a constant offset past its length. For 104 of
+    the 166 that read the packet at a constant offset, the furthest read ends exactly at
+    the length. The check holds a register only within its basic block unless the
+    argument load is its only write; a linear sweep had taken actor pointers in `EDI`
+    for the packet.
+  - New curated class `PacketQueue` (28 bytes), with `Peek`, `Read`, `Skip`, `Append`,
+    `Size`, `Clear`. `CConnection` holds three at `+0x24`, `+0x40` and `+0x5c`, and
+    `CRagConnection` a fourth at `+0xa8`. Also named:
+    - `CConnection::Send` and `SetHoldSends`, the hold flag `+0x22` that parks sends in
+      `+0x5c`;
+    - `CRagConnection::SendPacket`, `IsFixedLength`, `GetPacketLength`.
+
 ### Next actions (M1)
 1. Size the global singletons whose size is only estimated (`ClientState`, `UIWindowMgr`,
    `C3dDevice`): the accesses past their estimated ends need a rule for where an object
    stops before the next global begins.
-2. Find how `CRagConnection::RecvPacket` cuts the stream into packets (a length per id,
-   fixed or read from the packet), and export each id's length next to its handler.
+2. Recognise `std::map` constructors that the compiler inlined: `CRagConnection`'s length
+   map at `+0x7c` builds its head node inline, so its fields show as bytes, not a
+   `std_tree`.
 3. Extend the oracle with the D3D7/DirectDraw COM fakes that record calls, for M4.
