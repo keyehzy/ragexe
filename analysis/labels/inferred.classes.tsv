@@ -8,10 +8,10 @@ class	size	evidence
 C3dDevice		the string "HRESULT C3dDevice::RestoreSurfaces()" is printed by 00405200, a method of global 006239d0; its methods create DirectDraw (DirectDrawCreateEx) and report "D3D object is still referenced"
 VertexBuffer	16	00405fa0 calls IDirect3D7 slot 0x14 (CreateVertexBuffer) with a 16-byte D3DVERTEXBUFFERDESC and keeps the buffer at +0xc; ModelResMesh holds one at +0x224, the last 16 of its 564 bytes
 FontCache		global 00623c48; 00407ac0 looks up a 20-byte record in its vector at +4 and otherwise reaches CreateFontA
-TextureCache		global 00625e88, a map at offset 0 (its initializer calls _Tree::_Init directly); 0040cc00 looks a name up, creates a CTexture on a miss, falls back to g_CTexture and stamps timeGetTime at +0x124; 0040cec0 deletes textures unused for a while, then HeapCompact
+TextureCache		global 00625e88, a map at offset 0 (its initializer calls Tree::InitHead directly); 0040cc00 looks a name up, creates a CTexture on a miss, falls back to g_CTexture and stamps timeGetTime at +0x124; 0040cec0 deletes textures unused for a while, then HeapCompact
 SceneRenderer		operator new(0x2a0) in C3dDevice 004054b0, which picks a pixel mode from the device's 565/555/32-bit format and hands it the viewport; reserves 1000-entry render lists
 RenderTriangle	156	constructor 0040c5f0 points +0 at three 32-byte vertices at +0x24 and sets primitive type 4 (D3DPT_TRIANGLELIST) at +0x20; actors allocate two at once with operator new(312) and a 0x9c stride
-RenderQuad	196	std::_Construct 00415500 copies one into the value of 0xcc-byte list nodes (value at +8); constructors 0040c6b0 and 0040c6f0 point +0 at four 32-byte vertices at +0x24; 0040c6b0 sets primitive type 5 (D3DPT_TRIANGLESTRIP) at +0x20
+RenderQuad	196	std::ConstructAt 00415500 copies one into the value of 0xcc-byte list nodes (value at +8); constructors 0040c6b0 and 0040c6f0 point +0 at four 32-byte vertices at +0x24; 0040c6b0 sets primitive type 5 (D3DPT_TRIANGLESTRIP) at +0x20
 TriangleSet		created per Granny mesh in CGrannyPc::vf14; 0040c890 stores operator new(count * 0x60), count triangles of three 32-byte vertices, at +0
 DirectInputMouse		global 00628b48 with no static constructor; 0041e630 calls DirectInputCreateA and creates the SysMouse device ("ErrorMsg :: CreateDevice(SysMouse)"); 0041e6f0 unacquires and releases it
 KeyPadDispatcher		global 00628b88; 0041e2e0 creates a CKeyPad and appends it to the vector at +0x60; 0041e270 passes the current input record to every keypad's virtual functions

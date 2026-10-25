@@ -2,7 +2,7 @@ address	namespace	name	evidence	type
 # Globals that the generators cannot name: no static constructor, a constructor
 # inlined into its initializer, a function-local static, a pointer, or an STL map
 # named after what it holds. Names here win over generated ones at the same address.
-00625e88	Global	g_TextureCache	static initializer 0040bf80 runs _Tree::_Init on it; TextureCache methods are called with ECX = this address	class:TextureCache
+00625e88	Global	g_TextureCache	static initializer 0040bf80 runs Tree::InitHead on it; TextureCache methods are called with ECX = this address	class:TextureCache
 00625e98	Global	g_pSceneRenderer	WinMain stores C3dDevice::CreateRenderer's result here and passes it to DestroyRenderer at shutdown	ptr:SceneRenderer
 00628b48	Global	g_DirectInputMouse	WinMain calls DirectInputMouse::Init and Release with ECX = this address; no static constructor	class:DirectInputMouse
 0067cd88	Global	g_ResourceManager	the function-local static that GetResourceManager 004dfa10 constructs and returns	class:ResourceManager

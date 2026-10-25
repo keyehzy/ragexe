@@ -45,8 +45,6 @@ import ledger  # noqa: E402
 
 RULES = os.path.join(ROOT, "analysis", "subsystems.tsv")
 OUT = os.path.join(ROOT, "analysis", "exports", "Ragexe.exe.subsystems.tsv")
-EH_PROLOG = 0x5C441C
-EH_MAGIC = 0x19930520
 CXX_INIT_TABLE = (0x605000, 0x605340)
 
 
@@ -288,50 +286,6 @@ class Assigner:
 
     # -- funclets ---------------------------------------------------------------------
 
-    def eh_parents(self):
-        """funclet entry -> the function whose C++ EH FuncInfo lists it."""
-        parents = {}
-        funclets = {fn.entry for fn in self.bx.functions.values() if fn.kind == "funclet"}
-        for fn in self.bx.functions.values():
-            if fn.kind != "code":
-                continue
-            ins = self.bx.insns(fn)
-            for k, i in enumerate(ins):
-                handler = None
-                if i.id == x86.X86_INS_MOV and k + 1 < len(ins) and self.bx.call_target(ins[k + 1]) == EH_PROLOG \
-                        and i.operands[1].type == x86.X86_OP_IMM:
-                    handler = i.operands[1].imm & 0xFFFFFFFF
-                elif i.id == x86.X86_INS_PUSH and k > 0 and i.operands[0].type == x86.X86_OP_IMM \
-                        and ins[k - 1].id == x86.X86_INS_PUSH and ins[k - 1].operands[0].type == x86.X86_OP_IMM \
-                        and ins[k - 1].operands[0].imm & 0xFFFFFFFF == 0xFFFFFFFF:
-                    handler = i.operands[0].imm & 0xFFFFFFFF
-                if handler is None or self.bx.section_of(handler) != ".text":
-                    continue
-                for f in self.funclets_of(handler):
-                    if f in funclets:
-                        parents.setdefault(f, fn.entry)
-        return parents
-
-    def funclets_of(self, handler):
-        off = handler - self.bx.base
-        if self.bx.image[off] != 0xB8:              # mov eax, FuncInfo; jmp __CxxFrameHandler
-            return []
-        info = self.bx.u32(handler + 1)
-        if self.bx.section_of(info) is None or self.bx.u32(info) != EH_MAGIC:
-            return []
-        out = []
-        states, unwind, ntry, tries = (self.bx.u32(info + 4), self.bx.u32(info + 8),
-                                       self.bx.u32(info + 12), self.bx.u32(info + 16))
-        for s in range(min(states, 4096)):
-            action = self.bx.u32(unwind + 8 * s + 4)
-            if action:
-                out.append(action)
-        for t in range(min(ntry, 256)):
-            ncatch, catches = self.bx.u32(tries + 20 * t + 12), self.bx.u32(tries + 20 * t + 16)
-            for c in range(min(ncatch, 64)):
-                out.append(self.bx.u32(catches + 16 * c + 12))
-        return out
-
     # -- output -----------------------------------------------------------------------
 
     def run(self):
@@ -345,7 +299,7 @@ class Assigner:
         for t, target in self.stub_target.items():
             if target in self.sub:
                 self.set(t, self.sub[target], "stub", f"jumps to {target:08x}")
-        parents = self.eh_parents()
+        parents = self.bx.eh_parents()
         for f, p in parents.items():
             if p in self.sub:
                 self.set(f, self.sub[p], "funclet", f"EH tables of {p:08x}")

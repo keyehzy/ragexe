@@ -307,7 +307,7 @@ The client is single-threaded except for three helpers. None of them owns any da
 - one in `CGPak`, entered by `CGPak::vf01` and `CSakGPak::vf01` (the archive reads);
 - one in `ResourceManager`, entered by `GetResource`.
 
-The CRT's `_Lockit` covers the STL. Nothing else is locked: the model loader hands its
+The CRT's `StlLock` covers the STL. Nothing else is locked: the model loader hands its
 models over, and the effect thread creates effects, while the main thread updates and
 draws the same world.
 

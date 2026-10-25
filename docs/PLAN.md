@@ -52,8 +52,11 @@ server can send with packet 0x01C7 (`docs/protocol/code-modules.md`).
    A claim with no address is not accepted, so outside knowledge cannot slip in.
 3. Spec first: findings go to `docs/formats/*.md` and `docs/protocol/*.md` with
    addresses. Code in `src/` is written from those specs, with the decompilation as a check.
-4. Names come from the binary: RTTI, strings, imports. Anything else is a descriptive
-   name we make up, never one remembered from elsewhere.
+4. Names come from the binary: RTTI, strings, imports, and the documented interfaces
+   of what it calls or implements (Win32, DirectX, the C runtime, the C++ standard
+   library's public members). Anything else is a descriptive name we make up, never one
+   remembered from elsewhere: not from other RO projects, and not a library's internal
+   names. `docs/naming.md` has the conventions and the fixed names for library internals.
 5. `original/`, data files, and raw decompiler output stay out of version control.
    The rebuilt source is still derived from Gravity's copyrighted work, so the repository stays private.
 
@@ -840,6 +843,47 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     - Say explicitly that recognising a standard algorithm from its constants counts as
       reading the binary.
 
+- [x] Tools and conventions for naming by reading (`docs/naming.md`):
+  - **`tools/fn_context.py ADDRESS...`** prints, per function:
+    - its ledger row and the named neighbours on each side;
+    - calling-convention evidence: the bytes `ret` pops, whether the body reads ECX
+      first, and at how many call sites the caller sets ECX just before the call;
+    - its references, grouped by function. Unwind funclets come with the function
+      whose EH tables list them; pointers in `.rdata` come with their vtable slot.
+    - its callees, with imports resolved through thunks, and its virtual calls by slot;
+    - its strings, data addresses with their labels, and `[ecx+n]` offsets.
+  - **`tools/ghidra/decompile.sh OUT ADDRESS...`** (with `Decompile.java`) decompiles a
+    batch read-only, in about 4 s.
+  - **The funclet-to-parent mapping** moved from `assign_subsystems.py` to
+    `binindex.eh_parents()`.
+  - **Rule 4 is spelled out** for public interfaces, standard algorithms and library
+    internals. The pilot showed the clash: the existing STL labels used MSVC 6's
+    internal names (`_Tree`, `_Init`, `_Lockit`, `_Tidy`, `_Construct`), which the
+    binary does not contain.
+  - **The convention for library code.**
+    - Namespaces: RTTI names where they exist, otherwise the standard type
+      (`std::list`, `std::vector`, `std::string`, `std::pair`), and `std::Tree` for the
+      tree behind map and set.
+    - Lower-case names are the standard's public members, used only when the behaviour
+      matches.
+    - CamelCase names describe internals, from a fixed table in `docs/naming.md`.
+  - **Renamed under the convention:**
+    - `std::_Tree` → `std::Tree`, with its `_Init` → `InitHead` and constructors `_Tree`
+      → `Tree`;
+    - `std::_Construct` → `std::ConstructAt`;
+    - `std::_Lockit` → `std::StlLock`, `std::_Locinfo` → `std::LocaleInfo`;
+    - `_Xlen` / `_Xran` → `ThrowLengthError` / `ThrowOutOfRange`;
+    - the string helpers → `FreeBuffer`, `GrowBuffer`, `ReallocateBuffer`;
+    - the locale and stream `_Init`s → `InitGlobal`, `InitDefaults`, `InitBuffer`;
+    - the pilot's pair and vector helpers → `std::pair::pair` and
+      `std::vector::insert`.
+
+    The container structs' fields became `allocator`, `buffer`, `length`, `capacity`,
+    `head`, `size` and `multi`. `ApplyLabels` removes the old namespaces and their
+    structs once they are empty.
+  - Converges in three `--reanalyze` passes: the namespace rename needs one more. Still
+    65.9% named or library-tagged; this step names nothing new.
+
 ### Next actions (M1)
-1. Name the remaining 2,429 game functions by reading them, with the procedure from the
-   pilot and its changes. About 1,725 more are needed for 90%.
+1. Name the remaining 2,429 game functions by reading them, with `docs/naming.md`'s
+   procedure, in source-file batches. About 1,725 more are needed for 90%.

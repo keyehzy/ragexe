@@ -25,7 +25,7 @@
 //       where elem is class:<Class> or bytes<N>. Member objects and arrays are applied
 //       as byte ranges with their type in the field comment.
 //       std_string, std_list and std_tree are the structs of the std::string, std::list
-//       and std::_Tree classes (MSVC 6 layouts), which this script creates, so `this` is
+//       and std::Tree classes (MSVC 6 layouts), which this script creates, so `this` is
 //       typed in the container methods.
 // Kinds are applied in this order: classes, fields, functions, data. Within a kind,
 // generated files (those with a "# generated" line) come first and curated files last,
@@ -142,6 +142,7 @@ public class ApplyLabels extends GhidraScript {
 			}
 		}
 		removeLegacyContainerTypes(currentProgram.getDataTypeManager());
+		removeRenamedNamespaces(currentProgram.getDataTypeManager());
 		println(String.format("labels: %d classes, %d fields, %d functions, %d data labels applied", classes,
 			fields, functions, data));
 		if (untypedData > 0) {
@@ -396,40 +397,39 @@ public class ApplyLabels extends GhidraScript {
 			: new ArrayDataType(Undefined1DataType.dataType, size, 1);
 	}
 
-	/** MSVC 6 std::string: allocator byte, then pointer, length and capacity. */
-	/** MSVC 6 std::string: allocator byte, then the copy-on-write buffer, length and capacity. */
+		/** MSVC 6 std::string: allocator byte, then the copy-on-write buffer, length and capacity. */
 	private DataType stdString(DataTypeManager dtm) throws Exception {
 		StructureDataType s = new StructureDataType("string", 0, dtm);
-		s.add(ByteDataType.dataType, "_Al", "allocator (empty)");
+		s.add(ByteDataType.dataType, "allocator", "empty");
 		s.add(new ArrayDataType(Undefined1DataType.dataType, 3, 1), "_pad", null);
-		s.add(new PointerDataType(CharDataType.dataType, dtm), "_Ptr",
+		s.add(new PointerDataType(CharDataType.dataType, dtm), "buffer",
 			"characters; the byte before them is the copy-on-write reference count");
-		s.add(DWordDataType.dataType, "_Len", null);
-		s.add(DWordDataType.dataType, "_Res", "capacity");
+		s.add(DWordDataType.dataType, "length", null);
+		s.add(DWordDataType.dataType, "capacity", null);
 		return containerClass("std::string", s, dtm);
 	}
 
 	/** MSVC 6 std::list: allocator byte, then the sentinel node and the element count. */
 	private DataType stdList(DataTypeManager dtm) throws Exception {
 		StructureDataType s = new StructureDataType("list", 0, dtm);
-		s.add(ByteDataType.dataType, "_Al", "allocator (empty)");
+		s.add(ByteDataType.dataType, "allocator", "empty");
 		s.add(new ArrayDataType(Undefined1DataType.dataType, 3, 1), "_pad", null);
-		s.add(PointerDataType.dataType, "_Head", "sentinel node: next, prev, then the value");
-		s.add(DWordDataType.dataType, "_Size", null);
+		s.add(PointerDataType.dataType, "head", "sentinel node: next, prev, then the value");
+		s.add(DWordDataType.dataType, "size", null);
 		return containerClass("std::list", s, dtm);
 	}
 
-	/** MSVC 6 std::_Tree (map, set): allocator and comparator bytes, head node, multi flag, size. */
+	/** MSVC 6 std::Tree, the red-black tree of map and set: allocator and comparator bytes, head node, multi flag, size. */
 	private DataType stdTree(DataTypeManager dtm) throws Exception {
-		StructureDataType s = new StructureDataType("_Tree", 0, dtm);
-		s.add(ByteDataType.dataType, "_Al", "allocator (empty)");
-		s.add(ByteDataType.dataType, "_Comp", "key_compare (empty)");
+		StructureDataType s = new StructureDataType("Tree", 0, dtm);
+		s.add(ByteDataType.dataType, "allocator", "empty");
+		s.add(ByteDataType.dataType, "compare", "the key comparison object (empty)");
 		s.add(new ArrayDataType(Undefined1DataType.dataType, 2, 1), "_pad", null);
-		s.add(PointerDataType.dataType, "_Head", "head node: left, parent, right, value, color");
-		s.add(ByteDataType.dataType, "_Multi", "true for multimap and multiset");
+		s.add(PointerDataType.dataType, "head", "head node: left, parent, right, value, color");
+		s.add(ByteDataType.dataType, "multi", "true for multimap and multiset");
 		s.add(new ArrayDataType(Undefined1DataType.dataType, 3, 1), "_pad2", null);
-		s.add(DWordDataType.dataType, "_Size", null);
-		return containerClass("std::_Tree", s, dtm);
+		s.add(DWordDataType.dataType, "size", null);
+		return containerClass("std::Tree", s, dtm);
 	}
 
 	/**
@@ -479,6 +479,26 @@ public class ApplyLabels extends GhidraScript {
 		ghidra.program.model.data.Category c = dtm.getCategory(cat);
 		if (c != null && c.getDataTypes().length == 0 && c.getCategories().length == 0) {
 			dtm.getCategory(cat.getParent()).removeEmptyCategory(cat.getName(), monitor);
+		}
+	}
+
+	/**
+	 * Namespaces that docs/naming.md renamed (library-internal names): once no symbol is
+	 * left in one, it and its class struct are removed.
+	 */
+	private void removeRenamedNamespaces(DataTypeManager dtm) throws Exception {
+		SymbolTable st = currentProgram.getSymbolTable();
+		for (String path : new String[] { "std::_Tree", "std::_Lockit", "std::_Locinfo" }) {
+			List<Namespace> found = NamespaceUtils.getNamespaceByPath(currentProgram, null, path);
+			if (found.isEmpty() || st.getChildren(found.get(0).getSymbol()).hasNext()) {
+				continue;
+			}
+			Namespace ns = found.get(0);
+			DataType dt = dtm.getDataType(new CategoryPath("/std"), ns.getName());
+			if (dt != null) {
+				dtm.remove(dt);
+			}
+			ns.getSymbol().delete();
 		}
 	}
 

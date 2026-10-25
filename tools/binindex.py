@@ -19,6 +19,8 @@ EXE = os.path.join(ROOT, "original", "client", "Ragexe.exe")
 LEDGER = os.path.join(ROOT, "analysis", "ledger.tsv")
 # The stack probe in large-frame prologues saves and restores ECX (push ecx ... mov ecx, [eax]).
 CHKSTK = 0x5C22B0
+EH_PROLOG = 0x5C441C              # __EH_prolog
+EH_MAGIC = 0x19930520            # MSVC 6 C++ FuncInfo
 
 
 class Function:
@@ -68,6 +70,7 @@ class BinIndex:
         self.md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
         self.md.detail = True
         self._calls = None
+        self._eh_parents = None
 
     # -- memory ---------------------------------------------------------------------
 
@@ -150,6 +153,56 @@ class BinIndex:
                         callers[t].append((insn.address, fn.entry))
             self._calls = (callees, callers)
         return self._calls
+
+    def eh_parents(self):
+        """funclet entry -> the function whose C++ EH FuncInfo lists it: the handler is
+        found from the `mov eax, handler; call __EH_prolog` or `push -1; push handler`
+        prologue, and the handler's `mov eax, FuncInfo` (magic 0x19930520) lists the
+        unwind actions and catch blocks."""
+        if self._eh_parents is not None:
+            return self._eh_parents
+        parents = {}
+        funclets = {fn.entry for fn in self.functions.values() if fn.kind == "funclet"}
+        for fn in self.functions.values():
+            if fn.kind != "code":
+                continue
+            ins = self.insns(fn)
+            for k, i in enumerate(ins):
+                handler = None
+                if i.id == x86.X86_INS_MOV and k + 1 < len(ins) and self.call_target(ins[k + 1]) == EH_PROLOG \
+                        and i.operands[1].type == x86.X86_OP_IMM:
+                    handler = i.operands[1].imm & 0xFFFFFFFF
+                elif i.id == x86.X86_INS_PUSH and k > 0 and i.operands[0].type == x86.X86_OP_IMM \
+                        and ins[k - 1].id == x86.X86_INS_PUSH and ins[k - 1].operands[0].type == x86.X86_OP_IMM \
+                        and ins[k - 1].operands[0].imm & 0xFFFFFFFF == 0xFFFFFFFF:
+                    handler = i.operands[0].imm & 0xFFFFFFFF
+                if handler is None or self.section_of(handler) != ".text":
+                    continue
+                for f in self.funclets_of(handler):
+                    if f in funclets:
+                        parents.setdefault(f, fn.entry)
+        self._eh_parents = parents
+        return parents
+
+    def funclets_of(self, handler):
+        off = handler - self.base
+        if self.image[off] != 0xB8:              # mov eax, FuncInfo; jmp __CxxFrameHandler
+            return []
+        info = self.u32(handler + 1)
+        if self.section_of(info) is None or self.u32(info) != EH_MAGIC:
+            return []
+        out = []
+        states, unwind, ntry, tries = (self.u32(info + 4), self.u32(info + 8),
+                                       self.u32(info + 12), self.u32(info + 16))
+        for s in range(min(states, 4096)):
+            action = self.u32(unwind + 8 * s + 4)
+            if action:
+                out.append(action)
+        for t in range(min(ntry, 256)):
+            ncatch, catches = self.u32(tries + 20 * t + 12), self.u32(tries + 20 * t + 16)
+            for c in range(min(ncatch, 64)):
+                out.append(self.u32(catches + 16 * c + 12))
+        return out
 
     def reads_ecx_first(self, fn):
         """True when the function reads ECX before writing it, the mark of __thiscall.

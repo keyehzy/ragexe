@@ -525,7 +525,7 @@ mg::CObject	005e9144	004f165c	mg::mgType1::CPlayer::~CPlayer
 mg::CObject	005e9144	004f0f82	mg::CObject::CObject
 mg::CObject	005e9144	004f0fdb	mg::CObject::CObject
 std::out_of_range	005e9160	004ef323	FUN_004ef1e0
-std::out_of_range	005e9160	005b344d	std::_Xran
+std::out_of_range	005e9160	005b344d	std::ThrowOutOfRange
 std::out_of_range	005e9160	004fb5bc	FUN_004fb500
 std::out_of_range	005e9160	004fa88e	FUN_004fa800
 std::out_of_range	005e9160	004eed8b	FUN_004eec60
@@ -613,7 +613,7 @@ CMandraAttackEffect	005ea1b4	005af7fd	CMandraAttackEffect::CMandraAttackEffect
 CArrowEffect	005ea1dc	005afaad	CArrowEffect::CArrowEffect
 CArrowEffect	005ea1dc	005afb1f	CArrowEffect::~CArrowEffect
 CGroundScope	005ea204	005b00fa	CGroundScope::CGroundScope
-std::length_error	005ec504	005b3365	std::_Xlen
+std::length_error	005ec504	005b3365	std::ThrowLengthError
 std::length_error	005ec504	005b33f4	std::length_error::length_error
 std::ostrstream	005ec53c	005b358c	FUN_005b34e3
 std::ostrstream	005ec53c	005b3636	std::ostrstream::~ostrstream

@@ -41,7 +41,7 @@ with that global's label (generated or curated):
 Classes without RTTI come from the curated analysis/labels/inferred.*.tsv files: a
 function row named after its class is that class's constructor, and rules 2 and 4 use
 it like a recovered one. A curated size wins over operator new, and a curated global
-name wins over a generated one; globals built by STL code (std::_Tree) are left to
+name wins over a generated one; globals built by STL code (std::Tree) are left to
 recover_layouts.py.
 """
 import os

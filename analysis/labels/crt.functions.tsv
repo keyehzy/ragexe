@@ -84,23 +84,23 @@ address	namespace	name	calling_convention	evidence
 005c36bf	exception	exception	__thiscall	stores the exception vftable 005ecb78, copies the message string; used with "missing locale facet"
 005c36fc	exception	exception	__thiscall	stores the exception vftable 005ecb78 and copies another exception's message (copy constructor)
 # Standard library (Dinkumware, as shipped with MSVC 6)
-005b3318	std	_Xlen		throws length_error("string too long"); called from std::string growth checks
-005b3400	std	_Xran		throws out_of_range("invalid string position")
-005b3267	std::_Lockit	_Lockit	__thiscall	enters the global critical section at 00688a88, initialising it on first use; constructed on the stack
-005b3303	std::_Lockit	~_Lockit	__thiscall	leaves the critical section at 00688a88
+005b3318	std	ThrowLengthError		throws length_error("string too long"); called from std::string growth checks
+005b3400	std	ThrowOutOfRange		throws out_of_range("invalid string position")
+005b3267	std::StlLock	StlLock	__thiscall	enters the global critical section at 00688a88, initialising it on first use; constructed on the stack
+005b3303	std::StlLock	~StlLock	__thiscall	leaves the critical section at 00688a88
 005b441b	std::ios_base	clear	__thiscall	stores state & 7 and throws when state intersects the exception mask; callers OR in failbit (4)
-005b498b	std::ios_base	_Init	__thiscall	sets flags 0x201 (skipws | dec), precision 6 and width 0 on a new stream
-005b3c22	std::strstreambuf	_Init	__thiscall	called right after the strstreambuf vftable 005e2844 is stored
+005b498b	std::ios_base	InitDefaults	__thiscall	sets flags 0x201 (skipws | dec), precision 6 and width 0 on a new stream
+005b3c22	std::strstreambuf	InitBuffer	__thiscall	called right after the strstreambuf vftable 005e2844 is stored
 005b3798	std::strstreambuf	~strstreambuf	__thiscall	stores vftable 005e2844, tidies the buffer, then stores the base streambuf vftable 005e2894
 005b349d	std::istrstream	~istrstream	__thiscall	stores the istrstream (005e2834) and basic_istream (005e2884) vftables, then destroys the strstreambuf
-005b4011	std::locale	_Getfacet	__thiscall	under _Lockit, indexes the locale's facet vector by the id argument
-005b4067	std::locale	_Iscloc	__thiscall	under _Lockit, compares the locale with the classic locale pointer 00688aa8
-005b41a8	std::locale	_Init		under _Lockit, allocates the global locale (operator new 0x28) on first use
-005b5336	std::_Locinfo	_Locinfo	__thiscall	constructed on the stack with a locale name before facets are created
-005b5466	std::_Locinfo	~_Locinfo	__thiscall	destroys the _Locinfo constructed by 005b5336 in the same functions
-00423980	std::string	_Tidy	__thiscall	(bool free): when set, drops the reference count in the byte before _Ptr (+4) or frees the buffer; then zeroes _Ptr, _Len, _Res at +4/+8/+0xc
-00424fa0	std::string	_Grow	__thiscall	(n, trim): calls std::_Xlen when n > npos-2; shares the reference-count handling of _Tidy
-00425210	std::string	_Copy	__thiscall	rounds the capacity up with | 0x1f and allocates capacity + 2 (count byte and terminator)
+005b4011	std::locale	GetFacet	__thiscall	under StlLock, indexes the locale's facet vector by the id argument
+005b4067	std::locale	IsClassic	__thiscall	under StlLock, compares the locale with the classic locale pointer 00688aa8
+005b41a8	std::locale	InitGlobal		under StlLock, allocates the global locale (operator new 0x28) on first use
+005b5336	std::LocaleInfo	LocaleInfo	__thiscall	constructed on the stack with a locale name before facets are created
+005b5466	std::LocaleInfo	~LocaleInfo	__thiscall	destroys the LocaleInfo constructed by 005b5336 in the same functions
+00423980	std::string	FreeBuffer	__thiscall	(bool free): when set, drops the reference count in the byte before the buffer pointer (+4) or frees the buffer; then zeroes the buffer pointer, length and capacity at +4/+8/+0xc
+00424fa0	std::string	GrowBuffer	__thiscall	(n, trim): calls std::ThrowLengthError when n > npos-2; shares the reference-count handling of FreeBuffer
+00425210	std::string	ReallocateBuffer	__thiscall	rounds the capacity up with | 0x1f and allocates capacity + 2 (count byte and terminator)
 005b7af6	Global	_Getctype		returns the ctype vector of the current locale; used when building ctype facets
 005b798f	Global	_Tolower		(c, ctype vector); in the C locale maps 'A'..'Z' to lower case
 005b7b9e	Global	_Toupper		(c, ctype vector); in the C locale maps 'a'..'z' to upper case

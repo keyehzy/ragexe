@@ -22,7 +22,7 @@ Non-virtual methods: a default-named function that reads ECX before writing it (
 ECX = this + n from a class's functions, or with ECX = the address of a global object
 plus n from anywhere, is a method of:
   the class itself (n = 0), the most-derived base at n, or the std::string / std::list /
-  std::_Tree member at n.
+  std::Tree member at n.
 Global objects and their classes come from the type column of the data label files.
 
 Pointer globals: a call with ECX = [P], P a dword in .data, is a call on the object P
@@ -46,17 +46,17 @@ With several calling classes the owner is the most-derived class all of them der
 from; callers from unrelated classes leave the function unassigned. New methods are
 scanned in turn, until no more are found.
 
-std::_Tree (map and set) members: a function that takes the STL lock, allocates a node
-with operator new and writes this + 4 (_Head) and this + 0xc (_Size) is an MSVC 6
-_Tree::_Init. A function that calls an _Init on its own `this`, and writes nothing
+std::Tree (map and set) members: a function that takes the STL lock, allocates a node
+with operator new and writes this + 4 (head) and this + 0xc (size) is an MSVC 6
+Tree::InitHead. A function that calls an InitHead on its own `this`, and writes nothing
 past the tree's 16 bytes, is a tree constructor.
 Calling either on this + n puts a 16-byte tree at n; the value size is the node size
-minus 12 (left, parent, right) and 4 (color). A constructor can also inline _Init: a
+minus 12 (left, parent, right) and 4 (color). A constructor can also inline InitHead: a
 fresh operator new node whose parent (node + 4) is loaded from a .data address, the
 instantiation's nil node, and that is then stored at this + n + 4 puts a tree at n
 (CRagConnection's packet lengths at 0x7c). Calling one with ECX = a global address
 makes that global a tree. A call to any method already assigned to std::string,
-std::list or std::_Tree on this + n also marks the member.
+std::list or std::Tree on this + n also marks the member.
 
 Classes without RTTI, and their constructors, come from the curated
 analysis/labels/inferred.*.tsv files; they have no bases.
@@ -70,8 +70,8 @@ the class's vftable field keeps the class's own vtable type.
 Writes:
   analysis/labels/layouts.fields.tsv   class offset size type name evidence
   analysis/labels/layouts.classes.tsv  estimated sizes for classes never created with new
-  analysis/labels/methods.functions.tsv  non-virtual methods and _Tree::_Init instances
-  analysis/labels/layouts.data.tsv     global std::_Tree objects and pointer globals, typed
+  analysis/labels/methods.functions.tsv  non-virtual methods and Tree::InitHead instances
+  analysis/labels/layouts.data.tsv     global std::Tree objects and pointer globals, typed
   analysis/exports/Ragexe.exe.layouts.tsv  per-class coverage and notes
 """
 import os
@@ -91,8 +91,8 @@ STRING_FUNCS = {0x423980, 0x424FA0, 0x425210}
 OPERATOR_NEW = 0x5C183B
 LOCKIT = 0x5B3267
 UNLOCKIT = 0x5B3303
-CONTAINERS = {"std_string": "std::string", "std_list": "std::list", "std_tree": "std::_Tree"}
-CONTAINER_SIZE = {"std::string": 16, "std::list": 12, "std::_Tree": 16}
+CONTAINERS = {"std_string": "std::string", "std_list": "std::list", "std_tree": "std::Tree"}
+CONTAINER_SIZE = {"std::string": 16, "std::list": 12, "std::Tree": 16}
 EH_VECTOR_CTOR = 0x5C2002
 # the critical section _Lockit enters
 LOCK_GLOBALS = {0x688A88}
@@ -160,7 +160,7 @@ class Layouts:
                 self.methods[fn.namespace].append(fn)
         self.this_calls = defaultdict(list)   # callee -> [(class, offset of ECX from this, caller)]
         self.assigned = {}                    # callee -> (owner namespace, evidence)
-        self.tree_statics = set()             # each _Tree instantiation's nil node and its count
+        self.tree_statics = set()             # each tree instantiation's nil node and its count
         self.tree_inits = self.find_tree_inits()
         self.tree_ctors = self.find_tree_ctors()
         self.tree_nodes = {**self.tree_inits, **self.tree_ctors}
@@ -178,7 +178,7 @@ class Layouts:
         self.slot_class = {}
         self.via_pointer = defaultdict(set)
         # classes whose object starts with a tree: a global of the class is initialised as one
-        self.tree_at0 = {cls for g, cls in self.globals.items() if g in self.global_trees() and cls != "std::_Tree"}
+        self.tree_at0 = {cls for g, cls in self.globals.items() if g in self.global_trees() and cls != "std::Tree"}
         self.uses_tree_statics = set()
         for fn in self.bx.functions.values():
             if fn.kind == "code" and fn.entry not in self.tree_inits and any(
@@ -249,7 +249,7 @@ class Layouts:
                         and d.mem.index == 0 and node.get(s.reg) is node[d.mem.base] and d.mem.disp in (0, 4):
                     node[d.mem.base]["links"] |= 1 << (d.mem.disp // 4)
                     continue
-                # an inlined _Tree::_Init: the head node's parent is the instantiation's nil node
+                # an inlined Tree::InitHead: the head node's parent is the instantiation's nil node
                 if d.type == x86.X86_OP_MEM and s.type == x86.X86_OP_REG and d.mem.base in node \
                         and d.mem.index == 0 and d.mem.disp == 4 and s.reg in absval:
                     node[d.mem.base]["nil"] = absval[s.reg]
@@ -367,10 +367,10 @@ class Layouts:
                 et = f"class:{elem}" if elem and self.sizes.get(elem) == size else f"bytes{size}"
                 out.append(Access(off, size * count, f"array:{et}:{count}", fn.entry, i.address, True))
 
-    # -- std::_Tree::_Init ---------------------------------------------------------
+    # -- std::Tree::InitHead ---------------------------------------------------------
 
     def find_tree_inits(self):
-        """node size by _Init address; see the module docstring for the shape."""
+        """node size by InitHead address; see the module docstring for the shape."""
         out = {}
         for fn in self.bx.functions.values():
             if fn.kind != "code" or fn.size > 400:
@@ -445,9 +445,9 @@ class Layouts:
                 if t.startswith("class:"):
                     out[int(r["address"], 16)] = t[6:]
                 elif t == "std_tree":
-                    out[int(r["address"], 16)] = "std::_Tree"
+                    out[int(r["address"], 16)] = "std::Tree"
         for g in self.global_trees():
-            out.setdefault(g, "std::_Tree")
+            out.setdefault(g, "std::Tree")
         return out
 
     def find_global_calls(self):
@@ -554,7 +554,7 @@ class Layouts:
         return out
 
     def find_tree_ctors(self):
-        """Functions that call an _Init with ECX still holding their own this, and write
+        """Functions that call an InitHead with ECX still holding their own this, and write
         nothing past the tree's 16 bytes."""
         callees, callers = self.bx.build_calls()
         out = {}
@@ -610,7 +610,7 @@ class Layouts:
         return False
 
     def global_trees(self):
-        """Globals passed as ECX to an _Init or tree constructor, by a call or by the tail
+        """Globals passed as ECX to an InitHead or tree constructor, by a call or by the tail
         jump of an initializer stub."""
         if getattr(self, "_global_trees", None) is not None:
             return self._global_trees
@@ -640,7 +640,7 @@ class Layouts:
             # a class that starts with a tree: the tree's own methods use its nil node
             if callee in self.uses_tree_statics and (cls in self.tree_at0 or any(
                     a.off == 0 and type_kind(a.type) == "std_tree" for a in self.raw[cls])):
-                return "std::_Tree"
+                return "std::Tree"
             return cls
         for b, disp in self.bases.get(cls, []):
             if disp == off and b in self.classes:
@@ -997,10 +997,10 @@ class Layouts:
         owner = self.assigned.get(t, (None,))[0]
         if t in self.tree_nodes:
             out.append(Access(off, 16, f"std_tree:{self.tree_nodes[t] - 16}", func, insn, True))
-        elif owner in CONTAINER_SIZE and owner != "std::_Tree":
+        elif owner in CONTAINER_SIZE and owner != "std::Tree":
             kind = next(k for k, v in CONTAINERS.items() if v == owner)
             out.append(Access(off, CONTAINER_SIZE[owner], kind, func, insn, False))
-        elif owner == "std::_Tree":
+        elif owner == "std::Tree":
             out.append(Access(off, 16, "std_tree", func, insn, False))
         elif t in STRING_FUNCS:
             out.append(Access(off, 16, "std_string", func, insn, False))
@@ -1235,10 +1235,10 @@ class Layouts:
         with open(os.path.join(LABELS, "methods.functions.tsv"), "w", encoding="utf-8") as f:
             f.write("address\tnamespace\tname\tcalling_convention\tevidence\n" + gen)
             for t, node in sorted(self.tree_inits.items()):
-                f.write(f"{t:08x}\tstd::_Tree\t_Init\t__thiscall\tunder the STL lock creates the shared nil node, "
+                f.write(f"{t:08x}\tstd::Tree\tInitHead\t__thiscall\tunder the STL lock creates the shared nil node, "
                         f"allocates a head node (operator new({node})) into this + 4 and zeroes the size at this + 0xc\n")
             for t, node in sorted(self.tree_ctors.items()):
-                f.write(f"{t:08x}\tstd::_Tree\t_Tree\t__thiscall\tcalls a _Tree::_Init (node {node} bytes) on its own this\n")
+                f.write(f"{t:08x}\tstd::Tree\tTree\t__thiscall\tcalls a Tree::InitHead (node {node} bytes) on its own this\n")
             for t, (owner, ev) in sorted(self.assigned.items()):
                 f.write(f"{t:08x}\t{owner}\tmethod_{t:08x}\t__thiscall\t{ev}\n")
         trees = {g: v for g, v in self.global_trees().items() if g not in self.curated_data}
@@ -1270,10 +1270,10 @@ class Layouts:
               f"direct accesses and member calls added: {sum(self.global_access_counts.values())} "
               f"to {sum(1 for n in self.global_access_counts.values() if n)} classes")
         print(f"non-virtual methods assigned: {len(self.assigned)} ({dict(by_owner)}) in {self.rounds} rounds; "
-              f"_Tree::_Init instances: {len(self.tree_inits)}, tree constructors: {len(self.tree_ctors)}, "
+              f"Tree::InitHead instances: {len(self.tree_inits)}, tree constructors: {len(self.tree_ctors)}, "
               f"global trees: {len(trees)}")
         inl = sorted(self.inline_trees)
-        print(f"inlined _Tree::_Init: {len(inl)} trees in {len({(c, f) for c, _, _, f, _ in inl})} functions: "
+        print(f"inlined Tree::InitHead: {len(inl)} trees in {len({(c, f) for c, _, _, f, _ in inl})} functions: "
               + ", ".join(f"{c}+0x{o:x} (value {v})" for c, o, v, _, _ in inl))
         c = self.end_checks
         print(f"global objects' ends: {c['globals']} objects, {c['contradicted']} with a label or initializer "
