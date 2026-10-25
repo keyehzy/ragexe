@@ -293,8 +293,36 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
 - Dropped: running the original under Wine or a VM. Verification is static plus the
   emulation oracle (section 4.3), and the runtime-code check moved to M1.
 
+### M1 progress
+- [x] RTTI → Ghidra classes and vtables: `tools/ghidra/scripts/ApplyRtti.java`, run by `analyze.sh`
+  after auto-analysis. It is safe to re-run; a second run produces identical exports.
+  - Applies typed RTTI structures (object locator, hierarchy descriptor, base class array and
+    descriptors) and labels in each class namespace.
+  - 295 vtables with 7,157 slots, each typed as a `/Ragexe/vftables` struct with one
+    function-definition pointer per slot. Every class struct gets a `vftable` field at its vfptr offset.
+  - A vtable ends at the next locator pointer, a non-code value, or a reference whose
+    instruction contains the address. Devirtualized `CALL [reg+n]` references point into
+    the middle of vtables and are ignored. Check: no derived vtable is shorter than its
+    primary base's, and no vtable stops in front of another code pointer.
+  - 338 new functions created at slot targets Ghidra had missed (10,138 → 10,476).
+  - 1,567 virtual functions moved into the class that introduces them (the most-base class
+    whose vtable holds them) and named `vfNN`, or `vfNN_for_<Base>` for secondary vtables,
+    with `__thiscall`.
+  - Multiple inheritance: `mg::mgType1::CItemObj`, `CMonster` and `CPlayer` each have a second
+    vtable at offset 116, 116 and 104 (the game-actor side), each with one adjustor thunk.
+    The `std` stream classes use virtual inheritance.
+  - The one function shared by unrelated classes, `0x005c195a` (18 slots in 7 classes), is
+    `push 0x19; call __amsg_exit`, which is `_purecall`. It shows that `CDC` (slots 1–8) and
+    `CRes` (slots 2–3) are abstract interfaces.
+  - Exports: `analysis/exports/Ragexe.exe.{rtti,vtables,vtable_refs}.tsv`.
+    `vtable_refs` lists 1,013 code references to vtables from 617 functions; these are the
+    constructor/destructor candidates.
+- Ledger after sync: 6,761 functions to port, 1,559 of them `named` (27.5% of code bytes).
+
 ### Next actions (M1)
-1. The RTTI → Ghidra class and vtable script, using the 295 locators found above.
-2. Hand-label the VC6 CRT/STL, since FID does not cover it. Start from the
-   `0x005b…–0x005c…` cluster and mark it with `ledger.py set LO-HI --library 1`.
+1. Hand-label the VC6 CRT/STL, since FID does not cover it. Start from the
+   `0x005b…–0x005c…` cluster (`_purecall` at `0x005c195a` is in it) and mark it with
+   `ledger.py set LO-HI --library 1`.
+2. Constructors, destructors and object sizes from `vtable_refs.tsv` and the
+   `operator new(n)` calls in front of each constructor.
 3. Emulation oracle harness and the static runtime-code check.

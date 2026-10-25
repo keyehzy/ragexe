@@ -1,6 +1,7 @@
 #!/bin/bash
-# Import and auto-analyze a binary into the shared Ghidra project, then export
-# the function inventory. Usage: tools/ghidra/analyze.sh [binary] [--reanalyze]
+# Import and auto-analyze a binary into the shared Ghidra project, apply RTTI
+# classes and vtables, then export the inventories.
+# Usage: tools/ghidra/analyze.sh [binary] [--reanalyze]
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 BIN="${1:-$ROOT/original/client/Ragexe.exe}"
@@ -19,6 +20,7 @@ fi
 
 "$HEADLESS" "$PROJ_DIR" ragexe "${MODE[@]}" \
   -scriptPath "$ROOT/tools/ghidra/scripts" \
+  -postScript ApplyRtti.java "$OUT_DIR" \
   -postScript ExportInventory.java "$OUT_DIR" \
   -analysisTimeoutPerFile 7200 \
   -log "$OUT_DIR/${NAME}.analysis.log" \

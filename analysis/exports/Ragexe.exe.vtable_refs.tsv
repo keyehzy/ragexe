@@ -1,0 +1,1014 @@
+class	vftable	ref_from	function
+CDCSurface	005e25e0	0040308f	FUN_00403070
+CDCSurface	005e25e0	00403053	FUN_00403010
+CDCSurface	005e25e0	00402f7f	FUN_00402f40
+CDC	005e2608	004030a7	FUN_00403070
+CDC	005e2608	0040302f	FUN_00403010
+CDC	005e2608	004035df	FUN_004035c0
+CDC	005e2608	0040377a	FUN_00403680
+CDC	005e2608	00402f5f	FUN_00402f40
+CDC	005e2608	00402fbb	CDC::vf00
+CDC	005e2608	00402fa0	FUN_00402fa0
+CDCBitmap	005e2630	00403611	FUN_004035c0
+CDCBitmap	005e2630	004036a3	FUN_00403680
+CSurface	005e26dc	004160f7	FUN_004160e0
+CSurface	005e26dc	00416097	FUN_00416080
+CSurface	005e26dc	00416116	FUN_00416110
+CSurfaceWallpaper	005e26f4	004164f5	FUN_004164e0
+CTexture	005e270c	00416627	FUN_004165e0
+CTexture	005e270c	004166fd	FUN_004166b0
+CConnection	005e2740	0041824b	FUN_00418150
+CConnection	005e2740	004182af	FUN_00418290
+CConnection	005e2740	00418523	FUN_004184d0
+CRagConnection	005e2750	00418ed0	FUN_00418d90
+CController	005e2760	0041dacb	CController::vf00
+CController	005e2760	0041da93	FUN_0041da90
+CController	005e2760	0041dd60	FUN_0041dd60
+CController	005e2760	0041deb3	FUN_0041dda0
+CKeyPad	005e2774	0041dd47	FUN_0041dc70
+CKeyPad	005e2774	0041ddc3	FUN_0041dda0
+CActRes	005e27d8	00420ad5	FUN_00420a70
+CActRes	005e27d8	00420847	FUN_004207c0
+CRes	005e27f4	004df937	FUN_004df920
+CRes	005e27f4	0042babf	FUN_0042b930
+CRes	005e27f4	00427700	FUN_00427700
+CRes	005e27f4	0042eaae	FUN_0042ea70
+CRes	005e27f4	00426b5d	FUN_00426b30
+CRes	005e27f4	0047ae55	FUN_0047ad80
+CRes	005e27f4	00432080	FUN_00432080
+CRes	005e27f4	00435b51	FUN_004359d0
+CRes	005e27f4	00429b6f	FUN_00429ad0
+CRes	005e27f4	0042dda3	FUN_0042dcb0
+CRes	005e27f4	00421e25	FUN_00421d30
+CRes	005e27f4	00435410	FUN_00435410
+CRes	005e27f4	00420870	FUN_00420870
+CRes	005e27f4	00428920	FUN_004288d0
+CRes	005e27f4	004208ab	CRes::vf00
+CRes	005e27f4	00420a3a	FUN_00420960
+CRes	005e27f4	0042903a	FUN_00428fe0
+CRes	005e27f4	0043406e	FUN_00434030
+CRes	005e27f4	00428470	FUN_00428470
+CRes	005e27f4	0042847a	FUN_00428470
+CRmaRes	005e2818	00421bb7	FUN_00421b30
+CRmaRes	005e2818	00421d0c	FUN_00421c90
+CRmaRes	005e2818	00421d53	FUN_00421d30
+std::istrstream	005e2834	005b34b2	FUN_005b349d
+std::istrstream	005e2834	004221b0	CRmaRes::vf03
+std::strstreambuf	005e2844	005b3572	FUN_005b34e3
+std::strstreambuf	005e2844	005b36fd	FUN_005b3667
+std::strstreambuf	005e2844	005b37a9	FUN_005b3798
+std::strstreambuf	005e2844	00422c78	FUN_00422bb0
+std::basic_ios<char,std::char_traits<char>_>	005e287c	005b3d29	FUN_005b3d04
+std::basic_ios<char,std::char_traits<char>_>	005e287c	005b3e00	FUN_005b3dcf
+std::basic_ios<char,std::char_traits<char>_>	005e287c	005b350d	FUN_005b34e3
+std::basic_ios<char,std::char_traits<char>_>	005e287c	005b369e	FUN_005b3667
+std::basic_ios<char,std::char_traits<char>_>	005e287c	00422e19	FUN_00422e10
+std::basic_ios<char,std::char_traits<char>_>	005e287c	00422e00	FUN_00422e00
+std::basic_ios<char,std::char_traits<char>_>	005e287c	00422e58	FUN_00422e20
+std::basic_istream<char,std::char_traits<char>_>	005e2884	005b3e7a	FUN_005b3e49
+std::basic_istream<char,std::char_traits<char>_>	005e2884	005b34d1	FUN_005b349d
+std::basic_istream<char,std::char_traits<char>_>	005e2884	004235ef	std::basic_istream<char,std::char_traits<char>_>::vf00
+std::basic_istream<char,std::char_traits<char>_>	005e2884	00422e74	FUN_00422e20
+std::basic_istream<char,std::char_traits<char>_>	005e2884	00422ed6	FUN_00422ed0
+std::basic_streambuf<char,std::char_traits<char>_>	005e2894	005b355d	FUN_005b34e3
+std::basic_streambuf<char,std::char_traits<char>_>	005e2894	005b36e6	FUN_005b3667
+std::basic_streambuf<char,std::char_traits<char>_>	005e2894	005b37bb	FUN_005b3798
+std::basic_streambuf<char,std::char_traits<char>_>	005e2894	00422ee6	FUN_00422ee0
+C3dAttr	005e28dc	00426a71	FUN_00426a20
+C3dAttr	005e28dc	00426bd5	FUN_00426ba0
+CBitmapRes	005e28f8	00427644	FUN_00427610
+CBitmapRes	005e28f8	004277da	FUN_004277d0
+CEmblemRes	005e2914	004283a3	FUN_00428360
+CEmblemRes	005e2914	004284e9	FUN_004284b0
+CEZeffectRes	005e294c	00428afd	FUN_00428aa0
+CEZeffectRes	005e294c	004287f4	FUN_00428790
+CGndRes	005e2974	004291db	FUN_00429170
+CGndRes	005e2974	00428f20	FUN_00428ec0
+CImfRes	005e2990	00429a11	FUN_004299c0
+CImfRes	005e2990	00429be3	FUN_00429bb0
+C3dModelRes	005e29c0	0042bc40	FUN_0042bb00
+C3dModelRes	005e29c0	0042b76a	FUN_0042b620
+C3dAnimModelRes	005e29e4	0042dabb	FUN_0042da20
+C3dAnimModelRes	005e29e4	0042dc43	FUN_0042dbb0
+C3dAnimModelRes	005e29e4	0042dcd3	FUN_0042dcb0
+C3dGrannyModelRes	005e2a00	0042e954	FUN_0042e920
+C3dGrannyModelRes	005e2a00	0042ea4a	FUN_0042ea40
+C3dGrannyModelRes	005e2a00	0042ea8f	FUN_0042ea70
+CPaletteRes	005e2a24	004320b8	FUN_004320b0
+CPaletteRes	005e2a24	00431fc4	FUN_00431f90
+CSprRes	005e2a74	00433f52	FUN_00433f00
+CSprRes	005e2a74	004340e8	FUN_004340a0
+CWave	005e2a90	00435354	FUN_00435320
+CWave	005e2a90	0043544a	FUN_00435440
+C3dWorldRes	005e2ab8	00435914	FUN_00435830
+C3dWorldRes	005e2ab8	00435c72	FUN_00435b90
+CSkinMgr	005e2ae0	00437053	FUN_00437030
+CSkinMgr	005e2ae0	00436e95	FUN_00436e20
+SnapObject	005e2af4	00438b18	FUN_00438af0
+SnapObject	005e2af4	00438b90	FUN_00438b90
+CSnapMgr	005e2afc	004391fd	FUN_004391d0
+CSnapMgr	005e2afc	00439261	FUN_00439240
+UIStaticText	005e2b10	00439bcc	FUN_00439b80
+UIStaticText	005e2b10	00439d76	FUN_00439d70
+UIStaticBitmap	005e2bac	0043a8cd	FUN_0043a8b0
+UIStaticBitmap	005e2bac	0043a963	FUN_0043a960
+UICheckBox	005e2c48	0043ab61	FUN_0043ab20
+UICheckBox	005e2c48	0043abd6	FUN_0043abd0
+UISlotBitmap	005e2ce4	0043b060	FUN_0043b060
+UISlotBitmap	005e2ce4	0043b018	FUN_0043b010
+UIButton	005e2d80	0043b176	FUN_0043b170
+UIButton	005e2d80	0043b132	FUN_0043b100
+UINoneVisibleButton	005e2e1c	0043b558	FUN_0043b550
+UINoneVisibleButton	005e2e1c	0043b5a0	FUN_0043b5a0
+UIColorButton	005e2eb8	0043b602	FUN_0043b5c0
+UIColorButton	005e2eb8	0043b6a0	FUN_0043b6a0
+UIBitmapButton	005e2f54	0043b93f	FUN_0043b8e0
+UIBitmapButton	005e2f54	0043b986	FUN_0043b980
+UISpriteButton	005e2ff0	0043bd76	FUN_0043bd20
+UISpriteButton	005e2ff0	0043bdc6	FUN_0043bdc0
+UIBalloonText	005e3090	0043c596	FUN_0043c570
+UIBalloonText	005e3090	0043c61b	FUN_0043c610
+UITransBalloonText	005e312c	0043ca60	FUN_0043ca60
+UITransBalloonText	005e312c	0043ca18	FUN_0043ca10
+UINameBalloonText	005e31c8	0043cbf3	FUN_0043cbd0
+UINameBalloonText	005e31c8	0043cc43	FUN_0043cc40
+UIEditCtrl	005e3270	0043de36	FUN_0043ddf0
+UIEditCtrl	005e3270	0043dee3	FUN_0043dee0
+UIEditCtrl2	005e3310	0043f148	FUN_0043f140
+UIEditCtrl2	005e3310	0043f190	FUN_0043f190
+UIWhisperEditCtrl	005e33b0	0043f37f	FUN_0043f350
+UIChatEditCtrl	005e3450	0043fa41	FUN_0043f9e0
+UIResizer	005e34f0	0044005b	FUN_00440030
+UITab	005e358c	00440428	FUN_00440420
+UIRadioBtn	005e3628	00440580	FUN_00440560
+UIRadioBtn	005e3628	004405d3	FUN_004405d0
+UIChatRoomTitle	005e36c4	00440856	FUN_00440850
+UIChatRoomTitle	005e36c4	0044080c	FUN_004407e0
+UIMerchantShopTitle	005e3760	00440ec8	FUN_00440ec0
+UIMerchantShopTitle	005e3760	00440f10	FUN_00440f10
+UIEmblemWnd	005e37fc	00441408	FUN_004413c0
+UIEmblemWnd	005e37fc	00441523	FUN_00441520
+UIBarGraph	005e38a4	00441d60	FUN_00441d60
+UIBarGraph	005e38a4	00441d18	FUN_00441d10
+UIBarGraph2	005e3944	0044207d	FUN_00442070
+UIBarGraph2	005e3944	004420e0	FUN_004420e0
+UIBarGraph3	005e39e4	0044226a	FUN_00442260
+UIBarGraph3	005e39e4	004422b0	FUN_004422b0
+UIBarGraphPlayerHp	005e3a80	004422e8	FUN_004422e0
+UIBarGraphPlayerHp	005e3a80	00442330	FUN_00442330
+UIBarGraphPlayerSp	005e3b1c	004426e0	FUN_004426e0
+UIBarGraphPlayerSp	005e3b1c	00442698	FUN_00442690
+UIGage	005e3bc4	00442c3d	FUN_00442c30
+UIGage	005e3bc4	00442cf0	FUN_00442cf0
+UIRechargeGage	005e3c60	00442d60	FUN_00442d60
+UIRechargeGage	005e3c60	00442d08	FUN_00442d00
+UIPcGage	005e3d00	00442e6a	FUN_00442e60
+UIPcGage	005e3d00	00442ee0	FUN_00442ee0
+UIPlayerGage	005e3d9c	004431fd	FUN_004431f0
+UIPlayerGage	005e3d9c	00443260	FUN_00443260
+UIListBox	005e3e38	004434f6	FUN_004434b0
+UIListBox	005e3e38	0044355b	FUN_00443550
+UIComboBox	005e3ee4	00443f38	FUN_00443f30
+UIComboBox	005e3ee4	00443f80	FUN_00443f80
+UIChatHisBox	005e3f90	004448e7	FUN_004448e0
+UIChatHisBox	005e3f90	00444718	FUN_004446d0
+UIChatHisBox2	005e4040	00445060	FUN_00445060
+UIChatHisBox2	005e4040	00444ffd	FUN_00444ff0
+UIMemberListBox	005e40f0	004452d0	FUN_004452d0
+UIMemberListBox	005e40f0	00445288	FUN_00445280
+UITextViewer	005e41a0	00445582	FUN_00445540
+UITextViewer	005e41a0	00445630	FUN_00445630
+UIScrollBar	005e424c	0044593a	FUN_00445930
+UIScrollBar	005e424c	004459a0	FUN_004459a0
+UIScrollBar2	005e42e8	004464e8	FUN_004464e0
+UIFrameWnd	005e43a8	00448870	FUN_00448870
+UIFrameWnd	005e43a8	0044881d	FUN_00448810
+UIMessageBoxAutoreturn	005e4444	00449087	FUN_00449040
+UIMessageBoxAutoreturn	005e4444	004490d6	FUN_004490d0
+UIMessageBox	005e44e0	004499d7	FUN_00449990
+UIMessageBox	005e44e0	00449a26	FUN_00449a20
+UISelectServerWnd	005e457c	0044a6e6	FUN_0044a6c0
+UISelectServerWnd	005e457c	0044a733	FUN_0044a730
+UILoginWnd	005e4618	0044b0e0	FUN_0044b0e0
+UILoginWnd	005e4618	0044b09a	FUN_0044b090
+UINoticeWnd	005e46b4	0044bd8a	FUN_0044bd60
+UINoticeWnd	005e46b4	0044be50	FUN_0044be50
+UISelectCharWnd	005e4750	0044d24f	FUN_0044d230
+UISelectCharWnd	005e4750	0044d013	FUN_0044cf70
+UIMakeCharWnd	005e47ec	0044f18a	FUN_0044f0e0
+UIMakeCharWnd	005e47ec	0044f813	FUN_0044f7f0
+UIBitmapEditCtrl	005e4888	0044f98a	UIMakeCharWnd::vf17
+UIChatWnd	005e4928	004517e0	FUN_004517e0
+UIChatWnd	005e4928	0045178a	FUN_00451780
+UIChatRoomWnd	005e49c4	004532a4	FUN_004531a0
+UIChatRoomWnd	005e49c4	00453383	FUN_00453360
+UIAllyGuildAcceptWnd	005e4a60	00455e68	FUN_00455e60
+UIAllyGuildAcceptWnd	005e4a60	00455eb0	FUN_00455eb0
+UIMonsterInfoWnd	005e4afc	004561f0	FUN_004561f0
+UIMonsterInfoWnd	005e4afc	004561a3	FUN_00456190
+UIPetInfoWnd	005e4b98	00456ee0	FUN_00456ee0
+UIPetInfoWnd	005e4b98	00456e98	FUN_00456e90
+UITalkboxTrapInputWnd	005e4c34	004585f0	FUN_004585f0
+UITalkboxTrapInputWnd	005e4c34	004585a8	FUN_004585a0
+UICntWnd	005e4cd0	00458d60	FUN_00458d60
+UICntWnd	005e4cd0	00458d18	FUN_00458d10
+UIWaitWnd	005e4d78	0045bdf0	FUN_0045bdf0
+UIWaitWnd	005e4d78	0045bda8	FUN_0045bda0
+UILoadingWnd	005e4e14	0045bf68	FUN_0045bf60
+UILoadingWnd	005e4e14	0045bfb0	FUN_0045bfb0
+UIBasicInfoWnd	005e4eb0	0045c4e0	FUN_0045c4e0
+UIBasicInfoWnd	005e4eb0	0045c488	FUN_0045c480
+UIBarGraph4	005e4f4c	0045cdd0	FUN_0045cdd0
+UIBarGraph4	005e4f4c	0045cc5b	UIBasicInfoWnd::vf17
+UIBarGraph4	005e4f4c	0045ccca	UIBasicInfoWnd::vf17
+UIToolTipWnd	005e4fe8	0045d9f0	FUN_0045d9f0
+UIToolTipWnd	005e4fe8	0045d998	FUN_0045d990
+UIShortCutWnd	005e5084	0045ddc8	FUN_0045ddc0
+UIShortCutWnd	005e5084	0045de20	FUN_0045de20
+UIEquipWnd	005e5120	0045f4e8	FUN_0045f4e0
+UIEquipWnd	005e5120	0045f540	FUN_0045f540
+UIStatusWnd	005e51bc	0046177a	FUN_00461770
+UIStatusWnd	005e51bc	004617d0	FUN_004617d0
+UIDetailLevelWnd	005e5258	004628e0	FUN_004628e0
+UIDetailLevelWnd	005e5258	00462898	FUN_00462890
+UIOptionWnd	005e52f4	004635f8	FUN_004635f0
+UIOptionWnd	005e52f4	00463640	FUN_00463640
+UIItemParamChangeDisplayWnd	005e5390	0046462b	FUN_004645e0
+UIItemParamChangeDisplayWnd	005e5390	00464763	FUN_00464760
+UINotifyItemObtainWnd	005e542c	0046537e	FUN_00465330
+UINotifyItemObtainWnd	005e542c	004653e6	FUN_004653e0
+UINpcEditDialogWnd	005e54c8	004658f8	FUN_004658f0
+UINpcEditDialogWnd	005e54c8	00465940	FUN_00465940
+UINpcTextEditDialogWnd	005e5564	00465ce8	FUN_00465ce0
+UINpcTextEditDialogWnd	005e5564	00465d30	FUN_00465d30
+UISkillNameChangeWnd	005e5600	004660bd	FUN_004660a0
+UISkillNameChangeWnd	005e5600	00466103	FUN_00466100
+UIEmailAddressWnd	005e569c	004665e8	FUN_004665e0
+UIEmailAddressWnd	005e569c	00466630	FUN_00466630
+UIPasswordWnd	005e5738	004669d8	FUN_004669d0
+UIPasswordWnd	005e5738	00466a20	FUN_00466a20
+UISayDialogWnd	005e57d4	00466ebf	FUN_00466e50
+UISayDialogWnd	005e57d4	00466f43	FUN_00466f20
+UIItemCollectionWnd	005e5870	00467816	FUN_00467810
+UIItemCollectionWnd	005e5870	00467795	FUN_00467710
+UICombinedCardItemCollectionWnd	005e590c	00468d50	FUN_00468d50
+UICombinedCardItemCollectionWnd	005e590c	00468d08	FUN_00468d00
+UISkillDescribeWnd	005e59a8	00468edd	FUN_00468e90
+UISkillDescribeWnd	005e59a8	00468f26	FUN_00468f20
+UICardItemIllustWnd	005e5a44	0046974f	FUN_00469720
+UICardItemIllustWnd	005e5a44	00469796	FUN_00469790
+UIChooseWarpWnd	005e5ae0	0046a0cb	FUN_0046a0c0
+UIChooseWarpWnd	005e5ae0	00469f9a	FUN_00469f60
+UIChooseWnd	005e5b7c	0046a9b3	FUN_0046a990
+UIChooseWnd	005e5b7c	0046aa17	FUN_0046aa10
+UIItemIdentifyWnd	005e5c18	0046b3a1	FUN_0046b330
+UIItemIdentifyWnd	005e5c18	0046b413	FUN_0046b3f0
+UIItemCompositionWnd	005e5cb4	0046c4b8	FUN_0046c4b0
+UIItemCompositionWnd	005e5cb4	0046c500	FUN_0046c500
+UIQuitWnd	005e5d50	0046c950	FUN_0046c950
+UIQuitWnd	005e5d50	0046c908	FUN_0046c900
+UIRestartWnd	005e5dec	0046cd50	FUN_0046cd50
+UIRestartWnd	005e5dec	0046cd08	FUN_0046cd00
+UINoticeConfirmWnd	005e5e88	0046d23f	FUN_0046d230
+UINoticeConfirmWnd	005e5e88	0046d280	FUN_0046d280
+UIChooseSellBuyWnd	005e5f24	0046d6d8	FUN_0046d6d0
+UIChooseSellBuyWnd	005e5f24	0046d720	FUN_0046d720
+UIExchangeAcceptWnd	005e5fc0	0046dbf8	FUN_0046dbf0
+UIExchangeAcceptWnd	005e5fc0	0046dc40	FUN_0046dc40
+UITipOfTheDayWnd	005e605c	0046e360	FUN_0046e360
+UITipOfTheDayWnd	005e605c	0046e318	FUN_0046e310
+UIJoinPartyAcceptWnd	005e60f8	0046ef68	FUN_0046ef60
+UIJoinPartyAcceptWnd	005e60f8	0046efb0	FUN_0046efb0
+UIJoinGuildAcceptWnd	005e6194	0046f2d0	FUN_0046f2d0
+UIJoinGuildAcceptWnd	005e6194	0046f288	FUN_0046f280
+UIChatRoomMakeWnd	005e6230	0046f650	FUN_0046f5a0
+UIChatRoomMakeWnd	005e6230	0046f783	FUN_0046f760
+UIChatRoomChangeWnd	005e62cc	00471020	FUN_00471020
+UIChatRoomChangeWnd	005e62cc	00470f11	FUN_00470ee0
+UIExchangeWnd	005e6368	004716e3	FUN_00471650
+UIExchangeWnd	005e6368	00471753	FUN_00471730
+UIPartySettingWnd	005e6404	00472c50	FUN_00472c50
+UIPartySettingWnd	005e6404	00472c08	FUN_00472c00
+UIWhisperWnd	005e64a0	004738be	FUN_00473880
+UIWhisperWnd	005e64a0	00473923	FUN_00473900
+UIMenuWnd	005e6544	0047553d	FUN_00475520
+UIMenuWnd	005e6544	0047559b	FUN_00475590
+UIComboBoxWnd	005e65e0	00475ed0	FUN_00475ed0
+UIComboBoxWnd	005e65e0	00475e88	FUN_00475e80
+UIPetEggListWnd	005e667c	00476030	FUN_00476030
+UIPetEggListWnd	005e667c	00475fe8	FUN_00475fe0
+UIMakingArrowListWnd	005e6718	004763c8	FUN_004763c0
+UIMakingArrowListWnd	005e6718	00476410	FUN_00476410
+UIPetTamingDeceiveWnd	005e67b4	00476810	FUN_00476810
+UIPetTamingDeceiveWnd	005e67b4	004767b9	FUN_004767a0
+UISelectCartWnd	005e6850	00476ab8	FUN_00476ab0
+UISelectCartWnd	005e6850	00476b00	FUN_00476b00
+UISpellListWnd	005e68ec	00477849	FUN_00477820
+UISpellListWnd	005e68ec	00477897	FUN_00477890
+UIGraffiStrboxWnd	005e6988	00477fb8	FUN_00477fb0
+UIGraffiStrboxWnd	005e6988	00478000	FUN_00478000
+UIProhibitListWnd	005e6a24	004786e8	FUN_004786e0
+UIProhibitListWnd	005e6a24	00478730	FUN_00478730
+UIGuildInfoManageWnd	005e6acc	00479d89	FUN_00479cf0
+UIGuildInfoManageWnd	005e6acc	00479e73	FUN_00479e50
+UIGuildWnd	005e6b6c	0047ff94	FUN_0047ff60
+UIGuildWnd	005e6b6c	0047b654	FUN_0047b620
+UIGuildWnd	005e6b6c	0047b8f8	FUN_0047b7d0
+UIGuildWnd	005e6b6c	00482cd0	FUN_00482cd0
+UIGuildWnd	005e6b6c	0047e114	FUN_0047e0e0
+UIGuildWnd	005e6b6c	0047e352	FUN_0047e270
+UIGuildWnd	005e6b6c	00482370	FUN_00482370
+UIGuildWnd	005e6b6c	00479d24	FUN_00479cf0
+UIGuildWnd	005e6b6c	00479dd0	FUN_00479dd0
+UIGuildWnd	005e6b6c	00479f4f	FUN_00479e50
+UIGuildWnd	005e6b6c	004817e0	FUN_004817e0
+UIGuildWnd	005e6b6c	0048012a	FUN_00480070
+UIGuildMemberManageWnd	005e6c14	0047b74f	FUN_0047b620
+UIGuildMemberManageWnd	005e6c14	0047b7f3	FUN_0047b7d0
+UIGuildPositionManageWnd	005e6cb4	0047e1f2	FUN_0047e0e0
+UIGuildPositionManageWnd	005e6cb4	0047e293	FUN_0047e270
+UIEditCtrlVarId	005e6d54	0047ec40	FUN_0047ec40
+UIEditCtrlVarId	005e6d54	0047e68d	UIGuildPositionManageWnd::vf17
+UIEditCtrlVarId	005e6d54	0047e73e	UIGuildPositionManageWnd::vf17
+UIEditCtrlVarId	005e6d54	00482426	UIGuildNoticeWnd::vf17
+UIEditCtrlVarId	005e6d54	004824db	UIGuildNoticeWnd::vf17
+UIGuildSkillWnd	005e6df4	0047ffe4	FUN_0047ff60
+UIGuildSkillWnd	005e6df4	00480093	FUN_00480070
+UIGuildBanishedMemberWnd	005e6e94	0048178c	FUN_00481770
+UIGuildNoticeWnd	005e6f34	0048231c	FUN_00482300
+UIGuildTotalInfoWnd	005e6fd4	00482c7c	FUN_00482c60
+UIGuildLeaveReasonDescWnd	005e7074	004836da	FUN_004836d0
+UIGuildLeaveReasonDescWnd	005e7074	00483730	FUN_00483730
+UIGuildBanReasonDescWnd	005e7110	00483be8	FUN_00483be0
+UIGuildBanReasonDescWnd	005e7110	00483c30	FUN_00483c30
+UIIllustWnd	005e71b8	00486b93	FUN_00486b70
+UIIllustWnd	005e71b8	00486bd3	FUN_00486bd0
+UICandidateWnd	005e7260	00487355	FUN_00487310
+UICandidateWnd	005e7260	004873bf	FUN_004873a0
+UICompositionWnd	005e72fc	00487a3d	FUN_00487a20
+UICompositionWnd	005e72fc	00487a83	FUN_00487a80
+UIKeyStrokeWnd	005e7398	00487c78	FUN_00487c70
+UIKeyStrokeWnd	005e7398	00487cc0	FUN_00487cc0
+UIItemDropCntWnd	005e7440	00487f60	FUN_00487f60
+UIItemDropCntWnd	005e7440	00487f18	FUN_00487f10
+UIItemBaseWnd	005e74dc	0048911b	FUN_004890b0
+UIItemBaseWnd	005e74dc	00489193	FUN_00489170
+UIItemShopWnd	005e7578	00489d7a	FUN_00489d70
+UIItemShopWnd	005e7578	00489de0	FUN_00489de0
+UIMerchantItemMyShopWnd	005e7614	0048b2e0	FUN_0048b2e0
+UIMerchantItemMyShopWnd	005e7614	0048b288	FUN_0048b280
+UIMerchantItemShopWnd	005e76b0	0048bf38	FUN_0048bf30
+UIMerchantItemShopWnd	005e76b0	0048bf90	FUN_0048bf90
+UIItemPurchaseWnd	005e774c	0048d1d8	FUN_0048d1d0
+UIItemPurchaseWnd	005e774c	0048d230	FUN_0048d230
+UIMerchantItemPurchaseWnd	005e77e8	0048e8da	FUN_0048e8d0
+UIMerchantItemPurchaseWnd	005e77e8	0048e940	FUN_0048e940
+UIItemSellWnd	005e7884	004901c8	FUN_004901c0
+UIItemSellWnd	005e7884	00490220	FUN_00490220
+UIMerchantItemWnd	005e7920	00491858	FUN_00491850
+UIMerchantItemWnd	005e7920	004918b0	FUN_004918b0
+UIMerchantMirrorItemWnd	005e79bc	00492678	FUN_00492670
+UIMerchantMirrorItemWnd	005e79bc	004926d0	FUN_004926d0
+UIItemWnd	005e7a58	0049303a	FUN_00493030
+UIItemWnd	005e7a58	004930c0	FUN_004930c0
+UIItemStoreWnd	005e7af4	00494984	FUN_00494950
+UIItemStoreWnd	005e7af4	004949d3	FUN_004949d0
+UISkillListWnd	005e7b90	00495f2a	FUN_00495eb0
+UISkillListWnd	005e7b90	00495fc3	FUN_00495fa0
+UIMerchantShopMakeWnd	005e7c2c	0049897e	FUN_00498900
+UIMerchantShopMakeWnd	005e7c2c	00498a01	FUN_004989e0
+UIEditCtrlWheel	005e7cc8	004990a0	FUN_004990a0
+UIEditCtrlWheel	005e7cc8	00498c72	UIMerchantShopMakeWnd::vf17
+UIMessengerGroupWnd	005e7d74	0049a0e0	FUN_0049a060
+UIMessengerGroupWnd	005e7d74	0049a163	FUN_0049a140
+UIWhisperListWnd	005e7e10	0049cad5	FUN_0049ca60
+UIWhisperListWnd	005e7e10	0049cb41	FUN_0049cb20
+UIFriendOptionWnd	005e7eac	0049e9c8	FUN_0049e9c0
+UIFriendOptionWnd	005e7eac	0049ea10	FUN_0049ea10
+UIMakeTargetListWnd	005e7f54	0049f68d	FUN_0049f670
+UIMakeTargetListWnd	005e7f54	0049f6d7	FUN_0049f6d0
+UIShowNeedItemListWnd	005e7ff0	0049ffd5	FUN_0049ff90
+UIShowNeedItemListWnd	005e7ff0	004a006f	FUN_004a0050
+UIMakeTargetProcessWnd	005e808c	004a0cc5	FUN_004a0c80
+UIMakeTargetProcessWnd	005e808c	004a0d2f	FUN_004a0d10
+UIMakeTargetResultWnd	005e8128	004a1b70	FUN_004a1b70
+UIMakeTargetResultWnd	005e8128	004a1b2a	FUN_004a1b20
+UIMiniGameWnd	005e81d0	004a227f	FUN_004a2260
+UIMiniGameWnd	005e81d0	004a220a	FUN_004a2200
+UISelectMiniGameWnd	005e8274	004a2af3	FUN_004a2af0
+UISelectMiniGameWnd	005e8274	004a2aad	FUN_004a2a90
+UIMiniGameScoreWnd	005e8310	004a3267	FUN_004a3220
+UIMiniGameScoreWnd	005e8310	004a32e6	FUN_004a32e0
+UIWindow	005e83c4	004a5635	FUN_004a5600
+UIWindow	005e83c4	004a56d1	FUN_004a56b0
+UIWindowMgr	005e846c	004a7ad3	FUN_004a7ab0
+UIWindowMgr	005e846c	004a77b4	FUN_004a7660
+UINotifyLevelUpWnd	005e8648	004b1360	FUN_004b1360
+UINotifyLevelUpWnd	005e8648	004b1320	FUN_004b1320
+UINotifyLevelUpWnd	005e8648	004b0175	FUN_004ad670
+UIMinimapZoomWnd	005e8780	004afbd2	FUN_004ad670
+UIMinimapZoomWnd	005e8780	004b12e0	FUN_004b12e0
+UIEmotionListWnd	005e8474	004b13e7	FUN_004b13e0
+UIEmotionListWnd	005e8474	004b0ad7	FUN_004ad670
+UIEmotionWnd	005e8510	004b13a0	FUN_004b13a0
+UIEmotionWnd	005e8510	004b0a02	FUN_004ad670
+UIWebBrowserWnd	005e85ac	004b066e	FUN_004ad670
+UINotifyJobLevelUpWnd	005e86e4	004b010a	FUN_004ad670
+C3dNode	005e88b8	004b6a6b	FUN_004b6960
+C3dNode	005e88b8	004b6ae3	FUN_004b6ac0
+C3dNode	005e88b8	004baaf5	FUN_004ba7d0
+C3dNodeHAL	005e88d4	004b8d44	C3dNodeHAL::vf01
+C3dGround	005e8900	004bc22d	FUN_004bc220
+C3dGround	005e8900	004bc3a0	FUN_004bc3a0
+CWorld	005e8970	004c3694	FUN_004c35c0
+CWorld	005e8970	004c3703	FUN_004c36e0
+C3dGround15	005e897c	004c3d54	FUN_004c3ab0
+CLanguage	005e89cc	004c7a37	FUN_004c79c0
+CLanguage	005e89cc	004c7ae9	FUN_004c7ae0
+CLanguageTC	005e89f8	004c8ca8	FUN_004c8c40
+CLanguageTH	005e8a24	004c9400	FUN_004c93d0
+CMode	005e8a5c	004cb282	FUN_004cb270
+CMode	005e8a5c	004cb340	FUN_004cb340
+CActorPickNode	005e8a8c	004ce518	FUN_004ce4f0
+CActorPickNode	005e8a8c	004ce7b1	FUN_004ce790
+CView	005e8aa0	004cf003	FUN_004cefe0
+CView	005e8aa0	004cef90	FUN_004cef80
+CGPak	005e8e50	004dd87e	FUN_004dd820
+CGPak	005e8e50	004dd920	FUN_004dd900
+CSakGPak	005e8e60	004ded62	FUN_004ded50
+std::bad_cast	005e8e70	005b717b	FUN_005b70ab
+std::bad_cast	005e8e70	005b7257	FUN_005b7187
+std::bad_cast	005e8e70	005b731b	FUN_005b7263
+std::bad_cast	005e8e70	005b73df	FUN_005b7327
+std::bad_cast	005e8e70	004e5b50	FUN_004e5b50
+std::bad_cast	005e8e70	004e5b3f	FUN_004e5b30
+std::bad_cast	005e8e70	004e5bbf	FUN_004e5bb0
+std::bad_cast	005e8e70	004e6082	FUN_004e5e90
+std::bad_cast	005e8e70	005bd13b	FUN_005bd083
+std::bad_cast	005e8e70	005bd1ff	FUN_005bd147
+std::bad_cast	005e8e70	005bd2c3	FUN_005bd20b
+std::bad_cast	005e8e70	005bc91d	FUN_005bc865
+std::bad_cast	005e8e70	005bc9f9	FUN_005bc929
+std::bad_cast	005e8e70	005bcad5	FUN_005bca05
+std::bad_cast	005e8e70	005bcb99	FUN_005bcae1
+std::bad_cast	005e8e70	005bcc5d	FUN_005bcba5
+std::bad_cast	005e8e70	005bcd21	FUN_005bcc69
+std::bad_cast	005e8e70	005bcdfd	FUN_005bcd2d
+std::bad_cast	005e8e70	005bced9	FUN_005bce09
+std::bad_cast	005e8e70	005bcfa8	FUN_005bcee5
+std::bad_cast	005e8e70	005bd077	FUN_005bcfb4
+std::bad_cast	005e8e70	005c0247	FUN_005c018f
+std::bad_cast	005e8e70	005c030b	FUN_005c0253
+std::bad_cast	005e8e70	005c03e7	FUN_005c0317
+std::bad_cast	005e8e70	005c04c3	FUN_005c03f3
+std::bad_cast	005e8e70	005c0592	FUN_005c04cf
+std::bad_cast	005e8e70	005c0661	FUN_005c059e
+std::bad_cast	005e8e70	005c0725	FUN_005c066d
+std::bad_cast	005e8e70	005c07e9	FUN_005c0731
+std::ctype<char>	005e8e80	004e5c40	FUN_004e5c10
+std::ctype<char>	005e8e80	004e5e66	FUN_004e5e60
+std::ctype<char>	005e8e80	004e5f46	FUN_004e5e90
+std::ctype<char>	005e8e80	005b4edc	FUN_005b4e8f
+std::locale::facet	005e8e98	005bbe97	FUN_005bbe97
+std::locale::facet	005e8e98	005b7642	FUN_005b7642
+std::locale::facet	005e8e98	005bede3	FUN_005bedc9
+std::locale::facet	005e8e98	005beda6	FUN_005beda6
+std::locale::facet	005e8e98	005bee08	FUN_005bee08
+std::locale::facet	005e8e98	005bee2b	FUN_005bee2b
+std::locale::facet	005e8e98	005beed7	~time_put<>
+std::locale::facet	005e8e98	005bef10	FUN_005beee4
+std::locale::facet	005e8e98	005beea0	FUN_005bee86
+std::locale::facet	005e8e98	005ba070	FUN_005ba044
+std::locale::facet	005e8e98	005ba036	FUN_005ba01c
+std::locale::facet	005e8e98	005b624b	FUN_005b624b
+std::locale::facet	005e8e98	005b6292	FUN_005b626e
+std::locale::facet	005e8e98	005b6205	FUN_005b6205
+std::locale::facet	005e8e98	005b6228	FUN_005b6228
+std::locale::facet	005e8e98	004e5d3b	std::locale::facet::vf00
+std::locale::facet	005e8e98	004e5d20	FUN_004e5d20
+std::locale::facet	005e8e98	004e5e7c	FUN_004e5e60
+std::locale::facet	005e8e98	005b9e8a	~time_put<>
+std::locale::facet	005e8e98	005b9e54	~ctype<>
+std::locale::facet	005e8e98	005b9ed1	FUN_005b9ed1
+std::locale::facet	005e8e98	005b9f18	FUN_005b9ef4
+std::locale::facet	005e8e98	005b9eae	FUN_005b9eae
+std::locale::facet	005e8e98	005b9f79	FUN_005b9f5f
+std::locale::facet	005e8e98	005b9f3c	FUN_005b9f3c
+std::locale::facet	005e8e98	005b9fc1	FUN_005b9fc1
+std::locale::facet	005e8e98	005b9f9e	FUN_005b9f9e
+std::locale::facet	005e8e98	005b517f	FUN_005b5163
+std::locale::facet	005e8e98	005b42d6	FUN_005b42bc
+std::locale::facet	005e8e98	005b43c8	FUN_005b4351
+std::locale::facet	005e8e98	005b432e	FUN_005b432e
+std::locale::facet	005e8e98	005b8517	FUN_005b8517
+std::locale::facet	005e8e98	005b8510	FUN_005b8510
+std::locale::facet	005e8e98	005b851e	FUN_005b851e
+mg::CMGPc	005e8eac	004eb048	FUN_004eb040
+mg::CMGPc	005e8eac	004eb0d0	FUN_004eb0d0
+mg::CMGNpc	005e8f54	004eb0e8	FUN_004eb0e0
+mg::CMGNpc	005e8f54	004eb250	FUN_004eb250
+mg::CMGEngine	005e9014	004eb873	FUN_004eb850
+mg::CMGEngine	005e9014	004eb5e1	FUN_004eb4f0
+mg::mgType1::CItemObj	005e90ec	004ed878	FUN_004ed840
+mg::mgType1::CItemObj	005e90ec	004ed948	FUN_004ed920
+mg::mgType1::CItemObj	005e90d0	004ed8b0	FUN_004ed840
+mg::mgType1::CItemObj	005e90d0	004ed942	FUN_004ed920
+mg::CTile	005e9120	004ee4fd	FUN_004ee4e0
+mg::CTile	005e9120	004ee560	FUN_004ee540
+mg::CMap	005e9128	004ee95b	FUN_004ee910
+mg::CMap	005e9128	004eeaff	FUN_004eeae0
+mg::CObject	005e9144	004ee9d6	FUN_004ee9d0
+mg::CObject	005e9144	004eea49	mg::CObject::vf05
+mg::CObject	005e9144	004eeb41	FUN_004eeae0
+mg::CObject	005e9144	004f1326	FUN_004f1320
+mg::CObject	005e9144	004f165c	FUN_004f1600
+mg::CObject	005e9144	004f0f82	FUN_004f0f60
+mg::CObject	005e9144	004f0fdb	FUN_004f0fd0
+std::out_of_range	005e9160	004ef323	FUN_004ef1e0
+std::out_of_range	005e9160	005b344d	FUN_005b3400
+std::out_of_range	005e9160	004fb5bc	FUN_004fb500
+std::out_of_range	005e9160	004fa88e	FUN_004fa800
+std::out_of_range	005e9160	004eed8b	FUN_004eec60
+std::out_of_range	005e9160	004fa75e	FUN_004fa6d0
+std::out_of_range	005e9160	004f99fc	FUN_004f98b0
+std::logic_error	005e9170	004ef143	FUN_004ef140
+std::logic_error	005e9170	004eef0e	FUN_004eedc0
+std::logic_error	005e9170	004eef63	FUN_004eef60
+std::logic_error	005e9170	004ef125	FUN_004eefe0
+std::logic_error	005e9170	005b3383	FUN_005b3372
+mg::mgType1::CMapObj	005e918c	004ef9d4	FUN_004ef9b0
+mg::mgType1::CMapObj	005e918c	004efa10	FUN_004efa10
+mg::mgType1::CMonster	005e91d8	004f00aa	FUN_004f0020
+mg::mgType1::CMonster	005e91d8	004f0129	FUN_004f0100
+mg::mgType1::CMonster	005e91bc	004f00b0	FUN_004f0020
+mg::mgType1::CMonster	005e91bc	004f0123	FUN_004f0100
+mg::CArrow	005e9280	004f0de3	FUN_004f0da0
+mg::CEntity	005e92b4	004f12aa	FUN_004f12a0
+mg::mgType1::CPlayer	005e92e0	004f159a	FUN_004f1530
+mg::mgType1::CPlayer	005e92e0	004f162b	FUN_004f1600
+mg::mgType1::CPlayer	005e9388	004f1594	FUN_004f1530
+mg::mgType1::CPlayer	005e9388	004f1625	FUN_004f1600
+mg::CScript	005e93b0	004f1957	FUN_004f1880
+mg::CScript	005e93b0	004f1b93	FUN_004f1b70
+mg::mgType1::CWorld	005e93ec	004fd1d3	FUN_004fd1b0
+mg::mgType1::CWorld	005e93ec	004fd0d6	FUN_004fcfc0
+mg::mgType1::CMiniGame001	005e9434	004fec78	FUN_004fec70
+mg::mgType1::CMiniGame001	005e9434	004fecc0	FUN_004fecc0
+CGameObject	005e9504	00500033	FUN_00500030
+CGameObject	005e9504	00500090	FUN_00500090
+CRenderObject	005e953c	005002f0	FUN_005002b0
+CRenderObject	005e953c	0050036f	FUN_00500350
+CMousePointer	005e9570	005019ad	FUN_00501980
+CMousePointer	005e9570	00501a1f	FUN_00501a00
+CAbleToMakeEffect	005e9598	00501c3b	FUN_00501be0
+CAbleToMakeEffect	005e9598	00501cb1	FUN_00501c90
+CGameActor	005e95c0	0050261f	FUN_00502570
+CGameActor	005e95c0	00502723	FUN_00502700
+C3dGrannyGameActor	005e967c	00507b5c	FUN_00507b10
+C3dGrannyGameActor	005e967c	00507ef3	FUN_00507ed0
+CGrannyCorpse3d	005e9734	0050a02f	FUN_0050a010
+CGrannyCorpse3d	005e9734	00509f8e	FUN_00509f60
+CGameMode	005e9770	0050c5c7	FUN_0050c320
+CDummyEffectLauncher	005e97a4	0050ff51	FUN_0050ff10
+UIVerticalNameBalloonText	005e97dc	00516726	FUN_00516650
+CItem	005e98ac	0053abfc	FUN_0053abb0
+CItem	005e98ac	0053ac6f	FUN_0053ac50
+CLoginMode	005e98f0	0053b444	FUN_0053b400
+CNpc	005e991c	0053f97d	FUN_0053f950
+CNpc	005e991c	0053f9ef	FUN_0053f9d0
+CBlowEffect	005e99c8	0054097d	FUN_00540950
+CBlowEffect	005e99c8	005409ef	FUN_005409d0
+CCorpse	005e99f0	00540b9d	FUN_00540b70
+CCorpse	005e99f0	00540c0f	FUN_00540bf0
+CBlurPC	005e9a18	005410bf	FUN_005410a0
+CBlurPC	005e9a18	00540d51	FUN_00540d20
+CMasterChaser	005e9ac0	0054134d	FUN_00541320
+CMasterChaser	005e9ac0	005413bf	FUN_005413a0
+CNumEffect	005e9ae8	0054143d	FUN_00541410
+CNumEffect	005e9ae8	005414af	FUN_00541490
+CSoundMaker	005e9b20	005416cc	FUN_00541680
+CSoundMaker	005e9b20	0054174f	FUN_00541730
+CGndRiser	005e9b58	00541cbd	FUN_00541c90
+CGndRiser	005e9b58	00541d3f	FUN_00541d20
+CPc	005e9b94	00542181	FUN_00542160
+CPc	005e9b94	00542033	FUN_00541fb0
+CGrannyPc	005e9c40	00546bb2	FUN_00546b30
+CGrannyPc	005e9c40	00546d73	FUN_00546d50
+CPlayer	005e9cf4	0054b3a0	FUN_0054b1d0
+CPlayer	005e9cf4	0054b43f	FUN_0054b420
+CRagEffect	005e9dc8	0054d298	FUN_0054d220
+CRagEffect	005e9dc8	0054d393	FUN_0054d370
+CEffectPrim	005e9f6c	0057d3d0	FUN_0057d3b0
+CEffectPrim	005e9f6c	0057d08b	FUN_0057cfa0
+CSkill	005e9fe0	005ab98d	FUN_005ab960
+CSkill	005e9fe0	005ab9ff	FUN_005ab9e0
+CGraffiSkill	005ea08c	005ad37f	FUN_005ad360
+CGraffiSkill	005ea08c	005ad318	FUN_005ad310
+CMsgEffect	005ea140	005ad93d	FUN_005ad910
+CMsgEffect	005ea140	005ad9af	FUN_005ad990
+CEffectMaker	005ea18c	005af4ed	FUN_005af4c0
+CEffectMaker	005ea18c	005af56f	FUN_005af550
+CMandraAttackEffect	005ea1b4	005af86f	FUN_005af850
+CMandraAttackEffect	005ea1b4	005af7fd	FUN_005af7d0
+CArrowEffect	005ea1dc	005afaad	FUN_005afa80
+CArrowEffect	005ea1dc	005afb1f	FUN_005afb00
+CGroundScope	005ea204	005b00fa	FUN_005b00f0
+std::length_error	005ec504	005b3365	FUN_005b3318
+std::length_error	005ec504	005b33f4	FUN_005b33e8
+std::ostrstream	005ec53c	005b358c	FUN_005b34e3
+std::ostrstream	005ec53c	005b3636	FUN_005b3621
+std::basic_ostream<char,std::char_traits<char>_>	005ec54c	005b3d74	FUN_005b3d6e
+std::basic_ostream<char,std::char_traits<char>_>	005ec54c	005b3d42	FUN_005b3d04
+std::basic_ostream<char,std::char_traits<char>_>	005ec54c	005b3e6c	FUN_005b3e49
+std::basic_ostream<char,std::char_traits<char>_>	005ec54c	005b3655	FUN_005b3621
+std::basic_ostream<char,std::char_traits<char>_>	005ec54c	005b3ed5	FUN_005b3ecd
+std::strstream	005ec554	005b3714	FUN_005b3667
+std::strstream	005ec554	005b376a	FUN_005b3755
+std::basic_iostream<char,std::char_traits<char>_>	005ec574	005b3e33	FUN_005b3dcf
+std::basic_iostream<char,std::char_traits<char>_>	005ec574	005b3e52	FUN_005b3e49
+std::locale::_Locimp	005ec590	005b51cc	FUN_005b5163
+std::locale::_Locimp	005ec590	005b4318	FUN_005b42bc
+std::locale::_Locimp	005ec590	005b4364	FUN_005b4351
+std::ios_base::failure	005ec5a4	005b48c4	FUN_005b486c
+std::ios_base::failure	005ec5a4	005b449b	FUN_005b441b
+std::ios_base::failure	005ec5a4	005b467d	FUN_005b4671
+std::runtime_error	005ec5e8	005b4505	FUN_005b44b7
+std::runtime_error	005ec5e8	005b4556	FUN_005b4545
+std::runtime_error	005ec5e8	005b460c	FUN_005b45fb
+std::runtime_error	005ec5e8	005b45e5	FUN_005b459e
+std::ios_base	005ec5f8	005b47ef	FUN_005b47de
+std::num_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	005ec66c	005b71f7	FUN_005b7187
+std::num_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	005ec66c	005b4f94	FUN_005b4e8f
+std::codecvt<char,char,int>	005ec630	005b7613	FUN_005b75ee
+std::codecvt<char,char,int>	005ec630	005b5052	FUN_005b4e8f
+std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005ec68c	005b711b	FUN_005b70ab
+std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005ec68c	005b4f3c	FUN_005b4e8f
+std::numpunct<char>	005ec650	005b76ad	FUN_005b7688
+std::numpunct<char>	005ec650	005b6274	FUN_005b626e
+std::numpunct<char>	005ec650	005b4ff6	FUN_005b4e8f
+std::bad_alloc	005ec700	005b7d79	FUN_005b7d6c
+std::bad_alloc	005ec700	005b7dd5	FUN_005b7dc9
+std::bad_alloc	005ec700	005b7d85	FUN_005b7d85
+std::num_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec818	005b7f00	FUN_005b7deb
+std::num_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec818	005bca75	FUN_005bca05
+std::num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec838	005b7ea8	FUN_005b7deb
+std::num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec838	005bc999	FUN_005bc929
+std::time_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec730	005b8282	FUN_005b7deb
+std::time_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec730	005b9e7e	~time_put<>
+std::time_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec730	005bd5ba	FUN_005bd58d
+std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec73c	005b8217	FUN_005b7deb
+std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec73c	005ba022	FUN_005ba01c
+std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec73c	005bd77d	FUN_005bd758
+std::moneypunct<unsigned_short,1>	005ec75c	005b81b0	FUN_005b7deb
+std::moneypunct<unsigned_short,1>	005ec75c	005bd024	FUN_005bcfb4
+std::moneypunct<unsigned_short,0>	005ec788	005b8147	FUN_005b7deb
+std::moneypunct<unsigned_short,0>	005ec788	005bcf55	FUN_005bcee5
+std::money_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec7b4	005b80dc	FUN_005b7deb
+std::money_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec7b4	005bce79	FUN_005bce09
+std::money_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec7c4	005b8088	FUN_005b7deb
+std::money_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	005ec7c4	005bcd9d	FUN_005bcd2d
+std::ctype<unsigned_short>	005ec864	005b7e30	FUN_005b7deb
+std::ctype<unsigned_short>	005ec864	005b9e43	~ctype<>
+std::ctype<unsigned_short>	005ec864	005bd554	FUN_005bd52d
+std::messages<unsigned_short>	005ec7d4	005b802b	FUN_005b7deb
+std::messages<unsigned_short>	005ec7d4	005b9f65	FUN_005b9f5f
+std::messages<unsigned_short>	005ec7d4	005bd70b	FUN_005bd6e6
+std::collate<unsigned_short>	005ec7e8	005b7fbf	FUN_005b7deb
+std::collate<unsigned_short>	005ec7e8	005bd6b7	FUN_005bd692
+std::numpunct<unsigned_short>	005ec7fc	005b7f62	FUN_005b7deb
+std::numpunct<unsigned_short>	005ec7fc	005b9efa	FUN_005b9ef4
+std::numpunct<unsigned_short>	005ec7fc	005bd65e	FUN_005bd639
+std::codecvt<unsigned_short,char,int>	005ec710	005b82df	FUN_005b7deb
+std::codecvt<unsigned_short,char,int>	005ec710	005bd2f4	FUN_005bd2cf
+std::_Mpunct<unsigned_short>	005ec8c4	005bbe7b	FUN_005bbe57
+std::_Mpunct<unsigned_short>	005ec8c4	005ba04a	FUN_005ba044
+std::_Mpunct<unsigned_short>	005ec8c4	005bdbd2	FUN_005bdba7
+std::time_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	005eca34	005beecb	~time_put<>
+std::time_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	005eca34	005be30c	FUN_005be010
+std::time_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	005eca34	005c0941	FUN_005c0914
+std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005eca40	005bee8c	FUN_005bee86
+std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005eca40	005be2a0	FUN_005be010
+std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005eca40	005c08e0	FUN_005c08bb
+std::moneypunct<char,1>	005eca60	005be239	FUN_005be010
+std::moneypunct<char,1>	005eca60	005c060e	FUN_005c059e
+std::moneypunct<char,0>	005eca8c	005be1d1	FUN_005be010
+std::moneypunct<char,0>	005eca8c	005c053f	FUN_005c04cf
+std::money_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	005ecab8	005be167	FUN_005be010
+std::money_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	005ecab8	005c0463	FUN_005c03f3
+std::money_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005ecac8	005be113	FUN_005be010
+std::money_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	005ecac8	005c0387	FUN_005c0317
+std::messages<char>	005ecad8	005bedcf	FUN_005bedc9
+std::messages<char>	005ecad8	005be0b4	FUN_005be010
+std::messages<char>	005ecad8	005c086e	FUN_005c0849
+std::collate<char>	005ecaec	005be047	FUN_005be010
+std::collate<char>	005ecaec	005c081a	FUN_005c07f5
+std::_Mpunct<char>	005ecb00	005bfdcb	FUN_005bfda7
+std::_Mpunct<char>	005ecb00	005beeea	FUN_005beee4
+std::_Mpunct<char>	005ecb00	005c0c1c	FUN_005c0bf1
+type_info	005ecb34	005c1968	FUN_005c1963
+type_info	005ecb34	006053a0	
+type_info	005ecb34	006053c0	
+type_info	005ecb34	006053d8	
+type_info	005ecb34	006056c0	
+type_info	005ecb34	006056d8	
+type_info	005ecb34	006056f8	
+type_info	005ecb34	00605830	
+type_info	005ecb34	00605a28	
+type_info	005ecb34	00605a60	
+type_info	005ecb34	00605a80	
+type_info	005ecb34	00605ba0	
+type_info	005ecb34	00605bb8	
+type_info	005ecb34	00605c60	
+type_info	005ecb34	00605c78	
+type_info	005ecb34	00605c98	
+type_info	005ecb34	00605cd0	
+type_info	005ecb34	00605d10	
+type_info	005ecb34	00605de8	
+type_info	005ecb34	00605e28	
+type_info	005ecb34	00605e50	
+type_info	005ecb34	00605f00	
+type_info	005ecb34	00605fb0	
+type_info	005ecb34	00606020	
+type_info	005ecb34	00606090	
+type_info	005ecb34	006060c0	
+type_info	005ecb34	00606140	
+type_info	005ecb34	006061d0	
+type_info	005ecb34	00606218	
+type_info	005ecb34	006063d8	
+type_info	005ecb34	006064b8	
+type_info	005ecb34	00606510	
+type_info	005ecb34	00606548	
+type_info	005ecb34	00606618	
+type_info	005ecb34	006066c0	
+type_info	005ecb34	006066e0	
+type_info	005ecb34	006066f8	
+type_info	005ecb34	00606710	
+type_info	005ecb34	00606738	
+type_info	005ecb34	00606758	
+type_info	005ecb34	00606778	
+type_info	005ecb34	00606798	
+type_info	005ecb34	00606820	
+type_info	005ecb34	00606848	
+type_info	005ecb34	00606868	
+type_info	005ecb34	00606888	
+type_info	005ecb34	006068a8	
+type_info	005ecb34	006068c8	
+type_info	005ecb34	006068f0	
+type_info	005ecb34	00606920	
+type_info	005ecb34	006069b0	
+type_info	005ecb34	006069d0	
+type_info	005ecb34	006069f0	
+type_info	005ecb34	00606a10	
+type_info	005ecb34	00606a28	
+type_info	005ecb34	00606a70	
+type_info	005ecb34	00606ad0	
+type_info	005ecb34	00606c20	
+type_info	005ecb34	00606c60	
+type_info	005ecb34	00606c80	
+type_info	005ecb34	00606ca0	
+type_info	005ecb34	00606d40	
+type_info	005ecb34	00606d68	
+type_info	005ecb34	00606d88	
+type_info	005ecb34	00606db0	
+type_info	005ecb34	00606de0	
+type_info	005ecb34	00606df8	
+type_info	005ecb34	00606e18	
+type_info	005ecb34	00606e30	
+type_info	005ecb34	00606e50	
+type_info	005ecb34	00606e68	
+type_info	005ecb34	00606f48	
+type_info	005ecb34	00606f68	
+type_info	005ecb34	00606f88	
+type_info	005ecb34	00606fa8	
+type_info	005ecb34	00606fc8	
+type_info	005ecb34	00607180	
+type_info	005ecb34	00607498	
+type_info	005ecb34	00607510	
+type_info	005ecb34	00607550	
+type_info	005ecb34	00607608	
+type_info	005ecb34	00607770	
+type_info	005ecb34	00607898	
+type_info	005ecb34	00607950	
+type_info	005ecb34	00607970	
+type_info	005ecb34	00607ba0	
+type_info	005ecb34	00607c98	
+type_info	005ecb34	00607da0	
+type_info	005ecb34	00607dc8	
+type_info	005ecb34	00607df0	
+type_info	005ecb34	00607e20	
+type_info	005ecb34	00607e70	
+type_info	005ecb34	00607f08	
+type_info	005ecb34	00607f30	
+type_info	005ecb34	00607f50	
+type_info	005ecb34	00607f68	
+type_info	005ecb34	00607fe8	
+type_info	005ecb34	00608008	
+type_info	005ecb34	00608210	
+type_info	005ecb34	00608248	
+type_info	005ecb34	006082f8	
+type_info	005ecb34	00608460	
+type_info	005ecb34	00608528	
+type_info	005ecb34	006085a0	
+type_info	005ecb34	00608680	
+type_info	005ecb34	00608740	
+type_info	005ecb34	00608768	
+type_info	005ecb34	006087a0	
+type_info	005ecb34	006087c8	
+type_info	005ecb34	006087f0	
+type_info	005ecb34	00608810	
+type_info	005ecb34	00608830	
+type_info	005ecb34	00608850	
+type_info	005ecb34	00608880	
+type_info	005ecb34	00608988	
+type_info	005ecb34	006089b8	
+type_info	005ecb34	00608a48	
+type_info	005ecb34	00608a88	
+type_info	005ecb34	00608ab8	
+type_info	005ecb34	00608ae8	
+type_info	005ecb34	00608b08	
+type_info	005ecb34	00608b38	
+type_info	005ecb34	00608b98	
+type_info	005ecb34	00608bd0	
+type_info	005ecb34	00608c40	
+type_info	005ecb34	00608c98	
+type_info	005ecb34	00608cc0	
+type_info	005ecb34	00608ce8	
+type_info	005ecb34	00608d68	
+type_info	005ecb34	00608d98	
+type_info	005ecb34	00608e28	
+type_info	005ecb34	00608e50	
+type_info	005ecb34	00608ef0	
+type_info	005ecb34	00608f08	
+type_info	005ecb34	00608f28	
+type_info	005ecb34	00608f48	
+type_info	005ecb34	00608f70	
+type_info	005ecb34	00608fb8	
+type_info	005ecb34	006090a0	
+type_info	005ecb34	006090c0	
+type_info	005ecb34	006090e0	
+type_info	005ecb34	006091d8	
+type_info	005ecb34	00609200	
+type_info	005ecb34	006092a0	
+type_info	005ecb34	006092d8	
+type_info	005ecb34	00609300	
+type_info	005ecb34	00609348	
+type_info	005ecb34	00609448	
+type_info	005ecb34	00609470	
+type_info	005ecb34	006094c0	
+type_info	005ecb34	006094f0	
+type_info	005ecb34	00609518	
+type_info	005ecb34	00609540	
+type_info	005ecb34	00609590	
+type_info	005ecb34	006095b8	
+type_info	005ecb34	006095d8	
+type_info	005ecb34	006096f8	
+type_info	005ecb34	00609718	
+type_info	005ecb34	006097d0	
+type_info	005ecb34	006097f8	
+type_info	005ecb34	00609840	
+type_info	005ecb34	006098a0	
+type_info	005ecb34	006098f8	
+type_info	005ecb34	006099a8	
+type_info	005ecb34	00609a20	
+type_info	005ecb34	00609a48	
+type_info	005ecb34	00609a68	
+type_info	005ecb34	00609a88	
+type_info	005ecb34	00609ae0	
+type_info	005ecb34	00609b08	
+type_info	005ecb34	00609b98	
+type_info	005ecb34	00609d78	
+type_info	005ecb34	00609da0	
+type_info	005ecb34	00609dc8	
+type_info	005ecb34	00609df0	
+type_info	005ecb34	00609e18	
+type_info	005ecb34	00609e40	
+type_info	005ecb34	00609e68	
+type_info	005ecb34	00609ed8	
+type_info	005ecb34	00609f20	
+type_info	005ecb34	0060a100	
+type_info	005ecb34	0060af48	
+type_info	005ecb34	0060af68	
+type_info	005ecb34	0060af88	
+type_info	005ecb34	0060afa8	
+type_info	005ecb34	0060afc8	
+type_info	005ecb34	0060aff0	
+type_info	005ecb34	0060b018	
+type_info	005ecb34	0060b030	
+type_info	005ecb34	0060b0a8	
+type_info	005ecb34	0060b9d0	
+type_info	005ecb34	0060b9e8	
+type_info	005ecb34	0060bad0	
+type_info	005ecb34	0060bae8	
+type_info	005ecb34	0060bb98	
+type_info	005ecb34	0060c0c8	
+type_info	005ecb34	0060c218	
+type_info	005ecb34	0060c238	
+type_info	005ecb34	00612600	
+type_info	005ecb34	006126f8	
+type_info	005ecb34	006128a0	
+type_info	005ecb34	006128b8	
+type_info	005ecb34	006128f0	
+type_info	005ecb34	00612910	
+type_info	005ecb34	00612930	
+type_info	005ecb34	00613da0	
+type_info	005ecb34	00613dc0	
+type_info	005ecb34	00613de0	
+type_info	005ecb34	00613e00	
+type_info	005ecb34	00613e20	
+type_info	005ecb34	00613e38	
+type_info	005ecb34	00613e50	
+type_info	005ecb34	00613e68	
+type_info	005ecb34	00613e80	
+type_info	005ecb34	00613eb0	
+type_info	005ecb34	00613ed0	
+type_info	005ecb34	00613ef0	
+type_info	005ecb34	00613fa0	
+type_info	005ecb34	00613fc8	
+type_info	005ecb34	00614000	
+type_info	005ecb34	00614028	
+type_info	005ecb34	00614040	
+type_info	005ecb34	00614060	
+type_info	005ecb34	006140a0	
+type_info	005ecb34	00614170	
+type_info	005ecb34	00614190	
+type_info	005ecb34	006141a8	
+type_info	005ecb34	00614598	
+type_info	005ecb34	00614658	
+type_info	005ecb34	00614738	
+type_info	005ecb34	00614810	
+type_info	005ecb34	00614838	
+type_info	005ecb34	006148c0	
+type_info	005ecb34	00614a50	
+type_info	005ecb34	00614c18	
+type_info	005ecb34	006152e8	
+type_info	005ecb34	00615300	
+type_info	005ecb34	006156c8	
+type_info	005ecb34	00615710	
+type_info	005ecb34	00615728	
+type_info	005ecb34	00615740	
+type_info	005ecb34	00615760	
+type_info	005ecb34	00615780	
+type_info	005ecb34	006157a0	
+type_info	005ecb34	00615a48	
+type_info	005ecb34	00617118	
+type_info	005ecb34	00618148	
+type_info	005ecb34	0061a1b0	
+type_info	005ecb34	0061e8b0	
+type_info	005ecb34	0061e9d8	
+type_info	005ecb34	0061ea08	
+type_info	005ecb34	0061ea40	
+type_info	005ecb34	0061ea60	
+type_info	005ecb34	0061eb30	
+type_info	005ecb34	0061f660	
+type_info	005ecb34	0061f680	
+type_info	005ecb34	0061f6c0	
+type_info	005ecb34	0061f6e0	
+type_info	005ecb34	0061f720	
+type_info	005ecb34	0061f740	
+type_info	005ecb34	0061f768	
+type_info	005ecb34	0061f788	
+type_info	005ecb34	0061f7b0	
+type_info	005ecb34	0061f808	
+type_info	005ecb34	0061f828	
+type_info	005ecb34	0061f848	
+type_info	005ecb34	0061f8a0	
+type_info	005ecb34	0061f8c0	
+type_info	005ecb34	0061f8e0	
+type_info	005ecb34	0061f938	
+type_info	005ecb34	0061f990	
+type_info	005ecb34	0061f9e8	
+type_info	005ecb34	0061fa08	
+type_info	005ecb34	0061fa60	
+type_info	005ecb34	0061fa88	
+type_info	005ecb34	0061faa8	
+type_info	005ecb34	0061fac8	
+type_info	005ecb34	0061faf0	
+type_info	005ecb34	0061fb48	
+type_info	005ecb34	0061fba0	
+type_info	005ecb34	0061fbc0	
+type_info	005ecb34	0061fbe0	
+type_info	005ecb34	0061fc00	
+type_info	005ecb34	0061fc20	
+type_info	005ecb34	0061fc40	
+type_info	005ecb34	0061fc60	
+type_info	005ecb34	0061fcb8	
+type_info	005ecb34	0061fd10	
+type_info	005ecb34	0061fd38	
+type_info	005ecb34	0061fd58	
+type_info	005ecb34	0061fd80	
+type_info	005ecb34	0061fdd8	
+type_info	005ecb34	0061fe30	
+type_info	005ecb34	0061fe50	
+type_info	005ecb34	0061fe98	
+type_info	005ecb34	0061ff28	
+type_info	005ecb34	0061ff48	
+type_info	005ecb34	0061ff68	
+exception	005ecb78	005c3704	FUN_005c36fc
+exception	005ecb78	005c36c7	FUN_005c36bf
+exception	005ecb78	005c3769	exception::~exception
+__non_rtti_object	005ecc08	005c3a52	FUN_005c3a3d
+__non_rtti_object	005ecc08	005c3a8c	FUN_005c3a80
+bad_typeid	005ecc14	005c3aa4	FUN_005c3a98
+bad_typeid	005ecc14	005c3ba4	FUN_005c3b97
+bad_cast	005ecc98	005c3cd3	FUN_005c3cc7
+bad_cast	005ecc98	005c3d0c	FUN_005c3d00

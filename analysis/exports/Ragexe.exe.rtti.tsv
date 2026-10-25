@@ -1,0 +1,298 @@
+class	type_descriptor	mangled	chd_attributes	vftables	bases
+CDCSurface	006053a0	.?AVCDCSurface@@	0	0:005e25e0:9	CDC@0
+CDC	006053c0	.?AVCDC@@	0	0:005e2608:9	
+CDCBitmap	006053d8	.?AVCDCBitmap@@	0	0:005e2630:9	CDC@0
+CSurface	006056c0	.?AVCSurface@@	0	0:005e26dc:5	
+CSurfaceWallpaper	006056d8	.?AVCSurfaceWallpaper@@	0	0:005e26f4:5	CSurface@0
+CTexture	006056f8	.?AVCTexture@@	0	0:005e270c:5	CSurface@0
+CConnection	00605830	.?AVCConnection@@	0	0:005e2740:3	
+CRagConnection	00605a28	.?AVCRagConnection@@	0	0:005e2750:3	CConnection@0
+CController	00605a60	.?AVCController@@	0	0:005e2760:4	
+CKeyPad	00605a80	.?AVCKeyPad@@	0	0:005e2774:4	CController@0
+CRes	00605ba0	.?AVCRes@@	0	0:005e27f4:6	
+CActRes	00605bb8	.?AVCActRes@@	0	0:005e27d8:6	CRes@0
+CRmaRes	00605c60	.?AVCRmaRes@@	0	0:005e2818:6	CRes@0
+std::ios_base	00605c78	.?AVios_base@std@@	0	0:005ec5f8:1	
+std::basic_ios<char,std::char_traits<char>_>	00605c98	.?AV?$basic_ios@DU?$char_traits@D@std@@@std@@	0	0:005e287c:1	std::ios_base@0
+std::basic_istream<char,std::char_traits<char>_>	00605cd0	.?AV?$basic_istream@DU?$char_traits@D@std@@@std@@	0	8:005e2884:1	std::basic_ios<char,std::char_traits<char>_>@0v0,4|std::ios_base@0v0,4
+std::istrstream	00605d10	.?AVistrstream@std@@	0	88:005e2834:1	std::basic_istream<char,std::char_traits<char>_>@0|std::basic_ios<char,std::char_traits<char>_>@0v0,4|std::ios_base@0v0,4
+std::basic_streambuf<char,std::char_traits<char>_>	00605de8	.?AV?$basic_streambuf@DU?$char_traits@D@std@@@std@@	0	0:005e2894:13	
+std::strstreambuf	00605e28	.?AVstrstreambuf@std@@	0	0:005e2844:13	std::basic_streambuf<char,std::char_traits<char>_>@0
+C3dAttr	00605e50	.?AVC3dAttr@@	0	0:005e28dc:6	CRes@0
+CBitmapRes	00605f00	.?AVCBitmapRes@@	0	0:005e28f8:6	CRes@0
+CEmblemRes	00605fb0	.?AVCEmblemRes@@	0	0:005e2914:6	CRes@0
+CEZeffectRes	00606020	.?AVCEZeffectRes@@	0	0:005e294c:6	CRes@0
+CGndRes	00606090	.?AVCGndRes@@	0	0:005e2974:6	CRes@0
+CImfRes	006060c0	.?AVCImfRes@@	0	0:005e2990:6	CRes@0
+C3dModelRes	00606140	.?AVC3dModelRes@@	0	0:005e29c0:6	CRes@0
+C3dAnimModelRes	006061d0	.?AVC3dAnimModelRes@@	0	0:005e29e4:6	CRes@0
+C3dGrannyModelRes	00606218	.?AVC3dGrannyModelRes@@	0	0:005e2a00:6	CRes@0
+CPaletteRes	006063d8	.?AVCPaletteRes@@	0	0:005e2a24:6	CRes@0
+CSprRes	006064b8	.?AVCSprRes@@	0	0:005e2a74:6	CRes@0
+CWave	00606510	.?AVCWave@@	0	0:005e2a90:6	CRes@0
+C3dWorldRes	00606548	.?AVC3dWorldRes@@	0	0:005e2ab8:6	CRes@0
+CSkinMgr	00606618	.?AVCSkinMgr@@	0	0:005e2ae0:1	
+SnapObject	006066c0	.?AVSnapObject@@	0	0:005e2af4:1	
+CSnapMgr	006066e0	.?AVCSnapMgr@@	0	0:005e2afc:1	
+UIWindow	006066f8	.?AVUIWindow@@	0	0:005e83c4:38	
+UIStaticText	00606710	.?AVUIStaticText@@	0	0:005e2b10:38	UIWindow@0
+UIStaticBitmap	00606738	.?AVUIStaticBitmap@@	0	0:005e2bac:38	UIWindow@0
+UICheckBox	00606758	.?AVUICheckBox@@	0	0:005e2c48:38	UIWindow@0
+UISlotBitmap	00606778	.?AVUISlotBitmap@@	0	0:005e2ce4:38	UIStaticBitmap@0|UIWindow@0
+UIButton	00606798	.?AVUIButton@@	0	0:005e2d80:38	UIWindow@0
+UINoneVisibleButton	00606820	.?AVUINoneVisibleButton@@	0	0:005e2e1c:38	UIButton@0|UIWindow@0
+UIColorButton	00606848	.?AVUIColorButton@@	0	0:005e2eb8:38	UIButton@0|UIWindow@0
+UIBitmapButton	00606868	.?AVUIBitmapButton@@	0	0:005e2f54:38	UIButton@0|UIWindow@0
+UISpriteButton	00606888	.?AVUISpriteButton@@	0	0:005e2ff0:38	UIButton@0|UIWindow@0
+UIBalloonText	006068a8	.?AVUIBalloonText@@	0	0:005e3090:38	UIWindow@0
+UITransBalloonText	006068c8	.?AVUITransBalloonText@@	0	0:005e312c:38	UIBalloonText@0|UIWindow@0
+UINameBalloonText	006068f0	.?AVUINameBalloonText@@	0	0:005e31c8:41	UIBalloonText@0|UIWindow@0
+UIEditCtrl	00606920	.?AVUIEditCtrl@@	0	0:005e3270:39	UIWindow@0
+UIEditCtrl2	006069b0	.?AVUIEditCtrl2@@	0	0:005e3310:39	UIEditCtrl@0|UIWindow@0
+UIWhisperEditCtrl	006069d0	.?AVUIWhisperEditCtrl@@	0	0:005e33b0:39	UIEditCtrl@0|UIWindow@0
+UIChatEditCtrl	006069f0	.?AVUIChatEditCtrl@@	0	0:005e3450:39	UIEditCtrl@0|UIWindow@0
+UIResizer	00606a10	.?AVUIResizer@@	0	0:005e34f0:38	UIWindow@0
+UITab	00606a28	.?AVUITab@@	0	0:005e358c:38	UIWindow@0
+UIRadioBtn	00606a70	.?AVUIRadioBtn@@	0	0:005e3628:38	UIWindow@0
+UIChatRoomTitle	00606ad0	.?AVUIChatRoomTitle@@	0	0:005e36c4:38	UIWindow@0
+UIMerchantShopTitle	00606c20	.?AVUIMerchantShopTitle@@	0	0:005e3760:38	UIWindow@0
+UIFrameWnd	00606c60	.?AVUIFrameWnd@@	0	0:005e43a8:38	UIWindow@0
+UIEmblemWnd	00606c80	.?AVUIEmblemWnd@@	0	0:005e37fc:38	UIFrameWnd@0|UIWindow@0
+UIBarGraph	00606ca0	.?AVUIBarGraph@@	0	0:005e38a4:38	UIWindow@0
+UIBarGraph2	00606d40	.?AVUIBarGraph2@@	0	0:005e3944:38	UIBarGraph@0|UIWindow@0
+UIBarGraph3	00606d68	.?AVUIBarGraph3@@	0	0:005e39e4:38	UIWindow@0
+UIBarGraphPlayerHp	00606d88	.?AVUIBarGraphPlayerHp@@	0	0:005e3a80:38	UIWindow@0
+UIBarGraphPlayerSp	00606db0	.?AVUIBarGraphPlayerSp@@	0	0:005e3b1c:38	UIWindow@0
+UIGage	00606de0	.?AVUIGage@@	0	0:005e3bc4:38	UIWindow@0
+UIRechargeGage	00606df8	.?AVUIRechargeGage@@	0	0:005e3c60:38	UIGage@0|UIWindow@0
+UIPcGage	00606e18	.?AVUIPcGage@@	0	0:005e3d00:38	UIGage@0|UIWindow@0
+UIPlayerGage	00606e30	.?AVUIPlayerGage@@	0	0:005e3d9c:38	UIGage@0|UIWindow@0
+UIListBox	00606e50	.?AVUIListBox@@	0	0:005e3e38:42	UIWindow@0
+UIComboBox	00606e68	.?AVUIComboBox@@	0	0:005e3ee4:42	UIListBox@0|UIWindow@0
+UIChatHisBox	00606f48	.?AVUIChatHisBox@@	0	0:005e3f90:43	UIListBox@0|UIWindow@0
+UIChatHisBox2	00606f68	.?AVUIChatHisBox2@@	0	0:005e4040:43	UIChatHisBox@0|UIListBox@0|UIWindow@0
+UIMemberListBox	00606f88	.?AVUIMemberListBox@@	0	0:005e40f0:43	UIChatHisBox2@0|UIChatHisBox@0|UIListBox@0|UIWindow@0
+UITextViewer	00606fa8	.?AVUITextViewer@@	0	0:005e41a0:42	UIListBox@0|UIWindow@0
+UIScrollBar	00606fc8	.?AVUIScrollBar@@	0	0:005e424c:38	UIWindow@0
+UIScrollBar2	00607180	.?AVUIScrollBar2@@	0	0:005e42e8:38	UIScrollBar@0|UIWindow@0
+UIMessageBoxAutoreturn	00607498	.?AVUIMessageBoxAutoreturn@@	0	0:005e4444:38	UIFrameWnd@0|UIWindow@0
+UIMessageBox	00607510	.?AVUIMessageBox@@	0	0:005e44e0:38	UIFrameWnd@0|UIWindow@0
+UISelectServerWnd	00607550	.?AVUISelectServerWnd@@	0	0:005e457c:38	UIFrameWnd@0|UIWindow@0
+UILoginWnd	00607608	.?AVUILoginWnd@@	0	0:005e4618:38	UIFrameWnd@0|UIWindow@0
+UINoticeWnd	00607770	.?AVUINoticeWnd@@	0	0:005e46b4:38	UIFrameWnd@0|UIWindow@0
+UISelectCharWnd	00607898	.?AVUISelectCharWnd@@	0	0:005e4750:38	UIFrameWnd@0|UIWindow@0
+UIMakeCharWnd	00607950	.?AVUIMakeCharWnd@@	0	0:005e47ec:38	UIFrameWnd@0|UIWindow@0
+UIBitmapEditCtrl	00607970	.?AVUIBitmapEditCtrl@@	0	0:005e4888:39	UIEditCtrl@0|UIWindow@0
+UIChatWnd	00607ba0	.?AVUIChatWnd@@	0	0:005e4928:38	UIFrameWnd@0|UIWindow@0
+UIChatRoomWnd	00607c98	.?AVUIChatRoomWnd@@	0	0:005e49c4:38	UIFrameWnd@0|UIWindow@0
+UIChooseSellBuyWnd	00607da0	.?AVUIChooseSellBuyWnd@@	0	0:005e5f24:38	UIFrameWnd@0|UIWindow@0
+UIExchangeAcceptWnd	00607dc8	.?AVUIExchangeAcceptWnd@@	0	0:005e5fc0:38	UIChooseSellBuyWnd@0|UIFrameWnd@0|UIWindow@0
+UIAllyGuildAcceptWnd	00607df0	.?AVUIAllyGuildAcceptWnd@@	0	0:005e4a60:38	UIExchangeAcceptWnd@0|UIChooseSellBuyWnd@0|UIFrameWnd@0|UIWindow@0
+UIMonsterInfoWnd	00607e20	.?AVUIMonsterInfoWnd@@	0	0:005e4afc:38	UIFrameWnd@0|UIWindow@0
+UIPetInfoWnd	00607e70	.?AVUIPetInfoWnd@@	0	0:005e4b98:38	UIFrameWnd@0|UIWindow@0
+UITalkboxTrapInputWnd	00607f08	.?AVUITalkboxTrapInputWnd@@	0	0:005e4c34:38	UIFrameWnd@0|UIWindow@0
+UICntWnd	00607f30	.?AVUICntWnd@@	0	0:005e4cd0:38	UIFrameWnd@0|UIWindow@0
+UIWaitWnd	00607f50	.?AVUIWaitWnd@@	0	0:005e4d78:38	UIFrameWnd@0|UIWindow@0
+UILoadingWnd	00607f68	.?AVUILoadingWnd@@	0	0:005e4e14:38	UIFrameWnd@0|UIWindow@0
+UIBasicInfoWnd	00607fe8	.?AVUIBasicInfoWnd@@	0	0:005e4eb0:38	UIFrameWnd@0|UIWindow@0
+UIBarGraph4	00608008	.?AVUIBarGraph4@@	0	0:005e4f4c:38	UIBarGraph3@0|UIWindow@0
+UIToolTipWnd	00608210	.?AVUIToolTipWnd@@	0	0:005e4fe8:38	UIFrameWnd@0|UIWindow@0
+UIShortCutWnd	00608248	.?AVUIShortCutWnd@@	0	0:005e5084:38	UIFrameWnd@0|UIWindow@0
+UIEquipWnd	006082f8	.?AVUIEquipWnd@@	0	0:005e5120:38	UIFrameWnd@0|UIWindow@0
+UIStatusWnd	00608460	.?AVUIStatusWnd@@	0	0:005e51bc:38	UIFrameWnd@0|UIWindow@0
+UIDetailLevelWnd	00608528	.?AVUIDetailLevelWnd@@	0	0:005e5258:38	UIFrameWnd@0|UIWindow@0
+UIOptionWnd	006085a0	.?AVUIOptionWnd@@	0	0:005e52f4:38	UIFrameWnd@0|UIWindow@0
+UIItemParamChangeDisplayWnd	00608680	.?AVUIItemParamChangeDisplayWnd@@	0	0:005e5390:38	UIFrameWnd@0|UIWindow@0
+UINotifyItemObtainWnd	00608740	.?AVUINotifyItemObtainWnd@@	0	0:005e542c:38	UIFrameWnd@0|UIWindow@0
+UINpcEditDialogWnd	00608768	.?AVUINpcEditDialogWnd@@	0	0:005e54c8:38	UIFrameWnd@0|UIWindow@0
+UINpcTextEditDialogWnd	006087a0	.?AVUINpcTextEditDialogWnd@@	0	0:005e5564:38	UINpcEditDialogWnd@0|UIFrameWnd@0|UIWindow@0
+UISkillNameChangeWnd	006087c8	.?AVUISkillNameChangeWnd@@	0	0:005e5600:38	UIFrameWnd@0|UIWindow@0
+UIEmailAddressWnd	006087f0	.?AVUIEmailAddressWnd@@	0	0:005e569c:38	UIFrameWnd@0|UIWindow@0
+UIItemDropCntWnd	00608810	.?AVUIItemDropCntWnd@@	0	0:005e7440:38	UIFrameWnd@0|UIWindow@0
+UIPasswordWnd	00608830	.?AVUIPasswordWnd@@	0	0:005e5738:38	UIItemDropCntWnd@0|UIFrameWnd@0|UIWindow@0
+UISayDialogWnd	00608850	.?AVUISayDialogWnd@@	0	0:005e57d4:38	UIFrameWnd@0|UIWindow@0
+UIItemCollectionWnd	00608880	.?AVUIItemCollectionWnd@@	0	0:005e5870:38	UIFrameWnd@0|UIWindow@0
+UICombinedCardItemCollectionWnd	00608988	.?AVUICombinedCardItemCollectionWnd@@	0	0:005e590c:38	UIItemCollectionWnd@0|UIFrameWnd@0|UIWindow@0
+UISkillDescribeWnd	006089b8	.?AVUISkillDescribeWnd@@	0	0:005e59a8:38	UIFrameWnd@0|UIWindow@0
+UICardItemIllustWnd	00608a48	.?AVUICardItemIllustWnd@@	0	0:005e5a44:38	UIFrameWnd@0|UIWindow@0
+UIChooseWarpWnd	00608a88	.?AVUIChooseWarpWnd@@	0	0:005e5ae0:38	UIFrameWnd@0|UIWindow@0
+UIChooseWnd	00608ab8	.?AVUIChooseWnd@@	0	0:005e5b7c:38	UIFrameWnd@0|UIWindow@0
+UIItemIdentifyWnd	00608ae8	.?AVUIItemIdentifyWnd@@	0	0:005e5c18:38	UIFrameWnd@0|UIWindow@0
+UIItemCompositionWnd	00608b08	.?AVUIItemCompositionWnd@@	0	0:005e5cb4:38	UIItemIdentifyWnd@0|UIFrameWnd@0|UIWindow@0
+UIQuitWnd	00608b38	.?AVUIQuitWnd@@	0	0:005e5d50:38	UIFrameWnd@0|UIWindow@0
+UIRestartWnd	00608b98	.?AVUIRestartWnd@@	0	0:005e5dec:38	UIFrameWnd@0|UIWindow@0
+UINoticeConfirmWnd	00608bd0	.?AVUINoticeConfirmWnd@@	0	0:005e5e88:38	UIFrameWnd@0|UIWindow@0
+UITipOfTheDayWnd	00608c40	.?AVUITipOfTheDayWnd@@	0	0:005e605c:38	UIFrameWnd@0|UIWindow@0
+UIJoinPartyAcceptWnd	00608c98	.?AVUIJoinPartyAcceptWnd@@	0	0:005e60f8:38	UIExchangeAcceptWnd@0|UIChooseSellBuyWnd@0|UIFrameWnd@0|UIWindow@0
+UIJoinGuildAcceptWnd	00608cc0	.?AVUIJoinGuildAcceptWnd@@	0	0:005e6194:38	UIExchangeAcceptWnd@0|UIChooseSellBuyWnd@0|UIFrameWnd@0|UIWindow@0
+UIChatRoomMakeWnd	00608ce8	.?AVUIChatRoomMakeWnd@@	0	0:005e6230:38	UIFrameWnd@0|UIWindow@0
+UIChatRoomChangeWnd	00608d68	.?AVUIChatRoomChangeWnd@@	0	0:005e62cc:38	UIChatRoomMakeWnd@0|UIFrameWnd@0|UIWindow@0
+UIExchangeWnd	00608d98	.?AVUIExchangeWnd@@	0	0:005e6368:38	UIFrameWnd@0|UIWindow@0
+UIPartySettingWnd	00608e28	.?AVUIPartySettingWnd@@	0	0:005e6404:38	UIFrameWnd@0|UIWindow@0
+UIWhisperWnd	00608e50	.?AVUIWhisperWnd@@	0	0:005e64a0:38	UIFrameWnd@0|UIWindow@0
+UIMenuWnd	00608ef0	.?AVUIMenuWnd@@	0	0:005e6544:38	UIFrameWnd@0|UIWindow@0
+UIComboBoxWnd	00608f08	.?AVUIComboBoxWnd@@	0	0:005e65e0:38	UIFrameWnd@0|UIWindow@0
+UIPetEggListWnd	00608f28	.?AVUIPetEggListWnd@@	0	0:005e667c:38	UIItemIdentifyWnd@0|UIFrameWnd@0|UIWindow@0
+UIMakingArrowListWnd	00608f48	.?AVUIMakingArrowListWnd@@	0	0:005e6718:38	UIItemIdentifyWnd@0|UIFrameWnd@0|UIWindow@0
+UIPetTamingDeceiveWnd	00608f70	.?AVUIPetTamingDeceiveWnd@@	0	0:005e67b4:38	UIFrameWnd@0|UIWindow@0
+UISelectCartWnd	00608fb8	.?AVUISelectCartWnd@@	0	0:005e6850:38	UIFrameWnd@0|UIWindow@0
+UISpellListWnd	006090a0	.?AVUISpellListWnd@@	0	0:005e68ec:38	UIItemIdentifyWnd@0|UIFrameWnd@0|UIWindow@0
+UIGraffiStrboxWnd	006090c0	.?AVUIGraffiStrboxWnd@@	0	0:005e6988:38	UIFrameWnd@0|UIWindow@0
+UIProhibitListWnd	006090e0	.?AVUIProhibitListWnd@@	0	0:005e6a24:38	UIFrameWnd@0|UIWindow@0
+UIGuildInfoManageWnd	006091d8	.?AVUIGuildInfoManageWnd@@	0	0:005e6acc:39	UIGuildWnd@0|UIFrameWnd@0|UIWindow@0
+UIGuildWnd	00609200	.?AVUIGuildWnd@@	0	0:005e6b6c:39	UIFrameWnd@0|UIWindow@0
+UIGuildMemberManageWnd	006092a0	.?AVUIGuildMemberManageWnd@@	0	0:005e6c14:39	UIGuildWnd@0|UIFrameWnd@0|UIWindow@0
+UIGuildPositionManageWnd	006092d8	.?AVUIGuildPositionManageWnd@@	0	0:005e6cb4:39	UIGuildWnd@0|UIFrameWnd@0|UIWindow@0
+UIEditCtrlVarId	00609300	.?AVUIEditCtrlVarId@@	0	0:005e6d54:39	UIEditCtrl@0|UIWindow@0
+UIGuildSkillWnd	00609348	.?AVUIGuildSkillWnd@@	0	0:005e6df4:39	UIGuildWnd@0|UIFrameWnd@0|UIWindow@0
+UIGuildBanishedMemberWnd	00609448	.?AVUIGuildBanishedMemberWnd@@	0	0:005e6e94:39	UIGuildWnd@0|UIFrameWnd@0|UIWindow@0
+UIGuildNoticeWnd	00609470	.?AVUIGuildNoticeWnd@@	0	0:005e6f34:39	UIGuildWnd@0|UIFrameWnd@0|UIWindow@0
+UIGuildTotalInfoWnd	006094c0	.?AVUIGuildTotalInfoWnd@@	0	0:005e6fd4:39	UIGuildWnd@0|UIFrameWnd@0|UIWindow@0
+UIGuildLeaveReasonDescWnd	006094f0	.?AVUIGuildLeaveReasonDescWnd@@	0	0:005e7074:38	UIFrameWnd@0|UIWindow@0
+UIGuildBanReasonDescWnd	00609518	.?AVUIGuildBanReasonDescWnd@@	0	0:005e7110:38	UIGuildLeaveReasonDescWnd@0|UIFrameWnd@0|UIWindow@0
+UIIllustWnd	00609540	.?AVUIIllustWnd@@	0	0:005e71b8:38	UIFrameWnd@0|UIWindow@0
+UICandidateWnd	00609590	.?AVUICandidateWnd@@	0	0:005e7260:38	UIFrameWnd@0|UIWindow@0
+UICompositionWnd	006095b8	.?AVUICompositionWnd@@	0	0:005e72fc:38	UIFrameWnd@0|UIWindow@0
+UIKeyStrokeWnd	006095d8	.?AVUIKeyStrokeWnd@@	0	0:005e7398:38	UIFrameWnd@0|UIWindow@0
+UIItemBaseWnd	006096f8	.?AVUIItemBaseWnd@@	0	0:005e74dc:38	UIFrameWnd@0|UIWindow@0
+UIItemShopWnd	00609718	.?AVUIItemShopWnd@@	0	0:005e7578:38	UIItemBaseWnd@0|UIFrameWnd@0|UIWindow@0
+UIMerchantItemMyShopWnd	006097d0	.?AVUIMerchantItemMyShopWnd@@	0	0:005e7614:38	UIItemBaseWnd@0|UIFrameWnd@0|UIWindow@0
+UIMerchantItemShopWnd	006097f8	.?AVUIMerchantItemShopWnd@@	0	0:005e76b0:38	UIItemBaseWnd@0|UIFrameWnd@0|UIWindow@0
+UIItemPurchaseWnd	00609840	.?AVUIItemPurchaseWnd@@	0	0:005e774c:38	UIItemBaseWnd@0|UIFrameWnd@0|UIWindow@0
+UIMerchantItemPurchaseWnd	006098a0	.?AVUIMerchantItemPurchaseWnd@@	0	0:005e77e8:38	UIItemBaseWnd@0|UIFrameWnd@0|UIWindow@0
+UIItemSellWnd	006098f8	.?AVUIItemSellWnd@@	0	0:005e7884:38	UIItemBaseWnd@0|UIFrameWnd@0|UIWindow@0
+UIMerchantItemWnd	006099a8	.?AVUIMerchantItemWnd@@	0	0:005e7920:38	UIItemBaseWnd@0|UIFrameWnd@0|UIWindow@0
+UIMerchantMirrorItemWnd	00609a20	.?AVUIMerchantMirrorItemWnd@@	0	0:005e79bc:38	UIItemBaseWnd@0|UIFrameWnd@0|UIWindow@0
+UIItemWnd	00609a48	.?AVUIItemWnd@@	0	0:005e7a58:38	UIItemBaseWnd@0|UIFrameWnd@0|UIWindow@0
+UIItemStoreWnd	00609a68	.?AVUIItemStoreWnd@@	0	0:005e7af4:38	UIItemBaseWnd@0|UIFrameWnd@0|UIWindow@0
+UISkillListWnd	00609a88	.?AVUISkillListWnd@@	0	0:005e7b90:38	UIFrameWnd@0|UIWindow@0
+UIMerchantShopMakeWnd	00609ae0	.?AVUIMerchantShopMakeWnd@@	0	0:005e7c2c:38	UIFrameWnd@0|UIWindow@0
+UIEditCtrlWheel	00609b08	.?AVUIEditCtrlWheel@@	0	0:005e7cc8:39	UIEditCtrl@0|UIWindow@0
+UIMessengerGroupWnd	00609b98	.?AVUIMessengerGroupWnd@@	0	0:005e7d74:38	UIFrameWnd@0|UIWindow@0
+UIWhisperListWnd	00609d78	.?AVUIWhisperListWnd@@	0	0:005e7e10:38	UIFrameWnd@0|UIWindow@0
+UIFriendOptionWnd	00609da0	.?AVUIFriendOptionWnd@@	0	0:005e7eac:38	UIFrameWnd@0|UIWindow@0
+UIMakeTargetListWnd	00609dc8	.?AVUIMakeTargetListWnd@@	0	0:005e7f54:38	UIFrameWnd@0|UIWindow@0
+UIShowNeedItemListWnd	00609df0	.?AVUIShowNeedItemListWnd@@	0	0:005e7ff0:38	UIFrameWnd@0|UIWindow@0
+UIMakeTargetProcessWnd	00609e18	.?AVUIMakeTargetProcessWnd@@	0	0:005e808c:38	UIFrameWnd@0|UIWindow@0
+UIMakeTargetResultWnd	00609e40	.?AVUIMakeTargetResultWnd@@	0	0:005e8128:38	UIFrameWnd@0|UIWindow@0
+UIMiniGameWnd	00609e68	.?AVUIMiniGameWnd@@	0	0:005e81d0:40	UIFrameWnd@0|UIWindow@0
+UISelectMiniGameWnd	00609ed8	.?AVUISelectMiniGameWnd@@	0	0:005e8274:38	UIFrameWnd@0|UIWindow@0
+UIMiniGameScoreWnd	00609f20	.?AVUIMiniGameScoreWnd@@	0	0:005e8310:38	UIFrameWnd@0|UIWindow@0
+UIWindowMgr	0060a100	.?AVUIWindowMgr@@	0	0:005e846c:1	
+UIMinimapZoomWnd	0060af48	.?AVUIMinimapZoomWnd@@	0	0:005e8780:38	UIFrameWnd@0|UIWindow@0
+UIEmotionListWnd	0060af68	.?AVUIEmotionListWnd@@	0	0:005e8474:38	UIFrameWnd@0|UIWindow@0
+UIEmotionWnd	0060af88	.?AVUIEmotionWnd@@	0	0:005e8510:38	UIFrameWnd@0|UIWindow@0
+UIWebBrowserWnd	0060afa8	.?AVUIWebBrowserWnd@@	0	0:005e85ac:38	UIFrameWnd@0|UIWindow@0
+UINotifyLevelUpWnd	0060afc8	.?AVUINotifyLevelUpWnd@@	0	0:005e8648:38	UIFrameWnd@0|UIWindow@0
+UINotifyJobLevelUpWnd	0060aff0	.?AVUINotifyJobLevelUpWnd@@	0	0:005e86e4:38	UINotifyLevelUpWnd@0|UIFrameWnd@0|UIWindow@0
+C3dNode	0060b018	.?AVC3dNode@@	0	0:005e88b8:4	
+C3dNodeHAL	0060b030	.?AVC3dNodeHAL@@	0	0:005e88d4:4	C3dNode@0
+C3dGround	0060b0a8	.?AVC3dGround@@	0	0:005e8900:17	
+CWorld	0060b9d0	.?AVCWorld@@	0	0:005e8970:1	
+C3dGround15	0060b9e8	.?AVC3dGround15@@	0	0:005e897c:17	C3dGround@0
+CLanguage	0060bad0	.?AVCLanguage@@	0	0:005e89cc:10	
+CLanguageTC	0060bae8	.?AVCLanguageTC@@	0	0:005e89f8:10	CLanguage@0
+CLanguageTH	0060bb98	.?AVCLanguageTH@@	0	0:005e8a24:10	CLanguage@0
+CMode	0060c0c8	.?AVCMode@@	0	0:005e8a5c:7	
+CActorPickNode	0060c218	.?AVCActorPickNode@@	0	0:005e8a8c:1	
+CView	0060c238	.?AVCView@@	0	0:005e8aa0:5	
+CGPak	00612600	.?AVCGPak@@	0	0:005e8e50:3	
+CSakGPak	006126f8	.?AVCSakGPak@@	0	0:005e8e60:3	CGPak@0
+exception	006128a0	.?AVexception@@	0	0:005ecb78:2	
+std::bad_cast	006128b8	.?AVbad_cast@std@@	0	0:005e8e70:3	exception@0
+std::locale::facet	006128f0	.?AVfacet@locale@std@@	0	0:005e8e98:1	
+std::ctype_base	00612910	.?AUctype_base@std@@			
+std::ctype<char>	00612930	.?AV?$ctype@D@std@@	0	0:005e8e80:5	std::ctype_base@0|std::locale::facet@0
+CGameObject	00613da0	.?AVCGameObject@@	0	0:005e9504:5	
+CRenderObject	00613dc0	.?AVCRenderObject@@	0	0:005e953c:9	CGameObject@0
+CAbleToMakeEffect	00613de0	.?AVCAbleToMakeEffect@@	0	0:005e9598:9	CRenderObject@0|CGameObject@0
+CGameActor	00613e00	.?AVCGameActor@@	0	0:005e95c0:41	CAbleToMakeEffect@0|CRenderObject@0|CGameObject@0
+CPc	00613e20	.?AVCPc@@	0	0:005e9b94:41	CGameActor@0|CAbleToMakeEffect@0|CRenderObject@0|CGameObject@0
+mg::CMGPc	00613e38	.?AVCMGPc@mg@@	0	0:005e8eac:41	CPc@0|CGameActor@0|CAbleToMakeEffect@0|CRenderObject@0|CGameObject@0
+CNpc	00613e50	.?AVCNpc@@	0	0:005e991c:41	CGameActor@0|CAbleToMakeEffect@0|CRenderObject@0|CGameObject@0
+mg::CMGNpc	00613e68	.?AVCMGNpc@mg@@	0	0:005e8f54:41	CNpc@0|CGameActor@0|CAbleToMakeEffect@0|CRenderObject@0|CGameObject@0
+mg::CMGEngine	00613e80	.?AVCMGEngine@mg@@	0	0:005e9014:43	UIMiniGameWnd@0|UIFrameWnd@0|UIWindow@0
+mg::CObject	00613eb0	.?AVCObject@mg@@	0	0:005e9144:6	
+mg::CEntity	00613ed0	.?AVCEntity@mg@@	0	0:005e92b4:6	mg::CObject@0
+mg::mgType1::CItemObj	00613ef0	.?AVCItemObj@mgType1@mg@@	1	0:005e90d0:6|116:005e90ec:9	mg::CEntity@0|mg::CObject@0|CRenderObject@116|CGameObject@116
+mg::mgType1::CPlayer	00613fa0	.?AVCPlayer@mgType1@mg@@	1	0:005e9388:6|104:005e92e0:41	mg::CObject@0|CPc@104|CGameActor@104|CAbleToMakeEffect@104|CRenderObject@104|CGameObject@104
+mg::CMap	00613fc8	.?AVCMap@mg@@	0	0:005e9128:6	mg::CObject@0
+mg::mgType1::CMonster	00614000	.?AVCMonster@mgType1@mg@@	1	0:005e91bc:6|116:005e91d8:41	mg::CEntity@0|mg::CObject@0|mg::CMGNpc@116|CNpc@116|CGameActor@116|CAbleToMakeEffect@116|CRenderObject@116|CGameObject@116
+mg::CTile	00614028	.?AVCTile@mg@@	0	0:005e9120:1	
+std::logic_error	00614040	.?AVlogic_error@std@@	0	0:005e9170:3	exception@0
+std::out_of_range	00614060	.?AVout_of_range@std@@	0	0:005e9160:3	std::logic_error@0|exception@0
+mg::mgType1::CMapObj	006140a0	.?AVCMapObj@mgType1@mg@@	0	0:005e918c:6	mg::CEntity@0|mg::CObject@0
+CArrowEffect	00614170	.?AVCArrowEffect@@	0	0:005ea1dc:9	CRenderObject@0|CGameObject@0
+mg::CArrow	00614190	.?AVCArrow@mg@@	0	0:005e9280:9	CArrowEffect@0|CRenderObject@0|CGameObject@0
+mg::CScript	006141a8	.?AVCScript@mg@@	0	0:005e93b0:1	
+mg::mgType1::CWorld	00614598	.?AVCWorld@mgType1@mg@@	0	0:005e93ec:1	
+mg::mgType1::CMiniGame001	00614658	.?AVCMiniGame001@mgType1@mg@@	0	0:005e9434:43	mg::CMGEngine@0|UIMiniGameWnd@0|UIFrameWnd@0|UIWindow@0
+CMousePointer	00614738	.?AVCMousePointer@@	0	0:005e9570:9	CRenderObject@0|CGameObject@0
+C3dGrannyGameActor	00614810	.?AVC3dGrannyGameActor@@	0	0:005e967c:41	CGameActor@0|CAbleToMakeEffect@0|CRenderObject@0|CGameObject@0
+CGrannyCorpse3d	00614838	.?AVCGrannyCorpse3d@@	0	0:005e9734:5	CGameObject@0
+CGameMode	006148c0	.?AVCGameMode@@	0	0:005e9770:7	CMode@0
+CDummyEffectLauncher	00614a50	.?AVCDummyEffectLauncher@@	0	0:005e97a4:10	CAbleToMakeEffect@0|CRenderObject@0|CGameObject@0
+UIVerticalNameBalloonText	00614c18	.?AVUIVerticalNameBalloonText@@	0	0:005e97dc:41	UINameBalloonText@0|UIBalloonText@0|UIWindow@0
+CItem	006152e8	.?AVCItem@@	0	0:005e98ac:9	CRenderObject@0|CGameObject@0
+CLoginMode	00615300	.?AVCLoginMode@@	0	0:005e98f0:7	CMode@0
+CBlowEffect	006156c8	.?AVCBlowEffect@@	0	0:005e99c8:9	CRenderObject@0|CGameObject@0
+CCorpse	00615710	.?AVCCorpse@@	0	0:005e99f0:9	CRenderObject@0|CGameObject@0
+CBlurPC	00615728	.?AVCBlurPC@@	0	0:005e9a18:41	CPc@0|CGameActor@0|CAbleToMakeEffect@0|CRenderObject@0|CGameObject@0
+CMasterChaser	00615740	.?AVCMasterChaser@@	0	0:005e9ac0:9	CRenderObject@0|CGameObject@0
+CNumEffect	00615760	.?AVCNumEffect@@	0	0:005e9ae8:9	CRenderObject@0|CGameObject@0
+CSoundMaker	00615780	.?AVCSoundMaker@@	0	0:005e9b20:9	CRenderObject@0|CGameObject@0
+CGndRiser	006157a0	.?AVCGndRiser@@	0	0:005e9b58:9	CAbleToMakeEffect@0|CRenderObject@0|CGameObject@0
+CGrannyPc	00615a48	.?AVCGrannyPc@@	0	0:005e9c40:41	CGameActor@0|CAbleToMakeEffect@0|CRenderObject@0|CGameObject@0
+CPlayer	00617118	.?AVCPlayer@@	0	0:005e9cf4:41	CPc@0|CGameActor@0|CAbleToMakeEffect@0|CRenderObject@0|CGameObject@0
+CRagEffect	00618148	.?AVCRagEffect@@	0	0:005e9dc8:9	CRenderObject@0|CGameObject@0
+CEffectPrim	0061a1b0	.?AVCEffectPrim@@	0	0:005e9f6c:9	CRenderObject@0|CGameObject@0
+CSkill	0061e8b0	.?AVCSkill@@	0	0:005e9fe0:41	CGameActor@0|CAbleToMakeEffect@0|CRenderObject@0|CGameObject@0
+CGraffiSkill	0061e9d8	.?AVCGraffiSkill@@	0	0:005ea08c:43	CSkill@0|CGameActor@0|CAbleToMakeEffect@0|CRenderObject@0|CGameObject@0
+CMsgEffect	0061ea08	.?AVCMsgEffect@@	0	0:005ea140:9	CAbleToMakeEffect@0|CRenderObject@0|CGameObject@0
+CEffectMaker	0061ea40	.?AVCEffectMaker@@	0	0:005ea18c:9	CAbleToMakeEffect@0|CRenderObject@0|CGameObject@0
+CMandraAttackEffect	0061ea60	.?AVCMandraAttackEffect@@	0	0:005ea1b4:9	CRenderObject@0|CGameObject@0
+CGroundScope	0061eb30	.?AVCGroundScope@@	0	0:005ea204:9	CAbleToMakeEffect@0|CRenderObject@0|CGameObject@0
+std::length_error	0061f660	.?AVlength_error@std@@	0	0:005ec504:3	std::logic_error@0|exception@0
+std::basic_ostream<char,std::char_traits<char>_>	0061f680	.?AV?$basic_ostream@DU?$char_traits@D@std@@@std@@	0	4:005ec54c:1	std::basic_ios<char,std::char_traits<char>_>@0v0,4|std::ios_base@0v0,4
+std::ostrstream	0061f6c0	.?AVostrstream@std@@	0	84:005ec53c:1	std::basic_ostream<char,std::char_traits<char>_>@0|std::basic_ios<char,std::char_traits<char>_>@0v0,4|std::ios_base@0v0,4
+std::basic_iostream<char,std::char_traits<char>_>	0061f6e0	.?AV?$basic_iostream@DU?$char_traits@D@std@@@std@@	3	12:005ec574:1	std::basic_istream<char,std::char_traits<char>_>@0|std::basic_ios<char,std::char_traits<char>_>@0v0,4|std::ios_base@0v0,4|std::basic_ostream<char,std::char_traits<char>_>@8|std::basic_ios<char,std::char_traits<char>_>@0v0,4|std::ios_base@0v0,4
+std::strstream	0061f720	.?AVstrstream@std@@	3	92:005ec554:1	std::basic_iostream<char,std::char_traits<char>_>@0|std::basic_istream<char,std::char_traits<char>_>@0|std::basic_ios<char,std::char_traits<char>_>@0v0,4|std::ios_base@0v0,4|std::basic_ostream<char,std::char_traits<char>_>@8|std::basic_ios<char,std::char_traits<char>_>@0v0,4|std::ios_base@0v0,4
+std::locale::_Locimp	0061f740	.?AV_Locimp@locale@std@@	0	0:005ec590:1	std::locale::facet@0
+std::runtime_error	0061f768	.?AVruntime_error@std@@	0	0:005ec5e8:3	exception@0
+std::ios_base::failure	0061f788	.?AVfailure@ios_base@std@@	0	0:005ec5a4:3	std::runtime_error@0|exception@0
+std::num_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	0061f7b0	.?AV?$num_put@DV?$ostreambuf_iterator@DU?$char_traits@D@std@@@std@@@std@@	0	0:005ec66c:7	std::locale::facet@0
+std::codecvt_base	0061f808	.?AVcodecvt_base@std@@			
+std::codecvt<char,char,int>	0061f828	.?AV?$codecvt@DDH@std@@	0	0:005ec630:7	std::codecvt_base@0|std::locale::facet@0
+std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	0061f848	.?AV?$num_get@DV?$istreambuf_iterator@DU?$char_traits@D@std@@@std@@@std@@	0	0:005ec68c:10	std::locale::facet@0
+std::numpunct<char>	0061f8a0	.?AV?$numpunct@D@std@@	0	0:005ec650:6	std::locale::facet@0
+std::bad_alloc	0061f8c0	.?AVbad_alloc@std@@	0	0:005ec700:3	exception@0
+std::num_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	0061f8e0	.?AV?$num_put@GV?$ostreambuf_iterator@GU?$char_traits@G@std@@@std@@@std@@	0	0:005ec818:7	std::locale::facet@0
+std::num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	0061f938	.?AV?$num_get@GV?$istreambuf_iterator@GU?$char_traits@G@std@@@std@@@std@@	0	0:005ec838:10	std::locale::facet@0
+std::time_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	0061f990	.?AV?$time_put@GV?$ostreambuf_iterator@GU?$char_traits@G@std@@@std@@@std@@	0	0:005ec730:2	std::time_base@0|std::locale::facet@0
+std::time_base	0061f9e8	.?AUtime_base@std@@			
+std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	0061fa08	.?AV?$time_get@GV?$istreambuf_iterator@GU?$char_traits@G@std@@@std@@@std@@	0	0:005ec73c:7	std::time_base@0|std::locale::facet@0
+std::moneypunct<unsigned_short,1>	0061fa60	.?AV?$moneypunct@G$00@std@@	0	0:005ec75c:10	std::_Mpunct<unsigned_short>@0|std::money_base@0|std::locale::facet@0
+std::money_base	0061fa88	.?AUmoney_base@std@@			
+std::_Mpunct<unsigned_short>	0061faa8	.?AV?$_Mpunct@G@std@@	0	0:005ec8c4:10	std::money_base@0|std::locale::facet@0
+std::moneypunct<unsigned_short,0>	0061fac8	.?AV?$moneypunct@G$0A@@std@@	0	0:005ec788:10	std::_Mpunct<unsigned_short>@0|std::money_base@0|std::locale::facet@0
+std::money_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	0061faf0	.?AV?$money_put@GV?$ostreambuf_iterator@GU?$char_traits@G@std@@@std@@@std@@	0	0:005ec7b4:3	std::locale::facet@0
+std::money_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	0061fb48	.?AV?$money_get@GV?$istreambuf_iterator@GU?$char_traits@G@std@@@std@@@std@@	0	0:005ec7c4:3	std::locale::facet@0
+std::ctype<unsigned_short>	0061fba0	.?AV?$ctype@G@std@@	0	0:005ec864:13	std::ctype_base@0|std::locale::facet@0
+std::messages_base	0061fbc0	.?AUmessages_base@std@@			
+std::messages<unsigned_short>	0061fbe0	.?AV?$messages@G@std@@	0	0:005ec7d4:4	std::messages_base@0|std::locale::facet@0
+std::collate<unsigned_short>	0061fc00	.?AV?$collate@G@std@@	0	0:005ec7e8:4	std::locale::facet@0
+std::numpunct<unsigned_short>	0061fc20	.?AV?$numpunct@G@std@@	0	0:005ec7fc:6	std::locale::facet@0
+std::codecvt<unsigned_short,char,int>	0061fc40	.?AV?$codecvt@GDH@std@@	0	0:005ec710:7	std::codecvt_base@0|std::locale::facet@0
+std::time_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	0061fc60	.?AV?$time_put@DV?$ostreambuf_iterator@DU?$char_traits@D@std@@@std@@@std@@	0	0:005eca34:2	std::time_base@0|std::locale::facet@0
+std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	0061fcb8	.?AV?$time_get@DV?$istreambuf_iterator@DU?$char_traits@D@std@@@std@@@std@@	0	0:005eca40:7	std::time_base@0|std::locale::facet@0
+std::moneypunct<char,1>	0061fd10	.?AV?$moneypunct@D$00@std@@	0	0:005eca60:10	std::_Mpunct<char>@0|std::money_base@0|std::locale::facet@0
+std::_Mpunct<char>	0061fd38	.?AV?$_Mpunct@D@std@@	0	0:005ecb00:10	std::money_base@0|std::locale::facet@0
+std::moneypunct<char,0>	0061fd58	.?AV?$moneypunct@D$0A@@std@@	0	0:005eca8c:10	std::_Mpunct<char>@0|std::money_base@0|std::locale::facet@0
+std::money_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	0061fd80	.?AV?$money_put@DV?$ostreambuf_iterator@DU?$char_traits@D@std@@@std@@@std@@	0	0:005ecab8:3	std::locale::facet@0
+std::money_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	0061fdd8	.?AV?$money_get@DV?$istreambuf_iterator@DU?$char_traits@D@std@@@std@@@std@@	0	0:005ecac8:3	std::locale::facet@0
+std::messages<char>	0061fe30	.?AV?$messages@D@std@@	0	0:005ecad8:4	std::messages_base@0|std::locale::facet@0
+std::collate<char>	0061fe50	.?AV?$collate@D@std@@	0	0:005ecaec:4	std::locale::facet@0
+type_info	0061fe98	.?AVtype_info@@	0	0:005ecb34:1	
+bad_typeid	0061ff28	.?AVbad_typeid@@	0	0:005ecc14:2	exception@0
+__non_rtti_object	0061ff48	.?AV__non_rtti_object@@	0	0:005ecc08:2	bad_typeid@0|exception@0
+bad_cast	0061ff68	.?AVbad_cast@@	0	0:005ecc98:2	exception@0
