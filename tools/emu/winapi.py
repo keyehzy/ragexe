@@ -8,10 +8,16 @@ per query, and process and thread IDs are constants. File access is read-only an
 resolves names case-insensitively under original/install, the original install tree.
 Anything the oracle has not needed yet is left out on purpose; the emulator stops with
 the import's name when one is called.
+
+There is one window, WINDOW, whose client area is the profile's display size at
+WINDOW_ORIGIN on the screen. DirectDrawCreateEx hands out the DirectDraw 7 fake of
+directx.py.
 """
 import os
 import struct
 import unicodedata
+
+from .directx import IID_IDirectDraw7
 
 PROCESS_ID = 0x00000F00
 THREAD_ID = 0x00000F04
@@ -31,6 +37,9 @@ GENERIC_WRITE = 0x40000000
 ERROR_FILE_NOT_FOUND, ERROR_ACCESS_DENIED = 2, 5
 FILE_ATTRIBUTE_DIRECTORY, FILE_ATTRIBUTE_ARCHIVE = 0x10, 0x20
 ANSI_CODE_PAGE, OEM_CODE_PAGE = 1252, 437      # a Western-European Windows, as for iRO
+WINDOW = 0x00010010
+WINDOW_ORIGIN = (64, 32)
+DDERR_INVALIDPARAMS = 0x80070057
 
 
 class Stub:
@@ -103,8 +112,20 @@ class WinApi:
         winmm = {
             "timeGetTime": Stub(0, self.tick),
         }
+        user32 = {
+            "GetClientRect": Stub(2, self.get_client_rect),
+            "ClientToScreen": Stub(2, self.client_to_screen),
+            "SetRect": Stub(5, self.set_rect),
+            "SetWindowLongA": Stub(3, self.set_window_long),
+        }
+        ddraw = {
+            "DirectDrawCreateEx": Stub(4, self.direct_draw_create_ex),
+        }
+        self.window_longs = {}
         self.stubs = {f"KERNEL32.DLL!{k}": v for k, v in k32.items()}
         self.stubs.update({f"WINMM.DLL!{k}": v for k, v in winmm.items()})
+        self.stubs.update({f"USER32.DLL!{k}": v for k, v in user32.items()})
+        self.stubs.update({f"DDRAW.DLL!{k}": v for k, v in ddraw.items()})
 
     def lookup(self, name):
         return self.stubs.get(name)
@@ -209,6 +230,35 @@ class WinApi:
             return 0
         self.emu.mem_write(out, struct.pack("<I2s12s", 1, b"?\0", b"\0" * 12))
         return 1
+
+    # -- windows ----------------------------------------------------------------------
+
+    def get_client_rect(self, hwnd, out):
+        w, h, _ = self.emu.directx.profile.display
+        self.emu.mem_write(out, struct.pack("<4i", 0, 0, w, h))
+        return 1
+
+    def client_to_screen(self, hwnd, point):
+        x, y = struct.unpack("<2i", self.emu.mem_read(point, 8))
+        self.emu.mem_write(point, struct.pack("<2i", x + WINDOW_ORIGIN[0], y + WINDOW_ORIGIN[1]))
+        return 1
+
+    def set_rect(self, out, left, top, right, bottom):
+        self.emu.mem_write(out, struct.pack("<4I", left, top, right, bottom))
+        return 1
+
+    def set_window_long(self, hwnd, index, value):
+        old = self.window_longs.get(index, 0)
+        self.window_longs[index] = value
+        return old
+
+    # -- DirectDraw -------------------------------------------------------------------
+
+    def direct_draw_create_ex(self, guid, out, iid, outer):
+        if self.emu.mem_read(iid, 16) != IID_IDirectDraw7:
+            return DDERR_INVALIDPARAMS
+        self.emu.write_u32(out, self.emu.directx.create_directdraw().address)
+        return 0
 
     # -- files ------------------------------------------------------------------------
 

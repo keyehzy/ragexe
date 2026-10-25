@@ -15,13 +15,22 @@ constructor, never runs. The parts of the CRT that need its own start-up are rep
     import stops the run with EmulationError naming it, so a missing stub is never
     silent.
 
+  - DirectDraw 7 and Direct3D 7 are fakes that record every call (directx.py), reached
+    through DirectDrawCreateEx.
+
 call() pushes the arguments, sets ECX for __thiscall, returns to a sentinel address and
 gives back EAX, EDX and ST(0). Memory helpers place inputs in a scratch area and read
 outputs back.
+
+A stub or fake method that has to call back into the client (an enumeration) is a
+generator: each `yield (function, [args])` runs that __stdcall callback in the emulator
+and resumes the generator with the callback's EAX, and the generator's return value is
+the stub's result.
 """
 import os
 import struct
 import sys
+import types
 
 import pefile
 from unicorn import (UC_ARCH_X86, UC_HOOK_BLOCK, UC_HOOK_CODE, UC_HOOK_MEM_INVALID, UC_MODE_32,
@@ -33,7 +42,7 @@ from unicorn.x86_const import (UC_X86_REG_CS, UC_X86_REG_DS, UC_X86_REG_EAX, UC_
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from binindex import EXE, ROOT  # noqa: E402
 
-from . import winapi  # noqa: E402
+from . import directx, winapi  # noqa: E402
 
 GDT = 0x7FFC0000
 TEB = 0x7FFD0000
@@ -93,7 +102,9 @@ class Emulator:
         self.scratch_next = SCRATCH_BASE
         self.api = winapi.WinApi(self, files_root)
         self.calls = []                   # (import name, args) in order, for callers that want a trace
+        self._frames = []                 # stubs waiting for a callback: [generator, return, esp, done]
         self._map_imports()
+        self.directx = directx.DirectX(self)
         self._hook_runtime()
         self._fault = None
         self._blocks, self.block_count = [], 0
@@ -143,8 +154,9 @@ class Emulator:
                 name = imp.name.decode() if imp.name else f"#{imp.ordinal}"
                 slots.append((imp.address, f"{d.dll.decode().upper()}!{name}"))
         self.sentinel = STUBS + 16 * len(slots)
-        self.uc.mem_map(STUBS, _page_up(16 * len(slots) + 16), UC_PROT_READ | UC_PROT_EXEC)
-        self.uc.mem_write(STUBS, b"\xc3" * _page_up(16 * len(slots) + 16))
+        self.callback_return = self.sentinel + 16
+        self.uc.mem_map(STUBS, _page_up(16 * len(slots) + 32), UC_PROT_READ | UC_PROT_EXEC)
+        self.uc.mem_write(STUBS, b"\xc3" * _page_up(16 * len(slots) + 32))
         for k, (iat, name) in enumerate(slots):
             stub = STUBS + 16 * k
             self.stub_names[stub] = name
@@ -152,6 +164,8 @@ class Emulator:
             self.write_u32(iat, stub)
             self.uc.mem_protect(iat & ~0xFFF, 0x1000, UC_PROT_READ)
         self.uc.hook_add(UC_HOOK_CODE, self._on_stub, begin=STUBS, end=self.sentinel - 1)
+        self.uc.hook_add(UC_HOOK_CODE, self._on_callback_return, begin=self.callback_return,
+                         end=self.callback_return)
 
     def _hook_runtime(self):
         """The CRT heap, by address; each handler is cdecl and returns EAX."""
@@ -205,15 +219,60 @@ class Emulator:
             return
         args = [self.read_u32(esp + 4 + 4 * k) for k in range(stub.nargs)]
         self.calls.append((name, args))
-        result = stub.fn(*args)
+        self.complete(stub.fn(*args), ret, esp + 4 + (4 * stub.nargs if stub.stdcall else 0))
+
+    def complete(self, result, ret, esp, done=None):
+        """Return from a stub to ret with the stack at esp. result is EAX, (EAX, EDX), or a
+        generator that yields callbacks to run first (see the module docstring). done, if
+        given, is called with the final EAX."""
+        if isinstance(result, types.GeneratorType):
+            self._frames.append([result, ret, esp, done])
+            self._resume(None)
+            return
         if isinstance(result, tuple):
             eax, edx = result
-            uc.reg_write(UC_X86_REG_EDX, edx & 0xFFFFFFFF)
+            self.uc.reg_write(UC_X86_REG_EDX, edx & 0xFFFFFFFF)
         else:
             eax = result
-        uc.reg_write(UC_X86_REG_EAX, (eax or 0) & 0xFFFFFFFF)
-        uc.reg_write(UC_X86_REG_ESP, esp + 4 + (4 * stub.nargs if stub.stdcall else 0))
-        uc.reg_write(UC_X86_REG_EIP, ret)
+        if done:
+            done(eax or 0)
+        self.uc.reg_write(UC_X86_REG_EAX, (eax or 0) & 0xFFFFFFFF)
+        self.uc.reg_write(UC_X86_REG_ESP, esp)
+        self.uc.reg_write(UC_X86_REG_EIP, ret)
+
+    def _resume(self, value):
+        gen, ret, esp, done = self._frames[-1]
+        try:
+            fn, args = gen.send(value)
+        except StopIteration as stop:
+            self._frames.pop()
+            self.complete(stop.value, ret, esp, done)
+            return
+        # the callback's frame goes below the stub's caller; __stdcall pops the arguments
+        sp = esp - 0x40 - 4 * len(args)
+        for k, a in enumerate(args):
+            self.write_u32(sp + 4 * k, a)
+        sp -= 4
+        self.write_u32(sp, self.callback_return)
+        self.uc.reg_write(UC_X86_REG_ESP, sp)
+        self.uc.reg_write(UC_X86_REG_EIP, fn)
+
+    def _on_callback_return(self, uc, address, size, _):
+        if not self._frames:
+            self.fault("return to the callback trampoline with no callback pending")
+            return
+        self._resume(uc.reg_read(UC_X86_REG_EAX))
+
+    def hook_code(self, begin, end, fn):
+        self.uc.hook_add(UC_HOOK_CODE, fn, begin=begin, end=end)
+
+    def fault(self, message):
+        """Stop the run; call() raises EmulationError with message."""
+        self._fault = message
+        self.uc.emu_stop()
+
+    def esp(self):
+        return self.uc.reg_read(UC_X86_REG_ESP)
 
     def _on_invalid(self, uc, access, address, size, value, _):
         self._fault = f"invalid memory access (type {access}) at 0x{address:08x}, size {size}, " \
@@ -253,7 +312,7 @@ class Emulator:
         uc.reg_write(UC_X86_REG_ESP, esp)
         uc.reg_write(UC_X86_REG_EBP, 0)
         uc.reg_write(UC_X86_REG_ECX, (this or 0) & 0xFFFFFFFF)
-        self._fault, self._blocks, self.block_count = None, [], 0
+        self._fault, self._blocks, self.block_count, self._frames = None, [], 0, []
         try:
             uc.emu_start(addr, self.sentinel, count=self.max_instructions)
         except UcError as e:

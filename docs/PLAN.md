@@ -711,5 +711,49 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - No map is built inline into a global address. `0x4e3ad0` builds a tree inline, but
     into a pointer argument (a copy-construct helper), so it places no member.
 
+- [x] DirectDraw 7 / Direct3D 7 fakes for the emulation oracle (`tools/emu/directx.py`; the
+  table in `docs/render/texture-stages.md`):
+  - **Interfaces.** `IDirectDraw7`, `IDirectDrawSurface7`, `IDirectDrawClipper`,
+    `IDirectDrawPalette`, `IDirectDrawGammaControl`, `IDirect3D7`, `IDirect3DDevice7` and
+    `IDirect3DVertexBuffer7`. Their slots follow the DirectX 7 SDK order.
+  - **How a call is caught.** Each object is a vtable pointer in emulated memory, and
+    each slot points at its own stub. A hook reads `this` and the arguments, records the
+    call and runs the handler. A method without a handler stops the run with its name,
+    as an unstubbed import does.
+  - **Checked against the client.**
+    - The interface IDs it passes: `IID_IDirectDraw7`, `IID_IDirect3D7`, and the HAL and
+      T&L HAL device IDs.
+    - Its vtable offsets and argument counts.
+    - The `DDSURFACEDESC2` offsets it fills.
+  - **What the fakes model.**
+    - Surfaces have pixel memory, so `Lock` returns a real pointer and pitch, and a
+      flip chain creates its back buffer.
+    - The device keeps its render states, stage states, textures, transforms and
+      viewport.
+    - Every draw records its vertices (decoded by FVF), its indices and a snapshot of
+      that state.
+    - Reference counts are kept.
+  - **Callbacks.** A stub that has to call back into the client is a Python generator
+    that yields the callbacks to run. This covers display-mode, z-buffer and
+    texture-format enumeration.
+  - **New stubs:** `DirectDrawCreateEx`, plus `GetClientRect`, `ClientToScreen`,
+    `SetRect` and `SetWindowLongA` for one window.
+  - **Checked by running client code**, in 5 new tests (17 in all):
+    - `C3dDevice::Init`, windowed and full-screen, through every step: the z-buffer
+      enumeration callback picks the 16-bit format.
+    - `C3dDevice::Release`, which leaves no device reference behind.
+    - The renderer's list flush (`0x410560`) drawing two quads.
+    - Each of the 16 texture-stage modes of `0x4112d0`.
+  - **First results for M4:**
+    - The table of the 16 combiner modes.
+    - The device's initial render state.
+    - Two facts about drawing: the flush only re-sets a texture that changed, and
+      texture coordinates are scaled in place before the draw.
+  - Not faked: `DirectDrawCreate`, which hands out the DirectDraw 1 interface used by
+    the display-device enumeration (`0x402da0`, `0x406220`, `0x406960`), and
+    `DirectDrawEnumerateA`.
+
 ### Next actions (M1)
-1. Extend the oracle with the D3D7/DirectDraw COM fakes that record calls, for M4.
+1. Close the gap to the M1 exit criterion, 90% of functions named or library-tagged.
+   Of the 7,115 code functions, 62.6% are now: 3,315 named game functions and 1,136
+   library ones. The other 2,664 game functions still have default names.

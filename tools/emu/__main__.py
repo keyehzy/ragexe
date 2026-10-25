@@ -5,6 +5,7 @@ usage: python -m emu [--crt] [--this VALUE] ADDRESS [ARG ...]   (run from tools/
 Each ARG is an integer (decimal or 0x hex), s:TEXT for a pointer to a NUL-terminated
 string, or buf:N for a pointer to N zero bytes. Buffers and strings are printed after
 the call, so outputs written through a pointer can be read. --crt runs init_crt() first.
+Calls made to the DirectDraw/Direct3D fakes are listed after the result.
 """
 import argparse
 
@@ -43,6 +44,8 @@ def main():
     imports = [n for n, _ in emu.calls]
     if imports:
         print("imports called:", ", ".join(sorted(set(imports))))
+    for c in emu.directx.calls:
+        print(f"  {c}  {c.detail}" if c.detail else f"  {c}")
 
 
 if __name__ == "__main__":
