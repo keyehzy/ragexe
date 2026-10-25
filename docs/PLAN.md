@@ -650,11 +650,39 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
       `+0x5c`;
     - `CRagConnection::SendPacket`, `IsFixedLength`, `GetPacketLength`.
 
+- [x] Where global objects end (in `tools/recover_layouts.py`; table in `docs/architecture.md` §8):
+  - Nothing gives a size to a class that is never created with `new`. Each global object
+    is bracketed instead:
+    - **At least:** the end of the last field its class uses.
+    - **At most:** the first later address that is a variable of its own. That is either
+      another data label, or an address written by a dynamic initializer that names
+      nothing inside the object; each initializer sets up one variable.
+  - Addresses between the two bounds are reported, not guessed. Two hints come with them:
+    - **Probable end:** the first address used only by source files that name nothing else
+      of the object.
+    - **Named by the class's own methods:** an absolute address that the class's own
+      methods use.
+  - Signals tried and dropped as bounds:
+    - Any absolute address a class method uses. `ClientState`'s methods name three of
+      its own fields through `g_ClientState`.
+    - Any initializer write. `g_DirectInputMouse`'s inlined constructor clears field 4
+      without naming the object.
+    - The link order of the files. Only 345 of 531 `.bss` addresses used by a single file
+      fall in one increasing run of files.
+  - Check, run on every pass: none of the 48 global objects has a label or foreign
+    initializer write inside its extent. Of the 342 addresses used inside the extents,
+    2 would pass the probable-end test.
+  - Results:
+    - `ClientState` 6,356–6,360 bytes and `UIWindowMgr` 1,152–1,288. Both stop at a
+      0.25 float that each file sets up for itself, and nothing touches the gap before it.
+    - `C3dDevice` 572–616, with 9 undecided addresses; it probably ends by `+0x248` (584).
+    - `CRagConnection` exactly 204, once the nil node its length map shares with
+      `CKeyPad`'s map was labelled (`g_intMapNil`, `g_intMapNilUsers`).
+  - The bounds are in the evidence column of `layouts.classes.tsv` and in a new `max_size`
+    column of the layouts report. The sizes stay the lower bound.
+
 ### Next actions (M1)
-1. Size the global singletons whose size is only estimated (`ClientState`, `UIWindowMgr`,
-   `C3dDevice`): the accesses past their estimated ends need a rule for where an object
-   stops before the next global begins.
-2. Recognise `std::map` constructors that the compiler inlined: `CRagConnection`'s length
+1. Recognise `std::map` constructors that the compiler inlined: `CRagConnection`'s length
    map at `+0x7c` builds its head node inline, so its fields show as bytes, not a
-   `std_tree`.
-3. Extend the oracle with the D3D7/DirectDraw COM fakes that record calls, for M4.
+   `std_tree`. Its nil node is now labelled.
+2. Extend the oracle with the D3D7/DirectDraw COM fakes that record calls, for M4.

@@ -13,3 +13,5 @@ address	namespace	name	evidence	type
 0067ccb8	Global	g_skillInfoById	004d95b0 fills it from "skillnametable.txt", "skilldesctable.txt" and "leveluseskillspamount.txt"; value size 64	std_tree
 00614d74	Global	g_recvModuleCount	initialised to 2; the 0x01C7 handlers pass it to CRagConnection::SetExpectedModules as the receive-module count
 00614d78	Global	g_sendModuleCount	initialised to 2; the 0x01C7 handlers pass it to CRagConnection::SetExpectedModules as the send-module count
+00628b3c	Global	g_intMapNil	the nil node of one std::map instantiation, shared by the packet length map at CRagConnection+0x7c and CKeyPad's map: their constructors (00418d90, 0041dc70, inlined) allocate it when it is null and their destructors free it; CRagConnection::CutPacket and IsFixedLength compare lookups against it	pointer
+00628b40	Global	g_intMapNilUsers	the number of live maps sharing g_intMapNil: incremented by the CRagConnection and CKeyPad constructors, decremented by their destructors, which free the nil node at 0	dword

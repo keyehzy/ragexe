@@ -885,6 +885,145 @@ class Layouts:
             m = self.ctor_class[t]
             out.append(Access(off, self.sizes.get(m, 0), f"class:{m}", func, insn, True))
 
+    # -- where global objects end -------------------------------------------------------
+
+    def data_uses(self):
+        """.data address -> [(function, instruction)] for every absolute operand naming it,
+        the base of an indexed operand included."""
+        out = defaultdict(list)
+        for fn in self.bx.functions.values():
+            if fn.kind != "code":
+                continue
+            for i in self.bx.insns(fn):
+                for op in i.operands:
+                    if op.type == x86.X86_OP_IMM:
+                        v = op.imm & 0xFFFFFFFF
+                    elif op.type == x86.X86_OP_MEM and op.mem.base == 0 and op.mem.segment == 0:
+                        v = op.mem.disp & 0xFFFFFFFF
+                    else:
+                        continue
+                    if self.bx.section_of(v) == ".data":
+                        out[v].append((fn.entry, i.address))
+        return out
+
+    def initializer_writes(self):
+        """Initializer -> (.data addresses it writes with an absolute operand, all it names),
+        following its own jumps and calls one level, but not into constructors."""
+        out = {}
+        for r in read_tsv(os.path.join(LABELS, "initializers.functions.tsv")):
+            init = int(r["address"], 16)
+            fns = [init]
+            for i in self.bx.insns(self.bx.functions[init]):
+                t = self.bx.call_target(i) if i.id == x86.X86_INS_CALL else \
+                    self.bx.jump_target(i) if i.id == x86.X86_INS_JMP else None
+                if t in self.bx.functions and self.bx.functions[t].namespace not in self.classes \
+                        and t not in self.ctor_class:
+                    fns.append(t)
+            written, named = set(), set()
+            for e in fns:
+                for i in self.bx.insns(self.bx.functions[e]):
+                    named.update(self.bx.data_refs(i))
+                    ops = i.operands
+                    if i.id in (x86.X86_INS_MOV, x86.X86_INS_FSTP, x86.X86_INS_FST, x86.X86_INS_FISTP) \
+                            and ops and ops[0].type == x86.X86_OP_MEM and ops[0].mem.base == 0 \
+                            and ops[0].mem.index == 0:
+                        written.add(ops[0].mem.disp & 0xFFFFFFFF)
+            out[init] = (written, named)
+        return out
+
+    def ancestors(self, cls):
+        out = {cls}
+        for b, _ in self.bases.get(cls, []):
+            out |= self.ancestors(b)
+        return out
+
+    def object_ends(self):
+        """For each global object of a class without a known size: where the next variable
+        starts. The object reaches at least the end of the last field its class uses, and
+        it stops at the first address after that which is a variable of its own:
+          label        another data label (a global object, tree, typed pointer or curated
+                       variable)
+          initializer  a dynamic initializer that names nothing inside the object writes
+                       it. Each initializer initialises one variable: the header float 0.25
+                       each file has a copy of is set by its own initializer, at 006424b0
+                       after g_UIWindowMgr and at 00687f48 after g_ClientState. An initializer
+                       that does name the object may be its inlined constructor (the one of
+                       g_DirectInputMouse only clears its field 4).
+        Addresses in between, used only from other code, are fields or variables, and the
+        size stays the lower bound. Two hints are reported with them:
+          probable     the first of them that only source files naming nothing else of the
+                       object use (files as in assign_subsystems: runs of functions that
+                       start at a dynamic initializer)
+          named        a method of the class names it with an absolute address. Not a bound:
+                       ClientState's own methods name three of its fields through
+                       g_ClientState.
+        Every global object, sized or not, is checked: no label or initializer write may lie
+        inside its extent, and the run reports how many of the addresses used inside the
+        extents would pass the probable test."""
+        uses = self.data_uses()
+        inits = self.initializer_writes()
+        code = sorted(fn.entry for fn in self.bx.functions.values() if fn.kind == "code")
+        starts = [e for k, e in enumerate(code) if k == 0 or (e in inits and code[k - 1] not in inits)]
+        named_by_file = defaultdict(set)
+        for a, us in uses.items():
+            for f, _ in us:
+                named_by_file[bisect_right(starts, f)].add(a)
+        labels = set(self.globals) | self.curated_data | self.tree_statics | LOCK_GLOBALS | set(self.slot_class)
+        for name in os.listdir(LABELS):
+            if name.endswith(".data.tsv") and name != "layouts.data.tsv":
+                labels.update(int(r["address"], 16) for r in read_tsv(os.path.join(LABELS, name)))
+        owner = {}
+        for fn in self.bx.functions.values():
+            owner[fn.entry] = self.assigned.get(fn.entry, (fn.namespace,))[0]
+        data_end = self.bx.sections[".data"][1]
+        def apart(a, g, lo):
+            """Only source files that name nothing else of [g, lo) use a."""
+            return not any(g <= b < lo and b != a
+                           for f, _ in uses[a] for b in named_by_file[bisect_right(starts, f)])
+
+        self.ends = {}
+        self.end_checks = Counter()
+        for g, cls in sorted(self.globals.items()):
+            if cls not in self.classes:
+                continue
+            lo = g + self.extent(cls)
+            found = [(a, "label", None) for a in labels if a > g]
+            for init, (written, named) in inits.items():
+                if not any(g <= a < lo for a in named):
+                    found += [(a, "initializer", init) for a in written if a > g]
+            inside = [a for a in uses if g < a < lo]
+            self.end_checks["globals"] += 1
+            self.end_checks["contradicted"] += any(a < lo for a, _, _ in found)
+            self.end_checks["inside"] += len(inside)
+            self.end_checks["inside_apart"] += sum(apart(a, g, lo) for a in inside)
+            if cls in self.sizes:
+                continue
+            nxt, how, src = min([f for f in found if f[0] >= lo], default=(data_end, "end", None))
+            between = sorted(a for a in uses if lo <= a < nxt)
+            mine = self.ancestors(cls)
+            named = {a: f for a in between for f, _ in uses[a] if owner.get(f) in mine}
+            probable = next((a for a in between if apart(a, g, lo)), None)
+            self.ends.setdefault(cls, []).append((g, nxt, how, src, between, named, probable))
+
+    def end_evidence(self, cls):
+        """The tightest of the class's globals: (most bytes, evidence)."""
+        g, nxt, how, src, between, named, probable = min(self.ends[cls], key=lambda e: e[1] - e[0])
+        why = {"label": "another data label",
+               "initializer": f"written by the dynamic initializer {src or 0:08x}",
+               "end": "the end of .data"}[how]
+        text = f"the global at {g:08x} is followed by a variable at {nxt:08x} ({why})"
+        if between:
+            text += (f"; {len(between)} addresses before it, {between[0]:08x} first, are used only by other "
+                     f"code: fields or variables")
+        if probable is not None:
+            text += (f"; probably a variable from {probable:08x} (+0x{probable - g:x}) on, which only source files "
+                     f"naming nothing else of the object use")
+        if named:
+            a, f = min(named.items())
+            text += (f"; {len(named)} of them named with an absolute address by the class's own methods, "
+                     f"e.g. {a:08x} by {f:08x}")
+        return nxt - g, text
+
     def run(self):
         self.discover()
         self.global_accesses()
@@ -892,6 +1031,7 @@ class Layouts:
         self.own_fields = {}
         for cls in self.depth_order():
             self.own_fields[cls] = self.resolve(cls, 0, self.extent(cls))
+        self.object_ends()
         self.write()
 
     def standalone_pointers(self, trees):
@@ -953,13 +1093,22 @@ class Layouts:
             f.write("class\tsize\tevidence\n" + gen)
             for cls, ext, known, _, _ in sorted(report):
                 if not known:
-                    f.write(f"{cls}\t{ext}\testimated: end of the last field the class or its bases use\n")
+                    ev = "estimated: end of the last field the class or its bases use"
+                    if cls in self.ends:
+                        most, text = self.end_evidence(cls)
+                        ev += f"; at most {most}: {text}"
+                    f.write(f"{cls}\t{ext}\t{ev}\n")
         with open(os.path.join(EXPORTS, "Ragexe.exe.layouts.tsv"), "w", encoding="utf-8") as f:
-            f.write("class\tsize\tsize_source\tfields\tcovered_bytes\tcoverage\tindexed_bases\tnotes\n")
+            f.write("class\tsize\tsize_source\tmax_size\tfields\tcovered_bytes\tcoverage\tindexed_bases\tnotes\n")
             for cls, ext, known, nf, cov in sorted(report):
                 idx = ",".join(f"0x{o:x}" for o, _ in self.indexed[cls].most_common(6))
-                f.write(f"{cls}\t{ext}\t{'new' if known else 'estimated'}\t{nf}\t{cov}\t{min(cov, ext) / ext:.2f}\t"
-                        f"{idx}\t{' | '.join(sorted(set(self.notes[cls])))}\n")
+                notes = sorted(set(self.notes[cls]))
+                most = ext if known else ""
+                if cls in self.ends:
+                    most, text = self.end_evidence(cls)
+                    notes.insert(0, text)
+                f.write(f"{cls}\t{ext}\t{'new' if known else 'estimated'}\t{most}\t{nf}\t{cov}\t"
+                        f"{min(cov, ext) / ext:.2f}\t{idx}\t{' | '.join(notes)}\n")
         with open(os.path.join(LABELS, "methods.functions.tsv"), "w", encoding="utf-8") as f:
             f.write("address\tnamespace\tname\tcalling_convention\tevidence\n" + gen)
             for t, node in sorted(self.tree_inits.items()):
@@ -1000,6 +1149,10 @@ class Layouts:
         print(f"non-virtual methods assigned: {len(self.assigned)} ({dict(by_owner)}) in {self.rounds} rounds; "
               f"_Tree::_Init instances: {len(self.tree_inits)}, tree constructors: {len(self.tree_ctors)}, "
               f"global trees: {len(trees)}")
+        c = self.end_checks
+        print(f"global objects' ends: {c['globals']} objects, {c['contradicted']} with a label or initializer "
+              f"write inside their extent; of the {c['inside']} addresses used inside the extents, "
+              f"{c['inside_apart']} pass the probable-variable test")
         sized = [r for r in report if r[2]]
         print(f"classes with layouts: {len(report)} ({len(sized)} sized by new, {len(report) - len(sized)} estimated)")
         print(f"fields written: {sum(r[3] for r in report)}")

@@ -17,10 +17,10 @@ Every function of the game's own code has a subsystem in the ledger's `subsystem
 | `res` | 672 | 127,998 | the GRF archive (`CGPak`), `ResourceManager`, every file-backed resource type (`CRes` and its 15 subclasses: sprites, acts, models, maps, palettes, waves), `DataFile`, `XmlDocument`, JPEG decoding |
 | `render` | 401 | 71,000 | DirectDraw and Direct3D 7 (`C3dDevice`, `SceneRenderer`), surfaces and textures, render primitives, GDI drawing onto surfaces, fonts, Bink movies, screenshots |
 | `world` | 1,154 | 428,935 | the map (`CWorld`, `C3dGround`, scene nodes), the camera (`CView`), the objects placed in the world (the `CGameObject` hierarchy: actors, items, effects), path finding |
-| `net` | 80 | 24,451 | `CConnection` and `CRagConnection`, Winsock start-up, the server-sent packet filter code |
+| `net` | 85 | 27,335 | `CConnection` and `CRagConnection`, their byte queues (`PacketQueue`), Winsock start-up, the server-sent packet filter code |
 | `ui` | 1,866 | 500,449 | the 153 `UIWindow` classes, `UIWindowMgr`, skins, window snapping, the IME, Thai line breaking, the cursor object (`CMousePointer`) |
 | `audio` | 38 | 4,751 | the Miles Sound System wrapper, DirectSound and mixer set-up, `CSoundMaker` |
-| `game` | 1,573 | 472,527 | the login and game modes (`CLoginMode`, `CGameMode`), the packet dispatchers and handlers, `ClientState` (character, inventory, options, message tables), guild state, item and skill tables, the chat filter, the mini-game engine (`mg::`) |
+| `game` | 1,568 | 469,643 | the login and game modes (`CLoginMode`, `CGameMode`), the packet dispatchers and handlers, `ClientState` (character, inventory, options, message tables), guild state, item and skill tables, the chat filter, the mini-game engine (`mg::`) |
 
 The library code is `crt` (728 functions, the static MSVC 6 C runtime from `0x5b325c`)
 and `stl` (393, Dinkumware templates in a `std` namespace). Thunks and exception funclets
@@ -33,7 +33,7 @@ take the subsystem of the function they belong to.
 row per function with the rule and evidence that placed it.
 
 1. **Seeds.**
-   - 3,116 functions are seeded by their class or namespace. A class rule also covers the
+   - 3,124 functions are seeded by their class or namespace. A class rule also covers the
      classes derived from it (RTTI bases): `UIWindow` covers all 153 windows and controls.
    - 80 by an address range: three source files identified by their strings (math, frame
      timer, client configuration).
@@ -42,9 +42,9 @@ row per function with the rule and evidence that placed it.
      saves window positions in the registry just as `WinMain` reads its settings there.
    - 3 by single-function rules.
 2. **Propagation**, repeated until nothing changes, strongest rule first:
-   - *neighbours* (2,394): the nearest assigned functions before and after it agree.
-   - *initializer* (47): a dynamic initializer takes the subsystem of the code after it.
-   - *callers* (268): every assigned function that references it agrees.
+   - *neighbours* (2,400): the nearest assigned functions before and after it agree.
+   - *initializer* (45): a dynamic initializer takes the subsystem of the code after it.
+   - *callers* (256): every assigned function that references it agrees.
    - *shared* (8): it is referenced from several subsystems, so it is a `core` helper.
    - *callees* (22): everything it references agrees, leaving out shared helpers.
    - *previous* (23): nothing references it, so it takes the function before it.
@@ -54,9 +54,9 @@ other seeds and reports how often each rule agrees with the class:
 
 | Rule | Agrees with the class |
 |------|----------------------:|
-| neighbours | 99.8% of 3,032 |
-| callees | 95.3% of 1,700 |
-| callers | 88.9% of 1,597 |
+| neighbours | 99.8% of 3,040 |
+| callees | 95.3% of 1,705 |
+| callers | 88.9% of 1,605 |
 
 The linker lays out each translation unit's functions together, and a small helper sits
 with the file that defines it, whoever calls it. Ordering callers first split the
@@ -66,7 +66,7 @@ renderer's file (the fog check, the frame counter, the vertex helpers) four ways
 functions (`static_init_050` directly precedes `C3dModelRes::C3dModelRes`). Every
 initializer in the C++ initializer table therefore starts a file, which gives 141 runs
 of code. A run can still hold several files that have no initializer of their own.
-- 121 runs have a single subsystem.
+- 120 runs have a single subsystem.
 - Ten mix in more than 300 bytes of another; most of them hold several classes. The
   tool lists them on each run.
 - These runs are the natural first cut of the port's source files.
@@ -343,6 +343,40 @@ Each subsystem is reached through global objects; nothing passes them as argumen
 | `g_ThaiWordBreaker` | `0x67bf98` | `ThaiWordBreaker` | Thai line breaking |
 | `g_itemInfoById`, `g_cardInfoById`, `g_skillInfoById`, `g_metalProcessItems` | `0x67cc20`–`0x67ccb8` | `std::map` | game data tables |
 | resource prototypes | `0x628c00`–`0x641af0` | the 15 `CRes` subclasses | 17 static objects, each registered under a directory and extension (`0x431f70` registers `palette\` and `pal`) |
+
+**How big they are.** None of these classes is ever created with `new`, so no
+`operator new` call gives their size. `tools/recover_layouts.py` brackets each one instead:
+- **At least:** the end of the last field the class's own functions use.
+- **At most:** the start of the next address that is a variable of its own. That is
+  either another data label, or an address written by a dynamic initializer that names
+  nothing inside the object. Each initializer sets up one variable.
+
+Addresses between the two bounds that only other code uses could be fields or variables.
+They are listed in `analysis/exports/Ragexe.exe.layouts.tsv` and left out of the struct.
+
+| Object | At least | At most | What starts at the upper bound |
+|--------|--:|--:|--------|
+| `g_ClientState` | 6,356 | 6,360 | a float set to 0.25 by `0x586800` |
+| `g_UIWindowMgr` | 1,152 | 1,288 | a float set to 0.25 by `0x4a7040` |
+| `g_C3dDevice` | 572 | 616 | `g_prevFontByDc` |
+| `g_CRagConnection` | 204 | 204 | `g_intMapNil`, the nil node its length map shares with `CKeyPad`'s |
+
+Several files set up their own copy of this float, so it is probably a `static` in a
+shared header. In both files, its initializer runs just before the file's object is
+constructed. Nothing uses the bytes between `UIWindowMgr`'s last field and its float.
+
+Nine addresses after `C3dDevice` stay undecided:
+- `CGameMode::OnInit` sets `+0x23c` to a colour that depends on the map, and
+  `OnFrame` passes it to `C3dDevice::method_00405140` every frame.
+- `C3dDevice::method_00405f20` writes `+0x240` and `+0x244` by absolute address, which
+  hints at variables rather than fields. `ClientState`'s own methods do the same with
+  three of its fields, though, so that cannot be a bound.
+- From `+0x248` on, only the display-enumeration file (from `0x406100`) uses them, and
+  it names nothing else of the object. The tool reports this as the probable end, a test
+  that only 2 of the 342 addresses used inside the global objects would pass.
+
+The file's `.data` has no non-zero byte after `0x6239cc`; `g_C3dDevice` (`0x6239d0`) starts
+the zero-filled part.
 
 Scalars that the main loop shares:
 
