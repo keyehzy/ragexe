@@ -71,9 +71,22 @@ tests/        unit, emulation-oracle, spec-conformance and screenshot-regression
 ## 4. Method
 
 ### 4.1 Function ledger
-`analysis/ledger.sqlite` has one row per function: address, size, class, library flag,
-and status `raw → named → typed → specced → ported → verified`.
-Progress is reported as **% of non-library code bytes verified**, not file count.
+`analysis/ledger.tsv` has one row per function: entry, size, kind, library flag,
+subsystem, status, namespace, name and notes. Status runs
+`raw → named → typed → specced → ported → verified`.
+It is a sorted text file, so every status change is a readable diff in git.
+`tools/ledger.py` has three commands:
+- `sync` refreshes names and sizes from the Ghidra export and keeps everything set by hand.
+- `set` changes rows by address or address range.
+- `report` prints progress.
+
+Kind is one of:
+- `code`: a real function.
+- `funclet`: an EH `Unwind@`/`Catch@` fragment, ported as part of its parent function.
+- `thunk`: an import stub.
+
+Only non-library `code` counts toward progress, which is reported as
+**% of those bytes verified**, not file count.
 
 ### 4.2 From decompilation to C++
 For each class:
@@ -263,7 +276,7 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
 
 ## 7. Status
 
-### M0 progress
+### M0: done
 - [x] JDK 21: Homebrew `openjdk@21` was already installed. `tools/ghidra/analyze.sh` sets `JAVA_HOME` to it.
 - [x] Ghidra headless analysis: project in `analysis/ghidra/` (gitignored), about 1 minute per run.
   `ExportInventory.java` writes `analysis/exports/Ragexe.exe.{functions,classes}.tsv` and `.summary.txt`.
@@ -271,12 +284,17 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   507 files into `original/install/` under their real names (`data.grf`, 10 `.gpf`/`.rgz` patches, `BGM/`,
   `skin/default`, `skin/Scribbling Kid`). Sizes are checked against the MSI. SHA-256 manifest: `analysis/manifest.sha256`.
 - [x] `git init` (branch `main`) with `.gitignore` for original files, game data, the Ghidra project and decompiler output.
-- [ ] Ledger database seeded from `functions.tsv`.
+- [x] Ledger seeded: `analysis/ledger.tsv`, 10,138 rows. The breakdown:
+  - 6,486 `code` functions (1.81 MB), of which 54 are FID-recognized library code.
+  - **6,432 functions (1,805,976 bytes) left to port.**
+  - 3,603 EH funclets and 49 thunks, excluded from progress.
+  - Every function is `raw` except `entry`. The FID matches cluster at `0x005b…–0x005c…`,
+    which suggests the static CRT sits at the end of `.text`.
 - Dropped: running the original under Wine or a VM. Verification is static plus the
   emulation oracle (section 4.3), and the runtime-code check moved to M1.
 
-### Next actions
-1. Seed the ledger from `functions.tsv` (finishes M0).
-2. M1: the RTTI → Ghidra class and vtable script, using the 295 locators found above.
-3. M1: hand-label the VC6 CRT/STL, since FID does not cover it.
-4. M1: emulation oracle harness and the static runtime-code check.
+### Next actions (M1)
+1. The RTTI → Ghidra class and vtable script, using the 295 locators found above.
+2. Hand-label the VC6 CRT/STL, since FID does not cover it. Start from the
+   `0x005b…–0x005c…` cluster and mark it with `ledger.py set LO-HI --library 1`.
+3. Emulation oracle harness and the static runtime-code check.
