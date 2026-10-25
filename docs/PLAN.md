@@ -21,6 +21,8 @@ for preservation and study.
 
 Step 1 of the brief (unpacking) is not needed. One check remains: compare a memory
 dump at the entry point against the file, to rule out code that is written at runtime.
+This is now done statically in M1, since the original is not run: review every call
+site of `VirtualProtect`/`VirtualAlloc` and every write into the `.text` range.
 
 ### Dependencies to replace
 
@@ -60,10 +62,10 @@ dump at the entry point against the file, to rule out code that is written at ru
 ```
 original/     gitignored: installer, extracted client, SHA-256 manifest
 analysis/     Ghidra project (gitignored), exported reports, function ledger
-tools/        pe_survey.py, Ghidra scripts, ledger tooling, oracle DLL, stub server
+tools/        pe_survey.py, Ghidra scripts, ledger tooling, emulation oracle, stub server
 docs/         this plan, formats/, protocol/, architecture notes
 src/          the new client: platform/ core/ res/ render/ audio/ net/ ui/ world/ game/
-tests/        unit, oracle-diff, packet-trace and screenshot tests
+tests/        unit, emulation-oracle, spec-conformance and screenshot-regression tests
 ```
 
 ## 4. Method
@@ -86,15 +88,28 @@ For each class:
 6. Verify (section 4.3) and mark the function `verified`.
 
 ### 4.3 Verification oracles
-- **Oracle DLL.** The original runs under Wine or a Windows VM. A proxy DLL
-  (in place of `ijl15.dll` or `dbghelp.dll`) calls the original's own functions by
-  address, such as the resource loaders, path finder and text layout, and dumps the
-  results as JSON. Our port must produce the same output.
-- **Packet traces.** Both clients talk to our stub server (M6). Their request byte
-  streams must match for scripted scenarios.
-- **Screenshots.** Fixed camera, fixed seed, same map. Compare with a perceptual
-  threshold, since GPU output will not be bit-exact against D3D7.
+The original is never run as a program, not under Wine and not in a VM. Verification
+is static, plus emulation of single functions.
+- **Emulation oracle.** `tools/emu/` maps `Ragexe.exe` into a Unicorn x86 emulator and
+  calls one of the original's functions by address, with its inputs set up in emulated
+  memory. Imports are stubbed: heap and `operator new` go to a bump allocator, file I/O
+  reads from `original/install/`, and the D3D/DirectDraw COM interfaces are fakes that
+  record the calls made to them. The port must give the same result on the same input.
+  This works best for self-contained code: GRF table and file decoding, resource
+  parsers, path finding, packet builders, text layout, and the CPU-side geometry and
+  render-state setup for a draw.
+- **Spec conformance.** Packets the port sends are checked against the length table and
+  layouts recovered from the binary. The stub server is checked against the
+  client's own parsers.
+- **Draw-call comparison.** Where the emulator can run a scene-building function
+  (ground, model, sprite), the recorded D3D7 calls (vertices, texture, blend and alpha
+  state) are compared with what the port submits to `RenderDevice`. Final pixels are
+  checked by review and then pinned as our own regression baselines.
 - **Fuzzing.** libFuzzer/ASan on every resource parser. The 2003 code trusted its input.
+
+Without a live run of the original, three things cannot be checked: frame timing as a
+whole, the interplay between subsystems, and final pixel output. These are verified by
+reading the code, not by measurement.
 
 ### 4.4 Recovering binary structure
 - Library code: Ghidra FID first. Where it misses VC6 coverage, label the CRT/STL by
@@ -125,12 +140,13 @@ Effort is for one engineer full time, with AI assistance. Treat it as rough.
   auto-analysis and keep the scripts in `tools/ghidra/`.
 - Read the MSI `File`/`Directory` tables to get the real file names and install layout
   back. The cab stores files under MSI keys such as `_003_10_30gdata_yuno_new_1.g`.
-- Dynamic environment: run the original exe under Wine (Rosetta) or a Windows VM until
-  it reaches the login screen. Attach a debugger (x32dbg in the VM, or `winedbg`).
-- Runtime-code check from section 1.
-- **Exit:** analyzed Ghidra project; the original boots to login; the ledger exists.
+- **Exit:** analyzed Ghidra project; install tree and manifest; the ledger exists.
 
 ### M1 — Static map of the binary (4–6 weeks)
+- Static runtime-code check from section 1.
+- Emulation oracle harness (`tools/emu/`): load the PE, stub the imports, call a function
+  by address, read back the results. First target: a small pure function such as a
+  string or path helper, to prove the harness works.
 - Library code identified; RTTI classes, hierarchy and vtables generated; constructors,
   destructors and object sizes found for all 293 classes.
 - Every function assigned to a subsystem: core, resources, render, world, net, UI,
@@ -156,8 +172,9 @@ Effort is for one engineer full time, with AI assistance. Treat it as rough.
   `CActRes`, `C3dAttr`, `CGndRes`, `C3dWorldRes`, `C3dModelRes`, `CRmaRes`,
   `CImfRes`, `CEZeffectRes`, `CEmblemRes`, `CWave`, the text tables, `clientinfo.xml`.
 - `ragres` command-line tool: list, extract and dump every asset type.
-- **Exit:** every entry in `data.grf` and the `.gpf` patches parses; oracle diffs are
-  clean on a sample set; parsers have run under the fuzzer.
+- **Exit:** every entry in `data.grf` and the `.gpf` patches parses; on a sample of
+  each asset type, our loaders' output matches the original loaders run in the
+  emulation oracle; parsers have run under the fuzzer.
 
 ### M4 — Renderer (8–10 weeks)
 - Recover how the original drives D3D7 and DirectDraw (`C3dDevice`, `CTexture`,
@@ -168,7 +185,9 @@ Effort is for one engineer full time, with AI assistance. Treat it as rough.
   (`C3dGround`, `C3dGround15`) → RSM models (`C3dNode`) → water → billboard sprites →
   minimap, fog, lighting.
 - `ragview` tool: a map and model viewer.
-- **Exit:** reference maps match screenshots of the original within the threshold.
+- **Exit:** for reference maps, the vertices and render states the port submits match the
+  D3D7 calls recorded from the original's scene-building functions in the emulator;
+  rendered frames pass review and become regression baselines.
 
 ### M5 — Actors and animation (6–8 weeks)
 - The `CRenderObject → CGameActor → CPc/CNpc/CPlayer/CItem/CCorpse` hierarchy.
@@ -178,7 +197,7 @@ Effort is for one engineer full time, with AI assistance. Treat it as rough.
 - Granny sub-milestone: reverse `granny2.dll` only as far as these 7 models need
   (mesh, skeleton, one animation track) and write a CPU skinning path. Placeholders until then.
 - **Exit:** offline sandbox: click-to-move on a map with every actor type animating;
-  path finder output matches the oracle.
+  path finder output matches the emulation oracle.
 
 ### M6 — Network and protocol (6–8 weeks)
 - `CConnection`/`CRagConnection`: framing, the packet-length table (generated into
@@ -188,9 +207,10 @@ Effort is for one engineer full time, with AI assistance. Treat it as rough.
   parses: login, server list, char select and create, map enter, spawn, walk, chat,
   a few scripted NPCs and monsters.
 - Port the packet handlers in `CGameMode` and `CLoginMode`.
-- **Exit:** both the original and the port play the same scenario against the stub
-  server (login → create character → enter map → walk → chat → NPC dialog → logout),
-  with identical client→server traces.
+- **Exit:** the port plays a scenario against the stub server (login → create character
+  → enter map → walk → chat → NPC dialog → logout). Every packet it sends matches the
+  recovered length table and layout, and byte-matches the original's packet builder
+  for the same input in the emulation oracle.
 
 ### M7 — UI framework and windows (10–14 weeks; the largest milestone)
 - `UIWindow` base, `UIWindowMgr`, focus, z-order, dragging, modal handling, and the
@@ -201,13 +221,16 @@ Effort is for one engineer full time, with AI assistance. Treat it as rough.
   (basic info, chat, shortcut bar, minimap) → items, equipment, skills, status,
   options → NPC dialogs, shops, trade, merchant shops → party, guild, friends, whisper
   → the rest (pet, mini-games, web browser stub, …).
-- **Exit:** all ~170 `UI*` classes ported, each with a screenshot test.
+- **Exit:** all ~170 `UI*` classes ported. Each one's layout constants and bitmap names
+  are checked against the spec, and it has a screenshot regression test against a
+  reviewed baseline.
 
 ### M8 — Audio and video (2–3 weeks)
 - The sound manager on miniaudio: streamed BGM, 3D positional effects with the
   original's distance and volume rules, ADPCM WAV, option sliders.
 - Optional Bink intro via FFmpeg.
-- **Exit:** sound events in the scenario match the original (logged by the oracle DLL).
+- **Exit:** every sound trigger in the ported handlers maps to a call site in the original
+  with the same file, volume and position rules.
 
 ### M9 — Effects and remaining gameplay (8–12 weeks)
 - The effect system (`CRagEffect`, `CEffectPrim`, `CEffectMaker`, `CMsgEffect`,
@@ -231,9 +254,10 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
 |---|---|
 | Outside knowledge breaks the clean room | Address-citation rule (section 2); specs reviewed before code |
 | No server from 2003 to test against | The stub server comes only from client code; the original exe validates it |
-| Running the original on Apple Silicon | Wine with Rosetta first, x86 Windows VM as fallback; only M0 and the oracles need it |
+| The original is never run, so there is no ground truth for whole frames, timing or final pixels | Emulation oracle for single functions and recorded D3D calls; careful review of timing and frame-loop code; reviewed regression baselines |
+| Emulation harness becomes expensive for functions with deep state | Limit it to self-contained functions; build state from parsed resources instead of emulating start-up |
 | Granny and Bink are proprietary | Limited RE of the shipped DLL for the 7 models; the intro video is optional |
-| D3D7 output is not bit-exact on modern GPUs | Perceptual screenshot threshold; reproduce blend and alpha rules exactly |
+| D3D7 output is not bit-exact on modern GPUs | Compare draw calls, not pixels; reproduce blend and alpha rules exactly |
 | Fidelity vs. readable code | Quirks isolated in `compat::`; everything else idiomatic |
 | Legal | Private repo; never distribute `original/`, data files or decompiler output |
 
@@ -247,11 +271,12 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   507 files into `original/install/` under their real names (`data.grf`, 10 `.gpf`/`.rgz` patches, `BGM/`,
   `skin/default`, `skin/Scribbling Kid`). Sizes are checked against the MSI. SHA-256 manifest: `analysis/manifest.sha256`.
 - [x] `git init` (branch `main`) with `.gitignore` for original files, game data, the Ghidra project and decompiler output.
-- [ ] Run the original under Wine or a Windows VM until it reaches the login screen. Attach a debugger.
-- [ ] Runtime-code check (needs the item above).
 - [ ] Ledger database seeded from `functions.tsv`.
+- Dropped: running the original under Wine or a VM. Verification is static plus the
+  emulation oracle (section 4.3), and the runtime-code check moved to M1.
 
 ### Next actions
-1. Set up the dynamic environment (Wine through Rosetta, or an x86 Windows VM).
+1. Seed the ledger from `functions.tsv` (finishes M0).
 2. M1: the RTTI → Ghidra class and vtable script, using the 295 locators found above.
 3. M1: hand-label the VC6 CRT/STL, since FID does not cover it.
+4. M1: emulation oracle harness and the static runtime-code check.
