@@ -309,7 +309,7 @@ ModelInstance	Global	1	0
 ModelResMesh	Global	1	0
 ModelResNode	Global	1	0
 SceneGraphNode	Global	2	0
-SceneRenderer	Global	5	0
+SceneRenderer	Global	11	0
 ThaiLexicon	Global	2	0
 TriangleSet	Global	2	0
 VertexBuffer	Global	4	0

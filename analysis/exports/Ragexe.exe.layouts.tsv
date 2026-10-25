@@ -92,7 +92,7 @@ RenderQuad	196	new	4	16	0.08
 RenderTriangle	156	new	3	12	0.08		
 ResourceManager	172	estimated	35	134	0.78		3 overlapping uses dropped
 SceneGraphNode	128	new	19	73	0.57		
-SceneRenderer	672	new	110	565	0.84		
+SceneRenderer	672	new	114	581	0.86		
 SnapObject	60	new	3	60	1.00		
 TextureCache	16	estimated	1	16	1.00		2 overlapping uses dropped
 ThaiLexicon	300	new	11	41	0.14		

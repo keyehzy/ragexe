@@ -141,3 +141,56 @@ address	namespace	name	calling_convention	evidence
 0053eba0	Global	HandlePacket_01C7	__thiscall	case 0x01C7 of the login-mode dispatcher CLoginMode::method_0053cfa0 (index table 0053d1d8, id - 0x187); calls CRagConnection::SetExpectedModules
 # CGPak
 004dec00	CGPak	GetFileName	__thiscall	(dst, path): copies the part of path after its last '\' or '/' (all of it when there is none) to dst; checked against that rule in the emulation oracle (tests/emu/test_oracle.py)
+# Main loop, modes and frame timing (docs/architecture.md)
+005b17a0	Global	CreateMainWindow		(instance, show command): RegisterClassA with WindowProc, AdjustWindowRect, CreateWindowExA; "Window Creation Failed"; stores the window handle at 00688a60
+005b1130	Global	WindowProc	__stdcall	the window class procedure set by CreateMainWindow; WM_CLOSE sets the quit flag 00688a68, WM_NCACTIVATE and the menu and size-move loops call SetAppActive, WM_USER+1 goes to CRagConnection::OnSocketEvent, keys go to MoviePlayer::OnKey and UIWindowMgr
+005b1050	Global	PumpMessages		PeekMessageA(PM_REMOVE), TranslateMessage and DispatchMessageA until the queue is empty; VK_PROCESSKEY goes to the language object's IME handler; called once per frame by both modes
+005b10e0	Global	SetAppActive		(active): stores it at 0061ec54, SetPriorityClass NORMAL_PRIORITY_CLASS or IDLE_PRIORITY_CLASS, and acquires or unacquires the DirectInput mouse (0041e8f0, IDirectInputDevice slots 7 and 8)
+005b1910	Global	LoadVideoSettings		reads ISFULLSCREENMODE, WIDTH, HEIGHT and BITPERPIXEL from the registry; WinMain runs setup.exe and waits while it fails
+005b1d20	Global	InitAudioAndDevice		starts Miles (005b0710, "Audio System Init Failed") when 00688508 is set, then C3dDevice::Init ("Cannot init d3d!")
+004cc110	Global	ShowErrorMessage		(text): 00404200, then MessageBoxA(main window, text, "Error"); called from start-up and device failures
+004c1a10	Global	CrashHandler	__stdcall	WinMain passes it to SetUnhandledExceptionFilter; loads dbghelp.dll ("Can't find DbgHelp.DLL") to describe the fault
+004060f0	Global	DebugLog		empty in this build; its callers pass printf formats ("WSAErr == %d", "%s model not found.")
+00420350	Global	ResetFrameTimer		stores timeGetTime() at 00628bfc; called by WinMain, by WindowProc on WM_NCACTIVATE and at the end of CGameMode::OnInit
+00420360	Global	SetFrameRate		(fps): resets the timer and sets the step period 00628bf8 to 1000 / fps ms; WinMain passes 60
+00420380	Global	IsDrawFrame		returns 1; both modes test it before drawing
+00420390	Global	GetFrameStepsDue		returns the whole periods elapsed since the timer base and advances the base by them; returns 1 when the flag 0061ec58 (initially 1, toggled by a chat command in CGameMode::method_00516a80) is clear
+00418b60	Global	InitWinsock		WSAStartup(0x101) ("Failed to load Winsock library"), then LoadLibraryA("ws2_32.dll") and GetProcAddress of send and recv into 006288d4 and 006288d0 ("Module Hooking Error")
+00418770	CRagConnection	OnSocketEvent	__thiscall	(socket, lParam): WindowProc's WM_USER+1 handler; logs the WSAGETSELECTERROR code by name, else dispatches FD_READ (00418aa0, recv in 2 KB reads), FD_WRITE (00418a30), FD_CONNECT and FD_CLOSE
+00524d80	Global	DispatchGamePackets		CGameMode::OnFrame calls it once per frame: CRagConnection::RecvPacket until empty, then a handler per packet through the index table 00526188 (id - 0x73)
+0053cfa0	CLoginMode	DispatchPackets	__thiscall	CLoginMode::OnFrame calls it once per frame: CRagConnection::RecvPacket until empty, then a handler per packet: ids 0x69-0x74 through the jump table 0053d190, 0x81 directly, 0x187-0x1dc through the index table 0053d1d8 (id - 0x187)
+004cb3b0	Global	MusicFadeThread	__stdcall	_beginthreadex procedure (target volume): returns at once when ClientState +0x648 is 0; steps the stream volume (005b0ac0) by one every 10 ms up to the target, or down to 0 and pauses the stream when the target is 0; a newer call cuts a running fade short and waits for it through the plain counter at 0067ca4c
+004cb520	Global	FadeOut		(show logo): starts MusicFadeThread(0) and draws the frame to black over 255 ms, with rag_logo.bmp when asked; the modes' Run calls it on exit
+004c33a0	Global	LazyModelLoadThread	__stdcall	CreateThread procedure from 004c3ab0, at THREAD_PRIORITY_HIGHEST: loads the map's remaining models through the ResourceManager into ModelInstances ("Load Model : Lazy Model Load Complete")
+004c5200	Global	JoinModelLoadThread		WaitForSingleObject on the loader thread handle at 0067bf90, then clears it
+004b1460	Global	EffectTestThread	__stdcall	started by UIWindowMgr's key handler on Ctrl+P when ClientState::method_00597950(8) is set: launches effect ids 0 to 0x9f on the object at CWorld +0x3c, with growing Sleeps between them
+# CMode and its subclasses: the slots ModeSwitcher::Run calls (vf01 with the map name, vf02, vf03, then the deleting destructor)
+004cb2c0	CMode	OnInit	__thiscall	vf01; empty in CMode
+0053b5a0	CLoginMode	OnInit	__thiscall	vf01: resets the login state, plays bgm_01.mp3, applies the first state through OnChangeState
+0050cfb0	CGameMode	OnInit	__thiscall	vf01 (map name): creates CWorld (0xf4) and CView (0x1c0), loads the map (004c3ab0) and picks the map's clear colour (00623c0c)
+004cb2d0	CMode	Run	__thiscall	vf02; empty in CMode
+0053b720	CLoginMode	Run	__thiscall	vf02: until the run flag +0x14 is cleared or the quit flag is set, applies a pending state (+0xc) through OnChangeState and calls OnFrame; then FadeOut(0)
+0050d5d0	CGameMode	Run	__thiscall	vf02: the same loop as CLoginMode::Run
+004cb2e0	CMode	OnExit	__thiscall	vf03; empty in CMode
+0053ba70	CLoginMode	OnExit	__thiscall	vf03: stops the samples (005b0c70) and releases resources (004e0540)
+0050d630	CGameMode	OnExit	__thiscall	vf03: stops the samples, deletes the world and view, releases the map's resources and unused textures (TextureCache::PurgeUnused)
+004cb2f0	CMode	OnFrame	__thiscall	vf04; empty in CMode
+0053b810	CLoginMode	OnFrame	__thiscall	vf04: PumpMessages, DispatchPackets, mouse input and UI, then the UI, cursor and fade, and Present
+0050d400	CGameMode	OnFrame	__thiscall	vf04: PumpMessages, DispatchGamePackets, per-frame game logic, GetFrameStepsDue world steps, then the scene, UI, cursor and fade, and Present
+004cb380	CMode	SendMsg	__thiscall	vf05 (message, ...): 2 quits through ModeSwitcher::Quit, 0x4b requests a screenshot (+0x2c)
+0053d230	CLoginMode	SendMsg	__thiscall	vf05
+0051d990	CGameMode	SendMsg	__thiscall	vf05: the game's command handler, a 23 KB switch; WindowProc calls it when OnSocketEvent fails
+004cb300	CMode	OnChangeState	__thiscall	vf06; empty in CMode
+0053baa0	CLoginMode	OnChangeState	__thiscall	vf06: opens the windows of the new login state (+0x4), a switch over the states with UIWindowMgr calls
+00515f60	CGameMode	OnChangeState	__thiscall	vf06; empty
+004cb480	CMode	DrawFadeIn	__thiscall	when +0x10 is set, starts MusicFadeThread with ClientState +0x648; draws black with alpha falling over 255 ms
+004cb830	CMode	DrawCursor	__thiscall	the mouse cursor from cursors.act and cursors.spr, its frame taken from the time since +0x24 in 24 ms units
+004cba20	CMode	SaveScreenshot	__thiscall	when +0x2c is set: stamps the date, saves ScreenShot\screen<name><nnn>.jpg (or .bmp with Ctrl) and reports "is Saved"
+# SceneRenderer: every caller loads ECX from g_pSceneRenderer
+0040dca0	SceneRenderer	ClearFrame	__thiscall	(black): C3dDevice::method_00405140(0xff000000), else C3dDevice::method_00405180
+0040dcf0	SceneRenderer	BeginScene	__thiscall	copies the device's surfaces and size from g_C3dDevice, then IDirect3DDevice7::BeginScene (slot 5) on +0x78; true on success
+0040dd30	SceneRenderer	EndScene	__thiscall	IDirect3DDevice7::EndScene (slot 6) on +0x78
+0040dd40	SceneRenderer	LockBackBuffer	__thiscall	IDirectDrawSurface7::Lock (slot 25) on +0x7c with a 0x7c-byte DDSURFACEDESC2; stores the pitch and pointer
+0040ddb0	SceneRenderer	UnlockBackBuffer	__thiscall	IDirectDrawSurface7::Unlock (slot 32) on +0x7c
+00410c50	SceneRenderer	Present	__thiscall	(wait): counts the frame at +0x34 and +0x3c, then C3dDevice::Present
+00405040	C3dDevice	Present	__thiscall	(wait): in full screen IDirectDrawSurface7::Flip (slot 11, DDFLIP_WAIT); in a window a Blt (slot 5) to the client area, after IDirectDraw7::WaitForVerticalBlank (slot 22) when 0061ec58 is set

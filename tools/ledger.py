@@ -11,6 +11,9 @@ usage:
   ledger.py classify [--ledger TSV]
       re-applies the library rules: code at or above LIBRARY_START is the static C
       runtime (crt); code in a std namespace anywhere is the standard library (stl).
+
+The subsystem of the game's own functions is written by tools/assign_subsystems.py from
+the rules in analysis/subsystems.tsv; add a function rule there rather than using set.
 """
 import argparse
 import os
@@ -203,6 +206,9 @@ def cmd_set(args):
         raise SystemExit(f"subsystem must be one of {', '.join(SUBSYSTEMS)}, or - to clear it")
     rows = read_tsv(args.ledger)
     targets = parse_targets(args.targets, rows)
+    if args.subsystem and any(r["library"] != "1" for r in targets):
+        raise SystemExit("the subsystem of game code comes from analysis/subsystems.tsv "
+                         "(tools/assign_subsystems.py); add a function rule there")
     for r in targets:
         if args.status:
             if r["kind"] != KIND_CODE:

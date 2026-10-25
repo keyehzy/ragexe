@@ -1,0 +1,96 @@
+rule	key	subsystem	evidence
+# Curated subsystem rules, read by tools/assign_subsystems.py (docs/architecture.md says
+# what each subsystem covers). Rules, strongest first:
+#   function ADDR      that function
+#   class NAME         the methods of NAME, and of the classes derived from it (RTTI bases)
+#                      that have no class or namespace rule of their own
+#   namespace PREFIX   every namespace that is PREFIX or starts with PREFIX::
+#   range LO-HI        a function in the global namespace in [LO, HI), for a whole source
+#                      file; files start at the dynamic initializers (static_init_*)
+#   import DLL[!NAME]  a function in the global namespace that uses the import; only
+#                      imports that one subsystem owns (the registry, for one, is used by
+#                      the UI for window positions as well as by WinMain for settings)
+# Functions no rule reaches get their subsystem from their callers, their neighbours in
+# the address space and their callees.
+class	ModeSwitcher	core	creates and runs CLoginMode or CGameMode by mode number
+class	CController	core	input devices; CKeyPad derives from it
+class	KeyPadDispatcher	core	passes the current input record to every CKeyPad
+class	DirectInputMouse	core	DirectInputCreateA, the SysMouse device
+class	CLanguage	core	code page and text handling per service language (CLanguageTC, CLanguageTH)
+class	CRes	res	base of every file-backed resource (sprites, acts, models, maps, waves, palettes)
+class	CGPak	res	the GRF archive (CSakGPak derives from it)
+class	ResourceManager	res	resource cache keyed by name, filled from ResNameTable.txt
+class	DataFile	res	reads a file through the archive or from disk
+class	XmlDocument	res	clientinfo.xml
+class	ModelResNode	res	node of a C3dModelRes
+class	ModelResMesh	res	mesh of a ModelResNode
+class	AnimModelResNode	res	node of a C3dAnimModelRes
+class	GrannyMotionTable	res	loads model\3dmob*.gr2 animations into a table
+class	CDC	render	GDI device context drawn onto a surface (CDCBitmap, CDCSurface)
+class	CSurface	render	DirectDraw surface (CTexture, CSurfaceWallpaper)
+class	C3dDevice	render	DirectDraw and Direct3D 7 device
+class	VertexBuffer	render	IDirect3D7 vertex buffer
+class	FontCache	render	GDI fonts by face and size
+class	TextureCache	render	CTexture objects by name
+class	SceneRenderer	render	per-frame render lists
+class	RenderTriangle	render	render primitive
+class	RenderQuad	render	render primitive
+class	TriangleSet	render	render primitives of a Granny mesh
+class	MoviePlayer	render	Bink movies
+class	CWorld	world	the loaded map and the objects on it
+class	CView	world	camera
+class	C3dGround	world	map ground (C3dGround15)
+class	C3dNode	world	model scene node (C3dNodeHAL)
+class	CActorPickNode	world	picking of actors under the cursor
+class	CGameObject	world	every object placed in the world: actors, items, effects
+class	SceneGraphNode	world	quadtree of a C3dWorldRes
+class	ModelInstance	world	a placed world model
+class	PathFinder	world	path search between cells
+class	WorldColorFade	world	ambient colour fade
+class	CMousePointer	ui	the cursor, a CGameObject drawn over the UI
+class	CSoundMaker	audio	a CGameObject that plays a positioned sound
+class	CConnection	net	socket connection (CRagConnection)
+class	PacketCodeModules	net	server-sent packet filter code (docs/protocol/code-modules.md)
+class	UIWindow	ui	base of every window and control
+class	UIWindowMgr	ui	owns the windows
+class	CSkinMgr	ui	window skins
+class	CSnapMgr	ui	window snapping (SnapObject)
+class	SnapObject	ui	window snapping
+class	ThaiWordBreaker	ui	line breaking of Thai text
+class	ThaiLexicon	ui	dictionary of ThaiWordBreaker
+class	TipOfTheDayList	ui	loads tipOfTheday.txt for UITipOfTheDayWnd
+class	CMode	game	login and game modes (CLoginMode, CGameMode)
+class	ClientState	game	session state: character, inventory, options, message tables
+class	GuildInfo	game	guild state filled by packet handlers
+class	MannerFilter	game	loads manner.txt and matches chat text against it
+namespace	mg	game	the mini-game engine
+range	004c9740-004cb0d0	core	client configuration, one file from initializer 004c9740: clientinfo.xml (LoadClientInfo 004ca090), service type, connection list, licence.txt
+range	00420320-004203d0	core	the frame timer, one file from initializer 00420320: 00420360(fps) sets the period to 1000 / fps ms from timeGetTime, 00420390 returns the periods due and advances by them
+range	00409540-0040bf50	core	vector and matrix math, two files bounded by the initializers 00409540, 0040a2d0 and 0040bf50: a sqrt wrapper (00409570), matrices initialised from the identity at 00605598, float vector arithmetic; called from res, world and render
+function	00420190	audio	"Direct Sound Buffer Creation Failed (%08lx)\n", in the DirectSound file with 004200d0
+function	004d48e0	game	loads the item tables (Num2ItemDisplayNameTable.txt, Num2ItemResNameTable.txt, Num2itemDescTable.txt, ...)
+function	004d95b0	game	loads the skill tables (skillnametable.txt, skilldesctable.txt, leveluseskillspamount.txt)
+import	WS2_32.DLL!WSAStartup	net	sockets
+import	WS2_32.DLL!WSACleanup	net	sockets
+import	WS2_32.DLL!WSAGetLastError	net	sockets
+import	MSS32.DLL	audio	Miles Sound System
+import	DSOUND.DLL	audio	DirectSound
+import	WINMM.DLL!mixerOpen	audio	volume control
+import	WINMM.DLL!mixerGetControlDetailsA	audio	volume control
+import	WINMM.DLL!mixerGetLineControlsA	audio	volume control
+import	WINMM.DLL!mixerGetLineInfoA	audio	volume control
+import	WINMM.DLL!mixerSetControlDetails	audio	volume control
+import	WINMM.DLL!timeBeginPeriod	core	timer resolution
+import	WINMM.DLL!timeEndPeriod	core	timer resolution
+import	WINMM.DLL!timeGetDevCaps	core	timer resolution
+import	DDRAW.DLL	render	DirectDraw
+import	BINKW32.DLL	render	Bink video
+import	IJL15.DLL	res	JPEG decoding
+import	IMM32.DLL	ui	input method editor
+import	OLE32.DLL	core	COM start-up
+import	USER32.DLL!RegisterClassA	core	the main window
+import	USER32.DLL!CreateWindowExA	core	the main window
+import	USER32.DLL!DefWindowProcA	core	the main window
+import	USER32.DLL!PeekMessageA	core	the message loop
+import	USER32.DLL!DispatchMessageA	core	the message loop
+import	USER32.DLL!TranslateMessage	core	the message loop

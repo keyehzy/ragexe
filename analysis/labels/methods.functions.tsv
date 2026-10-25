@@ -35,7 +35,6 @@ address	namespace	name	calling_convention	evidence
 00404810	C3dDevice	method_00404810	__thiscall	__thiscall; called with this from 1 functions of C3dDevice, e.g. 00404760
 004048c0	C3dDevice	method_004048c0	__thiscall	__thiscall; called with this from 1 functions of C3dDevice, e.g. 00404760
 004049e0	C3dDevice	method_004049e0	__thiscall	__thiscall; called with this from 1 functions of C3dDevice, e.g. 00404760
-00405040	C3dDevice	method_00405040	__thiscall	__thiscall; called with this from 2 functions of C3dDevice, e.g. 00410c50
 00405140	C3dDevice	method_00405140	__thiscall	__thiscall; called with this from 2 functions of C3dDevice, e.g. 0040dca0
 00405180	C3dDevice	method_00405180	__thiscall	__thiscall; called with this from 1 functions of C3dDevice, e.g. 0040dca0
 004051c0	C3dDevice	method_004051c0	__thiscall	__thiscall; called with this from 1 functions of C3dDevice, e.g. 0040dcd0
@@ -67,7 +66,6 @@ address	namespace	name	calling_convention	evidence
 00418670	CRagConnection	method_00418670	__thiscall	__thiscall; called with this from 17 functions of CRagConnection, e.g. 004b25f0
 00418690	CConnection	method_00418690	__thiscall	__thiscall; called with this from 2 functions of CConnection, CRagConnection, e.g. 00418540
 00418710	CRagConnection	method_00418710	__thiscall	__thiscall; called with this from 2 functions of CRagConnection, e.g. 00524d80
-00418770	CRagConnection	method_00418770	__thiscall	__thiscall; called with this from 1 functions of CRagConnection, e.g. 005b1130
 00418c30	CRagConnection	method_00418c30	__thiscall	__thiscall; called with this from 1 functions of CRagConnection, e.g. 005b2280
 00418f70	CRagConnection	method_00418f70	__thiscall	__thiscall; called with this from 12 functions of CRagConnection, e.g. 0050dc90
 004191e0	CRagConnection	method_004191e0	__thiscall	__thiscall; called with this from 12 functions of CRagConnection, e.g. 0050dc90
@@ -312,11 +310,8 @@ address	namespace	name	calling_convention	evidence
 004c6db0	std::list	method_004c6db0	__thiscall	__thiscall; called with this from 1 functions of CWorld, e.g. 004c36e0
 004c79c0	CLanguage	method_004c79c0	__thiscall	__thiscall; called with this from 2 functions of CLanguageTC, CLanguageTH, e.g. 004c8c40
 004cb350	CGameMode	method_004cb350	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050dc90
-004cb480	CMode	method_004cb480	__thiscall	__thiscall; called with this from 2 functions of CGameMode, CLoginMode, e.g. 0050d400
 004cb7a0	CMode	method_004cb7a0	__thiscall	__thiscall; called with this from 2 functions of CGameMode, CLoginMode, e.g. 00515d10
 004cb7f0	CGameMode	method_004cb7f0	__thiscall	__thiscall; called with this from 2 functions of CGameMode, e.g. 00513c20
-004cb830	CMode	method_004cb830	__thiscall	__thiscall; called with this from 2 functions of CGameMode, CLoginMode, e.g. 0050d400
-004cba20	CMode	method_004cba20	__thiscall	__thiscall; called with this from 2 functions of CGameMode, CLoginMode, e.g. 0050d400
 004cc4e0	PathFinder	method_004cc4e0	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004cc5c0
 004cc9d0	PathFinder	method_004cc9d0	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004cc5c0
 004ccb80	PathFinder	method_004ccb80	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004ccba0
@@ -522,7 +517,6 @@ address	namespace	name	calling_convention	evidence
 0053acf0	CItem	method_0053acf0	__thiscall	__thiscall; called with this from 1 functions of CItem, e.g. 0053abb0
 0053b790	CLoginMode	method_0053b790	__thiscall	__thiscall; called with this from 1 functions of CLoginMode, e.g. 0053b810
 0053ce20	CLoginMode	method_0053ce20	__thiscall	__thiscall; called with this from 1 functions of CLoginMode, e.g. 0053b810
-0053cfa0	CLoginMode	method_0053cfa0	__thiscall	__thiscall; called with this from 1 functions of CLoginMode, e.g. 0053b810
 0053fa20	CNpc	method_0053fa20	__thiscall	__thiscall; called with this from 1 functions of CNpc, e.g. 0053f950
 00540a20	CBlowEffect	method_00540a20	__thiscall	__thiscall; called with this from 1 functions of CBlowEffect, e.g. 00540950
 00540c40	CCorpse	method_00540c40	__thiscall	__thiscall; called with this from 1 functions of CCorpse, e.g. 00540b70

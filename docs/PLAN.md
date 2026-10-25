@@ -80,6 +80,10 @@ It is a sorted text file, so every status change is a readable diff in git.
 - `set` changes rows by address or address range.
 - `report` prints progress.
 
+The subsystem of library rows comes from `ledger.py classify` (`crt`, `stl`); that of
+game code from `tools/assign_subsystems.py` and the rules in `analysis/subsystems.tsv`
+(`docs/architecture.md` §1).
+
 Kind is one of:
 - `code`: a real function.
 - `funclet`: an EH `Unwind@`/`Catch@` fragment, ported as part of its parent function.
@@ -527,10 +531,51 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - CLI: `cd tools && python -m emu [--crt] ADDRESS [ARG ...]` with `s:TEXT` and `buf:N` arguments.
   - Dependencies pinned in `tools/requirements.txt`; 12 tests run in under a second.
 
+- [x] Subsystems (`tools/assign_subsystems.py`, rules in `analysis/subsystems.tsv`, report in
+  `analysis/exports/Ragexe.exe.subsystems.tsv`):
+  - Every game function has a subsystem. Bytes: `ui` 501 K, `game` 474 K, `world` 432 K,
+    `res` 129 K, `render` 66 K, `core` 37 K, `net` 27 K, `audio` 5 K.
+  - Seeds: 2,811 functions by class (a class rule covers its RTTI descendants), 80 by
+    three address ranges, 34 by imports that one subsystem owns, 3 by single-function rules.
+  - The rest propagates over the address order and the reference graph. Measured against
+    the class-seeded functions, address neighbours agree 99.9% of the time, callees 96.9%,
+    callers 87.5%. Neighbours go first: a helper lives in its own file, not its callers'.
+  - Dynamic initializers mark the start of a source file, giving 141 runs of code: 121
+    have a single subsystem. Import thunks, tail-jump stubs and all 3,232 game-code EH
+    funclets (found through their parents' FuncInfo tables) take their owner's subsystem.
+  - `ledger.py set --subsystem` refuses game code, so the rules file stays the only
+    source.
+- [x] `docs/architecture.md`:
+  - **Start-up.** `WinMain`, step by step.
+  - **Modes.** `ModeSwitcher` with `RequestMode` and `Quit`, and the `CMode` slots
+    `OnInit(map)`, `Run`, `OnExit`, `OnFrame`, `SendMsg`, `OnChangeState`. Every map
+    change rebuilds `CGameMode`; login packet 0x73 hands over to the game mode.
+  - **One frame.** Messages, then packets, then logic, then `GetFrameStepsDue()` world
+    steps, then the scene, UI, cursor, fade and present.
+  - **Timing.** A fixed step of `1000 / 60` = 16 ms (62.5 Hz), with catch-up steps. The
+    flag `0x61ec58` switches to one step per frame and also gates the windowed
+    vertical-blank wait.
+  - **Input and networking.** DirectInput for the mouse. Sockets through
+    `WSAAsyncSelect` on the window thread.
+  - **Threads.** Three helpers, with almost no locking: the lazy model loader at
+    `THREAD_PRIORITY_HIGHEST`, the music fade, and a debug effect thread.
+  - **Also covered:** the global objects and the shutdown order.
+  - 50 new curated names (`inferred.functions.tsv`):
+    - `WindowProc`, `PumpMessages`, `SetFrameRate`, `GetFrameStepsDue`;
+    - both packet dispatchers and the thread procedures;
+    - the six `CMode` slots in all three classes;
+    - six `SceneRenderer` methods. Their callers load `ECX` from `g_pSceneRenderer`,
+      which the method rule does not follow yet.
+  - 59.0% of the bytes to port are named (was 58.3%). Converges in two `--reanalyze` passes.
+
 ### Next actions (M1)
 1. Size the global singletons whose size is only estimated (`ClientState`, `UIWindowMgr`,
    `C3dDevice`): the accesses past their estimated ends need a rule for where an object
    stops before the next global begins.
-2. Assign every function to a subsystem in the ledger, and write `docs/architecture.md`
-   (main loop, mode switcher, singletons, threads).
-3. Extend the oracle with the D3D7/DirectDraw COM fakes that record calls, for M4.
+2. Methods called through pointer globals: `mov ecx, [G]; call f` with `G` typed
+   `ptr:<Class>` makes `f` a method of `<Class>`. `g_pSceneRenderer` alone has six such
+   methods, curated by hand so far.
+3. Name the packet handlers from the two dispatch tables (`0x526188` for the game mode,
+   `0x53d190` and `0x53d1d8` for login) as `HandlePacket_<id>`, the way the 0x01C7
+   handlers are named.
+4. Extend the oracle with the D3D7/DirectDraw COM fakes that record calls, for M4.
