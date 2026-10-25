@@ -92,6 +92,9 @@ address	namespace	name	calling_convention	evidence
 005b41a8	std::locale	_Init		under _Lockit, allocates the global locale (operator new 0x28) on first use
 005b5336	std::_Locinfo	_Locinfo	__thiscall	constructed on the stack with a locale name before facets are created
 005b5466	std::_Locinfo	~_Locinfo	__thiscall	destroys the _Locinfo constructed by 005b5336 in the same functions
+00423980	std::string	_Tidy	__thiscall	(bool free): when set, drops the reference count in the byte before _Ptr (+4) or frees the buffer; then zeroes _Ptr, _Len, _Res at +4/+8/+0xc
+00424fa0	std::string	_Grow	__thiscall	(n, trim): calls std::_Xlen when n > npos-2; shares the reference-count handling of _Tidy
+00425210	std::string	_Copy	__thiscall	rounds the capacity up with | 0x1f and allocates capacity + 2 (count byte and terminator)
 005b7af6	Global	_Getctype		returns the ctype vector of the current locale; used when building ctype facets
 005b798f	Global	_Tolower		(c, ctype vector); in the C locale maps 'A'..'Z' to lower case
 005b7b9e	Global	_Toupper		(c, ctype vector); in the C locale maps 'a'..'z' to upper case

@@ -1,0 +1,293 @@
+class	size	size_source	fields	covered_bytes	coverage	indexed_bases	notes
+C3dAnimModelRes	356	new	18	89	0.25		6 overlapping uses dropped
+C3dAttr	300	new	8	33	0.11		
+C3dGrannyGameActor	3132	new	98	389	0.12	0x4c8	
+C3dGrannyModelRes	948	new	5	24	0.03		
+C3dGround	236	new	40	164	0.69		
+C3dGround15	236	estimated	40	164	0.69		
+C3dModelRes	424	new	12	64	0.15		9 overlapping uses dropped
+C3dNode	336	new	31	118	0.35		3 overlapping uses dropped
+C3dNodeHAL	388	new	43	166	0.43		
+C3dWorldRes	448	new	10	98	0.22		18 overlapping uses dropped
+CAbleToMakeEffect	192	estimated	41	149	0.78		3 overlapping uses dropped
+CActRes	324	new	14	51	0.16		
+CActorPickNode	48	new	5	32	0.67		3 overlapping uses dropped
+CArrowEffect	208	new	51	181	0.87		
+CBitmapRes	288	new	5	24	0.08		
+CBlowEffect	160	new	39	133	0.83		
+CBlurPC	796	new	100	409	0.51		
+CConnection	124	estimated	5	18	0.15		
+CController	172	estimated	3	16	0.09		
+CCorpse	160	new	39	133	0.83		
+CDC	4	estimated	0	4	1.00		
+CDCBitmap	44	new	8	41	0.93		3 overlapping uses dropped
+CDCSurface	20	estimated	4	20	1.00		
+CDummyEffectLauncher	196	new	42	153	0.78		
+CEZeffectRes	54196	new	4	53776	0.99		
+CEffectMaker	220	new	44	161	0.73		
+CEffectPrim	88464	new	163	614	0.01		
+CEmblemRes	560	new	2	296	0.53		1 overlapping uses dropped
+CGPak	132	estimated	14	51	0.39		
+CGameActor	636	estimated	74	302	0.47		9 overlapping uses dropped
+CGameMode	956	new	61	365	0.38		15 overlapping uses dropped
+CGameObject	4	estimated	0	4	1.00		
+CGndRes	488	new	15	61	0.12		
+CGndRiser	196	estimated	42	153	0.78		
+CGraffiSkill	948	new	89	353	0.37		
+CGrannyCorpse3d	588	new	11	45	0.08		
+CGrannyPc	9156	estimated	132	519	0.06	0x0,0x2dc	
+CGroundScope	220	new	48	177	0.80		
+CImfRes	6588	new	7	29	0.00		
+CItem	192	new	44	165	0.86		4 overlapping uses dropped
+CKeyPad	188	new	8	27	0.14		
+CLanguage	120	estimated	18	88	0.73		3 overlapping uses dropped
+CLanguageTC	160	estimated	21	102	0.64	0x9c,0x9d,0x9e,0x9f	3 overlapping uses dropped
+CLanguageTH	144	estimated	19	89	0.62		
+CLoginMode	4964	new	28	119	0.02		4 overlapping uses dropped
+CMandraAttackEffect	164	new	40	137	0.84		
+CMasterChaser	160	estimated	39	133	0.83		
+CMode	64	estimated	15	64	1.00		
+CMousePointer	164	new	40	137	0.84		
+CMsgEffect	284	new	49	181	0.64		
+CNpc	664	new	79	322	0.48		
+CNumEffect	168	new	41	141	0.84		
+CPaletteRes	1296	new	1	8	0.01		
+CPc	776	new	98	401	0.52		4 overlapping uses dropped
+CPlayer	988	new	106	433	0.44		
+CRagConnection	204	estimated	16	58	0.28		3 overlapping uses dropped
+CRagEffect	16876	estimated	61	229	0.01	0x4168	3 overlapping uses dropped
+CRenderObject	160	estimated	39	133	0.83		1 overlapping uses dropped
+CRes	8	estimated	1	8	1.00		
+CRmaRes	344	new	19	71	0.21		
+CSakGPak	136	estimated	15	55	0.40		
+CSkill	656	new	79	322	0.49		
+CSkinMgr	84	estimated	17	72	0.86		4 overlapping uses dropped
+CSnapMgr	20	estimated	2	20	1.00		3 overlapping uses dropped
+CSoundMaker	204	new	50	174	0.85		
+CSprRes	1332	new	3	44	0.03		6 overlapping uses dropped
+CSurface	16	estimated	3	16	1.00		
+CSurfaceWallpaper	16	new	3	16	1.00		
+CTexture	296	new	10	38	0.13		
+CView	448	new	22	89	0.20		
+CWave	280	new	3	16	0.06		
+CWorld	244	new	17	101	0.41		12 overlapping uses dropped
+SnapObject	60	new	3	60	1.00		
+UIAllyGuildAcceptWnd	112	new	25	112	1.00		
+UIBalloonText	108	estimated	24	102	0.94		
+UIBarGraph	80	estimated	17	80	1.00		
+UIBarGraph2	108	new	24	90	0.83		6 overlapping uses dropped
+UIBarGraph3	84	estimated	18	84	1.00		
+UIBarGraph4	84	new	18	84	1.00		
+UIBarGraphPlayerHp	76	new	16	76	1.00		
+UIBarGraphPlayerSp	76	new	16	76	1.00		
+UIBasicInfoWnd	156	new	29	128	0.82		
+UIBitmapButton	168	new	39	153	0.91		
+UIBitmapEditCtrl	160	new	33	156	0.97		
+UIButton	112	estimated	25	106	0.95		
+UICandidateWnd	260	new	27	260	1.00		
+UICardItemIllustWnd	136	new	28	130	0.96		4 overlapping uses dropped
+UIChatEditCtrl	180	new	39	174	0.97		
+UIChatHisBox	164	new	38	149	0.91		
+UIChatHisBox2	176	new	41	152	0.86		3 overlapping uses dropped
+UIChatRoomChangeWnd	224	new	48	204	0.91		
+UIChatRoomMakeWnd	224	new	48	204	0.91		4 overlapping uses dropped
+UIChatRoomTitle	128	new	29	122	0.95		
+UIChatRoomWnd	208	new	43	181	0.87		4 overlapping uses dropped
+UIChatWnd	164	new	36	156	0.95		
+UICheckBox	128	new	29	119	0.93		
+UIChooseSellBuyWnd	108	new	24	108	1.00		
+UIChooseWarpWnd	124	new	28	121	0.98		
+UIChooseWnd	132	new	29	125	0.95		
+UICntWnd	112	new	24	108	0.96		
+UIColorButton	136	estimated	31	121	0.89		3 overlapping uses dropped
+UICombinedCardItemCollectionWnd	260	new	44	183	0.70		
+UIComboBox	148	new	34	136	0.92		
+UIComboBoxWnd	104	new	23	104	1.00		
+UICompositionWnd	116	new	26	113	0.97		
+UIDetailLevelWnd	132	new	29	128	0.97		
+UIEditCtrl	144	new	30	144	1.00		4 overlapping uses dropped
+UIEditCtrl2	144	new	30	144	1.00		
+UIEditCtrlVarId	144	new	30	144	1.00		
+UIEditCtrlWheel	144	new	30	144	1.00		
+UIEmailAddressWnd	104	new	23	104	1.00		
+UIEmblemWnd	128	new	26	128	1.00		4 overlapping uses dropped
+UIEmotionListWnd	248	new	29	128	0.52		
+UIEmotionWnd	192	new	28	124	0.65		
+UIEquipWnd	128	new	29	128	1.00		
+UIExchangeAcceptWnd	112	new	25	112	1.00		
+UIExchangeWnd	176	new	32	168	0.95		10 overlapping uses dropped
+UIFrameWnd	100	estimated	22	100	1.00		
+UIFriendOptionWnd	120	new	27	120	1.00		
+UIGage	136	estimated	31	91	0.67		15 overlapping uses dropped
+UIGraffiStrboxWnd	120	new	23	104	0.87		
+UIGuildBanReasonDescWnd	120	new	24	108	0.90		
+UIGuildBanishedMemberWnd	240	new	32	140	0.58		
+UIGuildInfoManageWnd	200	new	40	174	0.87		3 overlapping uses dropped
+UIGuildLeaveReasonDescWnd	108	new	24	108	1.00		
+UIGuildMemberManageWnd	304	new	51	212	0.70		3 overlapping uses dropped
+UIGuildNoticeWnd	180	new	29	128	0.71		
+UIGuildPositionManageWnd	448	new	43	183	0.41		3 overlapping uses dropped
+UIGuildSkillWnd	276	new	39	173	0.63		3 overlapping uses dropped
+UIGuildTotalInfoWnd	200	new	31	136	0.68		
+UIGuildWnd	104	estimated	23	104	1.00		
+UIIllustWnd	124	new	28	121	0.98		
+UIItemBaseWnd	152	estimated	33	152	1.00		3 overlapping uses dropped
+UIItemCollectionWnd	256	new	43	179	0.70	0x80	4 overlapping uses dropped
+UIItemCompositionWnd	164	new	33	164	1.00		
+UIItemDropCntWnd	108	new	24	108	1.00		
+UIItemIdentifyWnd	156	new	31	156	1.00		7 overlapping uses dropped
+UIItemParamChangeDisplayWnd	156	new	33	156	1.00		4 overlapping uses dropped
+UIItemPurchaseWnd	164	new	36	164	1.00		
+UIItemSellWnd	164	new	36	164	1.00		
+UIItemShopWnd	172	new	38	172	1.00		
+UIItemStoreWnd	176	new	36	176	1.00		4 overlapping uses dropped
+UIItemWnd	192	new	41	184	0.96		
+UIJoinGuildAcceptWnd	112	new	25	112	1.00		
+UIJoinPartyAcceptWnd	112	new	25	112	1.00		
+UIKeyStrokeWnd	100	new	22	100	1.00		
+UIListBox	144	new	33	132	0.92		3 overlapping uses dropped
+UILoadingWnd	108	new	24	108	1.00		
+UILoginWnd	116	new	26	116	1.00		
+UIMakeCharWnd	472	new	61	288	0.61		22 overlapping uses dropped
+UIMakeTargetListWnd	120	new	27	117	0.97		
+UIMakeTargetProcessWnd	308	new	24	308	1.00	0x0,0x68	
+UIMakeTargetResultWnd	108	new	24	105	0.97		
+UIMakingArrowListWnd	156	new	31	156	1.00		
+UIMemberListBox	176	new	41	152	0.86		
+UIMenuWnd	128	new	29	125	0.98		
+UIMerchantItemMyShopWnd	160	new	35	160	1.00		
+UIMerchantItemPurchaseWnd	168	new	37	168	1.00		
+UIMerchantItemShopWnd	168	new	36	164	0.98		
+UIMerchantItemWnd	164	new	36	164	1.00		
+UIMerchantMirrorItemWnd	156	new	34	156	1.00		
+UIMerchantShopMakeWnd	220	new	33	164	0.75	0x80	7 overlapping uses dropped
+UIMerchantShopTitle	84	new	18	84	1.00		
+UIMessageBox	160	new	33	138	0.86		
+UIMessageBoxAutoreturn	160	new	32	134	0.84		
+UIMessengerGroupWnd	200	new	40	177	0.89		3 overlapping uses dropped
+UIMiniGameScoreWnd	180	new	39	162	0.90		
+UIMiniGameWnd	144	estimated	29	128	0.89		
+UIMinimapZoomWnd	100	new	22	100	1.00		
+UIMonsterInfoWnd	132	new	39	127	0.96		1 overlapping uses dropped
+UINameBalloonText	128	new	26	122	0.95		4 overlapping uses dropped
+UINoneVisibleButton	112	new	25	106	0.95		
+UINoticeConfirmWnd	108	new	24	108	1.00		
+UINoticeWnd	292	new	32	140	0.48	0xf4,0xcc	
+UINotifyItemObtainWnd	212	new	32	158	0.75		8 overlapping uses dropped
+UINotifyJobLevelUpWnd	100	new	22	100	1.00		
+UINotifyLevelUpWnd	100	new	22	100	1.00		
+UINpcEditDialogWnd	108	new	24	108	1.00		
+UINpcTextEditDialogWnd	108	new	24	108	1.00		
+UIOptionWnd	152	new	35	152	1.00		
+UIPartySettingWnd	128	new	27	120	0.94		
+UIPasswordWnd	112	new	25	112	1.00		
+UIPcGage	168	new	39	114	0.68		3 overlapping uses dropped
+UIPetEggListWnd	156	new	31	156	1.00		
+UIPetInfoWnd	116	new	26	116	1.00		
+UIPetTamingDeceiveWnd	132	new	30	132	1.00		
+UIPlayerGage	148	new	34	94	0.64		3 overlapping uses dropped
+UIProhibitListWnd	104	new	23	104	1.00		
+UIQuitWnd	100	new	22	100	1.00		
+UIRadioBtn	96	new	21	93	0.97		
+UIRechargeGage	144	new	33	99	0.69		
+UIResizer	120	new	27	117	0.97		
+UIRestartWnd	104	new	22	100	0.96		
+UISayDialogWnd	144	new	29	144	1.00		6 overlapping uses dropped
+UIScrollBar	116	new	26	116	1.00		
+UIScrollBar2	116	new	26	116	1.00		
+UISelectCartWnd	120	new	27	120	1.00		
+UISelectCharWnd	992	new	38	868	0.88	0x328,0x0	12 overlapping uses dropped
+UISelectMiniGameWnd	128	new	28	121	0.95		
+UISelectServerWnd	132	new	29	125	0.95		
+UIShortCutWnd	432	new	27	120	0.28	0x68,0xd4,0x140	
+UIShowNeedItemListWnd	308	estimated	24	308	1.00	0x68	
+UISkillDescribeWnd	152	new	32	146	0.96		4 overlapping uses dropped
+UISkillListWnd	252	new	40	177	0.70		3 overlapping uses dropped
+UISkillNameChangeWnd	124	new	28	121	0.98		
+UISlotBitmap	92	new	20	89	0.97		
+UISpellListWnd	172	estimated	35	169	0.98		
+UISpriteButton	168	new	39	156	0.93		
+UIStaticBitmap	92	estimated	20	89	0.97		
+UIStaticText	144	new	33	129	0.90		3 overlapping uses dropped
+UIStatusWnd	132	new	25	112	0.85		
+UITab	76	new	16	76	1.00		
+UITalkboxTrapInputWnd	120	new	23	104	0.87		
+UITextViewer	156	new	36	135	0.87		3 overlapping uses dropped
+UITipOfTheDayWnd	112	new	25	112	1.00		
+UIToolTipWnd	104	new	23	104	1.00		
+UITransBalloonText	136	new	31	130	0.96		
+UIVerticalNameBalloonText	132	new	27	126	0.95		
+UIWaitWnd	104	new	23	104	1.00		
+UIWebBrowserWnd	100	new	22	100	1.00		
+UIWhisperEditCtrl	164	new	35	161	0.98		
+UIWhisperListWnd	196	new	39	173	0.88		3 overlapping uses dropped
+UIWhisperWnd	152	new	35	146	0.96		
+UIWindow	76	estimated	16	76	1.00		3 overlapping uses dropped
+UIWindowMgr	580	estimated	43	183	0.32		10 overlapping uses dropped
+__non_rtti_object	12	estimated	2	12	1.00		
+bad_cast	12	estimated	2	12	1.00		
+bad_typeid	12	estimated	2	12	1.00		
+exception	12	estimated	2	12	1.00		
+mg::CArrow	236	new	57	205	0.87		
+mg::CEntity	116	estimated	25	101	0.87		
+mg::CMGEngine	952	estimated	56	236	0.25		
+mg::CMGNpc	664	estimated	79	322	0.48		
+mg::CMGPc	776	estimated	98	401	0.52		
+mg::CMap	176	new	32	126	0.72		
+mg::CObject	104	estimated	22	89	0.86		
+mg::CScript	676	estimated	37	128	0.19		
+mg::CTile	36	new	6	25	0.69		
+mg::mgType1::CItemObj	308	new	72	263	0.85		
+mg::mgType1::CMapObj	140	new	29	117	0.84		
+mg::mgType1::CMiniGame001	1108	new	56	236	0.21	0x4	
+mg::mgType1::CMonster	840	new	112	463	0.55		3 overlapping uses dropped
+mg::mgType1::CPlayer	920	new	129	526	0.57		
+mg::mgType1::CWorld	104	estimated	26	90	0.87		
+std::_Mpunct<char>	40	estimated	9	34	0.85		
+std::_Mpunct<unsigned_short>	40	estimated	9	36	0.90		
+std::bad_alloc	12	estimated	2	12	1.00		
+std::bad_cast	12	estimated	2	12	1.00		
+std::basic_ios<char,std::char_traits<char>_>	40	estimated	7	32	0.80		
+std::basic_iostream<char,std::char_traits<char>_>	16	estimated	1	8	0.50		
+std::basic_istream<char,std::char_traits<char>_>	12	estimated	0	4	0.33		
+std::basic_ostream<char,std::char_traits<char>_>	8	estimated	1	8	1.00		
+std::basic_streambuf<char,std::char_traits<char>_>	56	estimated	8	36	0.64		
+std::codecvt<char,char,int>	16	new	0	4	0.25		
+std::codecvt<unsigned_short,char,int>	16	new	0	4	0.25		
+std::collate<char>	16	new	0	4	0.25		
+std::collate<unsigned_short>	16	new	0	4	0.25		
+std::ctype<char>	24	new	5	24	1.00		
+std::ctype<unsigned_short>	24	new	2	12	0.50		
+std::ios_base	32	estimated	6	28	0.88		
+std::ios_base::failure	20	estimated	3	16	0.80		
+std::istrstream	92	estimated	0	4	0.04		
+std::length_error	28	estimated	5	24	0.86		
+std::locale::_Locimp	4	estimated	0	4	1.00		
+std::locale::facet	4	estimated	0	4	1.00		
+std::logic_error	28	estimated	5	24	0.86		
+std::messages<char>	16	new	2	12	0.75		
+std::messages<unsigned_short>	16	new	2	12	0.75		
+std::money_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	8	new	0	4	0.50		
+std::money_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	8	new	0	4	0.50		
+std::money_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	8	new	0	4	0.50		
+std::money_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	8	new	0	4	0.50		
+std::moneypunct<char,0>	44	new	9	34	0.77		
+std::moneypunct<char,1>	44	new	9	34	0.77		
+std::moneypunct<unsigned_short,0>	44	new	9	36	0.82		
+std::moneypunct<unsigned_short,1>	44	new	9	36	0.82		
+std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	8	new	0	4	0.50		
+std::num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	8	new	0	4	0.50		
+std::num_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	8	new	0	4	0.50		
+std::num_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	8	new	0	4	0.50		
+std::numpunct<char>	24	new	5	18	0.75		
+std::numpunct<unsigned_short>	24	new	5	20	0.83		
+std::ostrstream	88	estimated	1	8	0.09		
+std::out_of_range	28	estimated	5	24	0.86		
+std::runtime_error	20	estimated	3	16	0.80		
+std::strstream	96	estimated	1	8	0.08		
+std::strstreambuf	80	estimated	14	60	0.75		1 overlapping uses dropped
+std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	16	new	2	12	0.75		
+std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	16	new	2	12	0.75		
+std::time_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	12	new	1	8	0.67		
+std::time_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	12	new	1	8	0.67		
+type_info	8	estimated	1	8	1.00		

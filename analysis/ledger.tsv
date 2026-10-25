@@ -731,7 +731,7 @@ entry	size	kind	library	subsystem	status	namespace	name	notes
 00423620	33	code	1	stl	named	std::basic_streambuf<char,std::char_traits<char>_>	`scalar_deleting_destructor'	
 00423650	528	code	0		raw	Global	FUN_00423650	
 00423860	284	code	0		raw	Global	FUN_00423860	
-00423980	75	code	0		raw	Global	FUN_00423980	
+00423980	75	code	1	stl	named	std::string	_Tidy	
 004239d0	60	code	0		raw	Global	FUN_004239d0	
 00423a10	740	code	0		raw	Global	FUN_00423a10	
 00423d00	814	code	0		raw	Global	FUN_00423d00	
@@ -745,14 +745,14 @@ entry	size	kind	library	subsystem	status	namespace	name	notes
 00424c00	3	code	0		raw	Global	FUN_00424c00	
 00424c10	865	code	0		raw	Global	FUN_00424c10	
 00424f80	20	code	0		raw	Global	FUN_00424f80	
-00424fa0	290	code	0		raw	Global	FUN_00424fa0	
+00424fa0	290	code	1	stl	named	std::string	_Grow	
 004250d0	11	code	0		raw	Global	FUN_004250d0	
 004250e0	216	code	0		raw	Global	FUN_004250e0	
 004251c0	19	code	0		raw	Global	FUN_004251c0	
 004251e0	3	code	0		raw	Global	FUN_004251e0	
 004251f0	3	code	0		raw	Global	FUN_004251f0	
 00425200	6	code	0		raw	Global	FUN_00425200	
-00425210	89	code	0		raw	Global	FUN_00425210	
+00425210	89	code	1	stl	named	std::string	_Copy	
 00425269	33	funclet	0		-	Global	Catch@00425269	
 00425290	136	code	0		raw	Global	FUN_00425290	
 00425320	290	code	0		raw	Global	FUN_00425320	

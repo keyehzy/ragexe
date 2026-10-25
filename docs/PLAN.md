@@ -368,8 +368,40 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
 - Ledger now: 10,811 rows, **6,128 functions (1.69 MB) to port**, 32.0% of those bytes `named`.
   A further pipeline pass adds nothing.
 
+- [x] Field layouts: `tools/recover_layouts.py` writes `analysis/labels/layouts.fields.tsv` and, for
+  classes never created with `new`, estimated sizes in `layouts.classes.tsv`. The report is
+  `analysis/exports/Ragexe.exe.layouts.tsv`.
+  - Sources: every `[this + n]` operand in a class's constructors, destructors and virtual
+    functions. `this` is tracked from ECX through register copies, `lea` and EBP stack slots.
+    Reads of the vtable pointer are skipped.
+  - Constructors alone write only 2.2% of the bytes. Most fields are first touched in virtual
+    methods, so all of them count.
+  - Types:
+    - x87 operand width → `float`/`double`.
+    - A loaded value used as an address → `pointer`; passed as `this` to a class method →
+      `ptr:<Class>`.
+    - `std::string::_Tidy`/`_Grow`/`_Copy` on `this+n` → `std_string`. Labeled `0x423980`,
+      `0x424fa0`, `0x425210` from their copy-on-write reference-count code.
+    - A fresh `operator new(8 + elem)` node linked to itself and stored at `this+n+4` →
+      `std_list` (the MSVC 6 list constructor).
+    - Arrays come from `eh_vector_constructor_iterator`; otherwise the access width.
+  - Inheritance: an access belongs to the most-base class whose subobject contains it. Bases
+    without a size get an extent estimated from their own functions' accesses. Structs are
+    written flattened, so each class keeps its own vtable type.
+  - `ApplyLabels` now applies kinds in order: sizes, fields, functions, data. It rebuilds each
+    struct from its fields and keeps the vftable fields. Member objects and arrays are byte
+    ranges, with the type in the comment, so rebuilding one class can't resize another.
+  - Result: 292 classes, 7,912 fields. For the 220 sized classes the median class has 88% of
+    its bytes covered (mean 77%); 36 are below 50%. 45 `std::string` members and 41 `std::list`
+    members, including `UIWindow`'s at `+0x8`, inherited by every window.
+  - Checked in the decompiler: `UIWindow::UIWindow` reads `this->field_0x8._Head = node`,
+    `CGameMode::CGameMode` calls `std::string::_Tidy(&this->field_0x104, 0)`.
+
 ### Next actions (M1)
-1. Field layouts: start with the 220 sized classes and the constructors, which write every field.
-2. Name the 23 non-RTTI globals and the 74 non-RTTI `new` targets from their use, starting
+1. `std::map` members: `CGameMode` shows the pattern (two allocator bytes, a zeroed count,
+   and a tree-init call `0x0051b9d0`).
+2. Assign non-virtual methods to classes. Functions called with `ECX = this` from a class's
+   methods are its members, and their accesses add fields to the 36 low-coverage classes.
+3. Name the 23 non-RTTI globals and the 74 non-RTTI `new` targets from their use, starting
    with what `WinMain` touches.
-3. Emulation oracle harness and the static runtime-code check.
+4. Emulation oracle harness and the static runtime-code check.
