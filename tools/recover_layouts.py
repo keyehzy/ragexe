@@ -77,7 +77,7 @@ from bisect import bisect_right
 from collections import Counter, defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from binindex import BinIndex, ROOT  # noqa: E402
+from binindex import CHKSTK, BinIndex, ROOT  # noqa: E402
 import capstone  # noqa: E402
 from capstone import x86  # noqa: E402
 
@@ -162,7 +162,10 @@ class Layouts:
         self.tree_ctors = self.find_tree_ctors()
         self.tree_nodes = {**self.tree_inits, **self.tree_ctors}
         self.curated_data = {int(r["address"], 16) for r in read_tsv(os.path.join(LABELS, "inferred.data.tsv"))}
-        self.curated_funcs = {int(r["address"], 16) for name in ("crt.functions.tsv", "inferred.functions.tsv")
+        # names this script must not take over: curated ones and the packet handlers
+        self.curated_funcs = {int(r["address"], 16)
+                              for name in ("crt.functions.tsv", "inferred.functions.tsv", "packets.functions.tsv")
+                              if os.path.exists(os.path.join(LABELS, name))
                               for r in read_tsv(os.path.join(LABELS, name))}
         self.globals = self.global_objects()
         self.global_calls = self.find_global_calls()
@@ -275,6 +278,10 @@ class Layouts:
 
             if i.id == x86.X86_INS_CALL:
                 t = self.bx.call_target(i)
+                if t == CHKSTK:
+                    for d in (this, loaded, node):
+                        d.pop(x86.X86_REG_EAX, None)
+                    continue
                 self.call(cls, fn, i, ins, k, t, this, loaded)
                 for r in CLOBBERED_BY_CALL:
                     this.pop(r, None)
@@ -597,25 +604,7 @@ class Layouts:
     # -- non-virtual methods -------------------------------------------------------
 
     def is_thiscall(self, fn):
-        """True when the function reads ECX before writing it."""
-        for i in self.bx.insns(fn):
-            ops = i.operands
-            if i.id == x86.X86_INS_PUSH and ops and ops[0].type == x86.X86_OP_REG and ops[0].reg == x86.X86_REG_ECX:
-                continue  # push ecx reserves a stack slot in MSVC 6 prologues
-            if i.id in (x86.X86_INS_XOR, x86.X86_INS_SUB) and len(ops) == 2 and ops[0].type == x86.X86_OP_REG \
-                    and ops[1].type == x86.X86_OP_REG and ops[0].reg == ops[1].reg:
-                if ops[0].reg == x86.X86_REG_ECX:
-                    return False
-                continue
-            try:
-                read, written = i.regs_access()
-            except Exception:
-                return False
-            if x86.X86_REG_ECX in read:
-                return True
-            if x86.X86_REG_ECX in written or i.id in (x86.X86_INS_CALL, x86.X86_INS_RET, x86.X86_INS_JMP):
-                return False
-        return False
+        return self.bx.reads_ecx_first(fn)
 
     def owner_at(self, cls, off, callee=None):
         if off == 0:

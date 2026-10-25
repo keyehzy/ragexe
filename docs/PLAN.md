@@ -147,6 +147,16 @@ reading the code, not by measurement.
 - Packet dispatch: find the packet-length table and the `switch` in the game and login
   modes. `PACKET_ZC_*` strings name the handlers.
 
+The labels are regenerated in this order, repeated until the label files stop changing
+(two `--reanalyze` passes after a change to a rule or a curated file):
+1. `tools/ghidra/analyze.sh original/client/Ragexe.exe --reanalyze`: applies RTTI and
+   every label file, then exports the inventories.
+2. `tools/ledger.py sync`, then `tools/ledger.py classify`.
+3. `tools/recover_objects.py`: constructors, destructors, sizes, global objects.
+4. `tools/recover_packets.py` (run from `tools/`): the packet handlers.
+5. `tools/recover_layouts.py`: fields, non-virtual methods, global trees and pointers.
+6. `tools/assign_subsystems.py`: the ledger's subsystem column.
+
 ## 5. Milestones
 
 Effort is for one engineer full time, with AI assistance. Treat it as rough.
@@ -595,11 +605,32 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - 60.0% of the bytes to port are named (was 59.0%). Converges in two `--reanalyze`
     passes.
 
+- [x] Packet handlers (`tools/recover_packets.py`, labels in `analysis/labels/packets.functions.tsv`,
+  report in `analysis/exports/Ragexe.exe.packets.tsv`):
+  - Every id from 0 to 0xffff is run through each dispatcher's switch in the emulator, from
+    the id read (`CRagConnection::GetPacketId`) to the first call. This needs no
+    decoding of the switch's shape. A direct decode of the game mode's index and jump
+    tables gives the same handler for all 366 entries.
+  - Result: 216 game-mode and 16 login-mode handlers, each serving one id, all named
+    `HandlePacket_<id>`.
+  - All of them are methods of their mode. The dispatcher passes the mode in `ECX` and
+    the handler pops its own argument, even though 98 handlers never read `this`.
+    `DispatchGamePackets` is likewise `CGameMode::DispatchPackets`.
+  - Eight ids are skipped on purpose (0x75–0x77, 0x7a, 0x83, 0x84, 0x187 in the game,
+    0x187 at login). Any other id goes to `CRagConnection::vf02`, which empties the
+    receive buffer.
+  - Nine handlers print their packet's name from the binary, e.g. 0x0144
+    `PACKET_ZC_COMPASS` and 0x0148 `PACKET_ZC_RESURRECTION`; the report records it.
+  - `binindex.reads_ecx_first` now steps over `_chkstk`, which saves and restores `ECX`.
+    Large-frame methods, the game dispatcher among them, used to lose `this` at the
+    probe. Methods 1,019 → 1,042 (86 on containers); fields 10,149 → 10,170.
+  - 65.1% of the bytes to port are named (was 60.0%). Converges in two `--reanalyze`
+    passes.
+
 ### Next actions (M1)
 1. Size the global singletons whose size is only estimated (`ClientState`, `UIWindowMgr`,
    `C3dDevice`): the accesses past their estimated ends need a rule for where an object
    stops before the next global begins.
-2. Name the packet handlers from the two dispatch tables (`0x526188` for the game mode,
-   `0x53d190` and `0x53d1d8` for login) as `HandlePacket_<id>`, the way the 0x01C7
-   handlers are named.
+2. Find how `CRagConnection::RecvPacket` cuts the stream into packets (a length per id,
+   fixed or read from the packet), and export each id's length next to its handler.
 3. Extend the oracle with the D3D7/DirectDraw COM fakes that record calls, for M4.

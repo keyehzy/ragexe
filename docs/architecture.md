@@ -13,17 +13,17 @@ Every function of the game's own code has a subsystem in the ledger's `subsystem
 
 | Subsystem | Functions | Bytes | What it covers |
 |-----------|----------:|------:|----------------|
-| `core` | 209 | 36,694 | `WinMain`, the window and message loop, the mode switcher, the frame timer, client configuration (clientinfo.xml, registry), input devices, language and code-page handling, vector and matrix math, the crash handler |
-| `res` | 673 | 129,019 | the GRF archive (`CGPak`), `ResourceManager`, every file-backed resource type (`CRes` and its 15 subclasses: sprites, acts, models, maps, palettes, waves), `DataFile`, `XmlDocument`, JPEG decoding |
-| `render` | 399 | 68,952 | DirectDraw and Direct3D 7 (`C3dDevice`, `SceneRenderer`), surfaces and textures, render primitives, GDI drawing onto surfaces, fonts, Bink movies, screenshots |
-| `world` | 1,160 | 429,851 | the map (`CWorld`, `C3dGround`, scene nodes), the camera (`CView`), the objects placed in the world (the `CGameObject` hierarchy: actors, items, effects), path finding |
-| `net` | 85 | 27,335 | `CConnection` and `CRagConnection`, Winsock start-up, the server-sent packet filter code |
+| `core` | 210 | 36,897 | `WinMain`, the window and message loop, the mode switcher, the frame timer, client configuration (clientinfo.xml, registry), input devices, language and code-page handling, vector and matrix math, the crash handler |
+| `res` | 672 | 127,998 | the GRF archive (`CGPak`), `ResourceManager`, every file-backed resource type (`CRes` and its 15 subclasses: sprites, acts, models, maps, palettes, waves), `DataFile`, `XmlDocument`, JPEG decoding |
+| `render` | 401 | 71,000 | DirectDraw and Direct3D 7 (`C3dDevice`, `SceneRenderer`), surfaces and textures, render primitives, GDI drawing onto surfaces, fonts, Bink movies, screenshots |
+| `world` | 1,154 | 428,935 | the map (`CWorld`, `C3dGround`, scene nodes), the camera (`CView`), the objects placed in the world (the `CGameObject` hierarchy: actors, items, effects), path finding |
+| `net` | 80 | 24,451 | `CConnection` and `CRagConnection`, Winsock start-up, the server-sent packet filter code |
 | `ui` | 1,866 | 500,449 | the 153 `UIWindow` classes, `UIWindowMgr`, skins, window snapping, the IME, Thai line breaking, the cursor object (`CMousePointer`) |
 | `audio` | 38 | 4,751 | the Miles Sound System wrapper, DirectSound and mixer set-up, `CSoundMaker` |
-| `game` | 1,573 | 473,745 | the login and game modes (`CLoginMode`, `CGameMode`), the packet dispatchers and handlers, `ClientState` (character, inventory, options, message tables), guild state, item and skill tables, the chat filter, the mini-game engine (`mg::`) |
+| `game` | 1,573 | 472,527 | the login and game modes (`CLoginMode`, `CGameMode`), the packet dispatchers and handlers, `ClientState` (character, inventory, options, message tables), guild state, item and skill tables, the chat filter, the mini-game engine (`mg::`) |
 
 The library code is `crt` (728 functions, the static MSVC 6 C runtime from `0x5b325c`)
-and `stl` (384, Dinkumware templates in a `std` namespace). Thunks and exception funclets
+and `stl` (393, Dinkumware templates in a `std` namespace). Thunks and exception funclets
 take the subsystem of the function they belong to.
 
 ### How the subsystems were assigned
@@ -33,19 +33,19 @@ take the subsystem of the function they belong to.
 row per function with the rule and evidence that placed it.
 
 1. **Seeds.**
-   - 2,867 functions are seeded by their class or namespace. A class rule also covers the
+   - 3,116 functions are seeded by their class or namespace. A class rule also covers the
      classes derived from it (RTTI bases): `UIWindow` covers all 153 windows and controls.
    - 80 by an address range: three source files identified by their strings (math, frame
      timer, client configuration).
-   - 34 by imports that only one subsystem uses: sockets, Miles, DirectDraw, Bink, the
+   - 33 by imports that only one subsystem uses: sockets, Miles, DirectDraw, Bink, the
      JPEG library, the IME. Imports used everywhere seed nothing: the UI, for example,
      saves window positions in the registry just as `WinMain` reads its settings there.
    - 3 by single-function rules.
 2. **Propagation**, repeated until nothing changes, strongest rule first:
-   - *neighbours* (2,590): the nearest assigned functions before and after it agree.
-   - *initializer* (45): a dynamic initializer takes the subsystem of the code after it.
-   - *callers* (332): every assigned function that references it agrees.
-   - *shared* (7): it is referenced from several subsystems, so it is a `core` helper.
+   - *neighbours* (2,394): the nearest assigned functions before and after it agree.
+   - *initializer* (47): a dynamic initializer takes the subsystem of the code after it.
+   - *callers* (268): every assigned function that references it agrees.
+   - *shared* (8): it is referenced from several subsystems, so it is a `core` helper.
    - *callees* (22): everything it references agrees, leaving out shared helpers.
    - *previous* (23): nothing references it, so it takes the function before it.
 
@@ -54,9 +54,9 @@ other seeds and reports how often each rule agrees with the class:
 
 | Rule | Agrees with the class |
 |------|----------------------:|
-| neighbours | 99.8% of 2,783 |
-| callees | 96.0% of 1,620 |
-| callers | 86.8% of 1,307 |
+| neighbours | 99.8% of 3,032 |
+| callees | 95.3% of 1,700 |
+| callers | 88.9% of 1,597 |
 
 The linker lays out each translation unit's functions together, and a small helper sits
 with the file that defines it, whoever calls it. Ordering callers first split the
@@ -199,8 +199,8 @@ for the game mode.
 
 1. `PumpMessages`: `PeekMessage`, `TranslateMessage` and `DispatchMessage` until the
    queue is empty. `WindowProc` runs here (§5, §6).
-2. `DispatchGamePackets`: every complete packet in the receive buffer goes to its
-   handler, through the index table `0x526188` (id − 0x73).
+2. `CGameMode::DispatchPackets`: every complete packet in the receive buffer goes to
+   its handler, through the index table `0x526188` (id − 0x73).
 3. While the mode is running:
    - the per-frame game logic: six calls, five of them `CGameMode` methods (mouse input
      comes in through `method_00515d10`);
@@ -273,9 +273,18 @@ Everything runs on the main thread.
    If it fails, `WindowProc` calls the current mode's `SendMsg`.
 3. Once per frame each mode's dispatcher calls `CRagConnection::RecvPacket` until no
    complete packet is left:
-   - `DispatchGamePackets`, through the index table `0x526188` (id − 0x73);
+   - `CGameMode::DispatchPackets`, through the index table `0x526188` (id − 0x73);
    - `CLoginMode::DispatchPackets`: ids 0x69–0x74 through a jump table, 0x81 directly,
      0x187–0x1dc through the index table `0x53d1d8` (id − 0x187).
+
+   Every handler is a method of its mode, `HandlePacket_<id>`, called with the packet:
+   - the game mode has 216, the login mode 16, and no handler serves two ids;
+   - the game mode skips ids 0x75, 0x76, 0x77, 0x7a, 0x83, 0x84 and 0x187, and the login
+     mode skips 0x187;
+   - any other id goes to `CRagConnection::vf02`, which empties the receive buffer, so
+     an unknown packet also loses the packets queued behind it.
+
+   `analysis/exports/Ragexe.exe.packets.tsv` lists every id with its handler.
 4. `send` and `recv` are called through the pointers `InitWinsock` fetched. Once the
    server has sent filter code, received and sent data pass through it; see
    [protocol/code-modules.md](protocol/code-modules.md).

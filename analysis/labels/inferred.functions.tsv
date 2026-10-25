@@ -137,8 +137,8 @@ address	namespace	name	calling_convention	evidence
 0041ed20	PacketCodeModules	RunRecvModules	__thiscall	same as RunSendModules over the list at +4; run by FUN_00418fc0 on received data
 00418fc0	CRagConnection	RecvPacket	__thiscall	(buffer): first reads the expected code modules from the receive stream (4-byte header whose two halves XOR to the length, then the bytes) into PacketCodeModules, then runs queued outgoing data through RunSendModules and received data through RunRecvModules, and extracts a packet (00419370); the game and login dispatchers call it before their packet switch
 00419250	CRagConnection	SetExpectedModules	__thiscall	(receive count, send count): stores them at +0xc4 and +0xc8; called only by the 0x01C7 handlers with the globals 00614d74 and 00614d78
-00537a40	Global	HandlePacket_01C7	__thiscall	case 0x01C7 of the game-mode dispatcher 00524d80 (index table 00526188, id - 0x73); calls CRagConnection::SetExpectedModules
-0053eba0	Global	HandlePacket_01C7	__thiscall	case 0x01C7 of the login-mode dispatcher CLoginMode::method_0053cfa0 (index table 0053d1d8, id - 0x187); calls CRagConnection::SetExpectedModules
+00537a40	CGameMode	HandlePacket_01C7	__thiscall	case 0x01C7 of CGameMode::DispatchPackets 00524d80 (index table 00526188, id - 0x73); calls CRagConnection::SetExpectedModules
+0053eba0	CLoginMode	HandlePacket_01C7	__thiscall	case 0x01C7 of CLoginMode::DispatchPackets 0053cfa0 (index table 0053d1d8, id - 0x187); calls CRagConnection::SetExpectedModules
 # CGPak
 004dec00	CGPak	GetFileName	__thiscall	(dst, path): copies the part of path after its last '\' or '/' (all of it when there is none) to dst; checked against that rule in the emulation oracle (tests/emu/test_oracle.py)
 # Main loop, modes and frame timing (docs/architecture.md)
@@ -155,9 +155,10 @@ address	namespace	name	calling_convention	evidence
 00420360	Global	SetFrameRate		(fps): resets the timer and sets the step period 00628bf8 to 1000 / fps ms; WinMain passes 60
 00420380	Global	IsDrawFrame		returns 1; both modes test it before drawing
 00420390	Global	GetFrameStepsDue		returns the whole periods elapsed since the timer base and advances the base by them; returns 1 when the flag 0061ec58 (initially 1, toggled by a chat command in CGameMode::method_00516a80) is clear
+00419240	CRagConnection	GetPacketId	__thiscall	(packet): returns its first word, the id; both dispatchers call it with ECX = g_CRagConnection, which it does not use
 00418b60	Global	InitWinsock		WSAStartup(0x101) ("Failed to load Winsock library"), then LoadLibraryA("ws2_32.dll") and GetProcAddress of send and recv into 006288d4 and 006288d0 ("Module Hooking Error")
 00418770	CRagConnection	OnSocketEvent	__thiscall	(socket, lParam): WindowProc's WM_USER+1 handler; logs the WSAGETSELECTERROR code by name, else dispatches FD_READ (00418aa0, recv in 2 KB reads), FD_WRITE (00418a30), FD_CONNECT and FD_CLOSE
-00524d80	Global	DispatchGamePackets		CGameMode::OnFrame calls it once per frame: CRagConnection::RecvPacket until empty, then a handler per packet through the index table 00526188 (id - 0x73)
+00524d80	CGameMode	DispatchPackets	__thiscall	CGameMode::OnFrame calls it once per frame with ECX = this (it reads ECX after the _chkstk probe): CRagConnection::RecvPacket until empty, then a handler per packet through the index table 00526188 (id - 0x73)
 0053cfa0	CLoginMode	DispatchPackets	__thiscall	CLoginMode::OnFrame calls it once per frame: CRagConnection::RecvPacket until empty, then a handler per packet: ids 0x69-0x74 through the jump table 0053d190, 0x81 directly, 0x187-0x1dc through the index table 0053d1d8 (id - 0x187)
 004cb3b0	Global	MusicFadeThread	__stdcall	_beginthreadex procedure (target volume): returns at once when ClientState +0x648 is 0; steps the stream volume (005b0ac0) by one every 10 ms up to the target, or down to 0 and pauses the stream when the target is 0; a newer call cuts a running fade short and waits for it through the plain counter at 0067ca4c
 004cb520	Global	FadeOut		(show logo): starts MusicFadeThread(0) and draws the frame to black over 255 ms, with rag_logo.bmp when asked; the modes' Run calls it on exit
@@ -176,7 +177,7 @@ address	namespace	name	calling_convention	evidence
 0050d630	CGameMode	OnExit	__thiscall	vf03: stops the samples, deletes the world and view, releases the map's resources and unused textures (TextureCache::PurgeUnused)
 004cb2f0	CMode	OnFrame	__thiscall	vf04; empty in CMode
 0053b810	CLoginMode	OnFrame	__thiscall	vf04: PumpMessages, DispatchPackets, mouse input and UI, then the UI, cursor and fade, and Present
-0050d400	CGameMode	OnFrame	__thiscall	vf04: PumpMessages, DispatchGamePackets, per-frame game logic, GetFrameStepsDue world steps, then the scene, UI, cursor and fade, and Present
+0050d400	CGameMode	OnFrame	__thiscall	vf04: PumpMessages, DispatchPackets, per-frame game logic, GetFrameStepsDue world steps, then the scene, UI, cursor and fade, and Present
 004cb380	CMode	SendMsg	__thiscall	vf05 (message, ...): 2 quits through ModeSwitcher::Quit, 0x4b requests a screenshot (+0x2c)
 0053d230	CLoginMode	SendMsg	__thiscall	vf05
 0051d990	CGameMode	SendMsg	__thiscall	vf05: the game's command handler, a 23 KB switch; WindowProc calls it when OnSocketEvent fails

@@ -38,7 +38,7 @@ import sys
 from collections import Counter, defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from binindex import BinIndex, ROOT  # noqa: E402
+from binindex import CHKSTK, BinIndex, ROOT  # noqa: E402
 from capstone import x86  # noqa: E402
 
 EXPORTS = os.path.join(ROOT, "analysis", "exports")
@@ -181,8 +181,10 @@ class Recovery:
                 this.discard(d)
                 continue
             if i.id == x86.X86_INS_CALL:
+                kept = (x86.X86_REG_ECX, x86.X86_REG_EDX) if self.bx.call_target(i) == CHKSTK else ()
                 for r in (x86.X86_REG_EAX, x86.X86_REG_ECX, x86.X86_REG_EDX):
-                    this.discard(r)
+                    if r not in kept:
+                        this.discard(r)
                 continue
             try:
                 _, written = i.regs_access()

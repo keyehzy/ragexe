@@ -17,6 +17,8 @@ from capstone import x86
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EXE = os.path.join(ROOT, "original", "client", "Ragexe.exe")
 LEDGER = os.path.join(ROOT, "analysis", "ledger.tsv")
+# The stack probe in large-frame prologues saves and restores ECX (push ecx ... mov ecx, [eax]).
+CHKSTK = 0x5C22B0
 
 
 class Function:
@@ -148,6 +150,31 @@ class BinIndex:
                         callers[t].append((insn.address, fn.entry))
             self._calls = (callees, callers)
         return self._calls
+
+    def reads_ecx_first(self, fn):
+        """True when the function reads ECX before writing it, the mark of __thiscall.
+        `push ecx` only reserves a stack slot in MSVC 6 prologues, and the stack probe
+        _chkstk keeps ECX."""
+        for i in self.insns(fn):
+            ops = i.operands
+            if i.id == x86.X86_INS_PUSH and ops and ops[0].type == x86.X86_OP_REG and ops[0].reg == x86.X86_REG_ECX:
+                continue
+            if i.id in (x86.X86_INS_XOR, x86.X86_INS_SUB) and len(ops) == 2 and ops[0].type == x86.X86_OP_REG \
+                    and ops[1].type == x86.X86_OP_REG and ops[0].reg == ops[1].reg:
+                if ops[0].reg == x86.X86_REG_ECX:
+                    return False
+                continue
+            if i.id == x86.X86_INS_CALL and self.call_target(i) == CHKSTK:
+                continue
+            try:
+                read, written = i.regs_access()
+            except Exception:
+                return False
+            if x86.X86_REG_ECX in read:
+                return True
+            if x86.X86_REG_ECX in written or i.id in (x86.X86_INS_CALL, x86.X86_INS_RET, x86.X86_INS_JMP):
+                return False
+        return False
 
     def resolve_thunk(self, target):
         """Follow import thunks (jmp [IAT]) to the imported name."""

@@ -30,7 +30,7 @@ entry	subsystem	rule	evidence
 00402530	world	neighbours	between 004024c0 and 00402550
 00402550	world	callers	2 referencing functions
 00402570	core	initializer	initializer of the file starting here, before 004025a0
-004025a0	core	shared	audio 3, core 5, game 23, net 3, render 8, res 21, ui 18, world 15
+004025a0	core	shared	audio 3, core 5, game 24, net 2, render 8, res 21, ui 18, world 15
 004025b0	core	previous	after 004025a0, nothing references it
 004025d0	render	callers	2 referencing functions
 00402600	render	callers	1 referencing function
@@ -344,8 +344,8 @@ entry	subsystem	rule	evidence
 00411090	render	class	class SceneRenderer
 004112d0	render	class	class SceneRenderer
 00411c50	render	class	class SceneRenderer
-00411d40	game	callers	1 referencing function
-00412150	res	import	IJL15.DLL!#2, IJL15.DLL!#5
+00411d40	render	class	class SceneRenderer
+00412150	render	class	class SceneRenderer
 00412550	render	class	class SceneRenderer
 00412720	render	class	class SceneRenderer
 004128e0	render	class	class SceneRenderer
@@ -515,10 +515,10 @@ entry	subsystem	rule	evidence
 00418f70	net	class	class CConnection, base of CRagConnection
 00418fc0	net	class	class CConnection, base of CRagConnection
 004191e0	net	class	class CConnection, base of CRagConnection
-00419240	net	neighbours	between 004191e0 and 00419250
+00419240	net	class	class CConnection, base of CRagConnection
 00419250	net	class	class CConnection, base of CRagConnection
-00419270	net	neighbours	between 00419250 and 00419400
-00419370	net	neighbours	between 00419250 and 00419400
+00419270	net	class	class CConnection, base of CRagConnection
+00419370	net	class	class CConnection, base of CRagConnection
 00419400	net	class	class CConnection, base of CRagConnection
 0041cb20	net	neighbours	between 00419400 and 0041cb70
 0041cb70	net	callers	1 referencing function
@@ -592,12 +592,12 @@ entry	subsystem	rule	evidence
 0041edd0	net	neighbours	between 0041ed20 and 0041ee10
 0041edf0	net	neighbours	between 0041ed20 and 0041ee10
 0041ee10	net	class	class PacketCodeModules
-0041ee70	net	neighbours	between 0041ee10 and 0041fa00
-0041eea0	net	neighbours	between 0041ee10 and 0041fa00
-0041f840	net	neighbours	between 0041ee10 and 0041fa00
-0041f870	net	neighbours	between 0041ee10 and 0041fa00
-0041f950	net	neighbours	between 0041ee10 and 0041fa00
-0041f9d0	net	neighbours	between 0041ee10 and 0041fa00
+0041ee70	game	initializer	initializer of the file starting here, before 0041eea0
+0041eea0	game	callers	1 referencing function
+0041f840	game	callers	1 referencing function
+0041f870	game	callers	1 referencing function
+0041f950	game	callers	1 referencing function
+0041f9d0	net	initializer	initializer of the file starting here, before 0041fa00
 0041fa00	net	callers	2 referencing functions
 0041fa20	net	neighbours	between 0041fa00 and 0041fa80
 0041fa80	net	callers	2 referencing functions
@@ -785,11 +785,11 @@ entry	subsystem	rule	evidence
 004277f0	res	class	class CRes, base of CBitmapRes
 004278a0	res	class	class CRes, base of CBitmapRes
 00427940	res	class	class CRes, base of CBitmapRes
-00427980	res	neighbours	between 00427940 and 004280d0
-004279d0	res	neighbours	between 00427940 and 004280d0
-00427b30	res	neighbours	between 00427940 and 004280d0
-00427b90	res	neighbours	between 00427940 and 004280d0
-00427e30	res	neighbours	between 00427940 and 004280d0
+00427980	res	neighbours	between 00427940 and 00427b90
+004279d0	res	neighbours	between 00427940 and 00427b90
+00427b30	res	neighbours	between 00427940 and 00427b90
+00427b90	res	class	class CRes, base of CBitmapRes
+00427e30	res	neighbours	between 00427b90 and 004280d0
 004280d0	res	import	IJL15.DLL!#2, IJL15.DLL!#3, IJL15.DLL!#4
 00428300	res	neighbours	between 004280d0 and 00428360
 00428330	res	neighbours	between 004280d0 and 00428360
@@ -1635,7 +1635,7 @@ entry	subsystem	rule	evidence
 0044c7e0	ui	class	class UIWindow, base of UINoticeWnd
 0044caf0	ui	class	class UIWindow, base of UINoticeWnd
 0044cb30	ui	class	class UIWindow, base of UINoticeWnd
-0044cd90	ui	neighbours	between 0044cb30 and 0044cf70
+0044cd90	ui	class	class UIWindow, base of UINoticeWnd
 0044cf70	ui	class	class UIWindow, base of UISelectCharWnd
 0044d030	ui	class	class UIWindow, base of UISelectCharWnd
 0044d060	ui	neighbours	between 0044d030 and 0044d230
@@ -3164,7 +3164,7 @@ entry	subsystem	rule	evidence
 004c6d60	world	neighbours	between 004c6b90 and 004c6df0
 004c6df0	world	callers	2 referencing functions
 004c6e00	world	callers	2 referencing functions
-004c6e30	world	callers	1 referencing function
+004c6e30	world	neighbours	between 004c6e00 and 004c6e90
 004c6e90	world	callers	1 referencing function
 004c6eb0	world	callers	1 referencing function
 004c6ed0	world	callers	1 referencing function
@@ -4367,7 +4367,7 @@ entry	subsystem	rule	evidence
 0050db70	game	class	class CMode, base of CGameMode
 0050dbb0	game	class	class CMode, base of CGameMode
 0050dc90	game	class	class CMode, base of CGameMode
-0050e390	game	neighbours	between 0050dc90 and 0050e400
+0050e390	game	class	class CMode, base of CGameMode
 0050e400	game	class	class CMode, base of CGameMode
 0050e5b0	game	class	class CMode, base of CGameMode
 0050e760	game	class	class CMode, base of CGameMode
@@ -4389,7 +4389,7 @@ entry	subsystem	rule	evidence
 0050fdf0	game	class	class CMode, base of CGameMode
 0050fea0	game	callers	1 referencing function
 0050fee0	game	callers	1 referencing function
-0050ff10	world	callers	2 referencing functions
+0050ff10	core	shared	game 1, world 3
 0050ffe0	world	class	class CGameObject, base of CDummyEffectLauncher
 00510010	world	stub	jumps to 00501c90
 00510030	world	callers	1 referencing function
@@ -4406,35 +4406,35 @@ entry	subsystem	rule	evidence
 00511800	world	neighbours	between 005111b0 and 005118d0
 005118d0	world	callers	1 referencing function
 00511910	world	callers	1 referencing function
-00511940	world	neighbours	between 00511910 and 00511990
-00511990	world	callers	1 referencing function
-005119f0	world	neighbours	between 00511990 and 00511a40
-00511a40	world	callers	1 referencing function
-00511b60	world	callers	1 referencing function
+00511940	game	class	class CMode, base of CGameMode
+00511990	game	neighbours	between 00511940 and 00511c30
+005119f0	game	neighbours	between 00511940 and 00511c30
+00511a40	game	neighbours	between 00511940 and 00511c30
+00511b60	game	neighbours	between 00511940 and 00511c30
 00511c30	game	class	class CMode, base of CGameMode
 00511d50	game	class	class CMode, base of CGameMode
-00511de0	game	neighbours	between 00511d50 and 00511f40
-00511e50	game	neighbours	between 00511d50 and 00511f40
-00511ec0	game	neighbours	between 00511d50 and 00511f40
+00511de0	game	class	class CMode, base of CGameMode
+00511e50	game	neighbours	between 00511de0 and 00511f40
+00511ec0	game	neighbours	between 00511de0 and 00511f40
 00511f40	game	class	class CMode, base of CGameMode
 005121d0	game	class	class CMode, base of CGameMode
 00512230	game	class	class CMode, base of CGameMode
 005122a0	game	class	class CMode, base of CGameMode
 00512310	game	class	class CMode, base of CGameMode
 005123c0	game	class	class CMode, base of CGameMode
-005124a0	game	neighbours	between 005123c0 and 005126f0
-00512510	game	neighbours	between 005123c0 and 005126f0
-00512610	game	neighbours	between 005123c0 and 005126f0
+005124a0	game	neighbours	between 005123c0 and 00512510
+00512510	game	class	class CMode, base of CGameMode
+00512610	game	neighbours	between 00512510 and 005126f0
 005126f0	game	class	class CMode, base of CGameMode
-00512790	game	neighbours	between 005126f0 and 00512d00
-005127a0	game	neighbours	between 005126f0 and 00512d00
-005127f0	game	neighbours	between 005126f0 and 00512d00
-005128c0	game	neighbours	between 005126f0 and 00512d00
-00512930	game	neighbours	between 005126f0 and 00512d00
-00512a30	game	neighbours	between 005126f0 and 00512d00
-00512b80	game	neighbours	between 005126f0 and 00512d00
-00512c00	game	neighbours	between 005126f0 and 00512d00
-00512ca0	game	neighbours	between 005126f0 and 00512d00
+00512790	game	neighbours	between 005126f0 and 00512930
+005127a0	game	neighbours	between 005126f0 and 00512930
+005127f0	game	neighbours	between 005126f0 and 00512930
+005128c0	game	neighbours	between 005126f0 and 00512930
+00512930	game	class	class CMode, base of CGameMode
+00512a30	game	neighbours	between 00512930 and 00512b80
+00512b80	game	class	class CMode, base of CGameMode
+00512c00	game	class	class CMode, base of CGameMode
+00512ca0	game	neighbours	between 00512c00 and 00512d00
 00512d00	game	class	class CMode, base of CGameMode
 00512eb0	game	class	class CMode, base of CGameMode
 00512fc0	game	neighbours	between 00512eb0 and 005130b0
@@ -4473,17 +4473,17 @@ entry	subsystem	rule	evidence
 00516810	game	class	class CMode, base of CGameMode
 00516a80	game	class	class CMode, base of CGameMode
 00518e00	game	class	class CMode, base of CGameMode
-00518f60	game	neighbours	between 00518e00 and 00519360
-00519060	game	neighbours	between 00518e00 and 00519360
+00518f60	game	neighbours	between 00518e00 and 00519060
+00519060	game	class	class CMode, base of CGameMode
 00519360	game	class	class CMode, base of CGameMode
-00519440	game	neighbours	between 00519360 and 00519740
-00519450	game	neighbours	between 00519360 and 00519740
-00519460	game	neighbours	between 00519360 and 00519740
-00519470	game	neighbours	between 00519360 and 00519740
-00519480	game	neighbours	between 00519360 and 00519740
-005195e0	game	neighbours	between 00519360 and 00519740
-005196a0	game	neighbours	between 00519360 and 00519740
-00519710	game	neighbours	between 00519360 and 00519740
+00519440	game	neighbours	between 00519360 and 00519480
+00519450	game	neighbours	between 00519360 and 00519480
+00519460	game	neighbours	between 00519360 and 00519480
+00519470	game	neighbours	between 00519360 and 00519480
+00519480	game	class	class CMode, base of CGameMode
+005195e0	game	neighbours	between 00519480 and 00519740
+005196a0	game	neighbours	between 00519480 and 00519740
+00519710	game	neighbours	between 00519480 and 00519740
 00519740	game	class	class CMode, base of CGameMode
 00519d80	game	neighbours	between 00519740 and 0051d990
 00519dd0	game	neighbours	between 00519740 and 0051d990
@@ -4496,7 +4496,6 @@ entry	subsystem	rule	evidence
 0051a390	game	neighbours	between 00519740 and 0051d990
 0051a410	game	neighbours	between 00519740 and 0051d990
 0051a530	game	neighbours	between 00519740 and 0051d990
-0051a550	game	neighbours	between 00519740 and 0051d990
 0051a990	game	neighbours	between 00519740 and 0051d990
 0051aa80	game	neighbours	between 00519740 and 0051d990
 0051aad0	game	neighbours	between 00519740 and 0051d990
@@ -4506,12 +4505,9 @@ entry	subsystem	rule	evidence
 0051b1a0	game	neighbours	between 00519740 and 0051d990
 0051b1d0	game	neighbours	between 00519740 and 0051d990
 0051b2a0	game	neighbours	between 00519740 and 0051d990
-0051b4d0	game	neighbours	between 00519740 and 0051d990
 0051b980	game	neighbours	between 00519740 and 0051d990
 0051ba70	game	neighbours	between 00519740 and 0051d990
-0051ba90	game	neighbours	between 00519740 and 0051d990
 0051bcc0	game	neighbours	between 00519740 and 0051d990
-0051c0d0	game	neighbours	between 00519740 and 0051d990
 0051c1b0	game	neighbours	between 00519740 and 0051d990
 0051c290	game	neighbours	between 00519740 and 0051d990
 0051c6a0	game	neighbours	between 00519740 and 0051d990
@@ -4528,17 +4524,14 @@ entry	subsystem	rule	evidence
 0051d170	game	neighbours	between 00519740 and 0051d990
 0051d1d0	game	neighbours	between 00519740 and 0051d990
 0051d1f0	game	neighbours	between 00519740 and 0051d990
-0051d470	game	neighbours	between 00519740 and 0051d990
 0051d4a0	game	neighbours	between 00519740 and 0051d990
 0051d500	game	neighbours	between 00519740 and 0051d990
 0051d520	game	neighbours	between 00519740 and 0051d990
 0051d580	game	neighbours	between 00519740 and 0051d990
-0051d5a0	game	neighbours	between 00519740 and 0051d990
 0051d5d0	game	neighbours	between 00519740 and 0051d990
 0051d5f0	game	neighbours	between 00519740 and 0051d990
 0051d610	game	neighbours	between 00519740 and 0051d990
 0051d640	game	neighbours	between 00519740 and 0051d990
-0051d6a0	game	neighbours	between 00519740 and 0051d990
 0051d6d0	game	neighbours	between 00519740 and 0051d990
 0051d730	game	neighbours	between 00519740 and 0051d990
 0051d780	game	neighbours	between 00519740 and 0051d990
@@ -4570,288 +4563,286 @@ entry	subsystem	rule	evidence
 00523b00	game	class	class ClientState
 00523b10	game	class	class ClientState
 00523b40	game	class	class ClientState
-00523b50	game	callers	1 referencing function
-00523b60	game	callers	1 referencing function
-00523b70	game	callers	1 referencing function
-00523b80	game	callers	1 referencing function
-00523b90	game	callers	1 referencing function
-00523ba0	game	callers	1 referencing function
-00523cf0	game	callers	1 referencing function
-00523db0	game	callers	1 referencing function
-00523dc0	game	callers	1 referencing function
-00523dd0	game	callers	1 referencing function
-00523e40	game	callers	1 referencing function
-00523e60	game	callers	1 referencing function
-00523e70	game	callers	1 referencing function
-00523f80	game	callers	1 referencing function
-00523fa0	game	callers	1 referencing function
-00524010	game	callers	1 referencing function
-00524030	game	callers	1 referencing function
-00524040	game	callers	1 referencing function
-00524050	game	callers	1 referencing function
-00524070	game	callers	1 referencing function
-00524090	game	callers	1 referencing function
-005240b0	game	callers	1 referencing function
-005240c0	game	callers	1 referencing function
-005241e0	game	callers	1 referencing function
-00524200	game	callers	1 referencing function
-005242b0	game	callers	1 referencing function
-00524320	game	callers	1 referencing function
-00524340	game	callers	1 referencing function
-00524360	game	callers	1 referencing function
-00524370	game	callers	1 referencing function
-00524380	game	callers	1 referencing function
-00524420	game	callers	1 referencing function
-00524430	game	callers	1 referencing function
-00524480	game	callers	1 referencing function
-005244a0	game	callers	1 referencing function
-005244c0	game	callers	1 referencing function
-005244d0	game	callers	1 referencing function
-005244e0	game	callers	1 referencing function
-00524580	game	callers	1 referencing function
-00524590	game	callers	1 referencing function
-005245e0	game	callers	1 referencing function
-00524660	game	callers	1 referencing function
-00524680	game	neighbours	between 00524660 and 00524c80
-005246a0	game	neighbours	between 00524660 and 00524c80
-005246c0	game	neighbours	between 00524660 and 00524c80
-00524940	game	neighbours	between 00524660 and 00524c80
-00524bc0	game	neighbours	between 00524660 and 00524c80
-00524c20	game	neighbours	between 00524660 and 00524c80
-00524c80	game	callers	1 referencing function
-00524ce0	game	neighbours	between 00524c80 and 00524d80
-00524d00	game	neighbours	between 00524c80 and 00524d80
-00524d30	game	neighbours	between 00524c80 and 00524d80
+00523b50	game	neighbours	between 00523b40 and 00524d80
+00523b60	game	neighbours	between 00523b40 and 00524d80
+00523b70	game	neighbours	between 00523b40 and 00524d80
+00523b80	game	neighbours	between 00523b40 and 00524d80
+00523b90	game	neighbours	between 00523b40 and 00524d80
+00523ba0	game	neighbours	between 00523b40 and 00524d80
+00523cf0	game	neighbours	between 00523b40 and 00524d80
+00523db0	game	neighbours	between 00523b40 and 00524d80
+00523dc0	game	neighbours	between 00523b40 and 00524d80
+00523dd0	game	neighbours	between 00523b40 and 00524d80
+00523e40	game	neighbours	between 00523b40 and 00524d80
+00523e60	game	neighbours	between 00523b40 and 00524d80
+00523e70	game	neighbours	between 00523b40 and 00524d80
+00523f80	game	neighbours	between 00523b40 and 00524d80
+00523fa0	game	neighbours	between 00523b40 and 00524d80
+00524010	game	neighbours	between 00523b40 and 00524d80
+00524030	game	neighbours	between 00523b40 and 00524d80
+00524040	game	neighbours	between 00523b40 and 00524d80
+00524050	game	neighbours	between 00523b40 and 00524d80
+00524070	game	neighbours	between 00523b40 and 00524d80
+00524090	game	neighbours	between 00523b40 and 00524d80
+005240b0	game	neighbours	between 00523b40 and 00524d80
+005240c0	game	neighbours	between 00523b40 and 00524d80
+005241e0	game	neighbours	between 00523b40 and 00524d80
+00524200	game	neighbours	between 00523b40 and 00524d80
+005242b0	game	neighbours	between 00523b40 and 00524d80
+00524320	game	neighbours	between 00523b40 and 00524d80
+00524340	game	neighbours	between 00523b40 and 00524d80
+00524360	game	neighbours	between 00523b40 and 00524d80
+00524370	game	neighbours	between 00523b40 and 00524d80
+00524380	game	neighbours	between 00523b40 and 00524d80
+00524420	game	neighbours	between 00523b40 and 00524d80
+00524430	game	neighbours	between 00523b40 and 00524d80
+00524480	game	neighbours	between 00523b40 and 00524d80
+005244a0	game	neighbours	between 00523b40 and 00524d80
+005244c0	game	neighbours	between 00523b40 and 00524d80
+005244d0	game	neighbours	between 00523b40 and 00524d80
+005244e0	game	neighbours	between 00523b40 and 00524d80
+00524580	game	neighbours	between 00523b40 and 00524d80
+00524590	game	neighbours	between 00523b40 and 00524d80
+005245e0	game	neighbours	between 00523b40 and 00524d80
+00524660	game	neighbours	between 00523b40 and 00524d80
+00524680	game	neighbours	between 00523b40 and 00524d80
+005246a0	game	neighbours	between 00523b40 and 00524d80
+005246c0	game	neighbours	between 00523b40 and 00524d80
+00524940	game	neighbours	between 00523b40 and 00524d80
+00524bc0	game	neighbours	between 00523b40 and 00524d80
+00524c20	game	neighbours	between 00523b40 and 00524d80
+00524c80	game	neighbours	between 00523b40 and 00524d80
+00524ce0	game	neighbours	between 00523b40 and 00524d80
+00524d00	game	neighbours	between 00523b40 and 00524d80
+00524d30	game	neighbours	between 00523b40 and 00524d80
 00524d60	game	stub	jumps to 00524d70
-00524d70	game	neighbours	between 00524c80 and 00524d80
-00524d80	game	callers	1 referencing function
-00526300	game	neighbours	between 00524d80 and 00539230
-00526720	game	neighbours	between 00524d80 and 00539230
-00526ac0	game	neighbours	between 00524d80 and 00539230
-00526ca0	game	neighbours	between 00524d80 and 00539230
-00526d60	game	neighbours	between 00524d80 and 00539230
-00526e10	game	neighbours	between 00524d80 and 00539230
-00526fe0	game	neighbours	between 00524d80 and 00539230
-00527090	game	neighbours	between 00524d80 and 00539230
-00527140	game	neighbours	between 00524d80 and 00539230
-00527240	game	neighbours	between 00524d80 and 00539230
-00527350	game	neighbours	between 00524d80 and 00539230
-00527610	game	neighbours	between 00524d80 and 00539230
-00527620	game	neighbours	between 00524d80 and 00539230
-00527940	game	neighbours	between 00524d80 and 00539230
-00527ab0	game	neighbours	between 00524d80 and 00539230
-00527b80	game	neighbours	between 00524d80 and 00539230
-00527c20	game	neighbours	between 00524d80 and 00539230
-00527d90	game	neighbours	between 00524d80 and 00539230
-00528300	game	neighbours	between 00524d80 and 00539230
-00528600	game	neighbours	between 00524d80 and 00539230
-00528d30	game	neighbours	between 00524d80 and 00539230
-00528d80	game	neighbours	between 00524d80 and 00539230
-00528e00	game	neighbours	between 00524d80 and 00539230
-005291e0	game	neighbours	between 00524d80 and 00539230
-00529520	game	neighbours	between 00524d80 and 00539230
-00529780	game	neighbours	between 00524d80 and 00539230
-00529900	game	neighbours	between 00524d80 and 00539230
-00529a90	game	neighbours	between 00524d80 and 00539230
-0052a070	game	neighbours	between 00524d80 and 00539230
-0052a0a0	game	neighbours	between 00524d80 and 00539230
-0052a1c0	game	neighbours	between 00524d80 and 00539230
-0052a360	game	neighbours	between 00524d80 and 00539230
-0052a3d0	game	neighbours	between 00524d80 and 00539230
-0052af40	game	neighbours	between 00524d80 and 00539230
-0052b0b0	game	neighbours	between 00524d80 and 00539230
-0052b180	game	neighbours	between 00524d80 and 00539230
-0052b280	game	neighbours	between 00524d80 and 00539230
-0052b2c0	game	neighbours	between 00524d80 and 00539230
-0052b330	game	neighbours	between 00524d80 and 00539230
-0052b3b0	game	neighbours	between 00524d80 and 00539230
-0052b3f0	game	neighbours	between 00524d80 and 00539230
-0052b460	game	neighbours	between 00524d80 and 00539230
-0052b540	game	neighbours	between 00524d80 and 00539230
-0052b580	game	neighbours	between 00524d80 and 00539230
-0052b940	game	neighbours	between 00524d80 and 00539230
-0052bb90	game	neighbours	between 00524d80 and 00539230
-0052bc40	game	neighbours	between 00524d80 and 00539230
-0052bcb0	game	neighbours	between 00524d80 and 00539230
-0052bd10	game	neighbours	between 00524d80 and 00539230
-0052bf50	game	neighbours	between 00524d80 and 00539230
-0052bfb0	game	neighbours	between 00524d80 and 00539230
-0052c0c0	game	neighbours	between 00524d80 and 00539230
-0052c260	game	neighbours	between 00524d80 and 00539230
-0052c340	game	neighbours	between 00524d80 and 00539230
-0052c3d0	game	neighbours	between 00524d80 and 00539230
-0052c6d0	game	neighbours	between 00524d80 and 00539230
-0052c760	game	neighbours	between 00524d80 and 00539230
-0052c810	game	neighbours	between 00524d80 and 00539230
-0052c940	game	neighbours	between 00524d80 and 00539230
-0052cb00	game	neighbours	between 00524d80 and 00539230
-0052cb90	game	neighbours	between 00524d80 and 00539230
-0052ce80	game	neighbours	between 00524d80 and 00539230
-0052cec0	game	neighbours	between 00524d80 and 00539230
-0052d060	game	neighbours	between 00524d80 and 00539230
-0052d270	game	neighbours	between 00524d80 and 00539230
-0052d2c0	game	neighbours	between 00524d80 and 00539230
-0052d400	game	neighbours	between 00524d80 and 00539230
-0052d5b0	game	neighbours	between 00524d80 and 00539230
-0052d6a0	game	neighbours	between 00524d80 and 00539230
-0052d7d0	game	neighbours	between 00524d80 and 00539230
-0052d960	game	neighbours	between 00524d80 and 00539230
-0052db30	game	neighbours	between 00524d80 and 00539230
-0052db80	game	neighbours	between 00524d80 and 00539230
-0052dbf0	game	neighbours	between 00524d80 and 00539230
-0052dc80	game	neighbours	between 00524d80 and 00539230
-0052dca0	game	neighbours	between 00524d80 and 00539230
-0052ddd0	game	neighbours	between 00524d80 and 00539230
-0052df20	game	neighbours	between 00524d80 and 00539230
-0052e010	game	neighbours	between 00524d80 and 00539230
-0052e0c0	game	neighbours	between 00524d80 and 00539230
-0052e0e0	game	neighbours	between 00524d80 and 00539230
-0052e120	game	neighbours	between 00524d80 and 00539230
-0052e1b0	game	neighbours	between 00524d80 and 00539230
-0052e450	game	neighbours	between 00524d80 and 00539230
-0052e4e0	game	neighbours	between 00524d80 and 00539230
-0052e5e0	game	neighbours	between 00524d80 and 00539230
-0052e910	game	neighbours	between 00524d80 and 00539230
-0052ead0	game	neighbours	between 00524d80 and 00539230
-0052eb10	game	neighbours	between 00524d80 and 00539230
-0052eb40	game	neighbours	between 00524d80 and 00539230
-0052ec30	game	neighbours	between 00524d80 and 00539230
-0052edf0	game	neighbours	between 00524d80 and 00539230
-0052ee70	game	neighbours	between 00524d80 and 00539230
-0052eec0	game	neighbours	between 00524d80 and 00539230
-0052ef00	game	neighbours	between 00524d80 and 00539230
-0052efd0	game	neighbours	between 00524d80 and 00539230
-0052f180	game	neighbours	between 00524d80 and 00539230
-0052f3d0	game	neighbours	between 00524d80 and 00539230
-0052f540	game	neighbours	between 00524d80 and 00539230
-0052f650	game	neighbours	between 00524d80 and 00539230
-0052f770	game	neighbours	between 00524d80 and 00539230
-0052f840	game	neighbours	between 00524d80 and 00539230
-0052f910	game	neighbours	between 00524d80 and 00539230
-0052fb00	game	neighbours	between 00524d80 and 00539230
-0052fb20	game	neighbours	between 00524d80 and 00539230
-0052fbb0	game	neighbours	between 00524d80 and 00539230
-0052fc10	game	neighbours	between 00524d80 and 00539230
-0052fc80	game	neighbours	between 00524d80 and 00539230
-0052fda0	game	neighbours	between 00524d80 and 00539230
-0052fee0	game	neighbours	between 00524d80 and 00539230
-0052ff00	game	neighbours	between 00524d80 and 00539230
-0052ff70	game	neighbours	between 00524d80 and 00539230
-00530060	game	neighbours	between 00524d80 and 00539230
-00530110	game	neighbours	between 00524d80 and 00539230
-005301b0	game	neighbours	between 00524d80 and 00539230
-00530210	game	neighbours	between 00524d80 and 00539230
-00530240	game	neighbours	between 00524d80 and 00539230
-00530420	game	neighbours	between 00524d80 and 00539230
-005305c0	game	neighbours	between 00524d80 and 00539230
-005307c0	game	neighbours	between 00524d80 and 00539230
-005309b0	game	neighbours	between 00524d80 and 00539230
-00530a40	game	neighbours	between 00524d80 and 00539230
-00530a60	game	neighbours	between 00524d80 and 00539230
-00530b20	game	neighbours	between 00524d80 and 00539230
-00530b50	game	neighbours	between 00524d80 and 00539230
-00530cb0	game	neighbours	between 00524d80 and 00539230
-00530f40	game	neighbours	between 00524d80 and 00539230
-00531f20	game	neighbours	between 00524d80 and 00539230
-00532090	game	neighbours	between 00524d80 and 00539230
-005321d0	game	neighbours	between 00524d80 and 00539230
-00532220	game	neighbours	between 00524d80 and 00539230
-005323a0	game	neighbours	between 00524d80 and 00539230
-005323f0	game	neighbours	between 00524d80 and 00539230
-00532440	game	neighbours	between 00524d80 and 00539230
-005325c0	game	neighbours	between 00524d80 and 00539230
-00532660	game	neighbours	between 00524d80 and 00539230
-005326d0	game	neighbours	between 00524d80 and 00539230
-00532920	game	neighbours	between 00524d80 and 00539230
-00532ab0	game	neighbours	between 00524d80 and 00539230
-00532ad0	game	neighbours	between 00524d80 and 00539230
-00532bf0	game	neighbours	between 00524d80 and 00539230
-00532c40	game	neighbours	between 00524d80 and 00539230
-00532ee0	game	neighbours	between 00524d80 and 00539230
-00532ef0	game	neighbours	between 00524d80 and 00539230
-00533110	game	neighbours	between 00524d80 and 00539230
-00533430	game	neighbours	between 00524d80 and 00539230
-005334a0	game	neighbours	between 00524d80 and 00539230
-00533510	game	neighbours	between 00524d80 and 00539230
-005336e0	game	neighbours	between 00524d80 and 00539230
-00533930	game	neighbours	between 00524d80 and 00539230
-00533940	game	neighbours	between 00524d80 and 00539230
-005339c0	game	neighbours	between 00524d80 and 00539230
-00533a50	game	neighbours	between 00524d80 and 00539230
-00533aa0	game	neighbours	between 00524d80 and 00539230
-00533b00	game	neighbours	between 00524d80 and 00539230
-00533b60	game	neighbours	between 00524d80 and 00539230
-00533b70	game	neighbours	between 00524d80 and 00539230
-00533be0	game	neighbours	between 00524d80 and 00539230
-00533f00	game	neighbours	between 00524d80 and 00539230
-00533f60	game	neighbours	between 00524d80 and 00539230
-00533fb0	game	neighbours	between 00524d80 and 00539230
-00534040	game	neighbours	between 00524d80 and 00539230
-005342f0	game	neighbours	between 00524d80 and 00539230
-005343f0	game	neighbours	between 00524d80 and 00539230
-005344f0	game	neighbours	between 00524d80 and 00539230
-00534610	game	neighbours	between 00524d80 and 00539230
-00534800	game	neighbours	between 00524d80 and 00539230
-00534860	game	neighbours	between 00524d80 and 00539230
-00534aa0	game	neighbours	between 00524d80 and 00539230
-00534ad0	game	neighbours	between 00524d80 and 00539230
-00534c10	game	neighbours	between 00524d80 and 00539230
-00534d80	game	neighbours	between 00524d80 and 00539230
-00534dd0	game	neighbours	between 00524d80 and 00539230
-00534e30	game	neighbours	between 00524d80 and 00539230
-00534e60	game	neighbours	between 00524d80 and 00539230
-00534ee0	game	neighbours	between 00524d80 and 00539230
-00535130	game	neighbours	between 00524d80 and 00539230
-00535170	game	neighbours	between 00524d80 and 00539230
-005351e0	game	neighbours	between 00524d80 and 00539230
-00535200	game	neighbours	between 00524d80 and 00539230
-00535c40	game	neighbours	between 00524d80 and 00539230
-00535ca0	game	neighbours	between 00524d80 and 00539230
-00535d10	game	neighbours	between 00524d80 and 00539230
-00535ff0	game	neighbours	between 00524d80 and 00539230
-005361d0	game	neighbours	between 00524d80 and 00539230
-00536200	game	neighbours	between 00524d80 and 00539230
-00536250	game	neighbours	between 00524d80 and 00539230
-00536460	game	neighbours	between 00524d80 and 00539230
-00536560	game	neighbours	between 00524d80 and 00539230
-00536670	game	neighbours	between 00524d80 and 00539230
-005367f0	game	neighbours	between 00524d80 and 00539230
-00536b00	game	neighbours	between 00524d80 and 00539230
-00536b40	game	neighbours	between 00524d80 and 00539230
-00536b90	game	neighbours	between 00524d80 and 00539230
-00536c00	game	neighbours	between 00524d80 and 00539230
-00536c30	game	neighbours	between 00524d80 and 00539230
-00536ce0	game	neighbours	between 00524d80 and 00539230
-00536d20	game	neighbours	between 00524d80 and 00539230
-00536f80	game	neighbours	between 00524d80 and 00539230
-00537020	game	neighbours	between 00524d80 and 00539230
-005370d0	game	neighbours	between 00524d80 and 00539230
-00537270	game	neighbours	between 00524d80 and 00539230
-00537310	game	neighbours	between 00524d80 and 00539230
-00537690	game	neighbours	between 00524d80 and 00539230
-00537840	game	neighbours	between 00524d80 and 00539230
-00537940	game	neighbours	between 00524d80 and 00539230
-00537a40	game	neighbours	between 00524d80 and 00539230
-00537a60	game	neighbours	between 00524d80 and 00539230
-00537b70	game	neighbours	between 00524d80 and 00539230
-00537e30	game	neighbours	between 00524d80 and 00539230
-00537e90	game	neighbours	between 00524d80 and 00539230
-00537ee0	game	neighbours	between 00524d80 and 00539230
-00538210	game	neighbours	between 00524d80 and 00539230
-005384b0	game	neighbours	between 00524d80 and 00539230
-005388c0	game	neighbours	between 00524d80 and 00539230
-00538c60	game	neighbours	between 00524d80 and 00539230
-00539030	game	neighbours	between 00524d80 and 00539230
-00539140	game	neighbours	between 00524d80 and 00539230
+00524d70	game	neighbours	between 00523b40 and 00524d80
+00524d80	game	class	class CMode, base of CGameMode
+00526300	game	class	class CMode, base of CGameMode
+00526720	game	class	class CMode, base of CGameMode
+00526ac0	game	class	class CMode, base of CGameMode
+00526ca0	game	class	class CMode, base of CGameMode
+00526d60	game	class	class CMode, base of CGameMode
+00526e10	game	class	class CMode, base of CGameMode
+00526fe0	game	class	class CMode, base of CGameMode
+00527090	game	class	class CMode, base of CGameMode
+00527140	game	class	class CMode, base of CGameMode
+00527240	game	class	class CMode, base of CGameMode
+00527350	game	class	class CMode, base of CGameMode
+00527610	game	class	class CMode, base of CGameMode
+00527620	game	class	class CMode, base of CGameMode
+00527940	game	class	class CMode, base of CGameMode
+00527ab0	game	class	class CMode, base of CGameMode
+00527b80	game	class	class CMode, base of CGameMode
+00527c20	game	class	class CMode, base of CGameMode
+00527d90	game	class	class CMode, base of CGameMode
+00528300	game	class	class CMode, base of CGameMode
+00528600	game	class	class CMode, base of CGameMode
+00528d30	game	class	class CMode, base of CGameMode
+00528d80	game	class	class CMode, base of CGameMode
+00528e00	game	class	class CMode, base of CGameMode
+005291e0	game	class	class CMode, base of CGameMode
+00529520	game	class	class CMode, base of CGameMode
+00529780	game	class	class CMode, base of CGameMode
+00529900	game	class	class CMode, base of CGameMode
+00529a90	game	class	class CMode, base of CGameMode
+0052a070	game	class	class CMode, base of CGameMode
+0052a0a0	game	class	class CMode, base of CGameMode
+0052a1c0	game	class	class CMode, base of CGameMode
+0052a360	game	class	class CMode, base of CGameMode
+0052a3d0	game	class	class CMode, base of CGameMode
+0052af40	game	class	class CMode, base of CGameMode
+0052b0b0	game	class	class CMode, base of CGameMode
+0052b180	game	class	class CMode, base of CGameMode
+0052b280	game	class	class CMode, base of CGameMode
+0052b2c0	game	class	class CMode, base of CGameMode
+0052b330	game	class	class CMode, base of CGameMode
+0052b3b0	game	class	class CMode, base of CGameMode
+0052b3f0	game	class	class CMode, base of CGameMode
+0052b460	game	class	class CMode, base of CGameMode
+0052b540	game	class	class CMode, base of CGameMode
+0052b580	game	class	class CMode, base of CGameMode
+0052b940	game	class	class CMode, base of CGameMode
+0052bb90	game	class	class CMode, base of CGameMode
+0052bc40	game	class	class CMode, base of CGameMode
+0052bcb0	game	class	class CMode, base of CGameMode
+0052bd10	game	class	class CMode, base of CGameMode
+0052bf50	game	class	class CMode, base of CGameMode
+0052bfb0	game	class	class CMode, base of CGameMode
+0052c0c0	game	class	class CMode, base of CGameMode
+0052c260	game	class	class CMode, base of CGameMode
+0052c340	game	class	class CMode, base of CGameMode
+0052c3d0	game	class	class CMode, base of CGameMode
+0052c6d0	game	class	class CMode, base of CGameMode
+0052c760	game	class	class CMode, base of CGameMode
+0052c810	game	class	class CMode, base of CGameMode
+0052c940	game	class	class CMode, base of CGameMode
+0052cb00	game	class	class CMode, base of CGameMode
+0052cb90	game	class	class CMode, base of CGameMode
+0052ce80	game	neighbours	between 0052cb90 and 0052cec0
+0052cec0	game	class	class CMode, base of CGameMode
+0052d060	game	class	class CMode, base of CGameMode
+0052d270	game	class	class CMode, base of CGameMode
+0052d2c0	game	class	class CMode, base of CGameMode
+0052d400	game	class	class CMode, base of CGameMode
+0052d5b0	game	class	class CMode, base of CGameMode
+0052d6a0	game	class	class CMode, base of CGameMode
+0052d7d0	game	class	class CMode, base of CGameMode
+0052d960	game	class	class CMode, base of CGameMode
+0052db30	game	class	class CMode, base of CGameMode
+0052db80	game	class	class CMode, base of CGameMode
+0052dbf0	game	class	class CMode, base of CGameMode
+0052dc80	game	class	class CMode, base of CGameMode
+0052dca0	game	class	class CMode, base of CGameMode
+0052ddd0	game	class	class CMode, base of CGameMode
+0052df20	game	class	class CMode, base of CGameMode
+0052e010	game	class	class CMode, base of CGameMode
+0052e0c0	game	class	class CMode, base of CGameMode
+0052e0e0	game	class	class CMode, base of CGameMode
+0052e120	game	class	class CMode, base of CGameMode
+0052e1b0	game	class	class CMode, base of CGameMode
+0052e450	game	class	class CMode, base of CGameMode
+0052e4e0	game	class	class CMode, base of CGameMode
+0052e5e0	game	class	class CMode, base of CGameMode
+0052e910	game	class	class CMode, base of CGameMode
+0052ead0	game	class	class CMode, base of CGameMode
+0052eb10	game	class	class CMode, base of CGameMode
+0052eb40	game	class	class CMode, base of CGameMode
+0052ec30	game	class	class CMode, base of CGameMode
+0052edf0	game	class	class CMode, base of CGameMode
+0052ee70	game	class	class CMode, base of CGameMode
+0052eec0	game	class	class CMode, base of CGameMode
+0052ef00	game	class	class CMode, base of CGameMode
+0052efd0	game	class	class CMode, base of CGameMode
+0052f180	game	class	class CMode, base of CGameMode
+0052f3d0	game	class	class CMode, base of CGameMode
+0052f540	game	class	class CMode, base of CGameMode
+0052f650	game	class	class CMode, base of CGameMode
+0052f770	game	class	class CMode, base of CGameMode
+0052f840	game	class	class CMode, base of CGameMode
+0052f910	game	class	class CMode, base of CGameMode
+0052fb00	game	class	class CMode, base of CGameMode
+0052fb20	game	class	class CMode, base of CGameMode
+0052fbb0	game	class	class CMode, base of CGameMode
+0052fc10	game	class	class CMode, base of CGameMode
+0052fc80	game	class	class CMode, base of CGameMode
+0052fda0	game	class	class CMode, base of CGameMode
+0052fee0	game	class	class CMode, base of CGameMode
+0052ff00	game	class	class CMode, base of CGameMode
+0052ff70	game	class	class CMode, base of CGameMode
+00530060	game	class	class CMode, base of CGameMode
+00530110	game	class	class CMode, base of CGameMode
+005301b0	game	class	class CMode, base of CGameMode
+00530210	game	class	class CMode, base of CGameMode
+00530240	game	class	class CMode, base of CGameMode
+00530420	game	class	class CMode, base of CGameMode
+005305c0	game	class	class CMode, base of CGameMode
+005307c0	game	class	class CMode, base of CGameMode
+005309b0	game	class	class CMode, base of CGameMode
+00530a40	game	class	class CMode, base of CGameMode
+00530a60	game	class	class CMode, base of CGameMode
+00530b20	game	class	class CMode, base of CGameMode
+00530b50	game	class	class CMode, base of CGameMode
+00530cb0	game	class	class CMode, base of CGameMode
+00530f40	game	class	class CMode, base of CGameMode
+00531f20	game	class	class CMode, base of CGameMode
+00532090	game	class	class CMode, base of CGameMode
+005321d0	game	class	class CMode, base of CGameMode
+00532220	game	class	class CMode, base of CGameMode
+005323a0	game	class	class CMode, base of CGameMode
+005323f0	game	class	class CMode, base of CGameMode
+00532440	game	class	class CMode, base of CGameMode
+005325c0	game	class	class CMode, base of CGameMode
+00532660	game	class	class CMode, base of CGameMode
+005326d0	game	class	class CMode, base of CGameMode
+00532920	game	class	class CMode, base of CGameMode
+00532ab0	game	class	class CMode, base of CGameMode
+00532ad0	game	class	class CMode, base of CGameMode
+00532bf0	game	class	class CMode, base of CGameMode
+00532c40	game	class	class CMode, base of CGameMode
+00532ee0	game	class	class CMode, base of CGameMode
+00532ef0	game	class	class CMode, base of CGameMode
+00533110	game	class	class CMode, base of CGameMode
+00533430	game	class	class CMode, base of CGameMode
+005334a0	game	class	class CMode, base of CGameMode
+00533510	game	class	class CMode, base of CGameMode
+005336e0	game	class	class CMode, base of CGameMode
+00533930	game	class	class CMode, base of CGameMode
+00533940	game	class	class CMode, base of CGameMode
+005339c0	game	class	class CMode, base of CGameMode
+00533a50	game	class	class CMode, base of CGameMode
+00533aa0	game	class	class CMode, base of CGameMode
+00533b00	game	class	class CMode, base of CGameMode
+00533b60	game	class	class CMode, base of CGameMode
+00533b70	game	class	class CMode, base of CGameMode
+00533be0	game	class	class CMode, base of CGameMode
+00533f00	game	class	class CMode, base of CGameMode
+00533f60	game	class	class CMode, base of CGameMode
+00533fb0	game	class	class CMode, base of CGameMode
+00534040	game	class	class CMode, base of CGameMode
+005342f0	game	class	class CMode, base of CGameMode
+005343f0	game	class	class CMode, base of CGameMode
+005344f0	game	class	class CMode, base of CGameMode
+00534610	game	class	class CMode, base of CGameMode
+00534800	game	class	class CMode, base of CGameMode
+00534860	game	class	class CMode, base of CGameMode
+00534aa0	game	class	class CMode, base of CGameMode
+00534ad0	game	class	class CMode, base of CGameMode
+00534c10	game	class	class CMode, base of CGameMode
+00534d80	game	class	class CMode, base of CGameMode
+00534dd0	game	class	class CMode, base of CGameMode
+00534e30	game	class	class CMode, base of CGameMode
+00534e60	game	class	class CMode, base of CGameMode
+00534ee0	game	class	class CMode, base of CGameMode
+00535130	game	class	class CMode, base of CGameMode
+00535170	game	class	class CMode, base of CGameMode
+005351e0	game	neighbours	between 00535170 and 00535200
+00535200	game	class	class CMode, base of CGameMode
+00535c40	game	class	class CMode, base of CGameMode
+00535ca0	game	class	class CMode, base of CGameMode
+00535d10	game	class	class CMode, base of CGameMode
+00535ff0	game	class	class CMode, base of CGameMode
+005361d0	game	class	class CMode, base of CGameMode
+00536200	game	class	class CMode, base of CGameMode
+00536250	game	class	class CMode, base of CGameMode
+00536460	game	class	class CMode, base of CGameMode
+00536560	game	class	class CMode, base of CGameMode
+00536670	game	class	class CMode, base of CGameMode
+005367f0	game	class	class CMode, base of CGameMode
+00536b00	game	class	class CMode, base of CGameMode
+00536b40	game	class	class CMode, base of CGameMode
+00536b90	game	class	class CMode, base of CGameMode
+00536c00	game	class	class CMode, base of CGameMode
+00536c30	game	class	class CMode, base of CGameMode
+00536ce0	game	class	class CMode, base of CGameMode
+00536d20	game	class	class CMode, base of CGameMode
+00536f80	game	class	class CMode, base of CGameMode
+00537020	game	class	class CMode, base of CGameMode
+005370d0	game	class	class CMode, base of CGameMode
+00537270	game	class	class CMode, base of CGameMode
+00537310	game	class	class CMode, base of CGameMode
+00537690	game	class	class CMode, base of CGameMode
+00537840	game	class	class CMode, base of CGameMode
+00537940	game	class	class CMode, base of CGameMode
+00537a40	game	class	class CMode, base of CGameMode
+00537a60	game	class	class CMode, base of CGameMode
+00537b70	game	class	class CMode, base of CGameMode
+00537e30	game	class	class CMode, base of CGameMode
+00537e90	game	class	class CMode, base of CGameMode
+00537ee0	game	class	class CMode, base of CGameMode
+00538210	game	class	class CMode, base of CGameMode
+005384b0	game	class	class CMode, base of CGameMode
+005388c0	game	class	class CMode, base of CGameMode
+00538c60	game	class	class CMode, base of CGameMode
+00539030	game	class	class CMode, base of CGameMode
+00539140	game	class	class CMode, base of CGameMode
 00539230	game	callers	2 referencing functions
 00539270	game	neighbours	between 00539230 and 005392e0
-005392e0	game	callers	1 referencing function
-005393d0	game	callers	1 referencing function
+005392e0	game	callers	2 referencing functions
 005394c0	game	callers	1 referencing function
 00539520	game	callers	1 referencing function
 00539580	game	callers	1 referencing function
 005395e0	game	callers	1 referencing function
-00539610	game	callers	1 referencing function
 00539840	game	callers	1 referencing function
 00539bc0	game	callers	1 referencing function
 00539be0	game	callers	1 referencing function
@@ -4899,25 +4890,25 @@ entry	subsystem	rule	evidence
 0053cf10	game	neighbours	between 0053ce20 and 0053cfa0
 0053cfa0	game	class	class CMode, base of CLoginMode
 0053d230	game	class	class CMode, base of CLoginMode
-0053de30	game	callers	1 referencing function
-0053df00	game	callers	1 referencing function
-0053e180	game	callers	1 referencing function
-0053e1f0	game	callers	1 referencing function
-0053e250	game	callers	1 referencing function
-0053e2b0	game	callers	1 referencing function
-0053e310	game	callers	1 referencing function
-0053e3b0	game	callers	1 referencing function
-0053e410	game	callers	1 referencing function
-0053e5c0	game	callers	1 referencing function
-0053e750	game	callers	1 referencing function
-0053e790	game	callers	1 referencing function
-0053e9a0	game	callers	1 referencing function
-0053eb20	game	callers	1 referencing function
-0053eba0	game	callers	1 referencing function
-0053ebc0	game	callers	1 referencing function
+0053de30	game	class	class CMode, base of CLoginMode
+0053df00	game	class	class CMode, base of CLoginMode
+0053e180	game	class	class CMode, base of CLoginMode
+0053e1f0	game	class	class CMode, base of CLoginMode
+0053e250	game	class	class CMode, base of CLoginMode
+0053e2b0	game	class	class CMode, base of CLoginMode
+0053e310	game	class	class CMode, base of CLoginMode
+0053e3b0	game	class	class CMode, base of CLoginMode
+0053e410	game	class	class CMode, base of CLoginMode
+0053e5c0	game	class	class CMode, base of CLoginMode
+0053e750	game	class	class CMode, base of CLoginMode
+0053e790	game	class	class CMode, base of CLoginMode
+0053e9a0	game	class	class CMode, base of CLoginMode
+0053eb20	game	class	class CMode, base of CLoginMode
+0053eba0	game	class	class CMode, base of CLoginMode
+0053ebc0	game	class	class CMode, base of CLoginMode
 0053ecd0	game	callers	1 referencing function
 0053f030	game	neighbours	between 0053ecd0 and 0053f100
-0053f100	game	callers	1 referencing function
+0053f100	game	callers	2 referencing functions
 0053f1d0	game	callers	1 referencing function
 0053f590	game	callers	1 referencing function
 0053f810	game	callers	1 referencing function
@@ -8550,7 +8541,7 @@ entry	subsystem	rule	evidence
 005dd580	game	funclet	EH tables of 0050f020
 005dd588	game	funclet	EH tables of 0050f020
 005dd5a0	game	funclet	EH tables of 0050fdf0
-005dd5c0	world	funclet	EH tables of 0050ff10
+005dd5c0	core	funclet	EH tables of 0050ff10
 005dd5e0	world	funclet	EH tables of 00510030
 005dd600	world	funclet	EH tables of 00510120
 005dd620	world	funclet	EH tables of 005101f0

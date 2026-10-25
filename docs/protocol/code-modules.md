@@ -16,7 +16,7 @@ Names below are from `analysis/labels/inferred.*.tsv`.
 | `0041ecd0` / `0041ed20` | `RunSendModules` / `RunRecvModules` | run the modules over a buffer |
 | `00418fc0` | `CRagConnection::RecvPacket` | reads modules from the stream, filters data |
 | `00419250` | `CRagConnection::SetExpectedModules(recv, send)` | stores the counts at `+0xc4` / `+0xc8` |
-| `00537a40`, `0053eba0` | `HandlePacket_01C7` | game- and login-mode handlers of packet 0x01C7 |
+| `00537a40`, `0053eba0` | `CGameMode::HandlePacket_01C7`, `CLoginMode::HandlePacket_01C7` | the two modes' handlers of packet 0x01C7 |
 | `00614d74`, `00614d78` | `g_recvModuleCount`, `g_sendModuleCount` | both initialised to 2 |
 
 ## The patched stub
@@ -43,9 +43,9 @@ Patched, the stub saves registers, calls the current module with the stub's own 
 
 ## Receiving modules
 
-Packet 0x01C7 is handled in both dispatchers: game mode `00524d80` (index table
-`00526188`, entry for `id - 0x73`) and login mode `CLoginMode::method_0053cfa0` (index
-table `0053d1d8`, entry for `id - 0x187`). Both handlers only call
+Packet 0x01C7 is handled in both dispatchers: `CGameMode::DispatchPackets` `00524d80`
+(index table `00526188`, entry for `id - 0x73`) and `CLoginMode::DispatchPackets`
+`0053cfa0` (index table `0053d1d8`, entry for `id - 0x187`). Both handlers only call
 `SetExpectedModules(g_recvModuleCount, g_sendModuleCount)`, that is (2, 2). The packet's
 own fields are not read by the handler.
 

@@ -7,7 +7,7 @@ CSurface	Global	9	1
 CSurfaceWallpaper	Global	4	1
 CTexture	Global	12	1
 CConnection	Global	7	1
-CRagConnection	Global	14	1
+CRagConnection	Global	17	1
 CController	Global	6	1
 CKeyPad	Global	5	1
 CRes	Global	5	1
@@ -20,7 +20,7 @@ istrstream	std	2	1
 basic_streambuf<char,std::char_traits<char>_>	std	14	1
 strstreambuf	std	9	1
 C3dAttr	Global	7	1
-CBitmapRes	Global	8	1
+CBitmapRes	Global	9	1
 CEmblemRes	Global	8	1
 CEZeffectRes	Global	7	1
 CGndRes	Global	7	1
@@ -80,7 +80,7 @@ UIMessageBoxAutoreturn	Global	6	1
 UIMessageBox	Global	7	1
 UISelectServerWnd	Global	7	1
 UILoginWnd	Global	9	1
-UINoticeWnd	Global	9	1
+UINoticeWnd	Global	10	1
 UISelectCharWnd	Global	14	1
 UIMakeCharWnd	Global	11	1
 UIBitmapEditCtrl	Global	3	1
@@ -231,11 +231,11 @@ CMiniGame001	mg::mgType1	23	1
 CMousePointer	Global	6	1
 C3dGrannyGameActor	Global	15	1
 CGrannyCorpse3d	Global	8	1
-CGameMode	Global	61	1
+CGameMode	Global	287	1
 CDummyEffectLauncher	Global	4	1
 UIVerticalNameBalloonText	Global	8	1
 CItem	Global	8	1
-CLoginMode	Global	12	1
+CLoginMode	Global	28	1
 CBlowEffect	Global	6	1
 CCorpse	Global	6	1
 CBlurPC	Global	9	1
@@ -309,7 +309,7 @@ ModelInstance	Global	1	0
 ModelResMesh	Global	1	0
 ModelResNode	Global	1	0
 SceneGraphNode	Global	2	0
-SceneRenderer	Global	53	0
+SceneRenderer	Global	55	0
 ThaiLexicon	Global	2	0
 TriangleSet	Global	2	0
 VertexBuffer	Global	4	0
@@ -328,5 +328,5 @@ ResourceManager	Global	4	0
 MoviePlayer	Global	8	0
 string	std	8	0
 list	std	31	0
-_Tree	std	74	0
+_Tree	std	83	0
 PacketCodeModules	Global	6	0
