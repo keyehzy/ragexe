@@ -2,7 +2,7 @@ class	size	size_source	fields	covered_bytes	coverage	indexed_bases	notes
 AnimModelResNode	88	new	17	70	0.80		3 overlapping uses dropped
 C3dAnimModelRes	356	new	18	89	0.25		6 overlapping uses dropped
 C3dAttr	300	new	8	33	0.11		
-C3dDevice	572	estimated	54	205	0.36		
+C3dDevice	572	estimated	57	217	0.38	0x134	
 C3dGrannyGameActor	3132	new	152	584	0.19	0x4c8,0x304,0x288	
 C3dGrannyModelRes	948	new	9	40	0.04		
 C3dGround	236	new	40	164	0.69		
@@ -18,7 +18,7 @@ CArrowEffect	208	new	60	199	0.96
 CBitmapRes	288	new	5	24	0.08		
 CBlowEffect	160	new	48	151	0.94		
 CBlurPC	796	new	152	596	0.75		
-CConnection	124	estimated	12	44	0.35		
+CConnection	124	estimated	12	44	0.35		1 overlapping uses dropped
 CController	172	estimated	9	40	0.23		
 CCorpse	160	new	48	151	0.94		
 CDC	4	estimated	0	4	1.00		
@@ -73,12 +73,12 @@ CTexture	296	new	10	41	0.14		1 overlapping uses dropped
 CView	448	new	26	105	0.23		
 CWave	280	new	3	16	0.06		
 CWorld	244	new	18	229	0.94		12 overlapping uses dropped
-ClientState	6356	estimated	524	4482	0.71	0x17fc,0x173c,0x179c,0xe60,0x17cc,0x394	39 overlapping uses dropped
+ClientState	6356	estimated	552	4613	0.73	0x17fc,0x179c,0x173c,0x17cc,0x176c,0xe60	53 overlapping uses dropped
 DataFile	12	estimated	3	12	1.00		
-DirectInputMouse	60	estimated	12	48	0.80		
+DirectInputMouse	60	estimated	13	52	0.87		
 FontCache	16	estimated	4	13	0.81		
 GrannyMotionTable	644	estimated	9	33	0.05	0x0	1 overlapping uses dropped
-GuildInfo	296	estimated	36	258	0.87		25 overlapping uses dropped
+GuildInfo	296	estimated	44	290	0.98		32 overlapping uses dropped
 KeyPadDispatcher	108	estimated	7	25	0.23		
 MannerFilter	48	estimated	12	45	0.94		
 ModeSwitcher	96	estimated	6	24	0.25		1 overlapping uses dropped
@@ -249,7 +249,7 @@ UIWhisperEditCtrl	164	new	35	152	0.93
 UIWhisperListWnd	196	new	39	173	0.88		3 overlapping uses dropped
 UIWhisperWnd	152	new	35	146	0.96		
 UIWindow	76	estimated	16	76	1.00		3 overlapping uses dropped
-UIWindowMgr	1152	estimated	137	601	0.52		21 overlapping uses dropped
+UIWindowMgr	1152	estimated	139	609	0.53		21 overlapping uses dropped
 VertexBuffer	16	new	4	16	1.00		
 WorldColorFade	72	estimated	22	70	0.97		
 XmlDocument	40	estimated	1	4	0.10		

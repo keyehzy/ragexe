@@ -471,7 +471,22 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   `ApplyLabels` deletes the `/Ragexe/stl` copies that earlier runs made. One class per container
   serves every template instance, since the header layout does not depend on the element type.
 
+- [x] Direct accesses to global objects (in `tools/recover_layouts.py`):
+  - An absolute operand `[G + n]`, with `G` a typed global object, is a use of the class's
+    field at `n`. It gets the same types as `this`-relative uses: x87 width, pointer when the
+    loaded value is dereferenced, `ptr:<Class>` when it becomes `this` for that class.
+    A call with `ECX = G + n` to a container method or member constructor places that member.
+  - Only offsets inside the class's size, or the extent its own functions establish, count.
+    Past that extent come unrelated globals: right after `g_MoviePlayer` lie the window
+    handle and other scalars, which nothing ties to it.
+  - Result: 2,210 uses on 11 classes, mostly on fields the methods had already found. 46
+    fields added (32 in `ClientState`, 8 in `GuildInfo`) and 35 types refined (24 `dword` to
+    pointer); two `ClientState` lists at `+0x1bc` and `+0x1c8` are now whole `std::list`
+    members. 10,154 fields in all. The decompiler shows `g_ClientState.field_0x1bc._Head`.
+  - Labels and ledger are stable after one `--reanalyze` pass.
+
 ### Next actions (M1)
-1. Count direct `[global + n]` accesses as field uses of global objects; singletons such as
-   `ClientState` are mostly reached that way.
-2. Emulation oracle harness and the static runtime-code check.
+1. Emulation oracle harness and the static runtime-code check.
+2. Size the global singletons whose size is only estimated (`ClientState`, `UIWindowMgr`,
+   `C3dDevice`): the accesses past their estimated ends need a rule for where an object
+   stops before the next global begins.

@@ -24,6 +24,13 @@ plus n from anywhere, is a method of:
   the class itself (n = 0), the most-derived base at n, or the std::string / std::list /
   std::_Tree member at n.
 Global objects and their classes come from the type column of the data label files.
+
+Global objects: an absolute memory operand [G + n] anywhere in the program, with G a
+global object of class X, is an access to X's field at n, typed like the this-relative
+ones, and a call with ECX = G + n to a container or member-constructor function places
+that member at n. Only offsets inside X's size, or inside the extent X's own functions
+establish, count: the globals that follow an object in .data are not part of it, and
+nothing tells where an object of unknown size ends.
 With several calling classes the owner is the most-derived class all of them derive
 from; callers from unrelated classes leave the function unassigned. New methods are
 scanned in turn, until no more are found.
@@ -287,20 +294,7 @@ class Layouts:
         if x86.X86_REG_ECX in this:
             off = this[x86.X86_REG_ECX]
             self.this_calls[t].append((cls, off, fn.entry))
-            owner = self.assigned.get(t, (None,))[0]
-            if t in self.tree_nodes:
-                value = self.tree_nodes[t] - 16
-                out.append(Access(off, 16, f"std_tree:{value}", fn.entry, i.address, True))
-            elif owner in CONTAINER_SIZE and owner != "std::_Tree":
-                kind = next(k for k, v in CONTAINERS.items() if v == owner)
-                out.append(Access(off, CONTAINER_SIZE[owner], kind, fn.entry, i.address, False))
-            elif owner == "std::_Tree":
-                out.append(Access(off, 16, "std_tree", fn.entry, i.address, False))
-            elif t in STRING_FUNCS:
-                out.append(Access(off, 16, "std_string", fn.entry, i.address, False))
-            elif t in self.ctor_class and off != 0 and (self.ctor_class[t], off) not in self.bases.get(cls, ()):
-                m = self.ctor_class[t]
-                out.append(Access(off, self.sizes.get(m, 0), f"class:{m}", fn.entry, i.address, True))
+            self.member_call(cls, off, t, fn.entry, i.address)
         elif x86.X86_REG_ECX in loaded:
             callee = self.bx.functions.get(t)
             if callee is not None and callee.namespace in self.classes:
@@ -421,9 +415,7 @@ class Layouts:
                     continue
                 cls = self.globals[starts[j]]
                 off = held[1] - starts[j]
-                if off and off >= self.sizes.get(cls, CONTAINER_SIZE.get(cls, 0)):
-                    continue
-                out.append((t, cls, off, fn.entry))
+                out.append((t, cls, off, fn.entry, i.address))
         return out
 
     def find_tree_ctors(self):
@@ -571,8 +563,9 @@ class Layouts:
             for cls in sorted(methods):
                 for fn in methods[cls].values():
                     self.scan(cls, fn)
-            for t, cls, off, caller in self.global_calls:
-                self.this_calls[t].append((cls, off, caller))
+            for t, cls, off, caller, _ in self.global_calls:
+                if off == 0 or off < self.sizes.get(cls, CONTAINER_SIZE.get(cls, 0)):
+                    self.this_calls[t].append((cls, off, caller))
             new = self.assign()
             if {t: o for t, (o, _) in new.items()} == {t: o for t, (o, _) in self.assigned.items()}:
                 self.assigned = new
@@ -693,8 +686,111 @@ class Layouts:
             self.notes[cls].append(f"{dropped} overlapping uses dropped")
         return sorted(fields)
 
+    def global_accesses(self):
+        """Add [G + n] operands and member calls on global objects to their classes' raw
+        accesses, within each class's size or the extent its own functions establish."""
+        self.extents = {}
+        limits = {}
+        for g, cls in self.globals.items():
+            if cls in self.classes:
+                limits[g] = (cls, self.extent(cls))
+        starts = sorted(limits)
+        before = {cls: len(self.raw[cls]) for cls, _ in limits.values()}
+
+        def place(v):
+            j = bisect_right(starts, v) - 1
+            if j < 0:
+                return None
+            cls, end = limits[starts[j]]
+            off = v - starts[j]
+            return (cls, off) if off < end else None
+
+        for fn in self.bx.functions.values():
+            if fn.kind != "code" or fn.library:
+                continue
+            loaded = {}                      # reg -> (class, offset of the field its value came from)
+            for i in self.bx.insns(fn):
+                ops = i.operands
+                load = None
+                if i.id != x86.X86_INS_LEA:
+                    for n, op in enumerate(ops):
+                        if op.type != x86.X86_OP_MEM:
+                            continue
+                        if op.mem.base in loaded:
+                            cls, f = loaded[op.mem.base]
+                            self.raw[cls].append(Access(f, 4, "pointer", fn.entry, i.address, False))
+                            continue
+                        if op.mem.base != 0 or op.mem.segment != 0:
+                            continue
+                        at = place(op.mem.disp & 0xFFFFFFFF)
+                        if at is None:
+                            continue
+                        cls, off = at
+                        if op.mem.index != 0:
+                            self.indexed[cls][off] += 1
+                            continue
+                        if off in self.vfptrs.get(cls, ()) and (op.size or 4) == 4:
+                            continue
+                        if i.id in X87_MEM:
+                            t = {4: "float", 8: "double"}.get(op.size, WIDTH_TYPE.get(op.size, "dword"))
+                        elif i.id in X87_INT:
+                            t = "int"
+                        else:
+                            t = WIDTH_TYPE.get(op.size, "dword")
+                        write = n == 0 and i.id in (x86.X86_INS_MOV, x86.X86_INS_FSTP, x86.X86_INS_FST,
+                                                    x86.X86_INS_FISTP)
+                        self.raw[cls].append(Access(off, op.size or 4, t, fn.entry, i.address, write))
+                        if i.id == x86.X86_INS_MOV and n == 1 and ops[0].type == x86.X86_OP_REG and op.size == 4:
+                            load = (ops[0].reg, (cls, off))
+                if i.id == x86.X86_INS_CALL:
+                    t = self.bx.call_target(i)
+                    callee = self.bx.functions.get(t) if isinstance(t, int) else None
+                    if x86.X86_REG_ECX in loaded and callee is not None and callee.namespace in self.classes:
+                        cls, f = loaded[x86.X86_REG_ECX]
+                        self.raw[cls].append(Access(f, 4, f"ptr:{callee.namespace}", fn.entry, i.address, False))
+                    written = CLOBBERED_BY_CALL
+                elif i.id == x86.X86_INS_MOV and len(ops) == 2 and ops[0].type == x86.X86_OP_REG \
+                        and ops[1].type == x86.X86_OP_REG:
+                    written = ()
+                    if ops[1].reg in loaded:
+                        loaded[ops[0].reg] = loaded[ops[1].reg]
+                    else:
+                        loaded.pop(ops[0].reg, None)
+                else:
+                    try:
+                        written = i.regs_access()[1]
+                    except Exception:
+                        written = ()
+                for r in written:
+                    loaded.pop(r, None)
+                if load:
+                    loaded[load[0]] = load[1]
+        for t, cls, off, caller, site in self.global_calls:
+            if 0 < off and cls in self.classes and off < self.extent(cls):
+                self.member_call(cls, off, t, caller, site)
+        self.global_access_counts = {cls: len(self.raw[cls]) - n for cls, n in before.items()}
+
+    def member_call(self, cls, off, t, func, insn):
+        """A call with ECX = this + off: a container method or member constructor puts that
+        member at off."""
+        out = self.raw[cls]
+        owner = self.assigned.get(t, (None,))[0]
+        if t in self.tree_nodes:
+            out.append(Access(off, 16, f"std_tree:{self.tree_nodes[t] - 16}", func, insn, True))
+        elif owner in CONTAINER_SIZE and owner != "std::_Tree":
+            kind = next(k for k, v in CONTAINERS.items() if v == owner)
+            out.append(Access(off, CONTAINER_SIZE[owner], kind, func, insn, False))
+        elif owner == "std::_Tree":
+            out.append(Access(off, 16, "std_tree", func, insn, False))
+        elif t in STRING_FUNCS:
+            out.append(Access(off, 16, "std_string", func, insn, False))
+        elif t in self.ctor_class and off != 0 and (self.ctor_class[t], off) not in self.bases.get(cls, ()):
+            m = self.ctor_class[t]
+            out.append(Access(off, self.sizes.get(m, 0), f"class:{m}", func, insn, True))
+
     def run(self):
         self.discover()
+        self.global_accesses()
         self.attribute()
         self.own_fields = {}
         for cls in self.depth_order():
@@ -772,7 +868,9 @@ class Layouts:
                 f.write(f"{g:08x}\tGlobal\tg_tree_{g:08x}\t{c:08x} calls {t:08x} with ECX = this global; "
                         f"value size {node - 16}\tstd_tree\n")
         by_owner = Counter("container" if o in CONTAINERS.values() else "class" for o, _ in self.assigned.values())
-        print(f"calls through global objects: {len(self.global_calls)} sites on {len(self.globals)} globals")
+        print(f"calls through global objects: {len(self.global_calls)} sites on {len(self.globals)} globals; "
+              f"direct accesses and member calls added: {sum(self.global_access_counts.values())} "
+              f"to {sum(1 for n in self.global_access_counts.values() if n)} classes")
         print(f"non-virtual methods assigned: {len(self.assigned)} ({dict(by_owner)}) in {self.rounds} rounds; "
               f"_Tree::_Init instances: {len(self.tree_inits)}, tree constructors: {len(self.tree_ctors)}, "
               f"global trees: {len(trees)}")
