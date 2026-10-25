@@ -681,8 +681,35 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - The bounds are in the evidence column of `layouts.classes.tsv` and in a new `max_size`
     column of the layouts report. The sizes stay the lower bound.
 
+- [x] Inlined `std::map` constructors (in `tools/recover_layouts.py`):
+  - The rule: an `operator new` node whose parent (`node + 4`) is loaded from a `.data`
+    address, the instantiation's nil node, and that is then stored at `this + n + 4` is an
+    inlined `_Tree::_Init`. That puts a tree at `n`, with value size = node size − 16.
+  - The same pattern also matches all 20 out-of-line `_Init`s that were already known.
+  - It finds 7 inlined trees:
+
+    | Class | Tree at | Value size |
+    |---|---|--:|
+    | `CRagConnection` | `+0x7c` (the packet lengths) | 8 |
+    | `CKeyPad` | `+0xac` | 8 |
+    | `PathFinder` | `+0x1078` | 8 |
+    | `ResourceManager` | `+0x58` | 32 |
+    | `UIGuildMemberManageWnd` | `+0x120` | 16 |
+    | `UIGuildPositionManageWnd` | `+0x1b0` | 40 |
+    | `mg::mgType1::CWorld` | `+0x40` | 20 |
+
+  - Where an out-of-line `_Init` uses the same nil node, its node size agrees (4 of the 7).
+  - 17 more functions become `std::_Tree` methods (container methods 86 → 103). These
+    include the map lookups in `IsFixedLength` and `GetPacketLength`. `ledger.py
+    classify` moves 15 of them into the `stl` library code (393 → 408 functions), which
+    takes about 3 KB out of `net` and smaller amounts out of `ui`, `game` and `world`.
+    Converges in two `--reanalyze` passes.
+  - Field types: of one kind, a parameterised type now wins over the bare one, so a tree
+    or list keeps its value size even when untyped method calls outnumber the typed use.
+    That gives value sizes to 11 existing trees (9 in `CGameMode`, 2 in `UIWindowMgr`)
+    and 4 lists.
+  - No map is built inline into a global address. `0x4e3ad0` builds a tree inline, but
+    into a pointer argument (a copy-construct helper), so it places no member.
+
 ### Next actions (M1)
-1. Recognise `std::map` constructors that the compiler inlined: `CRagConnection`'s length
-   map at `+0x7c` builds its head node inline, so its fields show as bytes, not a
-   `std_tree`. Its nil node is now labelled.
-2. Extend the oracle with the D3D7/DirectDraw COM fakes that record calls, for M4.
+1. Extend the oracle with the D3D7/DirectDraw COM fakes that record calls, for M4.

@@ -520,26 +520,18 @@ entry	subsystem	rule	evidence
 00419270	net	class	class CConnection, base of CRagConnection
 00419370	net	class	class CConnection, base of CRagConnection
 00419400	net	class	class CConnection, base of CRagConnection
-0041cb20	net	neighbours	between 00419400 and 0041cb70
-0041cb70	net	callers	1 referencing function
+0041cb20	net	neighbours	between 00419400 and 0041cc80
 0041cc80	net	callers	1 referencing function
-0041ccd0	net	callers	1 referencing function
-0041cdc0	net	neighbours	between 0041ccd0 and 0041cde0
-0041cde0	net	callers	1 referencing function
 0041ceb0	net	callers	1 referencing function
 0041ced0	net	callers	1 referencing function
-0041cf10	net	neighbours	between 0041ced0 and 0041d990
-0041d140	net	neighbours	between 0041ced0 and 0041d990
-0041d550	net	neighbours	between 0041ced0 and 0041d990
 0041d590	net	neighbours	between 0041ced0 and 0041d990
-0041d5b0	net	neighbours	between 0041ced0 and 0041d990
 0041d830	net	neighbours	between 0041ced0 and 0041d990
 0041d890	net	neighbours	between 0041ced0 and 0041d990
 0041d8b0	net	neighbours	between 0041ced0 and 0041d990
 0041d910	net	neighbours	between 0041ced0 and 0041d990
 0041d930	net	neighbours	between 0041ced0 and 0041d990
 0041d990	net	callers	1 referencing function
-0041d9e0	net	callers	2 referencing functions
+0041d9e0	net	previous	after 0041d990, nothing references it
 0041da00	core	initializer	initializer of the file starting here, before 0041da40
 0041da30	core	initializer	initializer of the file starting here, before 0041da40
 0041da40	core	callees	1 referenced function
@@ -2276,9 +2268,6 @@ entry	subsystem	rule	evidence
 004842d0	ui	neighbours	between 00483c80 and 00486b70
 004843c0	ui	neighbours	between 00483c80 and 00486b70
 00484500	ui	neighbours	between 00483c80 and 00486b70
-004846a0	ui	neighbours	between 00483c80 and 00486b70
-00484770	ui	neighbours	between 00483c80 and 00486b70
-004848d0	ui	neighbours	between 00483c80 and 00486b70
 00484b00	ui	neighbours	between 00483c80 and 00486b70
 00484f10	ui	neighbours	between 00483c80 and 00486b70
 00484f50	ui	neighbours	between 00483c80 and 00486b70
@@ -3328,11 +3317,9 @@ entry	subsystem	rule	evidence
 004cd310	world	neighbours	between 004ccda0 and 004ce4f0
 004cd620	world	neighbours	between 004ccda0 and 004ce4f0
 004cd680	world	neighbours	between 004ccda0 and 004ce4f0
-004cd6a0	world	neighbours	between 004ccda0 and 004ce4f0
 004cd710	world	neighbours	between 004ccda0 and 004ce4f0
 004cd920	world	neighbours	between 004ccda0 and 004ce4f0
 004cdb50	world	neighbours	between 004ccda0 and 004ce4f0
-004cdf60	world	neighbours	between 004ccda0 and 004ce4f0
 004cdfa0	world	neighbours	between 004ccda0 and 004ce4f0
 004ce220	world	neighbours	between 004ccda0 and 004ce4f0
 004ce280	world	neighbours	between 004ccda0 and 004ce4f0
@@ -3412,14 +3399,12 @@ entry	subsystem	rule	evidence
 004d0d00	game	neighbours	between 004d0c60 and 004d2200
 004d0d70	game	neighbours	between 004d0c60 and 004d2200
 004d0de0	game	neighbours	between 004d0c60 and 004d2200
-004d0ef0	game	neighbours	between 004d0c60 and 004d2200
 004d0fe0	game	neighbours	between 004d0c60 and 004d2200
 004d10c0	game	neighbours	between 004d0c60 and 004d2200
 004d1210	game	neighbours	between 004d0c60 and 004d2200
 004d1270	game	neighbours	between 004d0c60 and 004d2200
 004d12a0	game	neighbours	between 004d0c60 and 004d2200
 004d1300	game	neighbours	between 004d0c60 and 004d2200
-004d1350	game	neighbours	between 004d0c60 and 004d2200
 004d1490	game	neighbours	between 004d0c60 and 004d2200
 004d14b0	game	neighbours	between 004d0c60 and 004d2200
 004d16e0	game	neighbours	between 004d0c60 and 004d2200

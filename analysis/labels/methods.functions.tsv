@@ -108,6 +108,14 @@ address	namespace	name	calling_convention	evidence
 00418670	CRagConnection	method_00418670	__thiscall	__thiscall; called with this from 17 functions of CRagConnection, e.g. 004b25f0
 00418710	CRagConnection	method_00418710	__thiscall	__thiscall; called with this from 2 functions of CRagConnection, e.g. 00524d80
 00418c30	CRagConnection	method_00418c30	__thiscall	__thiscall; called with this from 1 functions of CRagConnection, e.g. 005b2280
+0041cb70	std::_Tree	method_0041cb70	__thiscall	__thiscall; called with this from 1 functions of CRagConnection, e.g. 00419400
+0041ccd0	std::_Tree	method_0041ccd0	__thiscall	__thiscall; called with this from 1 functions of CRagConnection, e.g. 00419400
+0041cdc0	std::_Tree	method_0041cdc0	__thiscall	__thiscall; called with this from 2 functions of CKeyPad, CRagConnection, e.g. 00419270
+0041cde0	std::_Tree	method_0041cde0	__thiscall	__thiscall; called with this from 1 functions of CRagConnection, e.g. 00418150
+0041cf10	std::_Tree	method_0041cf10	__thiscall	__thiscall; called with this from 2 functions of CKeyPad, CRagConnection, e.g. 004191e0
+0041d140	std::_Tree	method_0041d140	__thiscall	__thiscall; called with this from 1 functions of CKeyPad, e.g. 0041dda0
+0041d550	std::_Tree	method_0041d550	__thiscall	__thiscall; called with this from 1 functions of CKeyPad, e.g. 0041dda0
+0041d5b0	std::_Tree	method_0041d5b0	__thiscall	__thiscall; called with this from 1 functions of CRagConnection, e.g. 00419270
 0041daf0	CController	method_0041daf0	__thiscall	__thiscall; called with this from 1 functions of CController, e.g. 0041da90
 0041db70	CKeyPad	method_0041db70	__thiscall	__thiscall; called with this from 1 functions of CKeyPad, e.g. 0041ded0
 0041e730	DirectInputMouse	method_0041e730	__thiscall	__thiscall; called with this from 2 functions of DirectInputMouse, e.g. 00515d10
@@ -219,8 +227,11 @@ address	namespace	name	calling_convention	evidence
 00484200	std::list	method_00484200	__thiscall	__thiscall; called with this from 1 functions of UIGuildMemberManageWnd, e.g. 0047b920
 00484270	std::list	method_00484270	__thiscall	__thiscall; called with this from 2 functions of GuildInfo, UIGuildMemberManageWnd, e.g. 0047b920
 00484680	std::_Tree	method_00484680	__thiscall	__thiscall; called with this from 1 functions of GuildInfo, e.g. 004d0360
+004846a0	std::_Tree	method_004846a0	__thiscall	__thiscall; called with this from 2 functions of GuildInfo, UIGuildMemberManageWnd, e.g. 0047b7d0
+00484770	std::_Tree	method_00484770	__thiscall	__thiscall; called with this from 1 functions of UIGuildPositionManageWnd, e.g. 0047e270
 00484850	std::list	method_00484850	__thiscall	__thiscall; called with this from 1 functions of UIGuildPositionManageWnd, e.g. 0047e270
 00484890	std::list	method_00484890	__thiscall	__thiscall; called with this from 1 functions of UIGuildMemberManageWnd, e.g. 0047b7d0
+004848d0	std::_Tree	method_004848d0	__thiscall	__thiscall; called with this from 1 functions of UIGuildMemberManageWnd, e.g. 0047d100
 004896c0	UIItemBaseWnd	method_004896c0	__thiscall	__thiscall; called with this from 1 functions of UIItemBaseWnd, e.g. 00489b80
 00489780	UIItemBaseWnd	method_00489780	__thiscall	__thiscall; called with this from 23 functions of UIItemPurchaseWnd, UIItemSellWnd, UIItemShopWnd, UIMerchantItemMyShopWnd and more, e.g. 0048a040
 00489960	UIItemBaseWnd	method_00489960	__thiscall	__thiscall; called with this from 2 functions of UIItemShopWnd, UIMerchantItemShopWnd, e.g. 0048a850
@@ -373,6 +384,8 @@ address	namespace	name	calling_convention	evidence
 004ccc70	PathFinder	method_004ccc70	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004ccc80
 004ccc80	PathFinder	method_004ccc80	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004cc5c0
 004ccda0	PathFinder	method_004ccda0	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004cc5c0
+004cd6a0	std::_Tree	method_004cd6a0	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004ccba0
+004cdf60	std::_Tree	method_004cdf60	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004cc4e0
 004ce570	CActorPickNode	method_004ce570	__thiscall	__thiscall; called with this from 3 functions of CActorPickNode, e.g. 00502cc0
 004ce5f0	CActorPickNode	method_004ce5f0	__thiscall	__thiscall; called with this from 1 functions of CActorPickNode, e.g. 00515d10
 004ce6c0	CActorPickNode	method_004ce6c0	__thiscall	__thiscall; called with this from 1 functions of CActorPickNode, e.g. 004ce570
@@ -392,8 +405,10 @@ address	namespace	name	calling_convention	evidence
 004d0b30	GuildInfo	method_004d0b30	__thiscall	__thiscall; called with this from 1 functions of GuildInfo, e.g. 00534040
 004d0bf0	GuildInfo	method_004d0bf0	__thiscall	__thiscall; called with this from 1 functions of GuildInfo, e.g. 00534aa0
 004d0c60	GuildInfo	method_004d0c60	__thiscall	__thiscall; called with this from 1 functions of GuildInfo, e.g. 0047ab90
+004d0ef0	std::_Tree	method_004d0ef0	__thiscall	__thiscall; called with this from 1 functions of mg::mgType1::CWorld, e.g. 004fd1b0
 004d11b0	std::list	method_004d11b0	__thiscall	__thiscall; called with this from 1 functions of GuildInfo, e.g. 004d0360
 004d1330	std::_Tree	method_004d1330	__thiscall	__thiscall; called with this from 1 functions of GuildInfo, e.g. 004d0360
+004d1350	std::_Tree	method_004d1350	__thiscall	__thiscall; called with this from 2 functions of GuildInfo, mg::mgType1::CWorld, e.g. 004d0360
 004d2450	MannerFilter	method_004d2450	__thiscall	__thiscall; called with this from 1 functions of MannerFilter, e.g. 004d25e0
 004d2b40	MannerFilter	method_004d2b40	__thiscall	__thiscall; called with this from 1 functions of MannerFilter, e.g. 004d25e0
 004d2be0	MannerFilter	method_004d2be0	__thiscall	__thiscall; called with this from 1 functions of MannerFilter, e.g. 004d2450
@@ -424,6 +439,8 @@ address	namespace	name	calling_convention	evidence
 004de830	CGPak	method_004de830	__thiscall	__thiscall; called with this from 2 functions of CGPak, CSakGPak, e.g. 004dd9a0
 004deb20	CGPak	method_004deb20	__thiscall	__thiscall; called with this from 2 functions of CGPak, CSakGPak, e.g. 004dda10
 004decd0	CGPak	method_004decd0	__thiscall	__thiscall; called with this from 1 functions of CGPak, e.g. 004de830
+004e1db0	std::_Tree	method_004e1db0	__thiscall	__thiscall; called with this from 2 functions of ResourceManager, mg::CScript, e.g. 004e0940
+004e2030	std::_Tree	method_004e2030	__thiscall	__thiscall; called with this from 3 functions of ResourceManager, mg::CScript, e.g. 004e0940
 004e65c0	XmlDocument	method_004e65c0	__thiscall	__thiscall; called with this from 1 functions of XmlDocument, e.g. 004e6590
 004ebb60	mg::CMGEngine	method_004ebb60	__thiscall	__thiscall; called with this from 2 functions of mg::CMGEngine, mg::mgType1::CMiniGame001, e.g. 004ebac0
 004ebc00	mg::mgType1::CMiniGame001	method_004ebc00	__thiscall	__thiscall; called with this from 1 functions of mg::mgType1::CMiniGame001, e.g. 004ffb80

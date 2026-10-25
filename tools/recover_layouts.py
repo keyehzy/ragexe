@@ -51,7 +51,10 @@ with operator new and writes this + 4 (_Head) and this + 0xc (_Size) is an MSVC 
 _Tree::_Init. A function that calls an _Init on its own `this`, and writes nothing
 past the tree's 16 bytes, is a tree constructor.
 Calling either on this + n puts a 16-byte tree at n; the value size is the node size
-minus 12 (left, parent, right) and 4 (color). Calling one with ECX = a global address
+minus 12 (left, parent, right) and 4 (color). A constructor can also inline _Init: a
+fresh operator new node whose parent (node + 4) is loaded from a .data address, the
+instantiation's nil node, and that is then stored at this + n + 4 puts a tree at n
+(CRagConnection's packet lengths at 0x7c). Calling one with ECX = a global address
 makes that global a tree. A call to any method already assigned to std::string,
 std::list or std::_Tree on this + n also marks the member.
 
@@ -182,6 +185,7 @@ class Layouts:
                     v in self.tree_statics for i in self.bx.insns(fn) for v in self.bx.data_refs(i)):
                 self.uses_tree_statics.add(fn.entry)
         self.raw = defaultdict(list)      # class -> [Access] at class-relative offsets
+        self.inline_trees = set()         # (class, offset, value size, function, nil node)
         self.indexed = defaultdict(Counter)
         self.notes = defaultdict(list)
 
@@ -192,7 +196,8 @@ class Layouts:
         this = {x86.X86_REG_ECX: 0}          # reg -> offset of the pointer from this
         slots = {}                           # ebp displacement -> offset from this
         loaded = {}                          # reg -> field offset its value was loaded from
-        node = {}                            # reg -> fresh operator new block {size, links}
+        node = {}                            # reg -> fresh operator new block {size, links, nil}
+        absval = {}                          # reg -> .data address its value was loaded from
         ins = self.bx.insns(fn)
         out = self.raw[cls]
 
@@ -219,8 +224,13 @@ class Layouts:
                         and s.mem.index == 0 and s.mem.disp in slots:
                     this[d.reg] = slots[s.mem.disp]
                     loaded.pop(d.reg, None)
+                    absval.pop(d.reg, None)
                     continue
                 if d.type == x86.X86_OP_REG and s.type == x86.X86_OP_REG:
+                    if s.reg in absval:
+                        absval[d.reg] = absval[s.reg]
+                    else:
+                        absval.pop(d.reg, None)
                     if s.reg in this:
                         this[d.reg] = this[s.reg]
                     else:
@@ -239,9 +249,15 @@ class Layouts:
                         and d.mem.index == 0 and node.get(s.reg) is node[d.mem.base] and d.mem.disp in (0, 4):
                     node[d.mem.base]["links"] |= 1 << (d.mem.disp // 4)
                     continue
+                # an inlined _Tree::_Init: the head node's parent is the instantiation's nil node
+                if d.type == x86.X86_OP_MEM and s.type == x86.X86_OP_REG and d.mem.base in node \
+                        and d.mem.index == 0 and d.mem.disp == 4 and s.reg in absval:
+                    node[d.mem.base]["nil"] = absval[s.reg]
+                    continue
             if i.id == x86.X86_INS_LEA and ops[1].mem.base in this and ops[1].mem.index == 0:
                 this[ops[0].reg] = this[ops[1].mem.base] + ops[1].mem.disp
                 loaded.pop(ops[0].reg, None)
+                absval.pop(ops[0].reg, None)
                 continue
 
             # memory operands relative to this
@@ -269,6 +285,11 @@ class Layouts:
                         and ops[1].reg in node and node[ops[1].reg]["links"] == 3 and off >= 4:
                     elem = node[ops[1].reg]["size"] - 8
                     out.append(Access(off - 4, 12, f"std_list:{elem}", fn.entry, i.address, True))
+                if n == 0 and i.id == x86.X86_INS_MOV and len(ops) == 2 and ops[1].type == x86.X86_OP_REG \
+                        and ops[1].reg in node and node[ops[1].reg]["nil"] is not None and off >= 4:
+                    elem = node[ops[1].reg]["size"] - 16
+                    out.append(Access(off - 4, 16, f"std_tree:{elem}", fn.entry, i.address, True))
+                    self.inline_trees.add((cls, off - 4, elem, fn.entry, node[ops[1].reg]["nil"]))
                 write = n == 0 and i.id in (x86.X86_INS_MOV, x86.X86_INS_FSTP, x86.X86_INS_FST, x86.X86_INS_FISTP)
                 out.append(Access(off, op.size or 4, t, fn.entry, i.address, write))
                 if i.id == x86.X86_INS_MOV and n == 1 and ops[0].type == x86.X86_OP_REG and op.size == 4:
@@ -279,7 +300,7 @@ class Layouts:
             if i.id == x86.X86_INS_CALL:
                 t = self.bx.call_target(i)
                 if t == CHKSTK:
-                    for d in (this, loaded, node):
+                    for d in (this, loaded, node, absval):
                         d.pop(x86.X86_REG_EAX, None)
                     continue
                 self.call(cls, fn, i, ins, k, t, this, loaded)
@@ -287,11 +308,12 @@ class Layouts:
                     this.pop(r, None)
                     loaded.pop(r, None)
                     node.pop(r, None)
+                    absval.pop(r, None)
                 if t == OPERATOR_NEW:
                     for p in reversed(ins[max(0, k - 3):k]):
                         if p.id == x86.X86_INS_PUSH:
                             if p.operands[0].type == x86.X86_OP_IMM:
-                                node[x86.X86_REG_EAX] = {"size": p.operands[0].imm, "links": 0}
+                                node[x86.X86_REG_EAX] = {"size": p.operands[0].imm, "links": 0, "nil": None}
                             break
                 continue
             if i.id == x86.X86_INS_MOV and len(ops) == 2 and ops[0].type == x86.X86_OP_REG and \
@@ -300,6 +322,12 @@ class Layouts:
                     this.pop(ops[0].reg, None)
                     loaded.pop(ops[0].reg, None)
                 node.pop(ops[0].reg, None)
+                m = ops[1].mem
+                v = m.disp & 0xFFFFFFFF
+                if m.base == 0 and m.index == 0 and m.segment == 0 and self.bx.section_of(v) == ".data":
+                    absval[ops[0].reg] = v
+                else:
+                    absval.pop(ops[0].reg, None)
                 continue
             try:
                 _, written = i.regs_access()
@@ -309,6 +337,7 @@ class Layouts:
                 this.pop(r, None)
                 loaded.pop(r, None)
                 node.pop(r, None)
+                absval.pop(r, None)
 
     def call(self, cls, fn, i, ins, k, t, this, loaded):
         if not isinstance(t, int):
@@ -638,6 +667,7 @@ class Layouts:
         self.assigned = {}
         for rounds in range(1, 16):
             self.raw = defaultdict(list)
+            self.inline_trees = set()
             self.this_calls = defaultdict(list)
             self.indexed = defaultdict(Counter)
             self.notes.pop("(unassigned)", None)
@@ -763,7 +793,8 @@ class Layouts:
         for (off, size, t), accs in groups.items():
             by_span[(off, size)].append((t, accs))
         for (off, size), uses in by_span.items():
-            uses.sort(key=lambda u: (TYPE_RANK[type_kind(u[0])], -len(u[1])))
+            # of one kind, a parameterised type (std_tree:8) wins over the bare kind
+            uses.sort(key=lambda u: (TYPE_RANK[type_kind(u[0])], ":" not in u[0], -len(u[1])))
             best, accs = uses[0]
             allacc = [a for _, al in uses for a in al]
             kinds = {type_kind(t) for t, _ in uses}
@@ -1149,6 +1180,9 @@ class Layouts:
         print(f"non-virtual methods assigned: {len(self.assigned)} ({dict(by_owner)}) in {self.rounds} rounds; "
               f"_Tree::_Init instances: {len(self.tree_inits)}, tree constructors: {len(self.tree_ctors)}, "
               f"global trees: {len(trees)}")
+        inl = sorted(self.inline_trees)
+        print(f"inlined _Tree::_Init: {len(inl)} trees in {len({(c, f) for c, _, _, f, _ in inl})} functions: "
+              + ", ".join(f"{c}+0x{o:x} (value {v})" for c, o, v, _, _ in inl))
         c = self.end_checks
         print(f"global objects' ends: {c['globals']} objects, {c['contradicted']} with a label or initializer "
               f"write inside their extent; of the {c['inside']} addresses used inside the extents, "
