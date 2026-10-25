@@ -1,46 +1,46 @@
 entry	size	kind	library	subsystem	reach	status	namespace	name	notes
-00401000	68	code	0	render		raw	Global	FUN_00401000	
-00401050	283	code	0	world		raw	Global	FUN_00401050	
+00401000	68	code	0	render		named	Global	LerpTranslationKey	
+00401050	283	code	0	world		named	Global	SlerpRotationKey	
 00401170	330	code	0	world	unreferenced	raw	Global	FUN_00401170	
-004012c0	502	code	0	world		raw	Global	FUN_004012c0	
+004012c0	502	code	0	world		named	Global	AddTranslationKey	
 004014c0	88	code	0	world	unreferenced	raw	Global	FUN_004014c0	
-00401520	181	code	0	world		raw	Global	FUN_00401520	
-004015e0	558	code	0	res		raw	Global	FUN_004015e0	
-00401810	604	code	0	res		raw	Global	FUN_00401810	
-00401a70	581	code	0	world		raw	Global	FUN_00401a70	
+00401520	181	code	0	world		named	Global	GetTranslationMatrixAt	
+004015e0	558	code	0	res		named	Global	ReadTranslationKeys	
+00401810	604	code	0	res		named	Global	ReadRotationKeys	
+00401a70	581	code	0	world		named	Global	AddRotationKeyFromAxisAngle	
 00401cc0	76	code	0	world	unreferenced	raw	Global	FUN_00401cc0	
-00401d10	251	code	0	world		raw	Global	FUN_00401d10	
-00401e10	518	code	0	world		raw	Global	FUN_00401e10	
+00401d10	251	code	0	world		named	Global	GetRotationMatrixAt	
+00401e10	518	code	0	world		named	Global	AddScaleKey	
 00402020	76	code	0	world	unreferenced	raw	Global	FUN_00402020	
-00402070	72	code	0	world		raw	Global	FUN_00402070	
+00402070	72	code	0	world		named	Global	GetScaleMatrixAt	
 004020c0	519	code	0	world	unreferenced	raw	Global	FUN_004020c0	
-004022d0	19	code	0	world		raw	Global	FUN_004022d0	
-004022f0	33	code	0	world		raw	Global	FUN_004022f0	
-00402320	19	code	0	world		raw	Global	FUN_00402320	
-00402340	3	code	0	world		raw	Global	FUN_00402340	
-00402350	3	code	0	world		raw	Global	FUN_00402350	
-00402360	3	code	0	world		raw	Global	FUN_00402360	
-00402370	73	code	0	world		raw	Global	FUN_00402370	
-004023c0	64	code	0	world		raw	Global	FUN_004023c0	
-00402400	59	code	0	world		raw	Global	FUN_00402400	
-00402440	49	code	0	world		raw	Global	FUN_00402440	
-00402480	59	code	0	world		raw	Global	FUN_00402480	
-004024c0	49	code	0	world		raw	Global	FUN_004024c0	
-00402500	37	code	0	world		raw	Global	FUN_00402500	
-00402530	26	code	0	world		raw	Global	FUN_00402530	
-00402550	26	code	0	world		raw	Global	FUN_00402550	
+004022d0	19	code	1	stl		named	std::vector	size	
+004022f0	33	code	1	stl		named	std::vector	size	
+00402320	19	code	1	stl		named	std::vector	size	
+00402340	3	code	1	stl		named	std::vector	DestroyRange	
+00402350	3	code	1	stl		named	std::vector	DestroyRange	
+00402360	3	code	1	stl		named	std::vector	DestroyRange	
+00402370	73	code	1	stl		named	std::vector	CopyUninitialized	
+004023c0	64	code	1	stl		named	std::vector	FillUninitialized	
+00402400	59	code	1	stl		named	std::vector	CopyUninitialized	
+00402440	49	code	1	stl		named	std::vector	FillUninitialized	
+00402480	59	code	1	stl		named	std::vector	CopyUninitialized	
+004024c0	49	code	1	stl		named	std::vector	FillUninitialized	
+00402500	37	code	1	stl		named	std	ConstructAt	
+00402530	26	code	1	stl		named	std	ConstructAt	
+00402550	26	code	1	stl		named	std	ConstructAt	
 00402570	37	code	0	core		named	Global	static_init_001	
 004025a0	1	code	0	core		named	Global	atexit_no_op	
 004025b0	32	code	0	core	unreferenced	raw	Global	FUN_004025b0	
-004025d0	46	code	0	render		raw	Global	FUN_004025d0	
-00402600	40	code	0	render		raw	Global	FUN_00402600	
+004025d0	46	code	0	render		named	Global	InitSurfaceDesc	
+00402600	40	code	0	render		named	Global	InitViewport	
 00402630	67	code	0	render	unreferenced	raw	Global	FUN_00402630	
 00402680	80	code	0	render	unreferenced	raw	Global	FUN_00402680	
 004026d0	62	code	0	render	unreferenced	raw	Global	FUN_004026d0	
 00402710	83	code	0	render	unreferenced	raw	Global	FUN_00402710	
 00402770	697	code	0	render	unreferenced	raw	Global	FUN_00402770	
 00402a30	62	code	0	render	dead	raw	Global	FUN_00402a30	
-00402a70	197	code	0	render		raw	Global	FUN_00402a70	
+00402a70	197	code	0	render		named	Global	MakePerspectiveMatrix	
 00402b40	110	code	0	render	unreferenced	raw	Global	FUN_00402b40	
 00402bb0	109	code	0	render	unreferenced	raw	Global	FUN_00402bb0	
 00402c20	109	code	0	render	unreferenced	raw	Global	FUN_00402c20	
@@ -52,7 +52,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00402ef0	38	code	0	render	dead	raw	Global	FUN_00402ef0	
 00402f20	31	code	0	render	dead	raw	Global	FUN_00402f20	
 00402f40	85	code	0	render	unreferenced	named	CDCSurface	CDCSurface	
-00402fa0	7	code	0	render		raw	Global	FUN_00402fa0	
+00402fa0	7	code	0	render		named	CDC	~CDC	
 00402fb0	35	code	0	render		named	CDC	CDC	
 00402fe0	33	code	0	render		named	CDCSurface	`scalar_deleting_destructor'	
 00403010	89	code	0	render		named	CDCSurface	CDCSurface	
@@ -78,16 +78,16 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00403d10	206	code	0	render		named	CDCBitmap	vf08	
 00403de0	214	code	0	render		named	CDCBitmap	method_00403de0	
 00403ec0	503	code	0	render		named	CDCBitmap	method_00403ec0	
-004040c0	77	code	0	render		raw	Global	FUN_004040c0	
+004040c0	77	code	1	stl		named	std::list	~list	
 00404110	54	code	1	stl		named	std::list	method_00404110	
-00404150	18	code	0	render		raw	Global	FUN_00404150	
+00404150	18	code	1	stl		named	std::list	IncrementIterator	
 00404170	19	code	1	stl		named	std	ConstructAt	
 00404190	37	code	0	render		named	Global	static_init_003	
 004041c0	10	code	0	render		named	Global	static_init_004	
 004041d0	10	code	0	render		named	Global	construct_g_C3dDevice	
 004041e0	12	code	0	render		named	Global	register_destroy_g_C3dDevice	
 004041f0	11	code	0	render		named	Global	destroy_g_C3dDevice	
-00404200	53	code	0	render		raw	Global	FUN_00404200	
+00404200	53	code	0	render		named	Global	UnlockSurfacesAndFlipToGdi	
 00404240	141	code	0	render		named	C3dDevice	C3dDevice	
 004042e0	303	code	0	render		named	C3dDevice	Release	
 00404410	737	code	0	render		named	C3dDevice	Init	
@@ -95,9 +95,9 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00404760	176	code	0	render		named	C3dDevice	method_00404760	
 00404810	161	code	0	render		named	C3dDevice	method_00404810	
 004048c0	223	code	0	render		named	C3dDevice	method_004048c0	
-004049a0	63	code	0	render		raw	Global	FUN_004049a0	
+004049a0	63	code	0	render		named	Global	EnumZBufferFormatCallback	
 004049e0	1168	code	0	render		named	C3dDevice	method_004049e0	
-00404e70	218	code	0	render		raw	Global	FUN_00404e70	
+00404e70	218	code	0	render		named	C3dDevice	CreateZBuffer	
 00404f50	32	code	0	render		named	C3dDevice	DestroyRenderer	
 00404f70	70	code	0	render	unreferenced	raw	Global	FUN_00404f70	
 00404fc0	127	code	0	render	unreferenced	raw	Global	FUN_00404fc0	
@@ -106,11 +106,11 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00405180	54	code	0	render		named	C3dDevice	method_00405180	
 004051c0	59	code	0	render	dead	named	C3dDevice	method_004051c0	
 00405200	27	code	0	render		named	C3dDevice	RestoreSurfaces	
-00405220	111	code	0	render		raw	Global	FUN_00405220	
+00405220	111	code	0	render		named	C3dDevice	CreateDCBitmap	
 00405290	189	code	0	render		named	C3dDevice	method_00405290	
-00405350	145	code	0	render		raw	Global	FUN_00405350	
-004053f0	76	code	0	render		raw	Global	FUN_004053f0	
-00405440	103	code	0	render		raw	Global	FUN_00405440	
+00405350	145	code	0	render		named	C3dDevice	CreateTexture	
+004053f0	76	code	0	render		named	C3dDevice	UpdateTexture	
+00405440	103	code	0	render		named	C3dDevice	ConvertColorsToArgb1555	
 004054b0	558	code	0	render		named	C3dDevice	CreateRenderer	
 004056e0	166	code	0	render		named	C3dDevice	method_004056e0	
 00405790	1601	code	0	render		named	C3dDevice	method_00405790	
@@ -118,19 +118,19 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00405df0	42	code	0	render		named	C3dDevice	method_00405df0	
 00405e20	42	code	0	render		named	C3dDevice	method_00405e20	
 00405e50	42	code	0	render		named	C3dDevice	method_00405e50	
-00405e80	71	code	0	render		raw	Global	FUN_00405e80	
-00405ed0	71	code	0	render		raw	Global	FUN_00405ed0	
+00405e80	71	code	0	render		named	C3dDevice	CopyRenderTargetToBackup	
+00405ed0	71	code	0	render		named	C3dDevice	CopyBackupToRenderTarget	
 00405f20	53	code	0	render		named	C3dDevice	method_00405f20	
 00405f60	13	code	0	render		named	VertexBuffer	VertexBuffer	
 00405f70	5	thunk	0	render		-	VertexBuffer	Release	
 00405f80	30	code	0	render		named	VertexBuffer	Release	
 00405fa0	100	code	0	render		named	VertexBuffer	Create	
-00406010	149	code	0	render		raw	Global	FUN_00406010	
+00406010	149	code	0	render		named	VertexBuffer	LockForAppend	
 004060b0	14	code	0	render		named	VertexBuffer	method_004060b0	
 004060c0	38	code	0	render	unreferenced	raw	Global	FUN_004060c0	
 004060f0	1	code	0	render		named	Global	DebugLog	
 00406100	37	code	0	render		named	Global	static_init_005	
-00406130	127	code	0	render		raw	Global	FUN_00406130	
+00406130	127	code	0	render		named	Global	FreeDisplayDriverList	
 004061b0	106	code	0	render	unreferenced	raw	Global	FUN_004061b0	
 00406220	387	code	0	render	dead	raw	Global	FUN_00406220	
 004063b0	540	code	0	render	dead	raw	Global	FUN_004063b0	
@@ -149,44 +149,44 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00406b50	10	code	0	render		named	Global	destroy_g_FontCache	
 00406b60	26	code	0	render		named	FontCache	FontCache	
 00406b80	1756	code	0	render	unreferenced	raw	Global	FUN_00406b80	
-00407260	40	code	0	render		raw	Global	FUN_00407260	
-00407290	682	code	0	render		raw	Global	FUN_00407290	
+00407260	40	code	0	render		named	Global	vector_constructor_iterator	
+00407290	682	code	0	render		named	Global	DrawScreenRect	
 00407540	10	code	0	render		named	Global	static_init_008	
 00407550	26	code	0	render		named	Global	static_init_008_body	
 00407570	12	code	0	render		named	Global	register_destroy_g_prevFontByDc	
 00407580	10	code	0	render		named	Global	destroy_g_prevFontByDc	
-00407590	232	code	0	render		raw	Global	FUN_00407590	
-00407680	237	code	0	render		raw	Global	FUN_00407680	
-00407770	89	code	0	render		raw	Global	FUN_00407770	
-004077d0	126	code	0	render		raw	Global	FUN_004077d0	
-00407870	68	code	0	render		raw	Global	FUN_00407870	
-004078c0	88	code	0	render		raw	Global	FUN_004078c0	
-00407920	60	code	0	render		raw	Global	FUN_00407920	
-00407960	26	code	0	render		raw	Global	FUN_00407960	
-00407980	172	code	0	render		raw	Global	FUN_00407980	
-00407a30	10	code	0	render		raw	Global	FUN_00407a30	
-00407a40	122	code	0	render		raw	Global	FUN_00407a40	
+00407590	232	code	1	stl		named	std::Tree	~Tree	
+00407680	237	code	0	render		named	Global	GetSurfaceDCWithFont	
+00407770	89	code	0	render		named	Global	ReleaseSurfaceDC	
+004077d0	126	code	0	render		named	Global	InitFontEntry	
+00407870	68	code	0	render		named	Global	CreateFontForEntry	
+004078c0	88	code	0	render		named	Global	IsFontEntryLess	
+00407920	60	code	0	render		named	Global	IsFontEntryEqual	
+00407960	26	code	0	render		named	Global	MatchFaceNameProc	
+00407980	172	code	0	render		named	Global	GetInstalledFaceName	
+00407a30	10	code	0	render		named	Global	GetFontCharSet	
+00407a40	122	code	0	render		named	FontCache	~FontCache	
 00407ac0	1087	code	0	render		named	FontCache	GetFont	
 00407f00	172	code	1	stl		named	std::Tree	InitHead	
-00407fb0	17	code	0	render		raw	Global	FUN_00407fb0	
-00407fd0	740	code	0	render		raw	Global	FUN_00407fd0	
-004082c0	1039	code	0	render		raw	Global	FUN_004082c0	
-004086d0	62	code	0	render		raw	Global	FUN_004086d0	
+00407fb0	17	code	1	stl		named	std::Tree	begin	
+00407fd0	740	code	1	stl		named	std::vector	insert	
+004082c0	1039	code	1	stl		named	std::Tree	erase	
+004086d0	62	code	1	stl		named	std::Tree	EraseSubtree	
 00408710	628	code	1	stl		named	std::Tree	method_00408710	
 00408990	48	code	1	stl		named	std::Tree	method_00408990	
-004089c0	81	code	0	render		raw	Global	FUN_004089c0	
-00408a20	67	code	0	render		raw	Global	FUN_00408a20	
-00408a70	25	code	0	render		raw	Global	FUN_00408a70	
-00408a90	37	code	0	render		named	Global	static_init_009	
-00408ac0	471	code	0	render		raw	Global	FUN_00408ac0	
-00408ca0	142	code	0	render		raw	Global	FUN_00408ca0	
+004089c0	81	code	1	stl		named	std::Tree	DecrementIterator	
+00408a20	67	code	1	stl		named	std::Tree	IncrementIterator	
+00408a70	25	code	1	stl		named	std	ConstructAt	
+00408a90	37	code	0	res		named	Global	static_init_009	
+00408ac0	471	code	1	stl		named	std	QuickSortRange	
+00408ca0	142	code	1	stl		named	std	PartitionRange	
 00408d30	112	code	0	res		named	ModelResMesh	ModelResMesh	
-00408da0	24	code	0	res		raw	Global	FUN_00408da0	
-00408dc0	98	code	0	res		raw	Global	FUN_00408dc0	
-00408e30	112	code	0	res		raw	Global	FUN_00408e30	
-00408ea0	1110	code	0	res		raw	Global	FUN_00408ea0	
-00409300	38	code	0	core		raw	Global	FUN_00409300	
-00409330	521	code	0	core		raw	Global	FUN_00409330	
+00408da0	24	code	1	stl		named	std::vector	vector	
+00408dc0	98	code	0	res		named	ModelResMesh	~ModelResMesh	
+00408e30	112	code	0	res		named	ModelResMesh	FreeArrays	
+00408ea0	1110	code	0	res		named	ModelResMesh	ComputeNormals	
+00409300	38	code	1	stl		named	std::vector	~vector	
+00409330	521	code	1	stl		named	std::vector	insert	
 00409540	37	code	0	core		named	Global	static_init_010	
 00409570	16	code	0	core		named	Global	SqrtFloat	
 00409580	16	code	0	core		named	Global	SinFloat	
@@ -251,18 +251,18 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0040c010	10	code	0	render		named	Global	construct_g_VertexBuffer_00625e68	
 0040c020	12	code	0	render		named	Global	register_destroy_g_VertexBuffer_00625e68	
 0040c030	10	code	0	render		named	Global	destroy_g_VertexBuffer_00625e68	
-0040c040	168	code	0	render		raw	Global	FUN_0040c040	
-0040c0f0	177	code	0	render		raw	Global	FUN_0040c0f0	
-0040c1b0	40	code	0	render		raw	Global	FUN_0040c1b0	
-0040c1e0	24	code	0	render		raw	Global	FUN_0040c1e0	
-0040c200	54	code	0	render		raw	Global	FUN_0040c200	
+0040c040	168	code	0	render		named	Global	DrawVertexBufferRange	
+0040c0f0	177	code	0	render		named	Global	DrawIndexedVertexBufferRange	
+0040c1b0	40	code	0	render		named	Global	InitRenderPrimitive	
+0040c1e0	24	code	0	render		named	Global	SetPrimitiveArrays	
+0040c200	54	code	0	render		named	Global	SetVertexPosition	
 0040c240	54	code	0	render	unreferenced	raw	Global	FUN_0040c240	
-0040c280	81	code	0	render		named	SceneRenderer	method_0040c280	
-0040c2e0	180	code	0	render		raw	Global	FUN_0040c2e0	
-0040c3a0	50	code	0	render		named	SceneRenderer	method_0040c3a0	
-0040c3e0	391	code	0	render		raw	Global	FUN_0040c3e0	
-0040c570	32	code	0	render		raw	Global	FUN_0040c570	
-0040c590	96	code	0	render		raw	Global	FUN_0040c590	
+0040c280	81	code	0	render		named	Global	ScaleTexCoordsByTexture	
+0040c2e0	180	code	0	render		named	Global	ComputeVertexFog	
+0040c3a0	50	code	0	render		named	Global	DrawRenderPrimitive	
+0040c3e0	391	code	0	render		named	Global	DrawPrimitiveTwoTexCoords	
+0040c570	32	code	0	render		named	Global	destroy_g_twoTexCoordVertices	
+0040c590	96	code	0	render		named	Global	DrawPrimitiveWithTexCoordArray	
 0040c5f0	47	code	0	render		named	RenderTriangle	RenderTriangle	
 0040c620	64	code	0	render	unreferenced	named	RenderTriangle	RenderTriangle	
 0040c660	22	code	0	render	unreferenced	raw	Global	FUN_0040c660	
@@ -272,7 +272,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0040c730	22	code	0	render	unreferenced	raw	Global	FUN_0040c730	
 0040c750	47	code	0	render		named	RenderQuad	method_0040c750	
 0040c780	9	code	0	render		named	TriangleSet	TriangleSet	
-0040c790	26	code	0	render		raw	Global	FUN_0040c790	
+0040c790	26	code	0	render		named	TriangleSet	~TriangleSet	
 0040c7b0	54	code	0	render	unreferenced	raw	Global	FUN_0040c7b0	
 0040c7f0	54	code	0	render	unreferenced	raw	Global	FUN_0040c7f0	
 0040c830	85	code	0	render	unreferenced	raw	Global	FUN_0040c830	
@@ -282,19 +282,19 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0040c910	12	code	0	render		named	Global	register_destroy_g_CTexture	
 0040c920	31	code	0	render		named	Global	destroy_g_CTexture	
 0040c940	171	code	1	stl		named	std::Tree	InitHead	
-0040c9f0	283	code	0	render		raw	Global	FUN_0040c9f0	
-0040cb10	232	code	0	render		raw	Global	FUN_0040cb10	
+0040c9f0	283	code	0	render		named	TextureCache	~TextureCache	
+0040cb10	232	code	1	stl		named	std::Tree	~Tree	
 0040cc00	146	code	0	render		named	TextureCache	GetTexture	
 0040cca0	133	code	0	render		named	TextureCache	Unload	
 0040cd30	235	code	0	render		named	TextureCache	Clear	
 0040ce20	157	code	0	render		named	TextureCache	Reload	
 0040cec0	186	code	0	render		named	TextureCache	PurgeUnused	
 0040cf80	103	code	0	render		named	TextureCache	method_0040cf80	
-0040cff0	135	code	0	render		raw	Global	FUN_0040cff0	
+0040cff0	135	code	0	render		named	TextureCache	CreateTextureFromResource	
 0040d080	275	code	1	stl		named	std::Tree	method_0040d080	
 0040d1a0	1627	code	0	render		named	SceneRenderer	SceneRenderer	
-0040d800	42	code	0	render		raw	Global	FUN_0040d800	
-0040d830	817	code	0	render		raw	Global	FUN_0040d830	
+0040d800	42	code	1	stl		named	std::list	list	
+0040d830	817	code	0	render		named	SceneRenderer	~SceneRenderer	
 0040db70	280	code	0	render		named	SceneRenderer	SetSize	
 0040dc90	16	code	0	render		named	SceneRenderer	SetPixelMode	
 0040dca0	43	code	0	render		named	SceneRenderer	ClearFrame	
@@ -305,26 +305,26 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0040ddb0	15	code	0	render		named	SceneRenderer	UnlockBackBuffer	
 0040ddc0	236	code	0	render		named	SceneRenderer	method_0040ddc0	
 0040deb0	215	code	0	render		named	SceneRenderer	method_0040deb0	
-0040df90	111	code	0	render		raw	Global	FUN_0040df90	
-0040e000	48	code	0	render		raw	Global	FUN_0040e000	
-0040e030	254	code	0	render		raw	Global	FUN_0040e030	
+0040df90	111	code	0	render		named	SceneRenderer	DeleteQueuedTextures	
+0040e000	48	code	0	render		named	Global	IsNameLess	
+0040e030	254	code	0	render		named	SceneRenderer	ReleaseExpiredPooledTextures	
 0040e130	986	code	0	render		named	SceneRenderer	method_0040e130	
-0040e510	38	code	0	render		raw	Global	FUN_0040e510	
+0040e510	38	code	0	render		named	Global	DestroyTexturePoolEntry	
 0040e540	205	code	0	render		named	SceneRenderer	method_0040e540	
 0040e610	140	code	0	render		named	SceneRenderer	method_0040e610	
 0040e6a0	56	code	0	render		named	SceneRenderer	method_0040e6a0	
-0040e6e0	660	code	0	render		raw	Global	FUN_0040e6e0	
+0040e6e0	660	code	0	render		named	SceneRenderer	BuildScreenQuadTriangles	
 0040e980	875	code	0	render		named	SceneRenderer	method_0040e980	
 0040ecf0	469	code	0	render		named	SceneRenderer	method_0040ecf0	
 0040eed0	79	code	0	render	unreferenced	raw	Global	FUN_0040eed0	
-0040ef20	3	code	0	render		raw	Global	FUN_0040ef20	
+0040ef20	3	code	0	render		named	SceneRenderer	NoOp	
 0040ef30	148	code	0	render		named	SceneRenderer	method_0040ef30	
 0040efd0	805	code	0	render		named	SceneRenderer	method_0040efd0	
 0040f300	317	code	0	render		named	SceneRenderer	method_0040f300	
-0040f440	53	code	0	render		raw	Global	FUN_0040f440	
+0040f440	53	code	0	render		named	Global	IsPrimitiveLessByTexture	
 0040f480	245	code	0	render		named	SceneRenderer	method_0040f480	
 0040f580	350	code	0	render		named	SceneRenderer	method_0040f580	
-0040f6e0	24	code	0	render		raw	Global	FUN_0040f6e0	
+0040f6e0	24	code	0	render		named	Global	IsVertexBufferRangeLessByTexture	
 0040f700	245	code	0	render		named	SceneRenderer	method_0040f700	
 0040f800	245	code	0	render		named	SceneRenderer	method_0040f800	
 0040f900	314	code	0	render		named	SceneRenderer	method_0040f900	
@@ -361,101 +361,101 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00412be0	159	code	0	render	unreferenced	raw	Global	FUN_00412be0	
 00412c80	490	code	0	render		named	SceneRenderer	method_00412c80	
 00412e70	136	code	0	render		named	SceneRenderer	method_00412e70	
-00412f00	10	code	0	render		raw	Global	FUN_00412f00	
-00412f10	10	code	0	render		raw	Global	FUN_00412f10	
-00412f20	17	code	0	render		raw	Global	FUN_00412f20	
-00412f40	38	code	0	render		raw	Global	FUN_00412f40	
-00412f70	159	code	0	render		raw	Global	FUN_00412f70	
-00413010	38	code	0	render		raw	Global	FUN_00413010	
-00413040	159	code	0	render		raw	Global	FUN_00413040	
-004130e0	38	code	0	render		raw	Global	FUN_004130e0	
-00413110	159	code	0	render		raw	Global	FUN_00413110	
-004131b0	38	code	0	render		raw	Global	FUN_004131b0	
-004131e0	165	code	0	render		raw	Global	FUN_004131e0	
-00413290	98	code	0	render		raw	Global	FUN_00413290	
-00413300	77	code	0	render		raw	Global	FUN_00413300	
-00413350	17	code	0	render		raw	Global	FUN_00413350	
-00413370	77	code	0	render		raw	Global	FUN_00413370	
-004133c0	17	code	0	render		raw	Global	FUN_004133c0	
-004133e0	168	code	0	render		raw	Global	FUN_004133e0	
-00413490	38	code	0	render		raw	Global	FUN_00413490	
-004134c0	195	code	0	render		raw	Global	FUN_004134c0	
-00413590	19	code	0	render		raw	Global	FUN_00413590	
-004135b0	69	code	0	render		raw	Global	FUN_004135b0	
-00413600	45	code	0	render		raw	Global	FUN_00413600	
-00413630	17	code	0	render		raw	Global	FUN_00413630	
+00412f00	10	code	0	render		named	SceneRenderer	CopyRenderTargetToBackup	
+00412f10	10	code	0	render		named	SceneRenderer	CopyBackupToRenderTarget	
+00412f20	17	code	1	stl		named	std::list	begin	
+00412f40	38	code	1	stl		named	std::vector	~vector	
+00412f70	159	code	1	stl		named	std::vector	reserve	
+00413010	38	code	1	stl		named	std::vector	~vector	
+00413040	159	code	1	stl		named	std::vector	reserve	
+004130e0	38	code	1	stl		named	std::vector	~vector	
+00413110	159	code	1	stl		named	std::vector	reserve	
+004131b0	38	code	1	stl		named	std::vector	~vector	
+004131e0	165	code	1	stl		named	std::vector	reserve	
+00413290	98	code	1	stl		named	std::list	~list	
+00413300	77	code	1	stl		named	std::list	~list	
+00413350	17	code	1	stl		named	std::list	begin	
+00413370	77	code	1	stl		named	std::list	~list	
+004133c0	17	code	1	stl		named	std::list	begin	
+004133e0	168	code	1	stl		named	std::list	resize	
+00413490	38	code	1	stl		named	std::vector	~vector	
+004134c0	195	code	1	stl		named	std::vector	reserve	
+00413590	19	code	1	stl		named	std::vector	size	
+004135b0	69	code	1	stl		named	std::list	EraseRange	
+00413600	45	code	1	stl		named	std::list	AllocNode	
+00413630	17	code	1	stl		named	std::Tree	begin	
 00413650	1039	code	1	stl		named	std::Tree	method_00413650	
-00413a60	67	code	0	render		raw	Global	FUN_00413a60	
-00413ab0	740	code	0	render		raw	Global	FUN_00413ab0	
-00413da0	68	code	0	render		raw	Global	FUN_00413da0	
-00413df0	3	code	0	render		raw	Global	FUN_00413df0	
+00413a60	67	code	1	stl		named	std::Tree	IncrementIterator	
+00413ab0	740	code	1	stl		named	std::vector	insert	
+00413da0	68	code	1	stl		named	std::vector	erase	
+00413df0	3	code	1	stl		named	std::vector	DestroyRange	
 00413e00	19	code	0	render	dead	raw	Global	FUN_00413e00	
-00413e20	51	code	0	render		raw	Global	FUN_00413e20	
-00413e60	3	code	0	render		raw	Global	FUN_00413e60	
+00413e20	51	code	1	stl		named	std::vector	erase	
+00413e60	3	code	1	stl		named	std::vector	DestroyRange	
 00413e70	47	code	0	render	dead	raw	Global	FUN_00413e70	
-00413ea0	19	code	0	render		raw	Global	FUN_00413ea0	
-00413ec0	19	code	0	render		raw	Global	FUN_00413ec0	
-00413ee0	51	code	0	render		raw	Global	FUN_00413ee0	
-00413f20	3	code	0	render		raw	Global	FUN_00413f20	
-00413f30	47	code	0	render		raw	Global	FUN_00413f30	
-00413f60	51	code	0	render		raw	Global	FUN_00413f60	
-00413fa0	3	code	0	render		raw	Global	FUN_00413fa0	
-00413fb0	47	code	0	render		raw	Global	FUN_00413fb0	
-00413fe0	19	code	0	render		raw	Global	FUN_00413fe0	
-00414000	19	code	0	render		raw	Global	FUN_00414000	
-00414020	57	code	0	render		raw	Global	FUN_00414020	
-00414060	3	code	0	render		raw	Global	FUN_00414060	
-00414070	53	code	0	render		raw	Global	FUN_00414070	
-004140b0	94	code	0	render		raw	Global	FUN_004140b0	
-00414110	110	code	0	render		raw	Global	FUN_00414110	
-00414180	69	code	0	render		raw	Global	FUN_00414180	
-004141d0	45	code	0	render		raw	Global	FUN_004141d0	
-00414200	69	code	0	render		raw	Global	FUN_00414200	
-00414250	48	code	0	render		raw	Global	FUN_00414250	
-00414280	619	code	0	render		raw	Global	FUN_00414280	
-004144f0	3	code	0	render		raw	Global	FUN_004144f0	
-00414500	59	code	0	render		raw	Global	FUN_00414500	
-00414540	740	code	0	render		raw	Global	FUN_00414540	
-00414830	3	code	0	render		raw	Global	FUN_00414830	
-00414840	24	code	0	render		raw	Global	FUN_00414840	
+00413ea0	19	code	1	stl		named	std::vector	capacity	
+00413ec0	19	code	1	stl		named	std::vector	size	
+00413ee0	51	code	1	stl		named	std::vector	erase	
+00413f20	3	code	1	stl		named	std::vector	DestroyRange	
+00413f30	47	code	1	stl		named	std::vector	CopyUninitialized	
+00413f60	51	code	1	stl		named	std::vector	erase	
+00413fa0	3	code	1	stl		named	std::vector	DestroyRange	
+00413fb0	47	code	1	stl		named	std::vector	CopyUninitialized	
+00413fe0	19	code	1	stl		named	std::vector	capacity	
+00414000	19	code	1	stl		named	std::vector	size	
+00414020	57	code	1	stl		named	std::vector	erase	
+00414060	3	code	1	stl		named	std::vector	DestroyRange	
+00414070	53	code	1	stl		named	std::vector	CopyUninitialized	
+004140b0	94	code	1	stl		named	std::list	insert	
+00414110	110	code	1	stl		named	std::list	insert	
+00414180	69	code	1	stl		named	std::list	EraseRange	
+004141d0	45	code	1	stl		named	std::list	AllocNode	
+00414200	69	code	1	stl		named	std::list	EraseRange	
+00414250	48	code	1	stl		named	std::list	AllocNode	
+00414280	619	code	1	stl		named	std::vector	insert	
+004144f0	3	code	1	stl		named	std::vector	DestroyRange	
+00414500	59	code	1	stl		named	std::vector	CopyUninitialized	
+00414540	740	code	1	stl		named	std::vector	insert	
+00414830	3	code	1	stl		named	std::vector	DestroyRange	
+00414840	24	code	1	stl		named	std::pair	pair	
 00414860	62	code	1	stl		named	std::Tree	method_00414860	
-004148a0	651	code	0	render		raw	Global	FUN_004148a0	
+004148a0	651	code	1	stl		named	std::Tree	InsertAt	
 00414b30	521	code	0	render	dead	raw	Global	FUN_00414b30	
-00414d40	521	code	0	render		raw	Global	FUN_00414d40	
-00414f50	582	code	0	render		raw	Global	FUN_00414f50	
-004151a0	54	code	0	render		raw	Global	FUN_004151a0	
+00414d40	521	code	1	stl		named	std::vector	insert	
+00414f50	582	code	1	stl		named	std::vector	insert	
+004151a0	54	code	1	stl		named	std::list	EraseNode	
 004151e0	83	code	1	stl		named	std::Tree	method_004151e0	
-00415240	81	code	0	render		raw	Global	FUN_00415240	
+00415240	81	code	1	stl		named	std::Tree	DecrementIterator	
 004152a0	38	code	0	render	dead	raw	Global	FUN_004152a0	
-004152d0	38	code	0	render		raw	Global	FUN_004152d0	
-00415300	39	code	0	render		raw	Global	FUN_00415300	
-00415330	39	code	0	render		raw	Global	FUN_00415330	
-00415360	45	code	0	render		raw	Global	FUN_00415360	
-00415390	51	code	0	render		raw	Global	FUN_00415390	
-004153d0	19	code	0	render		raw	Global	FUN_004153d0	
+004152d0	38	code	1	stl		named	std::vector	FillUninitialized	
+00415300	39	code	1	stl		named	std	copy	
+00415330	39	code	1	stl		named	std	copy	
+00415360	45	code	1	stl		named	std	copy	
+00415390	51	code	1	stl		named	std	copy	
+004153d0	19	code	1	stl		named	std	ConstructAt	
 004153f0	222	code	1	stl		named	std	ConstructAt	
-004154d0	1	code	0	render		raw	Global	FUN_004154d0	
-004154e0	26	code	0	render		raw	Global	FUN_004154e0	
+004154d0	1	code	0	render		named	Global	operator_delete_placement	
+004154e0	26	code	1	stl		named	std	ConstructAt	
 00415500	65	code	1	stl		named	std	ConstructAt	
-00415550	25	code	0	render		raw	Global	FUN_00415550	
+00415550	25	code	1	stl		named	std	ConstructAt	
 00415570	37	code	0	render		named	Global	static_init_017	
-004155a0	347	code	0	render		raw	Global	FUN_004155a0	
-00415700	60	code	0	render		raw	Global	FUN_00415700	
-00415740	233	code	0	render		raw	Global	FUN_00415740	
-00415830	233	code	0	render		raw	Global	FUN_00415830	
+004155a0	347	code	1	stl		named	std	QuickSortRange	
+00415700	60	code	1	stl		named	std	ShiftInsertSorted	
+00415740	233	code	1	stl		named	std	QuickSortRange	
+00415830	233	code	1	stl		named	std	QuickSortRange	
 00415920	203	code	0	render	dead	raw	Global	FUN_00415920	
-004159f0	429	code	0	render		raw	Global	FUN_004159f0	
-00415ba0	203	code	0	render		raw	Global	FUN_00415ba0	
-00415c70	39	code	0	render		raw	Global	FUN_00415c70	
-00415ca0	148	code	0	render		raw	Global	FUN_00415ca0	
-00415d40	102	code	0	render		raw	Global	FUN_00415d40	
-00415db0	102	code	0	render		raw	Global	FUN_00415db0	
+004159f0	429	code	1	stl		named	std	QuickSortRange	
+00415ba0	203	code	1	stl		named	std	QuickSortRange	
+00415c70	39	code	1	stl		named	std	ShiftInsertSorted	
+00415ca0	148	code	1	stl		named	std	InsertionSort	
+00415d40	102	code	1	stl		named	std	InsertionSort	
+00415db0	102	code	1	stl		named	std	InsertionSort	
 00415e20	97	code	0	render	dead	raw	Global	FUN_00415e20	
-00415e90	191	code	0	render		raw	Global	FUN_00415e90	
-00415f50	52	code	0	render		raw	Global	FUN_00415f50	
-00415f90	97	code	0	render		raw	Global	FUN_00415f90	
-00416000	42	code	0	render		raw	Global	FUN_00416000	
-00416030	69	code	0	render		raw	Global	FUN_00416030	
+00415e90	191	code	1	stl		named	std	InsertionSort	
+00415f50	52	code	0	render		named	Global	IsFloatUintPairLess	
+00415f90	97	code	1	stl		named	std	InsertionSort	
+00416000	42	code	1	stl		named	std	MedianOfThree	
+00416030	69	code	1	stl		named	std	PartitionRange	
 00416080	41	code	0	render		named	CSurface	CSurface	
 004160b0	33	code	0	render		named	CSurface	`scalar_deleting_destructor'	
 004160e0	33	code	0	render		named	CSurface	CSurface	
@@ -473,19 +473,19 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00416680	33	code	0	render		named	CTexture	`scalar_deleting_destructor'	
 004166b0	148	code	0	render		named	CTexture	CTexture	
 00416750	131	code	0	render		named	CTexture	vf02	
-004167e0	30	code	0	render		raw	Global	FUN_004167e0	
-00416800	14	code	0	render		raw	Global	FUN_00416800	
+004167e0	30	code	0	render		named	CTexture	IncrementUseCount	
+00416800	14	code	0	render		named	CTexture	DecrementUseCount	
 00416810	139	code	0	render		named	CTexture	method_00416810	
 004168a0	229	code	0	render		named	CTexture	method_004168a0	
 00416990	986	code	0	render		named	CTexture	vf01	
-00416d80	391	code	0	render		raw	Global	FUN_00416d80	
+00416d80	391	code	0	render		named	CTexture	DrawRleImage	
 00416f10	166	code	0	render		named	CTexture	vf03	
 00416fc0	165	code	0	render		named	CTexture	vf04	
-00417070	377	code	0	render		raw	Global	FUN_00417070	
-004171f0	233	code	0	render		raw	Global	FUN_004171f0	
+00417070	377	code	0	render		named	CTexture	CreateSurface	
+004171f0	233	code	0	render		named	Global	EnumTextureFormatCallback	
 004172f0	837	code	0	render		named	CTexture	method_004172f0	
 00417640	768	code	0	render		named	CTexture	method_00417640	
-00417940	154	code	0	world		raw	Global	FUN_00417940	
+00417940	154	code	0	render		named	CTexture	CopyRectFrom	
 004179e0	37	code	0	render		named	Global	static_init_018	
 00417a10	466	code	0	render	dead	raw	Global	FUN_00417a10	
 00417bf0	56	code	0	render	dead	raw	Global	FUN_00417bf0	
@@ -494,7 +494,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00417e90	495	code	0	render	dead	raw	Global	FUN_00417e90	
 00418080	37	code	0	render		named	Global	static_init_019	
 004180b0	28	code	0	render	unreferenced	raw	Global	FUN_004180b0	
-004180d0	15	code	0	core		raw	Global	FUN_004180d0	
+004180d0	15	code	0	core		named	Global	ResetFrameTimerState	
 004180e0	37	code	0	net		named	Global	static_init_020	
 00418110	10	code	0	net		named	Global	static_init_021	
 00418120	10	code	0	net		named	Global	construct_g_CRagConnection	
@@ -567,15 +567,15 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0041db40	41	code	0	core		named	CController	vf03	
 0041db70	244	code	0	core		named	CKeyPad	method_0041db70	
 0041dc70	237	code	0	core		named	CKeyPad	CKeyPad	
-0041dd60	7	code	0	core		raw	Global	FUN_0041dd60	
+0041dd60	7	code	0	core		named	CController	~CController	
 0041dd70	33	code	0	core		named	CKeyPad	`scalar_deleting_destructor'	
 0041dda0	294	code	0	core		named	CKeyPad	~CKeyPad	
 0041ded0	98	code	0	core		named	CKeyPad	vf02	
-0041df40	325	code	0	core		raw	Global	FUN_0041df40	
+0041df40	325	code	0	core		named	CKeyPad	SetKeyMapping	
 0041e090	250	code	0	core	unreferenced	raw	Global	FUN_0041e090	
 0041e190	30	code	0	core		named	KeyPadDispatcher	KeyPadDispatcher	
-0041e1b0	82	code	0	core		raw	Global	FUN_0041e1b0	
-0041e210	96	code	0	core		raw	Global	FUN_0041e210	
+0041e1b0	82	code	0	core		named	KeyPadDispatcher	~KeyPadDispatcher	
+0041e210	96	code	0	core		named	KeyPadDispatcher	DeleteKeyPads	
 0041e270	99	code	0	core		named	KeyPadDispatcher	Dispatch	
 0041e2e0	528	code	0	core		named	KeyPadDispatcher	CreateKeyPad	
 0041e4f0	79	code	0	core	unreferenced	raw	Global	FUN_0041e4f0	
@@ -585,13 +585,13 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0041e6f0	53	code	0	core		named	DirectInputMouse	Release	
 0041e730	345	code	0	core		named	DirectInputMouse	method_0041e730	
 0041e8d0	25	code	0	core		named	DirectInputMouse	method_0041e8d0	
-0041e8f0	46	code	0	core		raw	Global	FUN_0041e8f0	
-0041e920	38	code	0	core		raw	Global	FUN_0041e920	
-0041e950	3	code	0	core		raw	Global	FUN_0041e950	
-0041e960	89	code	0	core		raw	Global	FUN_0041e960	
-0041e9c0	47	code	0	core		raw	Global	FUN_0041e9c0	
-0041e9f0	38	code	0	core		raw	Global	FUN_0041e9f0	
-0041ea20	19	code	0	core		raw	Global	FUN_0041ea20	
+0041e8f0	46	code	0	core		named	Global	SetMouseAcquired	
+0041e920	38	code	1	stl		named	std::vector	~vector	
+0041e950	3	code	1	stl		named	std::vector	DestroyRange	
+0041e960	89	code	1	stl		named	std::Tree	IncrementIterator	
+0041e9c0	47	code	1	stl		named	std::vector	CopyUninitialized	
+0041e9f0	38	code	1	stl		named	std::vector	FillUninitialized	
+0041ea20	19	code	1	stl		named	std	ConstructAt	
 0041ea40	37	code	0	net		named	Global	static_init_025	
 0041ea70	90	code	0	net		named	Global	PacketFilterStub	
 0041ead0	117	code	0	net		named	PacketCodeModules	Reset	
@@ -619,7 +619,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0041fc70	70	code	0	net		named	PacketQueue	Read	
 0041fcc0	58	code	0	net		named	PacketQueue	Peek	
 0041fd00	37	code	0	net		named	PacketQueue	Skip	
-0041fd30	38	code	0	game		raw	Global	FUN_0041fd30	
+0041fd30	38	code	1	stl		named	std::vector	~vector	
 0041fd60	467	code	1	stl		named	std::vector	insert	
 0041ff40	37	code	0	audio		named	Global	static_init_028	
 0041ff70	158	code	0	audio	unreferenced	named	Global	OpenMixerVolumeControl	
@@ -638,13 +638,13 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00420380	6	code	0	core		named	Global	IsDrawFrame	
 00420390	53	code	0	core		named	Global	GetFrameStepsDue	
 004203d0	37	code	0	res		named	Global	static_init_030	
-00420400	283	code	0	res		raw	Global	FUN_00420400	
-00420520	61	code	0	res		raw	Global	FUN_00420520	
-00420560	308	code	0	res		raw	Global	FUN_00420560	
+00420400	283	code	0	res		named	ActFrame	SetItemCount	
+00420520	61	code	0	res		named	ActFrame	GetItem	
+00420560	308	code	1	stl		named	std::vector	resize	
 004206a0	61	code	0	res		named	ActFrame	~ActFrame	
-004206e0	109	code	0	res		raw	Global	FUN_004206e0	
-00420750	42	code	0	res		raw	Global	FUN_00420750	
-00420780	10	code	0	res		named	Global	destroy_global_00628eb8	
+004206e0	109	code	0	res		named	Global	GetActFrameAt	
+00420750	42	code	0	res		named	ActFrame	ActFrame	
+00420780	10	code	0	res		named	Global	destroy_g_ActFrame	
 00420790	10	code	0	res		named	Global	static_init_031	
 004207a0	32	code	0	res		named	Global	static_init_031_body	
 004207c0	172	code	0	res		named	CActRes	CActRes	
@@ -1103,7 +1103,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00435220	38	code	1	stl		named	std::vector	FillUninitialized	
 00435250	19	code	1	stl		named	std	ConstructAt	
 00435270	37	code	0	res		named	Global	static_init_059	
-004352a0	70	code	0	res		raw	Global	FUN_004352a0	
+004352a0	70	code	0	res		named	Global	PlayWave	
 004352f0	10	code	0	res		named	Global	static_init_060	
 00435300	32	code	0	res		named	Global	static_init_060_body	
 00435320	89	code	0	res		named	CWave	CWave	
@@ -1115,7 +1115,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00435440	32	code	0	res		named	CWave	CWave	
 00435460	64	code	0	res		named	CWave	vf04	
 004354a0	671	code	0	res		named	CWave	vf03	
-00435740	100	code	0	res		raw	Global	FUN_00435740	
+00435740	100	code	0	res		named	CWave	Play	
 004357b0	37	code	0	res		named	Global	static_init_061	
 004357e0	5	thunk	0	res		-	Global	static_init_062	
 004357f0	11	code	0	res		named	Global	static_init_062_body	
@@ -1130,18 +1130,18 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00435b90	247	code	0	res		named	C3dWorldRes	C3dWorldRes	
 00435c90	309	code	0	res		named	C3dWorldRes	vf04	
 00435dd0	3030	code	0	res		named	C3dWorldRes	vf03	
-004369c0	77	code	0	res		raw	Global	FUN_004369c0	
+004369c0	77	code	1	stl		named	std::list	~list	
 00436a10	69	code	1	stl		named	std::list	method_00436a10	
-00436a60	18	code	0	res		raw	Global	FUN_00436a60	
-00436a80	77	code	0	res		raw	Global	FUN_00436a80	
-00436ad0	18	code	0	res		raw	Global	FUN_00436ad0	
-00436af0	77	code	0	res		raw	Global	FUN_00436af0	
-00436b40	18	code	0	res		raw	Global	FUN_00436b40	
+00436a60	18	code	1	stl		named	std::list	IncrementIterator	
+00436a80	77	code	1	stl		named	std::list	~list	
+00436ad0	18	code	1	stl		named	std::list	IncrementIterator	
+00436af0	77	code	1	stl		named	std::list	~list	
+00436b40	18	code	1	stl		named	std::list	IncrementIterator	
 00436b60	54	code	1	stl		named	std::list	method_00436b60	
 00436ba0	54	code	1	stl		named	std::list	method_00436ba0	
 00436be0	54	code	1	stl		named	std::list	method_00436be0	
-00436c20	19	code	0	res		raw	Global	FUN_00436c20	
-00436c40	19	code	0	res		raw	Global	FUN_00436c40	
+00436c20	19	code	1	stl		named	std	ConstructAt	
+00436c40	19	code	1	stl		named	std	ConstructAt	
 00436c60	37	code	0	ui		named	Global	static_init_064	
 00436c90	10	code	0	ui		named	Global	static_init_065	
 00436ca0	10	code	0	ui		named	Global	construct_g_CSkinMgr	
@@ -1149,29 +1149,29 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00436cc0	10	code	0	ui		named	Global	destroy_g_CSkinMgr	
 00436cd0	10	code	0	ui		named	Global	static_init_066	
 00436ce0	224	code	0	ui		named	Global	static_init_066_body	
-00436dc0	12	code	0	ui		raw	Global	FUN_00436dc0	
-00436dd0	69	code	0	ui		raw	Global	FUN_00436dd0	
+00436dc0	12	code	0	ui		named	Global	register_destroy_g_basicSkinName	
+00436dd0	69	code	0	ui		named	Global	destroy_g_basicSkinName	
 00436e20	478	code	0	ui		named	CSkinMgr	CSkinMgr	
 00437000	33	code	0	ui		named	CSkinMgr	`scalar_deleting_destructor'	
 00437030	275	code	0	ui		named	CSkinMgr	~CSkinMgr	
 00437150	3056	code	0	ui		named	CSkinMgr	method_00437150	
-00437d40	80	code	0	ui		raw	Global	FUN_00437d40	
+00437d40	80	code	0	ui		named	CSkinMgr	GetColorChipColor	
 00437d90	37	code	0	ui		named	CSkinMgr	method_00437d90	
 00437dc0	44	code	0	ui		named	CSkinMgr	method_00437dc0	
-00437df0	53	code	0	ui		raw	Global	FUN_00437df0	
+00437df0	53	code	0	ui		named	CSkinMgr	GetSkinName	
 00437e30	53	code	0	ui	unreferenced	raw	Global	FUN_00437e30	
 00437e70	44	code	0	ui		named	CSkinMgr	method_00437e70	
 00437ea0	826	code	0	ui		named	CSkinMgr	method_00437ea0	
-004381e0	71	code	0	ui		raw	Global	FUN_004381e0	
-00438230	207	code	0	ui		raw	Global	FUN_00438230	
-00438300	408	code	0	ui		raw	Global	FUN_00438300	
-004384a0	441	code	0	ui		raw	Global	FUN_004384a0	
-00438660	194	code	0	ui		raw	Global	FUN_00438660	
-00438730	57	code	0	ui		raw	Global	FUN_00438730	
-00438770	42	code	0	ui		raw	Global	FUN_00438770	
-004387a0	38	code	0	ui		raw	Global	FUN_004387a0	
-004387d0	334	code	0	ui		raw	Global	FUN_004387d0	
-00438920	350	code	0	ui		raw	Global	FUN_00438920	
+004381e0	71	code	0	ui		named	Global	CleanUpTempSkinFolder	
+00438230	207	code	1	stl		named	std::string	append	
+00438300	408	code	1	stl		named	std::vector	insert	
+004384a0	441	code	1	stl		named	std::vector	insert	
+00438660	194	code	1	stl		named	std::string	append	
+00438730	57	code	1	stl		named	std::vector	CopyUninitialized	
+00438770	42	code	1	stl		named	std::vector	FillUninitialized	
+004387a0	38	code	1	stl		named	std::vector	FillUninitialized	
+004387d0	334	code	1	stl		named	std	fill	
+00438920	350	code	1	stl		named	std	copy_backward	
 00438a80	37	code	0	ui		named	Global	static_init_067	
 00438ab0	10	code	0	ui		named	Global	static_init_068	
 00438ac0	10	code	0	ui		named	Global	construct_g_CSnapMgr	
@@ -1179,21 +1179,21 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00438ae0	10	code	0	ui		named	Global	destroy_g_CSnapMgr	
 00438af0	50	code	0	ui		named	SnapObject	SnapObject	
 00438b30	33	code	0	ui		named	SnapObject	`scalar_deleting_destructor'	
-00438b60	42	code	0	ui		raw	Global	FUN_00438b60	
+00438b60	42	code	1	stl		named	std::list	list	
 00438b90	25	code	0	ui		named	SnapObject	~SnapObject	
-00438bb0	276	code	0	ui		raw	Global	FUN_00438bb0	
-00438cd0	83	code	0	ui		raw	Global	FUN_00438cd0	
-00438d30	92	code	0	ui		raw	Global	FUN_00438d30	
-00438d90	125	code	0	ui		raw	Global	FUN_00438d90	
-00438e10	238	code	0	ui		raw	Global	FUN_00438e10	
-00438f00	91	code	0	ui		raw	Global	FUN_00438f00	
-00438f60	142	code	0	ui		raw	Global	FUN_00438f60	
-00438ff0	114	code	0	ui		raw	Global	FUN_00438ff0	
-00439070	103	code	0	ui		raw	Global	FUN_00439070	
-004390e0	64	code	0	ui		raw	Global	FUN_004390e0	
-00439120	64	code	0	ui		raw	Global	FUN_00439120	
-00439160	7	code	0	ui		raw	Global	FUN_00439160	
-00439170	90	code	0	ui		raw	Global	FUN_00439170	
+00438bb0	276	code	0	ui		named	SnapObject	FindTouchingSide	
+00438cd0	83	code	0	ui		named	SnapObject	IntervalsOverlap	
+00438d30	92	code	0	ui		named	SnapObject	Unlink	
+00438d90	125	code	0	ui		named	SnapObject	MoveChain	
+00438e10	238	code	0	ui		named	SnapObject	MoveAttached	
+00438f00	91	code	0	ui		named	SnapObject	AddLink	
+00438f60	142	code	0	ui		named	SnapObject	LinkWith	
+00438ff0	114	code	0	ui		named	SnapObject	IsLinkedTo	
+00439070	103	code	0	ui		named	SnapObject	ReachesThroughLinks	
+004390e0	64	code	0	ui		named	SnapObject	HasAboveInChain	
+00439120	64	code	0	ui		named	SnapObject	ChainAboveContains	
+00439160	7	code	0	ui		named	SnapObject	GetWindowHeight	
+00439170	90	code	0	ui		named	SnapObject	SumChainHeight	
 004391d0	58	code	0	ui		named	CSnapMgr	CSnapMgr	
 00439210	33	code	0	ui		named	CSnapMgr	`scalar_deleting_destructor'	
 00439240	136	code	0	ui		named	CSnapMgr	~CSnapMgr	
@@ -1216,9 +1216,9 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004399c0	44	code	0	ui		named	CSnapMgr	method_004399c0	
 004399f0	78	code	0	ui		named	CSnapMgr	method_004399f0	
 00439a40	19	code	0	ui		named	CSnapMgr	method_00439a40	
-00439a60	62	code	0	ui		raw	Global	FUN_00439a60	
-00439aa0	54	code	0	ui		raw	Global	FUN_00439aa0	
-00439ae0	77	code	0	ui		raw	Global	FUN_00439ae0	
+00439a60	62	code	0	ui		named	CSnapMgr	IsChainAtBottom	
+00439aa0	54	code	0	ui		named	CSnapMgr	IsChainAtTop	
+00439ae0	77	code	1	stl		named	std::list	~list	
 00439b30	37	code	0	ui		named	Global	static_init_069	
 00439b60	5	thunk	0	ui		-	Global	static_init_070	
 00439b70	11	code	0	ui		named	Global	static_init_070_body	
@@ -1250,8 +1250,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00439e20	294	code	0	ui		named	UIStaticText	vf20	
 00439f50	346	code	0	ui		named	UIStaticText	method_00439f50	
 0043a0b0	361	code	0	ui	unreferenced	raw	Global	FUN_0043a0b0	
-0043a220	808	code	0	ui		raw	Global	FUN_0043a220	
-0043a550	397	code	0	ui		raw	Global	FUN_0043a550	
+0043a220	808	code	0	ui		named	UIStaticText	SetText	
+0043a550	397	code	0	ui		named	UIStaticText	SetTextAndFitWidth	
 0043a6e0	89	code	0	ui		named	UIStaticText	vf29	
 0043a740	37	code	0	ui		named	UIStaticText	vf30	
 0043a770	37	code	0	ui		named	UIStaticText	vf27	
@@ -1269,7 +1269,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0043a920	3	code	0	ui		named	UIWindow	vf35	
 0043a930	33	code	0	ui		named	UIStaticBitmap	`scalar_deleting_destructor'	
 0043a960	75	code	0	ui		named	UIStaticBitmap	~UIStaticBitmap	
-0043a9b0	216	code	0	ui		raw	Global	FUN_0043a9b0	
+0043a9b0	216	code	0	ui		named	UIStaticBitmap	SetBitmap	
 0043aa90	83	code	0	ui		named	UIStaticBitmap	vf20	
 0043aaf0	3	code	0	ui		named	UIStaticBitmap	vf26	
 0043ab00	3	code	0	ui		named	UIStaticBitmap	vf28	
@@ -1283,8 +1283,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0043aca0	57	code	0	ui		named	UICheckBox	method_0043aca0	
 0043ace0	16	code	0	ui		named	UICheckBox	vf30	
 0043acf0	170	code	0	ui		named	UICheckBox	vf20	
-0043ada0	234	code	0	ui		raw	Global	FUN_0043ada0	
-0043ae90	378	code	0	ui		raw	Global	FUN_0043ae90	
+0043ada0	234	code	0	ui		named	UICheckBox	SetBitmaps	
+0043ae90	378	code	0	ui		named	UICheckBox	SetBitmapsAndText	
 0043b010	18	code	0	ui		named	UISlotBitmap	UISlotBitmap	
 0043b030	33	code	0	ui		named	UISlotBitmap	`scalar_deleting_destructor'	
 0043b060	11	code	0	ui		named	UISlotBitmap	~UISlotBitmap	
@@ -1318,8 +1318,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0043bd20	109	code	0	ui		named	UISpriteButton	UISpriteButton	
 0043bd90	33	code	0	ui		named	UISpriteButton	`scalar_deleting_destructor'	
 0043bdc0	136	code	0	ui		named	UISpriteButton	~UISpriteButton	
-0043be50	541	code	0	ui		raw	Global	FUN_0043be50	
-0043c070	175	code	0	ui		raw	Global	FUN_0043c070	
+0043be50	541	code	0	ui		named	UISpriteButton	SetSprite	
+0043c070	175	code	0	ui		named	UISpriteButton	SetActName	
 0043c120	104	code	0	ui	unreferenced	raw	Global	FUN_0043c120	
 0043c190	105	code	0	ui	unreferenced	raw	Global	FUN_0043c190	
 0043c200	766	code	0	ui		named	UISpriteButton	vf20	
@@ -1332,10 +1332,10 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0043c610	120	code	0	ui		named	UIBalloonText	~UIBalloonText	
 0043c690	4	code	0	ui		named	UIBalloonText	vf19	
 0043c6a0	149	code	0	ui		named	UIBalloonText	vf20	
-0043c740	228	code	0	ui		raw	Global	FUN_0043c740	
+0043c740	228	code	0	ui		named	UIBalloonText	SetText	
 0043c830	216	code	0	ui	unreferenced	raw	Global	FUN_0043c830	
-0043c910	18	code	0	ui		raw	Global	FUN_0043c910	
-0043c930	215	code	0	ui		raw	Global	FUN_0043c930	
+0043c910	18	code	0	ui		named	UIBalloonText	SetFontHeight	
+0043c930	215	code	0	ui		named	UIBalloonText	LayOutLines	
 0043ca10	18	code	0	ui		named	UITransBalloonText	UITransBalloonText	
 0043ca30	33	code	0	ui		named	UITransBalloonText	`scalar_deleting_destructor'	
 0043ca60	11	code	0	ui		named	UITransBalloonText	~UITransBalloonText	
@@ -1343,7 +1343,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0043caa0	38	code	0	ui		named	UITransBalloonText	vf03	
 0043cad0	48	code	0	ui		named	UITransBalloonText	vf17	
 0043cb00	153	code	0	ui		named	UITransBalloonText	vf20	
-0043cba0	16	code	0	ui		raw	Global	FUN_0043cba0	
+0043cba0	16	code	0	ui		named	UITransBalloonText	SetColor	
 0043cbb0	26	code	0	ui		named	UITransBalloonText	vf08	
 0043cbd0	55	code	0	ui		named	UINameBalloonText	UINameBalloonText	
 0043cc10	33	code	0	ui		named	UINameBalloonText	`scalar_deleting_destructor'	
@@ -1362,14 +1362,14 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0043dee0	87	code	0	ui		named	UIEditCtrl	~UIEditCtrl	
 0043df40	14	code	0	ui		named	UIEditCtrl	vf26	
 0043df50	54	code	0	ui		named	UIEditCtrl	method_0043df50	
-0043df90	36	code	0	ui		raw	Global	FUN_0043df90	
+0043df90	36	code	0	ui		named	UIEditCtrl	SetCaretPos	
 0043dfc0	85	code	0	ui		named	UIEditCtrl	vf24	
 0043e020	17	code	0	ui		named	UIEditCtrl	vf25	
 0043e040	286	code	0	ui		named	UIEditCtrl	vf38	
-0043e160	41	code	0	ui		raw	Global	FUN_0043e160	
-0043e190	35	code	0	ui		named	UIWhisperEditCtrl	method_0043e190	
-0043e1c0	30	code	0	ui		raw	Global	FUN_0043e1c0	
-0043e1e0	30	code	0	ui		raw	Global	FUN_0043e1e0	
+0043e160	41	code	0	ui		named	UIEditCtrl	GetText	
+0043e190	35	code	0	ui		named	UIEditCtrl	method_0043e190	
+0043e1c0	30	code	0	ui		named	UIEditCtrl	SetTextColor	
+0043e1e0	30	code	0	ui		named	UIEditCtrl	SetBackgroundColor	
 0043e200	278	code	0	ui		named	UIEditCtrl	vf20	
 0043e320	474	code	0	ui		named	UIEditCtrl	method_0043e320	
 0043e500	2675	code	0	ui		named	UIEditCtrl	method_0043e500	
@@ -1382,7 +1382,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0043f190	11	code	0	ui		named	UIEditCtrl2	~UIEditCtrl2	
 0043f1a0	118	code	0	ui		named	UIEditCtrl2	vf37	
 0043f220	61	code	0	ui		named	UIBitmapEditCtrl	vf20	
-0043f260	228	code	0	ui		raw	Global	FUN_0043f260	
+0043f260	228	code	0	ui		named	UIBitmapEditCtrl	SetBitmap	
 0043f350	60	code	0	ui		named	UIWhisperEditCtrl	UIWhisperEditCtrl	
 0043f390	33	code	0	ui		named	UIWhisperEditCtrl	`scalar_deleting_destructor'	
 0043f3c0	132	code	0	ui		named	UIWhisperEditCtrl	~UIWhisperEditCtrl	
@@ -1400,14 +1400,14 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0043fb70	189	code	0	ui		named	UIChatEditCtrl	~UIChatEditCtrl	
 0043fc30	48	code	0	ui		named	UIChatEditCtrl	vf26	
 0043fc60	421	code	0	ui		named	UIChatEditCtrl	vf37	
-0043fe10	529	code	0	ui		raw	Global	FUN_0043fe10	
+0043fe10	529	code	0	ui		named	UIChatEditCtrl	PushHistory	
 00440030	62	code	0	ui		named	UIResizer	UIResizer	
 00440070	33	code	0	ui		named	UIResizer	`scalar_deleting_destructor'	
 004400a0	69	code	0	ui		named	UIResizer	~UIResizer	
 004400f0	94	code	0	ui		named	UIResizer	vf20	
-00440150	28	code	0	ui		raw	Global	FUN_00440150	
-00440170	216	code	0	ui		raw	Global	FUN_00440170	
-00440250	13	code	0	ui		raw	Global	FUN_00440250	
+00440150	28	code	0	ui		named	UIResizer	SetColors	
+00440170	216	code	0	ui		named	UIResizer	SetBitmap	
+00440250	13	code	0	ui		named	UIResizer	SetResizeEdge	
 00440260	68	code	0	ui		named	UIResizer	vf26	
 004402b0	112	code	0	ui		named	UIResizer	vf30	
 00440320	3	code	0	ui		named	UIResizer	vf29	
@@ -1422,7 +1422,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00440560	59	code	0	ui		named	UIRadioBtn	UIRadioBtn	
 004405a0	33	code	0	ui		named	UIRadioBtn	`scalar_deleting_destructor'	
 004405d0	75	code	0	ui		named	UIRadioBtn	~UIRadioBtn	
-00440620	211	code	0	ui		raw	Global	FUN_00440620	
+00440620	211	code	0	ui		named	UIRadioBtn	SetText	
 00440700	142	code	0	ui		named	UIRadioBtn	vf20	
 00440790	40	code	0	ui		named	UIRadioBtn	vf26	
 004407c0	26	code	0	ui		named	UIRadioBtn	vf37	
@@ -1450,17 +1450,17 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00441570	108	code	0	ui		named	UIEmblemWnd	vf20	
 004415e0	242	code	0	ui		named	UIEmblemWnd	vf37	
 004416e0	190	code	0	ui		named	UIEmblemWnd	vf19	
-004417a0	135	code	0	ui		raw	Global	FUN_004417a0	
-00441830	118	code	0	ui		raw	Global	FUN_00441830	
-004418b0	422	code	0	ui		raw	Global	FUN_004418b0	
-00441a60	278	code	0	ui		raw	Global	FUN_00441a60	
-00441b80	351	code	0	ui		raw	Global	FUN_00441b80	
+004417a0	135	code	1	stl		named	std::string	find	
+00441830	118	code	1	stl		named	std::string	UnshareBuffer	
+004418b0	422	code	1	stl		named	std::string	replace	
+00441a60	278	code	1	stl		named	std	operator+	
+00441b80	351	code	1	stl		named	std	copy	
 00441ce0	37	code	0	ui		named	Global	static_init_071	
 00441d10	25	code	0	ui		named	UIBarGraph	UIBarGraph	
 00441d30	33	code	0	ui		named	UIBarGraph	`scalar_deleting_destructor'	
 00441d60	11	code	0	ui		named	UIBarGraph	~UIBarGraph	
 00441d70	733	code	0	ui		named	UIBarGraph	vf20	
-00442050	18	code	0	ui		raw	Global	FUN_00442050	
+00442050	18	code	0	ui		named	UIBarGraph	SetValue	
 00442070	60	code	0	ui		named	UIBarGraph2	UIBarGraph2	
 004420b0	33	code	0	ui		named	UIBarGraph2	`scalar_deleting_destructor'	
 004420e0	11	code	0	ui		named	UIBarGraph2	~UIBarGraph2	
@@ -1468,7 +1468,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00442260	26	code	0	ui		named	UIBarGraph3	UIBarGraph3	
 00442280	33	code	0	ui		named	UIBarGraph3	`scalar_deleting_destructor'	
 004422b0	11	code	0	ui		named	UIBarGraph3	~UIBarGraph3	
-004422c0	19	code	0	ui		raw	Global	FUN_004422c0	
+004422c0	19	code	0	ui		named	UIBarGraph3	SetValueSources	
 004422e0	18	code	0	ui		named	UIBarGraphPlayerHp	UIBarGraphPlayerHp	
 00442300	33	code	0	ui		named	UIBarGraphPlayerHp	`scalar_deleting_destructor'	
 00442330	11	code	0	ui		named	UIBarGraphPlayerHp	~UIBarGraphPlayerHp	
@@ -1488,14 +1488,14 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00442d30	33	code	0	ui		named	UIRechargeGage	`scalar_deleting_destructor'	
 00442d60	11	code	0	ui		named	UIRechargeGage	~UIRechargeGage	
 00442d70	198	code	0	ui		named	UIRechargeGage	vf20	
-00442e40	30	code	0	ui		raw	Global	FUN_00442e40	
+00442e40	30	code	0	ui		named	UIRechargeGage	SetAmount	
 00442e60	77	code	0	ui		named	UIPcGage	UIPcGage	
 00442eb0	33	code	0	ui		named	UIPcGage	`scalar_deleting_destructor'	
 00442ee0	11	code	0	ui		named	UIPcGage	~UIPcGage	
 00442ef0	16	code	0	ui	unreferenced	raw	Global	FUN_00442ef0	
 00442f00	675	code	0	ui		named	UIPcGage	vf20	
-004431b0	30	code	0	ui		raw	Global	FUN_004431b0	
-004431d0	30	code	0	ui		raw	Global	FUN_004431d0	
+004431b0	30	code	0	ui		named	UIPcGage	SetFirstBar	
+004431d0	30	code	0	ui		named	UIPcGage	SetSecondBar	
 004431f0	45	code	0	ui		named	UIPlayerGage	UIPlayerGage	
 00443220	3	code	0	ui		named	UIPlayerGage	vf05	
 00443230	33	code	0	ui		named	UIPlayerGage	`scalar_deleting_destructor'	
@@ -1545,7 +1545,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00444e10	3	code	0	ui		named	UIChatHisBox	vf31	
 00444e20	268	code	0	ui		named	UIChatHisBox	vf20	
 00444f30	32	code	0	ui		named	UIChatHisBox	vf37	
-00444f50	156	code	0	ui		raw	Global	FUN_00444f50	
+00444f50	156	code	0	ui		named	UIChatHisBox	SaveToFile	
 00444ff0	41	code	0	ui		named	UIChatHisBox2	UIChatHisBox2	
 00445020	3	code	0	ui		named	UIChatHisBox2	vf09	
 00445030	33	code	0	ui		named	UIChatHisBox2	`scalar_deleting_destructor'	
@@ -1578,7 +1578,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004459b0	22	code	0	ui		named	UIScrollBar	vf09	
 004459d0	44	code	0	ui		named	UIScrollBar	vf30	
 00445a00	22	code	0	ui		named	UIScrollBar	vf35	
-00445a20	97	code	0	ui		raw	Global	FUN_00445a20	
+00445a20	97	code	0	ui		named	UIScrollBar	SetUp	
 00445a90	93	code	0	ui		named	UIScrollBar	vf03	
 00445af0	20	code	0	ui		named	UIScrollBar	vf27	
 00445b10	348	code	0	ui		named	UIScrollBar	vf26	
@@ -1586,9 +1586,9 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00445cf0	49	code	0	ui		named	UIScrollBar	vf33	
 00445d30	278	code	0	ui		named	UIScrollBar	vf28	
 00445e60	1077	code	0	ui		named	UIScrollBar	vf20	
-004462a0	49	code	0	ui		raw	Global	FUN_004462a0	
-004462e0	13	code	0	ui		raw	Global	FUN_004462e0	
-00446300	332	code	0	ui		raw	Global	FUN_00446300	
+004462a0	49	code	0	ui		named	UIScrollBar	SetRange	
+004462e0	13	code	0	ui		named	UIScrollBar	SetPos	
+00446300	332	code	0	ui		named	UIScrollBar	HitTestPart	
 00446450	59	code	0	ui		named	UIScrollBar	method_00446450	
 00446490	42	code	0	ui		named	UIScrollBar	method_00446490	
 004464c0	18	code	0	ui		named	UIScrollBar	method_004464c0	
@@ -1596,9 +1596,9 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00446500	33	code	0	ui		named	UIScrollBar2	`scalar_deleting_destructor'	
 00446530	5	thunk	0	ui		-	UIScrollBar2	~UIScrollBar2	
 00446540	812	code	0	ui		named	UIScrollBar2	vf20	
-00446870	38	code	0	ui		raw	Global	FUN_00446870	
-004468a0	521	code	0	ui		raw	Global	FUN_004468a0	
-00446ab0	328	code	0	ui		raw	Global	FUN_00446ab0	
+00446870	38	code	1	stl		named	std::vector	~vector	
+004468a0	521	code	1	stl		named	std::vector	insert	
+00446ab0	328	code	1	stl		named	std	operator+	
 00446c00	37	code	0	ui		named	Global	static_init_072	
 00446c30	774	code	0	ui		named	UIEmotionListWnd	vf17	
 00446f40	129	code	0	ui		named	UIEmotionListWnd	vf37	
@@ -1608,12 +1608,12 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004473b0	52	code	0	ui		named	UIEmotionListWnd	vf12	
 004473f0	36	code	0	ui		named	UIEmotionListWnd	vf19	
 00447420	858	code	0	ui		named	UIEmotionListWnd	method_00447420	
-00447780	441	code	0	ui		raw	Global	FUN_00447780	
-00447940	3	code	0	ui		raw	Global	FUN_00447940	
-00447950	19	code	0	ui		raw	Global	FUN_00447950	
-00447970	47	code	0	ui		raw	Global	FUN_00447970	
-004479a0	38	code	0	ui		raw	Global	FUN_004479a0	
-004479d0	19	code	0	ui		raw	Global	FUN_004479d0	
+00447780	441	code	1	stl		named	std::vector	insert	
+00447940	3	code	1	stl		named	std::vector	DestroyRange	
+00447950	19	code	1	stl		named	std::vector	size	
+00447970	47	code	1	stl		named	std::vector	CopyUninitialized	
+004479a0	38	code	1	stl		named	std::vector	FillUninitialized	
+004479d0	19	code	1	stl		named	std	ConstructAt	
 004479f0	37	code	0	ui		named	Global	static_init_073	
 00447a20	1536	code	0	ui		named	UIEmotionWnd	vf17	
 00448020	186	code	0	ui		named	UIEmotionWnd	vf37	
@@ -1621,8 +1621,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00448350	25	code	0	ui		named	UIEmotionWnd	vf26	
 00448370	56	code	0	ui		named	UIEmotionWnd	vf12	
 004483b0	443	code	0	ui	unreferenced	raw	Global	FUN_004483b0	
-00448570	538	code	0	ui		raw	Global	FUN_00448570	
-00448790	72	code	0	ui		raw	Global	FUN_00448790	
+00448570	538	code	0	ui		named	UIEmotionWnd	SaveShortCutList	
+00448790	72	code	0	ui		named	UIEmotionWnd	SetEditText	
 004487e0	37	code	0	ui		named	Global	static_init_074	
 00448810	37	code	0	ui		named	UIFrameWnd	UIFrameWnd	
 00448840	33	code	0	ui		named	UIFrameWnd	`scalar_deleting_destructor'	
@@ -2778,7 +2778,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004a4ee0	137	code	0	ui		raw	Global	FUN_004a4ee0	
 004a4f70	432	code	0	ui		raw	Global	FUN_004a4f70	
 004a5120	37	code	0	ui		named	Global	static_init_084	
-004a5150	488	code	0	ui		raw	Global	FUN_004a5150	
+004a5150	488	code	0	ui		named	UIBalloonText	method_004a5150	
 004a5340	700	code	0	ui		raw	Global	FUN_004a5340	
 004a5600	116	code	0	ui		named	UIWindow	UIWindow	
 004a5680	33	code	0	ui		named	UIWindow	`scalar_deleting_destructor'	
@@ -7309,7 +7309,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005d4cc0	11	funclet	0	core		-	Global	Unwind@005d4cc0	
 005d4ce0	11	funclet	0	core		-	Global	Unwind@005d4ce0	
 005d4d00	11	funclet	0	net	dead	-	Global	Unwind@005d4d00	
-005d4d20	8	funclet	0	res		-	Global	Unwind@005d4d20	
+005d4d20	8	funclet	0			-	Global	Unwind@005d4d20	
 005d4d40	8	funclet	0	res		-	Global	Unwind@005d4d40	
 005d4d48	14	funclet	0	res		-	Global	Unwind@005d4d48	
 005d4d56	14	funclet	0	res		-	Global	Unwind@005d4d56	
@@ -7593,7 +7593,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005d6090	8	funclet	0	ui		-	Global	Unwind@005d6090	
 005d60b0	8	funclet	0	ui		-	Global	Unwind@005d60b0	
 005d60b8	11	funclet	0	ui		-	Global	Unwind@005d60b8	
-005d60d0	8	funclet	0	ui		-	Global	Unwind@005d60d0	
+005d60d0	8	funclet	0			-	Global	Unwind@005d60d0	
 005d60f0	8	funclet	0	ui		-	Global	Unwind@005d60f0	
 005d60f8	8	funclet	0	ui		-	Global	Unwind@005d60f8	
 005d6100	8	funclet	0	ui		-	Global	Unwind@005d6100	
@@ -7635,7 +7635,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005d6320	8	funclet	0	ui		-	Global	Unwind@005d6320	
 005d6328	8	funclet	0	ui		-	Global	Unwind@005d6328	
 005d6330	8	funclet	0	ui		-	Global	Unwind@005d6330	
-005d6350	8	funclet	0	ui		-	Global	Unwind@005d6350	
+005d6350	8	funclet	0			-	Global	Unwind@005d6350	
 005d6370	8	funclet	0	ui		-	Global	Unwind@005d6370	
 005d6378	11	funclet	0	ui		-	Global	Unwind@005d6378	
 005d6383	8	funclet	0	ui		-	Global	Unwind@005d6383	

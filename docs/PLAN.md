@@ -1009,7 +1009,60 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **The report** now leaves this code out of the port queue (5,486 functions,
     1.53 MB) and states the naming figure over reachable code: **71.8% of 6,619**.
 
+- [x] Naming run 2: the 288 unnamed reachable functions of the source files from
+  `0x401000` to `0x448800`: rendering (`C3dDevice`, `SceneRenderer`, textures, fonts),
+  input, the first resource files and the first UI files (skins, snapping, the basic
+  controls). Same procedure as run 1, with one sentence added to the prompt: a game or
+  file-format term needs a string, RTTI or import behind it. The rows are in
+  `inferred.functions.tsv`.
+  - **Quality.**
+    - The namer's confidence: 184 high, 103 medium, 1 low.
+    - The reviewer accepted 271 rows, revised 17 and rejected none. The revisions:
+      - five rows in the wrong class: two `SceneRenderer` stubs were in `Global`, a
+        `SnapObject` helper in `Global`, and two bar-graph setters on a subclass instead
+        of the class that owns the field;
+      - six with evidence that misread the code: a wrong field offset, a colour that
+        `vf20` never reads, check-box bitmap labels in the wrong order;
+      - names more specific than the code: `DeleteQueuedTextures` for a "recycled"
+        pool, `DrawPrimitiveWithTexCoordArray` for a "second texture coordinates" draw
+        whose FVF has one set.
+    - My checks: every address has one row, every namespace exists, no duplicate names.
+      An evenly spaced sample of 8 accepted rows was all correct against the
+      disassembly. The domain words have sources in the binary: "<Basic Skin>",
+      "\colorchip.bmp", "\ShortCutList", and RTTI names such as `UIEmotionWnd`.
+  - **Found in existing labels:**
+    - `recover_layouts` kept treating an EBP stack slot as `this` after the slot was
+      overwritten (`0040f3cd`), so two render-primitive functions were `SceneRenderer`
+      methods. A store to a slot now ends it. The two are named in `Global`
+      (`ScaleTexCoordsByTexture`, `DrawRenderPrimitive`).
+    - `VertexBuffer::Create`'s evidence had the fields swapped: the count is at `+0`
+      and the stride at `+4`.
+  - **New labels:** `g_basicSkinName` (a `std::string`) and `g_twoTexCoordVertices` (a
+    function-local static vector) in `inferred.data.tsv`; `recover_objects` names the
+    function-local static `g_ActFrame` from the new `ActFrame` constructor.
+  - **`docs/naming.md`'s library table** gained `PartitionRange`, `MedianOfThree`,
+    `UnshareBuffer`, `copy_backward`, `fill`, `begin`, `replace` and list `resize`.
+  - **Result.** 152 of the 288 are STL template code, now library; 136 are named game
+    functions, plus the two above. Seven UI controls' bitmap and text fields became
+    `std::string` members (fields 10,263 → 10,243). Code functions named or
+    library-tagged: 71.8% → **76.2%** of 6,619; code to port 5,334 functions, 75.4% of
+    its bytes named. Converges in three passes (the second picks up the two rows added
+    after the first).
+  - **Cost.** 951k agent tokens (namer 524k, reviewer 427k), 212 tool calls, 35
+    minutes: 3.3k tokens a function, more than run 1's 2.6k. This batch had more game
+    code with long bodies (the renderer, UI controls), and the namer wrote its own data
+    cross-reference helper because `fn_context.py` lists references only to functions.
+  - **Class proposals from the run, not yet decided:**
+    - `TranslationKeys`, `RotationKeys`, `ScaleKeys`: the time-keyed vectors at
+      `C3dNode+0xe4`, `+0xf4`, `+0x104` (16-, 20- and 32-byte records), with
+      `Add`/`Read`/`Get*MatrixAt` methods (`0x4012c0`–`0x402070`);
+    - `FontEntry` (20 bytes), the element of `FontCache`'s vector, with six methods;
+    - `RenderPrimitive`, the base of `RenderTriangle` and `RenderQuad` (vertices `+0`,
+      count `+8`, texture `+0xc`, primitive type `+0x20`), with about nine methods;
+    - `VertexBufferRange` (a `Matrix` then a vertex buffer range, sorted by texture in
+      `SceneRenderer+0x138`) and `TexturePoolEntry` (0x2c bytes, in 16 size-binned
+      lists at `SceneRenderer+0x194`).
+
 ### Next actions (M1)
-1. Name the remaining 1,865 reachable game functions (413 KB) the same way, in
-   source-file batches, skipping unreachable code. About 1,200 more are needed for
-   90%.
+1. Name the remaining 1,576 reachable game functions (371 KB) the same way, in
+   source-file batches, skipping unreachable code. 915 more are needed for 90%.

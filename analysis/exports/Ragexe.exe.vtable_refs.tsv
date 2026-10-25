@@ -8,7 +8,7 @@ CDC	005e2608	004035df	CDCBitmap::CDCBitmap
 CDC	005e2608	0040377a	CDCBitmap::~CDCBitmap
 CDC	005e2608	00402f5f	CDCSurface::CDCSurface
 CDC	005e2608	00402fbb	CDC::CDC
-CDC	005e2608	00402fa0	FUN_00402fa0
+CDC	005e2608	00402fa0	CDC::~CDC
 CDCBitmap	005e2630	00403611	CDCBitmap::CDCBitmap
 CDCBitmap	005e2630	004036a3	CDCBitmap::~CDCBitmap
 CSurface	005e26dc	004160f7	CSurface::CSurface
@@ -23,7 +23,7 @@ CConnection	005e2740	00418523	CConnection::CConnection
 CRagConnection	005e2750	00418ed0	CRagConnection::CRagConnection
 CController	005e2760	0041dacb	CController::CController
 CController	005e2760	0041da93	CController::CController
-CController	005e2760	0041dd60	FUN_0041dd60
+CController	005e2760	0041dd60	CController::~CController
 CController	005e2760	0041deb3	CKeyPad::~CKeyPad
 CKeyPad	005e2774	0041dd47	CKeyPad::CKeyPad
 CKeyPad	005e2774	0041ddc3	CKeyPad::~CKeyPad

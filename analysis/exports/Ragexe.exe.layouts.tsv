@@ -1,10 +1,10 @@
 class	size	size_source	max_size	fields	covered_bytes	coverage	indexed_bases	notes
-ActFrame	76	new	76	17	68	0.89		
+ActFrame	76	new	76	19	70	0.92		
 AnimFrameArrays	8	new	8	2	8	1.00		
 AnimModelResNode	88	new	88	19	78	0.89		3 overlapping uses dropped
 C3dAnimModelRes	356	new	356	18	89	0.25		6 overlapping uses dropped
 C3dAttr	300	new	300	8	33	0.11		
-C3dDevice	572	estimated	616	57	217	0.38	0x134	the global at 006239d0 is followed by a variable at 00623c38 (another data label); 9 addresses before it, 00623c0c first, are used only by other code: fields or variables; probably a variable from 00623c18 (+0x248) on, which only source files naming nothing else of the object use; 2 of them named with an absolute address by the class's own methods, e.g. 00623c10 by 00405f20
+C3dDevice	572	estimated	616	58	221	0.39	0x134	the global at 006239d0 is followed by a variable at 00623c38 (another data label); 9 addresses before it, 00623c0c first, are used only by other code: fields or variables; probably a variable from 00623c18 (+0x248) on, which only source files naming nothing else of the object use; 2 of them named with an absolute address by the class's own methods, e.g. 00623c10 by 00405f20
 C3dGrannyGameActor	3132	new	3132	152	584	0.19	0x4c8,0x304,0x288	
 C3dGrannyModelRes	948	new	948	18	76	0.08		
 C3dGround	236	new	236	40	164	0.69		
@@ -90,7 +90,7 @@ Matrix	48	new	48	12	48	1.00
 Md5Context	28	estimated		7	28	1.00	0x0,0x8	
 ModeSwitcher	96	estimated	108	6	24	0.25		the global at 0067c9e8 is followed by a variable at 0067ca54 (written by the dynamic initializer 0050c220); 3 addresses before it, 0067ca48 first, are used only by other code: fields or variables | 1 overlapping uses dropped
 ModelInstance	512	new	512	60	242	0.47		3 overlapping uses dropped
-ModelResMesh	564	new	564	10	560	0.99		
+ModelResMesh	564	new	564	10	560	0.99		2 overlapping uses dropped
 ModelResNode	364	new	364	14	58	0.16		3 overlapping uses dropped
 MoviePlayer	16	estimated	1544	4	13	0.81		the global at 00688480 is followed by a variable at 00688a88 (another data label); 29 addresses before it, 00688498 first, are used only by other code: fields or variables; probably a variable from 0068851c (+0x9c) on, which only source files naming nothing else of the object use; 1 of them named with an absolute address by the class's own methods, e.g. 00688a60 by 004dbfc0
 PacketCodeModules	28	estimated		5	20	0.71		
@@ -101,8 +101,8 @@ RenderTriangle	156	new	156	3	12	0.08
 ResourceManager	172	estimated	176	31	139	0.81		the global at 0067cd88 is followed by a variable at 0067ce38 (another data label); 1 addresses before it, 0067ce34 first, are used only by other code: fields or variables | 8 overlapping uses dropped
 RmaActionRecord	28	new	28	6	24	0.86	0x0	
 SceneGraphNode	128	new	128	19	73	0.57		
-SceneRenderer	672	new	672	115	585	0.87	0x0,0x198,0x194	0xc used as float and as ['dword', 'pointer']
-SnapObject	60	new	60	3	60	1.00		
+SceneRenderer	672	new	672	115	585	0.87	0x0,0x198,0x194	1 overlapping uses dropped
+SnapObject	60	new	60	3	60	1.00	0x0,0xc,0x8,0x10	1 overlapping uses dropped
 TextureCache	16	estimated	16	1	16	1.00		the global at 00625e88 is followed by a variable at 00625e98 (another data label) | 2 overlapping uses dropped
 ThaiLexicon	300	new	300	11	41	0.14		
 ThaiWordBreaker	8	estimated	1056	2	8	1.00	0x4	the global at 0067bf98 is followed by a variable at 0067c3b8 (another data label); 5 addresses before it, 0067c3a0 first, are used only by other code: fields or variables; probably a variable from 0067c3a0 (+0x408) on, which only source files naming nothing else of the object use
@@ -118,11 +118,11 @@ UIBarGraphPlayerHp	76	new	76	16	76	1.00
 UIBarGraphPlayerSp	76	new	76	16	76	1.00		
 UIBasicInfoWnd	156	new	156	29	128	0.82		
 UIBitmapButton	168	new	168	39	153	0.91		
-UIBitmapEditCtrl	160	new	160	33	147	0.92		
+UIBitmapEditCtrl	160	new	160	31	160	1.00		3 overlapping uses dropped
 UIButton	112	estimated		25	106	0.95		
 UICandidateWnd	260	new	260	27	260	1.00		
 UICardItemIllustWnd	136	new	136	28	130	0.96		4 overlapping uses dropped
-UIChatEditCtrl	180	new	180	39	165	0.92		
+UIChatEditCtrl	180	new	180	39	174	0.97		
 UIChatHisBox	164	new	164	38	149	0.91		
 UIChatHisBox2	176	new	176	41	152	0.86		3 overlapping uses dropped
 UIChatRoomChangeWnd	224	new	224	48	204	0.91		
@@ -130,7 +130,7 @@ UIChatRoomMakeWnd	224	new	224	48	204	0.91		4 overlapping uses dropped
 UIChatRoomTitle	128	new	128	29	122	0.95		
 UIChatRoomWnd	208	new	208	43	181	0.87		4 overlapping uses dropped
 UIChatWnd	164	new	164	36	156	0.95		
-UICheckBox	128	new	128	29	119	0.93		
+UICheckBox	128	new	128	20	128	1.00		12 overlapping uses dropped
 UIChooseSellBuyWnd	108	new	108	24	108	1.00		
 UIChooseWarpWnd	124	new	124	28	121	0.98		
 UIChooseWnd	132	new	132	29	125	0.95		
@@ -141,14 +141,14 @@ UIComboBox	148	new	148	34	136	0.92
 UIComboBoxWnd	104	new	104	23	104	1.00		
 UICompositionWnd	116	new	116	26	113	0.97		
 UIDetailLevelWnd	132	new	132	29	128	0.97		
-UIEditCtrl	144	new	144	30	135	0.94		7 overlapping uses dropped
-UIEditCtrl2	144	new	144	30	135	0.94		
-UIEditCtrlVarId	144	new	144	30	135	0.94		
-UIEditCtrlWheel	144	new	144	30	135	0.94		
+UIEditCtrl	144	new	144	30	144	1.00		7 overlapping uses dropped
+UIEditCtrl2	144	new	144	30	144	1.00		
+UIEditCtrlVarId	144	new	144	30	144	1.00		
+UIEditCtrlWheel	144	new	144	30	144	1.00		
 UIEmailAddressWnd	104	new	104	23	104	1.00		
 UIEmblemWnd	128	new	128	26	128	1.00		4 overlapping uses dropped
 UIEmotionListWnd	248	new	248	29	128	0.52		
-UIEmotionWnd	192	new	192	28	124	0.65		
+UIEmotionWnd	192	new	192	28	124	0.65	0x68	
 UIEquipWnd	128	new	128	29	128	1.00		
 UIExchangeAcceptWnd	112	new	112	25	112	1.00		
 UIExchangeWnd	176	new	176	32	168	0.95		10 overlapping uses dropped
@@ -226,7 +226,7 @@ UIProhibitListWnd	104	new	104	23	104	1.00
 UIQuitWnd	100	new	100	22	100	1.00		
 UIRadioBtn	96	new	96	21	93	0.97		
 UIRechargeGage	144	new	144	33	99	0.69		
-UIResizer	120	new	120	27	117	0.97		
+UIResizer	120	new	120	24	120	1.00		4 overlapping uses dropped
 UIRestartWnd	104	new	104	22	100	0.96		
 UISayDialogWnd	144	new	144	29	144	1.00		6 overlapping uses dropped
 UIScrollBar	116	new	116	26	116	1.00		
@@ -240,10 +240,10 @@ UIShowNeedItemListWnd	308	estimated		24	308	1.00	0x68
 UISkillDescribeWnd	152	new	152	32	146	0.96		4 overlapping uses dropped
 UISkillListWnd	252	new	252	40	177	0.70		3 overlapping uses dropped
 UISkillNameChangeWnd	124	new	124	28	121	0.98		
-UISlotBitmap	92	new	92	20	89	0.97		
+UISlotBitmap	92	new	92	17	92	1.00		
 UISpellListWnd	172	estimated		35	169	0.98		
-UISpriteButton	168	new	168	39	156	0.93		
-UIStaticBitmap	92	estimated		20	89	0.97		
+UISpriteButton	168	new	168	36	159	0.95		4 overlapping uses dropped
+UIStaticBitmap	92	estimated		17	92	1.00		4 overlapping uses dropped
 UIStaticText	144	new	144	27	135	0.94		11 overlapping uses dropped
 UIStatusWnd	132	new	132	25	112	0.85		
 UITab	76	new	76	16	76	1.00		
@@ -255,7 +255,7 @@ UITransBalloonText	136	new	136	31	130	0.96
 UIVerticalNameBalloonText	132	new	132	27	126	0.95		
 UIWaitWnd	104	new	104	23	104	1.00		
 UIWebBrowserWnd	100	new	100	22	100	1.00		
-UIWhisperEditCtrl	164	new	164	35	152	0.93		
+UIWhisperEditCtrl	164	new	164	35	161	0.98		
 UIWhisperListWnd	196	new	196	39	173	0.88		3 overlapping uses dropped
 UIWhisperWnd	152	new	152	35	146	0.96		
 UIWindow	76	estimated		16	76	1.00		3 overlapping uses dropped
@@ -278,7 +278,7 @@ mg::CScript	676	estimated		33	133	0.20		5 overlapping uses dropped
 mg::CTile	36	new	36	6	25	0.69		
 mg::mgType1::CItemObj	308	new	308	81	281	0.91		
 mg::mgType1::CMapObj	140	new	140	29	117	0.84		
-mg::mgType1::CMiniGame001	1108	new	1108	62	248	0.22	0x4	
+mg::mgType1::CMiniGame001	1108	new	1108	62	248	0.22		
 mg::mgType1::CMonster	840	new	840	162	642	0.76		3 overlapping uses dropped
 mg::mgType1::CPlayer	920	new	920	181	713	0.78		
 mg::mgType1::CWorld	104	estimated	120	22	95	0.91		the global at 0067ce90 is followed by a variable at 0067cf08 (another data label); 4 addresses before it, 0067cef8 first, are used only by other code: fields or variables; probably a variable from 0067cf00 (+0x70) on, which only source files naming nothing else of the object use | 5 overlapping uses dropped

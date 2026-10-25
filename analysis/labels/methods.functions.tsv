@@ -48,13 +48,11 @@ address	namespace	name	calling_convention	evidence
 004060b0	VertexBuffer	method_004060b0	__thiscall	__thiscall; called with this from 1 functions of VertexBuffer, e.g. 00405f80
 00408710	std::Tree	method_00408710	__thiscall	__thiscall; called with this from 1 functions of std::Tree, e.g. 00407680
 00408990	std::Tree	method_00408990	__thiscall	__thiscall; called with this from 1 functions of std::Tree, e.g. 00407770
-0040c280	SceneRenderer	method_0040c280	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 0040c3a0
-0040c3a0	SceneRenderer	method_0040c3a0	__thiscall	__thiscall; called with this from 2 functions of SceneRenderer, e.g. 0040f300
 0040c680	RenderTriangle	method_0040c680	__thiscall	__thiscall; called with this from 1 functions of RenderTriangle, e.g. 0040c620
 0040c750	RenderQuad	method_0040c750	__thiscall	__thiscall; called with this from 1 functions of RenderQuad, e.g. 0040c6f0
 0040cf80	TextureCache	method_0040cf80	__thiscall	__thiscall; called with this from 1 functions of TextureCache, e.g. 0040cc00
 0040d080	std::Tree	method_0040d080	__thiscall	__thiscall; called with this from 1 functions of TextureCache, e.g. 0040cc00
-0040ddc0	SceneRenderer	method_0040ddc0	__thiscall	__thiscall; called with this from 2 functions of SceneRenderer, e.g. 0050d630; through the pointer at 00625e98
+0040ddc0	SceneRenderer	method_0040ddc0	__thiscall	__thiscall; called with this from 3 functions of SceneRenderer, e.g. 0040d830; through the pointer at 00625e98
 0040deb0	SceneRenderer	method_0040deb0	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 0040d1a0
 0040e130	SceneRenderer	method_0040e130	__thiscall	__thiscall; called with this from 10 functions of SceneRenderer, e.g. 0040e980; through the pointer at 00625e98
 0040e540	SceneRenderer	method_0040e540	__thiscall	__thiscall; called with this from 10 functions of SceneRenderer, e.g. 0040e980; through the pointer at 00625e98
@@ -98,12 +96,12 @@ address	namespace	name	calling_convention	evidence
 00412b40	SceneRenderer	method_00412b40	__thiscall	__thiscall; called with this from 8 functions of SceneRenderer, e.g. 0040e980; through the pointer at 00625e98
 00412c80	SceneRenderer	method_00412c80	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 004b6e50
 00412e70	SceneRenderer	method_00412e70	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 0050d400; through the pointer at 00625e98
-00413650	std::Tree	method_00413650	__thiscall	__thiscall; called with this from 2 functions of TextureCache, e.g. 0040cca0
-00414860	std::Tree	method_00414860	__thiscall	__thiscall; called with this from 1 functions of TextureCache, e.g. 0040cd30
+00413650	std::Tree	method_00413650	__thiscall	__thiscall; called with this from 3 functions of TextureCache, e.g. 0040c9f0
+00414860	std::Tree	method_00414860	__thiscall	__thiscall; called with this from 2 functions of TextureCache, e.g. 0040c9f0
 004151e0	std::Tree	method_004151e0	__thiscall	__thiscall; called with this from 2 functions of TextureCache, e.g. 0040cca0
 00416420	CSurface	method_00416420	__thiscall	__thiscall; called with this from 1 functions of CSurface, e.g. 00416080
 00416810	CTexture	method_00416810	__thiscall	__thiscall; called with this from 1 functions of CTexture, e.g. 00416990
-004168a0	CTexture	method_004168a0	__thiscall	__thiscall; called with this from 1 functions of CTexture, e.g. 00416990
+004168a0	CTexture	method_004168a0	__thiscall	__thiscall; called with this from 3 functions of CTexture, e.g. 00416990
 004172f0	CTexture	method_004172f0	__thiscall	__thiscall; called with this from 1 functions of CTexture, e.g. 004165e0
 00417640	CTexture	method_00417640	__thiscall	__thiscall; called with this from 1 functions of CTexture, e.g. 004166b0
 00418670	CRagConnection	method_00418670	__thiscall	__thiscall; called with this from 17 functions of CRagConnection, e.g. 004b25f0
@@ -116,7 +114,7 @@ address	namespace	name	calling_convention	evidence
 0041cf10	std::Tree	method_0041cf10	__thiscall	__thiscall; called with this from 2 functions of CKeyPad, CRagConnection, e.g. 004191e0
 0041d140	std::Tree	method_0041d140	__thiscall	__thiscall; called with this from 1 functions of CKeyPad, e.g. 0041dda0
 0041d550	std::Tree	method_0041d550	__thiscall	__thiscall; called with this from 1 functions of CKeyPad, e.g. 0041dda0
-0041d5b0	std::Tree	method_0041d5b0	__thiscall	__thiscall; called with this from 1 functions of CRagConnection, e.g. 00419270
+0041d5b0	std::Tree	method_0041d5b0	__thiscall	__thiscall; called with this from 2 functions of CKeyPad, CRagConnection, e.g. 00419270
 0041daf0	CController	method_0041daf0	__thiscall	__thiscall; called with this from 1 functions of CController, e.g. 0041da90
 0041db70	CKeyPad	method_0041db70	__thiscall	__thiscall; called with this from 1 functions of CKeyPad, e.g. 0041ded0
 0041e730	DirectInputMouse	method_0041e730	__thiscall	__thiscall; called with this from 2 functions of DirectInputMouse, e.g. 00515d10
@@ -172,8 +170,8 @@ address	namespace	name	calling_convention	evidence
 0043b2f0	UIBitmapButton	method_0043b2f0	__thiscall	__thiscall; called with this from 5 functions of UIBitmapButton, e.g. 00446c30
 0043ba40	UIBitmapButton	method_0043ba40	__thiscall	__thiscall; called with this from 10 functions of UIBitmapButton, e.g. 00446c30
 0043df50	UIEditCtrl	method_0043df50	__thiscall	__thiscall; called with this from 3 functions of UIEditCtrl, UIWhisperEditCtrl, e.g. 0043dfc0
-0043e190	UIWhisperEditCtrl	method_0043e190	__thiscall	__thiscall; called with this from 1 functions of UIWhisperEditCtrl, e.g. 0043f4e0
-0043e320	UIEditCtrl	method_0043e320	__thiscall	__thiscall; called with this from 2 functions of UIEditCtrl, e.g. 0043e020
+0043e190	UIEditCtrl	method_0043e190	__thiscall	__thiscall; called with this from 2 functions of UIChatEditCtrl, UIWhisperEditCtrl, e.g. 0043f4e0
+0043e320	UIEditCtrl	method_0043e320	__thiscall	__thiscall; called with this from 3 functions of UIEditCtrl, e.g. 0043e020
 0043e500	UIEditCtrl	method_0043e500	__thiscall	__thiscall; called with this from 2 functions of UIBitmapEditCtrl, UIEditCtrl, e.g. 0043e200
 0043ef80	UIEditCtrl	method_0043ef80	__thiscall	__thiscall; called with this from 1 functions of UIEditCtrl, e.g. 0043e500
 0043eff0	UIEditCtrl	method_0043eff0	__thiscall	__thiscall; called with this from 1 functions of UIEditCtrl, e.g. 0043e500
@@ -259,6 +257,7 @@ address	namespace	name	calling_convention	evidence
 004a2900	mg::mgType1::CMiniGame001	method_004a2900	__thiscall	__thiscall; called with this from 6 functions of mg::mgType1::CMiniGame001, e.g. 004eb460; through the pointer at 0067cf08
 004a2950	mg::mgType1::CMiniGame001	method_004a2950	__thiscall	__thiscall; called with this from 1 functions of mg::mgType1::CMiniGame001, e.g. 004efa50; through the pointer at 0067cf08
 004a2a50	mg::mgType1::CMiniGame001	method_004a2a50	__thiscall	__thiscall; called with this from 1 functions of mg::mgType1::CMiniGame001, e.g. 004fd6b0; through the pointer at 0067cf08
+004a5150	UIBalloonText	method_004a5150	__thiscall	__thiscall; called with this from 1 functions of UIBalloonText, e.g. 0043c740
 004a5770	UISpriteButton	method_004a5770	__thiscall	__thiscall; called with this from 2 functions of UISpriteButton, e.g. 0043c500
 004a5790	UIWindow	method_004a5790	__thiscall	__thiscall; called with this from 90 functions of UIBasicInfoWnd, UICardItemIllustWnd, UIChatHisBox, UIChatHisBox2 and more, e.g. 004408e0
 004a57f0	UISelectCharWnd	method_004a57f0	__thiscall	__thiscall; called with this from 1 functions of UISelectCharWnd, e.g. 0044d290
@@ -275,8 +274,8 @@ address	namespace	name	calling_convention	evidence
 004a5f30	UINameBalloonText	method_004a5f30	__thiscall	__thiscall; called with this from 1 functions of UINameBalloonText, e.g. 0043d340
 004a6130	UIVerticalNameBalloonText	method_004a6130	__thiscall	__thiscall; called with this from 1 functions of UIVerticalNameBalloonText, e.g. 0043dc10
 004a6230	UIMerchantItemShopWnd	method_004a6230	__thiscall	__thiscall; called with this from 1 functions of UIMerchantItemShopWnd, e.g. 0048c0e0
-004a6280	UIWindow	method_004a6280	__thiscall	__thiscall; called with this from 22 functions of UICandidateWnd, UIColorButton, UICompositionWnd, UIEditCtrl and more, e.g. 0043b6b0
-004a6310	UIBalloonText	method_004a6310	__thiscall	__thiscall; called with this from 2 functions of UIBalloonText, UITransBalloonText, e.g. 0043c6a0
+004a6280	UIWindow	method_004a6280	__thiscall	__thiscall; called with this from 25 functions of UIBalloonText, UICandidateWnd, UIColorButton, UICompositionWnd and more, e.g. 0043a220
+004a6310	UIBalloonText	method_004a6310	__thiscall	__thiscall; called with this from 3 functions of UIBalloonText, UITransBalloonText, e.g. 0043c6a0
 004a63a0	UIVerticalNameBalloonText	method_004a63a0	__thiscall	__thiscall; called with this from 2 functions of UIVerticalNameBalloonText, e.g. 0043d510
 004a65a0	UIWindow	method_004a65a0	__thiscall	__thiscall; called with this from 35 functions of UIBalloonText, UIBarGraph2, UIBarGraph4, UIChatHisBox and more, e.g. 00439e20
 004a65c0	UIChatWnd	method_004a65c0	__thiscall	__thiscall; called with this from 1 functions of UIChatWnd, e.g. 004521f0

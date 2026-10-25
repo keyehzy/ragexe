@@ -10,7 +10,7 @@ Field types come from how a field is used:
   float / double     x87 operand of size 4 / 8 (fld, fstp, fadd, ...)
   pointer            the loaded value is later used as a memory base
   ptr:<Class>        the loaded value is passed as `this` to a method of <Class>
-  std_string         std::string::_Tidy/_Grow/_Copy is called on this + n
+  std_string         a std::string method (FreeBuffer, GrowBuffer, ...) is called on this + n
   std_list:<elem>    this + n + 4 receives a fresh operator new(8 + elem) node whose
                      next and prev were set to itself (the MSVC 6 list constructor)
   class:<Class>      a constructor of <Class> is called on this + n
@@ -94,7 +94,7 @@ UNLOCKIT = 0x5B3303
 CONTAINERS = {"std_string": "std::string", "std_list": "std::list", "std_tree": "std::Tree"}
 CONTAINER_SIZE = {"std::string": 16, "std::list": 12, "std::Tree": 16}
 EH_VECTOR_CTOR = 0x5C2002
-# the critical section _Lockit enters
+# the critical section std::StlLock enters
 LOCK_GLOBALS = {0x688A88}
 
 X87_MEM = {
@@ -213,7 +213,10 @@ class Layouts:
 
         for k, i in enumerate(ins):
             ops = i.operands
-            # stack slots holding this
+            # stack slots holding this; any other store to a slot ends that
+            if ops and ops[0].type == x86.X86_OP_MEM and ops[0].mem.base == x86.X86_REG_EBP \
+                    and ops[0].access & capstone.CS_AC_WRITE:
+                slots.pop(ops[0].mem.disp, None)
             if i.id == x86.X86_INS_MOV and len(ops) == 2:
                 d, s = ops
                 if d.type == x86.X86_OP_MEM and d.mem.base == x86.X86_REG_EBP and s.type == x86.X86_OP_REG \

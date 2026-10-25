@@ -13,24 +13,9 @@ entry	subsystem	rule	evidence
 00401e10	world	callers	2 referencing functions
 00402020	world	neighbours	between 00401e10 and 00402070
 00402070	world	callers	1 referencing function
-004020c0	world	neighbours	between 00402070 and 00402360
-004022d0	world	neighbours	between 00402070 and 00402360
-004022f0	world	neighbours	between 00402070 and 00402360
-00402320	world	neighbours	between 00402070 and 00402360
-00402340	world	neighbours	between 00402070 and 00402360
-00402350	world	neighbours	between 00402070 and 00402360
-00402360	world	callers	1 referencing function
-00402370	world	neighbours	between 00402360 and 00402480
-004023c0	world	neighbours	between 00402360 and 00402480
-00402400	world	neighbours	between 00402360 and 00402480
-00402440	world	neighbours	between 00402360 and 00402480
-00402480	world	callers	2 referencing functions
-004024c0	world	callers	2 referencing functions
-00402500	world	neighbours	between 004024c0 and 00402550
-00402530	world	neighbours	between 004024c0 and 00402550
-00402550	world	callers	2 referencing functions
+004020c0	world	previous	after 00402070, nothing references it
 00402570	core	initializer	initializer of the file starting here, before 004025a0
-004025a0	core	shared	audio 3, core 5, game 23, net 3, render 8, res 21, ui 18, world 15
+004025a0	core	shared	audio 3, core 5, game 23, net 3, render 7, res 22, ui 18, world 15
 004025b0	core	previous	after 004025a0, nothing references it
 004025d0	render	callers	2 referencing functions
 00402600	render	callers	1 referencing function
@@ -52,7 +37,7 @@ entry	subsystem	rule	evidence
 00402ef0	render	neighbours	between 00402da0 and 00402f40
 00402f20	render	neighbours	between 00402da0 and 00402f40
 00402f40	render	class	class CDC, base of CDCSurface
-00402fa0	render	neighbours	between 00402f40 and 00402fb0
+00402fa0	render	class	class CDC
 00402fb0	render	class	class CDC
 00402fe0	render	class	class CDC, base of CDCSurface
 00403010	render	class	class CDC, base of CDCSurface
@@ -78,8 +63,6 @@ entry	subsystem	rule	evidence
 00403d10	render	class	class CDC, base of CDCBitmap
 00403de0	render	class	class CDC, base of CDCBitmap
 00403ec0	render	class	class CDC, base of CDCBitmap
-004040c0	render	neighbours	between 00403ec0 and 00404240
-00404150	render	neighbours	between 00403ec0 and 00404240
 00404190	render	neighbours	between 00403ec0 and 00404240
 004041c0	render	neighbours	between 00403ec0 and 00404240
 004041d0	render	neighbours	between 00403ec0 and 00404240
@@ -95,7 +78,7 @@ entry	subsystem	rule	evidence
 004048c0	render	class	class C3dDevice
 004049a0	render	neighbours	between 004048c0 and 004049e0
 004049e0	render	class	class C3dDevice
-00404e70	render	neighbours	between 004049e0 and 00404f50
+00404e70	render	class	class C3dDevice
 00404f50	render	class	class C3dDevice
 00404f70	render	neighbours	between 00404f50 and 00405040
 00404fc0	render	neighbours	between 00404f50 and 00405040
@@ -104,11 +87,11 @@ entry	subsystem	rule	evidence
 00405180	render	class	class C3dDevice
 004051c0	render	class	class C3dDevice
 00405200	render	class	class C3dDevice
-00405220	render	neighbours	between 00405200 and 00405290
+00405220	render	class	class C3dDevice
 00405290	render	class	class C3dDevice
-00405350	render	neighbours	between 00405290 and 004054b0
-004053f0	render	neighbours	between 00405290 and 004054b0
-00405440	render	neighbours	between 00405290 and 004054b0
+00405350	render	class	class C3dDevice
+004053f0	render	class	class C3dDevice
+00405440	render	class	class C3dDevice
 004054b0	render	class	class C3dDevice
 004056e0	render	class	class C3dDevice
 00405790	render	class	class C3dDevice
@@ -116,14 +99,14 @@ entry	subsystem	rule	evidence
 00405df0	render	class	class C3dDevice
 00405e20	render	class	class C3dDevice
 00405e50	render	class	class C3dDevice
-00405e80	render	neighbours	between 00405e50 and 00405f20
-00405ed0	render	neighbours	between 00405e50 and 00405f20
+00405e80	render	class	class C3dDevice
+00405ed0	render	class	class C3dDevice
 00405f20	render	class	class C3dDevice
 00405f60	render	class	class VertexBuffer
 00405f70	render	stub	jumps to 00405f80
 00405f80	render	class	class VertexBuffer
 00405fa0	render	class	class VertexBuffer
-00406010	render	neighbours	between 00405fa0 and 004060b0
+00406010	render	class	class VertexBuffer
 004060b0	render	class	class VertexBuffer
 004060c0	render	neighbours	between 004060b0 and 004061b0
 004060f0	render	neighbours	between 004060b0 and 004061b0
@@ -146,42 +129,29 @@ entry	subsystem	rule	evidence
 00406b40	render	neighbours	between 00406960 and 00406b60
 00406b50	render	neighbours	between 00406960 and 00406b60
 00406b60	render	class	class FontCache
-00406b80	render	neighbours	between 00406b60 and 00407ac0
-00407260	render	neighbours	between 00406b60 and 00407ac0
-00407290	render	neighbours	between 00406b60 and 00407ac0
-00407540	render	neighbours	between 00406b60 and 00407ac0
-00407550	render	neighbours	between 00406b60 and 00407ac0
-00407570	render	neighbours	between 00406b60 and 00407ac0
-00407580	render	neighbours	between 00406b60 and 00407ac0
-00407590	render	neighbours	between 00406b60 and 00407ac0
-00407680	render	neighbours	between 00406b60 and 00407ac0
-00407770	render	neighbours	between 00406b60 and 00407ac0
-004077d0	render	neighbours	between 00406b60 and 00407ac0
-00407870	render	neighbours	between 00406b60 and 00407ac0
-004078c0	render	neighbours	between 00406b60 and 00407ac0
-00407920	render	neighbours	between 00406b60 and 00407ac0
-00407960	render	neighbours	between 00406b60 and 00407ac0
-00407980	render	neighbours	between 00406b60 and 00407ac0
-00407a30	render	neighbours	between 00406b60 and 00407ac0
-00407a40	render	neighbours	between 00406b60 and 00407ac0
+00406b80	render	neighbours	between 00406b60 and 00407a40
+00407260	render	neighbours	between 00406b60 and 00407a40
+00407290	render	neighbours	between 00406b60 and 00407a40
+00407540	render	neighbours	between 00406b60 and 00407a40
+00407550	render	neighbours	between 00406b60 and 00407a40
+00407570	render	neighbours	between 00406b60 and 00407a40
+00407580	render	neighbours	between 00406b60 and 00407a40
+00407680	render	neighbours	between 00406b60 and 00407a40
+00407770	render	neighbours	between 00406b60 and 00407a40
+004077d0	render	neighbours	between 00406b60 and 00407a40
+00407870	render	neighbours	between 00406b60 and 00407a40
+004078c0	render	neighbours	between 00406b60 and 00407a40
+00407920	render	neighbours	between 00406b60 and 00407a40
+00407960	render	neighbours	between 00406b60 and 00407a40
+00407980	render	neighbours	between 00406b60 and 00407a40
+00407a30	render	neighbours	between 00406b60 and 00407a40
+00407a40	render	class	class FontCache
 00407ac0	render	class	class FontCache
-00407fb0	render	callers	1 referencing function
-00407fd0	render	callers	1 referencing function
-004082c0	render	callers	1 referencing function
-004086d0	render	callers	1 referencing function
-004089c0	render	callers	1 referencing function
-00408a20	render	callers	1 referencing function
-00408a70	render	neighbours	between 00408a20 and 00408ac0
-00408a90	render	neighbours	between 00408a20 and 00408ac0
-00408ac0	render	callers	1 referencing function
-00408ca0	render	callers	1 referencing function
+00408a90	res	initializer	initializer of the file starting here, before 00408d30
 00408d30	res	class	class ModelResMesh
-00408da0	res	callers	1 referencing function
-00408dc0	res	callers	1 referencing function
-00408e30	res	neighbours	between 00408dc0 and 00408ea0
-00408ea0	res	callers	1 referencing function
-00409300	core	shared	game 6, res 5
-00409330	core	shared	game 8, res 3, ui 4, world 1
+00408dc0	res	class	class ModelResMesh
+00408e30	res	class	class ModelResMesh
+00408ea0	res	class	class ModelResMesh
 00409540	core	range	00409540-0040bf50
 00409570	core	range	00409540-0040bf50
 00409580	core	range	00409540-0040bf50
@@ -249,15 +219,15 @@ entry	subsystem	rule	evidence
 0040c040	render	callers	3 referencing functions
 0040c0f0	render	callers	1 referencing function
 0040c1b0	render	callers	6 referencing functions
-0040c1e0	render	neighbours	between 0040c1b0 and 0040c280
-0040c200	render	neighbours	between 0040c1b0 and 0040c280
-0040c240	render	neighbours	between 0040c1b0 and 0040c280
-0040c280	render	class	class SceneRenderer
-0040c2e0	render	neighbours	between 0040c280 and 0040c3a0
-0040c3a0	render	class	class SceneRenderer
-0040c3e0	render	neighbours	between 0040c3a0 and 0040c5f0
-0040c570	render	neighbours	between 0040c3a0 and 0040c5f0
-0040c590	render	neighbours	between 0040c3a0 and 0040c5f0
+0040c1e0	render	neighbours	between 0040c1b0 and 0040c2e0
+0040c200	render	neighbours	between 0040c1b0 and 0040c2e0
+0040c240	render	neighbours	between 0040c1b0 and 0040c2e0
+0040c280	render	neighbours	between 0040c1b0 and 0040c2e0
+0040c2e0	render	callers	1 referencing function
+0040c3a0	render	callers	9 referencing functions
+0040c3e0	render	callers	2 referencing functions
+0040c570	render	neighbours	between 0040c3e0 and 0040c590
+0040c590	render	callers	1 referencing function
 0040c5f0	render	class	class RenderTriangle
 0040c620	render	class	class RenderTriangle
 0040c660	render	neighbours	between 0040c620 and 0040c680
@@ -267,27 +237,25 @@ entry	subsystem	rule	evidence
 0040c730	render	neighbours	between 0040c6f0 and 0040c750
 0040c750	render	class	class RenderQuad
 0040c780	render	class	class TriangleSet
-0040c790	render	neighbours	between 0040c780 and 0040c890
-0040c7b0	render	neighbours	between 0040c780 and 0040c890
-0040c7f0	render	neighbours	between 0040c780 and 0040c890
-0040c830	render	neighbours	between 0040c780 and 0040c890
+0040c790	render	class	class TriangleSet
+0040c7b0	render	neighbours	between 0040c790 and 0040c890
+0040c7f0	render	neighbours	between 0040c790 and 0040c890
+0040c830	render	neighbours	between 0040c790 and 0040c890
 0040c890	render	class	class TriangleSet
-0040c8e0	render	neighbours	between 0040c890 and 0040cc00
-0040c8f0	render	neighbours	between 0040c890 and 0040cc00
-0040c910	render	neighbours	between 0040c890 and 0040cc00
-0040c920	render	neighbours	between 0040c890 and 0040cc00
-0040c9f0	render	neighbours	between 0040c890 and 0040cc00
-0040cb10	render	neighbours	between 0040c890 and 0040cc00
+0040c8e0	render	neighbours	between 0040c890 and 0040c9f0
+0040c8f0	render	neighbours	between 0040c890 and 0040c9f0
+0040c910	render	neighbours	between 0040c890 and 0040c9f0
+0040c920	render	neighbours	between 0040c890 and 0040c9f0
+0040c9f0	render	class	class TextureCache
 0040cc00	render	class	class TextureCache
 0040cca0	render	class	class TextureCache
 0040cd30	render	class	class TextureCache
 0040ce20	render	class	class TextureCache
 0040cec0	render	class	class TextureCache
 0040cf80	render	class	class TextureCache
-0040cff0	render	neighbours	between 0040cf80 and 0040d1a0
+0040cff0	render	class	class TextureCache
 0040d1a0	render	class	class SceneRenderer
-0040d800	render	neighbours	between 0040d1a0 and 0040db70
-0040d830	render	neighbours	between 0040d1a0 and 0040db70
+0040d830	render	class	class SceneRenderer
 0040db70	render	class	class SceneRenderer
 0040dc90	render	class	class SceneRenderer
 0040dca0	render	class	class SceneRenderer
@@ -298,19 +266,19 @@ entry	subsystem	rule	evidence
 0040ddb0	render	class	class SceneRenderer
 0040ddc0	render	class	class SceneRenderer
 0040deb0	render	class	class SceneRenderer
-0040df90	render	neighbours	between 0040deb0 and 0040e130
-0040e000	render	neighbours	between 0040deb0 and 0040e130
-0040e030	render	neighbours	between 0040deb0 and 0040e130
+0040df90	render	class	class SceneRenderer
+0040e000	render	neighbours	between 0040df90 and 0040e030
+0040e030	render	class	class SceneRenderer
 0040e130	render	class	class SceneRenderer
 0040e510	render	neighbours	between 0040e130 and 0040e540
 0040e540	render	class	class SceneRenderer
 0040e610	render	class	class SceneRenderer
 0040e6a0	render	class	class SceneRenderer
-0040e6e0	render	neighbours	between 0040e6a0 and 0040e980
+0040e6e0	render	class	class SceneRenderer
 0040e980	render	class	class SceneRenderer
 0040ecf0	render	class	class SceneRenderer
-0040eed0	render	neighbours	between 0040ecf0 and 0040ef30
-0040ef20	render	neighbours	between 0040ecf0 and 0040ef30
+0040eed0	render	neighbours	between 0040ecf0 and 0040ef20
+0040ef20	render	class	class SceneRenderer
 0040ef30	render	class	class SceneRenderer
 0040efd0	render	class	class SceneRenderer
 0040f300	render	class	class SceneRenderer
@@ -354,96 +322,17 @@ entry	subsystem	rule	evidence
 00412be0	render	neighbours	between 00412b40 and 00412c80
 00412c80	render	class	class SceneRenderer
 00412e70	render	class	class SceneRenderer
-00412f00	render	neighbours	between 00412e70 and 00416080
-00412f10	render	neighbours	between 00412e70 and 00416080
-00412f20	render	neighbours	between 00412e70 and 00416080
-00412f40	render	neighbours	between 00412e70 and 00416080
-00412f70	render	neighbours	between 00412e70 and 00416080
-00413010	render	neighbours	between 00412e70 and 00416080
-00413040	render	neighbours	between 00412e70 and 00416080
-004130e0	render	neighbours	between 00412e70 and 00416080
-00413110	render	neighbours	between 00412e70 and 00416080
-004131b0	render	neighbours	between 00412e70 and 00416080
-004131e0	render	neighbours	between 00412e70 and 00416080
-00413290	render	neighbours	between 00412e70 and 00416080
-00413300	render	neighbours	between 00412e70 and 00416080
-00413350	render	neighbours	between 00412e70 and 00416080
-00413370	render	neighbours	between 00412e70 and 00416080
-004133c0	render	neighbours	between 00412e70 and 00416080
-004133e0	render	neighbours	between 00412e70 and 00416080
-00413490	render	neighbours	between 00412e70 and 00416080
-004134c0	render	neighbours	between 00412e70 and 00416080
-00413590	render	neighbours	between 00412e70 and 00416080
-004135b0	render	neighbours	between 00412e70 and 00416080
-00413600	render	neighbours	between 00412e70 and 00416080
-00413630	render	neighbours	between 00412e70 and 00416080
-00413a60	render	neighbours	between 00412e70 and 00416080
-00413ab0	render	neighbours	between 00412e70 and 00416080
-00413da0	render	neighbours	between 00412e70 and 00416080
-00413df0	render	neighbours	between 00412e70 and 00416080
-00413e00	render	neighbours	between 00412e70 and 00416080
-00413e20	render	neighbours	between 00412e70 and 00416080
-00413e60	render	neighbours	between 00412e70 and 00416080
-00413e70	render	neighbours	between 00412e70 and 00416080
-00413ea0	render	neighbours	between 00412e70 and 00416080
-00413ec0	render	neighbours	between 00412e70 and 00416080
-00413ee0	render	neighbours	between 00412e70 and 00416080
-00413f20	render	neighbours	between 00412e70 and 00416080
-00413f30	render	neighbours	between 00412e70 and 00416080
-00413f60	render	neighbours	between 00412e70 and 00416080
-00413fa0	render	neighbours	between 00412e70 and 00416080
-00413fb0	render	neighbours	between 00412e70 and 00416080
-00413fe0	render	neighbours	between 00412e70 and 00416080
-00414000	render	neighbours	between 00412e70 and 00416080
-00414020	render	neighbours	between 00412e70 and 00416080
-00414060	render	neighbours	between 00412e70 and 00416080
-00414070	render	neighbours	between 00412e70 and 00416080
-004140b0	render	neighbours	between 00412e70 and 00416080
-00414110	render	neighbours	between 00412e70 and 00416080
-00414180	render	neighbours	between 00412e70 and 00416080
-004141d0	render	neighbours	between 00412e70 and 00416080
-00414200	render	neighbours	between 00412e70 and 00416080
-00414250	render	neighbours	between 00412e70 and 00416080
-00414280	render	neighbours	between 00412e70 and 00416080
-004144f0	render	neighbours	between 00412e70 and 00416080
-00414500	render	neighbours	between 00412e70 and 00416080
-00414540	render	neighbours	between 00412e70 and 00416080
-00414830	render	neighbours	between 00412e70 and 00416080
-00414840	render	neighbours	between 00412e70 and 00416080
-004148a0	render	neighbours	between 00412e70 and 00416080
-00414b30	render	neighbours	between 00412e70 and 00416080
-00414d40	render	neighbours	between 00412e70 and 00416080
-00414f50	render	neighbours	between 00412e70 and 00416080
-004151a0	render	neighbours	between 00412e70 and 00416080
-00415240	render	neighbours	between 00412e70 and 00416080
-004152a0	render	neighbours	between 00412e70 and 00416080
-004152d0	render	neighbours	between 00412e70 and 00416080
-00415300	render	neighbours	between 00412e70 and 00416080
-00415330	render	neighbours	between 00412e70 and 00416080
-00415360	render	neighbours	between 00412e70 and 00416080
-00415390	render	neighbours	between 00412e70 and 00416080
-004153d0	render	neighbours	between 00412e70 and 00416080
-004154d0	render	neighbours	between 00412e70 and 00416080
-004154e0	render	neighbours	between 00412e70 and 00416080
-00415550	render	neighbours	between 00412e70 and 00416080
-00415570	render	neighbours	between 00412e70 and 00416080
-004155a0	render	neighbours	between 00412e70 and 00416080
-00415700	render	neighbours	between 00412e70 and 00416080
-00415740	render	neighbours	between 00412e70 and 00416080
-00415830	render	neighbours	between 00412e70 and 00416080
-00415920	render	neighbours	between 00412e70 and 00416080
-004159f0	render	neighbours	between 00412e70 and 00416080
-00415ba0	render	neighbours	between 00412e70 and 00416080
-00415c70	render	neighbours	between 00412e70 and 00416080
-00415ca0	render	neighbours	between 00412e70 and 00416080
-00415d40	render	neighbours	between 00412e70 and 00416080
-00415db0	render	neighbours	between 00412e70 and 00416080
-00415e20	render	neighbours	between 00412e70 and 00416080
-00415e90	render	neighbours	between 00412e70 and 00416080
-00415f50	render	neighbours	between 00412e70 and 00416080
-00415f90	render	neighbours	between 00412e70 and 00416080
-00416000	render	neighbours	between 00412e70 and 00416080
-00416030	render	neighbours	between 00412e70 and 00416080
+00412f00	render	class	class SceneRenderer
+00412f10	render	class	class SceneRenderer
+00413e00	render	neighbours	between 00412f10 and 00416080
+00413e70	render	neighbours	between 00412f10 and 00416080
+00414b30	render	neighbours	between 00412f10 and 00416080
+004152a0	render	neighbours	between 00412f10 and 00416080
+004154d0	render	neighbours	between 00412f10 and 00416080
+00415570	render	neighbours	between 00412f10 and 00416080
+00415920	render	neighbours	between 00412f10 and 00416080
+00415e20	render	neighbours	between 00412f10 and 00416080
+00415f50	render	neighbours	between 00412f10 and 00416080
 00416080	render	class	class CSurface
 004160b0	render	class	class CSurface
 004160e0	render	class	class CSurface
@@ -461,20 +350,20 @@ entry	subsystem	rule	evidence
 00416680	render	class	class CSurface, base of CTexture
 004166b0	render	class	class CSurface, base of CTexture
 00416750	render	class	class CSurface, base of CTexture
-004167e0	render	neighbours	between 00416750 and 00416810
-00416800	render	neighbours	between 00416750 and 00416810
+004167e0	render	class	class CSurface, base of CTexture
+00416800	render	class	class CSurface, base of CTexture
 00416810	render	class	class CSurface, base of CTexture
 004168a0	render	class	class CSurface, base of CTexture
 00416990	render	class	class CSurface, base of CTexture
-00416d80	render	neighbours	between 00416990 and 00416f10
+00416d80	render	class	class CSurface, base of CTexture
 00416f10	render	class	class CSurface, base of CTexture
 00416fc0	render	class	class CSurface, base of CTexture
-00417070	render	neighbours	between 00416fc0 and 004172f0
-004171f0	render	neighbours	between 00416fc0 and 004172f0
+00417070	render	class	class CSurface, base of CTexture
+004171f0	render	neighbours	between 00417070 and 004172f0
 004172f0	render	class	class CSurface, base of CTexture
 00417640	render	class	class CSurface, base of CTexture
-00417940	world	callers	1 referencing function
-004179e0	render	initializer	initializer of the file starting here, before 00417a10
+00417940	render	class	class CSurface, base of CTexture
+004179e0	render	neighbours	between 00417940 and 00417a10
 00417a10	render	callers	1 referencing function
 00417bf0	render	neighbours	between 00417a10 and 00417ca0
 00417c30	render	neighbours	between 00417a10 and 00417ca0
@@ -534,15 +423,15 @@ entry	subsystem	rule	evidence
 0041db40	core	class	class CController
 0041db70	core	class	class CController, base of CKeyPad
 0041dc70	core	class	class CController, base of CKeyPad
-0041dd60	core	neighbours	between 0041dc70 and 0041dd70
+0041dd60	core	class	class CController
 0041dd70	core	class	class CController, base of CKeyPad
 0041dda0	core	class	class CController, base of CKeyPad
 0041ded0	core	class	class CController, base of CKeyPad
-0041df40	core	neighbours	between 0041ded0 and 0041e190
-0041e090	core	neighbours	between 0041ded0 and 0041e190
+0041df40	core	class	class CController, base of CKeyPad
+0041e090	core	neighbours	between 0041df40 and 0041e190
 0041e190	core	class	class KeyPadDispatcher
-0041e1b0	core	neighbours	between 0041e190 and 0041e270
-0041e210	core	neighbours	between 0041e190 and 0041e270
+0041e1b0	core	class	class KeyPadDispatcher
+0041e210	core	class	class KeyPadDispatcher
 0041e270	core	class	class KeyPadDispatcher
 0041e2e0	core	class	class KeyPadDispatcher
 0041e4f0	core	neighbours	between 0041e2e0 and 0041e630
@@ -552,13 +441,7 @@ entry	subsystem	rule	evidence
 0041e6f0	core	class	class DirectInputMouse
 0041e730	core	class	class DirectInputMouse
 0041e8d0	core	class	class DirectInputMouse
-0041e8f0	core	neighbours	between 0041e8d0 and 0041e950
-0041e920	core	neighbours	between 0041e8d0 and 0041e950
-0041e950	core	callers	1 referencing function
-0041e960	core	callers	1 referencing function
-0041e9c0	core	callers	1 referencing function
-0041e9f0	core	callers	1 referencing function
-0041ea20	core	callers	1 referencing function
+0041e8f0	core	callers	1 referencing function
 0041ea40	net	initializer	initializer of the file starting here, before 0041ea70
 0041ea70	net	callers	3 referencing functions
 0041ead0	net	class	class PacketCodeModules
@@ -586,7 +469,6 @@ entry	subsystem	rule	evidence
 0041fc70	net	class	class PacketQueue
 0041fcc0	net	class	class PacketQueue
 0041fd00	net	class	class PacketQueue
-0041fd30	game	callers	4 referencing functions
 0041ff40	audio	initializer	initializer of the file starting here, before 0041ff70
 0041ff70	audio	import	WINMM.DLL!mixerGetLineControlsA, WINMM.DLL!mixerGetLineInfoA, WINMM.DLL!mixerOpen
 00420020	audio	import	WINMM.DLL!mixerGetControlDetailsA
@@ -604,15 +486,14 @@ entry	subsystem	rule	evidence
 00420380	core	range	00420320-004203d0
 00420390	core	range	00420320-004203d0
 004203d0	res	initializer	initializer of the file starting here, before 00420400
-00420400	res	callers	1 referencing function
-00420520	res	neighbours	between 00420400 and 00420560
-00420560	res	callers	1 referencing function
+00420400	res	class	class ActFrame
+00420520	res	class	class ActFrame
 004206a0	res	class	class ActFrame
-004206e0	res	neighbours	between 004206a0 and 004207c0
-00420750	res	neighbours	between 004206a0 and 004207c0
-00420780	res	neighbours	between 004206a0 and 004207c0
-00420790	res	neighbours	between 004206a0 and 004207c0
-004207a0	res	neighbours	between 004206a0 and 004207c0
+004206e0	res	neighbours	between 004206a0 and 00420750
+00420750	res	class	class ActFrame
+00420780	res	neighbours	between 00420750 and 004207c0
+00420790	res	neighbours	between 00420750 and 004207c0
+004207a0	res	neighbours	between 00420750 and 004207c0
 004207c0	res	class	class CRes, base of CActRes
 00420870	res	class	class CRes
 00420880	res	class	class CRes
@@ -915,12 +796,12 @@ entry	subsystem	rule	evidence
 00435440	res	class	class CRes, base of CWave
 00435460	res	class	class CRes, base of CWave
 004354a0	res	class	class CRes, base of CWave
-00435740	res	neighbours	between 004354a0 and 00435830
-004357b0	res	neighbours	between 004354a0 and 00435830
+00435740	res	class	class CRes, base of CWave
+004357b0	res	neighbours	between 00435740 and 00435830
 004357e0	res	stub	jumps to 004357f0
-004357f0	res	neighbours	between 004354a0 and 00435830
-00435800	res	neighbours	between 004354a0 and 00435830
-00435810	res	neighbours	between 004354a0 and 00435830
+004357f0	res	neighbours	between 00435740 and 00435830
+00435800	res	neighbours	between 00435740 and 00435830
+00435810	res	neighbours	between 00435740 and 00435830
 00435830	res	class	class CRes, base of C3dWorldRes
 00435940	res	class	class CRes, base of C3dWorldRes
 004359a0	res	class	class CRes, base of C3dWorldRes
@@ -930,14 +811,6 @@ entry	subsystem	rule	evidence
 00435b90	res	class	class CRes, base of C3dWorldRes
 00435c90	res	class	class CRes, base of C3dWorldRes
 00435dd0	res	class	class CRes, base of C3dWorldRes
-004369c0	res	neighbours	between 00435dd0 and 00436a60
-00436a60	res	callers	1 referencing function
-00436a80	res	neighbours	between 00436a60 and 00436ad0
-00436ad0	res	callers	1 referencing function
-00436af0	res	neighbours	between 00436ad0 and 00436b40
-00436b40	res	callers	1 referencing function
-00436c20	res	callers	1 referencing function
-00436c40	res	callers	1 referencing function
 00436c60	ui	initializer	initializer of the file starting here, before 00436ca0
 00436c90	ui	initializer	initializer of the file starting here, before 00436ca0
 00436ca0	ui	callees	1 referenced function
@@ -951,23 +824,14 @@ entry	subsystem	rule	evidence
 00437000	ui	class	class CSkinMgr
 00437030	ui	class	class CSkinMgr
 00437150	ui	class	class CSkinMgr
-00437d40	ui	neighbours	between 00437150 and 00437d90
+00437d40	ui	class	class CSkinMgr
 00437d90	ui	class	class CSkinMgr
 00437dc0	ui	class	class CSkinMgr
-00437df0	ui	neighbours	between 00437dc0 and 00437e70
-00437e30	ui	neighbours	between 00437dc0 and 00437e70
+00437df0	ui	class	class CSkinMgr
+00437e30	ui	neighbours	between 00437df0 and 00437e70
 00437e70	ui	class	class CSkinMgr
 00437ea0	ui	class	class CSkinMgr
 004381e0	ui	neighbours	between 00437ea0 and 00438af0
-00438230	ui	neighbours	between 00437ea0 and 00438af0
-00438300	ui	neighbours	between 00437ea0 and 00438af0
-004384a0	ui	neighbours	between 00437ea0 and 00438af0
-00438660	ui	neighbours	between 00437ea0 and 00438af0
-00438730	ui	neighbours	between 00437ea0 and 00438af0
-00438770	ui	neighbours	between 00437ea0 and 00438af0
-004387a0	ui	neighbours	between 00437ea0 and 00438af0
-004387d0	ui	neighbours	between 00437ea0 and 00438af0
-00438920	ui	neighbours	between 00437ea0 and 00438af0
 00438a80	ui	neighbours	between 00437ea0 and 00438af0
 00438ab0	ui	neighbours	between 00437ea0 and 00438af0
 00438ac0	ui	neighbours	between 00437ea0 and 00438af0
@@ -975,21 +839,20 @@ entry	subsystem	rule	evidence
 00438ae0	ui	neighbours	between 00437ea0 and 00438af0
 00438af0	ui	class	class SnapObject
 00438b30	ui	class	class SnapObject
-00438b60	ui	neighbours	between 00438b30 and 00438b90
 00438b90	ui	class	class SnapObject
-00438bb0	ui	neighbours	between 00438b90 and 004391d0
-00438cd0	ui	neighbours	between 00438b90 and 004391d0
-00438d30	ui	neighbours	between 00438b90 and 004391d0
-00438d90	ui	neighbours	between 00438b90 and 004391d0
-00438e10	ui	neighbours	between 00438b90 and 004391d0
-00438f00	ui	neighbours	between 00438b90 and 004391d0
-00438f60	ui	neighbours	between 00438b90 and 004391d0
-00438ff0	ui	neighbours	between 00438b90 and 004391d0
-00439070	ui	neighbours	between 00438b90 and 004391d0
-004390e0	ui	neighbours	between 00438b90 and 004391d0
-00439120	ui	neighbours	between 00438b90 and 004391d0
-00439160	ui	neighbours	between 00438b90 and 004391d0
-00439170	ui	neighbours	between 00438b90 and 004391d0
+00438bb0	ui	class	class SnapObject
+00438cd0	ui	class	class SnapObject
+00438d30	ui	class	class SnapObject
+00438d90	ui	class	class SnapObject
+00438e10	ui	class	class SnapObject
+00438f00	ui	class	class SnapObject
+00438f60	ui	class	class SnapObject
+00438ff0	ui	class	class SnapObject
+00439070	ui	class	class SnapObject
+004390e0	ui	class	class SnapObject
+00439120	ui	class	class SnapObject
+00439160	ui	class	class SnapObject
+00439170	ui	class	class SnapObject
 004391d0	ui	class	class CSnapMgr
 00439210	ui	class	class CSnapMgr
 00439240	ui	class	class CSnapMgr
@@ -1012,12 +875,11 @@ entry	subsystem	rule	evidence
 004399c0	ui	class	class CSnapMgr
 004399f0	ui	class	class CSnapMgr
 00439a40	ui	class	class CSnapMgr
-00439a60	ui	neighbours	between 00439a40 and 00439b80
-00439aa0	ui	neighbours	between 00439a40 and 00439b80
-00439ae0	ui	neighbours	between 00439a40 and 00439b80
-00439b30	ui	neighbours	between 00439a40 and 00439b80
+00439a60	ui	class	class CSnapMgr
+00439aa0	ui	class	class CSnapMgr
+00439b30	ui	neighbours	between 00439aa0 and 00439b80
 00439b60	ui	stub	jumps to 00439b70
-00439b70	ui	neighbours	between 00439a40 and 00439b80
+00439b70	ui	neighbours	between 00439aa0 and 00439b80
 00439b80	ui	class	class UIWindow, base of UIStaticText
 00439bf0	ui	class	class UIWindow
 00439c00	ui	class	class UIWindow
@@ -1045,9 +907,9 @@ entry	subsystem	rule	evidence
 00439e00	ui	class	class UIWindow, base of UIStaticText
 00439e20	ui	class	class UIWindow, base of UIStaticText
 00439f50	ui	class	class UIWindow, base of UIStaticText
-0043a0b0	ui	neighbours	between 00439f50 and 0043a6e0
-0043a220	ui	neighbours	between 00439f50 and 0043a6e0
-0043a550	ui	neighbours	between 00439f50 and 0043a6e0
+0043a0b0	ui	neighbours	between 00439f50 and 0043a220
+0043a220	ui	class	class UIWindow, base of UIStaticText
+0043a550	ui	class	class UIWindow, base of UIStaticText
 0043a6e0	ui	class	class UIWindow, base of UIStaticText
 0043a740	ui	class	class UIWindow, base of UIStaticText
 0043a770	ui	class	class UIWindow, base of UIStaticText
@@ -1065,7 +927,7 @@ entry	subsystem	rule	evidence
 0043a920	ui	class	class UIWindow
 0043a930	ui	class	class UIWindow, base of UIStaticBitmap
 0043a960	ui	class	class UIWindow, base of UIStaticBitmap
-0043a9b0	ui	neighbours	between 0043a960 and 0043aa90
+0043a9b0	ui	class	class UIWindow, base of UIStaticBitmap
 0043aa90	ui	class	class UIWindow, base of UIStaticBitmap
 0043aaf0	ui	class	class UIWindow, base of UIStaticBitmap
 0043ab00	ui	class	class UIWindow, base of UIStaticBitmap
@@ -1079,8 +941,8 @@ entry	subsystem	rule	evidence
 0043aca0	ui	class	class UIWindow, base of UICheckBox
 0043ace0	ui	class	class UIWindow, base of UICheckBox
 0043acf0	ui	class	class UIWindow, base of UICheckBox
-0043ada0	ui	neighbours	between 0043acf0 and 0043b010
-0043ae90	ui	neighbours	between 0043acf0 and 0043b010
+0043ada0	ui	class	class UIWindow, base of UICheckBox
+0043ae90	ui	class	class UIWindow, base of UICheckBox
 0043b010	ui	class	class UIWindow, base of UISlotBitmap
 0043b030	ui	class	class UIWindow, base of UISlotBitmap
 0043b060	ui	class	class UIWindow, base of UISlotBitmap
@@ -1114,10 +976,10 @@ entry	subsystem	rule	evidence
 0043bd20	ui	class	class UIWindow, base of UISpriteButton
 0043bd90	ui	class	class UIWindow, base of UISpriteButton
 0043bdc0	ui	class	class UIWindow, base of UISpriteButton
-0043be50	ui	neighbours	between 0043bdc0 and 0043c200
-0043c070	ui	neighbours	between 0043bdc0 and 0043c200
-0043c120	ui	neighbours	between 0043bdc0 and 0043c200
-0043c190	ui	neighbours	between 0043bdc0 and 0043c200
+0043be50	ui	class	class UIWindow, base of UISpriteButton
+0043c070	ui	class	class UIWindow, base of UISpriteButton
+0043c120	ui	neighbours	between 0043c070 and 0043c200
+0043c190	ui	neighbours	between 0043c070 and 0043c200
 0043c200	ui	class	class UIWindow, base of UISpriteButton
 0043c500	ui	class	class UIWindow, base of UISpriteButton
 0043c540	ui	class	class UIWindow, base of UISpriteButton
@@ -1128,10 +990,10 @@ entry	subsystem	rule	evidence
 0043c610	ui	class	class UIWindow, base of UIBalloonText
 0043c690	ui	class	class UIWindow, base of UIBalloonText
 0043c6a0	ui	class	class UIWindow, base of UIBalloonText
-0043c740	ui	neighbours	between 0043c6a0 and 0043ca10
-0043c830	ui	neighbours	between 0043c6a0 and 0043ca10
-0043c910	ui	neighbours	between 0043c6a0 and 0043ca10
-0043c930	ui	neighbours	between 0043c6a0 and 0043ca10
+0043c740	ui	class	class UIWindow, base of UIBalloonText
+0043c830	ui	neighbours	between 0043c740 and 0043c910
+0043c910	ui	class	class UIWindow, base of UIBalloonText
+0043c930	ui	class	class UIWindow, base of UIBalloonText
 0043ca10	ui	class	class UIWindow, base of UITransBalloonText
 0043ca30	ui	class	class UIWindow, base of UITransBalloonText
 0043ca60	ui	class	class UIWindow, base of UITransBalloonText
@@ -1139,7 +1001,7 @@ entry	subsystem	rule	evidence
 0043caa0	ui	class	class UIWindow, base of UITransBalloonText
 0043cad0	ui	class	class UIWindow, base of UITransBalloonText
 0043cb00	ui	class	class UIWindow, base of UITransBalloonText
-0043cba0	ui	neighbours	between 0043cb00 and 0043cbb0
+0043cba0	ui	class	class UIWindow, base of UITransBalloonText
 0043cbb0	ui	class	class UIWindow, base of UITransBalloonText
 0043cbd0	ui	class	class UIWindow, base of UINameBalloonText
 0043cc10	ui	class	class UIWindow, base of UINameBalloonText
@@ -1158,14 +1020,14 @@ entry	subsystem	rule	evidence
 0043dee0	ui	class	class UIWindow, base of UIEditCtrl
 0043df40	ui	class	class UIWindow, base of UIEditCtrl
 0043df50	ui	class	class UIWindow, base of UIEditCtrl
-0043df90	ui	neighbours	between 0043df50 and 0043dfc0
+0043df90	ui	class	class UIWindow, base of UIEditCtrl
 0043dfc0	ui	class	class UIWindow, base of UIEditCtrl
 0043e020	ui	class	class UIWindow, base of UIEditCtrl
 0043e040	ui	class	class UIWindow, base of UIEditCtrl
-0043e160	ui	neighbours	between 0043e040 and 0043e190
-0043e190	ui	class	class UIWindow, base of UIWhisperEditCtrl
-0043e1c0	ui	neighbours	between 0043e190 and 0043e200
-0043e1e0	ui	neighbours	between 0043e190 and 0043e200
+0043e160	ui	class	class UIWindow, base of UIEditCtrl
+0043e190	ui	class	class UIWindow, base of UIEditCtrl
+0043e1c0	ui	class	class UIWindow, base of UIEditCtrl
+0043e1e0	ui	class	class UIWindow, base of UIEditCtrl
 0043e200	ui	class	class UIWindow, base of UIEditCtrl
 0043e320	ui	class	class UIWindow, base of UIEditCtrl
 0043e500	ui	class	class UIWindow, base of UIEditCtrl
@@ -1178,7 +1040,7 @@ entry	subsystem	rule	evidence
 0043f190	ui	class	class UIWindow, base of UIEditCtrl2
 0043f1a0	ui	class	class UIWindow, base of UIEditCtrl2
 0043f220	ui	class	class UIWindow, base of UIBitmapEditCtrl
-0043f260	ui	neighbours	between 0043f220 and 0043f350
+0043f260	ui	class	class UIWindow, base of UIBitmapEditCtrl
 0043f350	ui	class	class UIWindow, base of UIWhisperEditCtrl
 0043f390	ui	class	class UIWindow, base of UIWhisperEditCtrl
 0043f3c0	ui	class	class UIWindow, base of UIWhisperEditCtrl
@@ -1196,14 +1058,14 @@ entry	subsystem	rule	evidence
 0043fb70	ui	class	class UIWindow, base of UIChatEditCtrl
 0043fc30	ui	class	class UIWindow, base of UIChatEditCtrl
 0043fc60	ui	class	class UIWindow, base of UIChatEditCtrl
-0043fe10	ui	neighbours	between 0043fc60 and 00440030
+0043fe10	ui	class	class UIWindow, base of UIChatEditCtrl
 00440030	ui	class	class UIWindow, base of UIResizer
 00440070	ui	class	class UIWindow, base of UIResizer
 004400a0	ui	class	class UIWindow, base of UIResizer
 004400f0	ui	class	class UIWindow, base of UIResizer
-00440150	ui	neighbours	between 004400f0 and 00440260
-00440170	ui	neighbours	between 004400f0 and 00440260
-00440250	ui	neighbours	between 004400f0 and 00440260
+00440150	ui	class	class UIWindow, base of UIResizer
+00440170	ui	class	class UIWindow, base of UIResizer
+00440250	ui	class	class UIWindow, base of UIResizer
 00440260	ui	class	class UIWindow, base of UIResizer
 004402b0	ui	class	class UIWindow, base of UIResizer
 00440320	ui	class	class UIWindow, base of UIResizer
@@ -1218,7 +1080,7 @@ entry	subsystem	rule	evidence
 00440560	ui	class	class UIWindow, base of UIRadioBtn
 004405a0	ui	class	class UIWindow, base of UIRadioBtn
 004405d0	ui	class	class UIWindow, base of UIRadioBtn
-00440620	ui	neighbours	between 004405d0 and 00440700
+00440620	ui	class	class UIWindow, base of UIRadioBtn
 00440700	ui	class	class UIWindow, base of UIRadioBtn
 00440790	ui	class	class UIWindow, base of UIRadioBtn
 004407c0	ui	class	class UIWindow, base of UIRadioBtn
@@ -1246,17 +1108,12 @@ entry	subsystem	rule	evidence
 00441570	ui	class	class UIWindow, base of UIEmblemWnd
 004415e0	ui	class	class UIWindow, base of UIEmblemWnd
 004416e0	ui	class	class UIWindow, base of UIEmblemWnd
-004417a0	ui	neighbours	between 004416e0 and 00441d10
-00441830	ui	neighbours	between 004416e0 and 00441d10
-004418b0	ui	neighbours	between 004416e0 and 00441d10
-00441a60	ui	neighbours	between 004416e0 and 00441d10
-00441b80	ui	neighbours	between 004416e0 and 00441d10
 00441ce0	ui	neighbours	between 004416e0 and 00441d10
 00441d10	ui	class	class UIWindow, base of UIBarGraph
 00441d30	ui	class	class UIWindow, base of UIBarGraph
 00441d60	ui	class	class UIWindow, base of UIBarGraph
 00441d70	ui	class	class UIWindow, base of UIBarGraph
-00442050	ui	neighbours	between 00441d70 and 00442070
+00442050	ui	class	class UIWindow, base of UIBarGraph
 00442070	ui	class	class UIWindow, base of UIBarGraph2
 004420b0	ui	class	class UIWindow, base of UIBarGraph2
 004420e0	ui	class	class UIWindow, base of UIBarGraph2
@@ -1264,7 +1121,7 @@ entry	subsystem	rule	evidence
 00442260	ui	class	class UIWindow, base of UIBarGraph3
 00442280	ui	class	class UIWindow, base of UIBarGraph3
 004422b0	ui	class	class UIWindow, base of UIBarGraph3
-004422c0	ui	neighbours	between 004422b0 and 004422e0
+004422c0	ui	class	class UIWindow, base of UIBarGraph3
 004422e0	ui	class	class UIWindow, base of UIBarGraphPlayerHp
 00442300	ui	class	class UIWindow, base of UIBarGraphPlayerHp
 00442330	ui	class	class UIWindow, base of UIBarGraphPlayerHp
@@ -1284,14 +1141,14 @@ entry	subsystem	rule	evidence
 00442d30	ui	class	class UIWindow, base of UIRechargeGage
 00442d60	ui	class	class UIWindow, base of UIRechargeGage
 00442d70	ui	class	class UIWindow, base of UIRechargeGage
-00442e40	ui	neighbours	between 00442d70 and 00442e60
+00442e40	ui	class	class UIWindow, base of UIRechargeGage
 00442e60	ui	class	class UIWindow, base of UIPcGage
 00442eb0	ui	class	class UIWindow, base of UIPcGage
 00442ee0	ui	class	class UIWindow, base of UIPcGage
 00442ef0	ui	neighbours	between 00442ee0 and 00442f00
 00442f00	ui	class	class UIWindow, base of UIPcGage
-004431b0	ui	neighbours	between 00442f00 and 004431f0
-004431d0	ui	neighbours	between 00442f00 and 004431f0
+004431b0	ui	class	class UIWindow, base of UIPcGage
+004431d0	ui	class	class UIWindow, base of UIPcGage
 004431f0	ui	class	class UIWindow, base of UIPlayerGage
 00443220	ui	class	class UIWindow, base of UIPlayerGage
 00443230	ui	class	class UIWindow, base of UIPlayerGage
@@ -1341,7 +1198,7 @@ entry	subsystem	rule	evidence
 00444e10	ui	class	class UIWindow, base of UIChatHisBox
 00444e20	ui	class	class UIWindow, base of UIChatHisBox
 00444f30	ui	class	class UIWindow, base of UIChatHisBox
-00444f50	ui	neighbours	between 00444f30 and 00444ff0
+00444f50	ui	class	class UIWindow, base of UIChatHisBox
 00444ff0	ui	class	class UIWindow, base of UIChatHisBox2
 00445020	ui	class	class UIWindow, base of UIChatHisBox2
 00445030	ui	class	class UIWindow, base of UIChatHisBox2
@@ -1374,7 +1231,7 @@ entry	subsystem	rule	evidence
 004459b0	ui	class	class UIWindow, base of UIScrollBar
 004459d0	ui	class	class UIWindow, base of UIScrollBar
 00445a00	ui	class	class UIWindow, base of UIScrollBar
-00445a20	ui	neighbours	between 00445a00 and 00445a90
+00445a20	ui	class	class UIWindow, base of UIScrollBar
 00445a90	ui	class	class UIWindow, base of UIScrollBar
 00445af0	ui	class	class UIWindow, base of UIScrollBar
 00445b10	ui	class	class UIWindow, base of UIScrollBar
@@ -1382,9 +1239,9 @@ entry	subsystem	rule	evidence
 00445cf0	ui	class	class UIWindow, base of UIScrollBar
 00445d30	ui	class	class UIWindow, base of UIScrollBar
 00445e60	ui	class	class UIWindow, base of UIScrollBar
-004462a0	ui	neighbours	between 00445e60 and 00446450
-004462e0	ui	neighbours	between 00445e60 and 00446450
-00446300	ui	neighbours	between 00445e60 and 00446450
+004462a0	ui	class	class UIWindow, base of UIScrollBar
+004462e0	ui	class	class UIWindow, base of UIScrollBar
+00446300	ui	class	class UIWindow, base of UIScrollBar
 00446450	ui	class	class UIWindow, base of UIScrollBar
 00446490	ui	class	class UIWindow, base of UIScrollBar
 004464c0	ui	class	class UIWindow, base of UIScrollBar
@@ -1392,9 +1249,6 @@ entry	subsystem	rule	evidence
 00446500	ui	class	class UIWindow, base of UIScrollBar2
 00446530	ui	stub	jumps to 004459a0
 00446540	ui	class	class UIWindow, base of UIScrollBar2
-00446870	ui	neighbours	between 00446540 and 00446c30
-004468a0	ui	neighbours	between 00446540 and 00446c30
-00446ab0	ui	neighbours	between 00446540 and 00446c30
 00446c00	ui	neighbours	between 00446540 and 00446c30
 00446c30	ui	class	class UIWindow, base of UIEmotionListWnd
 00446f40	ui	class	class UIWindow, base of UIEmotionListWnd
@@ -1404,22 +1258,16 @@ entry	subsystem	rule	evidence
 004473b0	ui	class	class UIWindow, base of UIEmotionListWnd
 004473f0	ui	class	class UIWindow, base of UIEmotionListWnd
 00447420	ui	class	class UIWindow, base of UIEmotionListWnd
-00447780	ui	neighbours	between 00447420 and 00447a20
-00447940	ui	neighbours	between 00447420 and 00447a20
-00447950	ui	neighbours	between 00447420 and 00447a20
-00447970	ui	neighbours	between 00447420 and 00447a20
-004479a0	ui	neighbours	between 00447420 and 00447a20
-004479d0	ui	neighbours	between 00447420 and 00447a20
 004479f0	ui	neighbours	between 00447420 and 00447a20
 00447a20	ui	class	class UIWindow, base of UIEmotionWnd
 00448020	ui	class	class UIWindow, base of UIEmotionWnd
 004480e0	ui	class	class UIWindow, base of UIEmotionWnd
 00448350	ui	class	class UIWindow, base of UIEmotionWnd
 00448370	ui	class	class UIWindow, base of UIEmotionWnd
-004483b0	ui	neighbours	between 00448370 and 00448810
-00448570	ui	neighbours	between 00448370 and 00448810
-00448790	ui	neighbours	between 00448370 and 00448810
-004487e0	ui	neighbours	between 00448370 and 00448810
+004483b0	ui	neighbours	between 00448370 and 00448570
+00448570	ui	class	class UIWindow, base of UIEmotionWnd
+00448790	ui	class	class UIWindow, base of UIEmotionWnd
+004487e0	ui	neighbours	between 00448790 and 00448810
 00448810	ui	class	class UIWindow, base of UIFrameWnd
 00448840	ui	class	class UIWindow, base of UIFrameWnd
 00448870	ui	class	class UIWindow, base of UIFrameWnd
@@ -2478,85 +2326,85 @@ entry	subsystem	rule	evidence
 004a3b30	ui	class	class UIWindow, base of UIMiniGameScoreWnd
 004a3c30	ui	class	class UIWindow, base of UIMiniGameScoreWnd
 004a3c70	ui	class	class UIWindow, base of UIMiniGameScoreWnd
-004a3cb0	ui	neighbours	between 004a3c70 and 004a5600
-004a3ce0	ui	neighbours	between 004a3c70 and 004a5600
-004a3d30	ui	neighbours	between 004a3c70 and 004a5600
-004a3d50	ui	neighbours	between 004a3c70 and 004a5600
-004a3da0	ui	neighbours	between 004a3c70 and 004a5600
-004a3dc0	ui	neighbours	between 004a3c70 and 004a5600
-004a3e10	ui	neighbours	between 004a3c70 and 004a5600
-004a3e30	ui	neighbours	between 004a3c70 and 004a5600
-004a3ea0	ui	neighbours	between 004a3c70 and 004a5600
-004a3ee0	ui	neighbours	between 004a3c70 and 004a5600
-004a3f00	ui	neighbours	between 004a3c70 and 004a5600
-004a3f50	ui	neighbours	between 004a3c70 and 004a5600
-004a3f70	ui	neighbours	between 004a3c70 and 004a5600
-004a3fc0	ui	neighbours	between 004a3c70 and 004a5600
-004a3fe0	ui	neighbours	between 004a3c70 and 004a5600
-004a4030	ui	neighbours	between 004a3c70 and 004a5600
-004a4050	ui	neighbours	between 004a3c70 and 004a5600
-004a40a0	ui	neighbours	between 004a3c70 and 004a5600
-004a40d0	ui	neighbours	between 004a3c70 and 004a5600
-004a4130	ui	neighbours	between 004a3c70 and 004a5600
-004a4150	ui	neighbours	between 004a3c70 and 004a5600
-004a41a0	ui	neighbours	between 004a3c70 and 004a5600
-004a41c0	ui	neighbours	between 004a3c70 and 004a5600
-004a4210	ui	neighbours	between 004a3c70 and 004a5600
-004a4270	ui	neighbours	between 004a3c70 and 004a5600
-004a42a0	ui	neighbours	between 004a3c70 and 004a5600
-004a42c0	ui	neighbours	between 004a3c70 and 004a5600
-004a4310	ui	neighbours	between 004a3c70 and 004a5600
-004a4330	ui	neighbours	between 004a3c70 and 004a5600
-004a4380	ui	neighbours	between 004a3c70 and 004a5600
-004a43a0	ui	neighbours	between 004a3c70 and 004a5600
-004a43f0	ui	neighbours	between 004a3c70 and 004a5600
-004a4410	ui	neighbours	between 004a3c70 and 004a5600
-004a4460	ui	neighbours	between 004a3c70 and 004a5600
-004a4490	ui	neighbours	between 004a3c70 and 004a5600
-004a44f0	ui	neighbours	between 004a3c70 and 004a5600
-004a4510	ui	neighbours	between 004a3c70 and 004a5600
-004a4560	ui	neighbours	between 004a3c70 and 004a5600
-004a45b0	ui	neighbours	between 004a3c70 and 004a5600
-004a45d0	ui	neighbours	between 004a3c70 and 004a5600
-004a4620	ui	neighbours	between 004a3c70 and 004a5600
-004a4640	ui	neighbours	between 004a3c70 and 004a5600
-004a46a0	ui	neighbours	between 004a3c70 and 004a5600
-004a46d0	ui	neighbours	between 004a3c70 and 004a5600
-004a4730	ui	neighbours	between 004a3c70 and 004a5600
-004a4760	ui	neighbours	between 004a3c70 and 004a5600
-004a47b0	ui	neighbours	between 004a3c70 and 004a5600
-004a4830	ui	neighbours	between 004a3c70 and 004a5600
-004a48b0	ui	neighbours	between 004a3c70 and 004a5600
-004a48d0	ui	neighbours	between 004a3c70 and 004a5600
-004a48f0	ui	neighbours	between 004a3c70 and 004a5600
-004a4940	ui	neighbours	between 004a3c70 and 004a5600
-004a4960	ui	neighbours	between 004a3c70 and 004a5600
-004a49b0	ui	neighbours	between 004a3c70 and 004a5600
-004a49d0	ui	neighbours	between 004a3c70 and 004a5600
-004a4a20	ui	neighbours	between 004a3c70 and 004a5600
-004a4a40	ui	neighbours	between 004a3c70 and 004a5600
-004a4a90	ui	neighbours	between 004a3c70 and 004a5600
-004a4ab0	ui	neighbours	between 004a3c70 and 004a5600
-004a4b00	ui	neighbours	between 004a3c70 and 004a5600
-004a4b20	ui	neighbours	between 004a3c70 and 004a5600
-004a4b70	ui	neighbours	between 004a3c70 and 004a5600
-004a4b90	ui	neighbours	between 004a3c70 and 004a5600
-004a4be0	ui	neighbours	between 004a3c70 and 004a5600
-004a4c40	ui	neighbours	between 004a3c70 and 004a5600
-004a4c90	ui	neighbours	between 004a3c70 and 004a5600
-004a4cf0	ui	neighbours	between 004a3c70 and 004a5600
-004a4d40	ui	neighbours	between 004a3c70 and 004a5600
-004a4d90	ui	neighbours	between 004a3c70 and 004a5600
-004a4db0	ui	neighbours	between 004a3c70 and 004a5600
-004a4e00	ui	neighbours	between 004a3c70 and 004a5600
-004a4e20	ui	neighbours	between 004a3c70 and 004a5600
-004a4e70	ui	neighbours	between 004a3c70 and 004a5600
-004a4e90	ui	neighbours	between 004a3c70 and 004a5600
-004a4ee0	ui	neighbours	between 004a3c70 and 004a5600
-004a4f70	ui	neighbours	between 004a3c70 and 004a5600
-004a5120	ui	neighbours	between 004a3c70 and 004a5600
-004a5150	ui	neighbours	between 004a3c70 and 004a5600
-004a5340	ui	neighbours	between 004a3c70 and 004a5600
+004a3cb0	ui	neighbours	between 004a3c70 and 004a5150
+004a3ce0	ui	neighbours	between 004a3c70 and 004a5150
+004a3d30	ui	neighbours	between 004a3c70 and 004a5150
+004a3d50	ui	neighbours	between 004a3c70 and 004a5150
+004a3da0	ui	neighbours	between 004a3c70 and 004a5150
+004a3dc0	ui	neighbours	between 004a3c70 and 004a5150
+004a3e10	ui	neighbours	between 004a3c70 and 004a5150
+004a3e30	ui	neighbours	between 004a3c70 and 004a5150
+004a3ea0	ui	neighbours	between 004a3c70 and 004a5150
+004a3ee0	ui	neighbours	between 004a3c70 and 004a5150
+004a3f00	ui	neighbours	between 004a3c70 and 004a5150
+004a3f50	ui	neighbours	between 004a3c70 and 004a5150
+004a3f70	ui	neighbours	between 004a3c70 and 004a5150
+004a3fc0	ui	neighbours	between 004a3c70 and 004a5150
+004a3fe0	ui	neighbours	between 004a3c70 and 004a5150
+004a4030	ui	neighbours	between 004a3c70 and 004a5150
+004a4050	ui	neighbours	between 004a3c70 and 004a5150
+004a40a0	ui	neighbours	between 004a3c70 and 004a5150
+004a40d0	ui	neighbours	between 004a3c70 and 004a5150
+004a4130	ui	neighbours	between 004a3c70 and 004a5150
+004a4150	ui	neighbours	between 004a3c70 and 004a5150
+004a41a0	ui	neighbours	between 004a3c70 and 004a5150
+004a41c0	ui	neighbours	between 004a3c70 and 004a5150
+004a4210	ui	neighbours	between 004a3c70 and 004a5150
+004a4270	ui	neighbours	between 004a3c70 and 004a5150
+004a42a0	ui	neighbours	between 004a3c70 and 004a5150
+004a42c0	ui	neighbours	between 004a3c70 and 004a5150
+004a4310	ui	neighbours	between 004a3c70 and 004a5150
+004a4330	ui	neighbours	between 004a3c70 and 004a5150
+004a4380	ui	neighbours	between 004a3c70 and 004a5150
+004a43a0	ui	neighbours	between 004a3c70 and 004a5150
+004a43f0	ui	neighbours	between 004a3c70 and 004a5150
+004a4410	ui	neighbours	between 004a3c70 and 004a5150
+004a4460	ui	neighbours	between 004a3c70 and 004a5150
+004a4490	ui	neighbours	between 004a3c70 and 004a5150
+004a44f0	ui	neighbours	between 004a3c70 and 004a5150
+004a4510	ui	neighbours	between 004a3c70 and 004a5150
+004a4560	ui	neighbours	between 004a3c70 and 004a5150
+004a45b0	ui	neighbours	between 004a3c70 and 004a5150
+004a45d0	ui	neighbours	between 004a3c70 and 004a5150
+004a4620	ui	neighbours	between 004a3c70 and 004a5150
+004a4640	ui	neighbours	between 004a3c70 and 004a5150
+004a46a0	ui	neighbours	between 004a3c70 and 004a5150
+004a46d0	ui	neighbours	between 004a3c70 and 004a5150
+004a4730	ui	neighbours	between 004a3c70 and 004a5150
+004a4760	ui	neighbours	between 004a3c70 and 004a5150
+004a47b0	ui	neighbours	between 004a3c70 and 004a5150
+004a4830	ui	neighbours	between 004a3c70 and 004a5150
+004a48b0	ui	neighbours	between 004a3c70 and 004a5150
+004a48d0	ui	neighbours	between 004a3c70 and 004a5150
+004a48f0	ui	neighbours	between 004a3c70 and 004a5150
+004a4940	ui	neighbours	between 004a3c70 and 004a5150
+004a4960	ui	neighbours	between 004a3c70 and 004a5150
+004a49b0	ui	neighbours	between 004a3c70 and 004a5150
+004a49d0	ui	neighbours	between 004a3c70 and 004a5150
+004a4a20	ui	neighbours	between 004a3c70 and 004a5150
+004a4a40	ui	neighbours	between 004a3c70 and 004a5150
+004a4a90	ui	neighbours	between 004a3c70 and 004a5150
+004a4ab0	ui	neighbours	between 004a3c70 and 004a5150
+004a4b00	ui	neighbours	between 004a3c70 and 004a5150
+004a4b20	ui	neighbours	between 004a3c70 and 004a5150
+004a4b70	ui	neighbours	between 004a3c70 and 004a5150
+004a4b90	ui	neighbours	between 004a3c70 and 004a5150
+004a4be0	ui	neighbours	between 004a3c70 and 004a5150
+004a4c40	ui	neighbours	between 004a3c70 and 004a5150
+004a4c90	ui	neighbours	between 004a3c70 and 004a5150
+004a4cf0	ui	neighbours	between 004a3c70 and 004a5150
+004a4d40	ui	neighbours	between 004a3c70 and 004a5150
+004a4d90	ui	neighbours	between 004a3c70 and 004a5150
+004a4db0	ui	neighbours	between 004a3c70 and 004a5150
+004a4e00	ui	neighbours	between 004a3c70 and 004a5150
+004a4e20	ui	neighbours	between 004a3c70 and 004a5150
+004a4e70	ui	neighbours	between 004a3c70 and 004a5150
+004a4e90	ui	neighbours	between 004a3c70 and 004a5150
+004a4ee0	ui	neighbours	between 004a3c70 and 004a5150
+004a4f70	ui	neighbours	between 004a3c70 and 004a5150
+004a5120	ui	neighbours	between 004a3c70 and 004a5150
+004a5150	ui	class	class UIWindow, base of UIBalloonText
+004a5340	ui	neighbours	between 004a5150 and 004a5600
 004a5600	ui	class	class UIWindow
 004a5680	ui	class	class UIWindow
 004a56b0	ui	class	class UIWindow
@@ -5987,7 +5835,6 @@ entry	subsystem	rule	evidence
 005d4cc0	core	funclet	EH tables of 0041e1b0
 005d4ce0	core	funclet	EH tables of 0041e2e0
 005d4d00	net	funclet	EH tables of 0041fa20
-005d4d20	res	funclet	EH tables of 00420560
 005d4d40	res	funclet	EH tables of 004207c0
 005d4d48	res	funclet	EH tables of 004207c0
 005d4d56	res	funclet	EH tables of 004207c0
@@ -6253,7 +6100,6 @@ entry	subsystem	rule	evidence
 005d6090	ui	funclet	EH tables of 00441260
 005d60b0	ui	funclet	EH tables of 004413c0
 005d60b8	ui	funclet	EH tables of 004413c0
-005d60d0	ui	funclet	EH tables of 00441a60
 005d60f0	ui	funclet	EH tables of 00441d70
 005d60f8	ui	funclet	EH tables of 00441d70
 005d6100	ui	funclet	EH tables of 00441d70
@@ -6295,7 +6141,6 @@ entry	subsystem	rule	evidence
 005d6320	ui	funclet	EH tables of 00446540
 005d6328	ui	funclet	EH tables of 00446540
 005d6330	ui	funclet	EH tables of 00446540
-005d6350	ui	funclet	EH tables of 00446ab0
 005d6370	ui	funclet	EH tables of 00446c30
 005d6378	ui	funclet	EH tables of 00446c30
 005d6383	ui	funclet	EH tables of 00446c30

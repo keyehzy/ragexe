@@ -9,6 +9,7 @@ address	namespace	name	evidence	type
 00628b88	Global	g_KeyPadDispatcher	constructed by 0041e190 from static initializer 0041da30	class:KeyPadDispatcher
 00628c00	Global	g_CRmaRes	constructed by 00421b30 from static initializer 00421b00	class:CRmaRes
 00628d70	Global	g_CActRes	constructed by 004207c0 from static initializer 00420790	class:CActRes
+00628eb8	Global	g_ActFrame	constructed on first use by 00420750 in 004206e0	class:ActFrame
 00628f08	Global	g_C3dAttr	constructed by 00426a20 from static initializer 004269f0	class:C3dAttr
 00629038	Global	g_CBitmapRes_00629038	constructed by 00427610 from static initializer 00427780	class:CBitmapRes
 00629158	Global	g_CBitmapRes_00629158	constructed by 00427610 from static initializer 00427730	class:CBitmapRes

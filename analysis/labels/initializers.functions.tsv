@@ -60,7 +60,7 @@ address	namespace	name	calling_convention	evidence
 0041ff40	Global	static_init_028	__cdecl	entry 28 of the C++ initializer table run by _cinit
 00420320	Global	static_init_029	__cdecl	entry 29 of the C++ initializer table run by _cinit
 004203d0	Global	static_init_030	__cdecl	entry 30 of the C++ initializer table run by _cinit
-00420780	Global	destroy_global_00628eb8	__cdecl	atexit handler: mov ecx, 00628eb8 and calls 004206a0
+00420780	Global	destroy_g_ActFrame	__cdecl	atexit handler: mov ecx, 00628eb8 and calls 004206a0
 00420790	Global	static_init_031	__cdecl	entry 31 of the C++ initializer table run by _cinit
 004207a0	Global	static_init_031_body	__cdecl	static_init_031 calls or jumps to it
 00420a50	Global	register_destroy_g_CActRes	__cdecl	static_init_031 calls it: registers its destroy stub 00420a60 with atexit

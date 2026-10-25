@@ -69,11 +69,11 @@ to say what the code is.
 | | `IncrementIterator`, `DecrementIterator` | step an iterator (a node pointer) to the next or previous node |
 | | `InsertAt` | link a new node under a given parent and rebalance (the insertion step `insert` uses) |
 | | `EraseSubtree`, `CopySubtree` | recursive free or copy of a subtree |
-| | `insert`, `erase`, `find`, `lower_bound`, `upper_bound`, `clear`, `operator[]`, `count` | public members, when the behaviour matches |
+| | `insert`, `erase`, `find`, `lower_bound`, `upper_bound`, `clear`, `operator[]`, `count`, `begin` | public members, when the behaviour matches |
 | `std::list` | `list`, `~list` | constructor, destructor |
 | | `AllocNode`, `EraseNode`, `EraseRange` | allocate a node; unlink and free one node or a range, returning the next position |
-| | `IncrementIterator` | step an iterator to the next node |
-| | `push_back`, `push_front`, `insert`, `erase`, `clear`, `remove`, `sort`, `splice` | public members |
+| | `IncrementIterator` | step an iterator to the next node (prefix or postfix) |
+| | `push_back`, `push_front`, `insert`, `erase`, `clear`, `remove`, `sort`, `splice`, `resize`, `begin` | public members |
 | `std::vector` | `vector`, `~vector`, `operator=` | constructor, destructor, assignment |
 | | `insert`, `push_back`, `erase`, `resize`, `reserve`, `clear`, `size`, `capacity` | public members |
 | | `FillUninitialized`, `CopyUninitialized`, `DestroyRange` | construct n copies or a copy of a range in raw memory, destroy a range |
@@ -81,12 +81,14 @@ to say what the code is.
 | `std::string` | `string`, `~string` | constructor, destructor |
 | | `FreeBuffer`, `GrowBuffer`, `ReallocateBuffer` | release (or drop a reference to) the copy-on-write buffer; make room for n characters; allocate a larger buffer and copy into it |
 | | `ReallocateBufferTail`, `GetRefCountByte` | the part of `ReallocateBuffer` reached only by its jump; the address of the reference count, the byte before the characters |
-| | `assign`, `append`, `insert`, `erase`, `compare`, `find`, `substr`, `resize`, `max_size`, `operator+=` | public members |
+| | `UnshareBuffer` | give the string its own copy of a shared buffer and set the reference count to `0xff`, so it is never shared again; called before handing out a writable pointer |
+| | `assign`, `append`, `insert`, `erase`, `compare`, `find`, `replace`, `substr`, `resize`, `max_size`, `operator+=` | public members |
 | `std::pair` | `pair` | the pair constructor |
 | `std` | `ConstructAt`, `DestroyAt` | copy-construct a value at a pointer when it is not null; destroy the value at a pointer. `__cdecl`; the same operation called with ECX = an allocator is `std::allocator::construct` / `destroy` |
 | | `AllocateElements` | `operator new` of n elements, as the containers' allocation helper |
 | | `QuickSortRange`, `InsertionSort`, `ShiftInsertSorted` | the parts of a sort: partition and recurse; sort a short range; move one element back to its place |
-| | `copy`, `operator+` | public algorithms and operators, when the behaviour matches |
+| | `PartitionRange`, `MedianOfThree` | split a range around a pivot value, returning the split point; the middle of three values, the sort's pivot choice |
+| | `copy`, `copy_backward`, `fill`, `operator+` | public algorithms and operators, when the behaviour matches |
 | | `ThrowLengthError`, `ThrowOutOfRange` | throw `length_error` or `out_of_range` with the string the binary holds |
 | `std::StlLock` | `StlLock`, `~StlLock` | enter and leave the global critical section that guards the STL (`0x688a88`) |
 | `std::LocaleInfo` | `LocaleInfo`, `~LocaleInfo` | the locale information object built on the stack before facets |
