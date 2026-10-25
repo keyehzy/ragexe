@@ -1,0 +1,25 @@
+# Original Gravity files: installer, extracted cab, rebuilt install tree, game data.
+/original/
+/iRO_ver4.0.zip
+*.grf
+*.gpf
+*.rgz
+
+# Ghidra project database and raw decompiler output (derived from copyrighted code).
+/analysis/ghidra/
+/analysis/decomp/
+*.gpr
+*.rep/
+*.lock
+*.lock~
+
+# Logs from analysis runs.
+/analysis/exports/*.log
+/analysis/*.log
+
+# Local tooling.
+/.venv/
+__pycache__/
+*.pyc
+/build/
+.DS_Store

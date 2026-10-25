@@ -1,0 +1,50 @@
+Directory	Directory_Parent	DefaultDir
+s72	S72	l255
+Directory	Directory
+TARGETDIR		SourceDir
+AdminToolsFolder	TARGETDIR	.:Admint~1|AdminTools
+AppDataFolder	TARGETDIR	.:APPLIC~1|Application Data
+BGM	INSTALLDIR	BGM
+INSTALLDIR	RAGNAROKONLINE	.
+CommonAppDataFolder	TARGETDIR	.:Common~1|CommonAppData
+CommonFiles64Folder	TARGETDIR	.:Common64
+CommonFilesFolder	TARGETDIR	.:Common
+ISYourDataBaseDir	INSTALLDIR	Database
+DATABASEDIR	ISYourDataBaseDir	.
+SKIN	INSTALLDIR	skin
+DEFAULT	SKIN	default
+DesktopFolder	TARGETDIR	.:Desktop
+FavoritesFolder	TARGETDIR	.:FAVORI~1|Favorites
+FontsFolder	TARGETDIR	.:Fonts
+ProgramFilesFolder	TARGETDIR	.:PROGRA~1|program files
+GRAVITY	ProgramFilesFolder	Gravity
+GlobalAssemblyCache	TARGETDIR	.:Global~1|GlobalAssemblyCache
+RAGNAROKONLINE	GRAVITY	RAGNAR~1|RagnarokOnline
+ISCommonFilesFolder	CommonFilesFolder	Instal~1|InstallShield
+ISUpdateServiceFolder	ISCommonFilesFolder	UPDATE~1|UpdateService
+ISYourCompanyDir	ProgramFilesFolder	YOURCO~1|Your Company Name
+ISYourProductDir	ISYourCompanyDir	YOURPR~1|Your Product Name
+LocalAppDataFolder	TARGETDIR	.:LocalA~1|LocalAppData
+MyPicturesFolder	TARGETDIR	.:MyPict~1|MyPictures
+NetHoodFolder	TARGETDIR	.:NetHood
+PersonalFolder	TARGETDIR	.:Personal
+PrimaryVolumePath	TARGETDIR	.:Primar~1|PrimaryVolumePath
+PrintHoodFolder	TARGETDIR	.:PRINTH~1|PrintHood
+ProgramFiles64Folder	TARGETDIR	.:Prog64~1|Program Files 64
+ProgramMenuFolder	TARGETDIR	.:Programs
+RO	GRAVITY	RO
+RecentFolder	TARGETDIR	.:Recent
+SCRIBBLING_KID	SKIN	SCRIBB~1|Scribbling Kid
+SendToFolder	TARGETDIR	.:SendTo
+StartMenuFolder	TARGETDIR	.:STARTM~1|Start Menu
+StartupFolder	TARGETDIR	.:StartUp
+System16Folder	TARGETDIR	.:System
+System64Folder	TARGETDIR	.:System64
+SystemFolder	TARGETDIR	.:System32
+TempFolder	TARGETDIR	.:Temp
+TemplateFolder	TARGETDIR	.:ShellNew
+WindowsFolder	TARGETDIR	.:Windows
+WindowsVolume	TARGETDIR	.:WinRoot
+newfolder1	ProgramMenuFolder	RAGNAR~1|Ragnarok Online
+_30529A0393414C6E89B5CFA645B84AB4	DEFAULT	BASIC_~1|basic_interface
+_79E660B658264798AC3F88A0123A829A	SCRIBBLING_KID	BASIC_~1|basic_interface
