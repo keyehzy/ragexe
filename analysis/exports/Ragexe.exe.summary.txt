@@ -6,7 +6,7 @@ function bytes     1859539
 thunks             95
 non-default names  7155
 FID matches        55 (4069 bytes, 0.2% of function bytes)
-class namespaces   327
+class namespaces   330
 source ANALYSIS    4929
 source DEFAULT     3658
 source USER_DEFINED 2226

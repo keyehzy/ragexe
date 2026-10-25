@@ -24,6 +24,9 @@
 //       array:<elem>:<count>,
 //       where elem is class:<Class> or bytes<N>. Member objects and arrays are applied
 //       as byte ranges with their type in the field comment.
+//       std_string, std_list and std_tree are the structs of the std::string, std::list
+//       and std::_Tree classes (MSVC 6 layouts), which this script creates, so `this` is
+//       typed in the container methods.
 // Kinds are applied in this order: classes, fields, functions, data. Within a kind,
 // generated files (those with a "# generated" line) come first and curated files last,
 // so a curated name wins over a generated one at the same address.
@@ -99,6 +102,10 @@ public class ApplyLabels extends GhidraScript {
 		for (GhidraClass c : iterable(currentProgram.getSymbolTable().getClassNamespaces())) {
 			classesByPath.put(c.getName(true), c);
 		}
+		DataTypeManager containers = currentProgram.getDataTypeManager();
+		stdString(containers);
+		stdList(containers);
+		stdTree(containers);
 		for (File f : files) {
 			if (f.getName().endsWith(".data.tsv")) {
 				for (String[] r : read(f)) {
@@ -134,6 +141,7 @@ public class ApplyLabels extends GhidraScript {
 				}
 			}
 		}
+		removeLegacyContainerTypes(currentProgram.getDataTypeManager());
 		println(String.format("labels: %d classes, %d fields, %d functions, %d data labels applied", classes,
 			fields, functions, data));
 		if (untypedData > 0) {
@@ -337,7 +345,7 @@ public class ApplyLabels extends GhidraScript {
 		return applied;
 	}
 
-	private DataType fieldType(String type, int size, DataTypeManager dtm) {
+	private DataType fieldType(String type, int size, DataTypeManager dtm) throws Exception {
 		String[] p = type.split(":", 2);
 		switch (p[0]) {
 			case "byte":
@@ -389,45 +397,31 @@ public class ApplyLabels extends GhidraScript {
 	}
 
 	/** MSVC 6 std::string: allocator byte, then pointer, length and capacity. */
-	private DataType stdString(DataTypeManager dtm) {
-		CategoryPath cat = new CategoryPath("/Ragexe/stl");
-		DataType dt = dtm.getDataType(cat, "std_string");
-		if (dt != null) {
-			return dt;
-		}
-		StructureDataType s = new StructureDataType(cat, "std_string", 0, dtm);
+	/** MSVC 6 std::string: allocator byte, then the copy-on-write buffer, length and capacity. */
+	private DataType stdString(DataTypeManager dtm) throws Exception {
+		StructureDataType s = new StructureDataType("string", 0, dtm);
 		s.add(ByteDataType.dataType, "_Al", "allocator (empty)");
 		s.add(new ArrayDataType(Undefined1DataType.dataType, 3, 1), "_pad", null);
 		s.add(new PointerDataType(CharDataType.dataType, dtm), "_Ptr",
 			"characters; the byte before them is the copy-on-write reference count");
 		s.add(DWordDataType.dataType, "_Len", null);
 		s.add(DWordDataType.dataType, "_Res", "capacity");
-		return dtm.addDataType(s, DataTypeConflictHandler.KEEP_HANDLER);
+		return containerClass("std::string", s, dtm);
 	}
 
 	/** MSVC 6 std::list: allocator byte, then the sentinel node and the element count. */
-	private DataType stdList(DataTypeManager dtm) {
-		CategoryPath cat = new CategoryPath("/Ragexe/stl");
-		DataType dt = dtm.getDataType(cat, "std_list");
-		if (dt != null) {
-			return dt;
-		}
-		StructureDataType s = new StructureDataType(cat, "std_list", 0, dtm);
+	private DataType stdList(DataTypeManager dtm) throws Exception {
+		StructureDataType s = new StructureDataType("list", 0, dtm);
 		s.add(ByteDataType.dataType, "_Al", "allocator (empty)");
 		s.add(new ArrayDataType(Undefined1DataType.dataType, 3, 1), "_pad", null);
 		s.add(PointerDataType.dataType, "_Head", "sentinel node: next, prev, then the value");
 		s.add(DWordDataType.dataType, "_Size", null);
-		return dtm.addDataType(s, DataTypeConflictHandler.KEEP_HANDLER);
+		return containerClass("std::list", s, dtm);
 	}
 
 	/** MSVC 6 std::_Tree (map, set): allocator and comparator bytes, head node, multi flag, size. */
-	private DataType stdTree(DataTypeManager dtm) {
-		CategoryPath cat = new CategoryPath("/Ragexe/stl");
-		DataType dt = dtm.getDataType(cat, "std_tree");
-		if (dt != null) {
-			return dt;
-		}
-		StructureDataType s = new StructureDataType(cat, "std_tree", 0, dtm);
+	private DataType stdTree(DataTypeManager dtm) throws Exception {
+		StructureDataType s = new StructureDataType("_Tree", 0, dtm);
 		s.add(ByteDataType.dataType, "_Al", "allocator (empty)");
 		s.add(ByteDataType.dataType, "_Comp", "key_compare (empty)");
 		s.add(new ArrayDataType(Undefined1DataType.dataType, 2, 1), "_pad", null);
@@ -435,7 +429,57 @@ public class ApplyLabels extends GhidraScript {
 		s.add(ByteDataType.dataType, "_Multi", "true for multimap and multiset");
 		s.add(new ArrayDataType(Undefined1DataType.dataType, 3, 1), "_pad2", null);
 		s.add(DWordDataType.dataType, "_Size", null);
-		return dtm.addDataType(s, DataTypeConflictHandler.KEEP_HANDLER);
+		return containerClass("std::_Tree", s, dtm);
+	}
+
+	/**
+	 * Makes the container namespace a class whose struct (at the class's own category
+	 * path, which is what Ghidra types `this` with) has the given layout. All template
+	 * instances share one class: the layout does not depend on the element type.
+	 */
+	private Structure containerClass(String path, StructureDataType layout, DataTypeManager dtm)
+			throws Exception {
+		GhidraClass c = classesByPath.get(path);
+		if (c == null) {
+			Namespace ns = namespace(path);
+			c = ns instanceof GhidraClass ? (GhidraClass) ns : NamespaceUtils.convertNamespaceToClass(ns);
+			classesByPath.put(path, c);
+		}
+		Structure s = classStruct(c, dtm);
+		if (!sameLayout(s, layout)) {
+			s.replaceWith(layout);
+			s.setDescription("MSVC 6 Dinkumware " + path + "; applied by ApplyLabels");
+		}
+		return s;
+	}
+
+	private static boolean sameLayout(Structure a, Structure b) {
+		if (a.getLength() != b.getLength() || a.getNumComponents() != b.getNumComponents()) {
+			return false;
+		}
+		for (int k = 0; k < a.getNumComponents(); k++) {
+			DataTypeComponent x = a.getComponent(k), y = b.getComponent(k);
+			if (x.getOffset() != y.getOffset() || !java.util.Objects.equals(x.getFieldName(), y.getFieldName())
+				|| !x.getDataType().isEquivalent(y.getDataType())) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/** Container structs that earlier versions kept in /Ragexe/stl. */
+	private void removeLegacyContainerTypes(DataTypeManager dtm) {
+		CategoryPath cat = new CategoryPath("/Ragexe/stl");
+		for (String name : new String[] { "std_string", "std_list", "std_tree" }) {
+			DataType dt = dtm.getDataType(cat, name);
+			if (dt != null) {
+				dtm.remove(dt);
+			}
+		}
+		ghidra.program.model.data.Category c = dtm.getCategory(cat);
+		if (c != null && c.getDataTypes().length == 0 && c.getCategories().length == 0) {
+			dtm.getCategory(cat.getParent()).removeEmptyCategory(cat.getName(), monitor);
+		}
 	}
 
 	private Namespace classOrNamespace(String path) throws Exception {

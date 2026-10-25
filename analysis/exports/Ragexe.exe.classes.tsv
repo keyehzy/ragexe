@@ -326,3 +326,6 @@ TipOfTheDayList	Global	4	0
 DataFile	Global	6	0
 ResourceManager	Global	4	0
 MoviePlayer	Global	8	0
+string	std	8	0
+list	std	31	0
+_Tree	std	74	0

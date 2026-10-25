@@ -463,9 +463,15 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     1,112 library.
   - Converges in two `--reanalyze` passes: the second regenerates identical label files.
 
+- [x] Container classes: `std::string`, `std::list` and `std::_Tree` are Ghidra classes whose
+  structs (`/std/string`, `/std/list`, `/std/_Tree`) hold the MSVC 6 layouts. Ghidra types
+  `this` from the struct at the class's own category path, so all 113 container functions now
+  take a typed `this` (8 `string`, 31 `list`, 74 `_Tree`), e.g. `std::string::_Tidy(string *this)`
+  reads `this->_Ptr`. Member fields use the same structs (`UIWindow+8` is a `/std/list`), and
+  `ApplyLabels` deletes the `/Ragexe/stl` copies that earlier runs made. One class per container
+  serves every template instance, since the header layout does not depend on the element type.
+
 ### Next actions (M1)
-1. Make `std::string`, `std::list` and `std::_Tree` Ghidra classes typed with their structs, so
-   `this` in the container methods is typed.
-2. Count direct `[global + n]` accesses as field uses of global objects; singletons such as
+1. Count direct `[global + n]` accesses as field uses of global objects; singletons such as
    `ClientState` are mostly reached that way.
-3. Emulation oracle harness and the static runtime-code check.
+2. Emulation oracle harness and the static runtime-code check.
