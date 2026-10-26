@@ -23,6 +23,23 @@ class	ResourceManager	res	resource cache keyed by name, filled from ResNameTable
 class	DataFile	res	reads a file through the archive or from disk
 class	XmlDocument	res	clientinfo.xml
 class	XmlElement	res	elements of XmlDocument's tree
+class	ItemRecord	game	an item as ClientState and the UI hold it
+class	SkillRecord	ui	value of the skill lists
+class	GuildMemberRecord	ui	value of GuildInfo's member list
+class	GuildPositionRecord	ui	value of the guild position map
+class	MessengerRecord	ui	value of UIMessengerGroupWnd's list
+class	SelectCharSlot	ui	character slot of UISelectCharWnd
+class	StringIntRecord	ui	{string, int} element of window lists
+class	EdgeRect	ui	window edges for UIWindowMgr's alignment
+class	LightmapAtlas	world	lightmap blocks of C3dGround
+class	MovePath	world	path of CGameActor
+class	ViewFrustum	world	culling planes of CView
+class	SceneRayQuery	world	ray picking through the scene graph
+class	ItemInfo	game	value of g_itemInfoById
+class	CardInfo	game	value of g_cardInfoById
+class	DesCipher	res	DES key schedule for the archives
+class	HashedFileName	res	resource and archive file name key
+class	ScriptRecord	game	element of mg::CScript's vector
 class	ModelResNode	res	node of a C3dModelRes
 class	ModelResMesh	res	mesh of a ModelResNode
 class	AnimModelResNode	res	node of a C3dAnimModelRes

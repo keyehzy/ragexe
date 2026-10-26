@@ -1272,11 +1272,50 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     entries; a djb2 hash of the lower-cased name) and `ScriptRecord` (the 0x28-byte
     element of `mg::CScript`'s vector).
 
+- [x] Class proposals from naming runs 3–5, by the same test as before: `__thiscall`
+  functions that callers apply to one kind of object, with the size shown in the code.
+  For each candidate, the ECX source at every call site was listed (`lea ecx, [node +
+  8]` in list nodes, a stack slot, `this + n` of one owner). 17 classes are in
+  `inferred.classes.tsv`, with subsystem rules, and 85 functions moved into them; names
+  drop the words the class now carries (`BuildItemDisplayName` →
+  `ItemRecord::BuildDisplayName`).
+  - **Records:**
+    - `ItemRecord` (68 bytes): 25 methods. `ClientState` holds three arrays of ten,
+      0x2a8 = 10 × 0x44 apart, built by `eh_vector_constructor_iterator`.
+    - `SkillRecord` (44), `GuildMemberRecord` (92), `GuildPositionRecord` (36),
+      `MessengerRecord` (52) and `StringIntRecord` (20): list, map and vector values
+      with destructors, assignments and deleting destructors. Each size is where the
+      last field the code uses ends; `SkillRecord::GetIdName` was confirmed by a
+      packet handler's stack record, whose string sits at `+0x1c`.
+    - `SelectCharSlot` (236): the vector constructor builds three at
+      `UISelectCharWnd+0x64` with size 0xec.
+    - `ItemInfo` (120) and `CardInfo` (48): the `g_itemInfoById` and `g_cardInfoById`
+      values; `recover_objects` now names their static fallbacks `g_ItemInfo` and
+      `g_CardInfo`, and the empty guild position `g_GuildPositionRecord`.
+    - `ScriptRecord` (40): the element of `mg::CScript`'s vector.
+  - **Members:** `LightmapAtlas` (40, `C3dGround+0x14`), `MovePath` (28,
+    `CGameActor+0x170`) and `ViewFrustum` (192, `CView+0xf4`). Each spans the gap
+    between the owner's neighbouring fields; the frustum's two list heads are the
+    `CView` pointers at `+0x1a0` and `+0x1ac`. The owners now have the typed members,
+    with no overlapping fields.
+  - **Stack objects:** `SceneRayQuery` (40), `EdgeRect` (48, two of them 0x30 apart
+    on `UIWindowMgr`'s stack), `DesCipher` (128, the 16 subkeys `CGPak` decrypts
+    with) and `HashedFileName` (256, also `CRes+0x10`).
+  - **Not accepted:**
+    - `SeedCipherContext`: its functions are `__cdecl` and take the context as an
+      argument, like `Quaternion`.
+    - `WndInfo`: each reset/validate pair serves one window record, and the records
+      differ in size (16 or 20 bytes), so no single class fits; they stay in `Global`.
+    - `ChatRoomInfo`, the banished-member record and the int/string record: one
+      function each.
+  - Fields 10,334 → 10,460. Coverage is low where the code indexes arrays
+    (`ViewFrustum`'s planes 15%, `DesCipher`'s subkeys 6%, `HashedFileName`'s name
+    2%). Still 91.2% named or library-tagged; this step names nothing new. Converges
+    in three passes.
+
 ### Next actions (M1)
 1. M1's naming exit is met (91.2% of reachable code). Check the other M1 items against
    section 5 (constructors, destructors and sizes for all classes; the class graph;
    `docs/architecture.md`) and close M1.
-2. Decide the class proposals of naming runs 3–5 (records, `WndInfo`, `MovePath`,
-   `ViewFrustum`, `ItemInfo`, `CardInfo`, the cipher contexts, `HashedFileName`, ...).
-3. The 580 reachable game functions still unnamed (174 KB) can be named the same way
+2. The 580 reachable game functions still unnamed (174 KB) can be named the same way
    when their subsystems are ported.

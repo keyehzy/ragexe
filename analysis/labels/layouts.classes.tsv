@@ -20,7 +20,7 @@ CMode	64	estimated: end of the last field the class or its bases use
 CRagConnection	204	estimated: end of the last field the class or its bases use; at most 204: the global at 00628a70 is followed by a variable at 00628b3c (another data label)
 CRagEffect	17540	estimated: end of the last field the class or its bases use
 CRenderObject	160	estimated: end of the last field the class or its bases use
-CRes	16	estimated: end of the last field the class or its bases use
+CRes	272	estimated: end of the last field the class or its bases use
 CSakGPak	136	estimated: end of the last field the class or its bases use
 CSkinMgr	88	estimated: end of the last field the class or its bases use; at most 88: the global at 00641cc8 is followed by a variable at 00641d20 (another data label)
 CSnapMgr	20	estimated: end of the last field the class or its bases use; at most 20: the global at 00641d20 is followed by a variable at 00641d34 (written by the dynamic initializer 00439b60)

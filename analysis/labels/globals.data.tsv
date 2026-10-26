@@ -28,6 +28,7 @@ address	namespace	name	evidence	type
 00641af0	Global	g_C3dWorldRes	constructed by 00435830 from static initializer 00435800	class:C3dWorldRes
 00641cc8	Global	g_CSkinMgr	constructed by 00436e20 from static initializer 00436c90	class:CSkinMgr
 00641d20	Global	g_CSnapMgr	constructed by 004391d0 from static initializer 00438ab0	class:CSnapMgr
+00641d68	Global	g_GuildPositionRecord	constructed on first use by 0047f680 in 0047f5f0	class:GuildPositionRecord
 00641fa8	Global	g_UIWindowMgr	constructed by 004a7660 from static initializer 004a7060	class:UIWindowMgr
 0067bf98	Global	g_ThaiWordBreaker	constructed by 004c26b0 from static initializer 004c9390	class:ThaiWordBreaker
 0067c3b8	Global	g_CLanguageTH	constructed on first use by 004c93d0 in 004ca940	class:CLanguageTH
@@ -46,3 +47,5 @@ address	namespace	name	evidence	type
 00686598	Global	g_WorldColorFade	constructed by 00586400 from static initializer 0057cf60	class:WorldColorFade
 00686670	Global	g_ClientState	constructed by 00586860 from static initializer 00586820	class:ClientState
 00688480	Global	g_MoviePlayer	constructed by 004dbbe0 from static initializer 005b1030	class:MoviePlayer
+00689140	Global	g_ItemInfo	constructed on first use by 004d5a80 in 004d48e0	class:ItemInfo
+006891c0	Global	g_CardInfo	constructed on first use by 004d7420 in 004d5be0	class:CardInfo

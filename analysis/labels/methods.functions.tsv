@@ -223,7 +223,6 @@ address	namespace	name	calling_convention	evidence
 00482220	UIGuildBanishedMemberWnd	method_00482220	__thiscall	__thiscall; called with this from 1 functions of UIGuildBanishedMemberWnd, e.g. 004817f0
 00483220	UIGuildTotalInfoWnd	method_00483220	__thiscall	__thiscall; called with this from 1 functions of UIGuildTotalInfoWnd, e.g. 004832c0
 004835f0	UIGuildTotalInfoWnd	method_004835f0	__thiscall	__thiscall; called with this from 1 functions of UIGuildTotalInfoWnd, e.g. 00482ce0
-00483d30	std::string	method_00483d30	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050c320
 004840f0	std::list	method_004840f0	__thiscall	__thiscall; called with this from 1 functions of UIGuildSkillWnd, e.g. 00480070
 00484130	std::list	method_00484130	__thiscall	__thiscall; called with this from 1 functions of UIGuildPositionManageWnd, e.g. 0047e370
 004841a0	std::list	method_004841a0	__thiscall	__thiscall; called with this from 3 functions of GuildInfo, UIGuildPositionManageWnd, e.g. 0047e370

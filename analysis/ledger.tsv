@@ -1688,8 +1688,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0044cd90	478	code	0	ui		named	UINoticeWnd	method_0044cd90	
 0044cf70	184	code	0	ui		named	UISelectCharWnd	UISelectCharWnd	
 0044d030	33	code	0	ui		named	UISelectCharWnd	`scalar_deleting_destructor'	
-0044d060	184	code	0	ui		named	Global	ConstructSelectCharSlot	
-0044d120	267	code	0	ui		named	Global	DestroySelectCharSlot	
+0044d060	184	code	0	ui		named	SelectCharSlot	SelectCharSlot	
+0044d120	267	code	0	ui		named	SelectCharSlot	~SelectCharSlot	
 0044d230	94	code	0	ui		named	UISelectCharWnd	~UISelectCharWnd	
 0044d290	1150	code	0	ui		named	UISelectCharWnd	method_0044d290	
 0044d820	121	code	0	ui	unreferenced	raw	Global	FUN_0044d820	
@@ -1763,7 +1763,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004576c0	1892	code	0	ui		named	UIPetInfoWnd	vf20	
 00457e30	40	code	0	ui		named	UIPetInfoWnd	vf12	
 00457e60	1706	code	0	ui		named	UIPetInfoWnd	vf37	
-00458560	62	code	0	ui		named	Global	DestroyItemRecord	
+00458560	62	code	0	game		named	ItemRecord	~ItemRecord	
 004585a0	18	code	0	ui		named	UITalkboxTrapInputWnd	UITalkboxTrapInputWnd	
 004585c0	33	code	0	ui		named	UITalkboxTrapInputWnd	`scalar_deleting_destructor'	
 004585f0	11	code	0	ui		named	UITalkboxTrapInputWnd	~UITalkboxTrapInputWnd	
@@ -1807,7 +1807,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0045aac0	358	code	1	stl		named	std	copy_backward	
 0045ac30	346	code	1	stl		named	std	ConstructAt	
 0045ad90	346	code	1	stl		named	std	ConstructAt	
-0045aef0	357	code	0	ui		named	Global	AssignStringIntRecord	
+0045aef0	357	code	0	ui		named	StringIntRecord	Assign	
 0045b060	33	code	1	stl		named	std::pair	`scalar_deleting_destructor'	
 0045b090	37	code	0	ui		named	Global	static_init_075	
 0045b0c0	783	code	0	ui		named	UIFrameWnd	method_0045b0c0	
@@ -1852,7 +1852,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0045de20	11	code	0	ui		named	UIShortCutWnd	~UIShortCutWnd	
 0045de30	629	code	0	ui		named	UIShortCutWnd	vf17	
 0045e0b0	633	code	0	ui		named	UIShortCutWnd	vf20	
-0045e330	62	code	0	ui		named	Global	DestroySkillRecord	
+0045e330	62	code	0	ui		named	SkillRecord	~SkillRecord	
 0045e370	764	code	0	ui		named	UIShortCutWnd	vf29	
 0045e670	56	code	0	ui		named	UIShortCutWnd	vf19	
 0045e6b0	912	code	0	ui		named	UIShortCutWnd	vf11	
@@ -2198,7 +2198,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00478f50	521	code	1	stl		named	std::vector	insert	
 00479160	464	code	1	stl		named	std	ConstructAt	
 00479330	19	code	1	stl		named	std	ConstructAt	
-00479350	33	code	0	ui		named	Global	DeleteItemRecord	
+00479350	33	code	0	game		named	ItemRecord	`scalar_deleting_destructor'	
 00479380	37	code	0	ui		named	Global	static_init_076	
 004793b0	888	code	0	ui		named	UIGuildWnd	method_004793b0	
 00479730	181	code	0	ui		named	UIGuildWnd	method_00479730	
@@ -2229,12 +2229,12 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0047c1e0	2434	code	0	ui		named	UIGuildMemberManageWnd	vf20	
 0047cb70	165	code	0	ui		named	UIGuildMemberManageWnd	method_0047cb70	
 0047cc20	374	code	0	ui		named	UIGuildMemberManageWnd	GetMemberAt	
-0047cda0	684	code	0	ui		named	Global	AssignGuildMember	
+0047cda0	684	code	0	ui		named	GuildMemberRecord	Assign	
 0047d050	66	code	0	ui		named	UIGuildMemberManageWnd	vf26	
 0047d0a0	51	code	0	ui		named	UIGuildMemberManageWnd	vf32	
 0047d0e0	21	code	0	ui		named	UIGuildMemberManageWnd	vf33	
 0047d100	3495	code	0	ui		named	UIGuildMemberManageWnd	vf37	
-0047df00	154	code	0	ui		named	Global	DestroyGuildMember	
+0047df00	154	code	0	ui		named	GuildMemberRecord	~GuildMemberRecord	
 0047dfa0	65	code	0	ui		named	UIGuildMemberManageWnd	vf35	
 0047dff0	225	code	0	ui		named	UIGuildMemberManageWnd	method_0047dff0	
 0047e0e0	334	code	0	ui		named	UIGuildPositionManageWnd	UIGuildPositionManageWnd	
@@ -2245,11 +2245,11 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0047ec10	33	code	0	ui		named	UIEditCtrlVarId	`scalar_deleting_destructor'	
 0047ec40	11	code	0	ui		named	UIEditCtrlVarId	~UIEditCtrlVarId	
 0047ec50	1879	code	0	ui		named	UIGuildPositionManageWnd	vf37	
-0047f470	371	code	0	ui		named	Global	AssignGuildPosition	
+0047f470	371	code	0	ui		named	GuildPositionRecord	Assign	
 0047f5f0	117	code	0	ui		named	UIGuildPositionManageWnd	GetPositionAt	
-0047f670	10	code	0	ui		named	Global	destroy_global_00641d68	
-0047f680	27	code	0	ui		named	Global	ConstructGuildPosition	
-0047f6a0	62	code	0	ui		named	Global	DestroyGuildPosition	
+0047f670	10	code	0	ui		named	Global	destroy_g_GuildPositionRecord	
+0047f680	27	code	0	ui		named	GuildPositionRecord	GuildPositionRecord	
+0047f6a0	62	code	0	ui		named	GuildPositionRecord	~GuildPositionRecord	
 0047f6e0	1515	code	0	ui		named	UIGuildPositionManageWnd	vf20	
 0047fcd0	18	code	0	ui		named	UIGuildPositionManageWnd	vf01	
 0047fcf0	149	code	0	ui		named	UIGuildPositionManageWnd	method_0047fcf0	
@@ -2317,7 +2317,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00483c30	11	code	0	ui		named	UIGuildBanReasonDescWnd	~UIGuildBanReasonDescWnd	
 00483c40	57	code	0	ui		named	UIGuildBanReasonDescWnd	vf17	
 00483c80	162	code	0	ui		named	UIGuildBanReasonDescWnd	vf37	
-00483d30	27	code	1	stl		named	std::string	method_00483d30	
+00483d30	27	code	1	stl		raw	Global	FUN_00483d30	
 00483d50	98	code	1	stl		named	std::list	~list	
 00483dc0	56	code	1	stl		named	std::vector	~vector	
 00483e00	98	code	1	stl		named	std::list	~list	
@@ -2372,8 +2372,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004867b0	369	code	1	stl		named	std	ConstructAt	
 00486930	37	code	1	stl		named	std	ConstructAt	
 00486960	383	code	1	stl		named	std	ConstructAt	
-00486ae0	33	code	0	ui		named	Global	DeleteStringIntRecord	
-00486b10	33	code	0	ui		named	Global	DeleteGuildPosition	
+00486ae0	33	code	0	ui		named	StringIntRecord	`scalar_deleting_destructor'	
+00486b10	33	code	0	ui		named	GuildPositionRecord	`scalar_deleting_destructor'	
 00486b40	37	code	0	ui		named	Global	static_init_077	
 00486b70	48	code	0	ui		named	UIIllustWnd	UIIllustWnd	
 00486ba0	33	code	0	ui		named	UIIllustWnd	`scalar_deleting_destructor'	
@@ -2446,7 +2446,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0048b7f0	299	code	0	ui		named	UIMerchantItemMyShopWnd	vf29	
 0048b920	52	code	0	ui		named	UIMerchantItemMyShopWnd	vf12	
 0048b960	991	code	0	ui		named	UIMerchantItemMyShopWnd	vf37	
-0048bd80	420	code	0	ui		named	Global	CopyItemRecord	
+0048bd80	420	code	0	game		named	ItemRecord	ItemRecord	
 0048bf30	45	code	0	ui		named	UIMerchantItemShopWnd	UIMerchantItemShopWnd	
 0048bf60	33	code	0	ui		named	UIMerchantItemShopWnd	`scalar_deleting_destructor'	
 0048bf90	11	code	0	ui		named	UIMerchantItemShopWnd	~UIMerchantItemShopWnd	
@@ -2577,7 +2577,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004998a0	1545	code	0	ui		named	UIMerchantShopMakeWnd	vf37	
 00499ef0	223	code	0	ui		named	UIMerchantShopMakeWnd	method_00499ef0	
 00499fd0	45	code	1	stl		named	std::list	AllocNode	
-0049a000	33	code	0	ui		named	Global	DeleteSkillRecord	
+0049a000	33	code	0	ui		named	SkillRecord	`scalar_deleting_destructor'	
 0049a030	37	code	0	ui		named	Global	static_init_080	
 0049a060	169	code	0	ui		named	UIMessengerGroupWnd	UIMessengerGroupWnd	
 0049a110	33	code	0	ui		named	UIMessengerGroupWnd	`scalar_deleting_destructor'	
@@ -2586,7 +2586,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0049ac20	248	code	0	ui		named	UIMessengerGroupWnd	GetEntryAt	
 0049ad20	580	code	0	ui		named	UIMessengerGroupWnd	method_0049ad20	
 0049af70	248	code	0	ui		named	UIMessengerGroupWnd	vf26	
-0049b070	109	code	0	ui		named	Global	DestroyMessengerRecord	
+0049b070	109	code	0	ui		named	MessengerRecord	~MessengerRecord	
 0049b0e0	243	code	0	ui		named	UIMessengerGroupWnd	vf33	
 0049b1e0	24	code	0	ui		named	UIMessengerGroupWnd	vf27	
 0049b200	62	code	0	ui		named	UIMessengerGroupWnd	vf35	
@@ -2623,7 +2623,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0049f410	94	code	1	stl		named	std::list	insert	
 0049f470	64	code	1	stl		named	std::list	erase	
 0049f4b0	342	code	1	stl		named	std	ConstructAt	
-0049f610	33	code	0	ui		named	Global	DeleteMessengerRecord	
+0049f610	33	code	0	ui		named	MessengerRecord	`scalar_deleting_destructor'	
 0049f640	37	code	0	ui		named	Global	static_init_081	
 0049f670	42	code	0	ui		named	UIMakeTargetListWnd	UIMakeTargetListWnd	
 0049f6a0	33	code	0	ui		named	UIMakeTargetListWnd	`scalar_deleting_destructor'	
@@ -2632,7 +2632,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0049fa70	723	code	0	ui		named	UIMakeTargetListWnd	vf20	
 0049fd50	528	code	0	ui		named	UIMakeTargetListWnd	vf37	
 0049ff90	89	code	0	ui	unreferenced	named	UIShowNeedItemListWnd	UIShowNeedItemListWnd	
-0049fff0	40	code	0	ui		named	Global	ConstructItemRecord	
+0049fff0	40	code	0	game		named	ItemRecord	ItemRecord	
 004a0020	33	code	0	ui		named	UIShowNeedItemListWnd	`scalar_deleting_destructor'	
 004a0050	91	code	0	ui		named	UIShowNeedItemListWnd	~UIShowNeedItemListWnd	
 004a00b0	685	code	0	ui		named	UIShowNeedItemListWnd	vf17	
@@ -2825,10 +2825,10 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004a6770	129	code	0	ui		named	UIWindow	FindWindowAt	
 004a6800	76	code	0	ui		named	UIWindow	vf37	
 004a6850	171	code	0	ui		named	UIWindow	vf15	
-004a6900	62	code	0	ui		named	Global	SetEdgeRect	
-004a6940	117	code	0	ui		named	Global	SwapOppositeEdges	
-004a69c0	83	code	0	ui		named	Global	RangesOverlap	
-004a6a20	282	code	0	ui		named	Global	GetEdgeAlignOffset	
+004a6900	62	code	0	ui		named	EdgeRect	Set	
+004a6940	117	code	0	ui		named	EdgeRect	SwapOppositeEdges	
+004a69c0	83	code	0	ui		named	EdgeRect	RangesOverlap	
+004a6a20	282	code	0	ui		named	EdgeRect	GetAlignOffset	
 004a6b40	77	code	1	stl		named	std::list	method_004a6b40	
 004a6b90	482	code	1	stl		named	std::string	assign	
 004a6d80	501	code	1	stl		named	std::string	replace	
@@ -2982,7 +2982,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004b65b0	26	code	1	stl		named	std	ConstructAt	
 004b65d0	346	code	1	stl		named	std	ConstructAt	
 004b6730	86	code	1	stl		named	std::string	`scalar_deleting_destructor'	
-004b6790	335	code	0	ui		named	Global	CopyStringIntRecord	
+004b6790	335	code	0	ui		named	StringIntRecord	StringIntRecord	
 004b68e0	33	code	1	stl		named	std::pair	`scalar_deleting_destructor'	
 004b6910	37	code	0	world		named	Global	static_init_089	
 004b6940	5	thunk	0	world		-	Global	static_init_090	
@@ -3050,10 +3050,10 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004bbb10	11	code	0	world		named	Global	static_init_092_body	
 004bbb20	5	thunk	0	world		-	Global	static_init_093	
 004bbb30	81	code	0	world		named	Global	static_init_093_body	
-004bbb90	42	code	0	world		named	Global	InitLightmapAtlas	
-004bbbc0	107	code	0	world		named	Global	DestroyLightmapAtlas	
-004bbc30	144	code	0	world		named	Global	ClearLightmapAtlas	
-004bbcc0	1364	code	0	world		named	Global	BuildLightmapAtlas	
+004bbb90	42	code	0	world		named	LightmapAtlas	LightmapAtlas	
+004bbbc0	107	code	0	world		named	LightmapAtlas	~LightmapAtlas	
+004bbc30	144	code	0	world		named	LightmapAtlas	Clear	
+004bbcc0	1364	code	0	world		named	LightmapAtlas	Build	
 004bc220	76	code	0	world		named	C3dGround	C3dGround	
 004bc270	1	code	0	world		named	C3dGround	vf01	
 004bc280	3	code	0	world		named	C3dGround	vf02	
@@ -3217,12 +3217,12 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004c6100	340	code	0	world	unreferenced	raw	Global	FUN_004c6100	
 004c6260	76	code	0	world	dead	raw	Global	FUN_004c6260	
 004c62b0	44	code	1	stl		named	std::list	list	
-004c62e0	65	code	0	world		named	Global	CollectNodesOnRay	
+004c62e0	65	code	0	world		named	SceneRayQuery	CollectNodes	
 004c6330	62	code	0	world	unreferenced	raw	Global	FUN_004c6330	
 004c6370	57	code	0	world	unreferenced	raw	Global	FUN_004c6370	
-004c63b0	140	code	0	world		named	Global	CollectNodesOnRayRecursive	
-004c6440	19	code	0	world		named	Global	RayHitsNodeBox	
-004c6460	888	code	0	world		named	Global	RayHitsBox	
+004c63b0	140	code	0	world		named	SceneRayQuery	CollectNodesRecursive	
+004c6440	19	code	0	world		named	SceneRayQuery	HitsNodeBox	
+004c6460	888	code	0	world		named	SceneRayQuery	HitsBox	
 004c67e0	212	code	0	world		named	SceneGraphNode	LoadBounds	
 004c68c0	144	code	0	world		named	SceneGraphNode	CopyBounds	
 004c6950	56	code	1	stl		named	std::vector	~vector	
@@ -3402,14 +3402,14 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004ccc80	276	code	0	world		named	PathFinder	method_004ccc80	
 004ccda0	301	code	0	world		named	PathFinder	method_004ccda0	
 004cced0	62	code	0	world		named	PathFinder	method_004cced0	
-004ccf10	74	code	0	world		named	Global	InitMovePath	
-004ccf60	8	code	0	world		named	Global	ResetMovePath	
+004ccf10	74	code	0	world		named	MovePath	MovePath	
+004ccf60	8	code	0	world		named	MovePath	Reset	
 004ccf70	425	code	0	world	unreferenced	raw	Global	FUN_004ccf70	
-004cd130	13	code	0	world		named	Global	SetMovePathStartX	
-004cd140	13	code	0	world		named	Global	SetMovePathStartY	
+004cd130	13	code	0	world		named	MovePath	SetStartX	
+004cd140	13	code	0	world		named	MovePath	SetStartY	
 004cd150	13	code	0	world	unreferenced	raw	Global	FUN_004cd150	
-004cd1b0	52	code	0	world		named	Global	GetMovePathEndKey	
-004cd1f0	196	code	0	world		named	Global	FindMovePathSegment	
+004cd1b0	52	code	0	world		named	MovePath	GetEndKey	
+004cd1f0	196	code	0	world		named	MovePath	FindSegment	
 004cd2c0	38	code	1	stl		named	std::vector	~vector	
 004cd2f0	19	code	1	stl		named	std::vector	size	
 004cd310	778	code	1	stl		named	std::vector	insert	
@@ -3447,16 +3447,16 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004cea20	37	code	0	world		named	Global	static_init_115	
 004cea50	5	thunk	0	world		-	Global	static_init_116	
 004cea60	11	code	0	world		named	Global	static_init_116_body	
-004cea70	134	code	0	world		named	Global	InitViewFrustum	
-004ceb00	371	code	0	world		named	Global	CullSceneGraph	
-004cec80	123	code	0	world		named	Global	ClearVisibleNodes	
-004ced00	137	code	0	world		named	Global	ClassifyNodeBox	
-004ced90	195	code	0	world		named	Global	ClassifyOrientedBox	
-004cee60	282	code	0	world		named	Global	CollectVisibleNodes	
+004cea70	134	code	0	world		named	ViewFrustum	ViewFrustum	
+004ceb00	371	code	0	world		named	ViewFrustum	CullSceneGraph	
+004cec80	123	code	0	world		named	ViewFrustum	ClearVisibleNodes	
+004ced00	137	code	0	world		named	ViewFrustum	ClassifyNodeBox	
+004ced90	195	code	0	world		named	ViewFrustum	ClassifyOrientedBox	
+004cee60	282	code	0	world		named	ViewFrustum	CollectVisibleNodes	
 004cef80	47	code	0	world		named	CView	CView	
 004cefb0	33	code	0	world		named	CView	`scalar_deleting_destructor'	
 004cefe0	281	code	0	world		named	CView	~CView	
-004cf100	207	code	0	world		named	Global	DestroyViewFrustum	
+004cf100	207	code	0	world		named	ViewFrustum	~ViewFrustum	
 004cf1d0	71	code	0	world		named	CView	vf01	
 004cf220	1	code	0	world		named	CView	vf02	
 004cf230	16	code	0	world		named	CView	AddToAngle	
@@ -3526,7 +3526,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004d1eb0	168	code	1	stl		named	std	ConstructAt	
 004d1f60	33	code	1	stl		named	std::pair	`scalar_deleting_destructor'	
 004d1f90	33	code	1	stl		named	std::pair	`scalar_deleting_destructor'	
-004d1fc0	62	code	0	game		named	Global	DestroyGuildPosition	
+004d1fc0	62	code	0	ui		named	GuildPositionRecord	~GuildPositionRecord	
 004d2000	37	code	0	game		named	Global	static_init_119	
 004d2030	10	code	0	game		named	Global	static_init_120	
 004d2040	10	code	0	game		named	Global	construct_g_MannerFilter	
@@ -3566,29 +3566,29 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004d3750	242	code	1	stl		named	std::Tree	~Tree	
 004d3850	669	code	0	game		named	Global	LoadHashSeparatedStrings	
 004d3af0	211	code	0	game		named	Global	IsDigitString	
-004d3bd0	200	code	0	game		named	Global	SetItemIdNumber	
-004d3ca0	28	code	0	game		named	Global	FormatItemPlusValue	
-004d3cc0	351	code	0	game		named	Global	FormatItemCardPrefixes	
-004d3e20	362	code	0	game		named	Global	FormatItemCardPostfixes	
-004d3f90	114	code	0	game		named	Global	FormatItemByte21Message	
-004d4010	100	code	0	game		named	Global	FormatItemIdName	
-004d4080	125	code	0	game		named	Global	FormatItemByte20Message	
-004d4120	98	code	0	game		named	Global	CopyItemIdTableName	
-004d4190	101	code	0	game		named	Global	CopyItemNumTableName	
-004d4200	207	code	0	game		named	Global	BuildItemDisplayName	
-004d42d0	446	code	0	game		named	Global	AssignItemRecord	
-004d4490	224	code	0	game		named	Global	AssignItemRecordFromEntry	
-004d4570	90	code	0	game		named	Global	GetItemResourceName	
-004d45d0	66	code	0	game		named	Global	GetItemDescriptionLines	
-004d4620	31	code	0	game		named	Global	GetItemSlotCount	
-004d4640	11	code	0	game		named	Global	IsFirstCardIdFF	
-004d4650	67	code	0	game		named	Global	IsItemIdIn501To599	
-004d46a0	31	code	0	game		named	Global	IsNameDecoratedType	
-004d46e0	41	code	0	game		named	Global	IsItemIdIn994To997	
-004d4710	44	code	0	game		named	Global	IsItemId1000Or994To997	
-004d4740	409	code	0	game		named	Global	AssignItemRecordFromShopEntry	
+004d3bd0	200	code	0	game		named	ItemRecord	SetIdNumber	
+004d3ca0	28	code	0	game		named	ItemRecord	FormatPlusValue	
+004d3cc0	351	code	0	game		named	ItemRecord	FormatCardPrefixes	
+004d3e20	362	code	0	game		named	ItemRecord	FormatCardPostfixes	
+004d3f90	114	code	0	game		named	ItemRecord	FormatByte21Message	
+004d4010	100	code	0	game		named	ItemRecord	FormatIdName	
+004d4080	125	code	0	game		named	ItemRecord	FormatByte20Message	
+004d4120	98	code	0	game		named	ItemRecord	CopyIdTableName	
+004d4190	101	code	0	game		named	ItemRecord	CopyNumTableName	
+004d4200	207	code	0	game		named	ItemRecord	BuildDisplayName	
+004d42d0	446	code	0	game		named	ItemRecord	Assign	
+004d4490	224	code	0	game		named	ItemRecord	AssignFromEntry	
+004d4570	90	code	0	game		named	ItemRecord	GetResourceName	
+004d45d0	66	code	0	game		named	ItemRecord	GetDescriptionLines	
+004d4620	31	code	0	game		named	ItemRecord	GetSlotCount	
+004d4640	11	code	0	game		named	ItemRecord	IsFirstCardIdFF	
+004d4650	67	code	0	game		named	ItemRecord	IsIdIn501To599	
+004d46a0	31	code	0	game		named	ItemRecord	IsNameDecoratedType	
+004d46e0	41	code	0	game		named	ItemRecord	IsIdIn994To997	
+004d4710	44	code	0	game		named	ItemRecord	IsId1000Or994To997	
+004d4740	409	code	0	game		named	ItemRecord	AssignFromShopEntry	
 004d48e0	4508	code	0	game		named	Global	LoadItemTables	
-004d5a80	125	code	0	game		named	Global	InitItemInfo	
+004d5a80	125	code	0	game		named	ItemInfo	ItemInfo	
 004d5b00	127	code	0	game		named	Global	GetItemInfo	
 004d5b80	91	code	0	game		named	Global	IsCardId	
 004d5be0	127	code	0	game		named	Global	GetCardInfo	
@@ -3614,12 +3614,12 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004d70b0	67	code	1	stl		named	std	DestroyAt	
 004d7100	1	code	1	stl		named	std	DestroyAt	
 004d7110	109	code	0	game		named	Global	destroy_global_00689120	
-004d7180	10	code	0	game		named	Global	destroy_global_006891c0	
-004d7190	10	code	0	game		named	Global	destroy_global_00689140	
-004d71a0	335	code	0	game		named	Global	DestroyItemInfo	
+004d7180	10	code	0	game		named	Global	destroy_g_CardInfo	
+004d7190	10	code	0	game		named	Global	destroy_g_ItemInfo	
+004d71a0	335	code	0	game		named	ItemInfo	~ItemInfo	
 004d72f0	301	code	1	stl		named	std::pair	~pair	
-004d7420	56	code	0	game		named	Global	InitCardInfo	
-004d7460	154	code	0	game		named	Global	DestroyCardInfo	
+004d7420	56	code	0	game		named	CardInfo	CardInfo	
+004d7460	154	code	0	game		named	CardInfo	~CardInfo	
 004d7500	154	code	1	stl		named	std::pair	~pair	
 004d75a0	107	code	1	stl		named	std::pair	~pair	
 004d7610	33	code	1	stl		named	std::pair	`scalar_deleting_destructor'	
@@ -3653,12 +3653,12 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004d8d70	77	code	0	game		named	Global	static_init_126_body	
 004d8dc0	12	code	0	game		named	Global	register_destroy_global_0067cca0	
 004d8dd0	32	code	0	game		named	Global	destroy_global_0067cca0	
-004d8df0	17	code	0	game		named	Global	GetMsgString	
-004d8e10	44	code	0	game		named	Global	IsSpecialActorIdOnKoreaService	
-004d8e40	88	code	0	game		named	Global	InitMsgStringTable	
-004d8ea0	1110	code	0	game		named	Global	ResolveUIResourcePath	
-004d9300	69	code	0	game		named	Global	destroy_global_0067cc78	
-004d9350	69	code	0	game		named	Global	destroy_global_0067cc88	
+004d8df0	17	code	0	core		named	Global	GetMsgString	
+004d8e10	44	code	0	world		named	Global	IsSpecialActorIdOnKoreaService	
+004d8e40	88	code	0	core		named	Global	InitMsgStringTable	
+004d8ea0	1110	code	0	core		named	Global	ResolveUIResourcePath	
+004d9300	69	code	0	core		named	Global	destroy_global_0067cc78	
+004d9350	69	code	0	core		named	Global	destroy_global_0067cc88	
 004d93a0	101	code	0	game		named	Global	ReverseAlphabetInPlace	
 004d9410	37	code	0	game		named	Global	static_init_127	
 004d9440	10	code	0	game		named	Global	static_init_128	
@@ -3666,7 +3666,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004d9470	12	code	0	game		named	Global	register_destroy_g_skillInfoById	
 004d9480	31	code	0	game		named	Global	destroy_g_skillInfoById	
 004d94a0	242	code	1	stl		named	std::Tree	~Tree	
-004d95a0	13	code	0	game		named	Global	GetSkillRecordIdName	
+004d95a0	13	code	0	ui		named	SkillRecord	GetIdName	
 004d95b0	866	code	0	game	unreferenced	raw	Global	FUN_004d95b0	
 004d9920	39	code	0	game		named	Global	IsSkillIdInFlagList	
 004d99e0	37	code	0	game		named	Global	IsIdNotInFixedList	
@@ -3721,13 +3721,13 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004dbf50	103	code	0	render		named	MoviePlayer	method_004dbf50	
 004dbfc0	194	code	0	render		named	MoviePlayer	Play	
 004dc090	37	code	0	res		named	Global	static_init_132	
-004dc0c0	3	code	0	res		named	Global	InitDesCipher	
-004dc0d0	1	code	0	res		named	Global	DestroyDesCipher	
+004dc0c0	3	code	0	res		named	DesCipher	DesCipher	
+004dc0d0	1	code	0	res		named	DesCipher	~DesCipher	
 004dc0e0	186	code	0	res	unreferenced	raw	Global	FUN_004dc0e0	
-004dc1a0	555	code	0	res		named	Global	DesSetKey	
+004dc1a0	555	code	0	res		named	DesCipher	SetKey	
 004dc3d0	797	code	0	res	unreferenced	raw	Global	FUN_004dc3d0	
-004dc820	755	code	0	res		named	Global	DecryptBlocksMixed	
-004dcc40	496	code	0	res		named	Global	DecryptFirstBlocks	
+004dc820	755	code	0	res		named	DesCipher	DecryptBlocksMixed	
+004dcc40	496	code	0	res		named	DesCipher	DecryptFirstBlocks	
 004dce30	367	code	0	res	unreferenced	raw	Global	FUN_004dce30	
 004dcfa0	117	code	0	res		named	Global	DesInitialPermutation	
 004dd020	117	code	0	res		named	Global	DesFinalPermutation	
@@ -3787,13 +3787,13 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004df530	91	code	1	stl		named	std	ShiftInsertSorted	
 004df590	178	code	1	stl		named	std	MedianOfThree	
 004df650	184	code	1	stl		named	std	PartitionRange	
-004df710	17	code	0	res		named	Global	InitEmptyHashedFileName	
-004df730	22	code	0	res		named	Global	InitHashedFileName	
-004df750	66	code	0	res		named	Global	SetHashedFileName	
-004df7a0	104	code	0	res		named	Global	HashedFileNameLess	
+004df710	17	code	0	res		named	HashedFileName	HashedFileName	
+004df730	22	code	0	res		named	HashedFileName	HashedFileName	
+004df750	66	code	0	res		named	HashedFileName	Set	
+004df7a0	104	code	0	res		named	HashedFileName	IsLess	
 004df810	21	code	0	res	unreferenced	raw	Global	FUN_004df810	
-004df830	100	code	0	res		named	Global	HashedFileNameNotEqual	
-004df8a0	80	code	0	res		named	Global	ComputeFileNameHash	
+004df830	100	code	0	res		named	HashedFileName	NotEqual	
+004df8a0	80	code	0	res		named	HashedFileName	ComputeHash	
 004df8f0	37	code	0	res		named	Global	static_init_137	
 004df920	33	code	0	res		named	CRes	CRes	
 004df950	8	code	0	res		named	CRes	AddRef	
@@ -4168,7 +4168,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004f1ed0	163	code	0	game	unreferenced	raw	Global	FUN_004f1ed0	
 004f1f80	148	code	0	game	dead	raw	Global	FUN_004f1f80	
 004f2020	434	code	0	game		named	mg::CScript	LoadScript	
-004f21e0	142	code	0	game		named	Global	DestroyScriptRecord	
+004f21e0	142	code	0	game		named	ScriptRecord	~ScriptRecord	
 004f2270	114	code	0	game	dead	raw	Global	FUN_004f2270	
 004f22f0	111	code	0	game	dead	raw	Global	FUN_004f22f0	
 004f2360	108	code	0	game	dead	raw	Global	FUN_004f2360	
@@ -4189,7 +4189,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004f9500	453	code	0	game		named	mg::CScript	ReturnFromCall	
 004f96d0	470	code	0	game		named	mg::CScript	SeekBackToRecord	
 004f98b0	352	code	1	stl		named	std::out_of_range	out_of_range	
-004f9a10	668	code	0	game		named	Global	AssignScriptRecord	
+004f9a10	668	code	0	game		named	ScriptRecord	Assign	
 004f9cb0	460	code	0	game	unreferenced	raw	Global	FUN_004f9cb0	
 004f9e80	649	code	0	game		named	mg::CScript	Step	
 004fa110	439	code	0	game	dead	raw	Global	FUN_004fa110	
@@ -4236,7 +4236,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004fc650	328	code	1	stl		named	std	ConstructAt	
 004fc7a0	37	code	1	stl		named	std	ConstructAt	
 004fc7d0	577	code	0	game		named	Global	AssignStringPairRecord	
-004fca20	33	code	0	game		named	Global	DeleteScriptRecord	
+004fca20	33	code	0	game		named	ScriptRecord	`scalar_deleting_destructor'	
 004fca50	37	code	0	game		named	Global	static_init_152	
 004fca80	87	code	0	game		named	Global	GetPerformanceTimer	
 004fcae0	1	code	0	game		named	Global	atexit_no_op_004fcae0	
@@ -9394,11 +9394,11 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005dbfc9	11	funclet	0			-	Global	Unwind@005dbfc9	
 005dbfe0	17	funclet	0			-	Global	Unwind@005dbfe0	
 005dbff1	17	funclet	0			-	Global	Unwind@005dbff1	
-005dc010	8	funclet	0	game		-	Global	Unwind@005dc010	
-005dc018	8	funclet	0	game		-	Global	Unwind@005dc018	
-005dc020	8	funclet	0	game		-	Global	Unwind@005dc020	
-005dc028	8	funclet	0	game		-	Global	Unwind@005dc028	
-005dc030	8	funclet	0	game		-	Global	Unwind@005dc030	
+005dc010	8	funclet	0	core		-	Global	Unwind@005dc010	
+005dc018	8	funclet	0	core		-	Global	Unwind@005dc018	
+005dc020	8	funclet	0	core		-	Global	Unwind@005dc020	
+005dc028	8	funclet	0	core		-	Global	Unwind@005dc028	
+005dc030	8	funclet	0	core		-	Global	Unwind@005dc030	
 005dc050	8	funclet	0	game	dead	-	Global	Unwind@005dc050	
 005dc058	8	funclet	0	game	dead	-	Global	Unwind@005dc058	
 005dc070	8	funclet	0			-	Global	Unwind@005dc070	

@@ -15,7 +15,7 @@ entry	subsystem	rule	evidence
 00402070	world	class	class ScaleKeys
 004020c0	world	previous	after 00402070, nothing references it
 00402570	core	initializer	initializer of the file starting here, before 004025a0
-004025a0	core	shared	audio 3, core 4, game 24, net 3, render 7, res 22, ui 18, world 14
+004025a0	core	shared	audio 3, core 4, game 21, net 3, render 7, res 22, ui 18, world 14
 004025b0	core	previous	after 004025a0, nothing references it
 004025d0	render	callers	2 referencing functions
 00402600	render	callers	1 referencing function
@@ -1332,8 +1332,8 @@ entry	subsystem	rule	evidence
 0044cd90	ui	class	class UIWindow, base of UINoticeWnd
 0044cf70	ui	class	class UIWindow, base of UISelectCharWnd
 0044d030	ui	class	class UIWindow, base of UISelectCharWnd
-0044d060	ui	neighbours	between 0044d030 and 0044d230
-0044d120	ui	neighbours	between 0044d030 and 0044d230
+0044d060	ui	class	class SelectCharSlot
+0044d120	ui	class	class SelectCharSlot
 0044d230	ui	class	class UIWindow, base of UISelectCharWnd
 0044d290	ui	class	class UIWindow, base of UISelectCharWnd
 0044d820	ui	neighbours	between 0044d290 and 0044d8a0
@@ -1405,7 +1405,7 @@ entry	subsystem	rule	evidence
 004576c0	ui	class	class UIWindow, base of UIPetInfoWnd
 00457e30	ui	class	class UIWindow, base of UIPetInfoWnd
 00457e60	ui	class	class UIWindow, base of UIPetInfoWnd
-00458560	ui	neighbours	between 00457e60 and 004585a0
+00458560	game	class	class ItemRecord
 004585a0	ui	class	class UIWindow, base of UITalkboxTrapInputWnd
 004585c0	ui	class	class UIWindow, base of UITalkboxTrapInputWnd
 004585f0	ui	class	class UIWindow, base of UITalkboxTrapInputWnd
@@ -1418,8 +1418,8 @@ entry	subsystem	rule	evidence
 00458d70	ui	class	class UIWindow, base of UICntWnd
 00459070	ui	class	class UIWindow, base of UICntWnd
 00459080	ui	class	class UIWindow, base of UICntWnd
-0045aef0	ui	neighbours	between 00459080 and 0045b0c0
-0045b090	ui	neighbours	between 00459080 and 0045b0c0
+0045aef0	ui	class	class StringIntRecord
+0045b090	ui	neighbours	between 0045aef0 and 0045b0c0
 0045b0c0	ui	class	class UIWindow, base of UIFrameWnd
 0045b3d0	ui	class	class UIWindow, base of UIFrameWnd
 0045b8a0	ui	class	class UIWindow, base of UINotifyItemObtainWnd
@@ -1462,7 +1462,7 @@ entry	subsystem	rule	evidence
 0045de20	ui	class	class UIWindow, base of UIShortCutWnd
 0045de30	ui	class	class UIWindow, base of UIShortCutWnd
 0045e0b0	ui	class	class UIWindow, base of UIShortCutWnd
-0045e330	ui	neighbours	between 0045e0b0 and 0045e370
+0045e330	ui	class	class SkillRecord
 0045e370	ui	class	class UIWindow, base of UIShortCutWnd
 0045e670	ui	class	class UIWindow, base of UIShortCutWnd
 0045e6b0	ui	class	class UIWindow, base of UIShortCutWnd
@@ -1797,8 +1797,8 @@ entry	subsystem	rule	evidence
 00478740	ui	class	class UIWindow, base of UIProhibitListWnd
 00478980	ui	class	class UIWindow, base of UIProhibitListWnd
 00478d20	ui	class	class UIWindow, base of UIProhibitListWnd
-00479350	ui	neighbours	between 00478d20 and 004793b0
-00479380	ui	neighbours	between 00478d20 and 004793b0
+00479350	game	class	class ItemRecord
+00479380	ui	initializer	initializer of the file starting here, before 004793b0
 004793b0	ui	class	class UIWindow, base of UIGuildWnd
 00479730	ui	class	class UIWindow, base of UIGuildWnd
 004797f0	ui	class	class UIWindow, base of UIGuildWnd
@@ -1828,12 +1828,12 @@ entry	subsystem	rule	evidence
 0047c1e0	ui	class	class UIWindow, base of UIGuildMemberManageWnd
 0047cb70	ui	class	class UIWindow, base of UIGuildMemberManageWnd
 0047cc20	ui	class	class UIWindow, base of UIGuildMemberManageWnd
-0047cda0	ui	neighbours	between 0047cc20 and 0047d050
+0047cda0	ui	class	class GuildMemberRecord
 0047d050	ui	class	class UIWindow, base of UIGuildMemberManageWnd
 0047d0a0	ui	class	class UIWindow, base of UIGuildMemberManageWnd
 0047d0e0	ui	class	class UIWindow, base of UIGuildMemberManageWnd
 0047d100	ui	class	class UIWindow, base of UIGuildMemberManageWnd
-0047df00	ui	neighbours	between 0047d100 and 0047dfa0
+0047df00	ui	class	class GuildMemberRecord
 0047dfa0	ui	class	class UIWindow, base of UIGuildMemberManageWnd
 0047dff0	ui	class	class UIWindow, base of UIGuildMemberManageWnd
 0047e0e0	ui	class	class UIWindow, base of UIGuildPositionManageWnd
@@ -1844,11 +1844,11 @@ entry	subsystem	rule	evidence
 0047ec10	ui	class	class UIWindow, base of UIEditCtrlVarId
 0047ec40	ui	class	class UIWindow, base of UIEditCtrlVarId
 0047ec50	ui	class	class UIWindow, base of UIGuildPositionManageWnd
-0047f470	ui	neighbours	between 0047ec50 and 0047f5f0
+0047f470	ui	class	class GuildPositionRecord
 0047f5f0	ui	class	class UIWindow, base of UIGuildPositionManageWnd
-0047f670	ui	neighbours	between 0047f5f0 and 0047f6e0
-0047f680	ui	neighbours	between 0047f5f0 and 0047f6e0
-0047f6a0	ui	neighbours	between 0047f5f0 and 0047f6e0
+0047f670	ui	neighbours	between 0047f5f0 and 0047f680
+0047f680	ui	class	class GuildPositionRecord
+0047f6a0	ui	class	class GuildPositionRecord
 0047f6e0	ui	class	class UIWindow, base of UIGuildPositionManageWnd
 0047fcd0	ui	class	class UIWindow, base of UIGuildPositionManageWnd
 0047fcf0	ui	class	class UIWindow, base of UIGuildPositionManageWnd
@@ -1916,9 +1916,9 @@ entry	subsystem	rule	evidence
 00483c30	ui	class	class UIWindow, base of UIGuildBanReasonDescWnd
 00483c40	ui	class	class UIWindow, base of UIGuildBanReasonDescWnd
 00483c80	ui	class	class UIWindow, base of UIGuildBanReasonDescWnd
-00486ae0	ui	neighbours	between 00483c80 and 00486b70
-00486b10	ui	neighbours	between 00483c80 and 00486b70
-00486b40	ui	neighbours	between 00483c80 and 00486b70
+00486ae0	ui	class	class StringIntRecord
+00486b10	ui	class	class GuildPositionRecord
+00486b40	ui	neighbours	between 00486b10 and 00486b70
 00486b70	ui	class	class UIWindow, base of UIIllustWnd
 00486ba0	ui	class	class UIWindow, base of UIIllustWnd
 00486bd0	ui	class	class UIWindow, base of UIIllustWnd
@@ -1990,7 +1990,7 @@ entry	subsystem	rule	evidence
 0048b7f0	ui	class	class UIWindow, base of UIMerchantItemMyShopWnd
 0048b920	ui	class	class UIWindow, base of UIMerchantItemMyShopWnd
 0048b960	ui	class	class UIWindow, base of UIMerchantItemMyShopWnd
-0048bd80	ui	neighbours	between 0048b960 and 0048bf30
+0048bd80	game	class	class ItemRecord
 0048bf30	ui	class	class UIWindow, base of UIMerchantItemShopWnd
 0048bf60	ui	class	class UIWindow, base of UIMerchantItemShopWnd
 0048bf90	ui	class	class UIWindow, base of UIMerchantItemShopWnd
@@ -2120,8 +2120,8 @@ entry	subsystem	rule	evidence
 00499860	ui	class	class UIWindow, base of UIMerchantShopMakeWnd
 004998a0	ui	class	class UIWindow, base of UIMerchantShopMakeWnd
 00499ef0	ui	class	class UIWindow, base of UIMerchantShopMakeWnd
-0049a000	ui	neighbours	between 00499ef0 and 0049a060
-0049a030	ui	neighbours	between 00499ef0 and 0049a060
+0049a000	ui	class	class SkillRecord
+0049a030	ui	neighbours	between 0049a000 and 0049a060
 0049a060	ui	class	class UIWindow, base of UIMessengerGroupWnd
 0049a110	ui	class	class UIWindow, base of UIMessengerGroupWnd
 0049a140	ui	class	class UIWindow, base of UIMessengerGroupWnd
@@ -2129,7 +2129,7 @@ entry	subsystem	rule	evidence
 0049ac20	ui	class	class UIWindow, base of UIMessengerGroupWnd
 0049ad20	ui	class	class UIWindow, base of UIMessengerGroupWnd
 0049af70	ui	class	class UIWindow, base of UIMessengerGroupWnd
-0049b070	ui	neighbours	between 0049af70 and 0049b0e0
+0049b070	ui	class	class MessengerRecord
 0049b0e0	ui	class	class UIWindow, base of UIMessengerGroupWnd
 0049b1e0	ui	class	class UIWindow, base of UIMessengerGroupWnd
 0049b200	ui	class	class UIWindow, base of UIMessengerGroupWnd
@@ -2158,8 +2158,8 @@ entry	subsystem	rule	evidence
 0049ef10	ui	class	class UIWindow, base of UIFriendOptionWnd
 0049f190	ui	class	class UIWindow, base of UIFriendOptionWnd
 0049f1c0	ui	class	class UIWindow, base of UIFriendOptionWnd
-0049f610	ui	neighbours	between 0049f1c0 and 0049f670
-0049f640	ui	neighbours	between 0049f1c0 and 0049f670
+0049f610	ui	class	class MessengerRecord
+0049f640	ui	neighbours	between 0049f610 and 0049f670
 0049f670	ui	class	class UIWindow, base of UIMakeTargetListWnd
 0049f6a0	ui	class	class UIWindow, base of UIMakeTargetListWnd
 0049f6d0	ui	class	class UIWindow, base of UIMakeTargetListWnd
@@ -2167,7 +2167,7 @@ entry	subsystem	rule	evidence
 0049fa70	ui	class	class UIWindow, base of UIMakeTargetListWnd
 0049fd50	ui	class	class UIWindow, base of UIMakeTargetListWnd
 0049ff90	ui	class	class UIWindow, base of UIShowNeedItemListWnd
-0049fff0	ui	neighbours	between 0049ff90 and 004a0020
+0049fff0	game	class	class ItemRecord
 004a0020	ui	class	class UIWindow, base of UIShowNeedItemListWnd
 004a0050	ui	class	class UIWindow, base of UIShowNeedItemListWnd
 004a00b0	ui	class	class UIWindow, base of UIShowNeedItemListWnd
@@ -2360,21 +2360,21 @@ entry	subsystem	rule	evidence
 004a6770	ui	class	class UIWindow
 004a6800	ui	class	class UIWindow
 004a6850	ui	class	class UIWindow
-004a6900	ui	neighbours	between 004a6850 and 004a7120
-004a6940	ui	neighbours	between 004a6850 and 004a7120
-004a69c0	ui	neighbours	between 004a6850 and 004a7120
-004a6a20	ui	neighbours	between 004a6850 and 004a7120
-004a7010	ui	neighbours	between 004a6850 and 004a7120
+004a6900	ui	class	class EdgeRect
+004a6940	ui	class	class EdgeRect
+004a69c0	ui	class	class EdgeRect
+004a6a20	ui	class	class EdgeRect
+004a7010	ui	neighbours	between 004a6a20 and 004a7120
 004a7040	ui	stub	jumps to 004a7050
-004a7050	ui	neighbours	between 004a6850 and 004a7120
-004a7060	ui	neighbours	between 004a6850 and 004a7120
-004a7070	ui	neighbours	between 004a6850 and 004a7120
-004a7080	ui	neighbours	between 004a6850 and 004a7120
-004a7090	ui	neighbours	between 004a6850 and 004a7120
-004a70a0	ui	neighbours	between 004a6850 and 004a7120
-004a70b0	ui	neighbours	between 004a6850 and 004a7120
-004a70e0	ui	neighbours	between 004a6850 and 004a7120
-004a70f0	ui	neighbours	between 004a6850 and 004a7120
+004a7050	ui	neighbours	between 004a6a20 and 004a7120
+004a7060	ui	neighbours	between 004a6a20 and 004a7120
+004a7070	ui	neighbours	between 004a6a20 and 004a7120
+004a7080	ui	neighbours	between 004a6a20 and 004a7120
+004a7090	ui	neighbours	between 004a6a20 and 004a7120
+004a70a0	ui	neighbours	between 004a6a20 and 004a7120
+004a70b0	ui	neighbours	between 004a6a20 and 004a7120
+004a70e0	ui	neighbours	between 004a6a20 and 004a7120
+004a70f0	ui	neighbours	between 004a6a20 and 004a7120
 004a7120	ui	class	class UIWindowMgr
 004a7300	ui	class	class UIWindowMgr
 004a7420	ui	class	class UIWindowMgr
@@ -2473,7 +2473,7 @@ entry	subsystem	rule	evidence
 004b4700	ui	class	class UIWindowMgr
 004b48b0	ui	class	class UIWindowMgr
 004b4980	ui	class	class UIWindowMgr
-004b6790	ui	callers	1 referencing function
+004b6790	ui	class	class StringIntRecord
 004b6910	world	initializer	initializer of the file starting here, before 004b6960
 004b6940	world	stub	jumps to 004b6950
 004b6950	world	initializer	initializer of the file starting here, before 004b6960
@@ -2516,15 +2516,15 @@ entry	subsystem	rule	evidence
 004bab30	world	neighbours	between 004ba270 and 004bab80
 004bab60	world	neighbours	between 004ba270 and 004bab80
 004bab80	world	class	class ModelInstance
-004bbad0	world	neighbours	between 004bab80 and 004bc220
+004bbad0	world	neighbours	between 004bab80 and 004bbb90
 004bbb00	world	stub	jumps to 004bbb10
-004bbb10	world	neighbours	between 004bab80 and 004bc220
+004bbb10	world	neighbours	between 004bab80 and 004bbb90
 004bbb20	world	stub	jumps to 004bbb30
-004bbb30	world	neighbours	between 004bab80 and 004bc220
-004bbb90	world	neighbours	between 004bab80 and 004bc220
-004bbbc0	world	neighbours	between 004bab80 and 004bc220
-004bbc30	world	neighbours	between 004bab80 and 004bc220
-004bbcc0	world	neighbours	between 004bab80 and 004bc220
+004bbb30	world	neighbours	between 004bab80 and 004bbb90
+004bbb90	world	class	class LightmapAtlas
+004bbbc0	world	class	class LightmapAtlas
+004bbc30	world	class	class LightmapAtlas
+004bbcc0	world	class	class LightmapAtlas
 004bc220	world	class	class C3dGround
 004bc270	world	class	class C3dGround
 004bc280	world	class	class C3dGround
@@ -2658,14 +2658,14 @@ entry	subsystem	rule	evidence
 004c5de0	world	class	class SceneGraphNode
 004c5ee0	world	class	class SceneGraphNode
 004c5fa0	world	class	class SceneGraphNode
-004c6100	world	neighbours	between 004c5fa0 and 004c67e0
-004c6260	world	neighbours	between 004c5fa0 and 004c67e0
-004c62e0	world	neighbours	between 004c5fa0 and 004c67e0
-004c6330	world	neighbours	between 004c5fa0 and 004c67e0
-004c6370	world	neighbours	between 004c5fa0 and 004c67e0
-004c63b0	world	neighbours	between 004c5fa0 and 004c67e0
-004c6440	world	neighbours	between 004c5fa0 and 004c67e0
-004c6460	world	neighbours	between 004c5fa0 and 004c67e0
+004c6100	world	neighbours	between 004c5fa0 and 004c62e0
+004c6260	world	neighbours	between 004c5fa0 and 004c62e0
+004c62e0	world	class	class SceneRayQuery
+004c6330	world	neighbours	between 004c62e0 and 004c63b0
+004c6370	world	neighbours	between 004c62e0 and 004c63b0
+004c63b0	world	class	class SceneRayQuery
+004c6440	world	class	class SceneRayQuery
+004c6460	world	class	class SceneRayQuery
 004c67e0	world	class	class SceneGraphNode
 004c68c0	world	class	class SceneGraphNode
 004c7750	world	previous	after 004c68c0, nothing references it
@@ -2792,20 +2792,20 @@ entry	subsystem	rule	evidence
 004ccc80	world	class	class PathFinder
 004ccda0	world	class	class PathFinder
 004cced0	world	class	class PathFinder
-004ccf10	world	neighbours	between 004cced0 and 004ce4f0
-004ccf60	world	neighbours	between 004cced0 and 004ce4f0
-004ccf70	world	neighbours	between 004cced0 and 004ce4f0
-004cd130	world	neighbours	between 004cced0 and 004ce4f0
-004cd140	world	neighbours	between 004cced0 and 004ce4f0
-004cd150	world	neighbours	between 004cced0 and 004ce4f0
-004cd1b0	world	neighbours	between 004cced0 and 004ce4f0
-004cd1f0	world	neighbours	between 004cced0 and 004ce4f0
-004ce3d0	world	neighbours	between 004cced0 and 004ce4f0
-004ce460	world	neighbours	between 004cced0 and 004ce4f0
-004ce470	world	neighbours	between 004cced0 and 004ce4f0
-004ce480	world	neighbours	between 004cced0 and 004ce4f0
-004ce490	world	neighbours	between 004cced0 and 004ce4f0
-004ce4a0	world	neighbours	between 004cced0 and 004ce4f0
+004ccf10	world	class	class MovePath
+004ccf60	world	class	class MovePath
+004ccf70	world	neighbours	between 004ccf60 and 004cd130
+004cd130	world	class	class MovePath
+004cd140	world	class	class MovePath
+004cd150	world	neighbours	between 004cd140 and 004cd1b0
+004cd1b0	world	class	class MovePath
+004cd1f0	world	class	class MovePath
+004ce3d0	world	neighbours	between 004cd1f0 and 004ce4f0
+004ce460	world	neighbours	between 004cd1f0 and 004ce4f0
+004ce470	world	neighbours	between 004cd1f0 and 004ce4f0
+004ce480	world	neighbours	between 004cd1f0 and 004ce4f0
+004ce490	world	neighbours	between 004cd1f0 and 004ce4f0
+004ce4a0	world	neighbours	between 004cd1f0 and 004ce4f0
 004ce4f0	world	class	class CActorPickNode
 004ce540	world	class	class CActorPickNode
 004ce570	world	class	class CActorPickNode
@@ -2815,19 +2815,19 @@ entry	subsystem	rule	evidence
 004ce790	world	class	class CActorPickNode
 004ce820	world	class	class CActorPickNode
 004ce8e0	world	class	class CActorPickNode
-004cea20	world	neighbours	between 004ce8e0 and 004cef80
+004cea20	world	neighbours	between 004ce8e0 and 004cea70
 004cea50	world	stub	jumps to 004cea60
-004cea60	world	neighbours	between 004ce8e0 and 004cef80
-004cea70	world	neighbours	between 004ce8e0 and 004cef80
-004ceb00	world	neighbours	between 004ce8e0 and 004cef80
-004cec80	world	neighbours	between 004ce8e0 and 004cef80
-004ced00	world	neighbours	between 004ce8e0 and 004cef80
-004ced90	world	neighbours	between 004ce8e0 and 004cef80
-004cee60	world	neighbours	between 004ce8e0 and 004cef80
+004cea60	world	neighbours	between 004ce8e0 and 004cea70
+004cea70	world	class	class ViewFrustum
+004ceb00	world	class	class ViewFrustum
+004cec80	world	class	class ViewFrustum
+004ced00	world	class	class ViewFrustum
+004ced90	world	class	class ViewFrustum
+004cee60	world	class	class ViewFrustum
 004cef80	world	class	class CView
 004cefb0	world	class	class CView
 004cefe0	world	class	class CView
-004cf100	world	neighbours	between 004cefe0 and 004cf1d0
+004cf100	world	class	class ViewFrustum
 004cf1d0	world	class	class CView
 004cf220	world	class	class CView
 004cf230	world	class	class CView
@@ -2860,13 +2860,13 @@ entry	subsystem	rule	evidence
 004d0b30	game	class	class GuildInfo
 004d0bf0	game	class	class GuildInfo
 004d0c60	game	class	class GuildInfo
-004d1fc0	game	neighbours	between 004d0c60 and 004d2200
-004d2000	game	neighbours	between 004d0c60 and 004d2200
-004d2030	game	neighbours	between 004d0c60 and 004d2200
-004d2040	game	neighbours	between 004d0c60 and 004d2200
-004d2050	game	neighbours	between 004d0c60 and 004d2200
-004d2060	game	neighbours	between 004d0c60 and 004d2200
-004d2070	game	neighbours	between 004d0c60 and 004d2200
+004d1fc0	ui	class	class GuildPositionRecord
+004d2000	game	initializer	initializer of the file starting here, before 004d2040
+004d2030	game	initializer	initializer of the file starting here, before 004d2040
+004d2040	game	callees	1 referenced function
+004d2050	game	neighbours	between 004d2040 and 004d2060
+004d2060	game	callees	1 referenced function
+004d2070	game	callers	1 referencing function
 004d2200	game	class	class MannerFilter
 004d2220	game	class	class MannerFilter
 004d2450	game	class	class MannerFilter
@@ -2876,72 +2876,72 @@ entry	subsystem	rule	evidence
 004d2b40	game	class	class MannerFilter
 004d2be0	game	class	class MannerFilter
 004d2d30	game	class	class MannerFilter
-004d3400	game	neighbours	between 004d2d30 and 004d48e0
-004d3430	game	neighbours	between 004d2d30 and 004d48e0
-004d3440	game	neighbours	between 004d2d30 and 004d48e0
-004d3460	game	neighbours	between 004d2d30 and 004d48e0
-004d3470	game	neighbours	between 004d2d30 and 004d48e0
-004d3590	game	neighbours	between 004d2d30 and 004d48e0
-004d35a0	game	neighbours	between 004d2d30 and 004d48e0
-004d35c0	game	neighbours	between 004d2d30 and 004d48e0
-004d35d0	game	neighbours	between 004d2d30 and 004d48e0
-004d36f0	game	neighbours	between 004d2d30 and 004d48e0
-004d3700	game	neighbours	between 004d2d30 and 004d48e0
-004d3720	game	neighbours	between 004d2d30 and 004d48e0
-004d3730	game	neighbours	between 004d2d30 and 004d48e0
-004d3850	game	neighbours	between 004d2d30 and 004d48e0
-004d3af0	game	neighbours	between 004d2d30 and 004d48e0
-004d3bd0	game	neighbours	between 004d2d30 and 004d48e0
-004d3ca0	game	neighbours	between 004d2d30 and 004d48e0
-004d3cc0	game	neighbours	between 004d2d30 and 004d48e0
-004d3e20	game	neighbours	between 004d2d30 and 004d48e0
-004d3f90	game	neighbours	between 004d2d30 and 004d48e0
-004d4010	game	neighbours	between 004d2d30 and 004d48e0
-004d4080	game	neighbours	between 004d2d30 and 004d48e0
-004d4120	game	neighbours	between 004d2d30 and 004d48e0
-004d4190	game	neighbours	between 004d2d30 and 004d48e0
-004d4200	game	neighbours	between 004d2d30 and 004d48e0
-004d42d0	game	neighbours	between 004d2d30 and 004d48e0
-004d4490	game	neighbours	between 004d2d30 and 004d48e0
-004d4570	game	neighbours	between 004d2d30 and 004d48e0
-004d45d0	game	neighbours	between 004d2d30 and 004d48e0
-004d4620	game	neighbours	between 004d2d30 and 004d48e0
-004d4640	game	neighbours	between 004d2d30 and 004d48e0
-004d4650	game	neighbours	between 004d2d30 and 004d48e0
-004d46a0	game	neighbours	between 004d2d30 and 004d48e0
-004d46e0	game	neighbours	between 004d2d30 and 004d48e0
-004d4710	game	neighbours	between 004d2d30 and 004d48e0
-004d4740	game	neighbours	between 004d2d30 and 004d48e0
+004d3400	game	neighbours	between 004d2d30 and 004d3bd0
+004d3430	game	neighbours	between 004d2d30 and 004d3bd0
+004d3440	game	neighbours	between 004d2d30 and 004d3bd0
+004d3460	game	neighbours	between 004d2d30 and 004d3bd0
+004d3470	game	neighbours	between 004d2d30 and 004d3bd0
+004d3590	game	neighbours	between 004d2d30 and 004d3bd0
+004d35a0	game	neighbours	between 004d2d30 and 004d3bd0
+004d35c0	game	neighbours	between 004d2d30 and 004d3bd0
+004d35d0	game	neighbours	between 004d2d30 and 004d3bd0
+004d36f0	game	neighbours	between 004d2d30 and 004d3bd0
+004d3700	game	neighbours	between 004d2d30 and 004d3bd0
+004d3720	game	neighbours	between 004d2d30 and 004d3bd0
+004d3730	game	neighbours	between 004d2d30 and 004d3bd0
+004d3850	game	neighbours	between 004d2d30 and 004d3bd0
+004d3af0	game	neighbours	between 004d2d30 and 004d3bd0
+004d3bd0	game	class	class ItemRecord
+004d3ca0	game	class	class ItemRecord
+004d3cc0	game	class	class ItemRecord
+004d3e20	game	class	class ItemRecord
+004d3f90	game	class	class ItemRecord
+004d4010	game	class	class ItemRecord
+004d4080	game	class	class ItemRecord
+004d4120	game	class	class ItemRecord
+004d4190	game	class	class ItemRecord
+004d4200	game	class	class ItemRecord
+004d42d0	game	class	class ItemRecord
+004d4490	game	class	class ItemRecord
+004d4570	game	class	class ItemRecord
+004d45d0	game	class	class ItemRecord
+004d4620	game	class	class ItemRecord
+004d4640	game	class	class ItemRecord
+004d4650	game	class	class ItemRecord
+004d46a0	game	class	class ItemRecord
+004d46e0	game	class	class ItemRecord
+004d4710	game	class	class ItemRecord
+004d4740	game	class	class ItemRecord
 004d48e0	game	function	loads the item tables (Num2ItemDisplayNameTable.txt, Num2ItemResNameTable.txt, Num2itemDescTable.txt, ...)
-004d5a80	game	neighbours	between 004d48e0 and 004d95b0
-004d5b00	game	neighbours	between 004d48e0 and 004d95b0
-004d5b80	game	neighbours	between 004d48e0 and 004d95b0
-004d5be0	game	neighbours	between 004d48e0 and 004d95b0
-004d5c60	game	neighbours	between 004d48e0 and 004d95b0
-004d7110	game	neighbours	between 004d48e0 and 004d95b0
-004d7180	game	neighbours	between 004d48e0 and 004d95b0
-004d7190	game	neighbours	between 004d48e0 and 004d95b0
-004d71a0	game	neighbours	between 004d48e0 and 004d95b0
-004d7420	game	neighbours	between 004d48e0 and 004d95b0
-004d7460	game	neighbours	between 004d48e0 and 004d95b0
-004d8d30	game	neighbours	between 004d48e0 and 004d95b0
-004d8d60	game	neighbours	between 004d48e0 and 004d95b0
-004d8d70	game	neighbours	between 004d48e0 and 004d95b0
-004d8dc0	game	neighbours	between 004d48e0 and 004d95b0
-004d8dd0	game	neighbours	between 004d48e0 and 004d95b0
-004d8df0	game	neighbours	between 004d48e0 and 004d95b0
-004d8e10	game	neighbours	between 004d48e0 and 004d95b0
-004d8e40	game	neighbours	between 004d48e0 and 004d95b0
-004d8ea0	game	neighbours	between 004d48e0 and 004d95b0
-004d9300	game	neighbours	between 004d48e0 and 004d95b0
-004d9350	game	neighbours	between 004d48e0 and 004d95b0
-004d93a0	game	neighbours	between 004d48e0 and 004d95b0
-004d9410	game	neighbours	between 004d48e0 and 004d95b0
-004d9440	game	neighbours	between 004d48e0 and 004d95b0
-004d9450	game	neighbours	between 004d48e0 and 004d95b0
-004d9470	game	neighbours	between 004d48e0 and 004d95b0
-004d9480	game	neighbours	between 004d48e0 and 004d95b0
-004d95a0	game	neighbours	between 004d48e0 and 004d95b0
+004d5a80	game	class	class ItemInfo
+004d5b00	game	neighbours	between 004d5a80 and 004d71a0
+004d5b80	game	neighbours	between 004d5a80 and 004d71a0
+004d5be0	game	neighbours	between 004d5a80 and 004d71a0
+004d5c60	game	neighbours	between 004d5a80 and 004d71a0
+004d7110	game	neighbours	between 004d5a80 and 004d71a0
+004d7180	game	neighbours	between 004d5a80 and 004d71a0
+004d7190	game	neighbours	between 004d5a80 and 004d71a0
+004d71a0	game	class	class ItemInfo
+004d7420	game	class	class CardInfo
+004d7460	game	class	class CardInfo
+004d8d30	game	previous	after 004d7460, nothing references it
+004d8d60	game	previous	after 004d7460, nothing references it
+004d8d70	game	callers	1 referencing function
+004d8dc0	game	callers	1 referencing function
+004d8dd0	game	callers	1 referencing function
+004d8df0	core	shared	game 87, ui 124, world 1
+004d8e10	world	callers	5 referencing functions
+004d8e40	core	callers	1 referencing function
+004d8ea0	core	shared	game 2, ui 85
+004d9300	core	callers	1 referencing function
+004d9350	core	callers	1 referencing function
+004d93a0	game	callers	5 referencing functions
+004d9410	game	previous	after 004d93a0, nothing references it
+004d9440	game	previous	after 004d93a0, nothing references it
+004d9450	game	callers	1 referencing function
+004d9470	game	callers	1 referencing function
+004d9480	game	callers	1 referencing function
+004d95a0	ui	class	class SkillRecord
 004d95b0	game	function	loads the skill tables (skillnametable.txt, skilldesctable.txt, leveluseskillspamount.txt)
 004d9920	game	callers	4 referencing functions
 004d99e0	game	neighbours	between 004d9920 and 004d9b30
@@ -2987,19 +2987,19 @@ entry	subsystem	rule	evidence
 004dbf50	render	class	class MoviePlayer
 004dbfc0	render	class	class MoviePlayer
 004dc090	res	initializer	initializer of the file starting here, before 004dc0c0
-004dc0c0	res	callers	2 referencing functions
-004dc0d0	res	callers	2 referencing functions
+004dc0c0	res	class	class DesCipher
+004dc0d0	res	class	class DesCipher
 004dc0e0	res	neighbours	between 004dc0d0 and 004dc1a0
-004dc1a0	res	callers	2 referencing functions
+004dc1a0	res	class	class DesCipher
 004dc3d0	res	neighbours	between 004dc1a0 and 004dc820
-004dc820	res	callers	2 referencing functions
-004dcc40	res	callers	1 referencing function
-004dce30	res	neighbours	between 004dcc40 and 004dd2c0
-004dcfa0	res	neighbours	between 004dcc40 and 004dd2c0
-004dd020	res	neighbours	between 004dcc40 and 004dd2c0
-004dd0a0	res	neighbours	between 004dcc40 and 004dd2c0
-004dd1f0	res	neighbours	between 004dcc40 and 004dd2c0
-004dd2c0	res	initializer	initializer of the file starting here, before 004dd2f0
+004dc820	res	class	class DesCipher
+004dcc40	res	class	class DesCipher
+004dce30	res	neighbours	between 004dcc40 and 004dd2f0
+004dcfa0	res	neighbours	between 004dcc40 and 004dd2f0
+004dd020	res	neighbours	between 004dcc40 and 004dd2f0
+004dd0a0	res	neighbours	between 004dcc40 and 004dd2f0
+004dd1f0	res	neighbours	between 004dcc40 and 004dd2f0
+004dd2c0	res	neighbours	between 004dcc40 and 004dd2f0
 004dd2f0	res	class	class DataFile
 004dd300	res	stub	jumps to 004dd3f0
 004dd310	res	class	class DataFile
@@ -3041,15 +3041,15 @@ entry	subsystem	rule	evidence
 004dedb0	res	stub	jumps to 004dd900
 004dedc0	res	class	class CGPak, base of CSakGPak
 004dee30	res	class	class CGPak, base of CSakGPak
-004df2a0	res	neighbours	between 004dee30 and 004df920
-004df710	res	neighbours	between 004dee30 and 004df920
-004df730	res	neighbours	between 004dee30 and 004df920
-004df750	res	neighbours	between 004dee30 and 004df920
-004df7a0	res	neighbours	between 004dee30 and 004df920
-004df810	res	neighbours	between 004dee30 and 004df920
-004df830	res	neighbours	between 004dee30 and 004df920
-004df8a0	res	neighbours	between 004dee30 and 004df920
-004df8f0	res	neighbours	between 004dee30 and 004df920
+004df2a0	res	neighbours	between 004dee30 and 004df710
+004df710	res	class	class HashedFileName
+004df730	res	class	class HashedFileName
+004df750	res	class	class HashedFileName
+004df7a0	res	class	class HashedFileName
+004df810	res	neighbours	between 004df7a0 and 004df830
+004df830	res	class	class HashedFileName
+004df8a0	res	class	class HashedFileName
+004df8f0	res	neighbours	between 004df8a0 and 004df920
 004df920	res	class	class CRes
 004df950	res	class	class CRes
 004df960	res	class	class CRes
@@ -3299,12 +3299,12 @@ entry	subsystem	rule	evidence
 004f1ed0	game	neighbours	between 004f1d10 and 004f2020
 004f1f80	game	neighbours	between 004f1d10 and 004f2020
 004f2020	game	class	namespace mg
-004f21e0	game	neighbours	between 004f2020 and 004f2a40
-004f2270	game	neighbours	between 004f2020 and 004f2a40
-004f22f0	game	neighbours	between 004f2020 and 004f2a40
-004f2360	game	neighbours	between 004f2020 and 004f2a40
-004f23d0	game	neighbours	between 004f2020 and 004f2a40
-004f2410	game	neighbours	between 004f2020 and 004f2a40
+004f21e0	game	class	class ScriptRecord
+004f2270	game	neighbours	between 004f21e0 and 004f2a40
+004f22f0	game	neighbours	between 004f21e0 and 004f2a40
+004f2360	game	neighbours	between 004f21e0 and 004f2a40
+004f23d0	game	neighbours	between 004f21e0 and 004f2a40
+004f2410	game	neighbours	between 004f21e0 and 004f2a40
 004f2a40	game	class	namespace mg
 004f2a70	game	class	namespace mg
 004f2ac0	game	neighbours	between 004f2a70 and 004f8f90
@@ -3318,8 +3318,8 @@ entry	subsystem	rule	evidence
 004f91f0	game	class	namespace mg
 004f9500	game	class	namespace mg
 004f96d0	game	class	namespace mg
-004f9a10	game	neighbours	between 004f96d0 and 004f9e80
-004f9cb0	game	neighbours	between 004f96d0 and 004f9e80
+004f9a10	game	class	class ScriptRecord
+004f9cb0	game	neighbours	between 004f9a10 and 004f9e80
 004f9e80	game	class	namespace mg
 004fa110	game	neighbours	between 004f9e80 and 004fa650
 004fa2d0	game	neighbours	between 004f9e80 and 004fa650
@@ -3328,26 +3328,26 @@ entry	subsystem	rule	evidence
 004fa690	game	class	namespace mg
 004fa6d0	game	class	namespace mg
 004fa800	game	class	namespace mg
-004fa9d0	game	neighbours	between 004fa800 and 004fcfc0
-004fa9e0	game	neighbours	between 004fa800 and 004fcfc0
-004faca0	game	neighbours	between 004fa800 and 004fcfc0
-004faf50	game	neighbours	between 004fa800 and 004fcfc0
-004fb6a0	game	neighbours	between 004fa800 and 004fcfc0
-004fb8a0	game	neighbours	between 004fa800 and 004fcfc0
-004fbc60	game	neighbours	between 004fa800 and 004fcfc0
-004fc7d0	game	neighbours	between 004fa800 and 004fcfc0
-004fca20	game	neighbours	between 004fa800 and 004fcfc0
-004fca50	game	neighbours	between 004fa800 and 004fcfc0
-004fca80	game	neighbours	between 004fa800 and 004fcfc0
-004fcae0	game	neighbours	between 004fa800 and 004fcfc0
-004fcaf0	game	neighbours	between 004fa800 and 004fcfc0
-004fcb20	game	neighbours	between 004fa800 and 004fcfc0
-004fcbb0	game	neighbours	between 004fa800 and 004fcfc0
-004fcc00	game	neighbours	between 004fa800 and 004fcfc0
-004fcda0	game	neighbours	between 004fa800 and 004fcfc0
-004fcf40	game	neighbours	between 004fa800 and 004fcfc0
-004fcf70	game	neighbours	between 004fa800 and 004fcfc0
-004fcfb0	game	neighbours	between 004fa800 and 004fcfc0
+004fa9d0	game	neighbours	between 004fa800 and 004fca20
+004fa9e0	game	neighbours	between 004fa800 and 004fca20
+004faca0	game	neighbours	between 004fa800 and 004fca20
+004faf50	game	neighbours	between 004fa800 and 004fca20
+004fb6a0	game	neighbours	between 004fa800 and 004fca20
+004fb8a0	game	neighbours	between 004fa800 and 004fca20
+004fbc60	game	neighbours	between 004fa800 and 004fca20
+004fc7d0	game	neighbours	between 004fa800 and 004fca20
+004fca20	game	class	class ScriptRecord
+004fca50	game	neighbours	between 004fca20 and 004fcfc0
+004fca80	game	neighbours	between 004fca20 and 004fcfc0
+004fcae0	game	neighbours	between 004fca20 and 004fcfc0
+004fcaf0	game	neighbours	between 004fca20 and 004fcfc0
+004fcb20	game	neighbours	between 004fca20 and 004fcfc0
+004fcbb0	game	neighbours	between 004fca20 and 004fcfc0
+004fcc00	game	neighbours	between 004fca20 and 004fcfc0
+004fcda0	game	neighbours	between 004fca20 and 004fcfc0
+004fcf40	game	neighbours	between 004fca20 and 004fcfc0
+004fcf70	game	neighbours	between 004fca20 and 004fcfc0
+004fcfb0	game	neighbours	between 004fca20 and 004fcfc0
 004fcfc0	game	class	namespace mg
 004fd180	game	class	namespace mg
 004fd1b0	game	class	namespace mg
@@ -7397,11 +7397,11 @@ entry	subsystem	rule	evidence
 005dbe53	game	funclet	EH tables of 004d71a0
 005dbe5e	game	funclet	EH tables of 004d71a0
 005dbe69	game	funclet	EH tables of 004d71a0
-005dc010	game	funclet	EH tables of 004d8ea0
-005dc018	game	funclet	EH tables of 004d8ea0
-005dc020	game	funclet	EH tables of 004d8ea0
-005dc028	game	funclet	EH tables of 004d8ea0
-005dc030	game	funclet	EH tables of 004d8ea0
+005dc010	core	funclet	EH tables of 004d8ea0
+005dc018	core	funclet	EH tables of 004d8ea0
+005dc020	core	funclet	EH tables of 004d8ea0
+005dc028	core	funclet	EH tables of 004d8ea0
+005dc030	core	funclet	EH tables of 004d8ea0
 005dc050	game	funclet	EH tables of 004d95b0
 005dc058	game	funclet	EH tables of 004d95b0
 005dc0a0	game	funclet	EH tables of 004da100

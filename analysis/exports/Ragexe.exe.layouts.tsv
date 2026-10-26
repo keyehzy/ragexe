@@ -2,24 +2,24 @@ class	size	size_source	max_size	fields	covered_bytes	coverage	indexed_bases	note
 ActFrame	76	new	76	19	70	0.92		
 AnimFrameArrays	8	new	8	2	8	1.00		
 AnimModelResNode	88	new	88	19	78	0.89		3 overlapping uses dropped
-C3dAnimModelRes	356	new	356	20	97	0.27		6 overlapping uses dropped
-C3dAttr	300	new	300	10	41	0.14		
+C3dAnimModelRes	356	new	356	21	353	0.99		6 overlapping uses dropped
+C3dAttr	300	new	300	11	297	0.99		
 C3dDevice	572	estimated	616	58	221	0.39	0x134	the global at 006239d0 is followed by a variable at 00623c38 (another data label); 9 addresses before it, 00623c0c first, are used only by other code: fields or variables; probably a variable from 00623c18 (+0x248) on, which only source files naming nothing else of the object use; 2 of them named with an absolute address by the class's own methods, e.g. 00623c10 by 00405f20
-C3dGrannyGameActor	3132	new	3132	152	584	0.19	0x4c8,0x304,0x288	
-C3dGrannyModelRes	948	new	948	20	84	0.09		
-C3dGround	236	new	236	40	164	0.69		
-C3dGround15	236	estimated		40	164	0.69		
-C3dModelRes	424	new	424	14	72	0.17		9 overlapping uses dropped
+C3dGrannyGameActor	3132	new	3132	150	600	0.19	0x4c8,0x304,0x288	
+C3dGrannyModelRes	948	new	948	21	340	0.36		
+C3dGround	236	new	236	40	200	0.85		1 overlapping uses dropped
+C3dGround15	236	estimated		40	200	0.85		
+C3dModelRes	424	new	424	15	328	0.77		9 overlapping uses dropped
 C3dNode	336	new	336	29	199	0.59		27 overlapping uses dropped
 C3dNodeHAL	388	new	388	41	247	0.64		
-C3dWorldRes	448	new	448	12	106	0.24		18 overlapping uses dropped
+C3dWorldRes	448	new	448	13	362	0.81		18 overlapping uses dropped
 CAbleToMakeEffect	192	estimated		54	183	0.95		3 overlapping uses dropped
-CActRes	324	new	324	16	59	0.18		
+CActRes	324	new	324	17	315	0.97		
 CActorPickNode	48	new	48	9	48	1.00	0x14	3 overlapping uses dropped
 CArrowEffect	208	new	208	60	199	0.96		
-CBitmapRes	288	new	288	7	32	0.11		
+CBitmapRes	288	new	288	8	288	1.00		
 CBlowEffect	160	new	160	48	151	0.94		
-CBlurPC	796	new	796	152	596	0.75		
+CBlurPC	796	new	796	150	612	0.77		
 CConnection	124	estimated		9	104	0.84		10 overlapping uses dropped
 CController	172	estimated		9	40	0.23		
 CCorpse	160	new	160	48	151	0.94		
@@ -27,21 +27,21 @@ CDC	4	estimated		0	4	1.00
 CDCBitmap	44	new	44	8	41	0.93		3 overlapping uses dropped
 CDCSurface	20	estimated		4	20	1.00		
 CDummyEffectLauncher	196	new	196	55	187	0.95		
-CEZeffectRes	54196	new	54196	6	53784	0.99		
+CEZeffectRes	54196	new	54196	7	54040	1.00		
 CEffectMaker	220	new	220	61	211	0.96		
 CEffectPrim	88464	new	88464	175	793	0.01		3 overlapping uses dropped
-CEmblemRes	560	new	560	4	304	0.54		1 overlapping uses dropped
+CEmblemRes	560	new	560	5	560	1.00		1 overlapping uses dropped
 CGPak	132	estimated	132	24	91	0.69		the global at 0067cd00 is followed by a variable at 0067cd84 (another data label)
-CGameActor	636	estimated		122	473	0.74		10 overlapping uses dropped
+CGameActor	636	estimated		120	489	0.77		13 overlapping uses dropped
 CGameMode	956	new	956	139	800	0.84		44 overlapping uses dropped
 CGameObject	4	estimated		0	4	1.00		
-CGndRes	488	new	488	23	90	0.18		
+CGndRes	488	new	488	24	346	0.71		
 CGndRiser	204	estimated		57	195	0.96		
-CGraffiSkill	948	new	948	137	524	0.55		
+CGraffiSkill	948	new	948	135	540	0.57		
 CGrannyCorpse3d	588	new	588	23	93	0.16		
-CGrannyPc	9220	estimated		195	747	0.08	0x0,0xea8,0x8ac,0x2dc,0x380	1 overlapping uses dropped
+CGrannyPc	9220	estimated		193	763	0.08	0x0,0xea8,0x8ac,0x2dc,0x380	1 overlapping uses dropped
 CGroundScope	220	new	220	61	211	0.96		
-CImfRes	6588	new	6588	9	37	0.01	0x120,0x15c	
+CImfRes	6588	new	6588	10	293	0.04	0x120,0x15c	
 CItem	192	new	192	53	183	0.95		4 overlapping uses dropped
 CKeyPad	188	new	188	10	56	0.30		5 overlapping uses dropped
 CLanguage	140	estimated	144	23	126	0.90		the global at 0067c8e8 is followed by a variable at 0067c978 (written by the dynamic initializer 004c9740); 1 addresses before it, 0067c974 first, are used only by other code: fields or variables | 12 overlapping uses dropped
@@ -53,46 +53,57 @@ CMasterChaser	164	estimated		49	155	0.95
 CMode	64	estimated		15	64	1.00		
 CMousePointer	164	new	164	49	155	0.95		
 CMsgEffect	284	new	284	73	259	0.91		
-CNpc	664	new	664	129	501	0.75		
+CNpc	664	new	664	127	517	0.78		
 CNumEffect	168	new	168	50	159	0.95		
-CPaletteRes	1296	new	1296	3	16	0.01		
-CPc	776	new	776	150	588	0.76		4 overlapping uses dropped
-CPlayer	988	new	988	175	796	0.81		
+CPaletteRes	1296	new	1296	4	272	0.21		
+CPc	776	new	776	148	604	0.78		4 overlapping uses dropped
+CPlayer	988	new	988	173	812	0.82		
 CRagConnection	204	estimated	204	17	177	0.87		the global at 00628a70 is followed by a variable at 00628b3c (another data label) | 11 overlapping uses dropped
 CRagEffect	17540	estimated		79	435	0.02	0x4168,0x0	4 overlapping uses dropped
 CRenderObject	160	estimated		48	151	0.94		5 overlapping uses dropped
-CRes	16	estimated		3	16	1.00		
-CRmaRes	344	new	344	21	79	0.23		
+CRes	272	estimated		4	272	1.00		
+CRmaRes	344	new	344	22	335	0.97		
 CSakGPak	136	estimated		25	95	0.70		
-CSkill	656	new	656	127	493	0.75		
+CSkill	656	new	656	125	509	0.78		
 CSkinMgr	88	estimated	88	18	76	0.86		the global at 00641cc8 is followed by a variable at 00641d20 (another data label) | 4 overlapping uses dropped
 CSnapMgr	20	estimated	20	2	20	1.00		the global at 00641d20 is followed by a variable at 00641d34 (written by the dynamic initializer 00439b60) | 3 overlapping uses dropped
 CSoundMaker	204	new	204	56	195	0.96		4 overlapping uses dropped
-CSprRes	1332	new	1332	5	52	0.04		6 overlapping uses dropped
+CSprRes	1332	new	1332	6	308	0.23		6 overlapping uses dropped
 CSurface	16	estimated		3	16	1.00		
 CSurfaceWallpaper	16	new	16	3	16	1.00		
 CTexture	296	new	296	10	41	0.14		1 overlapping uses dropped
 CTokenizer	12	estimated		2	8	0.67		
-CView	448	new	448	31	213	0.48		
-CWave	280	new	280	5	24	0.09		
+CView	448	new	448	30	397	0.89		2 overlapping uses dropped
+CWave	280	new	280	6	280	1.00		
 CWorld	244	new	244	21	241	0.99		19 overlapping uses dropped
+CardInfo	48	new	48	12	39	0.81		
 ClientState	6356	estimated	6360	553	4653	0.73	0x17fc,0x179c,0x173c,0x17cc,0x176c,0xe60	the global at 00686670 is followed by a variable at 00687f48 (written by the dynamic initializer 00586800) | 53 overlapping uses dropped
 DataFile	16	estimated	31064	4	16	1.00		the global at 0067d4b8 is followed by a variable at 00684e10 (written by the dynamic initializer 0050c270); 16 addresses before it, 0067d4c8 first, are used only by other code: fields or variables; probably a variable from 0067d548 (+0x90) on, which only source files naming nothing else of the object use
+DesCipher	128	new	128	2	8	0.06		
 DirectInputMouse	60	estimated	64	13	52	0.87		the global at 00628b48 is followed by a variable at 00628b88 (another data label)
+EdgeRect	48	new	48	12	48	1.00		
 FontCache	16	estimated	16	4	13	0.81		the global at 00623c48 is followed by a variable at 00623c58 (written by the dynamic initializer 00407550)
 FontEntry	20	new	20	5	17	0.85		
 GndCell	28	new	28	7	28	1.00		
 GrannyMotionTable	644	estimated	8648	11	41	0.06	0x0	the global at 0063edc0 is followed by a variable at 00640f88 (another data label); 2 addresses before it, 00640f80 first, are used only by other code: fields or variables; probably a variable from 00640f80 (+0x21c0) on, which only source files naming nothing else of the object use | 1 overlapping uses dropped
 GuildInfo	296	estimated	296	44	290	0.98		the global at 0067cab8 is followed by a variable at 0067cbe0 (another data label) | 33 overlapping uses dropped
+GuildMemberRecord	92	new	92	14	92	1.00		9 overlapping uses dropped
+GuildPositionRecord	36	new	36	6	36	1.00		4 overlapping uses dropped
+HashedFileName	256	new	256	3	6	0.02	0x4	1 overlapping uses dropped
 ImfRecord	48	new	48	9	36	0.75		
+ItemInfo	120	new	120	24	105	0.88		8 overlapping uses dropped
+ItemRecord	68	new	68	15	66	0.97		6 overlapping uses dropped
 KeyPadDispatcher	108	estimated	120	7	25	0.23		the global at 00628b88 is followed by a variable at 00628c00 (another data label); 3 addresses before it, 00628bf4 first, are used only by other code: fields or variables; probably a variable from 00628bf4 (+0x6c) on, which only source files naming nothing else of the object use
+LightmapAtlas	40	new	40	10	34	0.85		
 MannerFilter	48	estimated	56	12	45	0.94		the global at 0067cbe8 is followed by a variable at 0067cc20 (another data label); 1 addresses before it, 0067cc18 first, are used only by other code: fields or variables; probably a variable from 0067cc18 (+0x30) on, which only source files naming nothing else of the object use
 Matrix	48	new	48	12	48	1.00		
 Md5Context	28	estimated		7	28	1.00	0x0,0x8	
+MessengerRecord	52	new	52	6	24	0.46		
 ModeSwitcher	96	estimated	120	6	24	0.25		the global at 0067c9e8 is followed by a variable at 0067ca60 (another data label); 5 addresses before it, 0067ca48 first, are used only by other code: fields or variables; probably a variable from 0067ca54 (+0x6c) on, which only source files naming nothing else of the object use | 1 overlapping uses dropped
 ModelInstance	512	new	512	51	294	0.57		15 overlapping uses dropped
 ModelResMesh	564	new	564	10	560	0.99		2 overlapping uses dropped
 ModelResNode	364	new	364	14	58	0.16		3 overlapping uses dropped
+MovePath	28	new	28	7	25	0.89		
 MoviePlayer	16	estimated	1544	4	13	0.81		the global at 00688480 is followed by a variable at 00688a88 (another data label); 29 addresses before it, 00688498 first, are used only by other code: fields or variables; probably a variable from 0068851c (+0x9c) on, which only source files naming nothing else of the object use; 1 of them named with an absolute address by the class's own methods, e.g. 00688a60 by 004dbfc0
 PacketCodeModules	28	estimated		5	20	0.71		
 PacketQueue	28	new	28	7	25	0.89		
@@ -105,8 +116,13 @@ RmaActionRecord	28	new	28	6	24	0.86	0x0
 RotationKeys	16	new	16	3	12	0.75		
 ScaleKeys	16	new	16	3	12	0.75		
 SceneGraphNode	128	new	128	28	109	0.85		
+SceneRayQuery	40	new	40	9	36	0.90		
 SceneRenderer	672	new	672	115	585	0.87	0x0,0x198,0x194	1 overlapping uses dropped
+ScriptRecord	40	new	40	8	32	0.80		
+SelectCharSlot	236	new	236	14	199	0.84		
+SkillRecord	44	new	44	4	16	0.36		
 SnapObject	60	new	60	3	60	1.00	0x0,0xc,0x8,0x10	1 overlapping uses dropped
+StringIntRecord	20	new	20	2	20	1.00		4 overlapping uses dropped
 TextureCache	16	estimated	16	1	16	1.00		the global at 00625e88 is followed by a variable at 00625e98 (another data label) | 2 overlapping uses dropped
 ThaiLexicon	300	new	300	11	41	0.14		
 ThaiWordBreaker	8	estimated	1056	2	8	1.00	0x4	the global at 0067bf98 is followed by a variable at 0067c3b8 (another data label); 5 addresses before it, 0067c3a0 first, are used only by other code: fields or variables; probably a variable from 0067c3a0 (+0x408) on, which only source files naming nothing else of the object use
@@ -141,7 +157,7 @@ UIChooseWarpWnd	124	new	124	28	121	0.98
 UIChooseWnd	132	new	132	29	125	0.95		
 UICntWnd	112	new	112	24	108	0.96		
 UIColorButton	136	estimated		31	121	0.89		3 overlapping uses dropped
-UICombinedCardItemCollectionWnd	260	new	260	48	199	0.77		
+UICombinedCardItemCollectionWnd	260	new	260	41	226	0.87		
 UIComboBox	148	new	148	34	136	0.92		
 UIComboBoxWnd	104	new	104	23	104	1.00		
 UICompositionWnd	116	new	116	26	113	0.97		
@@ -173,7 +189,7 @@ UIGuildTotalInfoWnd	200	new	200	31	136	0.68
 UIGuildWnd	108	estimated		24	108	1.00		
 UIIllustWnd	124	new	124	28	121	0.98		
 UIItemBaseWnd	152	estimated		33	152	1.00		3 overlapping uses dropped
-UIItemCollectionWnd	256	new	256	47	195	0.76	0x80	4 overlapping uses dropped
+UIItemCollectionWnd	256	new	256	40	222	0.87	0x80	12 overlapping uses dropped
 UIItemCompositionWnd	164	new	164	33	164	1.00		
 UIItemDropCntWnd	108	new	108	24	108	1.00		
 UIItemIdentifyWnd	156	new	156	31	156	1.00		7 overlapping uses dropped
@@ -266,6 +282,7 @@ UIWhisperWnd	152	new	152	35	146	0.96
 UIWindow	76	estimated		16	76	1.00		3 overlapping uses dropped
 UIWindowMgr	1152	estimated	1288	139	609	0.53		the global at 00641fa8 is followed by a variable at 006424b0 (written by the dynamic initializer 004a7040) | 21 overlapping uses dropped
 VertexBuffer	16	new	16	4	16	1.00		
+ViewFrustum	192	new	192	3	28	0.15		6 overlapping uses dropped
 WorldColorFade	72	estimated	88	22	70	0.97		the global at 00686598 is followed by a variable at 006865f0 (written by the dynamic initializer 0057cf40)
 XmlDocument	40	estimated	72	1	4	0.10		the global at 0067c9a0 is followed by a variable at 0067c9e8 (another data label); 10 addresses before it, 0067c9c8 first, are used only by other code: fields or variables; probably a variable from 0067c9e0 (+0x40) on, which only source files naming nothing else of the object use
 XmlElement	40	new	40	7	37	0.93		4 overlapping uses dropped
@@ -276,8 +293,8 @@ exception	12	estimated		2	12	1.00
 mg::CArrow	236	new	236	66	223	0.94		
 mg::CEntity	116	estimated		26	105	0.91		
 mg::CMGEngine	952	estimated		62	248	0.26		
-mg::CMGNpc	664	estimated		129	501	0.75		
-mg::CMGPc	776	estimated		150	588	0.76		
+mg::CMGNpc	664	estimated		127	517	0.78		
+mg::CMGPc	776	estimated		148	604	0.78		
 mg::CMap	176	new	176	33	130	0.74		
 mg::CObject	104	estimated		23	93	0.89		
 mg::CScript	676	estimated		33	133	0.20		5 overlapping uses dropped
@@ -285,8 +302,8 @@ mg::CTile	36	new	36	6	25	0.69
 mg::mgType1::CItemObj	308	new	308	82	285	0.93		
 mg::mgType1::CMapObj	140	new	140	30	121	0.86		
 mg::mgType1::CMiniGame001	1108	new	1108	62	248	0.22		
-mg::mgType1::CMonster	840	new	840	163	646	0.77		3 overlapping uses dropped
-mg::mgType1::CPlayer	920	new	920	182	717	0.78	0x384	
+mg::mgType1::CMonster	840	new	840	161	662	0.79		3 overlapping uses dropped
+mg::mgType1::CPlayer	920	new	920	180	733	0.80	0x384	
 mg::mgType1::CWorld	104	estimated	120	22	95	0.91		the global at 0067ce90 is followed by a variable at 0067cf08 (another data label); 4 addresses before it, 0067cef8 first, are used only by other code: fields or variables; probably a variable from 0067cf00 (+0x70) on, which only source files naming nothing else of the object use | 5 overlapping uses dropped
 std::_Mpunct<char>	40	estimated		10	38	0.95		
 std::_Mpunct<unsigned_short>	40	estimated		10	40	1.00		

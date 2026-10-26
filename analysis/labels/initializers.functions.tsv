@@ -173,7 +173,7 @@ address	namespace	name	calling_convention	evidence
 004487e0	Global	static_init_074	__cdecl	entry 74 of the C++ initializer table run by _cinit
 0045b090	Global	static_init_075	__cdecl	entry 75 of the C++ initializer table run by _cinit
 00479380	Global	static_init_076	__cdecl	entry 76 of the C++ initializer table run by _cinit
-0047f670	Global	destroy_global_00641d68	__cdecl	atexit handler: mov ecx, 00641d68 and calls 0047f6a0
+0047f670	Global	destroy_g_GuildPositionRecord	__cdecl	atexit handler: mov ecx, 00641d68 and calls 0047f6a0
 00486b40	Global	static_init_077	__cdecl	entry 77 of the C++ initializer table run by _cinit
 004872e0	Global	static_init_078	__cdecl	entry 78 of the C++ initializer table run by _cinit
 00487ee0	Global	static_init_079	__cdecl	entry 79 of the C++ initializer table run by _cinit
@@ -263,8 +263,8 @@ address	namespace	name	calling_convention	evidence
 004d35a0	Global	static_init_123_body	__cdecl	static_init_123 calls or jumps to it
 004d36f0	Global	static_init_124	__cdecl	entry 124 of the C++ initializer table run by _cinit
 004d3700	Global	static_init_124_body	__cdecl	static_init_124 calls or jumps to it
-004d7180	Global	destroy_global_006891c0	__cdecl	atexit handler: mov ecx, 006891c0 and calls 004d7460
-004d7190	Global	destroy_global_00689140	__cdecl	atexit handler: mov ecx, 00689140 and calls 004d71a0
+004d7180	Global	destroy_g_CardInfo	__cdecl	atexit handler: mov ecx, 006891c0 and calls 004d7460
+004d7190	Global	destroy_g_ItemInfo	__cdecl	atexit handler: mov ecx, 00689140 and calls 004d71a0
 004d8d30	Global	static_init_125	__cdecl	entry 125 of the C++ initializer table run by _cinit
 004d8d60	Global	static_init_126	__cdecl	entry 126 of the C++ initializer table run by _cinit
 004d8d70	Global	static_init_126_body	__cdecl	static_init_126 calls or jumps to it
