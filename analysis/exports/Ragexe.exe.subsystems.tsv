@@ -3629,9 +3629,9 @@ entry	subsystem	rule	evidence
 00512510	game	class	class CMode, base of CGameMode
 00512610	game	class	class CMode, base of CGameMode
 005126f0	game	class	class CMode, base of CGameMode
-00512790	game	neighbours	between 005126f0 and 005128c0
-005127a0	game	neighbours	between 005126f0 and 005128c0
-005127f0	game	neighbours	between 005126f0 and 005128c0
+00512790	game	neighbours	between 005126f0 and 005127a0
+005127a0	game	class	class FourStringRecord
+005127f0	game	class	class FourStringRecord
 005128c0	game	class	class CMode, base of CGameMode
 00512930	game	class	class CMode, base of CGameMode
 00512a30	game	class	class CMode, base of CGameMode
@@ -3687,10 +3687,10 @@ entry	subsystem	rule	evidence
 005196a0	game	class	class CMode, base of CGameMode
 00519710	game	neighbours	between 005196a0 and 00519740
 00519740	game	class	class CMode, base of CGameMode
-0051b1d0	game	neighbours	between 00519740 and 0051d990
-0051d940	game	neighbours	between 00519740 and 0051d990
+0051b1d0	game	class	class FourStringRecord
+0051d940	game	neighbours	between 0051b1d0 and 0051d990
 0051d970	game	stub	jumps to 0051d980
-0051d980	game	neighbours	between 00519740 and 0051d990
+0051d980	game	neighbours	between 0051b1d0 and 0051d990
 0051d990	game	class	class CMode, base of CGameMode
 00523900	ui	class	class UIWindowMgr
 005239c0	ui	class	class UIWindowMgr
@@ -3984,9 +3984,9 @@ entry	subsystem	rule	evidence
 0053eba0	game	class	class CMode, base of CLoginMode
 0053ebc0	game	class	class CMode, base of CLoginMode
 0053ecd0	game	class	class CMode, base of CLoginMode
-0053f030	game	neighbours	between 0053ecd0 and 0053f100
-0053f100	game	callers	2 referencing functions
-0053f590	game	previous	after 0053f100, nothing references it
+0053f030	game	class	class ConnectionEntry
+0053f100	game	neighbours	between 0053f030 and 0053f590
+0053f590	game	class	class ConnectionEntry
 0053f900	world	initializer	initializer of the file starting here, before 0053f950
 0053f930	world	stub	jumps to 0053f940
 0053f940	world	initializer	initializer of the file starting here, before 0053f950

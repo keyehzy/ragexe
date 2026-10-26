@@ -40,6 +40,8 @@ class	CardInfo	game	value of g_cardInfoById
 class	DesCipher	res	DES key schedule for the archives
 class	HashedFileName	res	resource and archive file name key
 class	ScriptRecord	game	element of mg::CScript's vector
+class	FourStringRecord	game	four-string value of CGameMode's tree
+class	ConnectionEntry	game	clientinfo.xml server list entry
 class	ModelResNode	res	node of a C3dModelRes
 class	ModelResMesh	res	mesh of a ModelResNode
 class	AnimModelResNode	res	node of a C3dAnimModelRes

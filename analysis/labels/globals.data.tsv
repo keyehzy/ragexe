@@ -47,5 +47,6 @@ address	namespace	name	evidence	type
 00686598	Global	g_WorldColorFade	constructed by 00586400 from static initializer 0057cf60	class:WorldColorFade
 00686670	Global	g_ClientState	constructed by 00586860 from static initializer 00586820	class:ClientState
 00688480	Global	g_MoviePlayer	constructed by 004dbbe0 from static initializer 005b1030	class:MoviePlayer
+00689020	Global	g_FourStringRecord	constructed on first use by 005127a0 in 005126f0	class:FourStringRecord
 00689140	Global	g_ItemInfo	constructed on first use by 004d5a80 in 004d48e0	class:ItemInfo
 006891c0	Global	g_CardInfo	constructed on first use by 004d7420 in 004d5be0	class:CardInfo

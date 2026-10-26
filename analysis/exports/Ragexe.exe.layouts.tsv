@@ -78,12 +78,14 @@ CWave	280	new	280	6	280	1.00
 CWorld	244	new	244	21	241	0.99		19 overlapping uses dropped
 CardInfo	48	new	48	12	39	0.81		
 ClientState	6356	estimated	6360	552	4736	0.75	0x17fc,0x179c,0x173c,0x17cc,0x176c,0xe60	the global at 00686670 is followed by a variable at 00687f48 (written by the dynamic initializer 00586800) | 57 overlapping uses dropped
+ConnectionEntry	72	new	72	10	64	0.89		6 overlapping uses dropped
 DataFile	16	estimated	31064	4	16	1.00		the global at 0067d4b8 is followed by a variable at 00684e10 (written by the dynamic initializer 0050c270); 16 addresses before it, 0067d4c8 first, are used only by other code: fields or variables; probably a variable from 0067d548 (+0x90) on, which only source files naming nothing else of the object use
 DesCipher	128	new	128	2	8	0.06		
 DirectInputMouse	60	estimated	64	13	52	0.87		the global at 00628b48 is followed by a variable at 00628b88 (another data label)
 EdgeRect	48	new	48	12	48	1.00		
 FontCache	16	estimated	16	4	13	0.81		the global at 00623c48 is followed by a variable at 00623c58 (written by the dynamic initializer 00407550)
 FontEntry	20	new	20	5	17	0.85		
+FourStringRecord	64	new	64	16	52	0.81		
 GndCell	28	new	28	7	28	1.00		
 GrannyMotionTable	644	estimated	8648	11	41	0.06	0x0	the global at 0063edc0 is followed by a variable at 00640f88 (another data label); 2 addresses before it, 00640f80 first, are used only by other code: fields or variables; probably a variable from 00640f80 (+0x21c0) on, which only source files naming nothing else of the object use | 1 overlapping uses dropped
 GuildInfo	296	estimated	296	44	290	0.98		the global at 0067cab8 is followed by a variable at 0067cbe0 (another data label) | 33 overlapping uses dropped

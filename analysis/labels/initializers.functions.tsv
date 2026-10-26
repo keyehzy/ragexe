@@ -333,7 +333,7 @@ address	namespace	name	calling_convention	evidence
 0050f8c0	Global	atexit_no_op_0050f8c0	__cdecl	a lone ret, registered with atexit 1 times
 0050fd70	Global	atexit_no_op_0050fd70	__cdecl	a lone ret, registered with atexit 1 times
 0050fd80	Global	atexit_no_op_0050fd80	__cdecl	a lone ret, registered with atexit 1 times
-00512790	Global	destroy_global_00689020	__cdecl	atexit handler: mov ecx, 00689020 and calls 005127f0
+00512790	Global	destroy_g_FourStringRecord	__cdecl	atexit handler: mov ecx, 00689020 and calls 005127f0
 00519440	Global	static_init_168	__cdecl	entry 168 of the C++ initializer table run by _cinit
 00519450	Global	construct_g_DataFile	__cdecl	static_init_168 calls it: mov ecx, 0067d4b8 and calls 004dd2f0
 00519460	Global	register_destroy_g_DataFile	__cdecl	static_init_168 calls it: registers its destroy stub 00519470 with atexit

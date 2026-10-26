@@ -1360,8 +1360,31 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     `CEffectPrim+0x358`) and `ProhibitionLogRecord` (0x74, written to
     "\ProhibitionLog.gd").
 
+- [x] Class proposals from naming run 6, by the same test. Two classes are in
+  `inferred.classes.tsv`, with subsystem rules, and 5 functions moved into them:
+  - `FourStringRecord` (64 bytes): four `std::string`s. A constructor, a copy
+    constructor and a destructor, applied on `CGameMode`'s stack in `SendMsg` and
+    `method_005149c0` and to the global `0x689020`, which `recover_objects` now names
+    `g_FourStringRecord`. It is the value of `CGameMode`'s tree at `+0x134`, whose
+    68-byte values are an int key and this record.
+  - `ConnectionEntry` (72 bytes): the entries `CLoginMode::LoadConnectionList` reads
+    from clientinfo.xml's "connection" elements ("display", "desc") into the vector at
+    `CLoginMode+0x1354`. Four strings and the ints at `+0x40`/`+0x44`; its assignment
+    and destructor run in the vector's `insert`. The destructor has the same code as
+    `FourStringRecord`'s, since it destroys the same four strings.
+  - **Not accepted:**
+    - `StringIntsRecord`, `IntStringRecord`: one method each. Their "constructors"
+      are `std::ConstructAt` copies (`__cdecl` library helpers), and the int/string
+      destructor in the vector code is `std::pair::~pair`.
+    - `EffectPrimRing` and `EffectPrimHistoryEntry`: arrays inside `CEffectPrim`
+      that only `CEffectPrim`'s own methods touch; no function takes one as `this`.
+    - `ProhibitionLogRecord`: no function of its own besides the library's vector
+      code.
+    - `TimedTextEntry` and the counter record: one weak function each.
+  - Fields 10,578 → 10,604. Still 100% named or library-tagged. Converges in three
+    passes.
+
 ### Next actions (M1)
 1. Naming is complete for reachable code (100%; 96.4% of all code). Check the other M1
    items against section 5 (constructors, destructors and sizes for all classes; the
    class graph; `docs/architecture.md`) and close M1.
-2. Decide naming run 6's class proposals.

@@ -362,3 +362,5 @@ CardInfo	Global	2	0
 DesCipher	Global	5	0
 HashedFileName	Global	6	0
 ScriptRecord	Global	3	0
+FourStringRecord	Global	3	0
+ConnectionEntry	Global	2	0

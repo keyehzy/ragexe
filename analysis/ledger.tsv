@@ -4565,9 +4565,9 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00512510	243	code	0	game		named	CGameMode	method_00512510	
 00512610	214	code	0	game		named	CGameMode	SendRequest0094	
 005126f0	157	code	0	game		named	CGameMode	method_005126f0	
-00512790	10	code	0	game		named	Global	destroy_global_00689020	
-005127a0	71	code	0	game		named	Global	ConstructFourStrings	
-005127f0	199	code	0	game		named	Global	DestroyFourStrings	
+00512790	10	code	0	game		named	Global	destroy_g_FourStringRecord	
+005127a0	71	code	0	game		named	FourStringRecord	FourStringRecord	
+005127f0	199	code	0	game		named	FourStringRecord	~FourStringRecord	
 005128c0	102	code	0	game		named	CGameMode	GetMsSinceRequest0193	
 00512930	243	code	0	game		named	CGameMode	method_00512930	
 00512a30	323	code	0	game		named	CGameMode	SendRequest0193	
@@ -4662,7 +4662,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0051b080	203	code	1	stl		named	std::Tree	method_0051b080	
 0051b150	67	code	1	stl		named	std::Tree	IncrementIterator	
 0051b1a0	35	code	1	stl		named	std::vector	DestroyRange	
-0051b1d0	201	code	0	game		named	Global	CopyFourStrings	
+0051b1d0	201	code	0	game		named	FourStringRecord	FourStringRecord	
 0051b2a0	558	code	1	stl		named	std::Tree	insert	
 0051b4d0	1193	code	1	stl		named	std::Tree	method_0051b4d0	
 0051b980	70	code	1	stl		named	std::Tree	EraseSubtree	
@@ -5084,10 +5084,10 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0053eba0	26	code	0	game		named	CLoginMode	HandlePacket_01C7	
 0053ebc0	261	code	0	game		named	CLoginMode	HandlePacket_01DC	
 0053ecd0	853	code	0	game		named	CLoginMode	LoadConnectionList	
-0053f030	199	code	0	game		named	Global	DestroyFourStrings	
+0053f030	199	code	0	game		named	ConnectionEntry	~ConnectionEntry	
 0053f100	135	code	0	game		named	Global	GetServiceTypeCode	
 0053f1d0	949	code	1	stl		named	std::vector	insert	
-0053f590	632	code	0	game		named	Global	AssignConnectionEntry	
+0053f590	632	code	0	game		named	ConnectionEntry	Assign	
 0053f810	229	code	1	stl		named	std	ConstructAt	
 0053f900	37	code	0	world		named	Global	static_init_176	
 0053f930	5	thunk	0	world		-	Global	static_init_177	
