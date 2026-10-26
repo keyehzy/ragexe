@@ -1,7 +1,7 @@
 # Architecture of Ragexe.exe
 
 How the 2003 client is put together: its subsystems, start-up, the mode state machine, one
-frame, input, networking, threads, the global objects and shutdown. Addresses are virtual
+frame, input, networking, threads, the global objects, shutdown and the classes. Addresses are virtual
 addresses in `original/client/Ragexe.exe`. Names come from the label files in
 `analysis/labels`: class names are from RTTI or strings in the binary, and the rest are
 descriptive names made up for this project (PLAN rule 4). `FUN_`, `method_` and `vfNN`
@@ -13,17 +13,18 @@ Every function of the game's own code has a subsystem in the ledger's `subsystem
 
 | Subsystem | Functions | Bytes | What it covers |
 |-----------|----------:|------:|----------------|
-| `core` | 210 | 36,897 | `WinMain`, the window and message loop, the mode switcher, the frame timer, client configuration (clientinfo.xml, registry), input devices, language and code-page handling, vector and matrix math, the crash handler |
-| `res` | 541 | 105,421 | the GRF archive (`CGPak`), `ResourceManager`, every file-backed resource type (`CRes` and its 15 subclasses: sprites, acts, models, maps, palettes, waves), `DataFile`, `XmlDocument`, JPEG decoding |
-| `render` | 401 | 71,000 | DirectDraw and Direct3D 7 (`C3dDevice`, `SceneRenderer`), surfaces and textures, render primitives, GDI drawing onto surfaces, fonts, Bink movies, screenshots |
-| `world` | 1,152 | 428,769 | the map (`CWorld`, `C3dGround`, scene nodes), the camera (`CView`), the objects placed in the world (the `CGameObject` hierarchy: actors, items, effects), path finding |
+| `core` | 196 | 36,230 | `WinMain`, the window and message loop, the mode switcher, the frame timer, client configuration (clientinfo.xml, registry), input devices, language and code-page handling, vector and matrix math, the crash handler |
+| `res` | 452 | 87,150 | the GRF archive (`CGPak`), `ResourceManager`, every file-backed resource type (`CRes` and its 15 subclasses: sprites, acts, models, maps, palettes, waves), `DataFile`, `XmlDocument` and `XmlElement`, the archive's DES and `HashedFileName`, JPEG decoding |
+| `render` | 307 | 58,484 | DirectDraw and Direct3D 7 (`C3dDevice`, `SceneRenderer`), surfaces and textures, render primitives, GDI drawing onto surfaces, fonts, Bink movies, screenshots |
+| `world` | 1,013 | 405,000 | the map (`CWorld`, `C3dGround`, scene nodes), the camera (`CView`), the objects placed in the world (the `CGameObject` hierarchy: actors, items, effects), path finding |
 | `net` | 63 | 22,975 | `CConnection` and `CRagConnection`, their byte queues (`PacketQueue`), Winsock start-up and clean-up, the server-sent packet filter code, the MD5 code the login handshake uses (`Md5Context`) |
-| `ui` | 1,863 | 499,477 | the 153 `UIWindow` classes, `UIWindowMgr`, skins, window snapping, the IME, Thai line breaking, the cursor object (`CMousePointer`) |
+| `ui` | 1,712 | 471,100 | the 153 `UIWindow` classes, `UIWindowMgr`, skins, window snapping, the IME, Thai line breaking, the cursor object (`CMousePointer`) |
 | `audio` | 38 | 4,751 | the Miles Sound System wrapper, DirectSound and mixer set-up, `CSoundMaker` |
-| `game` | 1,565 | 469,197 | the login and game modes (`CLoginMode`, `CGameMode`), the packet dispatchers and handlers, `ClientState` (character, inventory, options, message tables), guild state, item and skill tables, the chat filter, the mini-game engine (`mg::`) |
+| `game` | 1,167 | 394,642 | the login and game modes (`CLoginMode`, `CGameMode`), the packet dispatchers and handlers, `ClientState` (character, inventory, options, message tables), guild state, item and skill tables, the chat filter, the mini-game engine (`mg::`) |
 
 The library code is `crt` (728 functions, the static MSVC 6 C runtime from `0x5b325c`)
-and `stl` (554, Dinkumware templates in a `std` namespace). Thunks and exception funclets
+and `stl` (1,439, Dinkumware templates in a `std` namespace, most of them instantiated
+inside the game's own source files). Thunks and exception funclets
 take the subsystem of the function they belong to.
 
 ### How the subsystems were assigned
@@ -438,3 +439,29 @@ When `ModeSwitcher::Run` returns, `WinMain` tears down in this order:
   marks them, and they need no port (`analysis/exports/Ragexe.exe.unreferenced.tsv`).
 - **Source layout.** The subsystem column and the 141 initializer-bounded runs give a
   first layout for `src/`.
+
+## 11. Classes
+
+`tools/class_graph.py` joins what the tools recovered into one table,
+`analysis/exports/Ragexe.exe.class_graph.tsv`, and a Graphviz file next to it
+(inheritance as solid edges, contained members as dashed ones). Each row has the direct
+bases, the size and where it comes from, the constructors (or, when the compiler
+expanded them, the functions that store the vtable), the destructors, the function
+counts, the subsystem and the typed members.
+
+| | Classes | Size | Constructor | Destructor |
+|---|---:|---:|---:|---:|
+| RTTI, game and CRT | 245 | 245 | 244 (16 only inlined) | 245 |
+| RTTI, `std` | 52 | 47 | 46 (38 only inlined) | 47 |
+| Curated, without RTTI | 64 | 64 | 44 | 41 |
+
+- `type_info` has no constructor: its objects are static data the compiler emits.
+- The five `std::*_base` classes (`ctype_base`, `codecvt_base`, `time_base`,
+  `money_base`, `messages_base`) are empty tags with no functions. `std::ios_base` is
+  a virtual base that its streams construct.
+- Sixteen game classes are only ever constructed inline, where they are created: for
+  example `C3dGround15` in `CWorld::LoadWorld`, the emotion and level-up windows in
+  `UIWindowMgr::method_004ad670`, `CDummyEffectLauncher` in `CGameMode::LaunchEffectAt`.
+- The curated classes without a constructor or destructor are plain records with no
+  vtable (`Matrix`, the key vectors, `EdgeRect`): their trivial constructors leave no
+  code of their own, or nothing destroys them.

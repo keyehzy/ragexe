@@ -165,6 +165,8 @@ The labels are regenerated in this order, repeated until the label files stop ch
 4. `tools/recover_packets.py` (run from `tools/`): the packet handlers.
 5. `tools/recover_layouts.py`: fields, non-virtual methods, global trees and pointers.
 6. `tools/assign_subsystems.py`: the ledger's subsystem column.
+7. `tools/class_graph.py`: the class graph (`analysis/exports/Ragexe.exe.class_graph.{tsv,dot}`),
+   joined from the steps above; it changes no label file.
 
 ## 5. Milestones
 
@@ -320,7 +322,7 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
 - Dropped: running the original under Wine or a VM. Verification is static plus the
   emulation oracle (section 4.3), and the runtime-code check moved to M1.
 
-### M1 progress
+### M1: done
 - [x] RTTI → Ghidra classes and vtables: `tools/ghidra/scripts/ApplyRtti.java`, run by `analyze.sh`
   after auto-analysis. It is safe to re-run; a second run produces identical exports.
   - Applies typed RTTI structures (object locator, hierarchy descriptor, base class array and
@@ -1384,7 +1386,59 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - Fields 10,578 → 10,604. Still 100% named or library-tagged. Converges in three
     passes.
 
-### Next actions (M1)
-1. Naming is complete for reachable code (100%; 96.4% of all code). Check the other M1
-   items against section 5 (constructors, destructors and sizes for all classes; the
-   class graph; `docs/architecture.md`) and close M1.
+- [x] M1 closed, item by item against section 5:
+  - **Static runtime-code check:** done (`tools/runtime_code_check.py`).
+  - **Emulation oracle:** done (`tools/emu/`; string, path, CRT, file and DirectX
+    tests in `tests/emu/test_oracle.py`).
+  - **Library code, RTTI classes, hierarchy and vtables:** done (`ApplyRtti`, the
+    FID and CRT labels, `ledger.py classify`).
+  - **Constructors, destructors and sizes for every class.** The new
+    `tools/class_graph.py` joins the recovered data per class
+    (`analysis/exports/Ragexe.exe.class_graph.{tsv,dot}`), the class graph the exit
+    asks for. Of the 297 RTTI classes:
+    - all 245 game and CRT classes have a size and a destructor, and all but
+      `type_info` (static data) have a constructor: out of line, or for 16 classes
+      inlined where they are created (`C3dGround15` in `CWorld::LoadWorld`, five
+      windows in `UIWindowMgr::method_004ad670`, ...);
+    - of the 52 `std` classes, the five `*_base` tags have no functions at all, and
+      `std::ios_base` is a virtual base its streams construct.
+
+    `tests/tools/test_class_graph.py` holds these numbers. The 64 curated classes all
+    have sizes; those without a constructor or destructor are plain records with no
+    vtable.
+  - **Every function in a subsystem.** Done for code (`tools/assign_subsystems.py`), but
+    568 ledger rows still had none: the 541 exception funclets of library functions and
+    27 import thunks. Funclets now take their library parent's `crt` or `stl`. A thunk
+    takes its DLL's import rule; failing that, the subsystem its callers share
+    (`connect`, `socket` → `net`, `DirectInputCreateA` → `core`); a thunk to a thunk
+    follows it. Every one of the 10,813 rows now has a subsystem.
+  - **`docs/architecture.md`:** the main loop, singletons, frame timing and threads
+    (§2–§9). The subsystem table is refreshed (STL code moved to library since), and
+    §11 describes the class graph.
+  - **Exit criteria:**
+    - 100% of the 6,619 reachable code functions are named or library-tagged (96.4% of
+      all 7,115);
+    - the class graph is exported;
+    - the ledger has 10,813 rows, each with its kind, library flag and subsystem, and the
+      reach of every unreachable one.
+  - **What "named" covers.** The figure counts placeholders, as it has since M0. Of the
+    4,601 reachable game functions:
+
+    | Kind | Functions | Bytes |
+    |------|----------:|------:|
+    | descriptive names | 1,771 (38.5%) | 28.0% |
+    | `vfNN` (virtual, class known) | 1,102 (24.0%) | 32.0% |
+    | `method_<address>` (class known) | 1,042 (22.6%) | 31.7% |
+    | `HandlePacket_<id>`, `UpdatePrim_<id>` | 296 (6.4%) | 7.6% |
+    | initializer helpers | 390 (8.5%) | 0.7% |
+
+    Every function has its class and subsystem, but the purpose of the `vfNN` and
+    `method_` functions, 64% of the game's bytes, is still to be read. That reading
+    belongs with porting each class.
+
+### Next actions (M2)
+1. Start M2, the portable skeleton (section 5): CMake, C++20 and the vcpkg manifest; the
+   platform layer; the main loop and the `CMode` state machine with stubbed modes; CI on
+   the three platforms.
+2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
+   in the same reviewed way.

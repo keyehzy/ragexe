@@ -1,0 +1,362 @@
+class	origin	bases	size	size_source	vtables	constructors	inlined_in	destructors	deleting_destructors	functions	reachable	subsystem	members	pointers
+CDCSurface	rtti	CDC@0	20	estimated	1	00402f40 00403010		00403070	00402fe0	12	11	render		
+CDC	rtti		4	estimated	1	00402fb0		00402fa0		2	2	render		
+CDCBitmap	rtti	CDC@0	44	new	1	004035c0		00403680	00403650	13	13	render		
+CSurface	rtti		16	estimated	1	00416080 004160e0		00416110	004160b0	9	9	render		
+CSurfaceWallpaper	rtti	CSurface@0	16	new	1	004164e0			00416510	3	3	render		
+CTexture	rtti	CSurface@0	296	new	1	004165e0 004166b0			00416680	16	16	render		
+CConnection	rtti		124	estimated	1	004184d0		00418290	004182f0	11	11	net	PacketQueue@0x24 PacketQueue@0x40 PacketQueue@0x5c	
+CRagConnection	rtti	CConnection@0	204	estimated	1	00418d90		00418150	00418ef0	17	17	net	PacketQueue@0x24 PacketQueue@0x40 PacketQueue@0x5c PacketQueue@0xa8	
+CController	rtti		172	estimated	1	0041da90 0041dac0		0041dd60		7	7	core		
+CKeyPad	rtti	CController@0	188	new	1	0041dc70		0041dda0	0041dd70	6	6	core		
+CRes	rtti		272	estimated	1	004208a0 004df920		00420870		11	11	res	HashedFileName@0x10	
+CActRes	rtti	CRes@0	324	new	1	004207c0 00420a70		00420960	00420930	14	14	res	HashedFileName@0x10	
+CRmaRes	rtti	CRes@0	344	new	1	00421b30 00421c90		00421d30	00421c40	14	7	res	HashedFileName@0x10	RmaActionRecord@0x114
+std::ios_base	rtti		36	estimated	1			005b47de	005b482e	5	5	stl		
+std::basic_ios<char,std::char_traits<char>_>	rtti	std::ios_base@0	44	estimated	1		FUN_005b34e3; FUN_005b3667; FUN_005b3d04; FUN_005b3dcf; std::basic_ios<char,std::char_traits<char>_>::basic_ios<char,std::char_traits<char>_>; std::basic_ios<char,std::char_traits<char>_>::~basic_ios<char,std::char_traits<char>_>; std::basic_istream<char,std::char_traits<char>_>::basic_istream<char,std::char_traits<char>_>		004235b0	4	4	stl		
+std::basic_istream<char,std::char_traits<char>_>	rtti	std::basic_ios<char,std::char_traits<char>_>@0v0,4	48	estimated	1		std::basic_iostream<char,std::char_traits<char>_>::~basic_iostream<char,std::char_traits<char>_>; std::basic_istream<char,std::char_traits<char>_>::basic_istream<char,std::char_traits<char>_>; std::basic_istream<char,std::char_traits<char>_>::~basic_istream<char,std::char_traits<char>_>		004235e0	6	6	stl		
+std::istrstream	rtti	std::basic_istream<char,std::char_traits<char>_>@0	92	estimated	1		CRmaRes::vf03	005b349d	00422d70	3	3	stl		
+std::basic_streambuf<char,std::char_traits<char>_>	rtti		56	estimated	1		FUN_005b34e3; FUN_005b3667; std::basic_streambuf<char,std::char_traits<char>_>::~basic_streambuf<char,std::char_traits<char>_>		00423620	15	15	stl		
+std::strstreambuf	rtti	std::basic_streambuf<char,std::char_traits<char>_>@0	80	estimated	1	00422bb0		005b3798	00422ca0	9	9	stl		
+C3dAttr	rtti	CRes@0	300	new	1	00426a20 00426ba0		00426b30	00426b00	13	11	res	HashedFileName@0x10	
+CBitmapRes	rtti	CRes@0	288	new	1	00427610 004277d0		00427700	004276d0	14	13	res	HashedFileName@0x10	
+CEmblemRes	rtti	CRes@0	560	new	1	00428360 004284b0		00428470	00428440	9	9	res	HashedFileName@0x10 CBitmapRes@0x110	
+CEZeffectRes	rtti	CRes@0	54196	new	1	00428790 00428aa0		004288d0	00428880	8	8	res	HashedFileName@0x10	
+CGndRes	rtti	CRes@0	488	new	1	00428ec0 00429170		00428fe0	00428fb0	10	10	res	HashedFileName@0x10	
+CImfRes	rtti	CRes@0	6588	new	1	004299c0 00429bb0		00429ad0	00429aa0	14	9	res	HashedFileName@0x10	
+C3dModelRes	rtti	CRes@0	424	new	1	0042b620 0042bb00		0042b930	0042b800	8	8	res	HashedFileName@0x10	
+C3dAnimModelRes	rtti	CRes@0	356	new	1	0042da20 0042dbb0		0042dcb0	0042db60	8	8	res	HashedFileName@0x10	
+C3dGrannyModelRes	rtti	CRes@0	948	new	1	0042e920 0042ea40		0042ea70	0042e9f0	21	21	res	HashedFileName@0x10	
+CPaletteRes	rtti	CRes@0	1296	new	1	00431f90 004320b0		00432080	00432050	7	7	res	HashedFileName@0x10	
+CSprRes	rtti	CRes@0	1332	new	1	00433f00 004340a0		00434030	00433fe0	10	10	res	HashedFileName@0x10	
+CWave	rtti	CRes@0	280	new	1	00435320 00435440		00435410	004353e0	8	8	res	HashedFileName@0x10	
+C3dWorldRes	rtti	CRes@0	448	new	1	00435830 00435b90		004359d0	004359a0	7	7	res	HashedFileName@0x10	SceneGraphNode@0x134
+CSkinMgr	rtti		88	estimated	1	00436e20		00437030	00437000	10	10	ui		
+SnapObject	rtti		60	new	1	00438af0		00438b90	00438b30	16	16	ui		
+CSnapMgr	rtti		20	estimated	1	004391d0		00439240	00439210	23	23	ui		
+UIWindow	rtti		76	estimated	1	004a5600		004a56b0	004a5680	58	58	ui		
+UIStaticText	rtti	UIWindow@0	144	new	1	00439b80		00439d70	00439d40	17	17	ui		
+UIStaticBitmap	rtti	UIWindow@0	92	estimated	1	0043a8b0		0043a960	0043a930	8	8	ui		
+UICheckBox	rtti	UIWindow@0	128	new	1	0043ab20		0043abd0	0043aba0	9	9	ui		
+UISlotBitmap	rtti	UIStaticBitmap@0	92	new	1	0043b010		0043b060	0043b030	6	6	ui		
+UIButton	rtti	UIWindow@0	112	estimated	1	0043b100		0043b170	0043b140	10	10	ui		
+UINoneVisibleButton	rtti	UIButton@0	112	new	1	0043b550		0043b5a0	0043b570	4	4	ui		
+UIColorButton	rtti	UIButton@0	136	estimated	1	0043b5c0		0043b6a0	0043b670	4	3	ui		
+UIBitmapButton	rtti	UIButton@0	168	new	1	0043b8e0		0043b980	0043b950	6	6	ui		
+UISpriteButton	rtti	UIButton@0	168	new	1	0043bd20		0043bdc0	0043bd90	9	9	ui		
+UIBalloonText	rtti	UIWindow@0	108	estimated	1	0043c570		0043c610	0043c5e0	10	10	ui		
+UITransBalloonText	rtti	UIBalloonText@0	136	new	1	0043ca10		0043ca60	0043ca30	9	9	ui		
+UINameBalloonText	rtti	UIBalloonText@0	128	new	1	0043cbd0		0043cc40	0043cc10	8	8	ui		
+UIEditCtrl	rtti	UIWindow@0	144	new	1	0043ddf0		0043dee0	0043deb0	21	21	ui		
+UIEditCtrl2	rtti	UIEditCtrl@0	144	new	1	0043f140		0043f190	0043f160	4	4	ui		
+UIWhisperEditCtrl	rtti	UIEditCtrl@0	164	new	1	0043f350		0043f3c0	0043f390	8	8	ui		
+UIChatEditCtrl	rtti	UIEditCtrl@0	180	new	1	0043f9e0		0043fb70	0043fb40	6	6	ui		
+UIResizer	rtti	UIWindow@0	120	new	1	00440030		004400a0	00440070	12	12	ui		
+UITab	rtti	UIWindow@0	76	new	1	00440420			00440440	5	5	ui		
+UIRadioBtn	rtti	UIWindow@0	96	new	1	00440560		004405d0	004405a0	7	7	ui		
+UIChatRoomTitle	rtti	UIWindow@0	128	new	1	004407e0		00440850	00440820	8	8	ui		UIStaticText@0x4c
+UIMerchantShopTitle	rtti	UIWindow@0	84	new	1	00440ec0		00440f10	00440ee0	8	8	ui		UIStaticText@0x4c
+UIFrameWnd	rtti	UIWindow@0	100	estimated	1	00448810		00448870	00448840	22	22	ui		
+UIEmblemWnd	rtti	UIFrameWnd@0	128	new	1	004413c0		00441520	004414f0	7	7	ui		
+UIBarGraph	rtti	UIWindow@0	80	estimated	1	00441d10		00441d60	00441d30	5	5	ui		
+UIBarGraph2	rtti	UIBarGraph@0	108	new	1	00442070		004420e0	004420b0	4	4	ui		
+UIBarGraph3	rtti	UIWindow@0	84	estimated	1	00442260		004422b0	00442280	4	4	ui		
+UIBarGraphPlayerHp	rtti	UIWindow@0	76	new	1	004422e0		00442330	00442300	4	4	ui		
+UIBarGraphPlayerSp	rtti	UIWindow@0	76	new	1	00442690		004426e0	004426b0	4	4	ui		
+UIGage	rtti	UIWindow@0	136	estimated	1	00442c30		00442cf0	00442cc0	4	4	ui		
+UIRechargeGage	rtti	UIGage@0	144	new	1	00442d00		00442d60	00442d30	5	5	ui		
+UIPcGage	rtti	UIGage@0	168	new	1	00442e60		00442ee0	00442eb0	6	6	ui		
+UIPlayerGage	rtti	UIGage@0	148	new	1	004431f0		00443260	00443230	5	5	ui		
+UIListBox	rtti	UIWindow@0	144	new	1	004434b0		00443550	00443520	16	16	ui		UIScrollBar@0x80
+UIComboBox	rtti	UIListBox@0	148	new	1	00443f30		00443f80	00443f50	13	13	ui		UIScrollBar@0x80
+UIChatHisBox	rtti	UIListBox@0	164	new	1	004446d0		004448e0	004448b0	17	17	ui		UIScrollBar@0x80
+UIChatHisBox2	rtti	UIChatHisBox@0	176	new	1	00444ff0		00445060	00445030	8	8	ui		UIScrollBar@0x80
+UIMemberListBox	rtti	UIChatHisBox2@0	176	new	1	00445280		004452d0	004452a0	8	8	ui		UIScrollBar@0x80
+UITextViewer	rtti	UIListBox@0	156	new	1	00445540		00445630	00445600	10	10	ui		UIScrollBar@0x80
+UIScrollBar	rtti	UIWindow@0	116	new	1	00445930		004459a0	00445970	20	20	ui		
+UIScrollBar2	rtti	UIScrollBar@0	116	new	1	004464e0			00446500	3	3	ui		
+UIMessageBoxAutoreturn	rtti	UIFrameWnd@0	160	new	1	00449040		004490d0	004490a0	7	7	ui		UIBarGraph@0x64
+UIMessageBox	rtti	UIFrameWnd@0	160	new	1	00449990		00449a20	004499f0	8	8	ui		
+UISelectServerWnd	rtti	UIFrameWnd@0	132	new	1	0044a6c0		0044a730	0044a700	9	9	ui		
+UILoginWnd	rtti	UIFrameWnd@0	116	new	1	0044b090		0044b0e0	0044b0b0	10	10	ui		UIEditCtrl@0x64 UIEditCtrl@0x68
+UINoticeWnd	rtti	UIFrameWnd@0	292	new	1	0044bd60		0044be50	0044be20	10	10	ui		UIStaticText@0x64 UIScrollBar@0x120
+UISelectCharWnd	rtti	UIFrameWnd@0	992	new	1	0044cf70		0044d230	0044d030	15	15	ui		UIStaticText@0x388 UIStaticText@0x38c UIStaticText@0x390 UIStaticText@0x394 UIStaticText@0x398 UIStaticText@0x39c UIStaticText@0x3a0 UIStaticText@0x3a4 UIStaticText@0x3a8 UIStaticText@0x3ac UIStaticText@0x3b0 UIStaticText@0x3b4
+UIMakeCharWnd	rtti	UIFrameWnd@0	472	new	1	0044f0e0		0044f7f0	0044f7c0	11	11	ui		UIWindow@0x64 UIStaticText@0x1c0 UIStaticText@0x1c4 UIStaticText@0x1c8 UIStaticText@0x1cc UIStaticText@0x1d0 UIStaticText@0x1d4
+UIBitmapEditCtrl	rtti	UIEditCtrl@0	160	new	1		UIMakeCharWnd::vf17	0044fb00	0044fad0	4	4	ui		
+UIChatWnd	rtti	UIFrameWnd@0	164	new	1	00451780		004517e0	004517b0	18	18	ui		UIWindow@0x68 UIEditCtrl@0x6c UIEditCtrl@0x70 UIChatHisBox@0x74 UIBitmapButton@0x94
+UIChatRoomWnd	rtti	UIFrameWnd@0	208	new	1	004531a0		00453360	004532c0	9	9	ui		UIResizer@0x94 UIEditCtrl@0x98 UIChatHisBox@0x9c UIBitmapButton@0xa4 UIStaticText@0xa8
+UIChooseSellBuyWnd	rtti	UIFrameWnd@0	108	new	1	0046d6d0		0046d720	0046d6f0	6	6	ui		
+UIExchangeAcceptWnd	rtti	UIChooseSellBuyWnd@0	112	new	1	0046dbf0		0046dc40	0046dc10	6	6	ui		
+UIAllyGuildAcceptWnd	rtti	UIExchangeAcceptWnd@0	112	new	1	00455e60		00455eb0	00455e80	4	4	ui		
+UIMonsterInfoWnd	rtti	UIFrameWnd@0	132	new	1	00456190		004561f0	004561c0	7	7	ui		
+UIPetInfoWnd	rtti	UIFrameWnd@0	116	new	1	00456e90		00456ee0	00456eb0	7	7	ui		UIEditCtrl@0x64 UIBitmapButton@0x6c
+UITalkboxTrapInputWnd	rtti	UIFrameWnd@0	120	new	1	004585a0		004585f0	004585c0	6	6	ui		UIEditCtrl@0x74
+UICntWnd	rtti	UIFrameWnd@0	112	new	1	00458d10		00458d60	00458d30	6	6	ui		UIEditCtrl@0x68 UIStaticText@0x6c
+UIWaitWnd	rtti	UIFrameWnd@0	104	new	1	0045bda0		0045bdf0	0045bdc0	7	7	ui		
+UILoadingWnd	rtti	UIFrameWnd@0	108	new	1	0045bf60		0045bfb0	0045bf80	7	7	ui		UIStaticText@0x64 UIBarGraph@0x68
+UIBasicInfoWnd	rtti	UIFrameWnd@0	156	new	1	0045c480		0045c4e0	0045c4b0	11	11	ui		UIBitmapButton@0x68 UIBarGraph3@0x90 UIBarGraph3@0x94 UIStaticText@0x98
+UIBarGraph4	rtti	UIBarGraph3@0	84	new	1		UIBasicInfoWnd::vf17	0045cdd0	0045cda0	4	4	ui		
+UIToolTipWnd	rtti	UIFrameWnd@0	104	new	1	0045d990		0045d9f0	0045d9c0	6	6	ui		
+UIShortCutWnd	rtti	UIFrameWnd@0	432	new	1	0045ddc0		0045de20	0045ddf0	16	16	ui		
+UIEquipWnd	rtti	UIFrameWnd@0	128	new	1	0045f4e0		0045f540	0045f510	20	20	ui		UIBitmapButton@0x78 UIBitmapButton@0x7c
+UIStatusWnd	rtti	UIFrameWnd@0	132	new	1	00461770		004617d0	004617a0	12	12	ui		UIBitmapButton@0x64
+UIDetailLevelWnd	rtti	UIFrameWnd@0	132	new	1	00462890		004628e0	004628b0	7	7	ui		UIScrollBar@0x70 UIScrollBar@0x74 UICheckBox@0x80
+UIOptionWnd	rtti	UIFrameWnd@0	152	new	1	004635f0		00463640	00463610	9	9	ui		UIScrollBar@0x6c UIScrollBar@0x70 UICheckBox@0x7c UICheckBox@0x80 UICheckBox@0x84 UICheckBox@0x88 UICheckBox@0x8c UICheckBox@0x90 UIBitmapButton@0x94
+UIItemParamChangeDisplayWnd	rtti	UIFrameWnd@0	156	new	1	004645e0		00464760	00464730	9	9	ui		
+UINotifyItemObtainWnd	rtti	UIFrameWnd@0	212	new	1	00465330		004653e0	004653b0	9	9	ui		
+UINpcEditDialogWnd	rtti	UIFrameWnd@0	108	new	1	004658f0		00465940	00465910	6	6	ui		UIEditCtrl@0x64
+UINpcTextEditDialogWnd	rtti	UINpcEditDialogWnd@0	108	new	1	00465ce0		00465d30	00465d00	6	6	ui		UIEditCtrl@0x64
+UISkillNameChangeWnd	rtti	UIFrameWnd@0	124	new	1	004660a0		00466100	004660d0	6	6	ui		UIEditCtrl@0x64
+UIEmailAddressWnd	rtti	UIFrameWnd@0	104	new	1	004665e0		00466630	00466600	6	6	ui		UIEditCtrl@0x64
+UIItemDropCntWnd	rtti	UIFrameWnd@0	108	new	1	00487f10		00487f60	00487f30	7	7	ui		UIEditCtrl@0x64 UIStaticText@0x68
+UIPasswordWnd	rtti	UIItemDropCntWnd@0	112	new	1	004669d0		00466a20	004669f0	7	7	ui		UIEditCtrl@0x64 UIStaticText@0x68
+UISayDialogWnd	rtti	UIFrameWnd@0	144	new	1	00466e50		00466f20	00466ef0	9	9	ui		
+UIItemCollectionWnd	rtti	UIFrameWnd@0	256	new	1	00467710		00467810	004677e0	11	11	ui	ItemRecord@0x64	UIBitmapButton@0xac
+UICombinedCardItemCollectionWnd	rtti	UIItemCollectionWnd@0	260	new	1	00468d00		00468d50	00468d20	6	6	ui	ItemRecord@0x64	UIBitmapButton@0xac
+UISkillDescribeWnd	rtti	UIFrameWnd@0	152	new	1	00468e90		00468f20	00468ef0	6	6	ui		
+UICardItemIllustWnd	rtti	UIFrameWnd@0	136	new	1	00469720		00469790	00469760	6	6	ui		
+UIChooseWarpWnd	rtti	UIFrameWnd@0	124	new	1	00469f60		0046a0c0	0046a090	6	6	ui		
+UIChooseWnd	rtti	UIFrameWnd@0	132	new	1	0046a990		0046aa10	0046a9e0	7	7	ui		
+UIItemIdentifyWnd	rtti	UIFrameWnd@0	156	new	1	0046b330		0046b3f0	0046b3c0	14	14	ui		UIScrollBar@0x64
+UIItemCompositionWnd	rtti	UIItemIdentifyWnd@0	164	new	1	0046c4b0		0046c500	0046c4d0	6	6	ui		UIScrollBar@0x64
+UIQuitWnd	rtti	UIFrameWnd@0	100	new	1	0046c900		0046c950	0046c920	6	6	ui		
+UIRestartWnd	rtti	UIFrameWnd@0	104	new	1	0046cd00		0046cd50	0046cd20	6	6	ui		
+UINoticeConfirmWnd	rtti	UIFrameWnd@0	108	new	1	0046d230		0046d280	0046d250	6	6	ui		
+UITipOfTheDayWnd	rtti	UIFrameWnd@0	112	new	1	0046e310		0046e360	0046e330	7	7	ui		
+UIJoinPartyAcceptWnd	rtti	UIExchangeAcceptWnd@0	112	new	1	0046ef60		0046efb0	0046ef80	4	4	ui		
+UIJoinGuildAcceptWnd	rtti	UIExchangeAcceptWnd@0	112	new	1	0046f280		0046f2d0	0046f2a0	4	4	ui		
+UIChatRoomMakeWnd	rtti	UIFrameWnd@0	224	new	1	0046f5a0		0046f760	0046f730	6	6	ui		UIEditCtrl@0x74 UIEditCtrl@0x78 UIRadioBtn@0x7c UIStaticText@0x84 UIStaticText@0x88 UIBitmapButton@0x8c
+UIChatRoomChangeWnd	rtti	UIChatRoomMakeWnd@0	224	new	1	00470ee0		00471020	00470ff0	4	4	ui		UIEditCtrl@0x74 UIEditCtrl@0x78 UIRadioBtn@0x7c UIStaticText@0x84 UIStaticText@0x88 UIBitmapButton@0x8c
+UIExchangeWnd	rtti	UIFrameWnd@0	176	new	1	00471650		00471730	00471700	12	12	ui		UIBitmapButton@0x64 UIEditCtrl@0x70
+UIPartySettingWnd	rtti	UIFrameWnd@0	128	new	1	00472c00		00472c50	00472c20	8	8	ui		UIRadioBtn@0x64 UIRadioBtn@0x70
+UIWhisperWnd	rtti	UIFrameWnd@0	152	new	1	00473880		00473900	004738d0	10	10	ui		UIResizer@0x74 UIEditCtrl@0x78 UIChatHisBox@0x7c UIBitmapButton@0x80
+UIMenuWnd	rtti	UIFrameWnd@0	128	new	1	00475520		00475590	00475560	14	14	ui		
+UIComboBoxWnd	rtti	UIFrameWnd@0	104	new	1	00475e80		00475ed0	00475ea0	7	7	ui		
+UIPetEggListWnd	rtti	UIItemIdentifyWnd@0	156	new	1	00475fe0		00476030	00476000	5	5	ui		UIScrollBar@0x64
+UIMakingArrowListWnd	rtti	UIItemIdentifyWnd@0	156	new	1	004763c0		00476410	004763e0	5	5	ui		UIScrollBar@0x64
+UIPetTamingDeceiveWnd	rtti	UIFrameWnd@0	132	new	1	004767a0		00476810	004767e0	8	8	ui		
+UISelectCartWnd	rtti	UIFrameWnd@0	120	new	1	00476ab0		00476b00	00476ad0	8	8	ui		UISpriteButton@0x64 UISpriteButton@0x68 UISpriteButton@0x6c UISpriteButton@0x70 UISpriteButton@0x74
+UISpellListWnd	rtti	UIItemIdentifyWnd@0	172	estimated	1	00477820		00477890	00477860	5	4	ui		UIScrollBar@0x64
+UIGraffiStrboxWnd	rtti	UIFrameWnd@0	120	new	1	00477fb0		00478000	00477fd0	6	6	ui		UIEditCtrl@0x74
+UIProhibitListWnd	rtti	UIFrameWnd@0	104	new	1	004786e0		00478730	00478700	6	6	ui		
+UIGuildInfoManageWnd	rtti	UIGuildWnd@0	200	new	1	00479cf0		00479e50	00479e20	13	13	ui		UIStaticText@0x68 UIBitmapButton@0x80 StringIntRecord@0xbc
+UIGuildWnd	rtti	UIFrameWnd@0	108	estimated	1		UIGuildInfoManageWnd::UIGuildInfoManageWnd; UIGuildMemberManageWnd::UIGuildMemberManageWnd; UIGuildPositionManageWnd::UIGuildPositionManageWnd; UIGuildSkillWnd::UIGuildSkillWnd	00479dd0	00479de0	8	8	ui		UIStaticText@0x68
+UIGuildMemberManageWnd	rtti	UIGuildWnd@0	304	new	1	0047b620		0047b7d0	0047b7a0	14	14	ui		UIStaticText@0x68 UIStaticText@0x80 UIStaticText@0x94 UIStaticText@0xa8 UIStaticText@0xbc UIBitmapButton@0xd0 UIScrollBar@0xe4 UIBitmapButton@0xe8
+UIGuildPositionManageWnd	rtti	UIGuildWnd@0	448	new	1	0047e0e0		0047e270	0047e240	14	14	ui		UIStaticText@0x68 UICheckBox@0x80 UICheckBox@0xac UIScrollBar@0xd8 UIEditCtrl@0xdc UIEditCtrl@0x108 UIStaticText@0x134 UIStaticText@0x160 UIBitmapButton@0x18c
+UIEditCtrlVarId	rtti	UIEditCtrl@0	144	new	1		UIGuildNoticeWnd::vf17; UIGuildPositionManageWnd::vf17	0047ec40	0047ec10	6	6	ui		
+UIGuildSkillWnd	rtti	UIGuildWnd@0	276	new	1	0047ff60		00480070	00480040	15	15	ui		UIStaticText@0x68 UIScrollBar@0x84 UIBitmapButton@0x90 UIBitmapButton@0xac UIBitmapButton@0xc8
+UIGuildBanishedMemberWnd	rtti	UIGuildWnd@0	240	new	1	00481770		004817e0	004817b0	11	11	ui		UIStaticText@0x68 UIStaticText@0x80 UIStaticText@0xac UIScrollBar@0xd8
+UIGuildNoticeWnd	rtti	UIGuildWnd@0	180	new	1	00482300		00482370	00482340	9	9	ui		UIStaticText@0x68 UIEditCtrl@0x80 UIEditCtrl@0x84 UIBitmapButton@0xa8
+UIGuildTotalInfoWnd	rtti	UIGuildWnd@0	200	new	1	00482c60		00482cd0	00482ca0	11	11	ui		UIStaticText@0x68 UIStaticText@0x80 UIScrollBar@0xb0
+UIGuildLeaveReasonDescWnd	rtti	UIFrameWnd@0	108	new	1	004836d0		00483730	00483700	6	6	ui		UIEditCtrl@0x64 UIStaticText@0x68
+UIGuildBanReasonDescWnd	rtti	UIGuildLeaveReasonDescWnd@0	120	new	1	00483be0		00483c30	00483c00	5	5	ui		UIEditCtrl@0x64 UIStaticText@0x68
+UIIllustWnd	rtti	UIFrameWnd@0	124	new	1	00486b70		00486bd0	00486ba0	9	9	ui		
+UICandidateWnd	rtti	UIFrameWnd@0	260	new	1	00487310		004873a0	00487370	6	6	ui		
+UICompositionWnd	rtti	UIFrameWnd@0	116	new	1	00487a20		00487a80	00487a50	6	6	ui		
+UIKeyStrokeWnd	rtti	UIFrameWnd@0	100	new	1	00487c70		00487cc0	00487c90	6	6	ui		
+UIItemBaseWnd	rtti	UIFrameWnd@0	152	estimated	1	004890b0		00489170	00489140	13	13	ui		UIResizer@0x6c UIScrollBar@0x70 UIBitmapButton@0x74
+UIItemShopWnd	rtti	UIItemBaseWnd@0	172	new	1	00489d70		00489de0	00489db0	12	12	ui		UIResizer@0x6c UIScrollBar@0x70 UIBitmapButton@0x74 UIStaticText@0x98 UICheckBox@0x9c
+UIMerchantItemMyShopWnd	rtti	UIItemBaseWnd@0	160	new	1	0048b280		0048b2e0	0048b2b0	9	9	ui		UIResizer@0x6c UIScrollBar@0x70 UIBitmapButton@0x74 UIStaticText@0x98
+UIMerchantItemShopWnd	rtti	UIItemBaseWnd@0	168	new	1	0048bf30		0048bf90	0048bf60	12	12	ui		UIResizer@0x6c UIScrollBar@0x70 UIBitmapButton@0x74
+UIItemPurchaseWnd	rtti	UIItemBaseWnd@0	164	new	1	0048d1d0		0048d230	0048d200	11	11	ui		UIResizer@0x6c UIScrollBar@0x70 UIBitmapButton@0x74 UIStaticText@0x98
+UIMerchantItemPurchaseWnd	rtti	UIItemBaseWnd@0	168	new	1	0048e8d0		0048e940	0048e910	11	11	ui		UIResizer@0x6c UIScrollBar@0x70 UIBitmapButton@0x74 UIStaticText@0x98
+UIItemSellWnd	rtti	UIItemBaseWnd@0	164	new	1	004901c0		00490220	004901f0	12	12	ui		UIResizer@0x6c UIScrollBar@0x70 UIBitmapButton@0x74 UIStaticText@0x98
+UIMerchantItemWnd	rtti	UIItemBaseWnd@0	164	new	1	00491850		004918b0	00491880	10	10	ui		UIResizer@0x6c UIScrollBar@0x70 UIBitmapButton@0x74 UIBitmapButton@0x9c UIStaticText@0xa0
+UIMerchantMirrorItemWnd	rtti	UIItemBaseWnd@0	156	new	1	00492670		004926d0	004926a0	10	10	ui		UIResizer@0x6c UIScrollBar@0x70 UIBitmapButton@0x74
+UIItemWnd	rtti	UIItemBaseWnd@0	192	new	1	00493030		004930c0	00493090	17	17	ui		UIResizer@0x6c UIScrollBar@0x70 UIBitmapButton@0x74 UIBitmapButton@0xa0
+UIItemStoreWnd	rtti	UIItemBaseWnd@0	176	new	1	00494950		004949d0	004949a0	12	12	ui		UIResizer@0x6c UIScrollBar@0x70 UIBitmapButton@0x74 UIStaticText@0xa8
+UISkillListWnd	rtti	UIFrameWnd@0	252	new	1	00495eb0		00495fa0	00495f70	20	20	ui		UIResizer@0x64 UIScrollBar@0x68 UIBitmapButton@0x6c UIBitmapButton@0x74 UIBitmapButton@0x90 UIBitmapButton@0xac
+UIMerchantShopMakeWnd	rtti	UIFrameWnd@0	220	new	1	00498900		004989e0	004989b0	12	12	ui		UIEditCtrl@0x74 UIEditCtrl@0x80 UIScrollBar@0xb8
+UIEditCtrlWheel	rtti	UIEditCtrl@0	144	new	1		UIMerchantShopMakeWnd::vf17	004990a0	00499070	3	3	ui		
+UIMessengerGroupWnd	rtti	UIFrameWnd@0	200	new	1	0049a060		0049a140	0049a110	14	14	ui		UIScrollBar@0x68 UIRadioBtn@0x6c UIBitmapButton@0x74 UIBitmapButton@0x78 UIResizer@0x8c UIStaticText@0x90
+UIWhisperListWnd	rtti	UIFrameWnd@0	196	new	1	0049ca60		0049cb20	0049caf0	14	14	ui		UIScrollBar@0x68 UIRadioBtn@0x6c UIBitmapButton@0x74 UIBitmapButton@0x78 UIResizer@0x8c
+UIFriendOptionWnd	rtti	UIFrameWnd@0	120	new	1	0049e9c0		0049ea10	0049e9e0	7	7	ui		UICheckBox@0x68 UICheckBox@0x6c UICheckBox@0x70 UIBitmapButton@0x74
+UIMakeTargetListWnd	rtti	UIFrameWnd@0	120	new	1	0049f670		0049f6d0	0049f6a0	6	6	ui		
+UIShowNeedItemListWnd	rtti	UIFrameWnd@0	308	estimated	1	0049ff90		004a0050	004a0020	9	8	ui		
+UIMakeTargetProcessWnd	rtti	UIFrameWnd@0	308	new	1	004a0c80		004a0d10	004a0ce0	10	10	ui		
+UIMakeTargetResultWnd	rtti	UIFrameWnd@0	108	new	1	004a1b20		004a1b70	004a1b40	6	6	ui		
+UIMiniGameWnd	rtti	UIFrameWnd@0	144	estimated	1	004a2200		004a2260	004a2230	21	21	ui		UIBitmapButton@0x6c UIStaticText@0x70
+UISelectMiniGameWnd	rtti	UIFrameWnd@0	128	new	1	004a2a90		004a2af0	004a2ac0	7	7	ui		
+UIMiniGameScoreWnd	rtti	UIFrameWnd@0	180	new	1	004a3220		004a32e0	004a32b0	9	9	ui		
+UIWindowMgr	rtti		1152	estimated	1	004a7660		004a7ab0	004a7890	93	93	ui		UIWindow@0x60 UIWindow@0x64 UIWindow@0x68 UIWindow@0x6c UIBasicInfoWnd@0x84
+UIMinimapZoomWnd	rtti	UIFrameWnd@0	100	new	1		UIWindowMgr::method_004ad670	004b12e0	004b12b0	5	5	ui		
+UIEmotionListWnd	rtti	UIFrameWnd@0	248	new	1		UIWindowMgr::method_004ad670	004b13e0	004b13b0	10	10	ui		UISpriteButton@0x7c
+UIEmotionWnd	rtti	UIFrameWnd@0	192	new	1		UIWindowMgr::method_004ad670	004b13a0	004b1370	9	9	ui		UIEditCtrl@0x68 UIStaticText@0x90 UIStaticText@0xb4 UIBitmapButton@0xb8
+UIWebBrowserWnd	rtti	UIFrameWnd@0	100	new	1		UIWindowMgr::method_004ad670		004b1420	1	1	ui		
+UINotifyLevelUpWnd	rtti	UIFrameWnd@0	100	new	1		UIWindowMgr::method_004ad670	004b1320	004b12f0	5	5	ui		
+UINotifyJobLevelUpWnd	rtti	UINotifyLevelUpWnd@0	100	new	1		UIWindowMgr::method_004ad670	004b1360	004b1330	3	3	ui		
+C3dNode	rtti		336	new	1	004b6960		004b6ac0	004b6a90	12	12	world	Matrix@0xb4 TranslationKeys@0xe4 RotationKeys@0xf4 ScaleKeys@0x104	
+C3dNodeHAL	rtti	C3dNode@0	388	new	1		C3dNodeHAL::vf01	004b9260	004b9230	4	4	world	Matrix@0xb4 TranslationKeys@0xe4 RotationKeys@0xf4 ScaleKeys@0x104	
+C3dGround	rtti		236	new	1	004bc220		004bc3a0	004bc370	21	21	world	LightmapAtlas@0x14	
+CWorld	rtti		244	new	1	004c35c0		004c36e0	004c36b0	22	22	world	SceneGraphNode@0x68	C3dGround@0x38
+C3dGround15	rtti	C3dGround@0	236	estimated	1		CWorld::LoadWorld	004c4280	004c4250	26	26	world	LightmapAtlas@0x14	
+CLanguage	rtti		140	estimated	1	004c79c0		004c7ae0	004c7ab0	31	31	core		
+CLanguageTC	rtti	CLanguage@0	160	estimated	1	004c8c40		004c8e60	004c8e30	9	9	core		
+CLanguageTH	rtti	CLanguage@0	144	estimated	1	004c93d0			004c9430	3	3	core		
+CMode	rtti		64	estimated	1	004cb270		004cb340	004cb310	15	15	game		UIBalloonText@0x1c
+CActorPickNode	rtti		48	new	1	004ce4f0		004ce790	004ce540	9	9	world		CActorPickNode@0x14
+CView	rtti		448	new	1	004cef80		004cefe0	004cefb0	14	14	world	Matrix@0x94 Matrix@0xc4 ViewFrustum@0xf4	
+CGPak	rtti		132	estimated	1	004dd820		004dd900	004dd8d0	19	19	res		
+CSakGPak	rtti	CGPak@0	136	estimated	1	004ded50			004ded80	4	3	res		CGPak@0x84
+exception	rtti		12	estimated	1	005c36bf 005c36fc		005c3765	005c36a3	6	5	crt		
+std::bad_cast	rtti	exception@0	12	estimated	1	004e5b30 004e5bb0		004e5b50	004e5b80	5	5	stl		
+std::locale::facet	rtti		8	estimated	1	004e5d30		004e5d20		4	4	stl		
+std::ctype_base	rtti				0					0	0			
+std::ctype<char>	rtti	std::ctype_base@0 std::locale::facet@0	24	new	1		FUN_005b4e8f; std::ctype<char>::ctype<char>; std::use_facet		004e5e30	7	7	stl		
+CGameObject	rtti		4	estimated	1	00500030		00500090	00500060	8	8	world		
+CRenderObject	rtti	CGameObject@0	160	estimated	1	005002b0		00500350	00500320	25	25	world		CRes@0x98 CRes@0x9c
+CAbleToMakeEffect	rtti	CRenderObject@0	192	estimated	1	00501be0		00501c90	00501c60	9	9	world		CRes@0x98 CRes@0x9c
+CGameActor	rtti	CAbleToMakeEffect@0	636	estimated	1	00502570		00502700	005026a0	68	68	world	MovePath@0x170	CRes@0x98 CRes@0x9c
+CPc	rtti	CGameActor@0	776	new	1	00541fb0		00542160	00542130	44	44	world	MovePath@0x170	CRes@0x98 CRes@0x9c
+mg::CMGPc	rtti	CPc@0	776	estimated	1	004eb040		004eb0d0	004eb0a0	3	2	game	MovePath@0x170	CRes@0x98 CRes@0x9c
+CNpc	rtti	CGameActor@0	664	new	1	0053f950		0053f9d0	0053f9a0	19	19	world	MovePath@0x170	CRes@0x98 CRes@0x9c
+mg::CMGNpc	rtti	CNpc@0	664	estimated	1	004eb0e0		004eb250	004eb220	3	3	game	MovePath@0x170	CRes@0x98 CRes@0x9c
+mg::CMGEngine	rtti	UIMiniGameWnd@0	952	estimated	1	004eb4f0		004eb850	004eb6e0	12	12	game		UIBitmapButton@0x6c UIStaticText@0x70
+mg::CObject	rtti		104	estimated	1	004eea40 004f0f60 004f0fd0		004ee9d0		18	17	game		mg::CObject@0x58 mg::CObject@0x5c mg::CObject@0x64
+mg::CEntity	rtti	mg::CObject@0	116	estimated	1	004f12a0		004f1320	004f12f0	8	8	game		mg::CObject@0x58 mg::CObject@0x5c mg::CObject@0x64
+mg::mgType1::CItemObj	rtti	mg::CEntity@0 CRenderObject@116	308	new	2	004ed840		004ed920	004ed8f0	12	12	game		mg::CObject@0x58 mg::CObject@0x5c mg::CObject@0x64 CRes@0x10c CRes@0x110
+mg::mgType1::CPlayer	rtti	mg::CObject@0 CPc@104	920	new	2	004f1530		004f1600	004f15d0	10	10	game	MovePath@0x1d8	mg::CObject@0x58 mg::CObject@0x5c mg::CObject@0x64 CRes@0x100 CRes@0x104
+mg::CMap	rtti	mg::CObject@0	176	new	1	004ee910		004eeae0	004eeab0	7	7	game		mg::CObject@0x58 mg::CObject@0x5c mg::CObject@0x64
+mg::mgType1::CMonster	rtti	mg::CEntity@0 mg::CMGNpc@116	840	new	2	004f0020		004f0100	004f00d0	21	21	game	MovePath@0x1e4	mg::CObject@0x58 mg::CObject@0x5c mg::CObject@0x64 CRes@0x10c CRes@0x110
+mg::CTile	rtti		36	new	1	004ee4e0		004ee540	004ee510	5	5	game		
+std::logic_error	rtti	exception@0	28	estimated	1	004eedc0		004eef60	004eefb0	5	5	stl		
+std::out_of_range	rtti	std::logic_error@0	28	estimated	1	004ef1e0 004f98b0		004ef140	004ef1b0	5	5	stl		
+mg::mgType1::CMapObj	rtti	mg::CEntity@0	140	new	1	004ef9b0		004efa10	004ef9e0	8	8	game		mg::CObject@0x58 mg::CObject@0x5c mg::CObject@0x64 CRes@0x84 CRes@0x88
+CArrowEffect	rtti	CRenderObject@0	208	new	1	005afa80		005afb00	005afad0	10	10	world		CRes@0x98 CRes@0x9c
+mg::CArrow	rtti	CArrowEffect@0	236	new	1		mg::mgType1::CMonster::ShootArrow		004f0ee0	3	3	game		CRes@0x98 CRes@0x9c
+mg::CScript	rtti		676	estimated	1	004f1880		004f1b70	004f1aa0	16	16	game		ScriptRecord@0x8
+mg::mgType1::CWorld	rtti		104	estimated	1	004fcfc0		004fd1b0	004fd180	18	18	game		mg::CObject@0x4 mg::CObject@0x28
+mg::mgType1::CMiniGame001	rtti	mg::CMGEngine@0	1108	new	1	004fec70		004fecc0	004fec90	22	22	game		UIBitmapButton@0x6c UIStaticText@0x70
+CMousePointer	rtti	CRenderObject@0	164	new	1	00501980		00501a00	005019d0	7	7	ui		CRes@0x98 CRes@0x9c
+C3dGrannyGameActor	rtti	CGameActor@0	3132	new	1	00507b10		00507ed0	00507ea0	18	18	world	MovePath@0x170	CRes@0x98 CRes@0x9c C3dGrannyModelRes@0x280 TriangleSet@0x288
+CGrannyCorpse3d	rtti	CGameObject@0	588	new	1	00509f60		0050a010	00509fe0	8	8	world		C3dGrannyModelRes@0x10 TriangleSet@0x1c
+CGameMode	rtti	CMode@0	956	new	1	0050c320		0050ccb0	0050c5f0	327	327	game		UIBalloonText@0x1c CWorld@0xb4 UIWindow@0x274 UIBalloonText@0x27c UIBalloonText@0x284 UIBalloonText@0x288
+CDummyEffectLauncher	rtti	CAbleToMakeEffect@0	196	new	1		CGameMode::LaunchEffectAt		0050ffe0	3	3	world		CRes@0x98 CRes@0x9c
+UIVerticalNameBalloonText	rtti	UINameBalloonText@0	132	new	1		CGameMode::method_00516650		005167d0	7	7	ui		
+CItem	rtti	CRenderObject@0	192	new	1	0053abb0		0053ac50	0053ac20	9	9	world		CRes@0x98 CRes@0x9c
+CLoginMode	rtti	CMode@0	4964	new	1	0053b400		0053b4a0	0053b470	32	32	game		UIBalloonText@0x1c
+CBlowEffect	rtti	CRenderObject@0	160	new	1	00540950		005409d0	005409a0	7	5	world		CRes@0x98 CRes@0x9c
+CCorpse	rtti	CRenderObject@0	160	new	1	00540b70		00540bf0	00540bc0	7	7	world		CRes@0x98 CRes@0x9c
+CBlurPC	rtti	CPc@0	796	new	1	00540d20		005410a0	00541070	10	10	world	MovePath@0x170	CRes@0x98 CRes@0x9c
+CMasterChaser	rtti	CRenderObject@0	164	estimated	1	00541320		005413a0	00541370	5	3	world		CRes@0x98 CRes@0x9c
+CNumEffect	rtti	CRenderObject@0	168	new	1	00541410		00541490	00541460	7	5	world		CRes@0x98 CRes@0x9c
+CSoundMaker	rtti	CRenderObject@0	204	new	1	00541680		00541730	00541700	8	8	audio		CRes@0x98 CRes@0x9c
+CGndRiser	rtti	CAbleToMakeEffect@0	204	estimated	1	00541c90		00541d20	00541cf0	8	6	world		CRes@0x98 CRes@0x9c
+CGrannyPc	rtti	CGameActor@0	9220	estimated	1	00546b30		00546d50	00546d20	35	33	world	MovePath@0x170	CRes@0x98 CRes@0x9c C3dGrannyModelRes@0x2d8 C3dGrannyModelRes@0x2e0 C3dGrannyModelRes@0x2e4 C3dGrannyModelRes@0x2e8 C3dGrannyModelRes@0x2ec C3dGrannyModelRes@0x2f0 C3dGrannyModelRes@0x2f4 C3dGrannyModelRes@0x2f8 TriangleSet@0x308 TriangleSet@0x380
+CPlayer	rtti	CPc@0	988	new	1	0054b1d0		0054b420	0054b3f0	17	17	world	MovePath@0x170 XmlElement@0x360 XmlElement@0x388 XmlElement@0x3b0	CRes@0x98 CRes@0x9c
+CRagEffect	rtti	CRenderObject@0	17540	estimated	1	0054d220		0054d370	0054d340	224	224	world	RenderTriangle@0x43e8	CRes@0x98 CRes@0x9c CRenderObject@0xa0 CRes@0x758
+CEffectPrim	rtti	CRenderObject@0	88464	new	1	0057cfa0		0057d3b0	0057d380	117	117	world	Matrix@0xc4 Matrix@0xf4 RenderTriangle@0x1eb0	CRes@0x98 CRes@0x9c
+CSkill	rtti	CGameActor@0	656	new	1	005ab960		005ab9e0	005ab9b0	12	12	world	MovePath@0x170	CRes@0x98 CRes@0x9c ModelInstance@0x284
+CGraffiSkill	rtti	CSkill@0	948	new	1	005ad310		005ad360	005ad330	9	9	world	MovePath@0x170	CRes@0x98 CRes@0x9c ModelInstance@0x284 CTexture@0x2a0
+CMsgEffect	rtti	CAbleToMakeEffect@0	284	new	1	005ad910		005ad990	005ad960	8	8	world		CRes@0x98 CRes@0x9c
+CEffectMaker	rtti	CAbleToMakeEffect@0	220	new	1	005af4c0		005af550	005af520	8	8	world		CRes@0x98 CRes@0x9c
+CMandraAttackEffect	rtti	CRenderObject@0	164	new	1	005af7d0		005af850	005af820	7	7	world		CRes@0x98 CRes@0x9c
+CGroundScope	rtti	CAbleToMakeEffect@0	220	new	1	005b00f0			005b0120	6	6	world		CRes@0x98 CRes@0x9c
+std::length_error	rtti	std::logic_error@0	28	estimated	1	005b33e8		005b3372	005b33cc	5	5	stl		
+std::basic_ostream<char,std::char_traits<char>_>	rtti	std::basic_ios<char,std::char_traits<char>_>@0v0,4	8	estimated	1		FUN_005b3d04; FUN_005b3d6e; std::basic_iostream<char,std::char_traits<char>_>::~basic_iostream<char,std::char_traits<char>_>; std::basic_ostream<char,std::char_traits<char>_>::~basic_ostream<char,std::char_traits<char>_>		005b3e83	2	2	stl		
+std::ostrstream	rtti	std::basic_ostream<char,std::char_traits<char>_>@0	88	estimated	1		FUN_005b34e3	005b3621	005b35f6	2	2	stl		
+std::basic_iostream<char,std::char_traits<char>_>	rtti	std::basic_istream<char,std::char_traits<char>_>@0 std::basic_ostream<char,std::char_traits<char>_>@8	48	estimated	1		FUN_005b3dcf; std::basic_iostream<char,std::char_traits<char>_>::~basic_iostream<char,std::char_traits<char>_>		005b3ea2	2	2	stl		
+std::strstream	rtti	std::basic_iostream<char,std::char_traits<char>_>@0	96	estimated	1		FUN_005b3667	005b3755	005b372a	2	2	stl		
+std::locale::_Locimp	rtti	std::locale::facet@0	8	estimated	1		FUN_005b42bc; FUN_005b5163	005b4351	005b4335	2	2	stl		
+std::runtime_error	rtti	exception@0	20	estimated	1		FUN_005b44b7; FUN_005b459e	005b4545	005b4582	4	4	stl		
+std::ios_base::failure	rtti	std::runtime_error@0	20	estimated	1	005b4671		005b45fb	005b4655	4	4	stl		
+std::num_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	rtti	std::locale::facet@0	8	new	1		FUN_005b4e8f; FUN_005b7187		005b622f	8	8	stl		
+std::codecvt_base	rtti				0					0	0			
+std::codecvt<char,char,int>	rtti	std::codecvt_base@0 std::locale::facet@0	16	new	1		FUN_005b4e8f; FUN_005b75ee		005b61e9	8	8	stl		
+std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	rtti	std::locale::facet@0	8	new	1		FUN_005b4e8f; FUN_005b70ab		005b620c	11	11	stl		
+std::numpunct<char>	rtti	std::locale::facet@0	24	new	1		FUN_005b4e8f; FUN_005b7688		005b6252	7	7	stl		
+std::bad_alloc	rtti	exception@0	12	estimated	1	005b7d6c 005b7dc9		005b7d85	005b7dad	5	4	stl		
+std::num_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	rtti	std::locale::facet@0	8	new	1		FUN_005b7deb; FUN_005bca05		005b9eb5	8	8	stl		
+std::num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	rtti	std::locale::facet@0	8	new	1		FUN_005b7deb; FUN_005bc929		005b9e92	11	11	stl		
+std::time_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	rtti	std::time_base@0 std::locale::facet@0	12	new	1		FUN_005b7deb; FUN_005bd58d; std::time_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::~time_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>		005b9e5c	3	3	stl		
+std::time_base	rtti				0					0	0			
+std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	rtti	std::time_base@0 std::locale::facet@0	16	new	1		FUN_005b7deb; FUN_005bd758; std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::~time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>		005ba000	8	8	stl		
+std::moneypunct<unsigned_short,1>	rtti	std::_Mpunct<unsigned_short>@0	44	new	1		FUN_005b7deb; FUN_005bcfb4		005b9fe4	1	1	stl		
+std::money_base	rtti				0					0	0			
+std::_Mpunct<unsigned_short>	rtti	std::money_base@0 std::locale::facet@0	40	estimated	1		FUN_005bbe57; FUN_005bdba7		005ba078	11	11	stl		
+std::moneypunct<unsigned_short,0>	rtti	std::_Mpunct<unsigned_short>@0	44	new	1		FUN_005b7deb; FUN_005bcee5		005b9fc8	1	1	stl		
+std::money_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	rtti	std::locale::facet@0	8	new	1		FUN_005b7deb; FUN_005bce09		005b9fa5	4	4	stl		
+std::money_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	rtti	std::locale::facet@0	8	new	1		FUN_005b7deb; FUN_005bcd2d		005b9f82	4	4	stl		
+std::ctype<unsigned_short>	rtti	std::ctype_base@0 std::locale::facet@0	24	new	1		FUN_005b7deb; FUN_005bd52d		005b9e20	14	14	stl		
+std::messages_base	rtti				0					0	0			
+std::messages<unsigned_short>	rtti	std::messages_base@0 std::locale::facet@0	16	new	1		FUN_005b7deb; FUN_005bd6e6		005b9f43	5	5	stl		
+std::collate<unsigned_short>	rtti	std::locale::facet@0	16	new	1		FUN_005b7deb; FUN_005bd692		005b9f20	5	5	stl		
+std::numpunct<unsigned_short>	rtti	std::locale::facet@0	24	new	1		FUN_005b7deb; FUN_005bd639		005b9ed8	7	7	stl		
+std::codecvt<unsigned_short,char,int>	rtti	std::codecvt_base@0 std::locale::facet@0	16	new	1		FUN_005b7deb; FUN_005bd2cf		005b84f4	8	8	stl		
+std::time_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	rtti	std::time_base@0 std::locale::facet@0	12	new	1		FUN_005be010; FUN_005c0914; std::time_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>::~time_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>		005beea9	3	3	stl		
+std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	rtti	std::time_base@0 std::locale::facet@0	16	new	1		FUN_005be010; FUN_005c08bb; std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::~time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>		005bee6a	8	8	stl		
+std::moneypunct<char,1>	rtti	std::_Mpunct<char>@0	44	new	1		FUN_005be010; FUN_005c059e		005bee4e	1	1	stl		
+std::_Mpunct<char>	rtti	std::money_base@0 std::locale::facet@0	40	estimated	1		FUN_005bfda7; FUN_005c0bf1		005bef18	11	11	stl		
+std::moneypunct<char,0>	rtti	std::_Mpunct<char>@0	44	new	1		FUN_005be010; FUN_005c04cf		005bee32	1	1	stl		
+std::money_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	rtti	std::locale::facet@0	8	new	1		FUN_005be010; FUN_005c03f3		005bee0f	4	4	stl		
+std::money_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	rtti	std::locale::facet@0	8	new	1		FUN_005be010; FUN_005c0317		005bedec	4	4	stl		
+std::messages<char>	rtti	std::messages_base@0 std::locale::facet@0	16	new	1		FUN_005be010; FUN_005c0849		005bedad	5	5	stl		
+std::collate<char>	rtti	std::locale::facet@0	16	new	1		FUN_005be010; FUN_005c07f5		005bed8a	5	5	stl		
+type_info	rtti		8	estimated	1			005c1963	005c198c	4	4	crt		
+bad_typeid	rtti	exception@0	12	estimated	1	005c3a98 005c3b97			005c3ab0	3	3	crt		
+__non_rtti_object	rtti	bad_typeid@0	12	estimated	1	005c3a3d 005c3a80			005c3a5f	3	3	crt		
+bad_cast	rtti	exception@0	12	estimated	1	005c3cc7 005c3d00			005c3cdf	3	3	crt		
+C3dDevice	curated		572	estimated	0	00404240				28	27	render		
+VertexBuffer	curated		16	new	0	00405f60				5	5	render		
+FontCache	curated		16	estimated	0	00406b60		00407a40		3	3	render		FontEntry@0x4
+TextureCache	curated		16	estimated	0			0040c9f0		8	8	render		
+SceneRenderer	curated		672	new	0	0040d1a0		0040d830		61	60	render		
+RenderTriangle	curated		156	new	0	0040c5f0 0040c620				3	1	render		
+RenderQuad	curated		196	new	0	0040c6b0 0040c6f0				3	3	render		
+TriangleSet	curated		28	new	0	0040c780		0040c790		3	3	render		
+DirectInputMouse	curated		60	estimated	0					4	4	core		
+KeyPadDispatcher	curated		108	estimated	0	0041e190		0041e1b0		5	5	core		
+ModelResNode	curated		364	new	0	0042b350		0042b3f0		3	3	res		ModelResMesh@0x114
+ModelResMesh	curated		564	new	0	00408d30		00408dc0		4	4	res	VertexBuffer@0x224	
+AnimModelResNode	curated		88	new	0	0042ccd0		0042cd60		4	3	res		
+GrannyMotionTable	curated		644	estimated	0	0042fce0		0042fd00		13	13	res		
+ModelInstance	curated		512	new	0	004b9340		004b93f0		12	12	world	Matrix@0xc0 Matrix@0xf0	C3dNode@0x28
+ThaiWordBreaker	curated		8	estimated	0	004c26b0		004c26c0		8	8	ui		ThaiLexicon@0x0
+ThaiLexicon	curated		300	new	0	004c2000		004c2030		4	4	ui		
+XmlDocument	curated		40	estimated	0	004c95b0				4	4	res		
+ModeSwitcher	curated		96	estimated	0	004cbf10				6	5	core		CMode@0x4
+GuildInfo	curated		296	estimated	0	004cfcb0		004d0130		14	14	game		
+MannerFilter	curated		48	estimated	0	004d2a00		004d2a40		9	9	game		
+TipOfTheDayList	curated		16	estimated	0	004db1d0		004db210		5	5	ui		
+DataFile	curated		16	estimated	0	004dd2f0				7	7	res		
+ResourceManager	curated		172	estimated	0	004dfa60		004dfcd0		17	17	res		
+PathFinder	curated		4248	estimated	0	004cc1b0		004cc290		13	13	world		
+SceneGraphNode	curated		128	new	0	004c5270		004c52b0		11	11	world		SceneGraphNode@0x4 C3dGround@0x58 C3dAttr@0x6c
+WorldColorFade	curated		72	estimated	0	00586400				8	8	world		CAbleToMakeEffect@0x10
+ClientState	curated		6356	estimated	0	00586860		00587370		304	303	game	XmlElement@0xc60 XmlElement@0xc88 XmlElement@0xcb0	
+MoviePlayer	curated		16	estimated	0	004dbbe0				10	10	render		
+PacketCodeModules	curated		28	estimated	0			00418410		7	7	net		
+PacketQueue	curated		28	new	0	0041fa00 0041fa20		0041fa80		9	8	net		
+CTokenizer	curated		12	estimated	0					3	3	res		
+Md5Context	curated		28	estimated	0					4	4	net		
+Matrix	curated		48	new	0					28	15	core		
+RmaActionRecord	curated		28	new	0			00422d40	00425fa0	3	3	res		
+ActFrame	curated		76	new	0	00420750		004206a0	004267c0	6	6	res		
+ImfRecord	curated		48	new	0			00429f40	0042ad40	3	3	res		
+GndCell	curated		28	new	0					4	2	res		
+AnimFrameArrays	curated		8	new	0			0042cca0	0042d990	4	3	res		
+TranslationKeys	curated		16	new	0					3	3	world		
+RotationKeys	curated		16	new	0					3	3	world		
+ScaleKeys	curated		16	new	0					2	2	world		
+FontEntry	curated		20	new	0	004077d0				6	6	render		
+RenderPrimitive	curated		36	new	0	0040c1b0				8	8	render		
+XmlElement	curated		40	new	0	004e61e0		004e6350		6	6	res		XmlElement@0x20 XmlElement@0x24
+ItemRecord	curated		68	new	0	0048bd80 0049fff0		00458560	00479350	27	27	game		
+SkillRecord	curated		44	new	0			0045e330	0049a000	3	3	ui		
+GuildMemberRecord	curated		92	new	0			0047df00		2	2	ui		
+GuildPositionRecord	curated		36	new	0	0047f680		0047f6a0 004d1fc0	00486b10	5	5	ui		
+MessengerRecord	curated		52	new	0			0049b070	0049f610	2	2	ui		
+SelectCharSlot	curated		236	new	0	0044d060		0044d120		2	2	ui		
+StringIntRecord	curated		20	new	0	004b6790			00486ae0	3	3	ui		
+EdgeRect	curated		48	new	0					4	4	ui		
+LightmapAtlas	curated		40	new	0	004bbb90		004bbbc0		4	4	world		
+MovePath	curated		28	new	0	004ccf10				6	6	world		
+ViewFrustum	curated		192	new	0	004cea70		004cf100		7	7	world		
+SceneRayQuery	curated		40	new	0					4	4	world		
+ItemInfo	curated		120	new	0	004d5a80		004d71a0		2	2	game		
+CardInfo	curated		48	new	0	004d7420		004d7460		2	2	game		
+DesCipher	curated		128	new	0	004dc0c0		004dc0d0		5	5	res		
+HashedFileName	curated		256	new	0	004df710 004df730				6	6	res		
+ScriptRecord	curated		40	new	0			004f21e0	004fca20	3	3	game		
+FourStringRecord	curated		64	new	0	005127a0 0051b1d0		005127f0		3	3	game		
+ConnectionEntry	curated		72	new	0			0053f030		2	2	game		

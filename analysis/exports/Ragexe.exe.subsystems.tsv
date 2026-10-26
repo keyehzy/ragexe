@@ -535,6 +535,7 @@ entry	subsystem	rule	evidence
 004220d0	res	class	class CRes, base of CRmaRes
 00422b30	res	neighbours	between 004220d0 and 00422d40
 00422d40	res	class	class RmaActionRecord
+00425269	stl	funclet	EH tables of the library function 00425210
 00425af0	res	class	class RmaActionRecord
 00425d00	res	class	class ActFrame
 00425fa0	res	class	class RmaActionRecord
@@ -3089,6 +3090,8 @@ entry	subsystem	rule	evidence
 004e4cc0	res	neighbours	between 004e1040 and 004e61e0
 004e4d80	res	neighbours	between 004e1040 and 004e61e0
 004e50d0	res	neighbours	between 004e1040 and 004e61e0
+004e57d8	stl	funclet	EH tables of the library function 004e5690
+004e5a60	stl	funclet	EH tables of the library function 004e5880
 004e5d60	res	neighbours	between 004e1040 and 004e61e0
 004e6110	res	neighbours	between 004e1040 and 004e61e0
 004e61b0	res	neighbours	between 004e1040 and 004e61e0
@@ -5005,7 +5008,36 @@ entry	subsystem	rule	evidence
 005b2280	core	import	OLE32.DLL!CoInitialize, OLE32.DLL!CoUninitialize, WINMM.DLL!timeBeginPeriod, WINMM.DLL!timeEndPeriod, WINMM.DLL!timeGetDevCaps
 005b2b60	game	callers	1 referencing function
 005b2b80	audio	initializer	initializer of the file starting here, before 005b3050
+005b2ef2	render	import	DDRAW.DLL!DirectDrawCreate
+005b2ef8	render	import	DDRAW.DLL!DirectDrawCreateEx
+005b2efe	render	import	DDRAW.DLL!DirectDrawEnumerateA
+005b2f04	audio	import	DSOUND.DLL!#1
+005b2f80	core	import	DINPUT.DLL!DirectInputCreateA, called from {'core': 1}
+005b2f86	res	import	IJL15.DLL!#5
+005b2f8c	res	import	IJL15.DLL!#2
+005b2f92	res	import	IJL15.DLL!#3
+005b2f98	res	import	IJL15.DLL!#4
+005b2f9e	net	import	WS2_32.DLL!WSAGetLastError
+005b2fa4	net	import	WS2_32.DLL!connect, called from {'net': 2}
+005b2faa	net	import	WS2_32.DLL!htons, called from {'net': 2}
+005b2fb0	net	import	WS2_32.DLL!inet_addr, called from {'net': 2}
+005b2fb6	net	import	WS2_32.DLL!WSAAsyncSelect, called from {'net': 2}
+005b2fbc	net	import	WS2_32.DLL!socket, called from {'net': 2}
+005b2fc2	net	import	WS2_32.DLL!closesocket, called from {'net': 1}
+005b2fd4	net	import	WS2_32.DLL!WSACleanup
+005b2fda	net	import	WS2_32.DLL!WSAStartup
+005b2fe0	game	import	WS2_32.DLL!inet_ntoa, called from {'game': 3}
 005b3050	audio	callers	1 referencing function
+005b3060	audio	stub	jumps to the thunk 005b3076
+005b3076	audio	import	MSS32.DLL!_AIL_shutdown@0
+005b3124	ui	import	IMM32.DLL!ImmReleaseContext
+005b312a	ui	import	IMM32.DLL!ImmGetCompositionStringA
+005b3130	ui	import	IMM32.DLL!ImmGetContext
+005b3136	ui	import	IMM32.DLL!ImmGetCandidateListA
+005b313c	ui	import	IMM32.DLL!ImmNotifyIME
+005b3142	ui	import	IMM32.DLL!ImmGetVirtualKey
+005bc746	crt	funclet	EH tables of the library function 005bc702
+005c3474	res	import	KERNEL32.DLL!GetCurrentProcessId, called from {'res': 1}
 005d45e0	render	funclet	EH tables of 00402f40
 005d4600	render	funclet	EH tables of 00403010
 005d4620	render	funclet	EH tables of 00403070
@@ -5074,6 +5106,8 @@ entry	subsystem	rule	evidence
 005d4a7b	render	funclet	EH tables of 0040e130
 005d4a90	render	funclet	EH tables of 00410df0
 005d4ab0	render	funclet	EH tables of 00410eb0
+005d4ad0	stl	funclet	EH tables of the library function 004153f0
+005d4af0	stl	funclet	EH tables of the library function 00415500
 005d4b10	render	funclet	EH tables of 00416550
 005d4b30	render	funclet	EH tables of 004165e0
 005d4b50	render	funclet	EH tables of 004166b0
@@ -5100,6 +5134,7 @@ entry	subsystem	rule	evidence
 005d4cc0	core	funclet	EH tables of 0041e1b0
 005d4ce0	core	funclet	EH tables of 0041e2e0
 005d4d00	net	funclet	EH tables of 0041fa20
+005d4d20	stl	funclet	EH tables of the library function 00420560
 005d4d40	res	funclet	EH tables of 004207c0
 005d4d48	res	funclet	EH tables of 004207c0
 005d4d56	res	funclet	EH tables of 004207c0
@@ -5130,6 +5165,16 @@ entry	subsystem	rule	evidence
 005d4f08	res	funclet	EH tables of 004220d0
 005d4f13	res	funclet	EH tables of 004220d0
 005d4f1b	res	funclet	EH tables of 004220d0
+005d4f30	stl	funclet	EH tables of the library function 00422bb0
+005d4f50	stl	funclet	EH tables of the library function 00422e20
+005d4f90	stl	funclet	EH tables of the library function 00425320
+005d4fb0	stl	funclet	EH tables of the library function 00425480
+005d4fd0	stl	funclet	EH tables of the library function 004255f0
+005d4fe1	stl	funclet	EH tables of the library function 004255f0
+005d5000	stl	funclet	EH tables of the library function 004257b0
+005d5011	stl	funclet	EH tables of the library function 004257b0
+005d5022	stl	funclet	EH tables of the library function 004257b0
+005d5040	stl	funclet	EH tables of the library function 00425a40
 005d5060	res	funclet	EH tables of 00426a20
 005d5068	res	funclet	EH tables of 00426a20
 005d5080	res	funclet	EH tables of 00426aa0
@@ -5174,6 +5219,13 @@ entry	subsystem	rule	evidence
 005d53a3	res	funclet	EH tables of 00429c40
 005d53ab	res	funclet	EH tables of 00429c40
 005d53b3	res	funclet	EH tables of 00429c40
+005d53d0	stl	funclet	EH tables of the library function 0042a9f0
+005d53e1	stl	funclet	EH tables of the library function 0042a9f0
+005d53f2	stl	funclet	EH tables of the library function 0042a9f0
+005d53fa	stl	funclet	EH tables of the library function 0042a9f0
+005d5410	stl	funclet	EH tables of the library function 0042abf0
+005d5421	stl	funclet	EH tables of the library function 0042abf0
+005d5429	stl	funclet	EH tables of the library function 0042abf0
 005d5440	res	funclet	EH tables of 0042b3f0
 005d544e	res	funclet	EH tables of 0042b3f0
 005d545c	res	funclet	EH tables of 0042b3f0
@@ -5247,6 +5299,7 @@ entry	subsystem	rule	evidence
 005d588b	res	funclet	EH tables of 004303a0
 005d5893	res	funclet	EH tables of 004303a0
 005d589b	res	funclet	EH tables of 004303a0
+005d58b0	stl	funclet	EH tables of the library function 004318a0
 005d58d0	res	funclet	EH tables of 00431f90
 005d58f0	res	funclet	EH tables of 00431ff0
 005d5910	res	funclet	EH tables of 004320e0
@@ -5365,6 +5418,7 @@ entry	subsystem	rule	evidence
 005d6090	ui	funclet	EH tables of 00441260
 005d60b0	ui	funclet	EH tables of 004413c0
 005d60b8	ui	funclet	EH tables of 004413c0
+005d60d0	stl	funclet	EH tables of the library function 00441a60
 005d60f0	ui	funclet	EH tables of 00441d70
 005d60f8	ui	funclet	EH tables of 00441d70
 005d6100	ui	funclet	EH tables of 00441d70
@@ -5406,6 +5460,7 @@ entry	subsystem	rule	evidence
 005d6320	ui	funclet	EH tables of 00446540
 005d6328	ui	funclet	EH tables of 00446540
 005d6330	ui	funclet	EH tables of 00446540
+005d6350	stl	funclet	EH tables of the library function 00446ab0
 005d6370	ui	funclet	EH tables of 00446c30
 005d6378	ui	funclet	EH tables of 00446c30
 005d6383	ui	funclet	EH tables of 00446c30
@@ -5674,6 +5729,8 @@ entry	subsystem	rule	evidence
 005d6fb1	ui	funclet	EH tables of 00458d70
 005d6fb9	ui	funclet	EH tables of 00458d70
 005d6fc1	ui	funclet	EH tables of 00458d70
+005d6fe0	stl	funclet	EH tables of the library function 0045ac30
+005d7000	stl	funclet	EH tables of the library function 0045ad90
 005d7020	ui	funclet	EH tables of 0045b0c0
 005d7040	ui	funclet	EH tables of 0045b3d0
 005d7060	ui	funclet	EH tables of 0045b8a0
@@ -6229,6 +6286,7 @@ entry	subsystem	rule	evidence
 005d8b3b	ui	funclet	EH tables of 00478740
 005d8b43	ui	funclet	EH tables of 00478740
 005d8b4b	ui	funclet	EH tables of 00478740
+005d8b60	stl	funclet	EH tables of the library function 00479160
 005d8b80	ui	funclet	EH tables of 004793b0
 005d8b8b	ui	funclet	EH tables of 004793b0
 005d8b93	ui	funclet	EH tables of 004793b0
@@ -6393,6 +6451,15 @@ entry	subsystem	rule	evidence
 005d932a	ui	funclet	EH tables of 00483740
 005d9335	ui	funclet	EH tables of 00483740
 005d933d	ui	funclet	EH tables of 00483740
+005d9350	stl	funclet	EH tables of the library function 00483f00
+005d9358	stl	funclet	EH tables of the library function 00483f00
+005d9370	stl	funclet	EH tables of the library function 004863a0
+005d9390	stl	funclet	EH tables of the library function 00486540
+005d93b0	stl	funclet	EH tables of the library function 004866c0
+005d93c1	stl	funclet	EH tables of the library function 004866c0
+005d93cc	stl	funclet	EH tables of the library function 004866c0
+005d93f0	stl	funclet	EH tables of the library function 004867b0
+005d9410	stl	funclet	EH tables of the library function 00486960
 005d9430	ui	funclet	EH tables of 00486c70
 005d9438	ui	funclet	EH tables of 00486c70
 005d9443	ui	funclet	EH tables of 00486c70
@@ -6723,6 +6790,8 @@ entry	subsystem	rule	evidence
 005da6dc	ui	funclet	EH tables of 0049ea20
 005da6e4	ui	funclet	EH tables of 0049ea20
 005da6ec	ui	funclet	EH tables of 0049ea20
+005da700	stl	funclet	EH tables of the library function 0049f4b0
+005da711	stl	funclet	EH tables of the library function 0049f4b0
 005da730	ui	funclet	EH tables of 0049f710
 005da73b	ui	funclet	EH tables of 0049f710
 005da743	ui	funclet	EH tables of 0049f710
@@ -6954,6 +7023,7 @@ entry	subsystem	rule	evidence
 005db378	ui	funclet	EH tables of 004b4700
 005db380	ui	funclet	EH tables of 004b4700
 005db3a0	ui	funclet	EH tables of 004b4980
+005db3c0	stl	funclet	EH tables of the library function 004b65d0
 005db3e0	world	funclet	EH tables of 004b6960
 005db400	world	funclet	EH tables of 004b6ac0
 005db40e	world	funclet	EH tables of 004b6ac0
@@ -7062,6 +7132,11 @@ entry	subsystem	rule	evidence
 005dbb2a	game	funclet	EH tables of 004d0130
 005dbb38	game	funclet	EH tables of 004d0130
 005dbb50	game	funclet	EH tables of 004d0b30
+005dbb70	stl	funclet	EH tables of the library function 004d0de0
+005dbb78	stl	funclet	EH tables of the library function 004d0de0
+005dbb90	stl	funclet	EH tables of the library function 004d1eb0
+005dbba1	stl	funclet	EH tables of the library function 004d1eb0
+005dbba9	stl	funclet	EH tables of the library function 004d1eb0
 005dbbc0	game	funclet	EH tables of 004d2220
 005dbbe0	game	funclet	EH tables of 004d2450
 005dbbe8	game	funclet	EH tables of 004d2450
@@ -7107,11 +7182,43 @@ entry	subsystem	rule	evidence
 005dbdc8	game	funclet	EH tables of 004d48e0
 005dbdd0	game	funclet	EH tables of 004d48e0
 005dbdda	game	funclet	EH tables of 004d48e0
+005dbdf0	stl	funclet	EH tables of the library function 004d6050
+005dbdf8	stl	funclet	EH tables of the library function 004d6050
+005dbe03	stl	funclet	EH tables of the library function 004d6050
+005dbe0e	stl	funclet	EH tables of the library function 004d6050
+005dbe19	stl	funclet	EH tables of the library function 004d6050
+005dbe24	stl	funclet	EH tables of the library function 004d6050
 005dbe40	game	funclet	EH tables of 004d71a0
 005dbe48	game	funclet	EH tables of 004d71a0
 005dbe53	game	funclet	EH tables of 004d71a0
 005dbe5e	game	funclet	EH tables of 004d71a0
 005dbe69	game	funclet	EH tables of 004d71a0
+005dbe80	stl	funclet	EH tables of the library function 004d72f0
+005dbe88	stl	funclet	EH tables of the library function 004d72f0
+005dbe93	stl	funclet	EH tables of the library function 004d72f0
+005dbe9e	stl	funclet	EH tables of the library function 004d72f0
+005dbea9	stl	funclet	EH tables of the library function 004d72f0
+005dbec0	stl	funclet	EH tables of the library function 004d7800
+005dbec8	stl	funclet	EH tables of the library function 004d7800
+005dbed3	stl	funclet	EH tables of the library function 004d7800
+005dbede	stl	funclet	EH tables of the library function 004d7800
+005dbee9	stl	funclet	EH tables of the library function 004d7800
+005dbef4	stl	funclet	EH tables of the library function 004d7800
+005dbf10	stl	funclet	EH tables of the library function 004d7ae0
+005dbf18	stl	funclet	EH tables of the library function 004d7ae0
+005dbf30	stl	funclet	EH tables of the library function 004d7c90
+005dbf50	stl	funclet	EH tables of the library function 004d8890
+005dbf61	stl	funclet	EH tables of the library function 004d8890
+005dbf69	stl	funclet	EH tables of the library function 004d8890
+005dbf74	stl	funclet	EH tables of the library function 004d8890
+005dbf7f	stl	funclet	EH tables of the library function 004d8890
+005dbf8a	stl	funclet	EH tables of the library function 004d8890
+005dbf95	stl	funclet	EH tables of the library function 004d8890
+005dbfb0	stl	funclet	EH tables of the library function 004d8aa0
+005dbfc1	stl	funclet	EH tables of the library function 004d8aa0
+005dbfc9	stl	funclet	EH tables of the library function 004d8aa0
+005dbfe0	stl	funclet	EH tables of the library function 004d8b60
+005dbff1	stl	funclet	EH tables of the library function 004d8b60
 005dc010	core	funclet	EH tables of 004d8ea0
 005dc018	core	funclet	EH tables of 004d8ea0
 005dc020	core	funclet	EH tables of 004d8ea0
@@ -7119,6 +7226,9 @@ entry	subsystem	rule	evidence
 005dc030	core	funclet	EH tables of 004d8ea0
 005dc050	game	funclet	EH tables of 004d95b0
 005dc058	game	funclet	EH tables of 004d95b0
+005dc070	stl	funclet	EH tables of the library function 004d9b60
+005dc078	stl	funclet	EH tables of the library function 004d9b60
+005dc080	stl	funclet	EH tables of the library function 004d9b60
 005dc0a0	game	funclet	EH tables of 004da100
 005dc0a8	game	funclet	EH tables of 004da100
 005dc0b0	game	funclet	EH tables of 004da100
@@ -7132,6 +7242,7 @@ entry	subsystem	rule	evidence
 005dc0fc	game	funclet	EH tables of 004da100
 005dc110	game	funclet	EH tables of 004da2a0
 005dc130	game	funclet	EH tables of 004da3c0
+005dc150	stl	funclet	EH tables of the library function 004da5e0
 005dc170	game	funclet	EH tables of 004da6f0
 005dc178	game	funclet	EH tables of 004da6f0
 005dc189	game	funclet	EH tables of 004da6f0
@@ -7142,6 +7253,8 @@ entry	subsystem	rule	evidence
 005dc1e0	ui	funclet	EH tables of 004db290
 005dc1e8	ui	funclet	EH tables of 004db290
 005dc1f0	ui	funclet	EH tables of 004db290
+005dc210	stl	funclet	EH tables of the library function 004db7c0
+005dc221	stl	funclet	EH tables of the library function 004db7c0
 005dc240	res	funclet	EH tables of 004dd820
 005dc24b	res	funclet	EH tables of 004dd820
 005dc256	res	funclet	EH tables of 004dd820
@@ -7150,6 +7263,10 @@ entry	subsystem	rule	evidence
 005dc286	res	funclet	EH tables of 004dd900
 005dc2a0	res	funclet	EH tables of 004ddae0
 005dc2c0	res	funclet	EH tables of 004de830
+005dc2e0	stl	funclet	EH tables of the library function 004dfa60
+005dc2e8	stl	funclet	EH tables of the library function 004dfa60
+005dc2f3	stl	funclet	EH tables of the library function 004dfa60
+005dc2fe	stl	funclet	EH tables of the library function 004dfa60
 005dc320	res	funclet	EH tables of 004dfcd0
 005dc328	res	funclet	EH tables of 004dfcd0
 005dc333	res	funclet	EH tables of 004dfcd0
@@ -7163,6 +7280,9 @@ entry	subsystem	rule	evidence
 005dc3a3	res	funclet	EH tables of 004e0940
 005dc3ab	res	funclet	EH tables of 004e0940
 005dc3c0	res	funclet	EH tables of 004e0f30
+005dc3e0	stl	funclet	EH tables of the library function 004e3ad0
+005dc400	stl	funclet	EH tables of the library function 004e3cb0
+005dc411	stl	funclet	EH tables of the library function 004e3cb0
 005dc430	res	funclet	EH tables of 004e4190
 005dc438	res	funclet	EH tables of 004e4190
 005dc440	res	funclet	EH tables of 004e4190
@@ -7183,6 +7303,19 @@ entry	subsystem	rule	evidence
 005dc510	res	funclet	EH tables of 004e50d0
 005dc518	res	funclet	EH tables of 004e50d0
 005dc520	res	funclet	EH tables of 004e50d0
+005dc550	stl	funclet	EH tables of the library function 004e5880
+005dc558	stl	funclet	EH tables of the library function 004e5880
+005dc560	stl	funclet	EH tables of the library function 004e5880
+005dc580	stl	funclet	EH tables of the library function 004e5c10
+005dc588	stl	funclet	EH tables of the library function 004e5c10
+005dc590	stl	funclet	EH tables of the library function 004e5c10
+005dc5b0	stl	funclet	EH tables of the library function 004e5e90
+005dc5b8	stl	funclet	EH tables of the library function 004e5e90
+005dc5c3	stl	funclet	EH tables of the library function 004e5e90
+005dc5cb	stl	funclet	EH tables of the library function 004e5e90
+005dc5d3	stl	funclet	EH tables of the library function 004e5e90
+005dc5db	stl	funclet	EH tables of the library function 004e5e90
+005dc5f0	stl	funclet	EH tables of the library function 004e6090
 005dc610	res	funclet	EH tables of 004e6110
 005dc630	res	funclet	EH tables of 004e61e0
 005dc638	res	funclet	EH tables of 004e61e0
@@ -7226,6 +7359,9 @@ entry	subsystem	rule	evidence
 005dc8e8	game	funclet	EH tables of 004eeae0
 005dc900	game	funclet	EH tables of 004eec60
 005dc90b	game	funclet	EH tables of 004eec60
+005dc920	stl	funclet	EH tables of the library function 004eedc0
+005dc940	stl	funclet	EH tables of the library function 004eefe0
+005dc960	stl	funclet	EH tables of the library function 004ef1e0
 005dc980	game	funclet	EH tables of 004ef340
 005dc9a0	game	funclet	EH tables of 004f0020
 005dc9a8	game	funclet	EH tables of 004f0020
@@ -7272,6 +7408,7 @@ entry	subsystem	rule	evidence
 005dcc30	game	funclet	EH tables of 004f96d0
 005dcc38	game	funclet	EH tables of 004f96d0
 005dcc40	game	funclet	EH tables of 004f96d0
+005dcc60	stl	funclet	EH tables of the library function 004f98b0
 005dcc80	game	funclet	EH tables of 004f9cb0
 005dcc88	game	funclet	EH tables of 004f9cb0
 005dcca0	game	funclet	EH tables of 004f9e80
@@ -7285,6 +7422,12 @@ entry	subsystem	rule	evidence
 005dcd20	game	funclet	EH tables of 004fa460
 005dcd40	game	funclet	EH tables of 004fa6d0
 005dcd60	game	funclet	EH tables of 004fa800
+005dcd80	stl	funclet	EH tables of the library function 004fb500
+005dcd88	stl	funclet	EH tables of the library function 004fb500
+005dcda0	stl	funclet	EH tables of the library function 004fc490
+005dcdb1	stl	funclet	EH tables of the library function 004fc490
+005dcdd0	stl	funclet	EH tables of the library function 004fc650
+005dcde1	stl	funclet	EH tables of the library function 004fc650
 005dce00	game	funclet	EH tables of 004fcfc0
 005dce0b	game	funclet	EH tables of 004fcfc0
 005dce16	game	funclet	EH tables of 004fcfc0
@@ -7453,9 +7596,15 @@ entry	subsystem	rule	evidence
 005dd950	game	funclet	EH tables of 00518f60
 005dd970	game	funclet	EH tables of 00519060
 005dd990	game	funclet	EH tables of 00519480
+005dd9b0	stl	funclet	EH tables of the library function 005198a0
+005dd9b8	stl	funclet	EH tables of the library function 005198a0
 005dd9d0	game	funclet	EH tables of 0051b1d0
 005dd9d8	game	funclet	EH tables of 0051b1d0
 005dd9e3	game	funclet	EH tables of 0051b1d0
+005dda00	stl	funclet	EH tables of the library function 0051d7d0
+005dda11	stl	funclet	EH tables of the library function 0051d7d0
+005dda19	stl	funclet	EH tables of the library function 0051d7d0
+005dda24	stl	funclet	EH tables of the library function 0051d7d0
 005dda40	game	funclet	EH tables of 0051d990
 005dda48	game	funclet	EH tables of 0051d990
 005dda50	game	funclet	EH tables of 0051d990
@@ -7646,6 +7795,10 @@ entry	subsystem	rule	evidence
 005de6e0	game	funclet	EH tables of 005388c0
 005de700	game	funclet	EH tables of 00538c60
 005de720	game	funclet	EH tables of 00539140
+005de740	stl	funclet	EH tables of the library function 0053a410
+005de760	stl	funclet	EH tables of the library function 0053a590
+005de780	stl	funclet	EH tables of the library function 0053a710
+005de7a0	stl	funclet	EH tables of the library function 0053a880
 005de7c0	world	funclet	EH tables of 0053abb0
 005de7c8	world	funclet	EH tables of 0053abb0
 005de7e0	world	funclet	EH tables of 0053ac50
@@ -7671,6 +7824,11 @@ entry	subsystem	rule	evidence
 005de8d9	game	funclet	EH tables of 0053ecd0
 005de8e4	game	funclet	EH tables of 0053ecd0
 005de8ef	game	funclet	EH tables of 0053ecd0
+005de910	stl	funclet	EH tables of the library function 0053f810
+005de921	stl	funclet	EH tables of the library function 0053f810
+005de929	stl	funclet	EH tables of the library function 0053f810
+005de934	stl	funclet	EH tables of the library function 0053f810
+005de93f	stl	funclet	EH tables of the library function 0053f810
 005de960	world	funclet	EH tables of 0053f950
 005de980	world	funclet	EH tables of 0053f9d0
 005de9a0	world	funclet	EH tables of 00540950
@@ -8010,6 +8168,72 @@ entry	subsystem	rule	evidence
 005dfe73	game	funclet	EH tables of 0059cdd0
 005dfe7b	game	funclet	EH tables of 0059cdd0
 005dfe83	game	funclet	EH tables of 0059cdd0
+005dfea0	stl	funclet	EH tables of the library function 0059f8e0
+005dfeb1	stl	funclet	EH tables of the library function 0059f8e0
+005dfed0	stl	funclet	EH tables of the library function 0059fa30
+005dfee1	stl	funclet	EH tables of the library function 0059fa30
+005dfee9	stl	funclet	EH tables of the library function 0059fa30
+005dff10	stl	funclet	EH tables of the library function 0059fb20
+005dff21	stl	funclet	EH tables of the library function 0059fb20
+005dff40	stl	funclet	EH tables of the library function 0059fc20
+005dff48	stl	funclet	EH tables of the library function 0059fc20
+005dff50	stl	funclet	EH tables of the library function 0059fc20
+005dff58	stl	funclet	EH tables of the library function 0059fc20
+005dff70	stl	funclet	EH tables of the library function 005a0150
+005dff90	stl	funclet	EH tables of the library function 005a0280
+005dffb0	stl	funclet	EH tables of the library function 005a06d0
+005dffb8	stl	funclet	EH tables of the library function 005a06d0
+005dffc0	stl	funclet	EH tables of the library function 005a06d0
+005dffc8	stl	funclet	EH tables of the library function 005a06d0
+005dffe0	stl	funclet	EH tables of the library function 005a0bb0
+005dffe8	stl	funclet	EH tables of the library function 005a0bb0
+005e0010	stl	funclet	EH tables of the library function 005a0d40
+005e0018	stl	funclet	EH tables of the library function 005a0d40
+005e0020	stl	funclet	EH tables of the library function 005a0d40
+005e0028	stl	funclet	EH tables of the library function 005a0d40
+005e0040	stl	funclet	EH tables of the library function 005a1280
+005e0060	stl	funclet	EH tables of the library function 005a16d0
+005e0068	stl	funclet	EH tables of the library function 005a16d0
+005e0080	stl	funclet	EH tables of the library function 005a17e0
+005e00a0	stl	funclet	EH tables of the library function 005a1de0
+005e00a8	stl	funclet	EH tables of the library function 005a1de0
+005e00c0	stl	funclet	EH tables of the library function 005a1ef0
+005e00e0	stl	funclet	EH tables of the library function 005a2140
+005e00e8	stl	funclet	EH tables of the library function 005a2140
+005e0100	stl	funclet	EH tables of the library function 005a2250
+005e0120	stl	funclet	EH tables of the library function 005a2470
+005e0128	stl	funclet	EH tables of the library function 005a2470
+005e0140	stl	funclet	EH tables of the library function 005a2580
+005e0160	stl	funclet	EH tables of the library function 005a2790
+005e0168	stl	funclet	EH tables of the library function 005a2790
+005e0170	stl	funclet	EH tables of the library function 005a2790
+005e0178	stl	funclet	EH tables of the library function 005a2790
+005e0180	stl	funclet	EH tables of the library function 005a2790
+005e01a0	stl	funclet	EH tables of the library function 005a29c0
+005e01a8	stl	funclet	EH tables of the library function 005a29c0
+005e01b0	stl	funclet	EH tables of the library function 005a29c0
+005e01d0	stl	funclet	EH tables of the library function 005a34b0
+005e01f0	stl	funclet	EH tables of the library function 005a36b0
+005e01f8	stl	funclet	EH tables of the library function 005a36b0
+005e0200	stl	funclet	EH tables of the library function 005a36b0
+005e0220	stl	funclet	EH tables of the library function 005a3930
+005e0228	stl	funclet	EH tables of the library function 005a3930
+005e0240	stl	funclet	EH tables of the library function 005a3ac0
+005e0248	stl	funclet	EH tables of the library function 005a3ac0
+005e0250	stl	funclet	EH tables of the library function 005a3ac0
+005e0258	stl	funclet	EH tables of the library function 005a3ac0
+005e0260	stl	funclet	EH tables of the library function 005a3ac0
+005e0280	stl	funclet	EH tables of the library function 005a3ce0
+005e0288	stl	funclet	EH tables of the library function 005a3ce0
+005e0290	stl	funclet	EH tables of the library function 005a3ce0
+005e02b0	stl	funclet	EH tables of the library function 005a3e80
+005e02b8	stl	funclet	EH tables of the library function 005a3e80
+005e02c0	stl	funclet	EH tables of the library function 005a3e80
+005e02c8	stl	funclet	EH tables of the library function 005a3e80
+005e02d0	stl	funclet	EH tables of the library function 005a3e80
+005e02f0	stl	funclet	EH tables of the library function 005a40a0
+005e02f8	stl	funclet	EH tables of the library function 005a40a0
+005e0300	stl	funclet	EH tables of the library function 005a40a0
 005e0320	game	funclet	EH tables of 005a54b0
 005e032b	game	funclet	EH tables of 005a54b0
 005e0333	game	funclet	EH tables of 005a54b0
@@ -8053,6 +8277,8 @@ entry	subsystem	rule	evidence
 005e04e0	game	funclet	EH tables of 005aa010
 005e0500	game	funclet	EH tables of 005aaa90
 005e0530	game	funclet	EH tables of 005aafb0
+005e0550	stl	funclet	EH tables of the library function 005ab770
+005e0558	stl	funclet	EH tables of the library function 005ab770
 005e0570	world	funclet	EH tables of 005ab960
 005e0590	world	funclet	EH tables of 005ab9e0
 005e05b0	world	funclet	EH tables of 005ac830
@@ -8068,3 +8294,346 @@ entry	subsystem	rule	evidence
 005e06f0	world	funclet	EH tables of 005afa80
 005e0710	world	funclet	EH tables of 005afb00
 005e0730	core	funclet	EH tables of 005b1130
+005e0750	stl	funclet	EH tables of the library function 005b3318
+005e0764	stl	funclet	EH tables of the library function 005b3372
+005e0778	stl	funclet	EH tables of the library function 005b3400
+005e078c	stl	funclet	EH tables of the library function 005b349d
+005e07a4	crt	funclet	EH tables of the library function 005b34e3
+005e07be	crt	funclet	EH tables of the library function 005b34e3
+005e07c9	crt	funclet	EH tables of the library function 005b34e3
+005e07d4	crt	funclet	EH tables of the library function 005b34e3
+005e07e8	stl	funclet	EH tables of the library function 005b3621
+005e0800	crt	funclet	EH tables of the library function 005b3667
+005e081a	crt	funclet	EH tables of the library function 005b3667
+005e0825	crt	funclet	EH tables of the library function 005b3667
+005e0830	crt	funclet	EH tables of the library function 005b3667
+005e0844	stl	funclet	EH tables of the library function 005b3755
+005e085c	stl	funclet	EH tables of the library function 005b3798
+005e0870	crt	funclet	EH tables of the library function 005b3d04
+005e0894	crt	funclet	EH tables of the library function 005b3dcf
+005e08ae	crt	funclet	EH tables of the library function 005b3dcf
+005e08c4	stl	funclet	EH tables of the library function 005b3fca
+005e08d8	crt	funclet	EH tables of the library function 005b40a2
+005e08e0	crt	funclet	EH tables of the library function 005b40a2
+005e08e8	crt	funclet	EH tables of the library function 005b40a2
+005e08fc	stl	funclet	EH tables of the library function 005b41a8
+005e0904	stl	funclet	EH tables of the library function 005b41a8
+005e0918	crt	funclet	EH tables of the library function 005b4272
+005e092c	crt	funclet	EH tables of the library function 005b42bc
+005e0940	stl	funclet	EH tables of the library function 005b4351
+005e0948	stl	funclet	EH tables of the library function 005b4351
+005e0953	stl	funclet	EH tables of the library function 005b4351
+005e0968	stl	funclet	EH tables of the library function 005b441b
+005e097c	crt	funclet	EH tables of the library function 005b44b7
+005e0990	stl	funclet	EH tables of the library function 005b4545
+005e09a4	crt	funclet	EH tables of the library function 005b459e
+005e09b8	stl	funclet	EH tables of the library function 005b45fb
+005e09cc	crt	funclet	EH tables of the library function 005b4749
+005e09e0	stl	funclet	EH tables of the library function 005b47de
+005e09f8	crt	funclet	EH tables of the library function 005b486c
+005e0a0c	crt	funclet	EH tables of the library function 005b4a05
+005e0a16	crt	funclet	EH tables of the library function 005b4a05
+005e0a28	crt	funclet	EH tables of the library function 005b4aad
+005e0a32	crt	funclet	EH tables of the library function 005b4aad
+005e0a3a	crt	funclet	EH tables of the library function 005b4aad
+005e0a42	crt	funclet	EH tables of the library function 005b4aad
+005e0a54	crt	funclet	EH tables of the library function 005b4bf0
+005e0a5e	crt	funclet	EH tables of the library function 005b4bf0
+005e0a66	crt	funclet	EH tables of the library function 005b4bf0
+005e0a6e	crt	funclet	EH tables of the library function 005b4bf0
+005e0a80	crt	funclet	EH tables of the library function 005b4d11
+005e0a94	crt	funclet	EH tables of the library function 005b4d94
+005e0a9c	crt	funclet	EH tables of the library function 005b4d94
+005e0aa4	crt	funclet	EH tables of the library function 005b4d94
+005e0aae	crt	funclet	EH tables of the library function 005b4d94
+005e0ad0	crt	funclet	EH tables of the library function 005b4e8f
+005e0ad8	crt	funclet	EH tables of the library function 005b4e8f
+005e0ae2	crt	funclet	EH tables of the library function 005b4e8f
+005e0aea	crt	funclet	EH tables of the library function 005b4e8f
+005e0af4	crt	funclet	EH tables of the library function 005b4e8f
+005e0afc	crt	funclet	EH tables of the library function 005b4e8f
+005e0b10	crt	funclet	EH tables of the library function 005b5163
+005e0b18	crt	funclet	EH tables of the library function 005b5163
+005e0b23	crt	funclet	EH tables of the library function 005b5163
+005e0b2b	crt	funclet	EH tables of the library function 005b5163
+005e0b33	crt	funclet	EH tables of the library function 005b5163
+005e0b48	crt	funclet	EH tables of the library function 005b5283
+005e0b5c	stl	funclet	EH tables of the library function 005b5336
+005e0b64	stl	funclet	EH tables of the library function 005b5336
+005e0b6f	stl	funclet	EH tables of the library function 005b5336
+005e0b7a	stl	funclet	EH tables of the library function 005b5336
+005e0b90	crt	funclet	EH tables of the library function 005b53ef
+005e0b98	crt	funclet	EH tables of the library function 005b53ef
+005e0ba3	crt	funclet	EH tables of the library function 005b53ef
+005e0bae	crt	funclet	EH tables of the library function 005b53ef
+005e0bc4	stl	funclet	EH tables of the library function 005b5466
+005e0bcc	stl	funclet	EH tables of the library function 005b5466
+005e0bd7	stl	funclet	EH tables of the library function 005b5466
+005e0bec	stl	funclet	EH tables of the library function 005b5593
+005e0bf4	stl	funclet	EH tables of the library function 005b5593
+005e0bfc	stl	funclet	EH tables of the library function 005b5593
+005e0c04	stl	funclet	EH tables of the library function 005b5593
+005e0c0c	stl	funclet	EH tables of the library function 005b5593
+005e0c20	stl	funclet	EH tables of the library function 005b573d
+005e0c34	stl	funclet	EH tables of the library function 005b5809
+005e0c48	stl	funclet	EH tables of the library function 005b58d1
+005e0c5c	stl	funclet	EH tables of the library function 005b597f
+005e0c70	stl	funclet	EH tables of the library function 005b5a2d
+005e0c84	stl	funclet	EH tables of the library function 005b5ad7
+005e0c98	stl	funclet	EH tables of the library function 005b5b81
+005e0cac	stl	funclet	EH tables of the library function 005b5c2b
+005e0cc0	stl	funclet	EH tables of the library function 005b5d21
+005e0cc8	stl	funclet	EH tables of the library function 005b5d21
+005e0cd0	stl	funclet	EH tables of the library function 005b5d21
+005e0cd8	stl	funclet	EH tables of the library function 005b5d21
+005e0cec	crt	funclet	EH tables of the library function 005b629a
+005e0cf4	crt	funclet	EH tables of the library function 005b629a
+005e0d08	crt	funclet	EH tables of the library function 005b6979
+005e0d1c	crt	funclet	EH tables of the library function 005b6c86
+005e0d24	crt	funclet	EH tables of the library function 005b6c86
+005e0d38	crt	funclet	EH tables of the library function 005b70ab
+005e0d40	crt	funclet	EH tables of the library function 005b70ab
+005e0d4a	crt	funclet	EH tables of the library function 005b70ab
+005e0d5c	crt	funclet	EH tables of the library function 005b7187
+005e0d64	crt	funclet	EH tables of the library function 005b7187
+005e0d6e	crt	funclet	EH tables of the library function 005b7187
+005e0d80	crt	funclet	EH tables of the library function 005b7263
+005e0d88	crt	funclet	EH tables of the library function 005b7263
+005e0d9c	crt	funclet	EH tables of the library function 005b7327
+005e0da4	crt	funclet	EH tables of the library function 005b7327
+005e0db8	crt	funclet	EH tables of the library function 005b73eb
+005e0dcc	crt	funclet	EH tables of the library function 005b75ee
+005e0de0	crt	funclet	EH tables of the library function 005b7688
+005e0de8	crt	funclet	EH tables of the library function 005b7688
+005e0dfc	crt	funclet	EH tables of the library function 005b76e1
+005e0e10	crt	funclet	EH tables of the library function 005b772f
+005e0e24	crt	funclet	EH tables of the library function 005b777d
+005e0e38	crt	funclet	EH tables of the library function 005b77cb
+005e0e4c	crt	funclet	EH tables of the library function 005b7819
+005e0e60	crt	funclet	EH tables of the library function 005b7866
+005e0e74	crt	funclet	EH tables of the library function 005b78b3
+005e0e88	crt	funclet	EH tables of the library function 005b7900
+005e0e9c	crt	funclet	EH tables of the library function 005b7deb
+005e0ea4	crt	funclet	EH tables of the library function 005b7deb
+005e0eae	crt	funclet	EH tables of the library function 005b7deb
+005e0eb6	crt	funclet	EH tables of the library function 005b7deb
+005e0ec0	crt	funclet	EH tables of the library function 005b7deb
+005e0ec8	crt	funclet	EH tables of the library function 005b7deb
+005e0ed2	crt	funclet	EH tables of the library function 005b7deb
+005e0edc	crt	funclet	EH tables of the library function 005b7deb
+005e0ee6	crt	funclet	EH tables of the library function 005b7deb
+005e0eee	crt	funclet	EH tables of the library function 005b7deb
+005e0ef8	crt	funclet	EH tables of the library function 005b7deb
+005e0f00	crt	funclet	EH tables of the library function 005b7deb
+005e0f18	stl	funclet	EH tables of the library function 005b8714
+005e0f2c	stl	funclet	EH tables of the library function 005b87f0
+005e0f34	stl	funclet	EH tables of the library function 005b87f0
+005e0f3c	stl	funclet	EH tables of the library function 005b87f0
+005e0f44	stl	funclet	EH tables of the library function 005b87f0
+005e0f4c	stl	funclet	EH tables of the library function 005b87f0
+005e0f60	stl	funclet	EH tables of the library function 005b899a
+005e0f74	stl	funclet	EH tables of the library function 005b8a66
+005e0f88	stl	funclet	EH tables of the library function 005b8b2e
+005e0f9c	stl	funclet	EH tables of the library function 005b8bdc
+005e0fb0	stl	funclet	EH tables of the library function 005b8c8a
+005e0fc4	stl	funclet	EH tables of the library function 005b8d34
+005e0fd8	stl	funclet	EH tables of the library function 005b8dde
+005e0fec	stl	funclet	EH tables of the library function 005b8e88
+005e1000	stl	funclet	EH tables of the library function 005b8f86
+005e1008	stl	funclet	EH tables of the library function 005b8f86
+005e1010	stl	funclet	EH tables of the library function 005b8f86
+005e1018	stl	funclet	EH tables of the library function 005b8f86
+005e102c	stl	funclet	EH tables of the library function 005b94a6
+005e1034	stl	funclet	EH tables of the library function 005b94a6
+005e1058	stl	funclet	EH tables of the library function 005b9618
+005e1060	stl	funclet	EH tables of the library function 005b9618
+005e1074	stl	funclet	EH tables of the library function 005b974d
+005e1088	stl	funclet	EH tables of the library function 005b97d7
+005e109c	stl	funclet	EH tables of the library function 005b990b
+005e10a4	stl	funclet	EH tables of the library function 005b990b
+005e10b8	crt	funclet	EH tables of the library function 005ba12c
+005e10c0	crt	funclet	EH tables of the library function 005ba12c
+005e10d4	crt	funclet	EH tables of the library function 005ba8a4
+005e10e8	crt	funclet	EH tables of the library function 005babe3
+005e10f0	crt	funclet	EH tables of the library function 005babe3
+005e1104	crt	funclet	EH tables of the library function 005baf44
+005e110c	crt	funclet	EH tables of the library function 005baf44
+005e1114	crt	funclet	EH tables of the library function 005baf44
+005e111c	crt	funclet	EH tables of the library function 005baf44
+005e1124	crt	funclet	EH tables of the library function 005baf44
+005e112c	crt	funclet	EH tables of the library function 005baf44
+005e1137	crt	funclet	EH tables of the library function 005baf44
+005e113f	crt	funclet	EH tables of the library function 005baf44
+005e114a	crt	funclet	EH tables of the library function 005baf44
+005e1155	crt	funclet	EH tables of the library function 005baf44
+005e1160	crt	funclet	EH tables of the library function 005baf44
+005e116b	crt	funclet	EH tables of the library function 005baf44
+005e1176	crt	funclet	EH tables of the library function 005baf44
+005e1181	crt	funclet	EH tables of the library function 005baf44
+005e1189	crt	funclet	EH tables of the library function 005baf44
+005e11ac	crt	funclet	EH tables of the library function 005bb7f2
+005e11b4	crt	funclet	EH tables of the library function 005bb7f2
+005e11bc	crt	funclet	EH tables of the library function 005bb7f2
+005e11c4	crt	funclet	EH tables of the library function 005bb7f2
+005e11cf	crt	funclet	EH tables of the library function 005bb7f2
+005e11d7	crt	funclet	EH tables of the library function 005bb7f2
+005e11df	crt	funclet	EH tables of the library function 005bb7f2
+005e11e7	crt	funclet	EH tables of the library function 005bb7f2
+005e11f2	crt	funclet	EH tables of the library function 005bb7f2
+005e1204	crt	funclet	EH tables of the library function 005bbe57
+005e1224	crt	funclet	EH tables of the library function 005bc865
+005e122c	crt	funclet	EH tables of the library function 005bc865
+005e1240	crt	funclet	EH tables of the library function 005bc929
+005e1248	crt	funclet	EH tables of the library function 005bc929
+005e1252	crt	funclet	EH tables of the library function 005bc929
+005e1264	crt	funclet	EH tables of the library function 005bca05
+005e126c	crt	funclet	EH tables of the library function 005bca05
+005e1276	crt	funclet	EH tables of the library function 005bca05
+005e1288	crt	funclet	EH tables of the library function 005bcae1
+005e1290	crt	funclet	EH tables of the library function 005bcae1
+005e12a4	crt	funclet	EH tables of the library function 005bcba5
+005e12ac	crt	funclet	EH tables of the library function 005bcba5
+005e12c0	crt	funclet	EH tables of the library function 005bcc69
+005e12c8	crt	funclet	EH tables of the library function 005bcc69
+005e12dc	crt	funclet	EH tables of the library function 005bcd2d
+005e12e4	crt	funclet	EH tables of the library function 005bcd2d
+005e12ee	crt	funclet	EH tables of the library function 005bcd2d
+005e1300	crt	funclet	EH tables of the library function 005bce09
+005e1308	crt	funclet	EH tables of the library function 005bce09
+005e1312	crt	funclet	EH tables of the library function 005bce09
+005e1324	crt	funclet	EH tables of the library function 005bcee5
+005e132c	crt	funclet	EH tables of the library function 005bcee5
+005e1340	crt	funclet	EH tables of the library function 005bcfb4
+005e1348	crt	funclet	EH tables of the library function 005bcfb4
+005e135c	crt	funclet	EH tables of the library function 005bd083
+005e1364	crt	funclet	EH tables of the library function 005bd083
+005e1378	crt	funclet	EH tables of the library function 005bd147
+005e1380	crt	funclet	EH tables of the library function 005bd147
+005e1394	crt	funclet	EH tables of the library function 005bd20b
+005e139c	crt	funclet	EH tables of the library function 005bd20b
+005e13b0	crt	funclet	EH tables of the library function 005bd2cf
+005e13c4	crt	funclet	EH tables of the library function 005bd323
+005e13d8	crt	funclet	EH tables of the library function 005bd52d
+005e13ec	crt	funclet	EH tables of the library function 005bd58d
+005e13f4	crt	funclet	EH tables of the library function 005bd58d
+005e140c	crt	funclet	EH tables of the library function 005bd639
+005e1414	crt	funclet	EH tables of the library function 005bd639
+005e1428	crt	funclet	EH tables of the library function 005bd692
+005e143c	crt	funclet	EH tables of the library function 005bd6e6
+005e1444	crt	funclet	EH tables of the library function 005bd6e6
+005e1458	crt	funclet	EH tables of the library function 005bd758
+005e1460	crt	funclet	EH tables of the library function 005bd758
+005e1474	crt	funclet	EH tables of the library function 005bd7b1
+005e1488	crt	funclet	EH tables of the library function 005bd7ff
+005e149c	crt	funclet	EH tables of the library function 005bd84d
+005e14b0	crt	funclet	EH tables of the library function 005bd89b
+005e14c4	crt	funclet	EH tables of the library function 005bd8e9
+005e14d8	crt	funclet	EH tables of the library function 005bd937
+005e14ec	crt	funclet	EH tables of the library function 005bd985
+005e1500	crt	funclet	EH tables of the library function 005bd9d3
+005e1514	crt	funclet	EH tables of the library function 005bda21
+005e1528	crt	funclet	EH tables of the library function 005bda6f
+005e153c	crt	funclet	EH tables of the library function 005bdabd
+005e1550	crt	funclet	EH tables of the library function 005bdb0b
+005e1564	crt	funclet	EH tables of the library function 005bdb59
+005e1578	crt	funclet	EH tables of the library function 005bdba7
+005e1580	crt	funclet	EH tables of the library function 005bdba7
+005e1594	crt	funclet	EH tables of the library function 005bdc06
+005e15a8	crt	funclet	EH tables of the library function 005bdc53
+005e15bc	crt	funclet	EH tables of the library function 005bdca0
+005e15d0	crt	funclet	EH tables of the library function 005bdced
+005e15e4	crt	funclet	EH tables of the library function 005bdd3a
+005e15f8	crt	funclet	EH tables of the library function 005bdd87
+005e160c	crt	funclet	EH tables of the library function 005bddd4
+005e1620	crt	funclet	EH tables of the library function 005bde21
+005e1634	crt	funclet	EH tables of the library function 005bde6e
+005e1648	crt	funclet	EH tables of the library function 005bdebb
+005e165c	crt	funclet	EH tables of the library function 005bdf08
+005e1670	crt	funclet	EH tables of the library function 005bdf55
+005e1684	crt	funclet	EH tables of the library function 005bdfa2
+005e1698	crt	funclet	EH tables of the library function 005be010
+005e16a0	crt	funclet	EH tables of the library function 005be010
+005e16aa	crt	funclet	EH tables of the library function 005be010
+005e16b2	crt	funclet	EH tables of the library function 005be010
+005e16bc	crt	funclet	EH tables of the library function 005be010
+005e16c6	crt	funclet	EH tables of the library function 005be010
+005e16d0	crt	funclet	EH tables of the library function 005be010
+005e16d8	crt	funclet	EH tables of the library function 005be010
+005e16e2	crt	funclet	EH tables of the library function 005be010
+005e16ea	crt	funclet	EH tables of the library function 005be010
+005e1700	stl	funclet	EH tables of the library function 005be3a6
+005e1708	stl	funclet	EH tables of the library function 005be3a6
+005e172c	stl	funclet	EH tables of the library function 005be50f
+005e1734	stl	funclet	EH tables of the library function 005be50f
+005e1748	stl	funclet	EH tables of the library function 005be63d
+005e175c	stl	funclet	EH tables of the library function 005be6c7
+005e1770	stl	funclet	EH tables of the library function 005be7f1
+005e1778	stl	funclet	EH tables of the library function 005be7f1
+005e178c	stl	funclet	EH tables of the library function 005becb1
+005e17a0	crt	funclet	EH tables of the library function 005bef87
+005e17a8	crt	funclet	EH tables of the library function 005bef87
+005e17b0	crt	funclet	EH tables of the library function 005bef87
+005e17b8	crt	funclet	EH tables of the library function 005bef87
+005e17c0	crt	funclet	EH tables of the library function 005bef87
+005e17c8	crt	funclet	EH tables of the library function 005bef87
+005e17d3	crt	funclet	EH tables of the library function 005bef87
+005e17db	crt	funclet	EH tables of the library function 005bef87
+005e17e6	crt	funclet	EH tables of the library function 005bef87
+005e17f1	crt	funclet	EH tables of the library function 005bef87
+005e17fc	crt	funclet	EH tables of the library function 005bef87
+005e1807	crt	funclet	EH tables of the library function 005bef87
+005e1812	crt	funclet	EH tables of the library function 005bef87
+005e181d	crt	funclet	EH tables of the library function 005bef87
+005e1830	crt	funclet	EH tables of the library function 005bf7fc
+005e1838	crt	funclet	EH tables of the library function 005bf7fc
+005e1840	crt	funclet	EH tables of the library function 005bf7fc
+005e1848	crt	funclet	EH tables of the library function 005bf7fc
+005e1853	crt	funclet	EH tables of the library function 005bf7fc
+005e185b	crt	funclet	EH tables of the library function 005bf7fc
+005e1863	crt	funclet	EH tables of the library function 005bf7fc
+005e186b	crt	funclet	EH tables of the library function 005bf7fc
+005e1876	crt	funclet	EH tables of the library function 005bf7fc
+005e1888	crt	funclet	EH tables of the library function 005bfda7
+005e189c	crt	funclet	EH tables of the library function 005c018f
+005e18a4	crt	funclet	EH tables of the library function 005c018f
+005e18b8	crt	funclet	EH tables of the library function 005c0253
+005e18c0	crt	funclet	EH tables of the library function 005c0253
+005e18d4	crt	funclet	EH tables of the library function 005c0317
+005e18dc	crt	funclet	EH tables of the library function 005c0317
+005e18e6	crt	funclet	EH tables of the library function 005c0317
+005e18f8	crt	funclet	EH tables of the library function 005c03f3
+005e1900	crt	funclet	EH tables of the library function 005c03f3
+005e190a	crt	funclet	EH tables of the library function 005c03f3
+005e191c	crt	funclet	EH tables of the library function 005c04cf
+005e1924	crt	funclet	EH tables of the library function 005c04cf
+005e1938	crt	funclet	EH tables of the library function 005c059e
+005e1940	crt	funclet	EH tables of the library function 005c059e
+005e1954	crt	funclet	EH tables of the library function 005c066d
+005e195c	crt	funclet	EH tables of the library function 005c066d
+005e1970	crt	funclet	EH tables of the library function 005c0731
+005e1978	crt	funclet	EH tables of the library function 005c0731
+005e198c	crt	funclet	EH tables of the library function 005c07f5
+005e19a0	crt	funclet	EH tables of the library function 005c0849
+005e19a8	crt	funclet	EH tables of the library function 005c0849
+005e19bc	crt	funclet	EH tables of the library function 005c08bb
+005e19c4	crt	funclet	EH tables of the library function 005c08bb
+005e19d8	crt	funclet	EH tables of the library function 005c0914
+005e19e0	crt	funclet	EH tables of the library function 005c0914
+005e19f8	crt	funclet	EH tables of the library function 005c0981
+005e1a0c	crt	funclet	EH tables of the library function 005c09cf
+005e1a20	crt	funclet	EH tables of the library function 005c0a1d
+005e1a34	crt	funclet	EH tables of the library function 005c0a6b
+005e1a48	crt	funclet	EH tables of the library function 005c0ab9
+005e1a5c	crt	funclet	EH tables of the library function 005c0b07
+005e1a70	crt	funclet	EH tables of the library function 005c0b55
+005e1a84	crt	funclet	EH tables of the library function 005c0ba3
+005e1a98	crt	funclet	EH tables of the library function 005c0bf1
+005e1aa0	crt	funclet	EH tables of the library function 005c0bf1
+005e1ab4	crt	funclet	EH tables of the library function 005c0c50
+005e1ac8	crt	funclet	EH tables of the library function 005c0c9d
+005e1adc	crt	funclet	EH tables of the library function 005c0cea
+005e1af0	crt	funclet	EH tables of the library function 005c0d37
+005e1b04	crt	funclet	EH tables of the library function 005c0d84
+005e1b18	crt	funclet	EH tables of the library function 005c0dd1
+005e1b2c	crt	funclet	EH tables of the library function 005c0e1e
+005e1b40	crt	funclet	EH tables of the library function 005c0e6b

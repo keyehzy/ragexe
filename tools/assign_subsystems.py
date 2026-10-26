@@ -21,8 +21,11 @@ no rule assigns anything:
               shared helpers (functions referenced from more than one subsystem): every
               initializer registers the same empty destructor with atexit
   previous    nothing references it: the subsystem of the function before it
-Import thunks and game-code tail-jump stubs take their target's subsystem; exception
-funclets take the subsystem of the function whose EH tables point at them.
+Game-code tail-jump stubs take their target's subsystem. An import thunk takes its import
+rule's subsystem, else the one subsystem of the functions that call it, else the most
+common one among them; a thunk that jumps to another thunk takes that one's. Exception
+funclets take the subsystem of the function whose EH tables point at them, crt and stl
+for the library's own funclets.
 
 The library rows (crt, stl; see ledger.py classify) are left alone. Before assigning,
 the neighbours, callers and callees rules are checked against the class-seeded
@@ -159,13 +162,16 @@ class Assigner:
     def build_graph(self):
         game = set(self.game)
         thunks = {fn.entry for fn in self.bx.functions.values() if fn.kind == "thunk"}
-        self.stub_target, self.import_thunks = {}, {}
+        self.stub_target, self.import_thunks, self.thunk_thunks = {}, {}, {}
+        self.thunk_users = defaultdict(set)
         for t in thunks:
             target = self.bx.resolve_thunk(t)
             if isinstance(target, int) and target in game:
                 self.stub_target[t] = target
             elif isinstance(target, str):
                 self.import_thunks[t] = target
+            elif isinstance(target, int) and target in thunks:
+                self.thunk_thunks[t] = target
         lo, hi = CXX_INIT_TABLE
         table = (self.bx.u32(a) for a in range(lo, hi, 4))
         self.initializers = {self.stub_target.get(v, v) for v in table} & game
@@ -177,6 +183,8 @@ class Assigner:
                     if op.type == x86.X86_OP_IMM:
                         targets.append(op.imm & 0xFFFFFFFF)
                 for t in targets:
+                    if t in self.import_thunks:
+                        self.thunk_users[t].add(e)
                     t = self.stub_target.get(t, t)
                     if t in game and t != e and not fn.entry <= t < fn.entry + fn.size:
                         self.refs_out[e].add(t)
@@ -299,11 +307,26 @@ class Assigner:
         for t, target in self.stub_target.items():
             if target in self.sub:
                 self.set(t, self.sub[target], "stub", f"jumps to {target:08x}")
+        for t, name in self.import_thunks.items():
+            rule = self.import_rule(name)
+            sub, evidence = (rule[0], name) if rule else (None, name)
+            if not sub:
+                votes = Counter(self.sub[c] for c in self.thunk_users[t] if c in self.sub)
+                if votes:
+                    sub = votes.most_common(1)[0][0]
+                    evidence = f"{name}, called from {dict(votes)}"
+            if sub:
+                self.set(t, sub, "import", evidence)
+        for t, target in self.thunk_thunks.items():
+            if target in self.sub:
+                self.set(t, self.sub[target], "stub", f"jumps to the thunk {target:08x}")
+        rows = {int(r["entry"], 16): r for r in self.rows}
         parents = self.bx.eh_parents()
         for f, p in parents.items():
             if p in self.sub:
                 self.set(f, self.sub[p], "funclet", f"EH tables of {p:08x}")
-        rows = {int(r["entry"], 16): r for r in self.rows}
+            elif p in rows and rows[p]["library"] == "1" and rows[p]["subsystem"]:
+                self.set(f, rows[p]["subsystem"], "funclet", f"EH tables of the library function {p:08x}")
         changed = 0
         for e, r in rows.items():
             if r["library"] == "1":
