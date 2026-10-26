@@ -1,6 +1,7 @@
 add_executable(ragexe_tests
   frame_timer_test.cpp
   grf_test.cpp
+  resource_test.cpp
   mode_switcher_test.cpp
   settings_test.cpp
   windows_no_dialogs.cpp)

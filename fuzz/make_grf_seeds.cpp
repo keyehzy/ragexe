@@ -1,7 +1,8 @@
-// Writes the seed inputs of the GRF fuzz targets: small archives of each version, with
-// both decode paths, directory entries and a stream that breaks off, and their tables.
+// Writes the seed inputs of the fuzz targets: small archives of each version, with both
+// decode paths, directory entries and a stream that breaks off, their tables, and a
+// ResNameTable.txt.
 //
-//   make_grf_seeds DIR    writes DIR/grf_archive/*.grf and DIR/grf_table/*.bin
+//   make_grf_seeds DIR    writes DIR/grf_archive, DIR/grf_table and DIR/res_name_table
 
 #include <cstdint>
 #include <cstdio>
@@ -45,6 +46,7 @@ int main(int argc, char** argv) {
   const std::filesystem::path dir = argv[1];
   std::filesystem::create_directories(dir / "grf_archive");
   std::filesystem::create_directories(dir / "grf_table");
+  std::filesystem::create_directories(dir / "res_name_table");
 
   std::vector<std::uint8_t> text(300);
   for (std::size_t i = 0; i < text.size(); ++i) text[i] = static_cast<std::uint8_t>('a' + i % 26);
@@ -76,6 +78,10 @@ int main(int argc, char** argv) {
   cut[fields + 8] = 12;
   cut[fields + 12] = 1;
   Write(dir / "grf_archive" / "cut.grf", cut);
+  ++n;
+  const std::string table = "new_1-1.gnd#new_zone01.gnd#\r\nsplit#\r\nacross.gnd#\r\n##x#y# tail\n";
+  Write(dir / "res_name_table" / "sample.txt",
+        std::vector<std::uint8_t>(table.begin(), table.end()));
   ++n;
   std::printf("wrote %d seeds to %s\n", n, dir.string().c_str());
   return 0;

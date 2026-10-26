@@ -1539,9 +1539,23 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     performance and a few modernize checks, all errors), pinned in
     `tools/requirements-lint.txt`.
   - **In CI:** the format check is its own job; clang-tidy runs in the Linux job.
-- [ ] Loose files and lookup: `MakeDataPath`, `DataFile`, the archive-then-disk order
-  on a case-sensitive file system.
-- [ ] `CRes` and the resource manager (`ResNameTable.txt`, the per-type maps).
+- [x] Lookup layer and resource cache, specified in `docs/formats/resources.md`:
+  - **Lookup:**
+    - `MakeDataPath`, checked against the original in the emulation oracle
+      (`tools/resource_vectors.py`).
+    - `DataFiles`: the archive, then loose files under the install directory, matched
+      without regard to A–Z case on every system, with `..` contained.
+    - `DataFile`: all-or-nothing reads, and seeks clamped to the end, as the original.
+  - **Resources:**
+    - `Resource` (`CRes`: reference count, last use, type, hashed path).
+    - `ResourceManager`: types by extension with a folder and a prototype to clone;
+      `Get` loads once per path, falls back to `ResNameTable.txt`, and reports failures
+      with the lower-cased name as `OnLoadError` does. The 17 registrations of the
+      original are tabulated for the loaders to use.
+    - Unloading: after 15 s unused, unused, unused of one type, one, all.
+    - A recursive lock, so a resource's `Load` can `Get` others, as the original's
+      critical section allows.
+  - **Tests:** Catch2 tests for each piece, and a `res_name_table_fuzz` target.
 - [ ] Loaders in dependency order, each compared with the original in the emulation
   oracle.
 - [x] Fuzzing the GRF reader (`fuzz/`, `docs/building.md`):
@@ -1559,10 +1573,8 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - Later parsers get their targets as they are written.
 
 ### Next actions (M3)
-1. Loose-file lookup and the `CRes` cache: `DataFile`, `MakeDataPath`, the
-   `ResourceManager` (`GetResource`, `ResNameTable.txt`), with the loose-file order
-   decided for case-sensitive file systems.
-2. Then the loaders in dependency order (`CBitmapRes` first), each with oracle
-   comparisons and a `ragres dump` mode.
-3. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
+1. The loaders in dependency order (`CBitmapRes` first), each registered with the
+   resource manager, compared with the original in the emulation oracle, fuzzed, and
+   with a `ragres dump` mode.
+2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.
