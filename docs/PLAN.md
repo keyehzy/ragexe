@@ -1154,6 +1154,31 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     `ChatRoomInfo`, `WndInfo` (the window records; the name is in the registry
     strings) and `EdgeRect` (48, weaker).
 
+- [x] Naming context, from the notes of naming runs 2 and 3:
+  - **`fn_context.py`:**
+    - Each data address a function uses shows how many other functions use it and up
+      to four named ones, game classes before `std::`. `--data ADDRESS` lists every
+      use, the base of indexed operands included. Run 2's namer had written its own
+      helper for this.
+    - Unwind funclets are summarised on one line by the functions whose cleanup they
+      are and no longer use up `--callers`.
+    - Functions with the same code are listed (same instructions; calls and outside
+      jumps at the same targets, inside jumps at the same offsets), named ones first.
+      In run 3's batch 74 functions have a copy, e.g. the five `std::string::~string`
+      bodies and the window-record validators that share code.
+    - The nil node of each `std::Tree` instantiation is recognised: after
+      `operator new(node size)`, under the STL lock, one `.data` dword is stored from a
+      register and another (the user count) is stepped. 24 instantiations, with node
+      sizes, created in `InitHead` or in constructors that inline it (`g_intMapNil`,
+      `UIChatRoomWnd`, `UIGuildMemberManageWnd`, ...).
+  - **`decompile.sh`** marks `p[k].field_0xNN` accesses with their offset from `p`
+    (`/*+0x90*/`), computed from the struct's size and the field's offset. Run 3's batch
+    had 47 such accesses, mostly on `UIWindow` subclasses, which needed the disassembly.
+  - **Tests:** `tests/tools/test_context.py` checks the ECX tests, the nil nodes,
+    identical bodies and data uses against the binary (23 tests).
+  - A 300-function batch's context takes about a minute instead of 10 s and is 16%
+    longer.
+
 ### Next actions (M1)
 1. Name the remaining 1,194 reachable game functions (309 KB) the same way, in
    source-file batches, skipping unreachable code. 533 more are needed for 90%.

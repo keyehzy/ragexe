@@ -115,14 +115,20 @@ For the functions no rule names, one row per function goes into
 The procedure:
 1. **Context.** `.venv/bin/python tools/fn_context.py ADDRESS ...` prints:
    - neighbours, convention evidence, callers and callees;
-   - unwind funclets with the function that owns them;
-   - strings and data.
+   - unwind funclets on one line, by the functions whose cleanup they are;
+   - other functions with the same code, named ones first;
+   - strings and data, each data address with how many other functions use it and
+     the named ones among them; a `std::Tree` instantiation's nil node is marked with
+     its node size and the functions that create it, which tells tree instances apart.
 
+   `fn_context.py --data ADDRESS ...` lists every instruction that uses a data address.
    The named neighbours are usually the best clue, since a source file's functions sit
    together.
 2. **Code.** `tools/ghidra/decompile.sh OUT ADDRESS ...` decompiles a batch, read-only.
-   Batch many addresses per run: start-up is most of its time. The disassembly is the
-   final word on calling conventions and constants.
+   Batch many addresses per run: start-up is most of its time. Where a pointer's struct
+   is smaller than the object (a base class's struct for a subclass object), Ghidra
+   writes `p[1].field_0x44`; the output adds the offset from `p`: `/*+0x90*/`. The
+   disassembly is the final word on calling conventions and constants.
 3. **Calling convention.** `__thiscall` when the body reads ECX before writing it.
    - If the body never reads ECX, still `__thiscall` when the callers set ECX just
      before the call (`fn_context.py` counts this) and the function pops its own
