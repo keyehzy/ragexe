@@ -118,10 +118,13 @@ class Context:
             if p.id in (x86.X86_INS_CALL, x86.X86_INS_RET, x86.X86_INS_JMP):
                 return False
             try:
-                if x86.X86_REG_ECX in p.regs_access()[1]:
-                    return True
+                read, written = p.regs_access()
             except Exception:
                 return False
+            if x86.X86_REG_ECX in read:
+                return False
+            if x86.X86_REG_ECX in written:
+                return True
         return False
 
     # -- one function -------------------------------------------------------------------

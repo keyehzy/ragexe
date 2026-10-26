@@ -141,7 +141,7 @@ UIChooseWarpWnd	124	new	124	28	121	0.98
 UIChooseWnd	132	new	132	29	125	0.95		
 UICntWnd	112	new	112	24	108	0.96		
 UIColorButton	136	estimated		31	121	0.89		3 overlapping uses dropped
-UICombinedCardItemCollectionWnd	260	new	260	44	183	0.70		
+UICombinedCardItemCollectionWnd	260	new	260	48	199	0.77		
 UIComboBox	148	new	148	34	136	0.92		
 UIComboBoxWnd	104	new	104	23	104	1.00		
 UICompositionWnd	116	new	116	26	113	0.97		
@@ -168,12 +168,12 @@ UIGuildLeaveReasonDescWnd	108	new	108	24	108	1.00
 UIGuildMemberManageWnd	304	new	304	47	217	0.71		8 overlapping uses dropped
 UIGuildNoticeWnd	180	new	180	29	128	0.71		
 UIGuildPositionManageWnd	448	new	448	39	188	0.42		8 overlapping uses dropped
-UIGuildSkillWnd	276	new	276	39	173	0.63		3 overlapping uses dropped
+UIGuildSkillWnd	276	new	276	40	177	0.64		3 overlapping uses dropped
 UIGuildTotalInfoWnd	200	new	200	31	136	0.68		
 UIGuildWnd	108	estimated		24	108	1.00		
 UIIllustWnd	124	new	124	28	121	0.98		
 UIItemBaseWnd	152	estimated		33	152	1.00		3 overlapping uses dropped
-UIItemCollectionWnd	256	new	256	43	179	0.70	0x80	4 overlapping uses dropped
+UIItemCollectionWnd	256	new	256	47	195	0.76	0x80	4 overlapping uses dropped
 UIItemCompositionWnd	164	new	164	33	164	1.00		
 UIItemDropCntWnd	108	new	108	24	108	1.00		
 UIItemIdentifyWnd	156	new	156	31	156	1.00		7 overlapping uses dropped
@@ -204,9 +204,9 @@ UIMerchantMirrorItemWnd	156	new	156	34	156	1.00
 UIMerchantShopMakeWnd	220	new	220	33	164	0.75	0x80	7 overlapping uses dropped
 UIMerchantShopTitle	84	new	84	18	84	1.00		
 UIMessageBox	160	new	160	35	146	0.91		
-UIMessageBoxAutoreturn	160	new	160	32	134	0.84		
+UIMessageBoxAutoreturn	160	new	160	31	160	1.00		8 overlapping uses dropped
 UIMessengerGroupWnd	200	new	200	40	177	0.89		3 overlapping uses dropped
-UIMiniGameScoreWnd	180	new	180	39	162	0.90		
+UIMiniGameScoreWnd	180	new	180	40	166	0.92		
 UIMiniGameWnd	144	estimated		29	128	0.89		
 UIMinimapZoomWnd	100	new	100	22	100	1.00		
 UIMonsterInfoWnd	132	new	132	39	127	0.96		1 overlapping uses dropped

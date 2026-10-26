@@ -1095,6 +1095,65 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - Still 76.2% named or library-tagged; this step moves names and names nothing new.
     Converges in two passes.
 
+- [x] Naming run 3: the 298 unnamed reachable functions of the UI source files from
+  `0x4487e0` to `0x4b6900`: the windows, the window manager, its saved window records
+  and their element records. Same procedure; the prompt gained one sentence on class
+  hierarchies (a method belongs to the class that owns the fields it uses, often a
+  base), after run 2's misplaced bar-graph setters. The rows are in
+  `inferred.functions.tsv`.
+  - **Quality.**
+    - The namer's confidence: 122 high, 172 medium, 4 low.
+    - The reviewer accepted 289 rows, revised 9 and rejected none:
+      - three functions on 20-byte {string, int} vector elements had been called
+        `std::pair` without evidence; they are `AssignStringIntRecord` and its kin in
+        `Global`;
+      - three names were more specific than the code (`SetLineCountStep` →
+        `SetHeightStep`; `ReleasePendingChild` → `DetachEditCtrl`;
+        `InvalidateAllWindowsOnce` → `InvalidateAllWindows`, as the guard is cleared
+        on every pass);
+      - two now follow the binary's "SAYDIALOGWNDINFO" spelling, and one had the tree's
+        multi flag at the wrong offset.
+    - My checks: every address has one row, every namespace exists, no duplicate or
+      clashing names. Seven evenly spaced accepted rows were correct against the
+      disassembly.
+    - 70 rows are the reset/validate pairs of the window records in `UIWindowMgr`
+      (`+0x244`–`+0x4f4`). Their window names come from the "<NAME>WNDINFO.X/Y/W/H"
+      registry strings, or, for the Guild, Emotion, EmotionList, PetInfo and MiniGame
+      windows, which have no string, from the RTTI window class whose `vf37` calls
+      them. One record that only the reset-all routine touches is
+      `ResetWindowInfo2D8`.
+  - **Tool fixes from the namer's notes:**
+    - `or ecx, -1` (the `strlen` idiom) counted as reading ECX, so `reads_ecx_first`
+      called `__cdecl` functions `__thiscall`. It is a write now.
+    - Without that false read, `recover_layouts` lost methods that never use `this`.
+      It now also applies `docs/naming.md`'s callers test: every direct call sets ECX
+      just before it, nothing reads ECX after that write (a value loaded into ECX and
+      pushed is an argument), and the callee pops its arguments or none are passed.
+      96 more methods, e.g. `ClientState` methods every caller reaches with
+      `mov ecx, g_ClientState` that never read it; a sample of 8 call sites were all
+      real `this` calls. `fn_context.py` counts call sites the same way.
+    - `ApplyLabels` reset nothing when a generated `method_` row disappeared, so Ghidra
+      kept the old name and the ledger counted it. It now resets such placeholders to
+      their default names: 4 functions.
+  - **Result.** 120 of the 298 are STL template code, now library; 178 are named game
+    functions. Code functions named or library-tagged: 76.2% → **82.0%** of 6,619 (80.7%
+    from the rows, the rest from the methods test). Converges in two passes.
+  - **Cost.** 920k agent tokens (namer 492k, reviewer 428k), 207 tool calls, 45 minutes:
+    3.1k tokens a function.
+  - **The namer's notes on what slowed it down:**
+    - Ghidra prints `UIWindow` subclass fields as `param_1[1].field_0x..`, counted from
+      the 0x4c-byte base, so two offsets had to be redone from the disassembly.
+    - The window-manager key handler dispatches through a jump table the tools don't
+      resolve.
+    - `fn_context.py`'s 12 reference lines fill up with unwind funclets for common
+      destructors; byte-identical copies of named bodies (four `std::string::~string`)
+      are not flagged; tree instances are told apart only by their nil-node global.
+  - **Class proposals from the run, not yet decided:** `ItemRecord` (68 bytes, its
+    icon path built from "\\item\\%s.bmp"), `SkillRecord` (44), `GuildMemberRecord` (92),
+    `GuildPositionRecord` (0x24), `MessengerRecord` (52), `SelectCharSlot` (0xec),
+    `ChatRoomInfo`, `WndInfo` (the window records; the name is in the registry
+    strings) and `EdgeRect` (48, weaker).
+
 ### Next actions (M1)
-1. Name the remaining 1,576 reachable game functions (371 KB) the same way, in
-   source-file batches, skipping unreachable code. 915 more are needed for 90%.
+1. Name the remaining 1,194 reachable game functions (309 KB) the same way, in
+   source-file batches, skipping unreachable code. 533 more are needed for 90%.

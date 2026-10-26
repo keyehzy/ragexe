@@ -640,7 +640,57 @@ class Layouts:
     # -- non-virtual methods -------------------------------------------------------
 
     def is_thiscall(self, fn):
-        return self.bx.reads_ecx_first(fn)
+        """docs/naming.md's test: the body reads ECX before writing it, or every direct
+        call sets ECX just before it and leaves the stack to the callee (ret N > 0, or no
+        `add esp` after the call)."""
+        if self.bx.reads_ecx_first(fn):
+            return True
+        sites = self.call_sites().get(fn.entry)
+        if not sites:
+            return False
+        pops = any(i.id == x86.X86_INS_RET and i.op_str for i in self.bx.insns(fn))
+        for ins, k in sites:
+            if not self.sets_ecx_before(ins, k):
+                return False
+            nxt = ins[k + 1] if k + 1 < len(ins) else None
+            if not pops and nxt is not None and nxt.id == x86.X86_INS_ADD \
+                    and nxt.operands[0].type == x86.X86_OP_REG and nxt.operands[0].reg == x86.X86_REG_ESP:
+                return False
+        return True
+
+    def call_sites(self):
+        """callee -> [(caller instructions, index of the call)] for every direct call."""
+        if getattr(self, "_call_sites", None) is None:
+            out = defaultdict(list)
+            for fn in self.bx.functions.values():
+                if fn.kind != "code":
+                    continue
+                ins = self.bx.insns(fn)
+                for k, i in enumerate(ins):
+                    if i.id == x86.X86_INS_CALL:
+                        t = self.bx.call_target(i)
+                        if isinstance(t, int):
+                            out[t].append((ins, k))
+            self._call_sites = out
+        return self._call_sites
+
+    @staticmethod
+    def sets_ecx_before(ins, k):
+        """ECX is written within the eight instructions before k, with no call or branch
+        in between, and nothing reads it after that write: a value loaded into ECX only to
+        be pushed as an argument is not `this`."""
+        for p in reversed(ins[max(0, k - 8):k]):
+            if p.id in (x86.X86_INS_CALL, x86.X86_INS_RET, x86.X86_INS_JMP):
+                return False
+            try:
+                read, written = p.regs_access()
+            except Exception:
+                return False
+            if x86.X86_REG_ECX in read:
+                return False
+            if x86.X86_REG_ECX in written:
+                return True
+        return False
 
     def owner_at(self, cls, off, callee=None):
         if off == 0:

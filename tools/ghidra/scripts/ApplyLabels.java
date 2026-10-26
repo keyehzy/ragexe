@@ -39,9 +39,11 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 
 import ghidra.app.script.GhidraScript;
@@ -77,6 +79,7 @@ public class ApplyLabels extends GhidraScript {
 
 	private final List<String> warnings = new ArrayList<>();
 	private final Map<String, GhidraClass> classesByPath = new HashMap<>();
+	private final Set<Address> labelledFunctions = new HashSet<>();
 	private final TreeSet<Address> dataLabels = new TreeSet<>();
 	private int untypedData = 0;
 
@@ -141,16 +144,38 @@ public class ApplyLabels extends GhidraScript {
 				}
 			}
 		}
+		int reset = resetDroppedPlaceholders();
 		removeLegacyContainerTypes(currentProgram.getDataTypeManager());
 		removeRenamedNamespaces(currentProgram.getDataTypeManager());
 		println(String.format("labels: %d classes, %d fields, %d functions, %d data labels applied", classes,
 			fields, functions, data));
+		if (reset > 0) {
+			println(reset + " method_ placeholders no label file names any more were reset to default names");
+		}
 		if (untypedData > 0) {
 			println(untypedData + " data labels left untyped: their class struct has no size yet");
 		}
 		for (String w : warnings) {
 			println("warning: " + w);
 		}
+	}
+
+	/**
+	 * A method_<address> name comes only from recover_layouts' generated rows. When a run
+	 * stops proposing one, the function goes back to its default name instead of keeping
+	 * the placeholder from the run before.
+	 */
+	private int resetDroppedPlaceholders() throws Exception {
+		int n = 0;
+		for (Function fn : currentProgram.getFunctionManager().getFunctions(true)) {
+			Symbol s = fn.getSymbol();
+			if (s.getSource() == SourceType.USER_DEFINED && s.getName().matches("method_[0-9a-f]{8}")
+					&& !labelledFunctions.contains(fn.getEntryPoint())) {
+				s.setNameAndNamespace(null, currentProgram.getGlobalNamespace(), SourceType.DEFAULT);
+				n++;
+			}
+		}
+		return n;
 	}
 
 	private static boolean isGenerated(File f) throws Exception {
@@ -191,6 +216,7 @@ public class ApplyLabels extends GhidraScript {
 				return false;
 			}
 		}
+		labelledFunctions.add(a);
 		try {
 			fn.getSymbol().setNameAndNamespace(r[2], ns, SourceType.USER_DEFINED);
 		}

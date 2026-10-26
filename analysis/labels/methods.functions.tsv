@@ -183,7 +183,7 @@ address	namespace	name	calling_convention	evidence
 00446490	UIScrollBar	method_00446490	__thiscall	__thiscall; called with this from 1 functions of UIScrollBar, e.g. 004464c0
 004464c0	UIScrollBar	method_004464c0	__thiscall	__thiscall; called with this from 2 functions of UIScrollBar, UIScrollBar2, e.g. 00445e60
 00447420	UIEmotionListWnd	method_00447420	__thiscall	__thiscall; called with this from 1 functions of UIEmotionListWnd, e.g. 00446c30
-00448b50	UIFrameWnd	method_00448b50	__thiscall	__thiscall; called with this from 2 functions of UIItemCollectionWnd, UINotifyItemObtainWnd, e.g. 004654e0
+00448b50	UIFrameWnd	method_00448b50	__thiscall	__thiscall; called with this from 3 functions of UIFrameWnd, UIItemCollectionWnd, UINotifyItemObtainWnd, e.g. 00448bb0
 00448bf0	UIFrameWnd	method_00448bf0	__thiscall	__thiscall; called with this from 11 functions of UIExchangeWnd, UIItemBaseWnd, UIItemPurchaseWnd, UIItemSellWnd and more, e.g. 0045e0b0
 00448d00	UIFrameWnd	method_00448d00	__thiscall	__thiscall; called with this from 12 functions of UIItemBaseWnd, UIItemPurchaseWnd, UIItemSellWnd, UIItemShopWnd and more, e.g. 0046e8b0
 00448d40	UIFrameWnd	method_00448d40	__thiscall	__thiscall; called with this from 17 functions of UICandidateWnd, UIChooseWarpWnd, UIChooseWnd, UICntWnd and more, e.g. 00459070
@@ -215,7 +215,7 @@ address	namespace	name	calling_convention	evidence
 004793b0	UIGuildWnd	method_004793b0	__thiscall	__thiscall; called with this from 7 functions of UIGuildBanishedMemberWnd, UIGuildInfoManageWnd, UIGuildMemberManageWnd, UIGuildNoticeWnd and more, e.g. 00479f70
 00479730	UIGuildWnd	method_00479730	__thiscall	__thiscall; called with this from 1 functions of UIGuildWnd, e.g. 004797f0
 0047a2d0	UIGuildInfoManageWnd	method_0047a2d0	__thiscall	__thiscall; called with this from 1 functions of UIGuildInfoManageWnd, e.g. 00479f70
-0047ae90	UIGuildInfoManageWnd	method_0047ae90	__thiscall	__thiscall; called with this from 1 functions of UIGuildInfoManageWnd, e.g. 00479e50
+0047ae90	UIGuildInfoManageWnd	method_0047ae90	__thiscall	__thiscall; called with this from 2 functions of UIGuildInfoManageWnd, e.g. 00479e50
 0047cb70	UIGuildMemberManageWnd	method_0047cb70	__thiscall	__thiscall; called with this from 2 functions of UIGuildMemberManageWnd, e.g. 0047d050
 0047dff0	UIGuildMemberManageWnd	method_0047dff0	__thiscall	__thiscall; called with this from 1 functions of UIGuildMemberManageWnd, e.g. 0047b920
 0047fcf0	UIGuildPositionManageWnd	method_0047fcf0	__thiscall	__thiscall; called with this from 2 functions of UIGuildPositionManageWnd, e.g. 0047fd90
@@ -247,7 +247,7 @@ address	namespace	name	calling_convention	evidence
 00497850	UISkillListWnd	method_00497850	__thiscall	__thiscall; called with this from 1 functions of UISkillListWnd, e.g. 00497bf0
 00499ef0	UIMerchantShopMakeWnd	method_00499ef0	__thiscall	__thiscall; called with this from 1 functions of UIMerchantShopMakeWnd, e.g. 004998a0
 0049ad20	UIMessengerGroupWnd	method_0049ad20	__thiscall	__thiscall; called with this from 1 functions of UIMessengerGroupWnd, e.g. 0049b0e0
-0049e850	UIWhisperListWnd	method_0049e850	__thiscall	__thiscall; called with this from 2 functions of UIWhisperListWnd, e.g. 0049cc40
+0049e850	UIWhisperListWnd	method_0049e850	__thiscall	__thiscall; called with this from 3 functions of UIWhisperListWnd, e.g. 0049cc40
 0049e920	UIWhisperListWnd	method_0049e920	__thiscall	__thiscall; called with this from 1 functions of UIWhisperListWnd, e.g. 0049da70
 0049f320	std::list	method_0049f320	__thiscall	__thiscall; called with this from 1 functions of UIWhisperListWnd, e.g. 0049cc40
 004a09b0	UIShowNeedItemListWnd	method_004a09b0	__thiscall	__thiscall; called with this from 1 functions of UIShowNeedItemListWnd, e.g. 004a0770
@@ -257,12 +257,11 @@ address	namespace	name	calling_convention	evidence
 004a2900	mg::mgType1::CMiniGame001	method_004a2900	__thiscall	__thiscall; called with this from 6 functions of mg::mgType1::CMiniGame001, e.g. 004eb460; through the pointer at 0067cf08
 004a2950	mg::mgType1::CMiniGame001	method_004a2950	__thiscall	__thiscall; called with this from 1 functions of mg::mgType1::CMiniGame001, e.g. 004efa50; through the pointer at 0067cf08
 004a2a50	mg::mgType1::CMiniGame001	method_004a2a50	__thiscall	__thiscall; called with this from 1 functions of mg::mgType1::CMiniGame001, e.g. 004fd6b0; through the pointer at 0067cf08
-004a5150	UIBalloonText	method_004a5150	__thiscall	__thiscall; called with this from 1 functions of UIBalloonText, e.g. 0043c740
 004a5770	UISpriteButton	method_004a5770	__thiscall	__thiscall; called with this from 2 functions of UISpriteButton, e.g. 0043c500
-004a5790	UIWindow	method_004a5790	__thiscall	__thiscall; called with this from 90 functions of UIBasicInfoWnd, UICardItemIllustWnd, UIChatHisBox, UIChatHisBox2 and more, e.g. 004408e0
+004a5790	UIWindow	method_004a5790	__thiscall	__thiscall; called with this from 92 functions of UIBasicInfoWnd, UICardItemIllustWnd, UIChatHisBox, UIChatHisBox2 and more, e.g. 004408e0
 004a57f0	UISelectCharWnd	method_004a57f0	__thiscall	__thiscall; called with this from 1 functions of UISelectCharWnd, e.g. 0044d290
 004a5850	UIWindow	method_004a5850	__thiscall	__thiscall; called with this from 2 functions of UIIllustWnd, UIWindow, e.g. 00486c70
-004a58e0	UIWindow	method_004a58e0	__thiscall	__thiscall; called with this from 19 functions of UIBitmapButton, UIEmailAddressWnd, UIEmblemWnd, UIMessageBox and more, e.g. 004413c0
+004a58e0	UIWindow	method_004a58e0	__thiscall	__thiscall; called with this from 21 functions of UIBitmapButton, UIEmailAddressWnd, UIEmblemWnd, UIMessageBox and more, e.g. 004413c0
 004a5950	UIWindow	method_004a5950	__thiscall	__thiscall; called with this from 1 functions of UIWindow, e.g. 004a56b0
 004a5af0	UIWindow	method_004a5af0	__thiscall	__thiscall; called with this from 29 functions of UIBarGraph4, UIBasicInfoWnd, UIButton, UIChatWnd and more, e.g. 0043a6e0
 004a5b50	UIGuildNoticeWnd	method_004a5b50	__thiscall	__thiscall; called with this from 1 functions of UIGuildNoticeWnd, e.g. 004828c0
@@ -302,7 +301,7 @@ address	namespace	name	calling_convention	evidence
 004a8740	UIWindowMgr	method_004a8740	__thiscall	__thiscall; called with this from 4 functions of UIWindowMgr, e.g. 004c3ab0
 004a88d0	UIWindowMgr	method_004a88d0	__thiscall	__thiscall; called with this from 5 functions of UIWindowMgr, e.g. 0045bfc0
 004a8a50	UIWindowMgr	method_004a8a50	__thiscall	__thiscall; called with this from 1 functions of UIWindowMgr, e.g. 0043f1a0
-004a8b60	UIWindowMgr	method_004a8b60	__thiscall	__thiscall; called with this from 32 functions of UIWindowMgr, e.g. 0043df40
+004a8b60	UIWindowMgr	method_004a8b60	__thiscall	__thiscall; called with this from 36 functions of UIWindowMgr, e.g. 0043df40
 004a8b90	UIWindowMgr	method_004a8b90	__thiscall	__thiscall; called with this from 8 functions of UIWindowMgr, e.g. 0043df50
 004a8ba0	UIWindowMgr	method_004a8ba0	__thiscall	__thiscall; called with this from 4 functions of UIWindowMgr, e.g. 0043b220
 004a8bb0	UIWindowMgr	method_004a8bb0	__thiscall	__thiscall; called with this from 11 functions of UIWindowMgr, e.g. 0043b3a0
@@ -361,12 +360,16 @@ address	namespace	name	calling_convention	evidence
 004b98c0	ModelInstance	method_004b98c0	__thiscall	__thiscall; called with this from 1 functions of ModelInstance, e.g. 004b9820
 004ba270	ModelInstance	method_004ba270	__thiscall	__thiscall; called with this from 1 functions of ModelInstance, e.g. 004c33a0
 004bb6d0	std::list	method_004bb6d0	__thiscall	__thiscall; called with this from 1 functions of C3dNode, e.g. 004b6ac0
+004bb710	std::list	method_004bb710	__thiscall	__thiscall; called with this from 1 functions of C3dNode, e.g. 004b7580
 004bc450	C3dGround15	method_004bc450	__thiscall	__thiscall; called with this from 1 functions of C3dGround15, e.g. 004bc4e0
 004bc4e0	C3dGround15	method_004bc4e0	__thiscall	__thiscall; called with this from 1 functions of C3dGround15, e.g. 004be500
 004bc570	C3dGround15	method_004bc570	__thiscall	__thiscall; called with this from 1 functions of C3dGround15, e.g. 004c0240
+004bea30	C3dGround15	method_004bea30	__thiscall	__thiscall; called with this from 1 functions of C3dGround15, e.g. 004be500
+004bf070	C3dGround15	method_004bf070	__thiscall	__thiscall; called with this from 1 functions of C3dGround15, e.g. 004befa0
 004bfa60	C3dGround15	method_004bfa60	__thiscall	__thiscall; called with this from 1 functions of C3dGround15, e.g. 004bfdb0
 004bfd50	C3dGround15	method_004bfd50	__thiscall	__thiscall; called with this from 1 functions of C3dGround15, e.g. 004bfdb0
 004c2740	ThaiWordBreaker	method_004c2740	__thiscall	__thiscall; called with this from 1 functions of ThaiWordBreaker, e.g. 004c9470
+004c2ed0	ThaiWordBreaker	method_004c2ed0	__thiscall	__thiscall; called with this from 1 functions of ThaiWordBreaker, e.g. 004c2740
 004c3020	ThaiWordBreaker	method_004c3020	__thiscall	__thiscall; called with this from 1 functions of ThaiWordBreaker, e.g. 004c2740
 004c3200	ThaiWordBreaker	method_004c3200	__thiscall	__thiscall; called with this from 1 functions of ThaiWordBreaker, e.g. 004c2740
 004c3220	ThaiWordBreaker	method_004c3220	__thiscall	__thiscall; called with this from 1 functions of ThaiWordBreaker, e.g. 004c2740
@@ -385,8 +388,10 @@ address	namespace	name	calling_convention	evidence
 004c87c0	CLanguage	method_004c87c0	__thiscall	__thiscall; called with this from 3 functions of CLanguage, e.g. 0043dfc0
 004c8aa0	CLanguage	method_004c8aa0	__thiscall	__thiscall; called with this from 2 functions of CLanguage, e.g. 004c8120
 004c8b00	CLanguage	method_004c8b00	__thiscall	__thiscall; called with this from 2 functions of CLanguage, e.g. 004c82a0
+004cada0	ClientState	method_004cada0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0053de30
 004cb350	CGameMode	method_004cb350	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050dc90
 004cb7a0	CMode	method_004cb7a0	__thiscall	__thiscall; called with this from 2 functions of CGameMode, CLoginMode, e.g. 00515d10
+004cb7e0	CMode	method_004cb7e0	__thiscall	__thiscall; called with this from 2 functions of CGameMode, CLoginMode, e.g. 00515d10
 004cb7f0	CGameMode	method_004cb7f0	__thiscall	__thiscall; called with this from 2 functions of CGameMode, e.g. 00513c20
 004cc4e0	PathFinder	method_004cc4e0	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004cc5c0
 004cc9d0	PathFinder	method_004cc9d0	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004cc5c0
@@ -397,12 +402,14 @@ address	namespace	name	calling_convention	evidence
 004ccc70	PathFinder	method_004ccc70	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004ccc80
 004ccc80	PathFinder	method_004ccc80	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004cc5c0
 004ccda0	PathFinder	method_004ccda0	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004cc5c0
+004cced0	PathFinder	method_004cced0	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004ccda0
 004cd6a0	std::Tree	method_004cd6a0	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004ccba0
 004cdf60	std::Tree	method_004cdf60	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004cc4e0
 004ce570	CActorPickNode	method_004ce570	__thiscall	__thiscall; called with this from 3 functions of CActorPickNode, e.g. 00502cc0
 004ce5f0	CActorPickNode	method_004ce5f0	__thiscall	__thiscall; called with this from 1 functions of CActorPickNode, e.g. 00515d10
 004ce6c0	CActorPickNode	method_004ce6c0	__thiscall	__thiscall; called with this from 1 functions of CActorPickNode, e.g. 004ce570
 004ce710	CActorPickNode	method_004ce710	__thiscall	__thiscall; called with this from 4 functions of CActorPickNode, e.g. 004ce790
+004ce820	CActorPickNode	method_004ce820	__thiscall	__thiscall; called with this from 1 functions of CActorPickNode, e.g. 004ce8e0
 004ce8e0	CActorPickNode	method_004ce8e0	__thiscall	__thiscall; called with this from 1 functions of CActorPickNode, e.g. 0050dc90
 004cf2a0	CView	method_004cf2a0	__thiscall	__thiscall; called with this from 1 functions of CView, e.g. 004cf260
 004cf7d0	CView	method_004cf7d0	__thiscall	__thiscall; called with this from 1 functions of CView, e.g. 004cf260
@@ -438,12 +445,14 @@ address	namespace	name	calling_convention	evidence
 004d8710	std::Tree	method_004d8710	__thiscall	__thiscall; called with this from 1 functions of std::Tree, e.g. 004d5b00
 004d8800	std::Tree	method_004d8800	__thiscall	__thiscall; called with this from 1 functions of std::Tree, e.g. 004d5c60
 004db520	TipOfTheDayList	method_004db520	__thiscall	__thiscall; called with this from 1 functions of TipOfTheDayList, e.g. 004db290
+004dbbf0	MoviePlayer	method_004dbbf0	__thiscall	__thiscall; called with this from 1 functions of MoviePlayer, e.g. 004dbfc0
+004dbd30	MoviePlayer	method_004dbd30	__thiscall	__thiscall; called with this from 1 functions of MoviePlayer, e.g. 004dbfc0
 004dbe10	MoviePlayer	method_004dbe10	__thiscall	__thiscall; called with this from 1 functions of MoviePlayer, e.g. 004dbfc0
 004dbe40	MoviePlayer	method_004dbe40	__thiscall	__thiscall; called with this from 1 functions of MoviePlayer, e.g. 004dbfc0
 004dbee0	MoviePlayer	method_004dbee0	__thiscall	__thiscall; called with this from 1 functions of MoviePlayer, e.g. 004dbfc0
 004dbf50	MoviePlayer	method_004dbf50	__thiscall	__thiscall; called with this from 1 functions of MoviePlayer, e.g. 004dbfc0
 004dd4e0	DataFile	method_004dd4e0	__thiscall	__thiscall; called with this from 1 functions of DataFile, e.g. 004341d0
-004dd5a0	DataFile	method_004dd5a0	__thiscall	__thiscall; called with this from 1 functions of DataFile, e.g. 004dd310
+004dd9f0	CGPak	method_004dd9f0	__thiscall	__thiscall; called with this from 1 functions of CGPak, e.g. 004dd3f0; through the pointer at 0067cd84
 004dda60	CGPak	method_004dda60	__thiscall	__thiscall; called with this from 1 functions of CGPak, e.g. 004dd820
 004dda80	CGPak	method_004dda80	__thiscall	__thiscall; called with this from 1 functions of CGPak, e.g. 004dd900
 004ddae0	CGPak	method_004ddae0	__thiscall	__thiscall; called with this from 1 functions of CGPak, e.g. 004dd820
@@ -451,13 +460,16 @@ address	namespace	name	calling_convention	evidence
 004de4b0	CGPak	method_004de4b0	__thiscall	__thiscall; called with this from 1 functions of CGPak, e.g. 004ddae0
 004de530	CGPak	method_004de530	__thiscall	__thiscall; called with this from 2 functions of CGPak, e.g. 004ddae0
 004de830	CGPak	method_004de830	__thiscall	__thiscall; called with this from 2 functions of CGPak, CSakGPak, e.g. 004dd9a0
+004dea90	CGPak	method_004dea90	__thiscall	__thiscall; called with this from 2 functions of CGPak, CSakGPak, e.g. 004dd9a0
 004deb20	CGPak	method_004deb20	__thiscall	__thiscall; called with this from 2 functions of CGPak, CSakGPak, e.g. 004dda10
+004dec80	CGPak	method_004dec80	__thiscall	__thiscall; called with this from 1 functions of CGPak, e.g. 004de830
 004decd0	CGPak	method_004decd0	__thiscall	__thiscall; called with this from 1 functions of CGPak, e.g. 004de830
 004e1db0	std::Tree	method_004e1db0	__thiscall	__thiscall; called with this from 2 functions of ResourceManager, mg::CScript, e.g. 004e0940
 004e2030	std::Tree	method_004e2030	__thiscall	__thiscall; called with this from 3 functions of ResourceManager, mg::CScript, e.g. 004e0940
 004e65c0	XmlDocument	method_004e65c0	__thiscall	__thiscall; called with this from 1 functions of XmlDocument, e.g. 004e6590
 004ebb60	mg::CMGEngine	method_004ebb60	__thiscall	__thiscall; called with this from 2 functions of mg::CMGEngine, mg::mgType1::CMiniGame001, e.g. 004ebac0
 004ebc00	mg::mgType1::CMiniGame001	method_004ebc00	__thiscall	__thiscall; called with this from 1 functions of mg::mgType1::CMiniGame001, e.g. 004ffb80
+004ec5a0	mg::CMGEngine	method_004ec5a0	__thiscall	__thiscall; called with this from 2 functions of mg::CMGEngine, e.g. 004ec640
 004ec640	mg::CMGEngine	method_004ec640	__thiscall	__thiscall; called with this from 1 functions of mg::CMGEngine, e.g. 004ebc40
 004ec840	mg::CMGEngine	method_004ec840	__thiscall	__thiscall; called with this from 1 functions of mg::CMGEngine, e.g. 004ebc40
 004ec8f0	mg::CMGEngine	method_004ec8f0	__thiscall	__thiscall; called with this from 1 functions of mg::CMGEngine, e.g. 004ec640
@@ -472,7 +484,10 @@ address	namespace	name	calling_convention	evidence
 004f11b0	mg::CObject	method_004f11b0	__thiscall	__thiscall; called with this from 3 functions of mg::CEntity, mg::CObject, e.g. 004f10b0
 004f1440	mg::CEntity	method_004f1440	__thiscall	__thiscall; called with this from 1 functions of mg::CEntity, e.g. 004f13d0
 004f1d10	mg::CScript	method_004f1d10	__thiscall	__thiscall; called with this from 1 functions of mg::CScript, e.g. 004f1b70
+00500150	CRagEffect	method_00500150	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0055dc90
+00500210	CArrowEffect	method_00500210	__thiscall	__thiscall; called with this from 1 functions of CArrowEffect, e.g. 005afbc0
 00500400	CRenderObject	method_00500400	__thiscall	__thiscall; called with this from 1 functions of CRenderObject, e.g. 005002b0
+00500520	CRenderObject	method_00500520	__thiscall	__thiscall; called with this from 1 functions of CRenderObject, e.g. 00500350
 00500530	CRenderObject	method_00500530	__thiscall	__thiscall; called with this from 5 functions of CEffectMaker, CRagEffect, CSoundMaker, mg::CArrow, e.g. 004eb260
 00500560	CArrowEffect	method_00500560	__thiscall	__thiscall; called with this from 1 functions of CArrowEffect, e.g. 005afbc0
 005005b0	CRenderObject	method_005005b0	__thiscall	__thiscall; called with this from 4 functions of CArrowEffect, CGameActor, CRagEffect, e.g. 005034e0
@@ -498,7 +513,7 @@ address	namespace	name	calling_convention	evidence
 00503020	CGameActor	method_00503020	__thiscall	__thiscall; called with this from 7 functions of C3dGrannyGameActor, CBlurPC, CGrannyPc, CNpc and more, e.g. 00508000
 00503210	CGameActor	method_00503210	__thiscall	__thiscall; called with this from 4 functions of CGrannyPc, CPc, CPlayer, CSkill, e.g. 00542e40
 00503440	CGameActor	method_00503440	__thiscall	__thiscall; called with this from 8 functions of C3dGrannyGameActor, CBlurPC, CGrannyPc, CNpc and more, e.g. 00508000
-00503490	CGameActor	method_00503490	__thiscall	__thiscall; called with this from 33 functions of CGameActor, CGrannyPc, CNpc, CPc and more, e.g. 00502b00
+00503490	CGameActor	method_00503490	__thiscall	__thiscall; called with this from 34 functions of CGameActor, CGrannyPc, CNpc, CPc and more, e.g. 00502b00
 00503830	CGameActor	method_00503830	__thiscall	__thiscall; called with this from 4 functions of CGameActor, CGrannyPc, CNpc, CPc, e.g. 005038c0
 00503f80	CGameActor	method_00503f80	__thiscall	__thiscall; called with this from 5 functions of C3dGrannyGameActor, CGrannyPc, CPc, CPlayer and more, e.g. 00508250
 00504000	CGameActor	method_00504000	__thiscall	__thiscall; called with this from 2 functions of CGameActor, CNpc, e.g. 005034e0
@@ -517,6 +532,7 @@ address	namespace	name	calling_convention	evidence
 0050a060	CGrannyCorpse3d	method_0050a060	__thiscall	__thiscall; called with this from 1 functions of CGrannyCorpse3d, e.g. 00509f60
 0050a220	CGrannyCorpse3d	method_0050a220	__thiscall	__thiscall; called with this from 1 functions of CGrannyCorpse3d, e.g. 0050a010
 0050a2f0	CGrannyCorpse3d	method_0050a2f0	__thiscall	__thiscall; called with this from 1 functions of CGrannyCorpse3d, e.g. 0050a380
+0050d3d0	CGameMode	method_0050d3d0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050d400
 0050d730	CGameMode	method_0050d730	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050d630
 0050d860	CGameMode	method_0050d860	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050dc90
 0050d9d0	CGameMode	method_0050d9d0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050cfb0
@@ -529,11 +545,14 @@ address	namespace	name	calling_convention	evidence
 0050e5b0	CGameMode	method_0050e5b0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050d400
 0050e760	CGameMode	method_0050e760	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050d400
 0050e9d0	CGameMode	method_0050e9d0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050d400
-0050ec40	CGameMode	method_0050ec40	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050ef00
+0050ec40	CGameMode	method_0050ec40	__thiscall	__thiscall; called with this from 2 functions of CGameMode, e.g. 0050ef00
 0050ef00	CGameMode	method_0050ef00	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050d400
+0050ef60	CGameMode	method_0050ef60	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050d400
+0050ef80	CGameMode	method_0050ef80	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050ef00
 0050f020	CGameMode	method_0050f020	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050d400
 0050f190	CGameMode	method_0050f190	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050f8e0
 0050f5e0	CGameMode	method_0050f5e0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050f8e0
+0050f8d0	CGameMode	method_0050f8d0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050d400
 0050f8e0	CGameMode	method_0050f8e0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050d400
 0050fdf0	CGameMode	method_0050fdf0	__thiscall	__thiscall; called with this from 2 functions of CGameMode, e.g. 0050cfb0
 00511940	CGameMode	method_00511940	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0052a070
@@ -551,6 +570,7 @@ address	namespace	name	calling_convention	evidence
 00512930	CGameMode	method_00512930	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00527b80
 00512b80	CGameMode	method_00512b80	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00527b80
 00512c00	CGameMode	method_00512c00	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00533b00
+00512ca0	CGameMode	method_00512ca0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00512eb0
 00512d00	CGameMode	method_00512d00	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00515d10
 00512eb0	CGameMode	method_00512eb0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00512d00
 005130b0	CGameMode	method_005130b0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00515d10
@@ -567,14 +587,17 @@ address	namespace	name	calling_convention	evidence
 00515cb0	CGameMode	method_00515cb0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00515cf0
 00515cf0	CGameMode	method_00515cf0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00515d10
 00515d10	CGameMode	method_00515d10	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050d400
+00515fc0	CGameMode	method_00515fc0	__thiscall	__thiscall; called with this from 6 functions of CGameMode, e.g. 00526300
 00516570	CGameMode	method_00516570	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050cfb0
 00516650	CGameMode	method_00516650	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00512eb0
 00516810	CGameMode	method_00516810	__thiscall	__thiscall; called with this from 2 functions of CGameMode, e.g. 00512eb0
 00516a80	CGameMode	method_00516a80	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050cfb0
 00518e00	CGameMode	method_00518e00	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050d400
+00518f60	CGameMode	method_00518f60	__thiscall	__thiscall; called with this from 6 functions of CGameMode, e.g. 00526300
 00519060	CGameMode	method_00519060	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00537a60
 00519360	CGameMode	method_00519360	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050d400
 00519480	CGameMode	method_00519480	__thiscall	__thiscall; called with this from 5 functions of CGameMode, e.g. 00527090
+005196a0	CGameMode	method_005196a0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050d630
 00519740	CGameMode	method_00519740	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050d400
 005198a0	std::Tree	method_005198a0	__thiscall	__thiscall; called with this from 4 functions of CGameMode, e.g. 005126f0
 005199f0	std::Tree	method_005199f0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050ccb0
@@ -617,8 +640,11 @@ address	namespace	name	calling_convention	evidence
 005393d0	std::Tree	method_005393d0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0052cb90
 00539610	std::Tree	method_00539610	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00532220
 0053acf0	CItem	method_0053acf0	__thiscall	__thiscall; called with this from 1 functions of CItem, e.g. 0053abb0
+0053b710	CLoginMode	method_0053b710	__thiscall	__thiscall; called with this from 1 functions of CLoginMode, e.g. 0053b5a0
 0053b790	CLoginMode	method_0053b790	__thiscall	__thiscall; called with this from 1 functions of CLoginMode, e.g. 0053b810
 0053ce20	CLoginMode	method_0053ce20	__thiscall	__thiscall; called with this from 1 functions of CLoginMode, e.g. 0053b810
+0053cf00	CLoginMode	method_0053cf00	__thiscall	__thiscall; called with this from 1 functions of CLoginMode, e.g. 0053b810
+0053cf10	CLoginMode	method_0053cf10	__thiscall	__thiscall; called with this from 1 functions of CLoginMode, e.g. 0053e790
 0053fa20	CNpc	method_0053fa20	__thiscall	__thiscall; called with this from 1 functions of CNpc, e.g. 0053f950
 00540a20	CBlowEffect	method_00540a20	__thiscall	__thiscall; called with this from 1 functions of CBlowEffect, e.g. 00540950
 00540c40	CCorpse	method_00540c40	__thiscall	__thiscall; called with this from 1 functions of CCorpse, e.g. 00540b70
@@ -626,6 +652,7 @@ address	namespace	name	calling_convention	evidence
 005413f0	CMasterChaser	method_005413f0	__thiscall	__thiscall; called with this from 1 functions of CMasterChaser, e.g. 00541320
 005414e0	CNumEffect	method_005414e0	__thiscall	__thiscall; called with this from 1 functions of CNumEffect, e.g. 00541410
 005417d0	CSoundMaker	method_005417d0	__thiscall	__thiscall; called with this from 1 functions of CSoundMaker, e.g. 00541680
+00541d70	CGndRiser	method_00541d70	__thiscall	__thiscall; called with this from 1 functions of CGndRiser, e.g. 00541c90
 00541d80	CGndRiser	method_00541d80	__thiscall	__thiscall; called with this from 1 functions of CGndRiser, e.g. 00541d20
 005422a0	CPc	method_005422a0	__thiscall	__thiscall; called with this from 2 functions of CPc, mg::mgType1::CPlayer, e.g. 004f1530
 005422f0	CPc	method_005422f0	__thiscall	__thiscall; called with this from 2 functions of CPc, mg::mgType1::CPlayer, e.g. 004f1600
@@ -651,7 +678,7 @@ address	namespace	name	calling_convention	evidence
 0054b880	CPlayer	method_0054b880	__thiscall	__thiscall; called with this from 1 functions of CPlayer, e.g. 0054c550
 0054b8e0	CPlayer	method_0054b8e0	__thiscall	__thiscall; called with this from 1 functions of CPlayer, e.g. 0054b770
 0054cf80	CPlayer	method_0054cf80	__thiscall	__thiscall; called with this from 1 functions of CPlayer, e.g. 0054b4a0
-0054f9a0	CRagEffect	method_0054f9a0	__thiscall	__thiscall; called with this from 148 functions of CRagEffect, e.g. 005505a0
+0054f9a0	CRagEffect	method_0054f9a0	__thiscall	__thiscall; called with this from 149 functions of CRagEffect, e.g. 005505a0
 0054fb40	CRagEffect	method_0054fb40	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 005668d0
 0054fba0	CRagEffect	method_0054fba0	__thiscall	__thiscall; called with this from 47 functions of CRagEffect, e.g. 0054d4c0
 00550070	CRagEffect	method_00550070	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054ee50
@@ -753,6 +780,7 @@ address	namespace	name	calling_convention	evidence
 00564160	CRagEffect	method_00564160	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 005643e0	CRagEffect	method_005643e0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 00564660	CRagEffect	method_00564660	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
+005647c0	CRagEffect	method_005647c0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 005648f0	CRagEffect	method_005648f0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 00564a90	CRagEffect	method_00564a90	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 00564b00	CRagEffect	method_00564b00	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
@@ -782,6 +810,7 @@ address	namespace	name	calling_convention	evidence
 005660f0	CRagEffect	method_005660f0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 00566180	CRagEffect	method_00566180	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 005661f0	CRagEffect	method_005661f0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
+00566340	CRagEffect	method_00566340	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 00566350	CRagEffect	method_00566350	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 005663c0	CRagEffect	method_005663c0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 00566430	CRagEffect	method_00566430	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
@@ -857,9 +886,12 @@ address	namespace	name	calling_convention	evidence
 0057a6c0	CRagEffect	method_0057a6c0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 0057ccb0	CRagEffect	method_0057ccb0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 00581520	CEffectPrim	method_00581520	__thiscall	__thiscall; called with this from 1 functions of CEffectPrim, e.g. 00586070
+00586650	WorldColorFade	method_00586650	__thiscall	__thiscall; called with this from 1 functions of WorldColorFade, e.g. 00435dd0
 005866f0	WorldColorFade	method_005866f0	__thiscall	__thiscall; called with this from 2 functions of WorldColorFade, e.g. 0050dc90
 005867a0	WorldColorFade	method_005867a0	__thiscall	__thiscall; called with this from 1 functions of WorldColorFade, e.g. 0050dc90
 005867c0	WorldColorFade	method_005867c0	__thiscall	__thiscall; called with this from 2 functions of WorldColorFade, e.g. 0050dc90
+00587d70	ClientState	method_00587d70	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 0053d230
+00587d80	ClientState	method_00587d80	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0050d630
 00587d90	ClientState	method_00587d90	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 005889d0
 005889d0	ClientState	method_005889d0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 005b2280
 00588a00	ClientState	method_00588a00	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 005889d0
@@ -899,6 +931,7 @@ address	namespace	name	calling_convention	evidence
 0058ef50	ClientState	method_0058ef50	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0052a0a0
 0058efe0	ClientState	method_0058efe0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0052a1c0
 0058f070	ClientState	method_0058f070	__thiscall	__thiscall; called with this from 6 functions of ClientState, e.g. 004a1560
+0058f150	ClientState	method_0058f150	__thiscall	__thiscall; called with this from 5 functions of ClientState, e.g. 0045fe20
 0058f190	ClientState	method_0058f190	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0052b180
 0058f230	ClientState	method_0058f230	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0052b280
 0058f370	ClientState	method_0058f370	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 0050dc90
@@ -938,6 +971,7 @@ address	namespace	name	calling_convention	evidence
 00590b40	ClientState	method_00590b40	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00532440
 00590be0	ClientState	method_00590be0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0051d990
 00590ca0	ClientState	method_00590ca0	__thiscall	__thiscall; called with this from 4 functions of ClientState, e.g. 00498aa0
+00590d00	ClientState	method_00590d00	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 00590e70
 00590d20	ClientState	method_00590d20	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 004998a0
 00590e30	ClientState	method_00590e30	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 004998a0
 00590e70	ClientState	method_00590e70	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 004998a0
@@ -945,6 +979,7 @@ address	namespace	name	calling_convention	evidence
 00590f90	ClientState	method_00590f90	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 00488690
 00591070	ClientState	method_00591070	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 00492c00
 005910a0	ClientState	method_005910a0	__thiscall	__thiscall; called with this from 3 functions of ClientState, e.g. 0050dc90
+00591100	ClientState	method_00591100	__thiscall	__thiscall; called with this from 4 functions of ClientState, e.g. 0052fc80
 00591120	ClientState	method_00591120	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00492170
 00591230	ClientState	method_00591230	__thiscall	__thiscall; called with this from 4 functions of ClientState, e.g. 0052fc80
 005912d0	ClientState	method_005912d0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00530060
@@ -952,12 +987,14 @@ address	namespace	name	calling_convention	evidence
 00591430	ClientState	method_00591430	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00488690
 00591460	ClientState	method_00591460	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 004926e0
 005914e0	ClientState	method_005914e0	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 0050dc90
+00591540	ClientState	method_00591540	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 00591670
 00591560	ClientState	method_00591560	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00492c00
 00591670	ClientState	method_00591670	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00492c00
 00591710	ClientState	method_00591710	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 004998a0
 00591790	ClientState	method_00591790	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 00488690
 00591870	ClientState	method_00591870	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 004998a0
 005918a0	ClientState	method_005918a0	__thiscall	__thiscall; called with this from 3 functions of ClientState, e.g. 0050dc90
+00591900	ClientState	method_00591900	__thiscall	__thiscall; called with this from 4 functions of ClientState, e.g. 0052dca0
 00591920	ClientState	method_00591920	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00495a10
 00591a30	ClientState	method_00591a30	__thiscall	__thiscall; called with this from 4 functions of ClientState, e.g. 0052dca0
 00591ad0	ClientState	method_00591ad0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0052e010
@@ -983,18 +1020,24 @@ address	namespace	name	calling_convention	evidence
 005928e0	ClientState	method_005928e0	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 0052e1b0
 00592a80	ClientState	method_00592a80	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0052e910
 00592b00	ClientState	method_00592b00	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0052e910
+00592bd0	ClientState	method_00592bd0	__thiscall	__thiscall; called with this from 3 functions of ClientState, e.g. 0052e1b0
 00592bf0	ClientState	method_00592bf0	__thiscall	__thiscall; called with this from 3 functions of ClientState, e.g. 0049b910
 00592cf0	ClientState	method_00592cf0	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 005149c0
 00592e30	ClientState	method_00592e30	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 0051d990
 00592f30	ClientState	method_00592f30	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588ae0
 00592f90	ClientState	method_00592f90	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0049b910
 00592fa0	ClientState	method_00592fa0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0049b910
+005930a0	ClientState	method_005930a0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0053fa60
 00593140	ClientState	method_00593140	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 00527940
 00593170	ClientState	method_00593170	__thiscall	__thiscall; called with this from 6 functions of ClientState, e.g. 004efc60
 005931d0	ClientState	method_005931d0	__thiscall	__thiscall; called with this from 4 functions of ClientState, e.g. 00527240
 00593200	ClientState	method_00593200	__thiscall	__thiscall; called with this from 7 functions of ClientState, e.g. 004efff0
+00593220	ClientState	method_00593220	__thiscall	__thiscall; called with this from 3 functions of ClientState, e.g. 0052bd10
+00593240	ClientState	method_00593240	__thiscall	__thiscall; called with this from 5 functions of ClientState, e.g. 0052a3d0
+005932a0	ClientState	method_005932a0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 005426a0
 00593660	ClientState	method_00593660	__thiscall	__thiscall; called with this from 6 functions of ClientState, e.g. 00460040
 00593810	ClientState	method_00593810	__thiscall	__thiscall; called with this from 3 functions of ClientState, e.g. 00530b20
+00593830	ClientState	method_00593830	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 005928e0
 00593920	ClientState	method_00593920	__thiscall	__thiscall; called with this from 6 functions of ClientState, e.g. 0044dad0
 00593960	ClientState	method_00593960	__thiscall	__thiscall; called with this from 6 functions of ClientState, e.g. 0044dad0
 005939a0	ClientState	method_005939a0	__thiscall	__thiscall; called with this from 6 functions of ClientState, e.g. 0044dad0
@@ -1002,11 +1045,18 @@ address	namespace	name	calling_convention	evidence
 00593aa0	ClientState	method_00593aa0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00542480
 00593ae0	ClientState	method_00593ae0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00542480
 00593b70	ClientState	method_00593b70	__thiscall	__thiscall; called with this from 7 functions of ClientState, e.g. 0044dad0
+00593bb0	ClientState	method_00593bb0	__thiscall	__thiscall; called with this from 5 functions of ClientState, e.g. 0044dad0
 00593c10	ClientState	method_00593c10	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588a00
+00594020	ClientState	method_00594020	__thiscall	__thiscall; called with this from 5 functions of ClientState, e.g. 0044dad0
 00594070	ClientState	method_00594070	__thiscall	__thiscall; called with this from 4 functions of ClientState, e.g. 00452500
 00596210	ClientState	method_00596210	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588a00
 005974b0	ClientState	method_005974b0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00594070
 00597580	ClientState	method_00597580	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 0051d990
+00597700	ClientState	method_00597700	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0051d990
+00597870	ClientState	method_00597870	__thiscall	__thiscall; called with this from 4 functions of ClientState, e.g. 0045e0b0
+00597890	ClientState	method_00597890	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00448b50
+00597920	ClientState	method_00597920	__thiscall	__thiscall; called with this from 12 functions of ClientState, e.g. 004601a0
+00597940	ClientState	method_00597940	__thiscall	__thiscall; called with this from 4 functions of ClientState, e.g. 00529520
 00597950	ClientState	method_00597950	__thiscall	__thiscall; called with this from 18 functions of ClientState, e.g. 004b25f0
 005979d0	ClientState	method_005979d0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588a00
 00597d70	ClientState	method_00597d70	__thiscall	__thiscall; called with this from 3 functions of ClientState, e.g. 0046a560
@@ -1014,6 +1064,7 @@ address	namespace	name	calling_convention	evidence
 005981b0	ClientState	method_005981b0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0050cfb0
 00598290	ClientState	method_00598290	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588a00
 00598630	ClientState	method_00598630	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0050dbb0
+005986d0	ClientState	method_005986d0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0046a560
 005988c0	ClientState	method_005988c0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588a00
 00598ba0	ClientState	method_00598ba0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0050d9e0
 00598c20	ClientState	method_00598c20	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 004d8e40
@@ -1030,6 +1081,9 @@ address	namespace	name	calling_convention	evidence
 00599a40	ClientState	method_00599a40	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588a00
 00599df0	ClientState	method_00599df0	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 00504460
 00599ee0	ClientState	method_00599ee0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588a00
+0059a290	ClientState	method_0059a290	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00566860
+0059a3e0	ClientState	method_0059a3e0	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 00543020
+0059a440	ClientState	method_0059a440	__thiscall	__thiscall; called with this from 4 functions of ClientState, e.g. 005034e0
 0059a5e0	ClientState	method_0059a5e0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588a00
 0059b750	ClientState	method_0059b750	__thiscall	__thiscall; called with this from 3 functions of ClientState, e.g. 0053fae0
 0059b770	ClientState	method_0059b770	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 00514900
@@ -1039,6 +1093,8 @@ address	namespace	name	calling_convention	evidence
 0059b900	ClientState	method_0059b900	__thiscall	__thiscall; called with this from 4 functions of ClientState, e.g. 0044dad0
 0059ba10	ClientState	method_0059ba10	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 005428d0
 0059ba80	ClientState	method_0059ba80	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 005428d0
+0059baf0	ClientState	method_0059baf0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0053fb90
+0059bb00	ClientState	method_0059bb00	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00586860
 0059bb90	ClientState	method_0059bb90	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0051d990
 0059bca0	ClientState	method_0059bca0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0051d990
 0059bd40	ClientState	method_0059bd40	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 005149c0
@@ -1051,6 +1107,7 @@ address	namespace	name	calling_convention	evidence
 0059bf80	ClientState	method_0059bf80	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00516a80
 0059bfd0	ClientState	method_0059bfd0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588520
 0059bfe0	ClientState	method_0059bfe0	__thiscall	__thiscall; called with this from 4 functions of ClientState, e.g. 0050dc90
+0059c270	ClientState	method_0059c270	__thiscall	__thiscall; called with this from 5 functions of ClientState, e.g. 0052a3d0
 0059c800	ClientState	method_0059c800	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00532660
 0059c9f0	ClientState	method_0059c9f0	__thiscall	__thiscall; called with this from 7 functions of ClientState, e.g. 004415e0
 0059ca40	ClientState	method_0059ca40	__thiscall	__thiscall; called with this from 4 functions of ClientState, e.g. 00456ef0
@@ -1073,6 +1130,7 @@ address	namespace	name	calling_convention	evidence
 005a4f40	ClientState	method_005a4f40	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 0045ee00
 005a5030	ClientState	method_005a5030	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00480bc0
 005a5100	ClientState	method_005a5100	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00497ca0
+005a51d0	ClientState	method_005a51d0	__thiscall	__thiscall; called with this from 5 functions of ClientState, e.g. 0052a3d0
 005a5210	ClientState	method_005a5210	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00537690
 005a52d0	ClientState	method_005a52d0	__thiscall	__thiscall; called with this from 3 functions of ClientState, e.g. 0052ef00
 005a53b0	ClientState	method_005a53b0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 004d9a60
@@ -1081,15 +1139,43 @@ address	namespace	name	calling_convention	evidence
 005a54b0	ClientState	method_005a54b0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588a00
 005a58b0	ClientState	method_005a58b0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00469380
 005a5a00	ClientState	method_005a5a00	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588a00
+005a6890	ClientState	method_005a6890	__thiscall	__thiscall; called with this from 3 functions of ClientState, e.g. 0050b2c0
+005a6a10	ClientState	method_005a6a10	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00530cb0
+005a6bf0	ClientState	method_005a6bf0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0050b2c0
 005a75b0	ClientState	method_005a75b0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588a00
 005a7f50	ClientState	method_005a7f50	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 00513860
+005a8080	ClientState	method_005a8080	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00562b30
 005a85a0	ClientState	method_005a85a0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00586860
 005a8aa0	ClientState	method_005a8aa0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00586860
 005a8b30	ClientState	method_005a8b30	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 005367f0
+005a9800	ClientState	method_005a9800	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 005a8b30
+005a9a30	ClientState	method_005a9a30	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 005a8b30
+005a9a90	ClientState	method_005a9a90	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 005a8b30
+005a9b40	ClientState	method_005a9b40	__thiscall	__thiscall; called with this from 7 functions of ClientState, e.g. 00526300
+005a9f40	ClientState	method_005a9f40	__thiscall	__thiscall; called with this from 6 functions of ClientState, e.g. 005038c0
+005a9fa0	ClientState	method_005a9fa0	__thiscall	__thiscall; called with this from 5 functions of ClientState, e.g. 005038c0
+005aa010	ClientState	method_005aa010	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 005367f0
+005aa3e0	ClientState	method_005aa3e0	__thiscall	__thiscall; called with this from 6 functions of ClientState, e.g. 005038c0
+005aa430	ClientState	method_005aa430	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 004682a0
+005aa4e0	ClientState	method_005aa4e0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 004682a0
+005aa5a0	ClientState	method_005aa5a0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0046f8c0
+005aa610	ClientState	method_005aa610	__thiscall	__thiscall; called with this from 9 functions of ClientState, e.g. 005034e0
+005aa630	ClientState	method_005aa630	__thiscall	__thiscall; called with this from 14 functions of ClientState, e.g. 00441570
+005aa650	ClientState	method_005aa650	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 004416e0
+005aa680	ClientState	method_005aa680	__thiscall	__thiscall; called with this from 4 functions of ClientState, e.g. 00502cc0
+005aa6d0	ClientState	method_005aa6d0	__thiscall	__thiscall; called with this from 7 functions of ClientState, e.g. 00504390
+005aa700	ClientState	method_005aa700	__thiscall	__thiscall; called with this from 16 functions of ClientState, e.g. 004682a0
+005aa730	ClientState	method_005aa730	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00526e10
+005aa750	ClientState	method_005aa750	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00504460
+005aa790	ClientState	method_005aa790	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 005a9390
+005aa810	ClientState	method_005aa810	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 005130b0
 005aacf0	ClientState	method_005aacf0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00535ca0
+005aaee0	ClientState	method_005aaee0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00586860
+005aaf10	ClientState	method_005aaf10	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0051d990
 005aaf40	ClientState	method_005aaf40	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00539140
 005aba30	CSkill	method_005aba30	__thiscall	__thiscall; called with this from 1 functions of CSkill, e.g. 005ab960
 005aba70	CSkill	method_005aba70	__thiscall	__thiscall; called with this from 1 functions of CSkill, e.g. 005ab9e0
+005ad060	CSkill	method_005ad060	__thiscall	__thiscall; called with this from 1 functions of CSkill, e.g. 005ac830
 005ad0f0	CSkill	method_005ad0f0	__thiscall	__thiscall; called with this from 1 functions of CSkill, e.g. 005ac830
 005ad2b0	CSkill	method_005ad2b0	__thiscall	__thiscall; called with this from 2 functions of CSkill, e.g. 005aba70
 005ad9e0	CMsgEffect	method_005ad9e0	__thiscall	__thiscall; called with this from 1 functions of CMsgEffect, e.g. 005ad910

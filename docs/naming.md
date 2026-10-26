@@ -126,7 +126,9 @@ The procedure:
 3. **Calling convention.** `__thiscall` when the body reads ECX before writing it.
    - If the body never reads ECX, still `__thiscall` when the callers set ECX just
      before the call (`fn_context.py` counts this) and the function pops its own
-     arguments.
+     arguments. A value loaded into ECX and then pushed is an argument, not `this`, so
+     such a call site does not count. `or ecx, -1` (the `strlen` idiom) writes ECX.
+     `recover_layouts.py` applies the same test when it looks for methods.
    - A function with no arguments whose callers all set ECX is `__thiscall`.
    - Otherwise `ret N` with N > 0 means `__stdcall`, and a plain `ret` means `__cdecl`.
 4. **Confidence.** High when the evidence pins the purpose. Medium for a descriptive

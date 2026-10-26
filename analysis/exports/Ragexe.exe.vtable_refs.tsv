@@ -34,7 +34,7 @@ CRes	005e27f4	0042babf	C3dModelRes::~C3dModelRes
 CRes	005e27f4	00427700	CBitmapRes::~CBitmapRes
 CRes	005e27f4	0042eaae	C3dGrannyModelRes::~C3dGrannyModelRes
 CRes	005e27f4	00426b5d	C3dAttr::~C3dAttr
-CRes	005e27f4	0047ae55	FUN_0047ad80
+CRes	005e27f4	0047ae55	UIGuildInfoManageWnd::LoadEmblemFile
 CRes	005e27f4	00432080	CPaletteRes::~CPaletteRes
 CRes	005e27f4	00435b51	C3dWorldRes::~C3dWorldRes
 CRes	005e27f4	00429b6f	CImfRes::~CImfRes

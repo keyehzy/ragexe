@@ -296,7 +296,7 @@ entry	size	kind	library	reach	name	referenced_by
 00541410	73	code	0	dead	CNumEffect::CNumEffect	00511650
 005414e0	41	code	0	dead	CNumEffect::method_005414e0	00541410
 00541c90	73	code	0	unreferenced	CGndRiser::CGndRiser	
-00541d70	1	code	0	dead	Global::FUN_00541d70	00541c90
+00541d70	1	code	0	dead	CGndRiser::method_00541d70	00541c90
 00544420	1954	code	0	unreferenced	Global::FUN_00544420	
 00546b30	451	code	0	unreferenced	CGrannyPc::CGrannyPc	
 00546f40	771	code	0	dead	CGrannyPc::method_00546f40	00546b30
@@ -339,7 +339,7 @@ entry	size	kind	library	reach	name	referenced_by
 005a9390	1128	code	0	unreferenced	Global::FUN_005a9390	
 005a9c60	457	code	0	unreferenced	Global::FUN_005a9c60	
 005aa5e0	35	code	0	unreferenced	Global::FUN_005aa5e0	
-005aa790	87	code	0	dead	Global::FUN_005aa790	005a9390
+005aa790	87	code	0	dead	ClientState::method_005aa790	005a9390
 005aa820	500	code	0	unreferenced	Global::FUN_005aa820	
 005aaa20	68	code	0	unreferenced	Global::FUN_005aaa20	
 005aaa70	29	code	0	dead	Global::FUN_005aaa70	005aaa90

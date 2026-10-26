@@ -217,6 +217,11 @@ class BinIndex:
                 if ops[0].reg == x86.X86_REG_ECX:
                     return False
                 continue
+            # or ecx, -1 / and ecx, 0 set ECX whatever it held (the strlen idiom)
+            if i.id in (x86.X86_INS_OR, x86.X86_INS_AND) and len(ops) == 2 and ops[0].type == x86.X86_OP_REG \
+                    and ops[0].reg == x86.X86_REG_ECX and ops[1].type == x86.X86_OP_IMM \
+                    and (ops[1].imm & 0xFFFFFFFF) == (0xFFFFFFFF if i.id == x86.X86_INS_OR else 0):
+                return False
             if i.id == x86.X86_INS_CALL and self.call_target(i) == CHKSTK:
                 continue
             try:
