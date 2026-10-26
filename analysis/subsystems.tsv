@@ -22,6 +22,7 @@ class	CGPak	res	the GRF archive (CSakGPak derives from it)
 class	ResourceManager	res	resource cache keyed by name, filled from ResNameTable.txt
 class	DataFile	res	reads a file through the archive or from disk
 class	XmlDocument	res	clientinfo.xml
+class	XmlElement	res	elements of XmlDocument's tree
 class	ModelResNode	res	node of a C3dModelRes
 class	ModelResMesh	res	mesh of a ModelResNode
 class	AnimModelResNode	res	node of a C3dAnimModelRes

@@ -2941,25 +2941,18 @@ entry	subsystem	rule	evidence
 004d9450	game	neighbours	between 004d48e0 and 004d95b0
 004d9470	game	neighbours	between 004d48e0 and 004d95b0
 004d9480	game	neighbours	between 004d48e0 and 004d95b0
-004d94a0	game	neighbours	between 004d48e0 and 004d95b0
 004d95a0	game	neighbours	between 004d48e0 and 004d95b0
 004d95b0	game	function	loads the skill tables (skillnametable.txt, skilldesctable.txt, leveluseskillspamount.txt)
 004d9920	game	callers	4 referencing functions
 004d99e0	game	neighbours	between 004d9920 and 004d9b30
 004d9a60	game	neighbours	between 004d9920 and 004d9b30
 004d9b30	game	callers	1 referencing function
-004d9b40	game	callers	1 referencing function
-004d9b60	game	callers	1 referencing function
-004da060	game	callers	1 referencing function
-004da0b0	game	callers	1 referencing function
 004da100	game	callers	1 referencing function
 004da2a0	game	callers	1 referencing function
 004da3c0	game	callers	1 referencing function
-004da520	game	neighbours	between 004da3c0 and 004da6c0
-004da530	game	neighbours	between 004da3c0 and 004da6c0
-004da540	game	neighbours	between 004da3c0 and 004da6c0
-004da5e0	game	neighbours	between 004da3c0 and 004da6c0
-004da6c0	game	callers	1 referencing function
+004da520	game	callers	1 referencing function
+004da530	game	callers	1 referencing function
+004da540	game	neighbours	between 004da530 and 004da6f0
 004da6f0	game	callers	1 referencing function
 004da840	game	callers	1 referencing function
 004daaa0	game	neighbours	between 004da840 and 004dab80
@@ -2976,14 +2969,12 @@ entry	subsystem	rule	evidence
 004db1b0	ui	callees	1 referenced function
 004db1c0	ui	callees	1 referenced function
 004db1d0	ui	class	class TipOfTheDayList
-004db1f0	ui	neighbours	between 004db1d0 and 004db290
-004db200	ui	neighbours	between 004db1d0 and 004db290
-004db210	ui	neighbours	between 004db1d0 and 004db290
+004db1f0	ui	neighbours	between 004db1d0 and 004db210
+004db200	ui	neighbours	between 004db1d0 and 004db210
+004db210	ui	class	class TipOfTheDayList
 004db290	ui	class	class TipOfTheDayList
 004db4f0	ui	class	class TipOfTheDayList
 004db520	ui	class	class TipOfTheDayList
-004db7c0	ui	callers	1 referencing function
-004db9a0	core	shared	game 5, ui 1
 004dbbb0	render	initializer	initializer of the file starting here, before 004dbbe0
 004dbbe0	render	class	class MoviePlayer
 004dbbf0	render	class	class MoviePlayer
@@ -3041,7 +3032,7 @@ entry	subsystem	rule	evidence
 004de830	res	class	class CGPak
 004dea90	res	class	class CGPak
 004deb20	res	class	class CGPak
-004debc0	res	neighbours	between 004deb20 and 004dec00
+004debc0	res	class	class CGPak
 004dec00	res	class	class CGPak
 004dec80	res	class	class CGPak
 004decd0	res	class	class CGPak
@@ -3050,18 +3041,7 @@ entry	subsystem	rule	evidence
 004dedb0	res	stub	jumps to 004dd900
 004dedc0	res	class	class CGPak, base of CSakGPak
 004dee30	res	class	class CGPak, base of CSakGPak
-004dee80	res	neighbours	between 004dee30 and 004df920
-004deeb0	res	neighbours	between 004dee30 and 004df920
-004df1f0	res	neighbours	between 004dee30 and 004df920
-004df200	res	neighbours	between 004dee30 and 004df920
-004df230	res	neighbours	between 004dee30 and 004df920
-004df240	res	neighbours	between 004dee30 and 004df920
-004df270	res	neighbours	between 004dee30 and 004df920
 004df2a0	res	neighbours	between 004dee30 and 004df920
-004df2d0	res	neighbours	between 004dee30 and 004df920
-004df530	res	neighbours	between 004dee30 and 004df920
-004df590	res	neighbours	between 004dee30 and 004df920
-004df650	res	neighbours	between 004dee30 and 004df920
 004df710	res	neighbours	between 004dee30 and 004df920
 004df730	res	neighbours	between 004dee30 and 004df920
 004df750	res	neighbours	between 004dee30 and 004df920
@@ -3071,125 +3051,57 @@ entry	subsystem	rule	evidence
 004df8a0	res	neighbours	between 004dee30 and 004df920
 004df8f0	res	neighbours	between 004dee30 and 004df920
 004df920	res	class	class CRes
-004df950	res	neighbours	between 004df920 and 004df9d0
-004df960	res	neighbours	between 004df920 and 004df9d0
-004df980	res	neighbours	between 004df920 and 004df9d0
-004df990	res	neighbours	between 004df920 and 004df9d0
-004df9c0	res	neighbours	between 004df920 and 004df9d0
+004df950	res	class	class CRes
+004df960	res	class	class CRes
+004df980	res	class	class CRes
+004df990	res	class	class CRes
+004df9c0	res	class	class CRes
 004df9d0	res	class	class CRes
-004dfa10	res	neighbours	between 004df9d0 and 004dff60
-004dfa50	res	neighbours	between 004df9d0 and 004dff60
-004dfbe0	res	neighbours	between 004df9d0 and 004dff60
-004dfcd0	res	neighbours	between 004df9d0 and 004dff60
-004dfe50	res	neighbours	between 004df9d0 and 004dff60
+004dfa10	res	neighbours	between 004df9d0 and 004dfcd0
+004dfa50	res	neighbours	between 004df9d0 and 004dfcd0
+004dfcd0	res	class	class ResourceManager
 004dff50	res	stub	jumps to 004e0310
 004dff60	res	class	class ResourceManager
-004e0190	res	neighbours	between 004dff60 and 004e0310
-004e0280	res	neighbours	between 004dff60 and 004e0310
+004e0190	res	class	class ResourceManager
+004e0280	res	class	class ResourceManager
 004e0310	res	class	class ResourceManager
-004e0450	res	neighbours	between 004e0310 and 004e0940
-004e0540	res	neighbours	between 004e0310 and 004e0940
-004e0620	res	neighbours	between 004e0310 and 004e0940
-004e06c0	res	neighbours	between 004e0310 and 004e0940
-004e0850	res	neighbours	between 004e0310 and 004e0940
+004e0450	res	class	class ResourceManager
+004e0540	res	class	class ResourceManager
+004e0620	res	class	class ResourceManager
+004e06c0	res	class	class ResourceManager
 004e0940	res	class	class ResourceManager
-004e0c10	res	neighbours	between 004e0940 and 004e6590
-004e0c80	res	neighbours	between 004e0940 and 004e6590
-004e0d60	res	neighbours	between 004e0940 and 004e6590
-004e0df0	res	neighbours	between 004e0940 and 004e6590
-004e0e70	res	neighbours	between 004e0940 and 004e6590
-004e0e90	res	neighbours	between 004e0940 and 004e6590
-004e0f30	res	neighbours	between 004e0940 and 004e6590
-004e1040	res	neighbours	between 004e0940 and 004e6590
-004e1070	res	neighbours	between 004e0940 and 004e6590
-004e1150	res	neighbours	between 004e0940 and 004e6590
-004e1180	res	neighbours	between 004e0940 and 004e6590
-004e11c0	res	neighbours	between 004e0940 and 004e6590
-004e11e0	res	neighbours	between 004e0940 and 004e6590
-004e1470	res	neighbours	between 004e0940 and 004e6590
-004e1540	res	neighbours	between 004e0940 and 004e6590
-004e1560	res	neighbours	between 004e0940 and 004e6590
-004e1970	res	neighbours	between 004e0940 and 004e6590
-004e1a40	res	neighbours	between 004e0940 and 004e6590
-004e1a90	res	neighbours	between 004e0940 and 004e6590
-004e1d80	res	neighbours	between 004e0940 and 004e6590
-004e1dd0	res	neighbours	between 004e0940 and 004e6590
-004e2110	res	neighbours	between 004e0940 and 004e6590
-004e2130	res	neighbours	between 004e0940 and 004e6590
-004e2150	res	neighbours	between 004e0940 and 004e6590
-004e2560	res	neighbours	between 004e0940 and 004e6590
-004e2640	res	neighbours	between 004e0940 and 004e6590
-004e28d0	res	neighbours	between 004e0940 and 004e6590
-004e29b0	res	neighbours	between 004e0940 and 004e6590
-004e2c30	res	neighbours	between 004e0940 and 004e6590
-004e2c50	res	neighbours	between 004e0940 and 004e6590
-004e2e60	res	neighbours	between 004e0940 and 004e6590
-004e32e0	res	neighbours	between 004e0940 and 004e6590
-004e3350	res	neighbours	between 004e0940 and 004e6590
-004e33a0	res	neighbours	between 004e0940 and 004e6590
-004e3620	res	neighbours	between 004e0940 and 004e6590
-004e3680	res	neighbours	between 004e0940 and 004e6590
-004e36e0	res	neighbours	between 004e0940 and 004e6590
-004e3700	res	neighbours	between 004e0940 and 004e6590
-004e3760	res	neighbours	between 004e0940 and 004e6590
-004e3780	res	neighbours	between 004e0940 and 004e6590
-004e37e0	res	neighbours	between 004e0940 and 004e6590
-004e3830	res	neighbours	between 004e0940 and 004e6590
-004e3890	res	neighbours	between 004e0940 and 004e6590
-004e38f0	res	neighbours	between 004e0940 and 004e6590
-004e3910	res	neighbours	between 004e0940 and 004e6590
-004e3970	res	neighbours	between 004e0940 and 004e6590
-004e3990	res	neighbours	between 004e0940 and 004e6590
-004e39f0	res	neighbours	between 004e0940 and 004e6590
-004e3a40	res	neighbours	between 004e0940 and 004e6590
-004e3a90	res	neighbours	between 004e0940 and 004e6590
-004e3ab0	res	neighbours	between 004e0940 and 004e6590
-004e3ad0	res	neighbours	between 004e0940 and 004e6590
-004e3c90	res	neighbours	between 004e0940 and 004e6590
-004e3cb0	res	neighbours	between 004e0940 and 004e6590
-004e3e00	res	neighbours	between 004e0940 and 004e6590
-004e3e30	res	neighbours	between 004e0940 and 004e6590
-004e3fb0	res	neighbours	between 004e0940 and 004e6590
-004e40a0	res	neighbours	between 004e0940 and 004e6590
-004e4130	res	neighbours	between 004e0940 and 004e6590
-004e4160	res	neighbours	between 004e0940 and 004e6590
-004e4190	res	neighbours	between 004e0940 and 004e6590
-004e4500	res	neighbours	between 004e0940 and 004e6590
-004e4680	res	neighbours	between 004e0940 and 004e6590
-004e4800	res	neighbours	between 004e0940 and 004e6590
-004e4930	res	neighbours	between 004e0940 and 004e6590
-004e4a70	res	neighbours	between 004e0940 and 004e6590
-004e4c90	res	neighbours	between 004e0940 and 004e6590
-004e4cc0	res	neighbours	between 004e0940 and 004e6590
-004e4d80	res	neighbours	between 004e0940 and 004e6590
-004e50d0	res	neighbours	between 004e0940 and 004e6590
-004e55f0	res	neighbours	between 004e0940 and 004e6590
-004e5630	res	neighbours	between 004e0940 and 004e6590
-004e5650	res	neighbours	between 004e0940 and 004e6590
-004e5690	res	neighbours	between 004e0940 and 004e6590
-004e57d8	res	funclet	EH tables of 004e5690
-004e5801	res	neighbours	between 004e0940 and 004e6590
-004e5860	res	neighbours	between 004e0940 and 004e6590
-004e5880	res	neighbours	between 004e0940 and 004e6590
-004e5a60	res	funclet	EH tables of 004e5880
-004e5b00	res	neighbours	between 004e0940 and 004e6590
-004e5bd0	res	neighbours	between 004e0940 and 004e6590
-004e5d20	res	neighbours	between 004e0940 and 004e6590
-004e5d60	res	neighbours	between 004e0940 and 004e6590
-004e5e90	res	neighbours	between 004e0940 and 004e6590
-004e6090	res	neighbours	between 004e0940 and 004e6590
-004e6110	res	neighbours	between 004e0940 and 004e6590
-004e61b0	res	neighbours	between 004e0940 and 004e6590
-004e61e0	res	neighbours	between 004e0940 and 004e6590
-004e6350	res	neighbours	between 004e0940 and 004e6590
-004e6420	res	neighbours	between 004e0940 and 004e6590
-004e6450	res	neighbours	between 004e0940 and 004e6590
-004e6480	res	neighbours	between 004e0940 and 004e6590
-004e6500	res	neighbours	between 004e0940 and 004e6590
+004e0c80	res	neighbours	between 004e0940 and 004e0d60
+004e0d60	res	class	class ResourceManager
+004e0df0	res	class	class ResourceManager
+004e0e70	res	class	class ResourceManager
+004e0e90	res	class	class ResourceManager
+004e0f30	res	class	class ResourceManager
+004e1040	res	class	class ResourceManager
+004e4130	res	neighbours	between 004e1040 and 004e61e0
+004e4160	res	neighbours	between 004e1040 and 004e61e0
+004e4190	res	neighbours	between 004e1040 and 004e61e0
+004e4500	res	neighbours	between 004e1040 and 004e61e0
+004e4680	res	neighbours	between 004e1040 and 004e61e0
+004e4800	res	neighbours	between 004e1040 and 004e61e0
+004e4930	res	neighbours	between 004e1040 and 004e61e0
+004e4a70	res	neighbours	between 004e1040 and 004e61e0
+004e4c90	res	neighbours	between 004e1040 and 004e61e0
+004e4cc0	res	neighbours	between 004e1040 and 004e61e0
+004e4d80	res	neighbours	between 004e1040 and 004e61e0
+004e50d0	res	neighbours	between 004e1040 and 004e61e0
+004e5d60	res	neighbours	between 004e1040 and 004e61e0
+004e6110	res	neighbours	between 004e1040 and 004e61e0
+004e61b0	res	neighbours	between 004e1040 and 004e61e0
+004e61e0	res	class	class XmlElement
+004e6350	res	class	class XmlElement
+004e6420	res	class	class XmlElement
+004e6450	res	class	class XmlElement
+004e6480	res	class	class XmlElement
+004e6500	res	class	class XmlElement
 004e6590	res	class	class XmlDocument
 004e65c0	res	class	class XmlDocument
-004e6870	res	callers	1 referencing function
-004e69f0	res	callers	1 referencing function
+004e6870	res	class	class XmlDocument
+004e69f0	res	callers	2 referencing functions
 004e6b20	res	callers	1 referencing function
 004e6c70	game	initializer	initializer of the file starting here, before 004e6ca0
 004e6ca0	game	callees	6 referenced functions
@@ -3256,12 +3168,10 @@ entry	subsystem	rule	evidence
 004eb220	game	class	namespace mg
 004eb250	game	class	namespace mg
 004eb260	game	class	namespace mg
-004eb460	game	neighbours	between 004eb260 and 004eb4f0
-004eb4c0	game	neighbours	between 004eb260 and 004eb4f0
+004eb460	game	class	namespace mg
+004eb4c0	game	neighbours	between 004eb460 and 004eb4f0
 004eb4f0	game	class	namespace mg
 004eb6e0	game	class	namespace mg
-004eb710	game	neighbours	between 004eb6e0 and 004eb850
-004eb7b0	game	neighbours	between 004eb6e0 and 004eb850
 004eb850	game	class	namespace mg
 004ebab0	game	class	namespace mg
 004ebac0	game	class	namespace mg
@@ -3273,29 +3183,6 @@ entry	subsystem	rule	evidence
 004ec640	game	class	namespace mg
 004ec840	game	class	namespace mg
 004ec8f0	game	class	namespace mg
-004ecb10	game	neighbours	between 004ec8f0 and 004ed840
-004ecb40	game	neighbours	between 004ec8f0 and 004ed840
-004ecb70	game	neighbours	between 004ec8f0 and 004ed840
-004ecb90	game	neighbours	between 004ec8f0 and 004ed840
-004ecbb0	game	neighbours	between 004ec8f0 and 004ed840
-004ecbc0	game	neighbours	between 004ec8f0 and 004ed840
-004ecc10	game	neighbours	between 004ec8f0 and 004ed840
-004ecc60	game	neighbours	between 004ec8f0 and 004ed840
-004ecdb0	game	neighbours	between 004ec8f0 and 004ed840
-004ed080	game	neighbours	between 004ec8f0 and 004ed840
-004ed1d0	game	neighbours	between 004ec8f0 and 004ed840
-004ed1f0	game	neighbours	between 004ec8f0 and 004ed840
-004ed440	game	neighbours	between 004ec8f0 and 004ed840
-004ed480	game	neighbours	between 004ec8f0 and 004ed840
-004ed5d0	game	neighbours	between 004ec8f0 and 004ed840
-004ed640	game	neighbours	between 004ec8f0 and 004ed840
-004ed6b0	game	neighbours	between 004ec8f0 and 004ed840
-004ed6c0	game	neighbours	between 004ec8f0 and 004ed840
-004ed730	game	neighbours	between 004ec8f0 and 004ed840
-004ed740	game	neighbours	between 004ec8f0 and 004ed840
-004ed770	game	neighbours	between 004ec8f0 and 004ed840
-004ed7a0	game	neighbours	between 004ec8f0 and 004ed840
-004ed7e0	game	neighbours	between 004ec8f0 and 004ed840
 004ed810	game	neighbours	between 004ec8f0 and 004ed840
 004ed840	game	class	namespace mg
 004ed8d0	game	class	namespace mg
@@ -3303,44 +3190,40 @@ entry	subsystem	rule	evidence
 004ed8f0	game	class	namespace mg
 004ed920	game	class	namespace mg
 004ed980	game	class	namespace mg
-004edbf0	game	neighbours	between 004ed980 and 004ee000
-004edf90	game	neighbours	between 004ed980 and 004ee000
+004edbf0	game	class	namespace mg
+004edf90	game	class	namespace mg
 004ee000	game	class	namespace mg
 004ee040	game	class	namespace mg
 004ee160	game	class	namespace mg
 004ee170	game	class	namespace mg
 004ee220	game	class	namespace mg
-004ee2c0	game	neighbours	between 004ee220 and 004ee340
+004ee2c0	game	class	namespace mg
 004ee340	game	class	namespace mg
-004ee440	game	neighbours	between 004ee340 and 004ee4d0
-004ee490	game	neighbours	between 004ee340 and 004ee4d0
-004ee4a0	game	neighbours	between 004ee340 and 004ee4d0
+004ee440	game	class	namespace mg
+004ee490	game	neighbours	between 004ee440 and 004ee4d0
+004ee4a0	game	neighbours	between 004ee440 and 004ee4d0
 004ee4d0	game	class	namespace mg
 004ee4e0	game	class	namespace mg
 004ee510	game	class	namespace mg
 004ee540	game	class	namespace mg
 004ee5a0	game	class	namespace mg
-004ee610	game	neighbours	between 004ee5a0 and 004ee910
-004ee760	game	neighbours	between 004ee5a0 and 004ee910
-004ee830	game	neighbours	between 004ee5a0 and 004ee910
-004ee870	game	neighbours	between 004ee5a0 and 004ee910
+004ee610	game	neighbours	between 004ee5a0 and 004ee870
+004ee760	game	neighbours	between 004ee5a0 and 004ee870
+004ee830	game	neighbours	between 004ee5a0 and 004ee870
+004ee870	game	class	namespace mg
 004ee910	game	class	namespace mg
-004ee9d0	game	neighbours	between 004ee910 and 004eea30
+004ee9d0	game	class	namespace mg
 004eea30	game	class	namespace mg
 004eea40	game	class	namespace mg
 004eeab0	game	class	namespace mg
 004eeae0	game	class	namespace mg
 004eeba0	game	class	namespace mg
-004eec40	game	neighbours	between 004eeba0 and 004ef4b0
-004eec60	game	neighbours	between 004eeba0 and 004ef4b0
-004eedc0	game	neighbours	between 004eeba0 and 004ef4b0
-004ef1e0	game	neighbours	between 004eeba0 and 004ef4b0
-004ef340	game	neighbours	between 004eeba0 and 004ef4b0
-004ef430	game	neighbours	between 004eeba0 and 004ef4b0
+004eec40	game	neighbours	between 004eeba0 and 004ef340
+004eec60	game	neighbours	between 004eeba0 and 004ef340
+004ef340	game	class	namespace mg
+004ef430	game	neighbours	between 004ef340 and 004ef4b0
 004ef4b0	game	class	namespace mg
 004ef4c0	game	class	namespace mg
-004ef500	game	neighbours	between 004ef4c0 and 004ef9b0
-004ef530	game	neighbours	between 004ef4c0 and 004ef9b0
 004ef560	game	neighbours	between 004ef4c0 and 004ef9b0
 004ef770	game	neighbours	between 004ef4c0 and 004ef9b0
 004ef980	game	neighbours	between 004ef4c0 and 004ef9b0
@@ -3351,15 +3234,15 @@ entry	subsystem	rule	evidence
 004efa30	game	class	namespace mg
 004efa40	game	class	namespace mg
 004efa50	game	class	namespace mg
-004efb20	game	neighbours	between 004efa50 and 004efe40
-004efb90	game	neighbours	between 004efa50 and 004efe40
-004efc00	game	neighbours	between 004efa50 and 004efe40
-004efc30	game	neighbours	between 004efa50 and 004efe40
-004efc60	game	neighbours	between 004efa50 and 004efe40
-004efce0	game	neighbours	between 004efa50 and 004efe40
-004efd20	game	neighbours	between 004efa50 and 004efe40
-004efd50	game	neighbours	between 004efa50 and 004efe40
-004efdc0	game	neighbours	between 004efa50 and 004efe40
+004efb20	game	class	namespace mg
+004efb90	game	class	namespace mg
+004efc00	game	neighbours	between 004efb90 and 004efc30
+004efc30	game	class	namespace mg
+004efc60	game	class	namespace mg
+004efce0	game	class	namespace mg
+004efd20	game	class	namespace mg
+004efd50	game	class	namespace mg
+004efdc0	game	class	namespace mg
 004efe40	game	class	namespace mg
 004efe90	game	class	namespace mg
 004efff0	game	class	namespace mg
@@ -3373,8 +3256,8 @@ entry	subsystem	rule	evidence
 004f0a60	game	class	namespace mg
 004f0b30	game	class	namespace mg
 004f0c30	game	class	namespace mg
-004f0d50	game	neighbours	between 004f0c30 and 004f0ee0
-004f0da0	game	neighbours	between 004f0c30 and 004f0ee0
+004f0d50	game	neighbours	between 004f0c30 and 004f0da0
+004f0da0	game	class	namespace mg
 004f0ee0	game	class	namespace mg
 004f0f10	world	stub	jumps to 005afb00
 004f0f20	game	neighbours	between 004f0ee0 and 004f0f50
@@ -3382,13 +3265,13 @@ entry	subsystem	rule	evidence
 004f0f60	game	class	namespace mg
 004f0fd0	game	class	namespace mg
 004f10b0	game	class	namespace mg
-004f10e0	game	neighbours	between 004f10b0 and 004f10f0
+004f10e0	game	class	namespace mg
 004f10f0	game	class	namespace mg
 004f1100	game	class	namespace mg
-004f1170	game	neighbours	between 004f1100 and 004f11b0
-004f11a0	game	neighbours	between 004f1100 and 004f11b0
+004f1170	game	class	namespace mg
+004f11a0	game	class	namespace mg
 004f11b0	game	class	namespace mg
-004f1260	game	neighbours	between 004f11b0 and 004f12a0
+004f1260	game	class	namespace mg
 004f12a0	game	class	namespace mg
 004f12f0	game	class	namespace mg
 004f1320	game	class	namespace mg
@@ -3405,97 +3288,66 @@ entry	subsystem	rule	evidence
 004f1720	game	class	namespace mg
 004f1730	game	class	namespace mg
 004f1740	game	class	namespace mg
-004f17a0	game	neighbours	between 004f1740 and 004f1870
-004f1810	game	neighbours	between 004f1740 and 004f1870
-004f1840	game	neighbours	between 004f1740 and 004f1870
+004f17a0	game	class	namespace mg
+004f1810	game	class	namespace mg
+004f1840	game	neighbours	between 004f1810 and 004f1870
 004f1870	game	class	namespace mg
 004f1880	game	class	namespace mg
 004f1aa0	game	class	namespace mg
-004f1ad0	game	neighbours	between 004f1aa0 and 004f1b70
 004f1b70	game	class	namespace mg
 004f1d10	game	class	namespace mg
-004f1ed0	game	neighbours	between 004f1d10 and 004fcfc0
-004f1f80	game	neighbours	between 004f1d10 and 004fcfc0
-004f2020	game	neighbours	between 004f1d10 and 004fcfc0
-004f21e0	game	neighbours	between 004f1d10 and 004fcfc0
-004f2270	game	neighbours	between 004f1d10 and 004fcfc0
-004f22f0	game	neighbours	between 004f1d10 and 004fcfc0
-004f2360	game	neighbours	between 004f1d10 and 004fcfc0
-004f23d0	game	neighbours	between 004f1d10 and 004fcfc0
-004f2410	game	neighbours	between 004f1d10 and 004fcfc0
-004f2a40	game	neighbours	between 004f1d10 and 004fcfc0
-004f2a70	game	neighbours	between 004f1d10 and 004fcfc0
-004f2ac0	game	neighbours	between 004f1d10 and 004fcfc0
-004f2af0	game	neighbours	between 004f1d10 and 004fcfc0
-004f2b20	game	neighbours	between 004f1d10 and 004fcfc0
-004f3400	game	neighbours	between 004f1d10 and 004fcfc0
-004f3470	game	neighbours	between 004f1d10 and 004fcfc0
-004f3760	game	neighbours	between 004f1d10 and 004fcfc0
-004f3d00	game	neighbours	between 004f1d10 and 004fcfc0
-004f8f80	game	neighbours	between 004f1d10 and 004fcfc0
-004f8f90	game	neighbours	between 004f1d10 and 004fcfc0
-004f91f0	game	neighbours	between 004f1d10 and 004fcfc0
-004f9500	game	neighbours	between 004f1d10 and 004fcfc0
-004f96d0	game	neighbours	between 004f1d10 and 004fcfc0
-004f98b0	game	neighbours	between 004f1d10 and 004fcfc0
-004f9a10	game	neighbours	between 004f1d10 and 004fcfc0
-004f9cb0	game	neighbours	between 004f1d10 and 004fcfc0
-004f9e80	game	neighbours	between 004f1d10 and 004fcfc0
-004fa110	game	neighbours	between 004f1d10 and 004fcfc0
-004fa2d0	game	neighbours	between 004f1d10 and 004fcfc0
-004fa460	game	neighbours	between 004f1d10 and 004fcfc0
-004fa650	game	neighbours	between 004f1d10 and 004fcfc0
-004fa690	game	neighbours	between 004f1d10 and 004fcfc0
-004fa6d0	game	neighbours	between 004f1d10 and 004fcfc0
-004fa800	game	neighbours	between 004f1d10 and 004fcfc0
-004fa9d0	game	neighbours	between 004f1d10 and 004fcfc0
-004fa9e0	game	neighbours	between 004f1d10 and 004fcfc0
-004fa9f0	game	neighbours	between 004f1d10 and 004fcfc0
-004faa10	game	neighbours	between 004f1d10 and 004fcfc0
-004faca0	game	neighbours	between 004f1d10 and 004fcfc0
-004faf50	game	neighbours	between 004f1d10 and 004fcfc0
-004faf70	game	neighbours	between 004f1d10 and 004fcfc0
-004fafd0	game	neighbours	between 004f1d10 and 004fcfc0
-004fb010	game	neighbours	between 004f1d10 and 004fcfc0
-004fb040	game	neighbours	between 004f1d10 and 004fcfc0
-004fb080	game	neighbours	between 004f1d10 and 004fcfc0
-004fb120	game	neighbours	between 004f1d10 and 004fcfc0
-004fb150	game	neighbours	between 004f1d10 and 004fcfc0
-004fb480	game	neighbours	between 004f1d10 and 004fcfc0
-004fb4d0	game	neighbours	between 004f1d10 and 004fcfc0
-004fb500	game	neighbours	between 004f1d10 and 004fcfc0
-004fb5d0	game	neighbours	between 004f1d10 and 004fcfc0
-004fb600	game	neighbours	between 004f1d10 and 004fcfc0
-004fb630	game	neighbours	between 004f1d10 and 004fcfc0
-004fb660	game	neighbours	between 004f1d10 and 004fcfc0
-004fb6a0	game	neighbours	between 004f1d10 and 004fcfc0
-004fb750	game	neighbours	between 004f1d10 and 004fcfc0
-004fb8a0	game	neighbours	between 004f1d10 and 004fcfc0
-004fb8e0	game	neighbours	between 004f1d10 and 004fcfc0
-004fbc60	game	neighbours	between 004f1d10 and 004fcfc0
-004fc060	game	neighbours	between 004f1d10 and 004fcfc0
-004fc2b0	game	neighbours	between 004f1d10 and 004fcfc0
-004fc340	game	neighbours	between 004f1d10 and 004fcfc0
-004fc3c0	game	neighbours	between 004f1d10 and 004fcfc0
-004fc3e0	game	neighbours	between 004f1d10 and 004fcfc0
-004fc450	game	neighbours	between 004f1d10 and 004fcfc0
-004fc460	game	neighbours	between 004f1d10 and 004fcfc0
-004fc490	game	neighbours	between 004f1d10 and 004fcfc0
-004fc650	game	neighbours	between 004f1d10 and 004fcfc0
-004fc7a0	game	neighbours	between 004f1d10 and 004fcfc0
-004fc7d0	game	neighbours	between 004f1d10 and 004fcfc0
-004fca20	game	neighbours	between 004f1d10 and 004fcfc0
-004fca50	game	neighbours	between 004f1d10 and 004fcfc0
-004fca80	game	neighbours	between 004f1d10 and 004fcfc0
-004fcae0	game	neighbours	between 004f1d10 and 004fcfc0
-004fcaf0	game	neighbours	between 004f1d10 and 004fcfc0
-004fcb20	game	neighbours	between 004f1d10 and 004fcfc0
-004fcbb0	game	neighbours	between 004f1d10 and 004fcfc0
-004fcc00	game	neighbours	between 004f1d10 and 004fcfc0
-004fcda0	game	neighbours	between 004f1d10 and 004fcfc0
-004fcf40	game	neighbours	between 004f1d10 and 004fcfc0
-004fcf70	game	neighbours	between 004f1d10 and 004fcfc0
-004fcfb0	game	neighbours	between 004f1d10 and 004fcfc0
+004f1ed0	game	neighbours	between 004f1d10 and 004f2020
+004f1f80	game	neighbours	between 004f1d10 and 004f2020
+004f2020	game	class	namespace mg
+004f21e0	game	neighbours	between 004f2020 and 004f2a40
+004f2270	game	neighbours	between 004f2020 and 004f2a40
+004f22f0	game	neighbours	between 004f2020 and 004f2a40
+004f2360	game	neighbours	between 004f2020 and 004f2a40
+004f23d0	game	neighbours	between 004f2020 and 004f2a40
+004f2410	game	neighbours	between 004f2020 and 004f2a40
+004f2a40	game	class	namespace mg
+004f2a70	game	class	namespace mg
+004f2ac0	game	neighbours	between 004f2a70 and 004f8f90
+004f2af0	game	neighbours	between 004f2a70 and 004f8f90
+004f2b20	game	neighbours	between 004f2a70 and 004f8f90
+004f3470	game	neighbours	between 004f2a70 and 004f8f90
+004f3760	game	neighbours	between 004f2a70 and 004f8f90
+004f3d00	game	neighbours	between 004f2a70 and 004f8f90
+004f8f80	game	neighbours	between 004f2a70 and 004f8f90
+004f8f90	game	class	namespace mg
+004f91f0	game	class	namespace mg
+004f9500	game	class	namespace mg
+004f96d0	game	class	namespace mg
+004f9a10	game	neighbours	between 004f96d0 and 004f9e80
+004f9cb0	game	neighbours	between 004f96d0 and 004f9e80
+004f9e80	game	class	namespace mg
+004fa110	game	neighbours	between 004f9e80 and 004fa650
+004fa2d0	game	neighbours	between 004f9e80 and 004fa650
+004fa460	game	neighbours	between 004f9e80 and 004fa650
+004fa650	game	class	namespace mg
+004fa690	game	class	namespace mg
+004fa6d0	game	class	namespace mg
+004fa800	game	class	namespace mg
+004fa9d0	game	neighbours	between 004fa800 and 004fcfc0
+004fa9e0	game	neighbours	between 004fa800 and 004fcfc0
+004faca0	game	neighbours	between 004fa800 and 004fcfc0
+004faf50	game	neighbours	between 004fa800 and 004fcfc0
+004fb6a0	game	neighbours	between 004fa800 and 004fcfc0
+004fb8a0	game	neighbours	between 004fa800 and 004fcfc0
+004fbc60	game	neighbours	between 004fa800 and 004fcfc0
+004fc7d0	game	neighbours	between 004fa800 and 004fcfc0
+004fca20	game	neighbours	between 004fa800 and 004fcfc0
+004fca50	game	neighbours	between 004fa800 and 004fcfc0
+004fca80	game	neighbours	between 004fa800 and 004fcfc0
+004fcae0	game	neighbours	between 004fa800 and 004fcfc0
+004fcaf0	game	neighbours	between 004fa800 and 004fcfc0
+004fcb20	game	neighbours	between 004fa800 and 004fcfc0
+004fcbb0	game	neighbours	between 004fa800 and 004fcfc0
+004fcc00	game	neighbours	between 004fa800 and 004fcfc0
+004fcda0	game	neighbours	between 004fa800 and 004fcfc0
+004fcf40	game	neighbours	between 004fa800 and 004fcfc0
+004fcf70	game	neighbours	between 004fa800 and 004fcfc0
+004fcfb0	game	neighbours	between 004fa800 and 004fcfc0
 004fcfc0	game	class	namespace mg
 004fd180	game	class	namespace mg
 004fd1b0	game	class	namespace mg
@@ -7552,9 +7404,6 @@ entry	subsystem	rule	evidence
 005dc030	game	funclet	EH tables of 004d8ea0
 005dc050	game	funclet	EH tables of 004d95b0
 005dc058	game	funclet	EH tables of 004d95b0
-005dc070	game	funclet	EH tables of 004d9b60
-005dc078	game	funclet	EH tables of 004d9b60
-005dc080	game	funclet	EH tables of 004d9b60
 005dc0a0	game	funclet	EH tables of 004da100
 005dc0a8	game	funclet	EH tables of 004da100
 005dc0b0	game	funclet	EH tables of 004da100
@@ -7568,7 +7417,6 @@ entry	subsystem	rule	evidence
 005dc0fc	game	funclet	EH tables of 004da100
 005dc110	game	funclet	EH tables of 004da2a0
 005dc130	game	funclet	EH tables of 004da3c0
-005dc150	game	funclet	EH tables of 004da5e0
 005dc170	game	funclet	EH tables of 004da6f0
 005dc178	game	funclet	EH tables of 004da6f0
 005dc189	game	funclet	EH tables of 004da6f0
@@ -7579,8 +7427,6 @@ entry	subsystem	rule	evidence
 005dc1e0	ui	funclet	EH tables of 004db290
 005dc1e8	ui	funclet	EH tables of 004db290
 005dc1f0	ui	funclet	EH tables of 004db290
-005dc210	ui	funclet	EH tables of 004db7c0
-005dc221	ui	funclet	EH tables of 004db7c0
 005dc240	res	funclet	EH tables of 004dd820
 005dc24b	res	funclet	EH tables of 004dd820
 005dc256	res	funclet	EH tables of 004dd820
@@ -7602,9 +7448,6 @@ entry	subsystem	rule	evidence
 005dc3a3	res	funclet	EH tables of 004e0940
 005dc3ab	res	funclet	EH tables of 004e0940
 005dc3c0	res	funclet	EH tables of 004e0f30
-005dc3e0	res	funclet	EH tables of 004e3ad0
-005dc400	res	funclet	EH tables of 004e3cb0
-005dc411	res	funclet	EH tables of 004e3cb0
 005dc430	res	funclet	EH tables of 004e4190
 005dc438	res	funclet	EH tables of 004e4190
 005dc440	res	funclet	EH tables of 004e4190
@@ -7625,16 +7468,6 @@ entry	subsystem	rule	evidence
 005dc510	res	funclet	EH tables of 004e50d0
 005dc518	res	funclet	EH tables of 004e50d0
 005dc520	res	funclet	EH tables of 004e50d0
-005dc550	res	funclet	EH tables of 004e5880
-005dc558	res	funclet	EH tables of 004e5880
-005dc560	res	funclet	EH tables of 004e5880
-005dc5b0	res	funclet	EH tables of 004e5e90
-005dc5b8	res	funclet	EH tables of 004e5e90
-005dc5c3	res	funclet	EH tables of 004e5e90
-005dc5cb	res	funclet	EH tables of 004e5e90
-005dc5d3	res	funclet	EH tables of 004e5e90
-005dc5db	res	funclet	EH tables of 004e5e90
-005dc5f0	res	funclet	EH tables of 004e6090
 005dc610	res	funclet	EH tables of 004e6110
 005dc630	res	funclet	EH tables of 004e61e0
 005dc638	res	funclet	EH tables of 004e61e0
@@ -7678,8 +7511,6 @@ entry	subsystem	rule	evidence
 005dc8e8	game	funclet	EH tables of 004eeae0
 005dc900	game	funclet	EH tables of 004eec60
 005dc90b	game	funclet	EH tables of 004eec60
-005dc920	game	funclet	EH tables of 004eedc0
-005dc960	game	funclet	EH tables of 004ef1e0
 005dc980	game	funclet	EH tables of 004ef340
 005dc9a0	game	funclet	EH tables of 004f0020
 005dc9a8	game	funclet	EH tables of 004f0020
@@ -7726,7 +7557,6 @@ entry	subsystem	rule	evidence
 005dcc30	game	funclet	EH tables of 004f96d0
 005dcc38	game	funclet	EH tables of 004f96d0
 005dcc40	game	funclet	EH tables of 004f96d0
-005dcc60	game	funclet	EH tables of 004f98b0
 005dcc80	game	funclet	EH tables of 004f9cb0
 005dcc88	game	funclet	EH tables of 004f9cb0
 005dcca0	game	funclet	EH tables of 004f9e80
@@ -7740,12 +7570,6 @@ entry	subsystem	rule	evidence
 005dcd20	game	funclet	EH tables of 004fa460
 005dcd40	game	funclet	EH tables of 004fa6d0
 005dcd60	game	funclet	EH tables of 004fa800
-005dcd80	game	funclet	EH tables of 004fb500
-005dcd88	game	funclet	EH tables of 004fb500
-005dcda0	game	funclet	EH tables of 004fc490
-005dcdb1	game	funclet	EH tables of 004fc490
-005dcdd0	game	funclet	EH tables of 004fc650
-005dcde1	game	funclet	EH tables of 004fc650
 005dce00	game	funclet	EH tables of 004fcfc0
 005dce0b	game	funclet	EH tables of 004fcfc0
 005dce16	game	funclet	EH tables of 004fcfc0

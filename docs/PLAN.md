@@ -1226,7 +1226,57 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
       `g_itemInfoById` value) and `CardInfo` (0x30, the `g_cardInfoById` value), each
       with a constructor and destructor.
 
+- [x] Naming run 5: the 293 unnamed reachable functions of the source files from
+  `0x4d8d30` to `0x4fcf40`. They cover the skill and item tables, the resource manager
+  and the archives, the XML reader, the DES and SEED ciphers and CRC-32 of the archive
+  and packet code, the stream and locale internals, and the mini-game engine (`mg::`).
+  The rows are in `inferred.functions.tsv`.
+  - **Quality.**
+    - The namer's confidence: 177 high, 112 medium, 4 low.
+    - The reviewer accepted 284 rows, revised 9 and rejected none:
+      - one game word without evidence ("skill" in `IsIdNotInFixedList`);
+      - six evidence fixes: argument order, CRC-32's non-standard seed `0x12477cdf`,
+        the script header's two magic numbers, a call frame's return index;
+      - `GetlineTail` became `__thiscall`, like `ReallocateBufferTail`.
+    - My checks: every address has one row, every namespace exists. Eight evenly
+      spaced accepted rows were correct against the disassembly.
+    - The ciphers are named from their constants, as `Md5Context` was: DES from its
+      permutation and S-box tables at `0x5e8b00`–`0x5e8c48`, SEED from its key
+      constants and SS tables. A few names come from Korean (cp949) strings in the
+      binary, decoded by the agents.
+  - **New class `XmlElement`** (40 bytes). The run's element functions had gone into
+    `XmlDocument`, which gave it two constructors. `XmlDocument`'s constructor builds
+    itself as the root with the element constructor, and `ParseElement` allocates each
+    element with `operator new(0x28)`. The constructor, destructor, `AddChild`,
+    `AppendSibling`, `FindChild` and `FindNextSibling` moved to `XmlElement`; the parser
+    stays in `XmlDocument`. `recover_layouts` covers 37 of its 40 bytes.
+  - **`docs/naming.md`'s library table** gained the block-list (deque) helpers,
+    `std::Tree::CopyNodesFrom`, `std::locale::GetFacetIndex`, the facet's
+    `DecrementRefCount`/`RegisterStatic`, and `basic_istream`'s `InputPrefix` and
+    `GetlineTail`.
+  - **Result.** 146 of the 293 are STL and C++ library code, now library; 147 are named
+    game functions. Code functions named or library-tagged: 86.8% → **91.2%** of 6,619
+    reachable ones, past M1's 90%. Over all 7,115 code functions, the unreachable 496
+    included, it is 88.3%. Game code to port: 4,306 of 4,886 functions named, 87.8% of
+    its bytes. Converges in three passes: the second resets two `std::string`
+    `method_` placeholders that `recover_layouts` no longer proposes.
+  - **Cost.** 992k agent tokens (namer 544k, reviewer 448k), 243 tool calls, 42
+    minutes: 3.4k tokens a function.
+  - **The namer's notes:** a whole-binary search for a field offset or call target
+    (it disassembled all of `.text` into a file and grepped it), a reader for bytes,
+    dwords, floats and strings at an address, and a shared validator for the
+    `names.tsv` columns. `[ecx+n]` lists table addresses used as displacements.
+  - **Class proposals from the run, not yet decided:** `DesCipher` and
+    `SeedCipherContext` (stack objects in `CGPak` and the packet code),
+    `HashedFileName` (0x100 bytes, the key of the resource trees and of `CGPak`'s
+    entries; a djb2 hash of the lower-cased name) and `ScriptRecord` (the 0x28-byte
+    element of `mg::CScript`'s vector).
+
 ### Next actions (M1)
-1. Name the remaining 873 reachable game functions (243 KB) the same way, in
-   source-file batches, skipping unreachable code. 212 more are needed for 90%: one
-   more run.
+1. M1's naming exit is met (91.2% of reachable code). Check the other M1 items against
+   section 5 (constructors, destructors and sizes for all classes; the class graph;
+   `docs/architecture.md`) and close M1.
+2. Decide the class proposals of naming runs 3–5 (records, `WndInfo`, `MovePath`,
+   `ViewFrustum`, `ItemInfo`, `CardInfo`, the cipher contexts, `HashedFileName`, ...).
+3. The 580 reachable game functions still unnamed (174 KB) can be named the same way
+   when their subsystems are ported.

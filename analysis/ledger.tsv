@@ -730,7 +730,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004235e0	50	code	1	stl		named	std::basic_istream<char,std::char_traits<char>_>	`scalar_deleting_destructor'	
 00423620	33	code	1	stl		named	std::basic_streambuf<char,std::char_traits<char>_>	`scalar_deleting_destructor'	
 00423650	528	code	1	stl		named	std::string	assign	
-00423860	284	code	1	stl		named	std::string	method_00423860	
+00423860	284	code	1	stl		raw	Global	FUN_00423860	
 00423980	75	code	1	stl		named	std::string	FreeBuffer	
 004239d0	60	code	1	stl		named	std::fpos	fpos	
 00423a10	740	code	1	stl		named	std::vector	insert	
@@ -747,7 +747,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00424f80	20	code	1	stl		raw	Global	FUN_00424f80	
 00424fa0	290	code	1	stl		named	std::string	GrowBuffer	
 004250d0	11	code	1	stl		named	std::string	GetRefCountByte	
-004250e0	216	code	1	stl		named	std::string	method_004250e0	
+004250e0	216	code	1	stl		raw	Global	FUN_004250e0	
 004251c0	19	code	1	stl		named	std::allocator	deallocate	
 004251e0	3	code	1	stl		named	std::allocator	destroy	
 004251f0	3	code	1	stl		named	std::allocator	destroy	
@@ -3323,7 +3323,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004c95b0	209	code	0	res		named	XmlDocument	XmlDocument	
 004c9690	12	code	0	res		named	Global	register_destroy_g_XmlDocument	
 004c96a0	10	code	0	res		named	Global	destroy_g_XmlDocument	
-004c96b0	5	thunk	0	res		-	Global	thunk_FUN_004e6350	
+004c96b0	5	thunk	0	res		-	XmlElement	~XmlElement	
 004c96c0	10	code	0	res		named	Global	static_init_108	
 004c96d0	33	code	0	res		named	Global	static_init_108_body	
 004c9700	12	code	0	res		named	Global	register_destroy_global_0067c988	
@@ -3651,40 +3651,40 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004d8d30	37	code	0	game		named	Global	static_init_125	
 004d8d60	10	code	0	game		named	Global	static_init_126	
 004d8d70	77	code	0	game		named	Global	static_init_126_body	
-004d8dc0	12	code	0	game		raw	Global	FUN_004d8dc0	
-004d8dd0	32	code	0	game		raw	Global	FUN_004d8dd0	
-004d8df0	17	code	0	game		raw	Global	FUN_004d8df0	
-004d8e10	44	code	0	game		raw	Global	FUN_004d8e10	
-004d8e40	88	code	0	game		raw	Global	FUN_004d8e40	
-004d8ea0	1110	code	0	game		raw	Global	FUN_004d8ea0	
-004d9300	69	code	0	game		raw	Global	FUN_004d9300	
-004d9350	69	code	0	game		raw	Global	FUN_004d9350	
-004d93a0	101	code	0	game		raw	Global	FUN_004d93a0	
+004d8dc0	12	code	0	game		named	Global	register_destroy_global_0067cca0	
+004d8dd0	32	code	0	game		named	Global	destroy_global_0067cca0	
+004d8df0	17	code	0	game		named	Global	GetMsgString	
+004d8e10	44	code	0	game		named	Global	IsSpecialActorIdOnKoreaService	
+004d8e40	88	code	0	game		named	Global	InitMsgStringTable	
+004d8ea0	1110	code	0	game		named	Global	ResolveUIResourcePath	
+004d9300	69	code	0	game		named	Global	destroy_global_0067cc78	
+004d9350	69	code	0	game		named	Global	destroy_global_0067cc88	
+004d93a0	101	code	0	game		named	Global	ReverseAlphabetInPlace	
 004d9410	37	code	0	game		named	Global	static_init_127	
 004d9440	10	code	0	game		named	Global	static_init_128	
 004d9450	26	code	0	game		named	Global	static_init_128_body	
-004d9470	12	code	0	game		raw	Global	FUN_004d9470	
-004d9480	31	code	0	game		raw	Global	FUN_004d9480	
-004d94a0	242	code	0	game		raw	Global	FUN_004d94a0	
-004d95a0	13	code	0	game		raw	Global	FUN_004d95a0	
+004d9470	12	code	0	game		named	Global	register_destroy_g_skillInfoById	
+004d9480	31	code	0	game		named	Global	destroy_g_skillInfoById	
+004d94a0	242	code	1	stl		named	std::Tree	~Tree	
+004d95a0	13	code	0	game		named	Global	GetSkillRecordIdName	
 004d95b0	866	code	0	game	unreferenced	raw	Global	FUN_004d95b0	
-004d9920	39	code	0	game		raw	Global	FUN_004d9920	
-004d99e0	37	code	0	game		raw	Global	FUN_004d99e0	
-004d9a60	19	code	0	game		raw	Global	FUN_004d9a60	
+004d9920	39	code	0	game		named	Global	IsSkillIdInFlagList	
+004d99e0	37	code	0	game		named	Global	IsIdNotInFixedList	
+004d9a60	19	code	0	game		named	Global	GetSkillIdName	
 004d9a80	172	code	1	stl		named	std::Tree	InitHead	
 004d9b30	6	code	0	game	dead	raw	Global	FUN_004d9b30	
-004d9b40	17	code	0	game		raw	Global	FUN_004d9b40	
-004d9b60	1280	code	0	game		raw	Global	FUN_004d9b60	
-004da060	70	code	0	game		raw	Global	FUN_004da060	
-004da0b0	67	code	0	game		raw	Global	FUN_004da0b0	
+004d9b40	17	code	1	stl		named	std::Tree	begin	
+004d9b60	1280	code	1	stl		named	std::Tree	erase	
+004da060	70	code	1	stl		named	std::Tree	EraseSubtree	
+004da0b0	67	code	1	stl		named	std::Tree	IncrementIterator	
 004da100	407	code	0	game	dead	raw	Global	FUN_004da100	
 004da2a0	275	code	0	game	dead	raw	Global	FUN_004da2a0	
 004da3c0	341	code	0	game	dead	raw	Global	FUN_004da3c0	
 004da520	10	code	0	game	dead	named	Global	destroy_global_006890a0	
 004da530	10	code	0	game	dead	raw	Global	FUN_004da530	
 004da540	150	code	0	game	dead	raw	Global	FUN_004da540	
-004da5e0	223	code	0	game		raw	Global	FUN_004da5e0	
-004da6c0	33	code	0	game		raw	Global	FUN_004da6c0	
+004da5e0	223	code	1	stl		named	std::pair	~pair	
+004da6c0	33	code	1	stl		named	std::pair	`scalar_deleting_destructor'	
 004da6f0	322	code	0	game	dead	raw	Global	FUN_004da6f0	
 004da840	607	code	0	game	dead	raw	Global	FUN_004da840	
 004daaa0	87	code	0	game	dead	raw	Global	FUN_004daaa0	
@@ -3703,12 +3703,12 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004db1d0	26	code	0	ui		named	TipOfTheDayList	TipOfTheDayList	
 004db1f0	12	code	0	ui		named	Global	register_destroy_g_TipOfTheDayList	
 004db200	10	code	0	ui		named	Global	destroy_g_TipOfTheDayList	
-004db210	119	code	0	ui		raw	Global	FUN_004db210	
+004db210	119	code	0	ui		named	TipOfTheDayList	~TipOfTheDayList	
 004db290	607	code	0	ui		named	TipOfTheDayList	Load	
 004db4f0	44	code	0	ui		named	TipOfTheDayList	GetTip	
 004db520	660	code	0	ui		named	TipOfTheDayList	method_004db520	
-004db7c0	477	code	0	ui		raw	Global	FUN_004db7c0	
-004db9a0	517	code	0	core		raw	Global	FUN_004db9a0	
+004db7c0	477	code	1	stl		named	std	ConstructAt	
+004db9a0	517	code	1	stl		named	std::vector	operator=	
 004dbbb0	37	code	0	render		named	Global	static_init_131	
 004dbbe0	13	code	0	render		named	MoviePlayer	MoviePlayer	
 004dbbf0	310	code	0	render		named	MoviePlayer	method_004dbbf0	
@@ -3721,16 +3721,16 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004dbf50	103	code	0	render		named	MoviePlayer	method_004dbf50	
 004dbfc0	194	code	0	render		named	MoviePlayer	Play	
 004dc090	37	code	0	res		named	Global	static_init_132	
-004dc0c0	3	code	0	res		raw	Global	FUN_004dc0c0	
-004dc0d0	1	code	0	res		raw	Global	FUN_004dc0d0	
+004dc0c0	3	code	0	res		named	Global	InitDesCipher	
+004dc0d0	1	code	0	res		named	Global	DestroyDesCipher	
 004dc0e0	186	code	0	res	unreferenced	raw	Global	FUN_004dc0e0	
-004dc1a0	555	code	0	res		raw	Global	FUN_004dc1a0	
+004dc1a0	555	code	0	res		named	Global	DesSetKey	
 004dc3d0	797	code	0	res	unreferenced	raw	Global	FUN_004dc3d0	
-004dc820	755	code	0	res		raw	Global	FUN_004dc820	
-004dcc40	496	code	0	res		raw	Global	FUN_004dcc40	
+004dc820	755	code	0	res		named	Global	DecryptBlocksMixed	
+004dcc40	496	code	0	res		named	Global	DecryptFirstBlocks	
 004dce30	367	code	0	res	unreferenced	raw	Global	FUN_004dce30	
-004dcfa0	117	code	0	res		raw	Global	FUN_004dcfa0	
-004dd020	117	code	0	res		raw	Global	FUN_004dd020	
+004dcfa0	117	code	0	res		named	Global	DesInitialPermutation	
+004dd020	117	code	0	res		named	Global	DesFinalPermutation	
 004dd0a0	331	code	0	res	dead	raw	Global	FUN_004dd0a0	
 004dd1f0	201	code	0	res	unreferenced	raw	Global	FUN_004dd1f0	
 004dd2c0	37	code	0	res		named	Global	static_init_133	
@@ -3741,16 +3741,16 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004dd430	117	code	0	res		named	DataFile	Read	
 004dd4b0	45	code	0	res		named	DataFile	Write	
 004dd4e0	98	code	0	res		named	DataFile	method_004dd4e0	
-004dd550	70	code	0	res		raw	Global	FUN_004dd550	
-004dd5a0	368	code	0	res		raw	Global	FUN_004dd5a0	
+004dd550	70	code	0	res		named	Global	DataFileExists	
+004dd5a0	368	code	0	res		named	Global	MakeDataPath	
 004dd710	37	code	0	res		named	Global	static_init_134	
 004dd740	10	code	0	res		named	Global	static_init_135	
 004dd750	26	code	0	res		named	Global	static_init_135_body	
 004dd770	12	code	0	res		named	Global	register_destroy_g_CGPak	
 004dd780	10	code	0	res		named	Global	destroy_g_CGPak	
-004dd790	20	code	0	res		raw	Global	FUN_004dd790	
+004dd790	20	code	0	res		named	Global	SwapNibbles	
 004dd7b0	56	code	0	res	unreferenced	raw	Global	FUN_004dd7b0	
-004dd7f0	44	code	0	res		raw	Global	FUN_004dd7f0	
+004dd7f0	44	code	0	res		named	Global	SwapNibblesCopy	
 004dd820	168	code	0	res		named	CGPak	CGPak	
 004dd8d0	33	code	0	res		named	CGPak	`scalar_deleting_destructor'	
 004dd900	147	code	0	res		named	CGPak	~CGPak	
@@ -3766,7 +3766,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004de830	605	code	0	res		named	CGPak	method_004de830	
 004dea90	140	code	0	res		named	CGPak	method_004dea90	
 004deb20	154	code	0	res		named	CGPak	method_004deb20	
-004debc0	57	code	0	res		raw	Global	FUN_004debc0	
+004debc0	57	code	0	res		named	CGPak	ExistsOnDisk	
 004dec00	119	code	0	res		named	CGPak	GetFileName	
 004dec80	68	code	0	res		named	CGPak	method_004dec80	
 004decd0	119	code	0	res		named	CGPak	method_004decd0	
@@ -3775,200 +3775,200 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004dedb0	5	thunk	0	res		-	CSakGPak	~CSakGPak	
 004dedc0	100	code	0	res		named	CSakGPak	vf01	
 004dee30	66	code	0	res		named	CSakGPak	vf02	
-004dee80	38	code	0	res		raw	Global	FUN_004dee80	
-004deeb0	819	code	0	res		raw	Global	FUN_004deeb0	
-004df1f0	3	code	0	res		raw	Global	FUN_004df1f0	
-004df200	47	code	0	res		raw	Global	FUN_004df200	
-004df230	3	code	0	res		raw	Global	FUN_004df230	
-004df240	36	code	0	res		raw	Global	FUN_004df240	
-004df270	36	code	0	res		raw	Global	FUN_004df270	
+004dee80	38	code	1	stl		named	std::vector	~vector	
+004deeb0	819	code	1	stl		named	std::vector	insert	
+004df1f0	3	code	1	stl		named	std::vector	DestroyRange	
+004df200	47	code	1	stl		named	std::vector	erase	
+004df230	3	code	1	stl		named	std::vector	DestroyRange	
+004df240	36	code	1	stl		named	std::vector	CopyUninitialized	
+004df270	36	code	1	stl		named	std::vector	FillUninitialized	
 004df2a0	37	code	0	res		named	Global	static_init_136	
-004df2d0	607	code	0	res		raw	Global	FUN_004df2d0	
-004df530	91	code	0	res		raw	Global	FUN_004df530	
-004df590	178	code	0	res		raw	Global	FUN_004df590	
-004df650	184	code	0	res		raw	Global	FUN_004df650	
-004df710	17	code	0	res		raw	Global	FUN_004df710	
-004df730	22	code	0	res		raw	Global	FUN_004df730	
-004df750	66	code	0	res		raw	Global	FUN_004df750	
-004df7a0	104	code	0	res		raw	Global	FUN_004df7a0	
+004df2d0	607	code	1	stl		named	std	QuickSortRange	
+004df530	91	code	1	stl		named	std	ShiftInsertSorted	
+004df590	178	code	1	stl		named	std	MedianOfThree	
+004df650	184	code	1	stl		named	std	PartitionRange	
+004df710	17	code	0	res		named	Global	InitEmptyHashedFileName	
+004df730	22	code	0	res		named	Global	InitHashedFileName	
+004df750	66	code	0	res		named	Global	SetHashedFileName	
+004df7a0	104	code	0	res		named	Global	HashedFileNameLess	
 004df810	21	code	0	res	unreferenced	raw	Global	FUN_004df810	
-004df830	100	code	0	res		raw	Global	FUN_004df830	
-004df8a0	80	code	0	res		raw	Global	FUN_004df8a0	
+004df830	100	code	0	res		named	Global	HashedFileNameNotEqual	
+004df8a0	80	code	0	res		named	Global	ComputeFileNameHash	
 004df8f0	37	code	0	res		named	Global	static_init_137	
 004df920	33	code	0	res		named	CRes	CRes	
-004df950	8	code	0	res		raw	Global	FUN_004df950	
-004df960	17	code	0	res		raw	Global	FUN_004df960	
-004df980	4	code	0	res		raw	Global	FUN_004df980	
-004df990	36	code	0	res		raw	Global	FUN_004df990	
-004df9c0	14	code	0	res		raw	Global	FUN_004df9c0	
+004df950	8	code	0	res		named	CRes	AddRef	
+004df960	17	code	0	res		named	CRes	Release	
+004df980	4	code	0	res		named	CRes	GetName	
+004df990	36	code	0	res		named	CRes	SetNameAndType	
+004df9c0	14	code	0	res		named	CRes	Touch	
 004df9d0	51	code	0	res		named	CRes	vf05	
 004dfa10	51	code	0	res		named	Global	GetResourceManager	
 004dfa50	10	code	0	res		named	Global	destroy_g_ResourceManager	
 004dfa60	372	code	1	stl		named	ResourceManager	ResourceManager	
-004dfbe0	232	code	0	res		raw	Global	FUN_004dfbe0	
-004dfcd0	382	code	0	res		raw	Global	FUN_004dfcd0	
-004dfe50	242	code	0	res		raw	Global	FUN_004dfe50	
+004dfbe0	232	code	1	stl		named	std::Tree	~Tree	
+004dfcd0	382	code	0	res		named	ResourceManager	~ResourceManager	
+004dfe50	242	code	1	stl		named	std::Tree	~Tree	
 004dff50	5	thunk	0	res		-	ResourceManager	Clear	
 004dff60	557	code	0	res		named	ResourceManager	GetResource	
-004e0190	227	code	0	res		raw	Global	FUN_004e0190	
-004e0280	135	code	0	res		raw	Global	FUN_004e0280	
+004e0190	227	code	0	res		named	ResourceManager	Exists	
+004e0280	135	code	0	res		named	ResourceManager	UnloadResource	
 004e0310	317	code	0	res		named	ResourceManager	Clear	
-004e0450	231	code	0	res		raw	Global	FUN_004e0450	
-004e0540	212	code	0	res		raw	Global	FUN_004e0540	
-004e0620	159	code	0	res		raw	Global	FUN_004e0620	
-004e06c0	388	code	0	res		raw	Global	FUN_004e06c0	
-004e0850	232	code	0	res		raw	Global	FUN_004e0850	
+004e0450	231	code	0	res		named	ResourceManager	UnloadExpiredResources	
+004e0540	212	code	0	res		named	ResourceManager	UnloadUnusedResources	
+004e0620	159	code	0	res		named	ResourceManager	UnloadUnusedResourcesOfType	
+004e06c0	388	code	0	res		named	ResourceManager	RegisterType	
+004e0850	232	code	1	stl		named	std::Tree	~Tree	
 004e0940	711	code	0	res		named	ResourceManager	LoadResNameTable	
-004e0c10	109	code	0	res		raw	Global	FUN_004e0c10	
+004e0c10	109	code	1	stl		named	std::pair	~pair	
 004e0c80	218	code	0	res	unreferenced	raw	Global	FUN_004e0c80	
-004e0d60	135	code	0	res		raw	Global	FUN_004e0d60	
-004e0df0	121	code	0	res		raw	Global	FUN_004e0df0	
-004e0e70	32	code	0	res		raw	Global	FUN_004e0e70	
-004e0e90	152	code	0	res		raw	Global	FUN_004e0e90	
-004e0f30	260	code	0	res		raw	Global	FUN_004e0f30	
-004e1040	40	code	0	res		raw	Global	FUN_004e1040	
-004e1070	221	code	0	res		raw	Global	FUN_004e1070	
-004e1150	38	code	0	res		raw	Global	FUN_004e1150	
-004e1180	56	code	0	res		raw	Global	FUN_004e1180	
-004e11c0	17	code	0	res		raw	Global	FUN_004e11c0	
-004e11e0	655	code	0	res		raw	Global	FUN_004e11e0	
-004e1470	203	code	0	res		raw	Global	FUN_004e1470	
-004e1540	17	code	0	res		raw	Global	FUN_004e1540	
-004e1560	1039	code	0	res		raw	Global	FUN_004e1560	
-004e1970	203	code	0	res		raw	Global	FUN_004e1970	
-004e1a40	67	code	0	res		raw	Global	FUN_004e1a40	
-004e1a90	739	code	0	res		raw	Global	FUN_004e1a90	
-004e1d80	35	code	0	res		raw	Global	FUN_004e1d80	
+004e0d60	135	code	0	res		named	ResourceManager	FindLoadedResource	
+004e0df0	121	code	0	res		named	ResourceManager	AddTypeFolder	
+004e0e70	32	code	0	res		named	ResourceManager	GetExtension	
+004e0e90	152	code	0	res		named	ResourceManager	GetTypeIndex	
+004e0f30	260	code	0	res		named	ResourceManager	MapResourceName	
+004e1040	40	code	0	res		named	ResourceManager	LowerCaseName	
+004e1070	221	code	1	stl		named	std::Tree	~Tree	
+004e1150	38	code	1	stl		named	std::vector	~vector	
+004e1180	56	code	1	stl		named	std::vector	~vector	
+004e11c0	17	code	1	stl		named	std::Tree	begin	
+004e11e0	655	code	1	stl		named	std::Tree	insert	
+004e1470	203	code	1	stl		named	std::Tree	erase	
+004e1540	17	code	1	stl		named	std::Tree	begin	
+004e1560	1039	code	1	stl		named	std::Tree	erase	
+004e1970	203	code	1	stl		named	std::Tree	erase	
+004e1a40	67	code	1	stl		named	std::Tree	IncrementIterator	
+004e1a90	739	code	1	stl		named	std::vector	insert	
+004e1d80	35	code	1	stl		named	std::vector	DestroyRange	
 004e1db0	17	code	1	stl		named	std::Tree	method_004e1db0	
-004e1dd0	607	code	0	res		raw	Global	FUN_004e1dd0	
+004e1dd0	607	code	1	stl		named	std::Tree	insert	
 004e2030	211	code	1	stl		named	std::Tree	method_004e2030	
-004e2110	24	code	0	res		raw	Global	FUN_004e2110	
-004e2130	24	code	0	res		raw	Global	FUN_004e2130	
-004e2150	1039	code	0	res		raw	Global	FUN_004e2150	
-004e2560	62	code	0	res		raw	Global	FUN_004e2560	
+004e2110	24	code	1	stl		named	std::pair	pair	
+004e2130	24	code	1	stl		named	std::pair	pair	
+004e2150	1039	code	1	stl		named	std::Tree	erase	
+004e2560	62	code	1	stl		named	std::Tree	EraseSubtree	
 004e25a0	151	code	1	stl		named	std::Tree	InitHead	
-004e2640	651	code	0	res		raw	Global	FUN_004e2640	
-004e28d0	62	code	0	res		raw	Global	FUN_004e28d0	
+004e2640	651	code	1	stl		named	std::Tree	InsertAt	
+004e28d0	62	code	1	stl		named	std::Tree	EraseSubtree	
 004e2910	151	code	1	stl		named	std::Tree	InitHead	
-004e29b0	634	code	0	res		raw	Global	FUN_004e29b0	
-004e2c30	28	code	0	res		raw	Global	FUN_004e2c30	
-004e2c50	521	code	0	res		raw	Global	FUN_004e2c50	
-004e2e60	1139	code	0	res		raw	Global	FUN_004e2e60	
-004e32e0	101	code	0	res		raw	Global	FUN_004e32e0	
-004e3350	70	code	0	res		raw	Global	FUN_004e3350	
-004e33a0	634	code	0	res		raw	Global	FUN_004e33a0	
-004e3620	83	code	0	res		raw	Global	FUN_004e3620	
-004e3680	87	code	0	res		raw	Global	FUN_004e3680	
-004e36e0	28	code	0	res		raw	Global	FUN_004e36e0	
-004e3700	91	code	0	res		raw	Global	FUN_004e3700	
-004e3760	29	code	0	res		raw	Global	FUN_004e3760	
-004e3780	81	code	0	res		raw	Global	FUN_004e3780	
-004e37e0	75	code	0	res		raw	Global	FUN_004e37e0	
-004e3830	81	code	0	res		raw	Global	FUN_004e3830	
-004e3890	87	code	0	res		raw	Global	FUN_004e3890	
-004e38f0	28	code	0	res		raw	Global	FUN_004e38f0	
-004e3910	91	code	0	res		raw	Global	FUN_004e3910	
-004e3970	29	code	0	res		raw	Global	FUN_004e3970	
-004e3990	81	code	0	res		raw	Global	FUN_004e3990	
-004e39f0	67	code	0	res		raw	Global	FUN_004e39f0	
-004e3a40	67	code	0	res		raw	Global	FUN_004e3a40	
-004e3a90	25	code	0	res		raw	Global	FUN_004e3a90	
-004e3ab0	25	code	0	res		raw	Global	FUN_004e3ab0	
-004e3ad0	442	code	0	res		raw	Global	FUN_004e3ad0	
-004e3c90	29	code	0	res		raw	Global	FUN_004e3c90	
-004e3cb0	325	code	0	res		raw	Global	FUN_004e3cb0	
-004e3e00	33	code	0	res		raw	Global	FUN_004e3e00	
-004e3e30	374	code	0	res		raw	Global	FUN_004e3e30	
-004e3fb0	232	code	0	res		raw	Global	FUN_004e3fb0	
-004e40a0	143	code	0	res		raw	Global	FUN_004e40a0	
+004e29b0	634	code	1	stl		named	std::Tree	InsertAt	
+004e2c30	28	code	1	stl		named	std::Tree	LeftmostNode	
+004e2c50	521	code	1	stl		named	std::vector	insert	
+004e2e60	1139	code	1	stl		named	std::Tree	erase	
+004e32e0	101	code	1	stl		named	std::Tree	lower_bound	
+004e3350	70	code	1	stl		named	std::Tree	EraseSubtree	
+004e33a0	634	code	1	stl		named	std::Tree	InsertAt	
+004e3620	83	code	1	stl		named	std::Tree	lower_bound	
+004e3680	87	code	1	stl		named	std::Tree	RotateLeft	
+004e36e0	28	code	1	stl		named	std::Tree	LeftmostNode	
+004e3700	91	code	1	stl		named	std::Tree	RotateRight	
+004e3760	29	code	1	stl		named	std::Tree	AllocNode	
+004e3780	81	code	1	stl		named	std::Tree	DecrementIterator	
+004e37e0	75	code	1	stl		named	std::Tree	lower_bound	
+004e3830	81	code	1	stl		named	std::Tree	DecrementIterator	
+004e3890	87	code	1	stl		named	std::Tree	RotateLeft	
+004e38f0	28	code	1	stl		named	std::Tree	LeftmostNode	
+004e3910	91	code	1	stl		named	std::Tree	RotateRight	
+004e3970	29	code	1	stl		named	std::Tree	AllocNode	
+004e3990	81	code	1	stl		named	std::Tree	DecrementIterator	
+004e39f0	67	code	1	stl		named	std::Tree	IncrementIterator	
+004e3a40	67	code	1	stl		named	std::Tree	IncrementIterator	
+004e3a90	25	code	1	stl		named	std	ConstructAt	
+004e3ab0	25	code	1	stl		named	std	ConstructAt	
+004e3ad0	442	code	1	stl		named	std	ConstructAt	
+004e3c90	29	code	1	stl		named	std::Tree	AllocNode	
+004e3cb0	325	code	1	stl		named	std	ConstructAt	
+004e3e00	33	code	1	stl		named	std::pair	`scalar_deleting_destructor'	
+004e3e30	374	code	1	stl		named	std::Tree	operator=	
+004e3fb0	232	code	1	stl		named	std::Tree	CopyNodesFrom	
+004e40a0	143	code	1	stl		named	std::Tree	CopySubtree	
 004e4130	37	code	0	res		named	Global	static_init_138	
 004e4160	37	code	0	res		named	Global	static_init_139	
-004e4190	866	code	0	res		raw	Global	FUN_004e4190	
+004e4190	866	code	0	res		named	CTokenizer	Tokenize	
 004e4500	383	code	0	res	unreferenced	raw	Global	FUN_004e4500	
 004e4680	383	code	0	res	unreferenced	raw	Global	FUN_004e4680	
-004e4800	297	code	0	res		raw	Global	FUN_004e4800	
-004e4930	317	code	0	res		raw	Global	FUN_004e4930	
-004e4a70	537	code	0	res		raw	Global	FUN_004e4a70	
-004e4c90	44	code	0	res		raw	Global	FUN_004e4c90	
-004e4cc0	109	code	0	res		raw	Global	FUN_004e4cc0	
-004e4d80	837	code	0	res		raw	Global	FUN_004e4d80	
-004e50d0	1302	code	0	res		raw	Global	FUN_004e50d0	
-004e55f0	59	code	0	res		raw	Global	FUN_004e55f0	
-004e5630	24	code	0	res		raw	Global	FUN_004e5630	
-004e5650	59	code	0	res		raw	Global	FUN_004e5650	
-004e5690	328	code	0	res		raw	Global	FUN_004e5690	
-004e57d8	38	funclet	0	res		-	Global	Catch@004e57d8	
-004e5801	80	code	0	res		raw	Global	FUN_004e5801	
-004e5860	32	code	0	res		raw	Global	FUN_004e5860	
-004e5880	593	code	0	res		raw	Global	FUN_004e5880	
-004e5a60	38	funclet	0	res		-	Global	Catch@004e5a60	
-004e5b00	38	code	0	res		raw	Global	FUN_004e5b00	
+004e4800	297	code	0	res		named	CTokenizer	ReadLine	
+004e4930	317	code	0	res		named	Global	LowerCaseString	
+004e4a70	537	code	0	res		named	Global	FormatWithThousandsSeparators	
+004e4c90	44	code	0	res		named	Global	FindLastChar	
+004e4cc0	109	code	0	res		named	Global	ParseHexDigits	
+004e4d80	837	code	0	res		named	Global	ListDirectoryFiles	
+004e50d0	1302	code	0	res		named	Global	DeleteDirectoryTree	
+004e55f0	59	code	1	stl		named	std::locale::facet	DecrementRefCount	
+004e5630	24	code	1	stl		named	std::locale	~locale	
+004e5650	59	code	1	stl		named	std::ios_base	getloc	
+004e5690	328	code	1	stl		named	std::basic_istream<char,std::char_traits<char>_>	getline	
+004e57d8	38	funclet	0			-	Global	Catch@004e57d8	
+004e5801	80	code	1	stl		named	std::basic_istream<char,std::char_traits<char>_>	GetlineTail	
+004e5860	32	code	1	stl		named	std::basic_streambuf<char,std::char_traits<char>_>	sgetc	
+004e5880	593	code	1	stl		named	std::basic_istream<char,std::char_traits<char>_>	InputPrefix	
+004e5a60	38	funclet	0			-	Global	Catch@004e5a60	
+004e5b00	38	code	1	stl		named	std::basic_ios<char,std::char_traits<char>_>	setstate	
 004e5b30	28	code	1	stl		named	std::bad_cast	bad_cast	
 004e5b50	11	code	1	stl		named	std::bad_cast	~bad_cast	
 004e5b60	29	code	1	stl		named	std::bad_cast	vf02	
 004e5b80	33	code	1	stl		named	std::bad_cast	`scalar_deleting_destructor'	
 004e5bb0	28	code	1	stl		named	std::bad_cast	bad_cast	
-004e5bd0	50	code	0	res		raw	Global	FUN_004e5bd0	
+004e5bd0	50	code	1	stl		named	std::locale	GetFacetIndex	
 004e5c10	262	code	1	stl		named	std::ctype<char>	ctype<char>	
-004e5d20	7	code	0	res		raw	Global	FUN_004e5d20	
+004e5d20	7	code	1	stl		named	std::locale::facet	~facet	
 004e5d30	35	code	1	stl		named	std::locale::facet	facet	
-004e5d60	13	code	0	res		raw	Global	FUN_004e5d60	
+004e5d60	13	code	0	res		named	Global	destroy_global_00688ab4	
 004e5d70	28	code	1	stl		named	std::ctype<char>	vf02	
 004e5d90	56	code	1	stl		named	std::ctype<char>	vf01	
 004e5dd0	28	code	1	stl		named	std::ctype<char>	vf04	
 004e5df0	56	code	1	stl		named	std::ctype<char>	vf03	
 004e5e30	33	code	1	stl		named	std::ctype<char>	`scalar_deleting_destructor'	
 004e5e60	36	code	1	stl		named	std::ctype<char>	~ctype<char>	
-004e5e90	510	code	0	res		raw	Global	FUN_004e5e90	
-004e6090	123	code	0	res		raw	Global	FUN_004e6090	
-004e6110	146	code	0	res		raw	Global	FUN_004e6110	
+004e5e90	510	code	1	stl		named	std	use_facet	
+004e6090	123	code	1	stl		named	std::locale::facet	RegisterStatic	
+004e6110	146	code	0	res		named	Global	destroy_global_0067ce54	
 004e61b0	37	code	0	res		named	Global	static_init_140	
-004e61e0	361	code	0	res		raw	Global	FUN_004e61e0	
-004e6350	195	code	0	res		raw	Global	FUN_004e6350	
-004e6420	35	code	0	res		raw	Global	FUN_004e6420	
-004e6450	39	code	0	res		raw	Global	FUN_004e6450	
-004e6480	119	code	0	res		raw	Global	FUN_004e6480	
-004e6500	132	code	0	res		raw	Global	FUN_004e6500	
+004e61e0	361	code	0	res		named	XmlElement	XmlElement	
+004e6350	195	code	0	res		named	XmlElement	~XmlElement	
+004e6420	35	code	0	res		named	XmlElement	AddChild	
+004e6450	39	code	0	res		named	XmlElement	AppendSibling	
+004e6480	119	code	0	res		named	XmlElement	FindChild	
+004e6500	132	code	0	res		named	XmlElement	FindNextSibling	
 004e6590	35	code	0	res		named	XmlDocument	Parse	
 004e65c0	678	code	0	res		named	XmlDocument	method_004e65c0	
-004e6870	371	code	0	res		raw	Global	FUN_004e6870	
-004e69f0	292	code	0	res		raw	Global	FUN_004e69f0	
-004e6b20	329	code	0	res		raw	Global	FUN_004e6b20	
+004e6870	371	code	0	res		named	XmlDocument	ParseElement	
+004e69f0	292	code	0	res		named	Global	ReadXmlTagName	
+004e6b20	329	code	0	res		named	Global	DecodeXmlEntity	
 004e6c70	37	code	0	game		named	Global	static_init_141	
 004e6ca0	596	code	0	game	unreferenced	raw	Global	FUN_004e6ca0	
 004e6f00	741	code	0	game	unreferenced	raw	Global	FUN_004e6f00	
-004e71f0	368	code	0	game		raw	Global	FUN_004e71f0	
-004e7360	358	code	0	game		raw	Global	FUN_004e7360	
+004e71f0	368	code	0	game		named	Global	EncryptWithCrc32	
+004e7360	358	code	0	game		named	Global	DecryptWithCrc32	
 004e74d0	37	code	0	game		named	Global	static_init_142	
-004e7500	62	code	0	game		raw	Global	FUN_004e7500	
-004e7540	2771	code	0	game		raw	Global	FUN_004e7540	
-004e8020	3522	code	0	game		raw	Global	FUN_004e8020	
-004e8df0	3522	code	0	game		raw	Global	FUN_004e8df0	
-004e9bc0	69	code	0	game		raw	Global	FUN_004e9bc0	
-004e9c10	52	code	0	game		raw	Global	FUN_004e9c10	
-004e9c50	136	code	0	game		raw	Global	FUN_004e9c50	
-004e9cf0	334	code	0	game		raw	Global	FUN_004e9cf0	
-004e9e40	390	code	0	game		raw	Global	FUN_004e9e40	
-004e9fd0	351	code	0	game		raw	Global	FUN_004e9fd0	
-004ea130	401	code	0	game		raw	Global	FUN_004ea130	
-004ea2d0	104	code	0	game		raw	Global	FUN_004ea2d0	
-004ea350	101	code	0	game		raw	Global	FUN_004ea350	
-004ea3c0	87	code	0	game		raw	Global	FUN_004ea3c0	
-004ea420	140	code	0	game		raw	Global	FUN_004ea420	
-004ea4b0	95	code	0	game		raw	Global	FUN_004ea4b0	
-004ea510	106	code	0	game		raw	Global	FUN_004ea510	
-004ea580	52	code	0	game		raw	Global	FUN_004ea580	
-004ea5c0	136	code	0	game		raw	Global	FUN_004ea5c0	
-004ea660	347	code	0	game		raw	Global	FUN_004ea660	
-004ea7c0	552	code	0	game		raw	Global	FUN_004ea7c0	
-004ea9f0	355	code	0	game		raw	Global	FUN_004ea9f0	
-004eab60	405	code	0	game		raw	Global	FUN_004eab60	
-004ead00	135	code	0	game		raw	Global	FUN_004ead00	
-004ead90	82	code	0	game		raw	Global	FUN_004ead90	
-004eadf0	201	code	0	game		raw	Global	FUN_004eadf0	
-004eaec0	91	code	0	game		raw	Global	FUN_004eaec0	
-004eaf20	106	code	0	game		raw	Global	FUN_004eaf20	
-004eaf90	104	code	0	game		raw	Global	FUN_004eaf90	
+004e7500	62	code	0	game		named	Global	Crc32	
+004e7540	2771	code	0	game		named	Global	SeedSetKey	
+004e8020	3522	code	0	game		named	Global	SeedEncryptBlock	
+004e8df0	3522	code	0	game		named	Global	SeedDecryptBlock	
+004e9bc0	69	code	0	game		named	Global	SeedInit	
+004e9c10	52	code	0	game		named	Global	SeedEncryptInit	
+004e9c50	136	code	0	game		named	Global	SeedEncryptUpdate	
+004e9cf0	334	code	0	game		named	Global	SeedEncryptEcb	
+004e9e40	390	code	0	game		named	Global	SeedEncryptCbc	
+004e9fd0	351	code	0	game		named	Global	SeedEncryptOfb	
+004ea130	401	code	0	game		named	Global	SeedEncryptCfb	
+004ea2d0	104	code	0	game		named	Global	SeedEncryptFinal	
+004ea350	101	code	0	game		named	Global	SeedEncryptFinalEcb	
+004ea3c0	87	code	0	game		named	Global	SeedAddPadding	
+004ea420	140	code	0	game		named	Global	SeedEncryptFinalCbc	
+004ea4b0	95	code	0	game		named	Global	SeedEncryptFinalOfb	
+004ea510	106	code	0	game		named	Global	SeedEncryptFinalCfb	
+004ea580	52	code	0	game		named	Global	SeedDecryptInit	
+004ea5c0	136	code	0	game		named	Global	SeedDecryptUpdate	
+004ea660	347	code	0	game		named	Global	SeedDecryptEcb	
+004ea7c0	552	code	0	game		named	Global	SeedDecryptCbc	
+004ea9f0	355	code	0	game		named	Global	SeedDecryptOfb	
+004eab60	405	code	0	game		named	Global	SeedDecryptCfb	
+004ead00	135	code	0	game		named	Global	SeedDecryptFinalEcb	
+004ead90	82	code	0	game		named	Global	SeedCheckPadding	
+004eadf0	201	code	0	game		named	Global	SeedDecryptFinalCbc	
+004eaec0	91	code	0	game		named	Global	SeedDecryptFinalOfb	
+004eaf20	106	code	0	game		named	Global	SeedDecryptFinalCfb	
+004eaf90	104	code	0	game		named	Global	SeedDecryptFinal	
 004eb010	37	code	0	game		named	Global	static_init_143	
 004eb040	18	code	0	game	unreferenced	named	mg::CMGPc	CMGPc	
 004eb060	3	code	0	world		named	CGameActor	vf13	
@@ -3999,12 +3999,12 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004eb220	33	code	0	game		named	mg::CMGNpc	`scalar_deleting_destructor'	
 004eb250	11	code	0	game		named	mg::CMGNpc	~CMGNpc	
 004eb260	510	code	0	game		named	mg::CArrow	vf01	
-004eb460	85	code	0	game		raw	Global	FUN_004eb460	
+004eb460	85	code	0	game		named	mg::CArrow	Render	
 004eb4c0	37	code	0	game		named	Global	static_init_144	
 004eb4f0	491	code	0	game		named	mg::CMGEngine	CMGEngine	
 004eb6e0	33	code	0	game		named	mg::CMGEngine	`scalar_deleting_destructor'	
-004eb710	160	code	0	game		raw	Global	FUN_004eb710	
-004eb7b0	160	code	0	game		raw	Global	FUN_004eb7b0	
+004eb710	160	code	1	stl		named	std	DequeDestroy	
+004eb7b0	160	code	1	stl		named	std	DequeDestroy	
 004eb850	597	code	0	game		named	mg::CMGEngine	~CMGEngine	
 004ebab0	1	code	0	game		named	mg::CMGEngine	vf39	
 004ebac0	58	code	0	game		named	mg::CMGEngine	vf38	
@@ -4016,29 +4016,29 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004ec640	510	code	0	game		named	mg::CMGEngine	method_004ec640	
 004ec840	164	code	0	game		named	mg::CMGEngine	method_004ec840	
 004ec8f0	541	code	0	game		named	mg::CMGEngine	method_004ec8f0	
-004ecb10	38	code	0	game		raw	Global	FUN_004ecb10	
-004ecb40	38	code	0	game		raw	Global	FUN_004ecb40	
-004ecb70	32	code	0	game		raw	Global	FUN_004ecb70	
-004ecb90	32	code	0	game		raw	Global	FUN_004ecb90	
-004ecbb0	3	code	0	game		raw	Global	FUN_004ecbb0	
-004ecbc0	67	code	0	game		raw	Global	FUN_004ecbc0	
-004ecc10	79	code	0	game		raw	Global	FUN_004ecc10	
-004ecc60	321	code	0	game		raw	Global	FUN_004ecc60	
-004ecdb0	717	code	0	game		raw	Global	FUN_004ecdb0	
-004ed080	321	code	0	game		raw	Global	FUN_004ed080	
-004ed1d0	19	code	0	game		raw	Global	FUN_004ed1d0	
-004ed1f0	582	code	0	game		raw	Global	FUN_004ed1f0	
-004ed440	57	code	0	game		raw	Global	FUN_004ed440	
-004ed480	322	code	0	game		raw	Global	FUN_004ed480	
-004ed5d0	100	code	0	game		raw	Global	FUN_004ed5d0	
-004ed640	109	code	0	game		raw	Global	FUN_004ed640	
-004ed6b0	16	code	0	game		raw	Global	FUN_004ed6b0	
-004ed6c0	109	code	0	game		raw	Global	FUN_004ed6c0	
-004ed730	16	code	0	game		raw	Global	FUN_004ed730	
-004ed740	36	code	0	game		raw	Global	FUN_004ed740	
-004ed770	36	code	0	game		raw	Global	FUN_004ed770	
-004ed7a0	59	code	0	game		raw	Global	FUN_004ed7a0	
-004ed7e0	39	code	0	game		raw	Global	FUN_004ed7e0	
+004ecb10	38	code	1	stl		named	std::vector	~vector	
+004ecb40	38	code	1	stl		named	std::vector	~vector	
+004ecb70	32	code	1	stl		named	std::vector	capacity	
+004ecb90	32	code	1	stl		named	std::vector	size	
+004ecbb0	3	code	1	stl		named	std::vector	DestroyRange	
+004ecbc0	67	code	1	stl		named	std::vector	CopyUninitialized	
+004ecc10	79	code	1	stl		named	std	DequeBack	
+004ecc60	321	code	1	stl		named	std	DequePopBack	
+004ecdb0	717	code	1	stl		named	std	DequePushBack	
+004ed080	321	code	1	stl		named	std	DequePopBack	
+004ed1d0	19	code	1	stl		named	std::vector	size	
+004ed1f0	582	code	1	stl		named	std::vector	insert	
+004ed440	57	code	1	stl		named	std::vector	erase	
+004ed480	322	code	1	stl		named	std	DequeAddBackBlock	
+004ed5d0	100	code	1	stl		named	std	DequeIteratorRetreat	
+004ed640	109	code	1	stl		named	std	DequeReallocateMap	
+004ed6b0	16	code	1	stl		named	std	DequeIteratorInit	
+004ed6c0	109	code	1	stl		named	std	DequeReallocateMap	
+004ed730	16	code	1	stl		named	std	DequeIteratorInit	
+004ed740	36	code	1	stl		named	std	DequeIteratorSet	
+004ed770	36	code	1	stl		named	std	DequeIteratorSet	
+004ed7a0	59	code	1	stl		named	std	copy	
+004ed7e0	39	code	1	stl		named	std	copy	
 004ed810	37	code	0	game		named	Global	static_init_145	
 004ed840	134	code	0	game		named	mg::mgType1::CItemObj	CItemObj	
 004ed8d0	1	code	0	game		named	mg::CObject	vf04	
@@ -4046,17 +4046,17 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004ed8f0	33	code	0	game		named	mg::mgType1::CItemObj	`scalar_deleting_destructor'	
 004ed920	93	code	0	game		named	mg::mgType1::CItemObj	~CItemObj	
 004ed980	621	code	0	game		named	mg::mgType1::CItemObj	method_004ed980	
-004edbf0	885	code	0	game		raw	Global	FUN_004edbf0	
-004edf90	112	code	0	game		raw	Global	FUN_004edf90	
+004edbf0	885	code	0	game		named	mg::mgType1::CItemObj	ApplyEffect	
+004edf90	112	code	0	game		named	mg::CObject	AttachChild	
 004ee000	55	code	0	game		named	mg::CObject	method_004ee000	
 004ee040	285	code	0	game		named	mg::mgType1::CItemObj	vf00	
 004ee160	3	code	0	game		named	mg::mgType1::CItemObj	vf03	
 004ee170	161	code	0	game		named	mg::mgType1::CItemObj	vf02	
 004ee220	160	code	0	game		named	mg::mgType1::CItemObj	vf01	
-004ee2c0	120	code	0	game		raw	Global	FUN_004ee2c0	
+004ee2c0	120	code	0	game		named	mg::mgType1::CItemObj	RenderWhenCarried	
 004ee340	242	code	0	game		named	mg::mgType1::CItemObj	method_004ee340	
-004ee440	73	code	0	game		raw	Global	FUN_004ee440	
-004ee490	1	code	0	game		raw	Global	FUN_004ee490	
+004ee440	73	code	0	game		named	mg::CObject	Intersects	
+004ee490	1	code	0	game		named	Global	atexit_no_op_004ee490	
 004ee4a0	37	code	0	game		named	Global	static_init_146	
 004ee4d0	8	code	0	game		named	mg::mgType1::CItemObj	vf00_for_CRenderObject	
 004ee4e0	39	code	0	game		named	mg::CTile	CTile	
@@ -4066,9 +4066,9 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004ee610	328	code	0	game	unreferenced	raw	Global	FUN_004ee610	
 004ee760	201	code	0	game	dead	raw	Global	FUN_004ee760	
 004ee830	49	code	0	game	unreferenced	raw	Global	FUN_004ee830	
-004ee870	153	code	0	game		raw	Global	FUN_004ee870	
+004ee870	153	code	0	game		named	mg::CTile	Render	
 004ee910	189	code	0	game		named	mg::CMap	CMap	
-004ee9d0	84	code	0	game		raw	Global	FUN_004ee9d0	
+004ee9d0	84	code	0	game		named	mg::CObject	~CObject	
 004eea30	3	code	0	game		named	mg::CObject	vf02	
 004eea40	107	code	0	game		named	mg::CObject	CObject	
 004eeab0	33	code	0	game		named	mg::CMap	`scalar_deleting_destructor'	
@@ -4076,7 +4076,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004eeba0	158	code	0	game		named	mg::CMap	method_004eeba0	
 004eec40	24	code	0	game	unreferenced	raw	Global	FUN_004eec40	
 004eec60	341	code	0	game	dead	raw	Global	FUN_004eec60	
-004eedc0	354	code	0	game		raw	Global	FUN_004eedc0	
+004eedc0	354	code	1	stl		named	std::logic_error	logic_error	
 004eef30	13	code	1	stl		named	std::logic_error	vf01	
 004eef40	29	code	1	stl		named	std::logic_error	vf02	
 004eef60	75	code	1	stl		named	std::logic_error	~logic_error	
@@ -4085,13 +4085,13 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004ef140	75	code	1	stl		named	std::out_of_range	~out_of_range	
 004ef190	29	code	1	stl		named	std::out_of_range	vf02	
 004ef1b0	33	code	1	stl		named	std::out_of_range	`scalar_deleting_destructor'	
-004ef1e0	343	code	0	game		raw	Global	FUN_004ef1e0	
-004ef340	239	code	0	game		raw	Global	FUN_004ef340	
+004ef1e0	343	code	1	stl		named	std::out_of_range	out_of_range	
+004ef340	239	code	0	game		named	mg::CMap	SetTileTexture	
 004ef430	49	code	0	game	unreferenced	raw	Global	FUN_004ef430	
 004ef4b0	3	code	0	game		named	mg::CMap	vf02	
 004ef4c0	50	code	0	game		named	mg::CMap	vf01	
-004ef500	38	code	0	game		raw	Global	FUN_004ef500	
-004ef530	38	code	0	game		raw	Global	FUN_004ef530	
+004ef500	38	code	1	stl		named	std::vector	~vector	
+004ef530	38	code	1	stl		named	std::vector	~vector	
 004ef560	521	code	0	game	dead	raw	Global	FUN_004ef560	
 004ef770	521	code	0	game	dead	raw	Global	FUN_004ef770	
 004ef980	37	code	0	game		named	Global	static_init_147	
@@ -4102,15 +4102,15 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004efa30	16	code	0	game		named	mg::mgType1::CMapObj	vf03	
 004efa40	3	code	0	game		named	mg::mgType1::CMapObj	vf02	
 004efa50	205	code	0	game		named	mg::mgType1::CMapObj	vf01	
-004efb20	55	code	0	game		raw	Global	FUN_004efb20	
-004efb90	55	code	0	game		raw	Global	FUN_004efb90	
+004efb20	55	code	0	game		named	mg::mgType1::CMapObj	SetSprite	
+004efb90	55	code	0	game		named	mg::mgType1::CMapObj	SetAct	
 004efc00	37	code	0	game		named	Global	static_init_148	
-004efc30	36	code	0	game		raw	Global	FUN_004efc30	
-004efc60	113	code	0	game		raw	Global	FUN_004efc60	
-004efce0	58	code	0	game		raw	Global	FUN_004efce0	
-004efd20	43	code	0	game		raw	Global	FUN_004efd20	
-004efd50	23	code	0	game		raw	Global	FUN_004efd50	
-004efdc0	45	code	0	game		raw	Global	FUN_004efdc0	
+004efc30	36	code	0	game		named	mg::mgType1::CMonster	EnterState00	
+004efc60	113	code	0	game		named	mg::mgType1::CMonster	EnterState01	
+004efce0	58	code	0	game		named	mg::mgType1::CMonster	EnterState02	
+004efd20	43	code	0	game		named	mg::mgType1::CMonster	EnterState03	
+004efd50	23	code	0	game		named	mg::mgType1::CMonster	EnterState04	
+004efdc0	45	code	0	game		named	mg::mgType1::CMonster	EnterState10	
 004efe40	78	code	0	game		named	mg::mgType1::CMonster	vf10_for_CMGNpc	
 004efe90	342	code	0	game		named	mg::mgType1::CMonster	vf08_for_CMGNpc	
 004efff0	40	code	0	game		named	mg::mgType1::CMonster	vf09_for_CMGNpc	
@@ -4125,7 +4125,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004f0b30	253	code	0	game		named	mg::mgType1::CMonster	vf01	
 004f0c30	280	code	0	game		named	mg::mgType1::CMonster	method_004f0c30	
 004f0d50	73	code	0	game	unreferenced	raw	Global	FUN_004f0d50	
-004f0da0	313	code	0	game		raw	Global	FUN_004f0da0	
+004f0da0	313	code	0	game		named	mg::mgType1::CMonster	ShootArrow	
 004f0ee0	33	code	0	game		named	mg::CArrow	`scalar_deleting_destructor'	
 004f0f10	5	thunk	0	world		-	mg::CArrow	~CArrow	
 004f0f20	37	code	0	game		named	Global	static_init_149	
@@ -4133,13 +4133,13 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004f0f60	100	code	0	game		named	mg::CObject	CObject	
 004f0fd0	214	code	0	game	unreferenced	named	mg::CObject	CObject	
 004f10b0	37	code	0	game		named	mg::CObject	vf00	
-004f10e0	15	code	0	game		raw	Global	FUN_004f10e0	
+004f10e0	15	code	0	game		named	mg::CObject	GetRoot	
 004f10f0	1	code	0	game		named	mg::CObject	vf01	
 004f1100	108	code	0	game		named	mg::CObject	vf03	
-004f1170	43	code	0	game		raw	Global	FUN_004f1170	
-004f11a0	5	code	0	game		raw	Global	FUN_004f11a0	
+004f1170	43	code	0	game		named	mg::CObject	VisitTreeSlot0	
+004f11a0	5	code	0	game		named	mg::CObject	CallSlot1	
 004f11b0	163	code	0	game		named	mg::CObject	method_004f11b0	
-004f1260	57	code	0	game		raw	Global	FUN_004f1260	
+004f1260	57	code	0	game		named	mg::CObject	VisitTreeSlot3	
 004f12a0	65	code	0	game		named	mg::CEntity	CEntity	
 004f12f0	33	code	0	game		named	mg::CEntity	`scalar_deleting_destructor'	
 004f1320	84	code	0	game		named	mg::CEntity	~CEntity	
@@ -4156,95 +4156,95 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004f1720	3	code	0	game		named	mg::mgType1::CPlayer	vf03	
 004f1730	3	code	0	game		named	mg::mgType1::CPlayer	vf02	
 004f1740	91	code	0	game		named	mg::mgType1::CPlayer	vf01	
-004f17a0	98	code	0	game		raw	Global	FUN_004f17a0	
-004f1810	40	code	0	game		raw	Global	FUN_004f1810	
+004f17a0	98	code	0	game		named	mg::mgType1::CPlayer	AddItem	
+004f1810	40	code	0	game		named	mg::mgType1::CPlayer	UseFirstItem	
 004f1840	37	code	0	game		named	Global	static_init_151	
 004f1870	8	code	0	game		named	mg::mgType1::CPlayer	vf00_for_CPc	
 004f1880	537	code	0	game		named	mg::CScript	CScript	
 004f1aa0	33	code	0	game		named	mg::CScript	`scalar_deleting_destructor'	
-004f1ad0	160	code	0	game		raw	Global	FUN_004f1ad0	
+004f1ad0	160	code	1	stl		named	std	DequeDestroy	
 004f1b70	405	code	0	game		named	mg::CScript	~CScript	
 004f1d10	437	code	0	game		named	mg::CScript	method_004f1d10	
 004f1ed0	163	code	0	game	unreferenced	raw	Global	FUN_004f1ed0	
 004f1f80	148	code	0	game	dead	raw	Global	FUN_004f1f80	
-004f2020	434	code	0	game		raw	Global	FUN_004f2020	
-004f21e0	142	code	0	game		raw	Global	FUN_004f21e0	
+004f2020	434	code	0	game		named	mg::CScript	LoadScript	
+004f21e0	142	code	0	game		named	Global	DestroyScriptRecord	
 004f2270	114	code	0	game	dead	raw	Global	FUN_004f2270	
 004f22f0	111	code	0	game	dead	raw	Global	FUN_004f22f0	
 004f2360	108	code	0	game	dead	raw	Global	FUN_004f2360	
 004f23d0	61	code	0	game	dead	raw	Global	FUN_004f23d0	
 004f2410	1583	code	0	game	dead	raw	Global	FUN_004f2410	
-004f2a40	43	code	0	game		raw	Global	FUN_004f2a40	
-004f2a70	67	code	0	game		raw	Global	FUN_004f2a70	
+004f2a40	43	code	0	game		named	mg::CScript	JumpToLabel	
+004f2a70	67	code	0	game		named	mg::CScript	FindLabel	
 004f2ac0	42	code	0	game	dead	raw	Global	FUN_004f2ac0	
 004f2af0	46	code	0	game	unreferenced	raw	Global	FUN_004f2af0	
 004f2b20	2266	code	0	game	dead	raw	Global	FUN_004f2b20	
-004f3400	109	code	0	game		raw	Global	FUN_004f3400	
+004f3400	109	code	1	stl		named	std::pair	~pair	
 004f3470	741	code	0	game	dead	raw	Global	FUN_004f3470	
 004f3760	1426	code	0	game	dead	raw	Global	FUN_004f3760	
 004f3d00	21114	code	0	game	unreferenced	raw	Global	FUN_004f3d00	
 004f8f80	13	code	0	game	dead	raw	Global	FUN_004f8f80	
-004f8f90	595	code	0	game		raw	Global	FUN_004f8f90	
-004f91f0	784	code	0	game		raw	Global	FUN_004f91f0	
-004f9500	453	code	0	game		raw	Global	FUN_004f9500	
-004f96d0	470	code	0	game		raw	Global	FUN_004f96d0	
-004f98b0	352	code	0	game		raw	Global	FUN_004f98b0	
-004f9a10	668	code	0	game		raw	Global	FUN_004f9a10	
+004f8f90	595	code	0	game		named	mg::CScript	ReadScriptRecord	
+004f91f0	784	code	0	game		named	mg::CScript	CallLabel	
+004f9500	453	code	0	game		named	mg::CScript	ReturnFromCall	
+004f96d0	470	code	0	game		named	mg::CScript	SeekBackToRecord	
+004f98b0	352	code	1	stl		named	std::out_of_range	out_of_range	
+004f9a10	668	code	0	game		named	Global	AssignScriptRecord	
 004f9cb0	460	code	0	game	unreferenced	raw	Global	FUN_004f9cb0	
-004f9e80	649	code	0	game		raw	Global	FUN_004f9e80	
+004f9e80	649	code	0	game		named	mg::CScript	Step	
 004fa110	439	code	0	game	dead	raw	Global	FUN_004fa110	
 004fa2d0	397	code	0	game	dead	raw	Global	FUN_004fa2d0	
 004fa460	487	code	0	game	dead	raw	Global	FUN_004fa460	
-004fa650	63	code	0	game		raw	Global	FUN_004fa650	
-004fa690	64	code	0	game		raw	Global	FUN_004fa690	
-004fa6d0	302	code	0	game		raw	Global	FUN_004fa6d0	
-004fa800	454	code	0	game		raw	Global	FUN_004fa800	
+004fa650	63	code	0	game		named	mg::CScript	GetOpcode	
+004fa690	64	code	0	game		named	mg::CScript	GetArgumentCount	
+004fa6d0	302	code	0	game		named	mg::CScript	GetArguments	
+004fa800	454	code	0	game		named	mg::CScript	GetText	
 004fa9d0	4	code	0	game	dead	raw	Global	FUN_004fa9d0	
 004fa9e0	11	code	0	game	dead	raw	Global	FUN_004fa9e0	
-004fa9f0	27	code	0	game		raw	Global	FUN_004fa9f0	
-004faa10	642	code	0	game		raw	Global	FUN_004faa10	
+004fa9f0	27	code	1	stl		named	std::vector	vector	
+004faa10	642	code	1	stl		named	std::vector	operator=	
 004faca0	685	code	0	game	dead	raw	Global	FUN_004faca0	
 004faf50	19	code	0	game	dead	raw	Global	FUN_004faf50	
-004faf70	82	code	0	game		raw	Global	FUN_004faf70	
-004fafd0	56	code	0	game		raw	Global	FUN_004fafd0	
-004fb010	33	code	0	game		raw	Global	FUN_004fb010	
-004fb040	56	code	0	game		raw	Global	FUN_004fb040	
-004fb080	159	code	0	game		raw	Global	FUN_004fb080	
-004fb120	38	code	0	game		raw	Global	FUN_004fb120	
-004fb150	814	code	0	game		raw	Global	FUN_004fb150	
-004fb480	77	code	0	game		raw	Global	FUN_004fb480	
-004fb4d0	35	code	0	game		raw	Global	FUN_004fb4d0	
-004fb500	200	code	0	game		raw	Global	FUN_004fb500	
-004fb5d0	33	code	0	game		raw	Global	FUN_004fb5d0	
-004fb600	33	code	0	game		raw	Global	FUN_004fb600	
-004fb630	35	code	0	game		raw	Global	FUN_004fb630	
-004fb660	57	code	0	game		raw	Global	FUN_004fb660	
+004faf70	82	code	1	stl		named	std::vector	clear	
+004fafd0	56	code	1	stl		named	std::vector	~vector	
+004fb010	33	code	1	stl		named	std::vector	size	
+004fb040	56	code	1	stl		named	std::vector	~vector	
+004fb080	159	code	1	stl		named	std::vector	reserve	
+004fb120	38	code	1	stl		named	std::vector	~vector	
+004fb150	814	code	1	stl		named	std::vector	insert	
+004fb480	77	code	1	stl		named	std::vector	erase	
+004fb4d0	35	code	1	stl		named	std::vector	DestroyRange	
+004fb500	200	code	1	stl		named	std	ThrowOutOfRange	
+004fb5d0	33	code	1	stl		named	std::vector	capacity	
+004fb600	33	code	1	stl		named	std::vector	size	
+004fb630	35	code	1	stl		named	std::vector	DestroyRange	
+004fb660	57	code	1	stl		named	std::vector	CopyUninitialized	
 004fb6a0	176	code	0	game	dead	raw	Global	FUN_004fb6a0	
-004fb750	321	code	0	game		raw	Global	FUN_004fb750	
+004fb750	321	code	1	stl		named	std	DequePopBack	
 004fb8a0	58	code	0	game	dead	raw	Global	FUN_004fb8a0	
-004fb8e0	891	code	0	game		raw	Global	FUN_004fb8e0	
+004fb8e0	891	code	1	stl		named	std::vector	insert	
 004fbc60	862	code	0	game	dead	raw	Global	FUN_004fbc60	
 004fbfc0	151	code	1	stl		named	std::Tree	InitHead	
-004fc060	582	code	0	game		raw	Global	FUN_004fc060	
-004fc2b0	142	code	0	game		raw	Global	FUN_004fc2b0	
-004fc340	115	code	0	game		raw	Global	FUN_004fc340	
-004fc3c0	27	code	0	game		raw	Global	FUN_004fc3c0	
-004fc3e0	109	code	0	game		raw	Global	FUN_004fc3e0	
-004fc450	16	code	0	game		raw	Global	FUN_004fc450	
-004fc460	36	code	0	game		raw	Global	FUN_004fc460	
-004fc490	443	code	0	game		raw	Global	FUN_004fc490	
-004fc650	328	code	0	game		raw	Global	FUN_004fc650	
-004fc7a0	37	code	0	game		raw	Global	FUN_004fc7a0	
-004fc7d0	577	code	0	game		raw	Global	FUN_004fc7d0	
-004fca20	33	code	0	game		raw	Global	FUN_004fca20	
+004fc060	582	code	1	stl		named	std::vector	insert	
+004fc2b0	142	code	1	stl		named	std	DequeFreeBackBlock	
+004fc340	115	code	1	stl		named	std	DequeFreeFrontBlock	
+004fc3c0	27	code	1	stl		named	std	DequeAllocateMap	
+004fc3e0	109	code	1	stl		named	std	DequeReallocateMap	
+004fc450	16	code	1	stl		named	std	DequeIteratorInit	
+004fc460	36	code	1	stl		named	std	DequeIteratorSet	
+004fc490	443	code	1	stl		named	std	ConstructAt	
+004fc650	328	code	1	stl		named	std	ConstructAt	
+004fc7a0	37	code	1	stl		named	std	ConstructAt	
+004fc7d0	577	code	0	game		named	Global	AssignStringPairRecord	
+004fca20	33	code	0	game		named	Global	DeleteScriptRecord	
 004fca50	37	code	0	game		named	Global	static_init_152	
-004fca80	87	code	0	game		raw	Global	FUN_004fca80	
+004fca80	87	code	0	game		named	Global	GetPerformanceTimer	
 004fcae0	1	code	0	game		named	Global	atexit_no_op_004fcae0	
 004fcaf0	37	code	0	game		named	Global	static_init_153	
-004fcb20	132	code	0	game		raw	Global	FUN_004fcb20	
-004fcbb0	65	code	0	game		raw	Global	FUN_004fcbb0	
-004fcc00	406	code	0	game		raw	Global	FUN_004fcc00	
-004fcda0	392	code	0	game		raw	Global	FUN_004fcda0	
+004fcb20	132	code	0	game		named	Global	GetDirectionIndex	
+004fcbb0	65	code	0	game		named	Global	GetAngleDegrees	
+004fcc00	406	code	0	game		named	Global	RandomPositionNear	
+004fcda0	392	code	0	game		named	Global	RandomPositionInFourAreas	
 004fcf40	37	code	0	game		named	Global	static_init_154	
 004fcf70	51	code	0	game		raw	Global	FUN_004fcf70	
 004fcfb0	10	code	0	game		named	Global	destroy_g_mg_mgType1_CWorld	
@@ -9401,9 +9401,9 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005dc030	8	funclet	0	game		-	Global	Unwind@005dc030	
 005dc050	8	funclet	0	game	dead	-	Global	Unwind@005dc050	
 005dc058	8	funclet	0	game	dead	-	Global	Unwind@005dc058	
-005dc070	8	funclet	0	game		-	Global	Unwind@005dc070	
-005dc078	8	funclet	0	game		-	Global	Unwind@005dc078	
-005dc080	11	funclet	0	game		-	Global	Unwind@005dc080	
+005dc070	8	funclet	0			-	Global	Unwind@005dc070	
+005dc078	8	funclet	0			-	Global	Unwind@005dc078	
+005dc080	11	funclet	0			-	Global	Unwind@005dc080	
 005dc0a0	8	funclet	0	game	dead	-	Global	Unwind@005dc0a0	
 005dc0a8	8	funclet	0	game	dead	-	Global	Unwind@005dc0a8	
 005dc0b0	8	funclet	0	game	dead	-	Global	Unwind@005dc0b0	
@@ -9417,7 +9417,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005dc0fc	8	funclet	0	game	dead	-	Global	Unwind@005dc0fc	
 005dc110	8	funclet	0	game	dead	-	Global	Unwind@005dc110	
 005dc130	8	funclet	0	game	dead	-	Global	Unwind@005dc130	
-005dc150	8	funclet	0	game		-	Global	Unwind@005dc150	
+005dc150	8	funclet	0			-	Global	Unwind@005dc150	
 005dc170	8	funclet	0	game	dead	-	Global	Unwind@005dc170	
 005dc178	17	funclet	0	game	dead	-	Global	Unwind@005dc178	
 005dc189	11	funclet	0	game	dead	-	Global	Unwind@005dc189	
@@ -9428,8 +9428,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005dc1e0	8	funclet	0	ui		-	Global	Unwind@005dc1e0	
 005dc1e8	8	funclet	0	ui		-	Global	Unwind@005dc1e8	
 005dc1f0	8	funclet	0	ui		-	Global	Unwind@005dc1f0	
-005dc210	17	funclet	0	ui		-	Global	Unwind@005dc210	
-005dc221	17	funclet	0	ui		-	Global	Unwind@005dc221	
+005dc210	17	funclet	0			-	Global	Unwind@005dc210	
+005dc221	17	funclet	0			-	Global	Unwind@005dc221	
 005dc240	11	funclet	0	res		-	Global	Unwind@005dc240	
 005dc24b	11	funclet	0	res		-	Global	Unwind@005dc24b	
 005dc256	11	funclet	0	res		-	Global	Unwind@005dc256	
@@ -9455,9 +9455,9 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005dc3a3	8	funclet	0	res		-	Global	Unwind@005dc3a3	
 005dc3ab	8	funclet	0	res		-	Global	Unwind@005dc3ab	
 005dc3c0	8	funclet	0	res		-	Global	Unwind@005dc3c0	
-005dc3e0	17	funclet	0	res		-	Global	Unwind@005dc3e0	
-005dc400	17	funclet	0	res		-	Global	Unwind@005dc400	
-005dc411	8	funclet	0	res		-	Global	Unwind@005dc411	
+005dc3e0	17	funclet	0			-	Global	Unwind@005dc3e0	
+005dc400	17	funclet	0			-	Global	Unwind@005dc400	
+005dc411	8	funclet	0			-	Global	Unwind@005dc411	
 005dc430	8	funclet	0	res		-	Global	Unwind@005dc430	
 005dc438	8	funclet	0	res		-	Global	Unwind@005dc438	
 005dc440	8	funclet	0	res		-	Global	Unwind@005dc440	
@@ -9478,19 +9478,19 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005dc510	8	funclet	0	res		-	Global	Unwind@005dc510	
 005dc518	8	funclet	0	res		-	Global	Unwind@005dc518	
 005dc520	8	funclet	0	res		-	Global	Unwind@005dc520	
-005dc550	8	funclet	0	res		-	Global	Unwind@005dc550	
-005dc558	8	funclet	0	res		-	Global	Unwind@005dc558	
-005dc560	11	funclet	0	res		-	Global	Unwind@005dc560	
+005dc550	8	funclet	0			-	Global	Unwind@005dc550	
+005dc558	8	funclet	0			-	Global	Unwind@005dc558	
+005dc560	11	funclet	0			-	Global	Unwind@005dc560	
 005dc580	8	funclet	0			-	Global	Unwind@005dc580	
 005dc588	8	funclet	0			-	Global	Unwind@005dc588	
 005dc590	8	funclet	0			-	Global	Unwind@005dc590	
-005dc5b0	8	funclet	0	res		-	Global	Unwind@005dc5b0	
-005dc5b8	11	funclet	0	res		-	Global	Unwind@005dc5b8	
-005dc5c3	8	funclet	0	res		-	Global	Unwind@005dc5c3	
-005dc5cb	8	funclet	0	res		-	Global	Unwind@005dc5cb	
-005dc5d3	8	funclet	0	res		-	Global	Unwind@005dc5d3	
-005dc5db	8	funclet	0	res		-	Global	Unwind@005dc5db	
-005dc5f0	8	funclet	0	res		-	Global	Unwind@005dc5f0	
+005dc5b0	8	funclet	0			-	Global	Unwind@005dc5b0	
+005dc5b8	11	funclet	0			-	Global	Unwind@005dc5b8	
+005dc5c3	8	funclet	0			-	Global	Unwind@005dc5c3	
+005dc5cb	8	funclet	0			-	Global	Unwind@005dc5cb	
+005dc5d3	8	funclet	0			-	Global	Unwind@005dc5d3	
+005dc5db	8	funclet	0			-	Global	Unwind@005dc5db	
+005dc5f0	8	funclet	0			-	Global	Unwind@005dc5f0	
 005dc610	8	funclet	0	res		-	Global	Unwind@005dc610	
 005dc630	8	funclet	0	res		-	Global	Unwind@005dc630	
 005dc638	11	funclet	0	res		-	Global	Unwind@005dc638	
@@ -9534,9 +9534,9 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005dc8e8	11	funclet	0	game		-	Global	Unwind@005dc8e8	
 005dc900	11	funclet	0	game	dead	-	Global	Unwind@005dc900	
 005dc90b	8	funclet	0	game	dead	-	Global	Unwind@005dc90b	
-005dc920	8	funclet	0	game		-	Global	Unwind@005dc920	
+005dc920	8	funclet	0			-	Global	Unwind@005dc920	
 005dc940	8	funclet	0			-	Global	Unwind@005dc940	
-005dc960	8	funclet	0	game		-	Global	Unwind@005dc960	
+005dc960	8	funclet	0			-	Global	Unwind@005dc960	
 005dc980	8	funclet	0	game		-	Global	Unwind@005dc980	
 005dc9a0	8	funclet	0	game		-	Global	Unwind@005dc9a0	
 005dc9a8	11	funclet	0	game		-	Global	Unwind@005dc9a8	
@@ -9583,7 +9583,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005dcc30	8	funclet	0	game		-	Global	Unwind@005dcc30	
 005dcc38	8	funclet	0	game		-	Global	Unwind@005dcc38	
 005dcc40	8	funclet	0	game		-	Global	Unwind@005dcc40	
-005dcc60	8	funclet	0	game		-	Global	Unwind@005dcc60	
+005dcc60	8	funclet	0			-	Global	Unwind@005dcc60	
 005dcc80	8	funclet	0	game	dead	-	Global	Unwind@005dcc80	
 005dcc88	8	funclet	0	game	dead	-	Global	Unwind@005dcc88	
 005dcca0	8	funclet	0	game		-	Global	Unwind@005dcca0	
@@ -9597,12 +9597,12 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005dcd20	8	funclet	0	game	dead	-	Global	Unwind@005dcd20	
 005dcd40	8	funclet	0	game		-	Global	Unwind@005dcd40	
 005dcd60	8	funclet	0	game		-	Global	Unwind@005dcd60	
-005dcd80	8	funclet	0	game		-	Global	Unwind@005dcd80	
-005dcd88	8	funclet	0	game		-	Global	Unwind@005dcd88	
-005dcda0	17	funclet	0	game		-	Global	Unwind@005dcda0	
-005dcdb1	11	funclet	0	game		-	Global	Unwind@005dcdb1	
-005dcdd0	17	funclet	0	game		-	Global	Unwind@005dcdd0	
-005dcde1	8	funclet	0	game		-	Global	Unwind@005dcde1	
+005dcd80	8	funclet	0			-	Global	Unwind@005dcd80	
+005dcd88	8	funclet	0			-	Global	Unwind@005dcd88	
+005dcda0	17	funclet	0			-	Global	Unwind@005dcda0	
+005dcdb1	11	funclet	0			-	Global	Unwind@005dcdb1	
+005dcdd0	17	funclet	0			-	Global	Unwind@005dcdd0	
+005dcde1	8	funclet	0			-	Global	Unwind@005dcde1	
 005dce00	11	funclet	0	game		-	Global	Unwind@005dce00	
 005dce0b	11	funclet	0	game		-	Global	Unwind@005dce0b	
 005dce16	11	funclet	0	game		-	Global	Unwind@005dce16	

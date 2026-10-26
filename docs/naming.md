@@ -69,6 +69,7 @@ to say what the code is.
 | | `IncrementIterator`, `DecrementIterator` | step an iterator (a node pointer) to the next or previous node |
 | | `InsertAt` | link a new node under a given parent and rebalance (the insertion step `insert` uses) |
 | | `EraseSubtree`, `CopySubtree` | recursive free or copy of a subtree |
+| | `CopyNodesFrom` | copy another tree's nodes into this empty one and set the head's root, leftmost and rightmost (the copy step of `operator=` and the copy constructor) |
 | | `insert`, `erase`, `find`, `lower_bound`, `upper_bound`, `clear`, `operator[]`, `count`, `begin` | public members, when the behaviour matches |
 | `std::list` | `list`, `~list` | constructor, destructor |
 | | `AllocNode`, `EraseNode`, `EraseRange` | allocate a node; unlink and free one node or a range, returning the next position |
@@ -92,11 +93,16 @@ to say what the code is.
 | | `HeapSiftUp` | move a new element up a binary heap to its place (the step `push_heap` uses) |
 | | `CharTraitsAssign` | copy one character (`char_traits` assignment) |
 | | `DequeIteratorDifference`, `DequeIteratorAdvance` | the distance between two iterators of a block list (a deque: first, last, current, map node), and moving one by n elements across blocks |
+| | `DequeIteratorInit`, `DequeIteratorSet`, `DequeIteratorRetreat` | zero an iterator; point it at a position in a block; step it back one element |
+| | `DequePushBack`, `DequePopBack`, `DequeBack`, `DequeDestroy` | the block list's `push_back`, `pop_back`, `back` and destructor when they are out of line |
+| | `DequeAddBackBlock`, `DequeFreeBackBlock`, `DequeFreeFrontBlock`, `DequeAllocateMap`, `DequeReallocateMap` | allocate or free one block at an end; allocate or grow the map of block pointers |
 | | `copy`, `copy_backward`, `fill`, `operator+` | public algorithms and operators, when the behaviour matches |
 | | `ThrowLengthError`, `ThrowOutOfRange` | throw `length_error` or `out_of_range` with the string the binary holds |
 | `std::StlLock` | `StlLock`, `~StlLock` | enter and leave the global critical section that guards the STL (`0x688a88`) |
 | `std::LocaleInfo` | `LocaleInfo`, `~LocaleInfo` | the locale information object built on the stack before facets |
-| `std::locale` | `GetFacet`, `IsClassic`, `InitGlobal` | index the facet table; compare with the classic locale; create the global locale on first use |
+| `std::locale` | `GetFacet`, `IsClassic`, `InitGlobal`, `GetFacetIndex` | index the facet table; compare with the classic locale; create the global locale on first use; a facet id's number, assigned on first use |
+| `std::locale::facet` | `DecrementRefCount`, `RegisterStatic` | drop a reference under the STL lock, returning the facet when none are left; keep a facet for the life of the program and release it at exit |
+| `std::basic_istream` | `InputPrefix`, `GetlineTail` | the check, flush and whitespace skip before input (the sentry); the part of `getline` reached only by its jumps |
 | `std::ios_base`, `std::strstreambuf` | `InitDefaults`, `InitBuffer` | a new stream's flags, precision and width; a new strstreambuf's buffer pointers |
 
 Struct fields follow the same rule. For example, `std::string` is `allocator`, `buffer`,

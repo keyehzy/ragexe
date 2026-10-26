@@ -121,8 +121,6 @@ address	namespace	name	calling_convention	evidence
 0041e8d0	DirectInputMouse	method_0041e8d0	__thiscall	__thiscall; called with this from 2 functions of DirectInputMouse, e.g. 0050dc90
 00420af0	CActRes	method_00420af0	__thiscall	__thiscall; called with this from 1 functions of CActRes, e.g. 00420f60
 00420e70	CActRes	method_00420e70	__thiscall	__thiscall; called with this from 1 functions of CActRes, e.g. 00420f60
-00423860	std::string	method_00423860	__thiscall	__thiscall; called with this from 1 functions of CSkinMgr, e.g. 00436e20
-004250e0	std::string	method_004250e0	__thiscall	__thiscall; called with this from 2 functions of CLanguage, CSkinMgr, e.g. 00436e20
 00427980	CBitmapRes	method_00427980	__thiscall	__thiscall; called with this from 1 functions of CBitmapRes, e.g. 004279d0
 00427b90	CBitmapRes	method_00427b90	__thiscall	__thiscall; called with this from 1 functions of CBitmapRes, e.g. 004278a0
 0042cbd0	C3dModelRes	method_0042cbd0	__thiscall	__thiscall; called with this from 1 functions of C3dModelRes, e.g. 0042be00
@@ -464,9 +462,9 @@ address	namespace	name	calling_convention	evidence
 004deb20	CGPak	method_004deb20	__thiscall	__thiscall; called with this from 2 functions of CGPak, CSakGPak, e.g. 004dda10
 004dec80	CGPak	method_004dec80	__thiscall	__thiscall; called with this from 1 functions of CGPak, e.g. 004de830
 004decd0	CGPak	method_004decd0	__thiscall	__thiscall; called with this from 1 functions of CGPak, e.g. 004de830
-004e1db0	std::Tree	method_004e1db0	__thiscall	__thiscall; called with this from 2 functions of ResourceManager, mg::CScript, e.g. 004e0940
-004e2030	std::Tree	method_004e2030	__thiscall	__thiscall; called with this from 3 functions of ResourceManager, mg::CScript, e.g. 004e0940
-004e65c0	XmlDocument	method_004e65c0	__thiscall	__thiscall; called with this from 1 functions of XmlDocument, e.g. 004e6590
+004e1db0	std::Tree	method_004e1db0	__thiscall	__thiscall; called with this from 3 functions of ResourceManager, mg::CScript, e.g. 004dfcd0
+004e2030	std::Tree	method_004e2030	__thiscall	__thiscall; called with this from 4 functions of ResourceManager, mg::CScript, e.g. 004dfcd0
+004e65c0	XmlDocument	method_004e65c0	__thiscall	__thiscall; called with this from 2 functions of XmlDocument, e.g. 004e6590
 004ebb60	mg::CMGEngine	method_004ebb60	__thiscall	__thiscall; called with this from 2 functions of mg::CMGEngine, mg::mgType1::CMiniGame001, e.g. 004ebac0
 004ebc00	mg::mgType1::CMiniGame001	method_004ebc00	__thiscall	__thiscall; called with this from 1 functions of mg::mgType1::CMiniGame001, e.g. 004ffb80
 004ec5a0	mg::CMGEngine	method_004ec5a0	__thiscall	__thiscall; called with this from 2 functions of mg::CMGEngine, e.g. 004ec640
@@ -500,9 +498,9 @@ address	namespace	name	calling_convention	evidence
 00501550	CRenderObject	method_00501550	__thiscall	__thiscall; called with this from 4 functions of CBlurPC, CItem, CPc, CRenderObject, e.g. 00501870
 005018a0	CRenderObject	method_005018a0	__thiscall	__thiscall; called with this from 10 functions of CArrowEffect, CBlowEffect, CCorpse, CItem and more, e.g. 00500400
 005018e0	CGameActor	method_005018e0	__thiscall	__thiscall; called with this from 1 functions of CGameActor, e.g. 00503f30
-00501900	CRenderObject	method_00501900	__thiscall	__thiscall; called with this from 5 functions of CRenderObject, mg::mgType1::CItemObj, mg::mgType1::CMonster, e.g. 004ee220
+00501900	CRenderObject	method_00501900	__thiscall	__thiscall; called with this from 7 functions of CRenderObject, mg::CArrow, mg::mgType1::CItemObj, mg::mgType1::CMonster, e.g. 004eb460
 00501910	CRenderObject	method_00501910	__thiscall	__thiscall; called with this from 11 functions of CArrowEffect, CBlowEffect, CBlurPC, CCorpse and more, e.g. 00500400
-00501950	CRenderObject	method_00501950	__thiscall	__thiscall; called with this from 15 functions of CBlowEffect, CCorpse, CGameActor, CItem and more, e.g. 004ee220
+00501950	CRenderObject	method_00501950	__thiscall	__thiscall; called with this from 17 functions of CBlowEffect, CCorpse, CGameActor, CItem and more, e.g. 004eb460
 00501960	CGameActor	method_00501960	__thiscall	__thiscall; called with this from 1 functions of CGameActor, e.g. 00503f30
 00501a50	CMousePointer	method_00501a50	__thiscall	__thiscall; called with this from 1 functions of CMousePointer, e.g. 00501980
 00501d40	CAbleToMakeEffect	method_00501d40	__thiscall	__thiscall; called with this from 1 functions of CAbleToMakeEffect, e.g. 00501be0

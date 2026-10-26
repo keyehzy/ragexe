@@ -2,22 +2,22 @@ class	size	size_source	max_size	fields	covered_bytes	coverage	indexed_bases	note
 ActFrame	76	new	76	19	70	0.92		
 AnimFrameArrays	8	new	8	2	8	1.00		
 AnimModelResNode	88	new	88	19	78	0.89		3 overlapping uses dropped
-C3dAnimModelRes	356	new	356	18	89	0.25		6 overlapping uses dropped
-C3dAttr	300	new	300	8	33	0.11		
+C3dAnimModelRes	356	new	356	20	97	0.27		6 overlapping uses dropped
+C3dAttr	300	new	300	10	41	0.14		
 C3dDevice	572	estimated	616	58	221	0.39	0x134	the global at 006239d0 is followed by a variable at 00623c38 (another data label); 9 addresses before it, 00623c0c first, are used only by other code: fields or variables; probably a variable from 00623c18 (+0x248) on, which only source files naming nothing else of the object use; 2 of them named with an absolute address by the class's own methods, e.g. 00623c10 by 00405f20
 C3dGrannyGameActor	3132	new	3132	152	584	0.19	0x4c8,0x304,0x288	
-C3dGrannyModelRes	948	new	948	18	76	0.08		
+C3dGrannyModelRes	948	new	948	20	84	0.09		
 C3dGround	236	new	236	40	164	0.69		
 C3dGround15	236	estimated		40	164	0.69		
-C3dModelRes	424	new	424	12	64	0.15		9 overlapping uses dropped
+C3dModelRes	424	new	424	14	72	0.17		9 overlapping uses dropped
 C3dNode	336	new	336	29	199	0.59		27 overlapping uses dropped
 C3dNodeHAL	388	new	388	41	247	0.64		
-C3dWorldRes	448	new	448	10	98	0.22		18 overlapping uses dropped
+C3dWorldRes	448	new	448	12	106	0.24		18 overlapping uses dropped
 CAbleToMakeEffect	192	estimated		54	183	0.95		3 overlapping uses dropped
-CActRes	324	new	324	14	51	0.16		
+CActRes	324	new	324	16	59	0.18		
 CActorPickNode	48	new	48	9	48	1.00	0x14	3 overlapping uses dropped
 CArrowEffect	208	new	208	60	199	0.96		
-CBitmapRes	288	new	288	5	24	0.08		
+CBitmapRes	288	new	288	7	32	0.11		
 CBlowEffect	160	new	160	48	151	0.94		
 CBlurPC	796	new	796	152	596	0.75		
 CConnection	124	estimated		9	104	0.84		10 overlapping uses dropped
@@ -27,21 +27,21 @@ CDC	4	estimated		0	4	1.00
 CDCBitmap	44	new	44	8	41	0.93		3 overlapping uses dropped
 CDCSurface	20	estimated		4	20	1.00		
 CDummyEffectLauncher	196	new	196	55	187	0.95		
-CEZeffectRes	54196	new	54196	4	53776	0.99		
+CEZeffectRes	54196	new	54196	6	53784	0.99		
 CEffectMaker	220	new	220	61	211	0.96		
 CEffectPrim	88464	new	88464	175	793	0.01		3 overlapping uses dropped
-CEmblemRes	560	new	560	2	296	0.53		1 overlapping uses dropped
+CEmblemRes	560	new	560	4	304	0.54		1 overlapping uses dropped
 CGPak	132	estimated	132	24	91	0.69		the global at 0067cd00 is followed by a variable at 0067cd84 (another data label)
 CGameActor	636	estimated		122	473	0.74		10 overlapping uses dropped
 CGameMode	956	new	956	139	800	0.84		44 overlapping uses dropped
 CGameObject	4	estimated		0	4	1.00		
-CGndRes	488	new	488	21	82	0.17		
+CGndRes	488	new	488	23	90	0.18		
 CGndRiser	204	estimated		57	195	0.96		
 CGraffiSkill	948	new	948	137	524	0.55		
 CGrannyCorpse3d	588	new	588	23	93	0.16		
 CGrannyPc	9220	estimated		195	747	0.08	0x0,0xea8,0x8ac,0x2dc,0x380	1 overlapping uses dropped
 CGroundScope	220	new	220	61	211	0.96		
-CImfRes	6588	new	6588	7	29	0.00	0x120,0x15c	
+CImfRes	6588	new	6588	9	37	0.01	0x120,0x15c	
 CItem	192	new	192	53	183	0.95		4 overlapping uses dropped
 CKeyPad	188	new	188	10	56	0.30		5 overlapping uses dropped
 CLanguage	140	estimated	144	23	126	0.90		the global at 0067c8e8 is followed by a variable at 0067c978 (written by the dynamic initializer 004c9740); 1 addresses before it, 0067c974 first, are used only by other code: fields or variables | 12 overlapping uses dropped
@@ -55,28 +55,28 @@ CMousePointer	164	new	164	49	155	0.95
 CMsgEffect	284	new	284	73	259	0.91		
 CNpc	664	new	664	129	501	0.75		
 CNumEffect	168	new	168	50	159	0.95		
-CPaletteRes	1296	new	1296	1	8	0.01		
+CPaletteRes	1296	new	1296	3	16	0.01		
 CPc	776	new	776	150	588	0.76		4 overlapping uses dropped
-CPlayer	988	new	988	172	676	0.68		
+CPlayer	988	new	988	175	796	0.81		
 CRagConnection	204	estimated	204	17	177	0.87		the global at 00628a70 is followed by a variable at 00628b3c (another data label) | 11 overlapping uses dropped
 CRagEffect	17540	estimated		79	435	0.02	0x4168,0x0	4 overlapping uses dropped
 CRenderObject	160	estimated		48	151	0.94		5 overlapping uses dropped
-CRes	8	estimated		1	8	1.00		
-CRmaRes	344	new	344	19	71	0.21		
+CRes	16	estimated		3	16	1.00		
+CRmaRes	344	new	344	21	79	0.23		
 CSakGPak	136	estimated		25	95	0.70		
 CSkill	656	new	656	127	493	0.75		
 CSkinMgr	88	estimated	88	18	76	0.86		the global at 00641cc8 is followed by a variable at 00641d20 (another data label) | 4 overlapping uses dropped
 CSnapMgr	20	estimated	20	2	20	1.00		the global at 00641d20 is followed by a variable at 00641d34 (written by the dynamic initializer 00439b60) | 3 overlapping uses dropped
 CSoundMaker	204	new	204	56	195	0.96		4 overlapping uses dropped
-CSprRes	1332	new	1332	3	44	0.03		6 overlapping uses dropped
+CSprRes	1332	new	1332	5	52	0.04		6 overlapping uses dropped
 CSurface	16	estimated		3	16	1.00		
 CSurfaceWallpaper	16	new	16	3	16	1.00		
 CTexture	296	new	296	10	41	0.14		1 overlapping uses dropped
 CTokenizer	12	estimated		2	8	0.67		
 CView	448	new	448	31	213	0.48		
-CWave	280	new	280	3	16	0.06		
+CWave	280	new	280	5	24	0.09		
 CWorld	244	new	244	21	241	0.99		19 overlapping uses dropped
-ClientState	6356	estimated	6360	552	4613	0.73	0x17fc,0x179c,0x173c,0x17cc,0x176c,0xe60	the global at 00686670 is followed by a variable at 00687f48 (written by the dynamic initializer 00586800) | 53 overlapping uses dropped
+ClientState	6356	estimated	6360	553	4653	0.73	0x17fc,0x179c,0x173c,0x17cc,0x176c,0xe60	the global at 00686670 is followed by a variable at 00687f48 (written by the dynamic initializer 00586800) | 53 overlapping uses dropped
 DataFile	16	estimated	31064	4	16	1.00		the global at 0067d4b8 is followed by a variable at 00684e10 (written by the dynamic initializer 0050c270); 16 addresses before it, 0067d4c8 first, are used only by other code: fields or variables; probably a variable from 0067d548 (+0x90) on, which only source files naming nothing else of the object use
 DirectInputMouse	60	estimated	64	13	52	0.87		the global at 00628b48 is followed by a variable at 00628b88 (another data label)
 FontCache	16	estimated	16	4	13	0.81		the global at 00623c48 is followed by a variable at 00623c58 (written by the dynamic initializer 00407550)
@@ -100,7 +100,7 @@ PathFinder	4248	estimated	4248	9	45	0.01	0x10	the global at 00684e30 is followed
 RenderPrimitive	36	new	36	6	24	0.67		
 RenderQuad	196	new	196	4	16	0.08		
 RenderTriangle	156	new	156	3	12	0.08		
-ResourceManager	172	estimated	176	31	139	0.81		the global at 0067cd88 is followed by a variable at 0067ce38 (another data label); 1 addresses before it, 0067ce34 first, are used only by other code: fields or variables | 8 overlapping uses dropped
+ResourceManager	172	estimated	176	31	139	0.81		the global at 0067cd88 is followed by a variable at 0067ce38 (another data label); 1 addresses before it, 0067ce34 first, are used only by other code: fields or variables | 10 overlapping uses dropped
 RmaActionRecord	28	new	28	6	24	0.86	0x0	
 RotationKeys	16	new	16	3	12	0.75		
 ScaleKeys	16	new	16	3	12	0.75		
@@ -268,70 +268,71 @@ UIWindowMgr	1152	estimated	1288	139	609	0.53		the global at 00641fa8 is followed
 VertexBuffer	16	new	16	4	16	1.00		
 WorldColorFade	72	estimated	88	22	70	0.97		the global at 00686598 is followed by a variable at 006865f0 (written by the dynamic initializer 0057cf40)
 XmlDocument	40	estimated	72	1	4	0.10		the global at 0067c9a0 is followed by a variable at 0067c9e8 (another data label); 10 addresses before it, 0067c9c8 first, are used only by other code: fields or variables; probably a variable from 0067c9e0 (+0x40) on, which only source files naming nothing else of the object use
+XmlElement	40	new	40	7	37	0.93		4 overlapping uses dropped
 __non_rtti_object	12	estimated		2	12	1.00		
 bad_cast	12	estimated		2	12	1.00		
 bad_typeid	12	estimated		2	12	1.00		
 exception	12	estimated		2	12	1.00		
 mg::CArrow	236	new	236	66	223	0.94		
-mg::CEntity	116	estimated		25	101	0.87		
+mg::CEntity	116	estimated		26	105	0.91		
 mg::CMGEngine	952	estimated		62	248	0.26		
 mg::CMGNpc	664	estimated		129	501	0.75		
 mg::CMGPc	776	estimated		150	588	0.76		
-mg::CMap	176	new	176	32	126	0.72		
-mg::CObject	104	estimated		22	89	0.86		
+mg::CMap	176	new	176	33	130	0.74		
+mg::CObject	104	estimated		23	93	0.89		
 mg::CScript	676	estimated		33	133	0.20		5 overlapping uses dropped
 mg::CTile	36	new	36	6	25	0.69		
-mg::mgType1::CItemObj	308	new	308	81	281	0.91		
-mg::mgType1::CMapObj	140	new	140	29	117	0.84		
+mg::mgType1::CItemObj	308	new	308	82	285	0.93		
+mg::mgType1::CMapObj	140	new	140	30	121	0.86		
 mg::mgType1::CMiniGame001	1108	new	1108	62	248	0.22		
-mg::mgType1::CMonster	840	new	840	162	642	0.76		3 overlapping uses dropped
-mg::mgType1::CPlayer	920	new	920	181	713	0.78		
+mg::mgType1::CMonster	840	new	840	163	646	0.77		3 overlapping uses dropped
+mg::mgType1::CPlayer	920	new	920	182	717	0.78	0x384	
 mg::mgType1::CWorld	104	estimated	120	22	95	0.91		the global at 0067ce90 is followed by a variable at 0067cf08 (another data label); 4 addresses before it, 0067cef8 first, are used only by other code: fields or variables; probably a variable from 0067cf00 (+0x70) on, which only source files naming nothing else of the object use | 5 overlapping uses dropped
-std::_Mpunct<char>	40	estimated		9	34	0.85		
-std::_Mpunct<unsigned_short>	40	estimated		9	36	0.90		
+std::_Mpunct<char>	40	estimated		10	38	0.95		
+std::_Mpunct<unsigned_short>	40	estimated		10	40	1.00		
 std::bad_alloc	12	estimated		2	12	1.00		
 std::bad_cast	12	estimated		2	12	1.00		
-std::basic_ios<char,std::char_traits<char>_>	40	estimated		7	32	0.80		
+std::basic_ios<char,std::char_traits<char>_>	44	estimated		10	44	1.00		
 std::basic_iostream<char,std::char_traits<char>_>	48	estimated		4	20	0.42		
 std::basic_istream<char,std::char_traits<char>_>	48	estimated		3	16	0.33		
 std::basic_ostream<char,std::char_traits<char>_>	8	estimated		1	8	1.00		
 std::basic_streambuf<char,std::char_traits<char>_>	56	estimated		8	36	0.64		
-std::codecvt<char,char,int>	16	new	16	0	4	0.25		
-std::codecvt<unsigned_short,char,int>	16	new	16	0	4	0.25		
-std::collate<char>	16	new	16	0	4	0.25		
-std::collate<unsigned_short>	16	new	16	0	4	0.25		
+std::codecvt<char,char,int>	16	new	16	1	8	0.50		
+std::codecvt<unsigned_short,char,int>	16	new	16	1	8	0.50		
+std::collate<char>	16	new	16	1	8	0.50		
+std::collate<unsigned_short>	16	new	16	1	8	0.50		
 std::ctype<char>	24	new	24	5	24	1.00		
-std::ctype<unsigned_short>	24	new	24	2	12	0.50		
-std::ios_base	32	estimated		6	28	0.88		
+std::ctype<unsigned_short>	24	new	24	3	16	0.67		
+std::ios_base	36	estimated		8	36	1.00		
 std::ios_base::failure	20	estimated		3	16	0.80		
 std::istrstream	92	estimated		3	16	0.17		
 std::length_error	28	estimated		5	24	0.86		
-std::locale::_Locimp	4	estimated		0	4	1.00		
-std::locale::facet	4	estimated		0	4	1.00		
+std::locale::_Locimp	8	estimated		1	8	1.00		
+std::locale::facet	8	estimated		1	8	1.00		
 std::logic_error	28	estimated		5	24	0.86		
-std::messages<char>	16	new	16	2	12	0.75		
-std::messages<unsigned_short>	16	new	16	2	12	0.75		
-std::money_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	8	new	8	0	4	0.50		
-std::money_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	8	new	8	0	4	0.50		
-std::money_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	8	new	8	0	4	0.50		
-std::money_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	8	new	8	0	4	0.50		
-std::moneypunct<char,0>	44	new	44	9	34	0.77		
-std::moneypunct<char,1>	44	new	44	9	34	0.77		
-std::moneypunct<unsigned_short,0>	44	new	44	9	36	0.82		
-std::moneypunct<unsigned_short,1>	44	new	44	9	36	0.82		
-std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	8	new	8	0	4	0.50		
-std::num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	8	new	8	0	4	0.50		
-std::num_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	8	new	8	0	4	0.50		
-std::num_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	8	new	8	0	4	0.50		
-std::numpunct<char>	24	new	24	5	18	0.75		
-std::numpunct<unsigned_short>	24	new	24	5	20	0.83		
+std::messages<char>	16	new	16	3	16	1.00		
+std::messages<unsigned_short>	16	new	16	3	16	1.00		
+std::money_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	8	new	8	1	8	1.00		
+std::money_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	8	new	8	1	8	1.00		
+std::money_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	8	new	8	1	8	1.00		
+std::money_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	8	new	8	1	8	1.00		
+std::moneypunct<char,0>	44	new	44	10	38	0.86		
+std::moneypunct<char,1>	44	new	44	10	38	0.86		
+std::moneypunct<unsigned_short,0>	44	new	44	10	40	0.91		
+std::moneypunct<unsigned_short,1>	44	new	44	10	40	0.91		
+std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	8	new	8	1	8	1.00		
+std::num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	8	new	8	1	8	1.00		
+std::num_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	8	new	8	1	8	1.00		
+std::num_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	8	new	8	1	8	1.00		
+std::numpunct<char>	24	new	24	6	22	0.92		
+std::numpunct<unsigned_short>	24	new	24	6	24	1.00		
 std::ostrstream	88	estimated		1	8	0.09		
 std::out_of_range	28	estimated		5	24	0.86		
 std::runtime_error	20	estimated		3	16	0.80		
 std::strstream	96	estimated		4	20	0.21		
 std::strstreambuf	80	estimated		14	60	0.75		1 overlapping uses dropped
-std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	16	new	16	2	12	0.75		
-std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	16	new	16	2	12	0.75		
-std::time_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	12	new	12	1	8	0.67		
-std::time_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	12	new	12	1	8	0.67		
+std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>	16	new	16	3	16	1.00		
+std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	16	new	16	3	16	1.00		
+std::time_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>	12	new	12	2	12	1.00		
+std::time_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	12	new	12	2	12	1.00		
 type_info	8	estimated		1	8	1.00		
