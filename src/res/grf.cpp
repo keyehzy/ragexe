@@ -72,7 +72,7 @@ std::optional<std::vector<GrfEntry>> ParseGrfTable(std::uint32_t version, std::u
       }
       const std::size_t name_size = len - 6;
       std::vector<std::uint8_t> name(RoundUpToBlock(name_size));
-      std::memcpy(name.data(), table.data() + pos + 6, name_size);
+      std::copy_n(table.begin() + static_cast<std::ptrdiff_t>(pos + 6), name_size, name.begin());
       grf::SwapNibbles(name);
       grf::DecodeMixed(name, 1);
       name.resize(name_size);
@@ -188,7 +188,7 @@ std::vector<std::string> GrfArchive::DuplicateNames() const {
 bool GrfArchive::ReadAt(std::uint64_t offset, std::uint8_t* out, std::size_t n) const {
   if (offset > file_size_ || n > file_size_ - offset) return false;
   if (in_memory_) {
-    std::memcpy(out, memory_.data() + offset, n);
+    std::copy_n(memory_.begin() + static_cast<std::ptrdiff_t>(offset), n, out);
     return true;
   }
   std::scoped_lock lock(mutex_);
