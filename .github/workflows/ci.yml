@@ -30,6 +30,7 @@ jobs:
           - name: Windows x64
             os: windows-2022
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
     defaults:
       run:
         shell: bash

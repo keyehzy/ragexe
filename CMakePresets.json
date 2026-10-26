@@ -38,12 +38,14 @@
       "name": "dev",
       "configurePreset": "dev",
       "output": { "outputOnFailure": true },
+      "execution": { "timeout": 300 },
       "environment": { "SDL_VIDEO_DRIVER": "dummy", "SDL_AUDIO_DRIVER": "dummy" }
     },
     {
       "name": "release",
       "configurePreset": "release",
       "output": { "outputOnFailure": true },
+      "execution": { "timeout": 300 },
       "environment": { "SDL_VIDEO_DRIVER": "dummy", "SDL_AUDIO_DRIVER": "dummy" }
     }
   ]

@@ -2,7 +2,8 @@ add_executable(ragexe_tests
   frame_timer_test.cpp
   grf_test.cpp
   mode_switcher_test.cpp
-  settings_test.cpp)
+  settings_test.cpp
+  windows_no_dialogs.cpp)
 target_link_libraries(ragexe_tests PRIVATE ragexe_game ragexe_res ZLIB::ZLIB Catch2::Catch2WithMain ragexe_options)
 
 include(Catch)
