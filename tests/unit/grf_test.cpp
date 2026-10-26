@@ -1,3 +1,5 @@
+#include "res/grf.h"
+
 #include <zlib.h>
 
 #include <catch2/catch_test_macros.hpp>
@@ -8,7 +10,6 @@
 #include <string>
 #include <vector>
 
-#include "res/grf.h"
 #include "res/grf_cipher.h"
 #include "res/hashed_file_name.h"
 
@@ -56,7 +57,8 @@ struct TestFile {
 };
 
 // Writes an archive the way the format describes it, encoding with the inverse functions.
-std::vector<std::uint8_t> BuildArchive(const std::vector<TestFile>& files, std::uint32_t version = 0x103) {
+std::vector<std::uint8_t> BuildArchive(const std::vector<TestFile>& files,
+                                       std::uint32_t version = 0x103) {
   std::vector<std::uint8_t> body, table;
   for (const TestFile& f : files) {
     std::vector<std::uint8_t> stored;
@@ -64,7 +66,8 @@ std::vector<std::uint8_t> BuildArchive(const std::vector<TestFile>& files, std::
     if (f.flags == 1) {
       uLongf n = compressBound(static_cast<uLong>(f.data.size()));
       stored.resize(n);
-      REQUIRE(compress(stored.data(), &n, f.data.data(), static_cast<uLong>(f.data.size())) == Z_OK);
+      REQUIRE(compress(stored.data(), &n, f.data.data(), static_cast<uLong>(f.data.size())) ==
+              Z_OK);
       stored.resize(n);
       compressed_size = static_cast<std::int32_t>(n);
     } else {
@@ -166,7 +169,8 @@ TEST_CASE("only .gnd, .gat, .act and .str get their first blocks encoded") {
 
 TEST_CASE("an archive written to the format reads back") {
   std::vector<std::uint8_t> big(70000);
-  for (std::size_t i = 0; i < big.size(); ++i) big[i] = static_cast<std::uint8_t>((i * 7) ^ (i >> 5));
+  for (std::size_t i = 0; i < big.size(); ++i)
+    big[i] = static_cast<std::uint8_t>((i * 7) ^ (i >> 5));
   const std::vector<TestFile> files = {
       {"data\\Prontera.gat", big, 1},
       {"data\\prontera.rsw", big, 1},
@@ -201,7 +205,8 @@ TEST_CASE("an archive written to the format reads back") {
 TEST_CASE("a stream that breaks off is zero-filled to the recorded size") {
   // One stored deflate block of 12 bytes, cut after 4 of them: the padding to a whole
   // block gives 5 more, then the input ends.
-  const std::vector<std::uint8_t> stream = {0x78, 0x01, 0x01, 0x0c, 0x00, 0xf3, 0xff, 'R', 'I', 'F', 'F'};
+  const std::vector<std::uint8_t> stream = {0x78, 0x01, 0x01, 0x0c, 0x00, 0xf3,
+                                            0xff, 'R',  'I',  'F',  'F'};
   TestFile f{"data\\cut.wav", {}, 0};
   f.data = stream;
   auto bytes = BuildArchive({f});

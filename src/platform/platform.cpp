@@ -28,26 +28,17 @@ void PumpEvents(const std::function<void(const Event&)>& handle) {
   while (SDL_PollEvent(&e)) {
     switch (e.type) {
       case SDL_EVENT_QUIT:
-      case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
-        handle({Event::Type::Quit, 0, {}});
-        break;
-      case SDL_EVENT_WINDOW_FOCUS_GAINED:
-        handle({Event::Type::FocusGained, 0, {}});
-        break;
-      case SDL_EVENT_WINDOW_FOCUS_LOST:
-        handle({Event::Type::FocusLost, 0, {}});
-        break;
+      case SDL_EVENT_WINDOW_CLOSE_REQUESTED: handle({Event::Type::Quit, 0, {}}); break;
+      case SDL_EVENT_WINDOW_FOCUS_GAINED: handle({Event::Type::FocusGained, 0, {}}); break;
+      case SDL_EVENT_WINDOW_FOCUS_LOST: handle({Event::Type::FocusLost, 0, {}}); break;
       case SDL_EVENT_KEY_DOWN:
         handle({Event::Type::KeyDown, static_cast<std::int32_t>(e.key.key), {}});
         break;
       case SDL_EVENT_KEY_UP:
         handle({Event::Type::KeyUp, static_cast<std::int32_t>(e.key.key), {}});
         break;
-      case SDL_EVENT_TEXT_INPUT:
-        handle({Event::Type::TextInput, 0, e.text.text});
-        break;
-      default:
-        break;
+      case SDL_EVENT_TEXT_INPUT: handle({Event::Type::TextInput, 0, e.text.text}); break;
+      default: break;
     }
   }
 }

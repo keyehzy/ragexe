@@ -63,12 +63,14 @@ int List(const char* path) {
   auto grf = OpenOrReport(path);
   if (!grf) return 1;
   for (const GrfEntry& e : grf->entries()) {
-    std::printf("%u\t%u\t%u\t%u\t%s\n", e.size, e.stored_size, e.flags, e.offset, Escape(e.name).c_str());
+    std::printf("%u\t%u\t%u\t%u\t%s\n", e.size, e.stored_size, e.flags, e.offset,
+                Escape(e.name).c_str());
   }
   return 0;
 }
 
-int Extract(const char* path, const std::filesystem::path& dir, const std::vector<std::string>& names) {
+int Extract(const char* path, const std::filesystem::path& dir,
+            const std::vector<std::string>& names) {
   auto grf = OpenOrReport(path);
   if (!grf) return 1;
   std::vector<const GrfEntry*> wanted;
@@ -99,7 +101,8 @@ int Extract(const char* path, const std::filesystem::path& dir, const std::vecto
     std::error_code ec;
     std::filesystem::create_directories(out.parent_path(), ec);
     std::ofstream f(out, std::ios::binary);
-    f.write(reinterpret_cast<const char*>(data->data()), static_cast<std::streamsize>(data->size()));
+    f.write(reinterpret_cast<const char*>(data->data()),
+            static_cast<std::streamsize>(data->size()));
     if (!f) {
       std::fprintf(stderr, "cannot write %s\n", out.string().c_str());
       ++failed;
@@ -124,12 +127,13 @@ int Check(const char* path) {
     bool broken = false;
     auto data = grf->Read(e, &error, &broken);
     if (broken) {
-      std::printf("%s: %s: the compressed stream breaks off; zero-filled as the client does\n", path,
-                  Escape(e.name).c_str());
+      std::printf("%s: %s: the compressed stream breaks off; zero-filled as the client does\n",
+                  path, Escape(e.name).c_str());
       ++damaged;
     }
     if (!data || data->size() != e.size) {
-      std::fprintf(stderr, "%s: %s\n", path, data ? (Escape(e.name) + ": wrong size").c_str() : error.c_str());
+      std::fprintf(stderr, "%s: %s\n", path,
+                   data ? (Escape(e.name) + ": wrong size").c_str() : error.c_str());
       ++failed;
       continue;
     }
@@ -137,11 +141,13 @@ int Check(const char* path) {
     bytes += data->size();
   }
   const auto duplicates = grf->DuplicateNames();
-  for (const std::string& n : duplicates) std::fprintf(stderr, "%s: duplicate name %s\n", path, Escape(n).c_str());
-  std::printf("%s: version 0x%x, %zu entries: %zu files read (%llu bytes), %zu failed, %zu not compressed, "
-              "%zu damaged, %zu stored sizes not a multiple of 8, %zu duplicate names\n",
-              path, grf->version(), grf->entries().size(), files, static_cast<unsigned long long>(bytes), failed,
-              other, damaged, unaligned, duplicates.size());
+  for (const std::string& n : duplicates)
+    std::fprintf(stderr, "%s: duplicate name %s\n", path, Escape(n).c_str());
+  std::printf(
+      "%s: version 0x%x, %zu entries: %zu files read (%llu bytes), %zu failed, %zu not compressed, "
+      "%zu damaged, %zu stored sizes not a multiple of 8, %zu duplicate names\n",
+      path, grf->version(), grf->entries().size(), files, static_cast<unsigned long long>(bytes),
+      failed, other, damaged, unaligned, duplicates.size());
   return failed == 0 ? 0 : 1;
 }
 
@@ -159,7 +165,8 @@ int main(int argc, char** argv) {
   if (argc < 3) return Usage();
   const std::string command = argv[1];
   if (command == "list" && argc == 3) return List(argv[2]);
-  if (command == "extract" && argc >= 4) return Extract(argv[2], argv[3], std::vector<std::string>(argv + 4, argv + argc));
+  if (command == "extract" && argc >= 4)
+    return Extract(argv[2], argv[3], std::vector<std::string>(argv + 4, argv + argc));
   if (command == "check") {
     int status = 0;
     for (int i = 2; i < argc; ++i) status |= Check(argv[i]);

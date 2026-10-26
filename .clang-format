@@ -1,0 +1,7 @@
+# Google style with 100 columns. Check with the pinned version (tools/requirements-lint.txt):
+# .venv/bin/clang-format --dry-run --Werror $(git ls-files '*.cpp' '*.h')
+BasedOnStyle: Google
+ColumnLimit: 100
+DerivePointerAlignment: false
+PointerAlignment: Left
+AllowShortCaseLabelsOnASingleLine: true

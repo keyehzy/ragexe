@@ -12,6 +12,22 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(RAGEXE_BUILD_TESTS "Build the Catch2 unit tests" ON)
 option(RAGEXE_SANITIZE "Build with AddressSanitizer (and UndefinedBehaviorSanitizer where the compiler has it)" OFF)
+option(RAGEXE_CCACHE "Compile through ccache when it is installed" ON)
+
+# ccache for every target, the fetched libraries included. MSVC's debug information must
+# then go into the object files (/Z7): ccache cannot cache a compile that writes a shared
+# PDB (/Zi).
+if(RAGEXE_CCACHE AND NOT CMAKE_CXX_COMPILER_LAUNCHER)
+  find_program(RAGEXE_CCACHE_PROGRAM ccache)
+  if(RAGEXE_CCACHE_PROGRAM)
+    set(CMAKE_C_COMPILER_LAUNCHER "${RAGEXE_CCACHE_PROGRAM}")
+    set(CMAKE_CXX_COMPILER_LAUNCHER "${RAGEXE_CCACHE_PROGRAM}")
+    if(MSVC)
+      set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug,RelWithDebInfo>:Embedded>")
+    endif()
+    message(STATUS "Compiling through ${RAGEXE_CCACHE_PROGRAM}")
+  endif()
+endif()
 
 # Warnings and sanitizers for our own targets only, not for the third-party libraries.
 add_library(ragexe_options INTERFACE)

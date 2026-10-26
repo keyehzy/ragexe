@@ -1,11 +1,11 @@
-#include <catch2/catch_test_macros.hpp>
+#include "game/mode_switcher.h"
 
+#include <catch2/catch_test_macros.hpp>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "game/mode.h"
-#include "game/mode_switcher.h"
 
 using ragexe::game::kMsgQuit;
 using ragexe::game::Mode;
@@ -29,18 +29,23 @@ class ScriptedMode : public Mode {
   ScriptedMode(ModeSwitcher& s, ModeId id, Script& script) : Mode(s), id_(id), script_(script) {}
   ~ScriptedMode() override { script_.log.push_back(Name() + " destroyed"); }
 
-  void OnInit(std::string_view map) override { script_.log.push_back(Name() + " init " + std::string(map)); }
+  void OnInit(std::string_view map) override {
+    script_.log.push_back(Name() + " init " + std::string(map));
+  }
   void OnExit() override { script_.log.push_back(Name() + " exit"); }
   void OnChangeState(int state) override {
-    script_.log.push_back(Name() + " state " + std::to_string(state) + " after frame " + std::to_string(frame_));
+    script_.log.push_back(Name() + " state " + std::to_string(state) + " after frame " +
+                          std::to_string(frame_));
   }
   void OnFrame() override {
     ++frame_;
     if (id_ == ModeId::Login) {
       if (frame_ == script_.login_state_request_at) RequestState(3);
-      if (frame_ == script_.login_frames_before_game) switcher_.RequestMode(ModeId::Game, "prontera.rsw");
+      if (frame_ == script_.login_frames_before_game)
+        switcher_.RequestMode(ModeId::Game, "prontera.rsw");
     } else {
-      if (frame_ == script_.game_frames_before_map_change) switcher_.RequestMode(ModeId::Game, "yuno.rsw");
+      if (frame_ == script_.game_frames_before_map_change)
+        switcher_.RequestMode(ModeId::Game, "yuno.rsw");
       if (frame_ == script_.game_frames_before_quit) SendMsg(kMsgQuit);
     }
   }
@@ -73,9 +78,9 @@ TEST_CASE("Login, game, a map change that rebuilds the game mode, then quit") {
   switcher.Run(ModeId::Login, "login.rsw");
 
   const std::vector<std::string> expected = {
-      "login init login.rsw", "login exit", "login destroyed",
-      "game init prontera.rsw", "game exit", "game destroyed",
-      "game init yuno.rsw", "game exit", "game destroyed",
+      "login init login.rsw",   "login exit", "login destroyed",
+      "game init prontera.rsw", "game exit",  "game destroyed",
+      "game init yuno.rsw",     "game exit",  "game destroyed",
   };
   CHECK(script.log == expected);
   CHECK(switcher.quitting());

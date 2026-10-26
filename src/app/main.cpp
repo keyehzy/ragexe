@@ -68,19 +68,19 @@ int main(int argc, char** argv) {
     SDL_Log("no window: %s", SDL_GetError());
     return EXIT_FAILURE;
   }
-  if (!window->has_renderer()) SDL_Log("no renderer: %s; the loop runs without drawing", SDL_GetError());
+  if (!window->has_renderer())
+    SDL_Log("no renderer: %s; the loop runs without drawing", SDL_GetError());
   client.window = window.get();
   client.timer.SetFrameRate(60, platform::TimeMs());
 
-  game::ModeSwitcher switcher([&client](game::ModeId id, game::ModeSwitcher& s) -> std::unique_ptr<game::Mode> {
-    switch (id) {
-      case game::ModeId::Login:
-        return std::make_unique<game::LoginMode>(s, client);
-      case game::ModeId::Game:
-        return std::make_unique<game::GameMode>(s, client);
-    }
-    return nullptr;
-  });
+  game::ModeSwitcher switcher(
+      [&client](game::ModeId id, game::ModeSwitcher& s) -> std::unique_ptr<game::Mode> {
+        switch (id) {
+          case game::ModeId::Login: return std::make_unique<game::LoginMode>(s, client);
+          case game::ModeId::Game: return std::make_unique<game::GameMode>(s, client);
+        }
+        return nullptr;
+      });
   switcher.Run(game::ModeId::Login, "login.rsw");
 
   SDL_Log("quit after %llu frames", static_cast<unsigned long long>(client.frames));

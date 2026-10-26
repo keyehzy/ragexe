@@ -1,6 +1,6 @@
-#include <catch2/catch_test_macros.hpp>
-
 #include "platform/settings.h"
+
+#include <catch2/catch_test_macros.hpp>
 
 using ragexe::platform::FormatSettings;
 using ragexe::platform::ParseSettings;

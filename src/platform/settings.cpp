@@ -31,7 +31,8 @@ Settings ParseSettings(std::string_view text) {
     std::string_view line = text.substr(0, newline);
     text = newline == std::string_view::npos ? std::string_view{} : text.substr(newline + 1);
 
-    if (const auto hash = line.find('#'); hash != std::string_view::npos) line = line.substr(0, hash);
+    if (const auto hash = line.find('#'); hash != std::string_view::npos)
+      line = line.substr(0, hash);
     const auto equals = line.find('=');
     if (equals == std::string_view::npos) continue;
     const std::string_view key = Trim(line.substr(0, equals));

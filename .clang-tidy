@@ -1,0 +1,40 @@
+# Checks that find bugs and wasted work, plus a few modernizations. Run the pinned version
+# (tools/requirements-lint.txt) on a configured build; on macOS add
+# --extra-arg=-isysroot$(xcrun --show-sdk-path) so it finds the SDK's headers:
+# git ls-files 'src/*.cpp' 'tests/unit/*.cpp' | xargs .venv/bin/clang-tidy -p build/dev --quiet
+Checks: >
+  -*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-exception-escape,
+  -bugprone-narrowing-conversions,
+  -bugprone-unchecked-optional-access,
+  misc-redundant-expression,
+  misc-unused-using-decls,
+  modernize-concat-nested-namespaces,
+  modernize-deprecated-headers,
+  modernize-loop-convert,
+  modernize-make-unique,
+  modernize-pass-by-value,
+  modernize-redundant-void-arg,
+  modernize-use-bool-literals,
+  modernize-use-default-member-init,
+  modernize-use-emplace,
+  modernize-use-equals-default,
+  modernize-use-equals-delete,
+  modernize-use-integer-sign-comparison,
+  modernize-use-nullptr,
+  modernize-use-override,
+  modernize-use-scoped-lock,
+  modernize-use-using,
+  performance-*,
+  -performance-enum-size,
+  readability-container-size-empty,
+  readability-else-after-return,
+  readability-inconsistent-declaration-parameter-name,
+  readability-make-member-function-const,
+  readability-redundant-*,
+  readability-simplify-boolean-expr
+WarningsAsErrors: '*'
+HeaderFilterRegex: '(src|tests/unit)/'
+ExcludeHeaderFilterRegex: '/_deps/'

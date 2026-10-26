@@ -5,6 +5,18 @@ on:
   pull_request:
 
 jobs:
+  format:
+    name: Format
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: clang-format (pinned)
+        run: |
+          python3 -m venv .lint
+          .lint/bin/pip install -q -r tools/requirements-lint.txt
+          git ls-files -z '*.cpp' '*.h' | xargs -0 .lint/bin/clang-format --dry-run --Werror
+
   build:
     name: ${{ matrix.name }}
     strategy:
@@ -28,6 +40,14 @@ jobs:
       - name: CMake and Ninja
         uses: lukka/get-cmake@latest
 
+      # Puts ccache on the PATH, where CMakeLists.txt finds it, and keeps its cache
+      # between runs.
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ matrix.os }}-dev
+          max-size: 500M
+
       - name: Linux headers SDL3 builds against
         if: runner.os == 'Linux'
         run: |
@@ -42,13 +62,23 @@ jobs:
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
 
-      # Always the pinned SDL3 and Catch2 (cmake/dependencies.cmake), never a package
-      # the runner happens to have installed.
+      # Always the pinned libraries (cmake/dependencies.cmake), never a package the
+      # runner happens to have installed.
       - name: Configure (Debug, sanitizers)
         run: cmake --preset dev -DFETCHCONTENT_TRY_FIND_PACKAGE_MODE=NEVER
+
+      - name: clang-tidy (pinned)
+        if: runner.os == 'Linux'
+        run: |
+          python3 -m venv .lint
+          .lint/bin/pip install -q -r tools/requirements-lint.txt
+          git ls-files 'src/*.cpp' 'tests/unit/*.cpp' | xargs .lint/bin/clang-tidy -p build/dev --quiet
 
       - name: Build
         run: cmake --build --preset dev
 
       - name: Test
         run: ctest --preset dev
+
+      - name: ccache statistics
+        run: ccache -s

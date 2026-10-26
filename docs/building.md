@@ -57,6 +57,37 @@ Windows), created with defaults on the first run. Options for unattended runs:
 | `--auto-login N` | leave the login mode for the game mode after N frames |
 | `--map NAME` | the map `--auto-login` enters (default `prontera.rsw`) |
 
+## ccache
+
+When `ccache` is on the `PATH`, every compile goes through it, including the fetched
+libraries (`RAGEXE_CCACHE`, on by default). With MSVC the debug information then goes
+into the object files (`/Z7`), which ccache can cache. CI keeps a cache per platform.
+
+## Formatting and lint
+
+`clang-format` and `clang-tidy` are pinned in `tools/requirements-lint.txt`. Install
+them into the project's virtual environment:
+
+```bash
+.venv/bin/pip install -r tools/requirements-lint.txt
+```
+
+Format everything (Google style, 100 columns, `.clang-format`):
+
+```bash
+git ls-files -z '*.cpp' '*.h' | xargs -0 .venv/bin/clang-format -i
+```
+
+Lint a configured build. The checks are in `.clang-tidy`, and every finding is an error;
+on macOS, also pass `--extra-arg=-isysroot$(xcrun --show-sdk-path)`:
+
+```bash
+git ls-files 'src/*.cpp' 'tests/unit/*.cpp' | xargs .venv/bin/clang-tidy -p build/dev --quiet
+```
+
+CI runs both: the format check as its own job, and clang-tidy in the Linux job after
+configuring.
+
 ## ragres
 
 `ragres` reads the game's archives (format: `docs/formats/grf.md`):

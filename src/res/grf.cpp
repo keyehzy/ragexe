@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <cstring>
 #include <span>
+#include <utility>
 
 #include "res/grf_cipher.h"
 
@@ -84,8 +85,9 @@ std::optional<std::vector<GrfEntry>> ParseGrfTable(std::uint32_t version, std::u
         Fail(error, "entry " + std::to_string(i) + " runs past the table");
         return std::nullopt;
       }
-      std::vector<std::uint8_t> name(table.begin() + static_cast<std::ptrdiff_t>(pos + 4),
-                                     table.begin() + static_cast<std::ptrdiff_t>(pos + std::max<std::size_t>(len, 4)));
+      std::vector<std::uint8_t> name(
+          table.begin() + static_cast<std::ptrdiff_t>(pos + 4),
+          table.begin() + static_cast<std::ptrdiff_t>(pos + std::max<std::size_t>(len, 4)));
       grf::SwapNibbles(name);
       auto nul = std::find(name.begin(), name.end(), std::uint8_t{0});
       e.name.assign(name.begin(), nul);
@@ -99,7 +101,8 @@ std::optional<std::vector<GrfEntry>> ParseGrfTable(std::uint32_t version, std::u
   return entries;
 }
 
-std::unique_ptr<GrfArchive> GrfArchive::Open(const std::filesystem::path& path, std::string* error) {
+std::unique_ptr<GrfArchive> GrfArchive::Open(const std::filesystem::path& path,
+                                             std::string* error) {
   std::unique_ptr<GrfArchive> grf(new GrfArchive());
   grf->file_.open(path, std::ios::binary);
   if (!grf->file_) {
@@ -149,8 +152,9 @@ std::unique_ptr<GrfArchive> GrfArchive::Open(const std::filesystem::path& path, 
 
 const GrfEntry* GrfArchive::Find(std::string_view name) const {
   const HashedFileName key(name);
-  auto it = std::lower_bound(sorted_.begin(), sorted_.end(), key,
-                             [&](std::uint32_t i, const HashedFileName& k) { return entries_[i].key < k; });
+  auto it = std::lower_bound(
+      sorted_.begin(), sorted_.end(), key,
+      [&](std::uint32_t i, const HashedFileName& k) { return entries_[i].key < k; });
   if (it == sorted_.end() || !(entries_[*it].key == key)) return nullptr;
   return &entries_[*it];
 }
@@ -168,15 +172,15 @@ std::vector<std::string> GrfArchive::DuplicateNames() const {
 
 bool GrfArchive::ReadAt(std::uint64_t offset, std::uint8_t* out, std::size_t n) const {
   if (offset > file_size_ || n > file_size_ - offset) return false;
-  std::lock_guard lock(mutex_);
+  std::scoped_lock lock(mutex_);
   file_.clear();
   file_.seekg(static_cast<std::streamoff>(offset));
   file_.read(reinterpret_cast<char*>(out), static_cast<std::streamsize>(n));
-  return static_cast<std::size_t>(file_.gcount()) == n;
+  return std::cmp_equal(file_.gcount(), n);
 }
 
 std::optional<std::vector<std::uint8_t>> GrfArchive::Read(const GrfEntry& entry, std::string* error,
-                                                         bool* damaged) const {
+                                                          bool* damaged) const {
   if (damaged != nullptr) *damaged = false;
   const std::uint64_t start = std::uint64_t{kHeaderSize} + entry.offset;
   if (start > file_size_ || entry.stored_size > file_size_ - start) {

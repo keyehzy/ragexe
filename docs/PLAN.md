@@ -1532,6 +1532,13 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   case-insensitive lookup); the broken stream; refused archives; version 0x100 tables.
 - [x] Labels: the `CGPak` and `CSakGPak` methods are named (`Open`, `LoadFile`,
   `LoadFromArchive`, `MapRange`, …).
+- [x] Tooling:
+  - **ccache** for every compile when installed, with MSVC's debug information in the
+    objects; CI keeps a ccache per platform.
+  - **clang-format** (Google style, 100 columns) and **clang-tidy** (bug-finding,
+    performance and a few modernize checks, all errors), pinned in
+    `tools/requirements-lint.txt`.
+  - **In CI:** the format check is its own job; clang-tidy runs in the Linux job.
 - [ ] Loose files and lookup: `MakeDataPath`, `DataFile`, the archive-then-disk order
   on a case-sensitive file system.
 - [ ] `CRes` and the resource manager (`ResNameTable.txt`, the per-type maps).
