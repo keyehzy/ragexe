@@ -70,7 +70,7 @@ mg::CMGNpc	664	estimated: end of the last field the class or its bases use
 mg::CMGPc	776	estimated: end of the last field the class or its bases use
 mg::CObject	104	estimated: end of the last field the class or its bases use
 mg::CScript	676	estimated: end of the last field the class or its bases use
-mg::mgType1::CWorld	104	estimated: end of the last field the class or its bases use; at most 120: the global at 0067ce90 is followed by a variable at 0067cf08 (another data label); 4 addresses before it, 0067cef8 first, are used only by other code: fields or variables; probably a variable from 0067cf00 (+0x70) on, which only source files naming nothing else of the object use
+mg::mgType1::CWorld	104	estimated: end of the last field the class or its bases use; at most 120: the global at 0067ce90 is followed by a variable at 0067cf08 (another data label); 4 addresses before it, 0067cef8 first, are used only by other code: fields or variables; probably a variable from 0067cf00 (+0x70) on, which only source files naming nothing else of the object use; 1 of them named with an absolute address by the class's own methods, e.g. 0067cefc by 004fe4b0
 std::_Mpunct<char>	40	estimated: end of the last field the class or its bases use
 std::_Mpunct<unsigned_short>	40	estimated: end of the last field the class or its bases use
 std::bad_alloc	12	estimated: end of the last field the class or its bases use

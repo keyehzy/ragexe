@@ -15,7 +15,7 @@ entry	subsystem	rule	evidence
 00402070	world	class	class ScaleKeys
 004020c0	world	previous	after 00402070, nothing references it
 00402570	core	initializer	initializer of the file starting here, before 004025a0
-004025a0	core	shared	audio 3, core 4, game 21, net 3, render 7, res 22, ui 18, world 14
+004025a0	core	shared	audio 3, core 4, game 20, net 3, render 7, res 22, ui 18, world 15
 004025b0	core	previous	after 004025a0, nothing references it
 004025d0	render	callers	2 referencing functions
 00402600	render	callers	1 referencing function
@@ -2944,8 +2944,8 @@ entry	subsystem	rule	evidence
 004d95a0	ui	class	class SkillRecord
 004d95b0	game	function	loads the skill tables (skillnametable.txt, skilldesctable.txt, leveluseskillspamount.txt)
 004d9920	game	callers	4 referencing functions
-004d99e0	game	neighbours	between 004d9920 and 004d9b30
-004d9a60	game	neighbours	between 004d9920 and 004d9b30
+004d99e0	world	callers	1 referencing function
+004d9a60	core	shared	game 3, ui 5
 004d9b30	game	callers	1 referencing function
 004da100	game	callers	1 referencing function
 004da2a0	game	callers	1 referencing function
@@ -3351,35 +3351,25 @@ entry	subsystem	rule	evidence
 004fcfc0	game	class	namespace mg
 004fd180	game	class	namespace mg
 004fd1b0	game	class	namespace mg
-004fd310	game	neighbours	between 004fd1b0 and 004fec70
-004fd4b0	game	neighbours	between 004fd1b0 and 004fec70
-004fd5a0	game	neighbours	between 004fd1b0 and 004fec70
-004fd660	game	neighbours	between 004fd1b0 and 004fec70
-004fd680	game	neighbours	between 004fd1b0 and 004fec70
-004fd6b0	game	neighbours	between 004fd1b0 and 004fec70
-004fdad0	game	neighbours	between 004fd1b0 and 004fec70
-004fdb10	game	neighbours	between 004fd1b0 and 004fec70
-004fdc40	game	neighbours	between 004fd1b0 and 004fec70
-004fdc60	game	neighbours	between 004fd1b0 and 004fec70
-004fdd10	game	neighbours	between 004fd1b0 and 004fec70
-004fe030	game	neighbours	between 004fd1b0 and 004fec70
-004fe040	game	neighbours	between 004fd1b0 and 004fec70
-004fe2d0	game	neighbours	between 004fd1b0 and 004fec70
-004fe2f0	game	neighbours	between 004fd1b0 and 004fec70
-004fe3e0	game	neighbours	between 004fd1b0 and 004fec70
-004fe440	game	neighbours	between 004fd1b0 and 004fec70
-004fe4b0	game	neighbours	between 004fd1b0 and 004fec70
-004fe5c0	game	neighbours	between 004fd1b0 and 004fec70
-004fe5f0	game	neighbours	between 004fd1b0 and 004fec70
-004fe620	game	neighbours	between 004fd1b0 and 004fec70
-004fe660	game	neighbours	between 004fd1b0 and 004fec70
-004fe670	game	neighbours	between 004fd1b0 and 004fec70
-004fe680	game	neighbours	between 004fd1b0 and 004fec70
-004fe890	game	neighbours	between 004fd1b0 and 004fec70
-004fe8c0	game	neighbours	between 004fd1b0 and 004fec70
-004fe8e0	game	neighbours	between 004fd1b0 and 004fec70
-004feb20	game	neighbours	between 004fd1b0 and 004fec70
-004feb50	game	neighbours	between 004fd1b0 and 004fec70
+004fd310	game	class	namespace mg
+004fd4b0	game	class	namespace mg
+004fd5a0	game	class	namespace mg
+004fd660	game	class	namespace mg
+004fd680	game	class	namespace mg
+004fd6b0	game	class	namespace mg
+004fdad0	game	neighbours	between 004fd6b0 and 004fdb10
+004fdb10	game	class	namespace mg
+004fdc40	game	class	namespace mg
+004fdc60	game	class	namespace mg
+004fdd10	game	class	namespace mg
+004fe030	game	class	namespace mg
+004fe040	game	class	namespace mg
+004fe2d0	game	class	namespace mg
+004fe2f0	game	class	namespace mg
+004fe3e0	game	class	namespace mg
+004fe440	game	neighbours	between 004fe3e0 and 004fe4b0
+004fe4b0	game	class	namespace mg
+004feb20	game	neighbours	between 004fe4b0 and 004fec70
 004fec70	game	class	namespace mg
 004fec90	game	class	namespace mg
 004fecc0	game	class	namespace mg
@@ -3401,8 +3391,6 @@ entry	subsystem	rule	evidence
 004ffda0	game	class	namespace mg
 004ffdd0	game	class	namespace mg
 004ffdf0	game	class	namespace mg
-004ffe10	game	callers	1 referencing function
-004ffe40	game	callers	1 referencing function
 004ffe70	ui	initializer	initializer of the file starting here, before 004ffea0
 004ffea0	ui	callers	1 referencing function
 004fff30	ui	previous	after 004ffea0, nothing references it
@@ -3414,7 +3402,7 @@ entry	subsystem	rule	evidence
 00500050	world	class	class CGameObject
 00500060	world	class	class CGameObject
 00500090	world	class	class CGameObject
-005000a0	world	neighbours	between 00500090 and 005000c0
+005000a0	world	class	class CGameObject
 005000c0	world	class	class CGameObject
 005000d0	world	class	class CGameObject
 00500150	world	class	class CGameObject, base of CRagEffect
@@ -3428,7 +3416,7 @@ entry	subsystem	rule	evidence
 00500530	world	class	class CGameObject, base of CRenderObject
 00500560	world	class	class CGameObject, base of CArrowEffect
 005005b0	world	class	class CGameObject, base of CRenderObject
-00500610	world	neighbours	between 005005b0 and 00500660
+00500610	world	class	class CGameObject, base of CRenderObject
 00500660	world	class	class CGameObject, base of CGameActor
 00500720	world	class	class CGameObject, base of CRenderObject
 00500760	world	class	class CGameObject, base of CArrowEffect
@@ -3437,7 +3425,7 @@ entry	subsystem	rule	evidence
 00500de0	world	class	class CGameObject, base of CRenderObject
 00500e40	world	class	class CGameObject, base of CRenderObject
 00500e60	world	class	class CGameObject, base of CRenderObject
-00500ed0	world	neighbours	between 00500e60 and 00500f70
+00500ed0	world	class	class CGameObject, base of CRenderObject
 00500f70	world	class	class CGameObject, base of CRenderObject
 00501550	world	class	class CGameObject, base of CRenderObject
 00501830	world	class	class CGameObject, base of CRenderObject
@@ -3453,7 +3441,7 @@ entry	subsystem	rule	evidence
 005019d0	ui	class	class CMousePointer
 00501a00	ui	class	class CMousePointer
 00501a50	ui	class	class CMousePointer
-00501aa0	ui	neighbours	between 00501a50 and 00501ab0
+00501aa0	ui	class	class CMousePointer
 00501ab0	ui	class	class CMousePointer
 00501b30	ui	class	class CMousePointer
 00501be0	world	class	class CGameObject, base of CAbleToMakeEffect
@@ -3462,9 +3450,9 @@ entry	subsystem	rule	evidence
 00501d40	world	class	class CGameObject, base of CAbleToMakeEffect
 00501d70	world	class	class CGameObject, base of CAbleToMakeEffect
 00501e10	world	class	class CGameObject, base of CAbleToMakeEffect
-00502090	world	neighbours	between 00501e10 and 005020d0
+00502090	world	class	class CGameObject, base of CAbleToMakeEffect
 005020d0	world	class	class CGameObject, base of CAbleToMakeEffect
-00502500	world	neighbours	between 005020d0 and 00502570
+00502500	world	class	class CGameObject, base of CAbleToMakeEffect
 00502570	world	class	class CGameObject, base of CGameActor
 00502640	world	class	class CGameObject, base of CGameActor
 00502650	world	class	class CGameObject, base of CGameActor
@@ -3473,7 +3461,6 @@ entry	subsystem	rule	evidence
 00502680	world	class	class CGameObject, base of CGameActor
 00502690	world	class	class CGameObject, base of CGameActor
 005026a0	world	class	class CGameObject, base of CGameActor
-005026d0	world	neighbours	between 005026a0 and 00502700
 00502700	world	class	class CGameObject, base of CGameActor
 00502850	world	class	class CGameObject, base of CGameActor
 00502a20	world	class	class CGameObject, base of CGameActor
@@ -3483,29 +3470,29 @@ entry	subsystem	rule	evidence
 00502cc0	world	class	class CGameObject, base of CGameActor
 00502ff0	world	class	class CGameObject, base of CGameActor
 00503020	world	class	class CGameObject, base of CGameActor
-00503050	world	neighbours	between 00503020 and 00503070
+00503050	world	class	class CGameObject, base of CGameActor
 00503070	world	class	class CGameObject, base of CGameActor
 00503110	world	class	class CGameObject, base of CGameActor
 00503160	world	class	class CGameObject, base of CGameActor
-00503190	world	neighbours	between 00503160 and 005031d0
+00503190	world	class	class CGameObject, base of CGameActor
 005031d0	world	class	class CGameObject, base of CGameActor
 00503210	world	class	class CGameObject, base of CGameActor
 00503440	world	class	class CGameObject, base of CGameActor
 00503490	world	class	class CGameObject, base of CGameActor
 005034e0	world	class	class CGameObject, base of CGameActor
 00503830	world	class	class CGameObject, base of CGameActor
-00503880	world	neighbours	between 00503830 and 005038c0
+00503880	world	class	class CGameObject, base of CGameActor
 005038c0	world	class	class CGameObject, base of CGameActor
 00503f30	world	class	class CGameObject, base of CGameActor
 00503f80	world	class	class CGameObject, base of CGameActor
 00504000	world	class	class CGameObject, base of CGameActor
-00504090	world	neighbours	between 00504000 and 00504390
-00504190	world	neighbours	between 00504000 and 00504390
-005041e0	world	neighbours	between 00504000 and 00504390
+00504090	world	class	class CGameObject, base of CGameActor
+00504190	world	class	class CGameObject, base of CGameActor
+005041e0	world	class	class CGameObject, base of CGameActor
 00504390	world	class	class CGameObject, base of CGameActor
 00504460	world	class	class CGameObject, base of CGameActor
-00506b20	world	neighbours	between 00504460 and 00506bf0
-00506be0	world	neighbours	between 00504460 and 00506bf0
+00506b20	world	class	class CGameObject, base of CGameActor
+00506be0	world	class	class CGameObject, base of CGameActor
 00506bf0	world	class	class CGameObject, base of CPlayer
 00506c80	world	class	class CGameObject, base of CPlayer
 00507740	world	class	class CGameObject, base of CGameActor
@@ -3513,10 +3500,6 @@ entry	subsystem	rule	evidence
 00507880	world	neighbours	between 00507860 and 005078a0
 005078a0	world	class	class CGameObject, base of CGameActor
 005078e0	world	class	class CGameObject, base of CPlayer
-00507930	world	neighbours	between 005078e0 and 00507b10
-00507980	world	neighbours	between 005078e0 and 00507b10
-00507a10	world	neighbours	between 005078e0 and 00507b10
-00507a30	world	neighbours	between 005078e0 and 00507b10
 00507ac0	world	neighbours	between 005078e0 and 00507b10
 00507af0	world	stub	jumps to 00507b00
 00507b00	world	neighbours	between 005078e0 and 00507b10
@@ -3527,10 +3510,10 @@ entry	subsystem	rule	evidence
 00508250	world	class	class CGameObject, base of C3dGrannyGameActor
 005083b0	world	class	class CGameObject, base of C3dGrannyGameActor
 00508460	world	class	class CGameObject, base of C3dGrannyGameActor
-00508550	world	neighbours	between 00508460 and 00509280
-00508e50	world	neighbours	between 00508460 and 00509280
-00509260	world	neighbours	between 00508460 and 00509280
-00509270	world	neighbours	between 00508460 and 00509280
+00508550	world	class	class CGameObject, base of C3dGrannyGameActor
+00508e50	world	neighbours	between 00508550 and 00509260
+00509260	world	class	class CGameObject, base of C3dGrannyGameActor
+00509270	world	class	class CGameObject, base of C3dGrannyGameActor
 00509280	world	class	class CGameObject, base of C3dGrannyGameActor
 005098d0	world	class	class CGameObject, base of C3dGrannyGameActor
 00509a20	world	class	class CGameObject, base of C3dGrannyGameActor
@@ -3548,26 +3531,17 @@ entry	subsystem	rule	evidence
 0050a2b0	world	class	class CGameObject, base of CGrannyCorpse3d
 0050a2f0	world	class	class CGameObject, base of CGrannyCorpse3d
 0050a380	world	class	class CGameObject, base of CGrannyCorpse3d
-0050a820	world	neighbours	between 0050a380 and 0050ad50
-0050a850	world	neighbours	between 0050a380 and 0050ad50
-0050a870	world	neighbours	between 0050a380 and 0050ad50
-0050ab90	world	neighbours	between 0050a380 and 0050ad50
-0050aba0	world	neighbours	between 0050a380 and 0050ad50
-0050abf0	world	neighbours	between 0050a380 and 0050ad50
-0050ac30	world	neighbours	between 0050a380 and 0050ad50
-0050ac60	world	neighbours	between 0050a380 and 0050ad50
-0050aca0	world	neighbours	between 0050a380 and 0050ad50
 0050acc0	world	neighbours	between 0050a380 and 0050ad50
 0050acf0	world	stub	jumps to 0050ad00
 0050ad00	world	neighbours	between 0050a380 and 0050ad50
 0050ad10	world	neighbours	between 0050a380 and 0050ad50
 0050ad40	world	neighbours	between 0050a380 and 0050ad50
 0050ad50	world	class	class CGameObject, base of CGameActor
-0050ad80	world	callers	1 referencing function
-0050b2c0	world	callers	1 referencing function
-0050b9d0	world	callers	1 referencing function
-0050beb0	world	callers	1 referencing function
-0050c100	world	callers	1 referencing function
+0050ad80	world	class	class CGameObject, base of CGameActor
+0050b2c0	world	class	class CGameObject, base of CGameActor
+0050b9d0	world	class	class CGameObject, base of CGameActor
+0050beb0	world	class	class CGameObject, base of CGameActor
+0050c100	world	class	class CGameObject, base of CGameActor
 0050c1a0	world	neighbours	between 0050c100 and 0050c200
 0050c1d0	world	stub	jumps to 0050c1e0
 0050c1e0	world	neighbours	between 0050c100 and 0050c200
@@ -3583,14 +3557,7 @@ entry	subsystem	rule	evidence
 0050c2c0	world	callers	1 referencing function
 0050c320	game	class	class CMode, base of CGameMode
 0050c5f0	game	class	class CMode, base of CGameMode
-0050c620	game	neighbours	between 0050c5f0 and 0050ccb0
-0050c720	game	neighbours	between 0050c5f0 and 0050ccb0
-0050c810	game	neighbours	between 0050c5f0 and 0050ccb0
-0050c900	game	neighbours	between 0050c5f0 and 0050ccb0
-0050c9f0	game	neighbours	between 0050c5f0 and 0050ccb0
-0050cae0	game	neighbours	between 0050c5f0 and 0050ccb0
 0050cbd0	game	neighbours	between 0050c5f0 and 0050ccb0
-0050cc70	game	neighbours	between 0050c5f0 and 0050ccb0
 0050ccb0	game	class	class CMode, base of CGameMode
 0050cfb0	game	class	class CMode, base of CGameMode
 0050d3d0	game	class	class CMode, base of CGameMode
@@ -3624,51 +3591,50 @@ entry	subsystem	rule	evidence
 0050fd80	game	neighbours	between 0050f8e0 and 0050fdf0
 0050fd90	game	neighbours	between 0050f8e0 and 0050fdf0
 0050fdf0	game	class	class CMode, base of CGameMode
-0050fea0	game	callers	1 referencing function
-0050fee0	game	callers	1 referencing function
-0050ff10	core	shared	game 1, world 3
+0050fea0	game	class	class CMode, base of CGameMode
+0050fee0	game	class	class CMode, base of CGameMode
+0050ff10	game	class	class CMode, base of CGameMode
 0050ffe0	world	class	class CGameObject, base of CDummyEffectLauncher
 00510010	world	stub	jumps to 00501c90
-00510030	world	callers	1 referencing function
-00510120	world	callers	1 referencing function
-005101f0	world	callers	3 referencing functions
-005102c0	game	callers	1 referencing function
-00510380	world	callers	1 referencing function
-00510440	world	callers	1 referencing function
-00510630	world	neighbours	between 00510440 and 005106a0
-005106a0	world	callers	1 referencing function
-00511150	world	neighbours	between 005106a0 and 005111b0
-005111b0	world	callers	1 referencing function
-00511650	world	neighbours	between 005111b0 and 005118d0
-00511800	world	neighbours	between 005111b0 and 005118d0
-005118d0	world	callers	1 referencing function
-00511910	world	callers	1 referencing function
+00510030	game	class	class CMode, base of CGameMode
+00510120	game	class	class CMode, base of CGameMode
+005101f0	game	class	class CMode, base of CGameMode
+005102c0	game	class	class CMode, base of CGameMode
+00510380	game	class	class CMode, base of CGameMode
+00510440	game	class	class CMode, base of CGameMode
+005106a0	game	class	class CMode, base of CGameMode
+00511150	game	class	class CMode, base of CGameMode
+005111b0	game	class	class CMode, base of CGameMode
+00511650	game	neighbours	between 005111b0 and 005118d0
+00511800	game	neighbours	between 005111b0 and 005118d0
+005118d0	game	class	class CMode, base of CGameMode
+00511910	game	class	class CMode, base of CGameMode
 00511940	game	class	class CMode, base of CGameMode
-00511990	game	neighbours	between 00511940 and 00511c30
-005119f0	game	neighbours	between 00511940 and 00511c30
-00511a40	game	neighbours	between 00511940 and 00511c30
-00511b60	game	neighbours	between 00511940 and 00511c30
+00511990	game	class	class CMode, base of CGameMode
+005119f0	game	neighbours	between 00511990 and 00511a40
+00511a40	game	class	class CMode, base of CGameMode
+00511b60	game	class	class CMode, base of CGameMode
 00511c30	game	class	class CMode, base of CGameMode
 00511d50	game	class	class CMode, base of CGameMode
 00511de0	game	class	class CMode, base of CGameMode
-00511e50	game	neighbours	between 00511de0 and 00511f40
-00511ec0	game	neighbours	between 00511de0 and 00511f40
+00511e50	game	class	class CMode, base of CGameMode
+00511ec0	game	class	class CMode, base of CGameMode
 00511f40	game	class	class CMode, base of CGameMode
 005121d0	game	class	class CMode, base of CGameMode
 00512230	game	class	class CMode, base of CGameMode
 005122a0	game	class	class CMode, base of CGameMode
 00512310	game	class	class CMode, base of CGameMode
 005123c0	game	class	class CMode, base of CGameMode
-005124a0	game	neighbours	between 005123c0 and 00512510
+005124a0	game	class	class CMode, base of CGameMode
 00512510	game	class	class CMode, base of CGameMode
-00512610	game	neighbours	between 00512510 and 005126f0
+00512610	game	class	class CMode, base of CGameMode
 005126f0	game	class	class CMode, base of CGameMode
-00512790	game	neighbours	between 005126f0 and 00512930
-005127a0	game	neighbours	between 005126f0 and 00512930
-005127f0	game	neighbours	between 005126f0 and 00512930
-005128c0	game	neighbours	between 005126f0 and 00512930
+00512790	game	neighbours	between 005126f0 and 005128c0
+005127a0	game	neighbours	between 005126f0 and 005128c0
+005127f0	game	neighbours	between 005126f0 and 005128c0
+005128c0	game	class	class CMode, base of CGameMode
 00512930	game	class	class CMode, base of CGameMode
-00512a30	game	neighbours	between 00512930 and 00512b80
+00512a30	game	class	class CMode, base of CGameMode
 00512b80	game	class	class CMode, base of CGameMode
 00512c00	game	class	class CMode, base of CGameMode
 00512ca0	game	class	class CMode, base of CGameMode
@@ -3676,15 +3642,14 @@ entry	subsystem	rule	evidence
 00512eb0	game	class	class CMode, base of CGameMode
 00512fc0	game	neighbours	between 00512eb0 and 005130b0
 005130b0	game	class	class CMode, base of CGameMode
-00513760	game	neighbours	between 005130b0 and 00513c20
-005137c0	game	neighbours	between 005130b0 and 00513c20
-00513860	game	neighbours	between 005130b0 and 00513c20
-00513a70	game	neighbours	between 005130b0 and 00513c20
+00513760	game	neighbours	between 005130b0 and 005137c0
+005137c0	game	class	class CMode, base of CGameMode
+00513860	game	class	class CMode, base of CGameMode
+00513a70	game	class	class CMode, base of CGameMode
 00513c20	game	class	class CMode, base of CGameMode
-00513d40	game	neighbours	between 00513c20 and 005144a0
+00513d40	game	class	class CMode, base of CGameMode
 005144a0	game	class	class CMode, base of CGameMode
 00514540	game	class	class CMode, base of CGameMode
-00514750	game	neighbours	between 00514540 and 005147a0
 005147a0	game	class	class CMode, base of CGameMode
 00514900	game	class	class CMode, base of CGameMode
 005149c0	game	class	class CMode, base of CGameMode
@@ -3698,11 +3663,11 @@ entry	subsystem	rule	evidence
 00515f60	game	class	class CMode, base of CGameMode
 00515f70	game	neighbours	between 00515f60 and 00515fc0
 00515fc0	game	class	class CMode, base of CGameMode
-00516080	game	neighbours	between 00515fc0 and 00516570
-00516160	game	neighbours	between 00515fc0 and 00516570
-005162f0	game	neighbours	between 00515fc0 and 00516570
-00516460	game	neighbours	between 00515fc0 and 00516570
-00516510	game	neighbours	between 00515fc0 and 00516570
+00516080	game	neighbours	between 00515fc0 and 00516160
+00516160	game	class	class CMode, base of CGameMode
+005162f0	game	neighbours	between 00516160 and 00516460
+00516460	game	class	class CMode, base of CGameMode
+00516510	game	class	class CMode, base of CGameMode
 00516570	game	class	class CMode, base of CGameMode
 00516650	game	class	class CMode, base of CGameMode
 005167d0	ui	class	class UIWindow, base of UIVerticalNameBalloonText
@@ -3718,64 +3683,11 @@ entry	subsystem	rule	evidence
 00519460	game	neighbours	between 00519360 and 00519480
 00519470	game	neighbours	between 00519360 and 00519480
 00519480	game	class	class CMode, base of CGameMode
-005195e0	game	neighbours	between 00519480 and 005196a0
+005195e0	game	class	class CMode, base of CGameMode
 005196a0	game	class	class CMode, base of CGameMode
 00519710	game	neighbours	between 005196a0 and 00519740
 00519740	game	class	class CMode, base of CGameMode
-00519d80	game	neighbours	between 00519740 and 0051d990
-00519dd0	game	neighbours	between 00519740 and 0051d990
-00519df0	game	neighbours	between 00519740 and 0051d990
-00519ff0	game	neighbours	between 00519740 and 0051d990
-0051a030	game	neighbours	between 00519740 and 0051d990
-0051a100	game	neighbours	between 00519740 and 0051d990
-0051a220	game	neighbours	between 00519740 and 0051d990
-0051a320	game	neighbours	between 00519740 and 0051d990
-0051a390	game	neighbours	between 00519740 and 0051d990
-0051a410	game	neighbours	between 00519740 and 0051d990
-0051a530	game	neighbours	between 00519740 and 0051d990
-0051a990	game	neighbours	between 00519740 and 0051d990
-0051aa80	game	neighbours	between 00519740 and 0051d990
-0051aad0	game	neighbours	between 00519740 and 0051d990
-0051ab30	game	neighbours	between 00519740 and 0051d990
-0051ac50	game	neighbours	between 00519740 and 0051d990
-0051b150	game	neighbours	between 00519740 and 0051d990
-0051b1a0	game	neighbours	between 00519740 and 0051d990
 0051b1d0	game	neighbours	between 00519740 and 0051d990
-0051b2a0	game	neighbours	between 00519740 and 0051d990
-0051b980	game	neighbours	between 00519740 and 0051d990
-0051ba70	game	neighbours	between 00519740 and 0051d990
-0051bcc0	game	neighbours	between 00519740 and 0051d990
-0051c1b0	game	neighbours	between 00519740 and 0051d990
-0051c290	game	neighbours	between 00519740 and 0051d990
-0051c6a0	game	neighbours	between 00519740 and 0051d990
-0051c780	game	neighbours	between 00519740 and 0051d990
-0051c7d0	game	neighbours	between 00519740 and 0051d990
-0051cbe0	game	neighbours	between 00519740 and 0051d990
-0051ccc0	game	neighbours	between 00519740 and 0051d990
-0051cd10	game	neighbours	between 00519740 and 0051d990
-0051cdf0	game	neighbours	between 00519740 and 0051d990
-0051ce10	game	neighbours	between 00519740 and 0051d990
-0051ce40	game	neighbours	between 00519740 and 0051d990
-0051ce60	game	neighbours	between 00519740 and 0051d990
-0051d110	game	neighbours	between 00519740 and 0051d990
-0051d170	game	neighbours	between 00519740 and 0051d990
-0051d1d0	game	neighbours	between 00519740 and 0051d990
-0051d1f0	game	neighbours	between 00519740 and 0051d990
-0051d4a0	game	neighbours	between 00519740 and 0051d990
-0051d500	game	neighbours	between 00519740 and 0051d990
-0051d520	game	neighbours	between 00519740 and 0051d990
-0051d580	game	neighbours	between 00519740 and 0051d990
-0051d5d0	game	neighbours	between 00519740 and 0051d990
-0051d5f0	game	neighbours	between 00519740 and 0051d990
-0051d610	game	neighbours	between 00519740 and 0051d990
-0051d640	game	neighbours	between 00519740 and 0051d990
-0051d6d0	game	neighbours	between 00519740 and 0051d990
-0051d730	game	neighbours	between 00519740 and 0051d990
-0051d780	game	neighbours	between 00519740 and 0051d990
-0051d7d0	game	neighbours	between 00519740 and 0051d990
-0051d8b0	game	neighbours	between 00519740 and 0051d990
-0051d8d0	game	neighbours	between 00519740 and 0051d990
-0051d900	game	neighbours	between 00519740 and 0051d990
 0051d940	game	neighbours	between 00519740 and 0051d990
 0051d970	game	stub	jumps to 0051d980
 0051d980	game	neighbours	between 00519740 and 0051d990
@@ -3792,68 +3704,22 @@ entry	subsystem	rule	evidence
 00523a40	ui	class	class UIWindowMgr
 00523a50	ui	class	class UIWindowMgr
 00523a60	res	class	class DataFile
-00523a70	game	callers	1 referencing function
-00523a90	game	callers	1 referencing function
-00523aa0	game	callers	1 referencing function
+00523a70	game	class	class ItemRecord
+00523a90	game	class	class ItemRecord
+00523aa0	game	neighbours	between 00523a90 and 00523ae0
 00523ae0	game	class	class ClientState
 00523af0	game	class	class ClientState
 00523b00	game	class	class ClientState
 00523b10	game	class	class ClientState
 00523b40	game	class	class ClientState
-00523b50	game	neighbours	between 00523b40 and 00524d80
-00523b60	game	neighbours	between 00523b40 and 00524d80
-00523b70	game	neighbours	between 00523b40 and 00524d80
-00523b80	game	neighbours	between 00523b40 and 00524d80
-00523b90	game	neighbours	between 00523b40 and 00524d80
-00523ba0	game	neighbours	between 00523b40 and 00524d80
-00523cf0	game	neighbours	between 00523b40 and 00524d80
-00523db0	game	neighbours	between 00523b40 and 00524d80
-00523dc0	game	neighbours	between 00523b40 and 00524d80
-00523dd0	game	neighbours	between 00523b40 and 00524d80
-00523e40	game	neighbours	between 00523b40 and 00524d80
-00523e60	game	neighbours	between 00523b40 and 00524d80
-00523e70	game	neighbours	between 00523b40 and 00524d80
-00523f80	game	neighbours	between 00523b40 and 00524d80
-00523fa0	game	neighbours	between 00523b40 and 00524d80
-00524010	game	neighbours	between 00523b40 and 00524d80
-00524030	game	neighbours	between 00523b40 and 00524d80
-00524040	game	neighbours	between 00523b40 and 00524d80
-00524050	game	neighbours	between 00523b40 and 00524d80
-00524070	game	neighbours	between 00523b40 and 00524d80
-00524090	game	neighbours	between 00523b40 and 00524d80
-005240b0	game	neighbours	between 00523b40 and 00524d80
-005240c0	game	neighbours	between 00523b40 and 00524d80
-005241e0	game	neighbours	between 00523b40 and 00524d80
-00524200	game	neighbours	between 00523b40 and 00524d80
-005242b0	game	neighbours	between 00523b40 and 00524d80
-00524320	game	neighbours	between 00523b40 and 00524d80
-00524340	game	neighbours	between 00523b40 and 00524d80
-00524360	game	neighbours	between 00523b40 and 00524d80
-00524370	game	neighbours	between 00523b40 and 00524d80
-00524380	game	neighbours	between 00523b40 and 00524d80
-00524420	game	neighbours	between 00523b40 and 00524d80
-00524430	game	neighbours	between 00523b40 and 00524d80
-00524480	game	neighbours	between 00523b40 and 00524d80
-005244a0	game	neighbours	between 00523b40 and 00524d80
-005244c0	game	neighbours	between 00523b40 and 00524d80
-005244d0	game	neighbours	between 00523b40 and 00524d80
-005244e0	game	neighbours	between 00523b40 and 00524d80
-00524580	game	neighbours	between 00523b40 and 00524d80
-00524590	game	neighbours	between 00523b40 and 00524d80
-005245e0	game	neighbours	between 00523b40 and 00524d80
-00524660	game	neighbours	between 00523b40 and 00524d80
-00524680	game	neighbours	between 00523b40 and 00524d80
-005246a0	game	neighbours	between 00523b40 and 00524d80
-005246c0	game	neighbours	between 00523b40 and 00524d80
-00524940	game	neighbours	between 00523b40 and 00524d80
-00524bc0	game	neighbours	between 00523b40 and 00524d80
-00524c20	game	neighbours	between 00523b40 and 00524d80
-00524c80	game	neighbours	between 00523b40 and 00524d80
-00524ce0	game	neighbours	between 00523b40 and 00524d80
-00524d00	game	neighbours	between 00523b40 and 00524d80
-00524d30	game	neighbours	between 00523b40 and 00524d80
+00523b50	world	class	class CGameObject, base of CGameActor
+00523b60	world	class	class CGameObject, base of CGameActor
+00523b70	world	class	class CWorld
+00523b80	world	class	class CWorld
+00523b90	game	callers	1 referencing function
+00524d30	game	initializer	initializer of the file starting here, before 00524d80
 00524d60	game	stub	jumps to 00524d70
-00524d70	game	neighbours	between 00523b40 and 00524d80
+00524d70	game	initializer	initializer of the file starting here, before 00524d80
 00524d80	game	class	class CMode, base of CGameMode
 00526300	game	class	class CMode, base of CGameMode
 00526720	game	class	class CMode, base of CGameMode
@@ -3916,7 +3782,6 @@ entry	subsystem	rule	evidence
 0052c940	game	class	class CMode, base of CGameMode
 0052cb00	game	class	class CMode, base of CGameMode
 0052cb90	game	class	class CMode, base of CGameMode
-0052ce80	game	neighbours	between 0052cb90 and 0052cec0
 0052cec0	game	class	class CMode, base of CGameMode
 0052d060	game	class	class CMode, base of CGameMode
 0052d270	game	class	class CMode, base of CGameMode
@@ -4033,7 +3898,7 @@ entry	subsystem	rule	evidence
 00534ee0	game	class	class CMode, base of CGameMode
 00535130	game	class	class CMode, base of CGameMode
 00535170	game	class	class CMode, base of CGameMode
-005351e0	game	neighbours	between 00535170 and 00535200
+005351e0	game	class	class CMode, base of CGameMode
 00535200	game	class	class CMode, base of CGameMode
 00535c40	game	class	class CMode, base of CGameMode
 00535ca0	game	class	class CMode, base of CGameMode
@@ -4073,31 +3938,6 @@ entry	subsystem	rule	evidence
 00538c60	game	class	class CMode, base of CGameMode
 00539030	game	class	class CMode, base of CGameMode
 00539140	game	class	class CMode, base of CGameMode
-00539230	game	callers	2 referencing functions
-00539270	game	neighbours	between 00539230 and 005392e0
-005392e0	game	callers	2 referencing functions
-005394c0	game	callers	1 referencing function
-00539520	game	callers	1 referencing function
-00539580	game	callers	1 referencing function
-005395e0	game	callers	1 referencing function
-00539840	game	callers	1 referencing function
-00539bc0	game	callers	1 referencing function
-00539be0	game	callers	1 referencing function
-00539f10	game	callers	1 referencing function
-00539f30	game	callers	1 referencing function
-00539f70	game	callers	1 referencing function
-00539fb0	game	callers	1 referencing function
-00539fd0	game	callers	1 referencing function
-0053a010	game	callers	1 referencing function
-0053a030	game	neighbours	between 0053a010 and 0053a3f0
-0053a2b0	game	neighbours	between 0053a010 and 0053a3f0
-0053a310	game	neighbours	between 0053a010 and 0053a3f0
-0053a370	game	neighbours	between 0053a010 and 0053a3f0
-0053a390	game	neighbours	between 0053a010 and 0053a3f0
-0053a3f0	game	callers	2 referencing functions
-0053a6f0	game	neighbours	between 0053a3f0 and 0053aa00
-0053a710	game	neighbours	between 0053a3f0 and 0053aa00
-0053a880	game	neighbours	between 0053a3f0 and 0053aa00
 0053aa00	game	callers	1 referencing function
 0053ab60	world	initializer	initializer of the file starting here, before 0053abb0
 0053ab90	world	stub	jumps to 0053aba0
@@ -4106,7 +3946,7 @@ entry	subsystem	rule	evidence
 0053ac20	world	class	class CGameObject, base of CItem
 0053ac50	world	class	class CGameObject, base of CItem
 0053acf0	world	class	class CGameObject, base of CItem
-0053ad10	world	neighbours	between 0053acf0 and 0053ad20
+0053ad10	world	class	class CGameObject, base of CItem
 0053ad20	world	class	class CGameObject, base of CItem
 0053ad60	world	class	class CGameObject, base of CItem
 0053ae40	world	class	class CGameObject, base of CItem
@@ -4143,12 +3983,10 @@ entry	subsystem	rule	evidence
 0053eb20	game	class	class CMode, base of CLoginMode
 0053eba0	game	class	class CMode, base of CLoginMode
 0053ebc0	game	class	class CMode, base of CLoginMode
-0053ecd0	game	callers	1 referencing function
+0053ecd0	game	class	class CMode, base of CLoginMode
 0053f030	game	neighbours	between 0053ecd0 and 0053f100
 0053f100	game	callers	2 referencing functions
-0053f1d0	game	callers	1 referencing function
-0053f590	game	callers	1 referencing function
-0053f810	game	callers	1 referencing function
+0053f590	game	previous	after 0053f100, nothing references it
 0053f900	world	initializer	initializer of the file starting here, before 0053f950
 0053f930	world	stub	jumps to 0053f940
 0053f940	world	initializer	initializer of the file starting here, before 0053f950
@@ -4156,7 +3994,7 @@ entry	subsystem	rule	evidence
 0053f9a0	world	class	class CGameObject, base of CNpc
 0053f9d0	world	class	class CGameObject, base of CNpc
 0053fa20	world	class	class CGameObject, base of CNpc
-0053fa50	world	neighbours	between 0053fa20 and 0053fa60
+0053fa50	world	class	class CGameObject, base of CNpc
 0053fa60	world	class	class CGameObject, base of CNpc
 0053fae0	world	class	class CGameObject, base of CNpc
 0053fb90	world	class	class CGameObject, base of CNpc
@@ -4164,30 +4002,30 @@ entry	subsystem	rule	evidence
 0053fca0	world	class	class CGameObject, base of CNpc
 00540210	world	class	class CGameObject, base of CNpc
 005402e0	world	class	class CGameObject, base of CNpc
-00540390	world	neighbours	between 005402e0 and 005404d0
-00540410	world	neighbours	between 005402e0 and 005404d0
+00540390	world	class	class CGameObject, base of CNpc
+00540410	world	neighbours	between 00540390 and 005404d0
 005404d0	world	class	class CGameObject, base of CNpc
 00540610	world	class	class CGameObject, base of CNpc
 00540950	world	class	class CGameObject, base of CBlowEffect
 005409a0	world	class	class CGameObject, base of CBlowEffect
 005409d0	world	class	class CGameObject, base of CBlowEffect
 00540a20	world	class	class CGameObject, base of CBlowEffect
-00540a50	world	neighbours	between 00540a20 and 00540a60
+00540a50	world	class	class CGameObject, base of CBlowEffect
 00540a60	world	class	class CGameObject, base of CBlowEffect
 00540af0	world	class	class CGameObject, base of CBlowEffect
 00540b70	world	class	class CGameObject, base of CCorpse
 00540bc0	world	class	class CGameObject, base of CCorpse
 00540bf0	world	class	class CGameObject, base of CCorpse
 00540c40	world	class	class CGameObject, base of CCorpse
-00540c60	world	neighbours	between 00540c40 and 00540c70
+00540c60	world	class	class CGameObject, base of CCorpse
 00540c70	world	class	class CGameObject, base of CCorpse
 00540d00	world	class	class CGameObject, base of CCorpse
 00540d20	world	class	class CGameObject, base of CBlurPC
-00540f30	world	neighbours	between 00540d20 and 00541070
+00540f30	world	class	class CGameObject, base of CPc
 00541070	world	class	class CGameObject, base of CBlurPC
 005410a0	world	class	class CGameObject, base of CBlurPC
 005410f0	world	class	class CGameObject, base of CBlurPC
-00541110	world	neighbours	between 005410f0 and 00541120
+00541110	world	class	class CGameObject, base of CBlurPC
 00541120	world	class	class CGameObject, base of CBlurPC
 00541140	world	class	class CGameObject, base of CBlurPC
 00541270	world	class	class CGameObject, base of CBlurPC
@@ -4195,12 +4033,12 @@ entry	subsystem	rule	evidence
 00541370	world	class	class CGameObject, base of CMasterChaser
 005413a0	world	class	class CGameObject, base of CMasterChaser
 005413f0	world	class	class CGameObject, base of CMasterChaser
-00541400	world	neighbours	between 005413f0 and 00541410
+00541400	world	class	class CGameObject, base of CMasterChaser
 00541410	world	class	class CGameObject, base of CNumEffect
 00541460	world	class	class CGameObject, base of CNumEffect
 00541490	world	class	class CGameObject, base of CNumEffect
 005414e0	world	class	class CGameObject, base of CNumEffect
-00541510	world	neighbours	between 005414e0 and 00541520
+00541510	world	class	class CGameObject, base of CNumEffect
 00541520	world	class	class CGameObject, base of CNumEffect
 005415e0	world	class	class CGameObject, base of CNumEffect
 00541680	audio	class	class CSoundMaker
@@ -4208,7 +4046,7 @@ entry	subsystem	rule	evidence
 00541700	audio	class	class CSoundMaker
 00541730	audio	class	class CSoundMaker
 005417d0	audio	class	class CSoundMaker
-005418d0	audio	neighbours	between 005417d0 and 005418e0
+005418d0	audio	class	class CSoundMaker
 005418e0	audio	class	class CSoundMaker
 00541b00	audio	class	class CSoundMaker
 00541c90	world	class	class CGameObject, base of CGndRiser
@@ -4251,13 +4089,13 @@ entry	subsystem	rule	evidence
 00543510	world	class	class CGameObject, base of CPc
 00543540	world	class	class CGameObject, base of CPc
 00544380	world	class	class CGameObject, base of CPc
-00544420	world	neighbours	between 00544380 and 00545540
-00544be0	world	neighbours	between 00544380 and 00545540
+00544420	world	neighbours	between 00544380 and 00544be0
+00544be0	world	class	class CGameObject, base of CPc
 00545540	world	class	class CGameObject, base of CPc
 00545bf0	world	class	class CGameObject, base of CBlurPC
-00545c30	world	neighbours	between 00545bf0 and 00545e30
+00545c30	world	class	class CGameObject, base of CPc
 00545e30	world	class	class CGameObject, base of CBlurPC
-00545e70	world	neighbours	between 00545e30 and 00546070
+00545e70	world	class	class CGameObject, base of CPc
 00546070	world	class	class CGameObject, base of CPc
 00546240	world	class	class CGameObject, base of CPc
 00546270	world	class	class CGameObject, base of CPc
@@ -4265,7 +4103,7 @@ entry	subsystem	rule	evidence
 00546460	world	class	class CGameObject, base of CPc
 00546490	world	class	class CGameObject, base of CPc
 005464b0	world	class	class CGameObject, base of CPc
-00546a30	world	neighbours	between 005464b0 and 00546b30
+00546a30	world	class	class CGameObject, base of CPc
 00546b30	world	class	class CGameObject, base of CGrannyPc
 00546d00	world	class	class CGameObject, base of CGrannyPc
 00546d10	world	class	class CGameObject, base of CGrannyPc
@@ -4303,12 +4141,6 @@ entry	subsystem	rule	evidence
 0054aa50	world	class	class CGameObject, base of CGrannyPc
 0054aa90	world	class	class CGameObject, base of CGrannyPc
 0054ac00	world	class	class CGameObject, base of CGrannyPc
-0054acb0	world	neighbours	between 0054ac00 and 0054b1d0
-0054ace0	world	neighbours	between 0054ac00 and 0054b1d0
-0054ad10	world	neighbours	between 0054ac00 and 0054b1d0
-0054af20	world	neighbours	between 0054ac00 and 0054b1d0
-0054af30	world	neighbours	between 0054ac00 and 0054b1d0
-0054b140	world	neighbours	between 0054ac00 and 0054b1d0
 0054b180	world	neighbours	between 0054ac00 and 0054b1d0
 0054b1b0	world	stub	jumps to 0054b1c0
 0054b1c0	world	neighbours	between 0054ac00 and 0054b1d0
@@ -4318,7 +4150,7 @@ entry	subsystem	rule	evidence
 0054b3f0	world	class	class CGameObject, base of CPlayer
 0054b420	world	class	class CGameObject, base of CPlayer
 0054b4a0	world	class	class CGameObject, base of CPlayer
-0054b760	world	neighbours	between 0054b4a0 and 0054b770
+0054b760	world	class	class CGameObject, base of CPlayer
 0054b770	world	class	class CGameObject, base of CPlayer
 0054b880	world	class	class CGameObject, base of CPlayer
 0054b8e0	world	class	class CGameObject, base of CPlayer
@@ -4335,9 +4167,9 @@ entry	subsystem	rule	evidence
 0054d4c0	world	class	class CGameObject, base of CRagEffect
 0054eba0	world	class	class CGameObject, base of CRagEffect
 0054ee50	world	class	class CGameObject, base of CRagEffect
-0054eee0	world	neighbours	between 0054ee50 and 0054f9a0
+0054eee0	world	class	class CGameObject, base of CRagEffect
 0054f9a0	world	class	class CGameObject, base of CRagEffect
-0054fae0	world	neighbours	between 0054f9a0 and 0054fb40
+0054fae0	world	class	class CGameObject, base of CRagEffect
 0054fb40	world	class	class CGameObject, base of CRagEffect
 0054fba0	world	class	class CGameObject, base of CRagEffect
 00550070	world	class	class CGameObject, base of CRagEffect
@@ -4360,7 +4192,7 @@ entry	subsystem	rule	evidence
 005532e0	world	class	class CGameObject, base of CRagEffect
 00553360	world	class	class CGameObject, base of CRagEffect
 005537c0	world	class	class CGameObject, base of CRagEffect
-00553ac0	world	neighbours	between 005537c0 and 00553e80
+00553ac0	world	class	class CGameObject, base of CRagEffect
 00553e80	world	class	class CGameObject, base of CRagEffect
 00554310	world	class	class CGameObject, base of CRagEffect
 00554700	world	class	class CGameObject, base of CRagEffect
@@ -4381,14 +4213,14 @@ entry	subsystem	rule	evidence
 00557850	world	class	class CGameObject, base of CRagEffect
 00557b10	world	class	class CGameObject, base of CRagEffect
 00557f60	world	class	class CGameObject, base of CRagEffect
-00558270	world	neighbours	between 00557f60 and 00558290
+00558270	world	class	class CGameObject, base of CRagEffect
 00558290	world	class	class CGameObject, base of CRagEffect
-00558500	world	neighbours	between 00558290 and 00558520
+00558500	world	class	class CGameObject, base of CRagEffect
 00558520	world	class	class CGameObject, base of CRagEffect
 00558980	world	class	class CGameObject, base of CRagEffect
 00558e10	world	class	class CGameObject, base of CRagEffect
-005590f0	world	neighbours	between 00558e10 and 00559180
-00559110	world	neighbours	between 00558e10 and 00559180
+005590f0	world	class	class CGameObject, base of CRagEffect
+00559110	world	class	class CGameObject, base of CRagEffect
 00559180	world	class	class CGameObject, base of CRagEffect
 005598a0	world	class	class CGameObject, base of CRagEffect
 00559ba0	world	class	class CGameObject, base of CRagEffect
@@ -4498,28 +4330,24 @@ entry	subsystem	rule	evidence
 00566970	world	class	class CGameObject, base of CRagEffect
 005669e0	world	class	class CGameObject, base of CRagEffect
 00566a50	world	class	class CGameObject, base of CRagEffect
-00566ac0	world	neighbours	between 00566a50 and 005673b0
-00566d90	world	neighbours	between 00566a50 and 005673b0
-00566df0	world	neighbours	between 00566a50 and 005673b0
-00566e60	world	neighbours	between 00566a50 and 005673b0
-00566ed0	world	neighbours	between 00566a50 and 005673b0
-005671c0	world	neighbours	between 00566a50 and 005673b0
-005671e0	world	neighbours	between 00566a50 and 005673b0
-00567290	world	neighbours	between 00566a50 and 005673b0
-005672e0	world	neighbours	between 00566a50 and 005673b0
-00567300	world	neighbours	between 00566a50 and 005673b0
-00567330	world	neighbours	between 00566a50 and 005673b0
-00567360	world	neighbours	between 00566a50 and 005673b0
+00566ac0	world	class	class CGameObject, base of CRagEffect
+00566d90	world	neighbours	between 00566ac0 and 00566df0
+00566df0	world	class	class CGameObject, base of CRagEffect
+00566e60	world	class	class CGameObject, base of CRagEffect
+00566ed0	world	class	class CGameObject, base of CRagEffect
+005671c0	world	class	class CGameObject, base of CRagEffect
+005671e0	world	neighbours	between 005671c0 and 005673b0
+00567360	world	neighbours	between 005671c0 and 005673b0
 00567390	world	stub	jumps to 005673a0
-005673a0	world	neighbours	between 00566a50 and 005673b0
+005673a0	world	neighbours	between 005671c0 and 005673b0
 005673b0	world	class	class CGameObject, base of CRagEffect
 00567740	world	class	class CGameObject, base of CRagEffect
 00567bd0	world	class	class CGameObject, base of CRagEffect
 00567e10	world	class	class CGameObject, base of CRagEffect
 00568090	world	class	class CGameObject, base of CRagEffect
-00568300	world	neighbours	between 00568090 and 005686c0
-00568580	world	neighbours	between 00568090 and 005686c0
-00568630	world	neighbours	between 00568090 and 005686c0
+00568300	world	class	class CGameObject, base of CEffectPrim
+00568580	world	class	class CGameObject, base of CEffectPrim
+00568630	world	class	class CGameObject, base of CEffectPrim
 005686c0	world	class	class CGameObject, base of CRagEffect
 00568ba0	world	class	class CGameObject, base of CRagEffect
 00568e70	world	class	class CGameObject, base of CRagEffect
@@ -4530,26 +4358,26 @@ entry	subsystem	rule	evidence
 005698b0	world	class	class CGameObject, base of CRagEffect
 00569ae0	world	class	class CGameObject, base of CRagEffect
 00569de0	world	class	class CGameObject, base of CRagEffect
-00569fc0	world	neighbours	between 00569de0 and 0056cfb0
-0056a960	world	neighbours	between 00569de0 and 0056cfb0
-0056b130	world	neighbours	between 00569de0 and 0056cfb0
-0056b300	world	neighbours	between 00569de0 and 0056cfb0
-0056b460	world	neighbours	between 00569de0 and 0056cfb0
-0056b500	world	neighbours	between 00569de0 and 0056cfb0
-0056b600	world	neighbours	between 00569de0 and 0056cfb0
-0056b7f0	world	neighbours	between 00569de0 and 0056cfb0
-0056b930	world	neighbours	between 00569de0 and 0056cfb0
-0056ba70	world	neighbours	between 00569de0 and 0056cfb0
-0056bb30	world	neighbours	between 00569de0 and 0056cfb0
-0056bc30	world	neighbours	between 00569de0 and 0056cfb0
-0056bca0	world	neighbours	between 00569de0 and 0056cfb0
-0056bfa0	world	neighbours	between 00569de0 and 0056cfb0
-0056c0d0	world	neighbours	between 00569de0 and 0056cfb0
-0056c2d0	world	neighbours	between 00569de0 and 0056cfb0
-0056c4a0	world	neighbours	between 00569de0 and 0056cfb0
-0056c6c0	world	neighbours	between 00569de0 and 0056cfb0
-0056caa0	world	neighbours	between 00569de0 and 0056cfb0
-0056cc90	world	neighbours	between 00569de0 and 0056cfb0
+00569fc0	world	class	class CGameObject, base of CEffectPrim
+0056a960	world	class	class CGameObject, base of CEffectPrim
+0056b130	world	class	class CGameObject, base of CEffectPrim
+0056b300	world	class	class CGameObject, base of CEffectPrim
+0056b460	world	class	class CGameObject, base of CEffectPrim
+0056b500	world	class	class CGameObject, base of CEffectPrim
+0056b600	world	class	class CGameObject, base of CEffectPrim
+0056b7f0	world	class	class CGameObject, base of CEffectPrim
+0056b930	world	class	class CGameObject, base of CEffectPrim
+0056ba70	world	class	class CGameObject, base of CEffectPrim
+0056bb30	world	class	class CGameObject, base of CEffectPrim
+0056bc30	world	class	class CGameObject, base of CEffectPrim
+0056bca0	world	class	class CGameObject, base of CEffectPrim
+0056bfa0	world	class	class CGameObject, base of CEffectPrim
+0056c0d0	world	class	class CGameObject, base of CEffectPrim
+0056c2d0	world	class	class CGameObject, base of CEffectPrim
+0056c4a0	world	class	class CGameObject, base of CEffectPrim
+0056c6c0	world	class	class CGameObject, base of CEffectPrim
+0056caa0	world	class	class CGameObject, base of CEffectPrim
+0056cc90	world	class	class CGameObject, base of CEffectPrim
 0056cfb0	world	class	class WorldColorFade
 0056d030	world	neighbours	between 0056cfb0 and 0056d0b0
 0056d0b0	world	class	class WorldColorFade
@@ -4559,42 +4387,42 @@ entry	subsystem	rule	evidence
 0056d5c0	world	class	class CGameObject, base of CRagEffect
 0056d990	world	class	class CGameObject, base of CRagEffect
 0056db60	world	class	class CGameObject, base of CRagEffect
-0056dfb0	world	neighbours	between 0056db60 and 00572d90
-0056e010	world	neighbours	between 0056db60 and 00572d90
-0056e070	world	neighbours	between 0056db60 and 00572d90
-0056e0d0	world	neighbours	between 0056db60 and 00572d90
-0056e4a0	world	neighbours	between 0056db60 and 00572d90
-0056e6b0	world	neighbours	between 0056db60 and 00572d90
-0056e920	world	neighbours	between 0056db60 and 00572d90
-0056f2b0	world	neighbours	between 0056db60 and 00572d90
-0056f770	world	neighbours	between 0056db60 and 00572d90
-0056fb50	world	neighbours	between 0056db60 and 00572d90
-0056fea0	world	neighbours	between 0056db60 and 00572d90
-005701e0	world	neighbours	between 0056db60 and 00572d90
-005704e0	world	neighbours	between 0056db60 and 00572d90
-00570750	world	neighbours	between 0056db60 and 00572d90
-005708f0	world	neighbours	between 0056db60 and 00572d90
-00571560	world	neighbours	between 0056db60 and 00572d90
-00571580	world	neighbours	between 0056db60 and 00572d90
-005715b0	world	neighbours	between 0056db60 and 00572d90
-005716f0	world	neighbours	between 0056db60 and 00572d90
-00571820	world	neighbours	between 0056db60 and 00572d90
-00571940	world	neighbours	between 0056db60 and 00572d90
-00571a50	world	neighbours	between 0056db60 and 00572d90
-00571bb0	world	neighbours	between 0056db60 and 00572d90
-00571c40	world	neighbours	between 0056db60 and 00572d90
-00571cb0	world	neighbours	between 0056db60 and 00572d90
-00571d80	world	neighbours	between 0056db60 and 00572d90
-00571e30	world	neighbours	between 0056db60 and 00572d90
-00571e90	world	neighbours	between 0056db60 and 00572d90
-00572020	world	neighbours	between 0056db60 and 00572d90
-00572190	world	neighbours	between 0056db60 and 00572d90
-005722d0	world	neighbours	between 0056db60 and 00572d90
-00572350	world	neighbours	between 0056db60 and 00572d90
-005727d0	world	neighbours	between 0056db60 and 00572d90
-005728c0	world	neighbours	between 0056db60 and 00572d90
-00572c40	world	neighbours	between 0056db60 and 00572d90
-00572ce0	world	neighbours	between 0056db60 and 00572d90
+0056dfb0	world	class	class CGameObject, base of CEffectPrim
+0056e010	world	class	class CGameObject, base of CEffectPrim
+0056e070	world	class	class CGameObject, base of CEffectPrim
+0056e0d0	world	class	class CGameObject, base of CEffectPrim
+0056e4a0	world	class	class CGameObject, base of CEffectPrim
+0056e6b0	world	class	class CGameObject, base of CEffectPrim
+0056e920	world	class	class CGameObject, base of CEffectPrim
+0056f2b0	world	class	class CGameObject, base of CEffectPrim
+0056f770	world	class	class CGameObject, base of CEffectPrim
+0056fb50	world	class	class CGameObject, base of CEffectPrim
+0056fea0	world	class	class CGameObject, base of CEffectPrim
+005701e0	world	class	class CGameObject, base of CEffectPrim
+005704e0	world	class	class CGameObject, base of CEffectPrim
+00570750	world	class	class CGameObject, base of CEffectPrim
+005708f0	world	class	class CGameObject, base of CEffectPrim
+00571560	world	neighbours	between 005708f0 and 005715b0
+00571580	world	neighbours	between 005708f0 and 005715b0
+005715b0	world	class	class CGameObject, base of CEffectPrim
+005716f0	world	class	class CGameObject, base of CEffectPrim
+00571820	world	class	class CGameObject, base of CEffectPrim
+00571940	world	class	class CGameObject, base of CEffectPrim
+00571a50	world	class	class CGameObject, base of CEffectPrim
+00571bb0	world	class	class CGameObject, base of CEffectPrim
+00571c40	world	class	class CGameObject, base of CEffectPrim
+00571cb0	world	class	class CGameObject, base of CEffectPrim
+00571d80	world	class	class CGameObject, base of CEffectPrim
+00571e30	world	class	class CGameObject, base of CEffectPrim
+00571e90	world	class	class CGameObject, base of CEffectPrim
+00572020	world	class	class CGameObject, base of CEffectPrim
+00572190	world	class	class CGameObject, base of CEffectPrim
+005722d0	world	class	class CGameObject, base of CEffectPrim
+00572350	world	class	class CGameObject, base of CEffectPrim
+005727d0	world	class	class CGameObject, base of CEffectPrim
+005728c0	world	class	class CGameObject, base of CEffectPrim
+00572c40	world	class	class CGameObject, base of CEffectPrim
+00572ce0	world	class	class CGameObject, base of CEffectPrim
 00572d90	world	class	class CGameObject, base of CRagEffect
 005730c0	world	class	class CGameObject, base of CRagEffect
 005734b0	world	class	class CGameObject, base of CRagEffect
@@ -4626,86 +4454,86 @@ entry	subsystem	rule	evidence
 00578150	world	class	class CGameObject, base of CRagEffect
 005784a0	world	class	class CGameObject, base of CRagEffect
 00578d90	world	class	class CGameObject, base of CRagEffect
-00579790	world	neighbours	between 00578d90 and 00579af0
+00579790	world	class	class CGameObject, base of CRagEffect
 00579af0	world	class	class CGameObject, base of CRagEffect
 00579da0	world	class	class CGameObject, base of CRagEffect
 0057a190	world	class	class CGameObject, base of CRagEffect
 0057a400	world	class	class CGameObject, base of CRagEffect
 0057a560	world	neighbours	between 0057a400 and 0057a6c0
 0057a6c0	world	class	class CGameObject, base of CRagEffect
-0057a900	world	neighbours	between 0057a6c0 and 0057ccb0
-0057ab90	world	neighbours	between 0057a6c0 and 0057ccb0
-0057af70	world	neighbours	between 0057a6c0 and 0057ccb0
-0057b0f0	world	neighbours	between 0057a6c0 and 0057ccb0
-0057b440	world	neighbours	between 0057a6c0 and 0057ccb0
-0057b6f0	world	neighbours	between 0057a6c0 and 0057ccb0
-0057b8e0	world	neighbours	between 0057a6c0 and 0057ccb0
-0057b970	world	neighbours	between 0057a6c0 and 0057ccb0
-0057bab0	world	neighbours	between 0057a6c0 and 0057ccb0
-0057c0f0	world	neighbours	between 0057a6c0 and 0057ccb0
-0057c3b0	world	neighbours	between 0057a6c0 and 0057ccb0
-0057c620	world	neighbours	between 0057a6c0 and 0057ccb0
-0057caa0	world	neighbours	between 0057a6c0 and 0057ccb0
-0057cc40	world	neighbours	between 0057a6c0 and 0057ccb0
+0057a900	world	class	class CGameObject, base of CEffectPrim
+0057ab90	world	class	class CGameObject, base of CEffectPrim
+0057af70	world	class	class CGameObject, base of CEffectPrim
+0057b0f0	world	class	class CGameObject, base of CEffectPrim
+0057b440	world	class	class CGameObject, base of CEffectPrim
+0057b6f0	world	class	class CGameObject, base of CEffectPrim
+0057b8e0	world	class	class CGameObject, base of CEffectPrim
+0057b970	world	class	class CGameObject, base of CEffectPrim
+0057bab0	world	class	class CGameObject, base of CEffectPrim
+0057c0f0	world	class	class CGameObject, base of CEffectPrim
+0057c3b0	world	class	class CGameObject, base of CEffectPrim
+0057c620	world	class	class CGameObject, base of CEffectPrim
+0057caa0	world	class	class CGameObject, base of CEffectPrim
+0057cc40	world	neighbours	between 0057caa0 and 0057ccb0
 0057ccb0	world	class	class CGameObject, base of CRagEffect
 0057cce0	world	neighbours	between 0057ccb0 and 0057ce80
 0057ce80	world	class	class CGameObject, base of CPc
-0057ce90	world	neighbours	between 0057ce80 and 0057cfa0
-0057cf10	world	neighbours	between 0057ce80 and 0057cfa0
+0057ce90	world	class	class CGameObject, base of CEffectPrim
+0057cf10	world	neighbours	between 0057ce90 and 0057cfa0
 0057cf40	world	stub	jumps to 0057cf50
-0057cf50	world	neighbours	between 0057ce80 and 0057cfa0
-0057cf60	world	neighbours	between 0057ce80 and 0057cfa0
-0057cf70	world	neighbours	between 0057ce80 and 0057cfa0
-0057cf80	world	neighbours	between 0057ce80 and 0057cfa0
-0057cf90	world	neighbours	between 0057ce80 and 0057cfa0
+0057cf50	world	neighbours	between 0057ce90 and 0057cfa0
+0057cf60	world	neighbours	between 0057ce90 and 0057cfa0
+0057cf70	world	neighbours	between 0057ce90 and 0057cfa0
+0057cf80	world	neighbours	between 0057ce90 and 0057cfa0
+0057cf90	world	neighbours	between 0057ce90 and 0057cfa0
 0057cfa0	world	class	class CGameObject, base of CEffectPrim
 0057d380	world	class	class CGameObject, base of CEffectPrim
 0057d3b0	world	class	class CGameObject, base of CEffectPrim
-0057d4b0	world	neighbours	between 0057d3b0 and 0057dce0
-0057d620	world	neighbours	between 0057d3b0 and 0057dce0
-0057d680	world	neighbours	between 0057d3b0 and 0057dce0
-0057d6c0	world	neighbours	between 0057d3b0 and 0057dce0
-0057da50	world	neighbours	between 0057d3b0 and 0057dce0
+0057d4b0	world	class	class CGameObject, base of CEffectPrim
+0057d620	world	class	class CGameObject, base of CEffectPrim
+0057d680	world	class	class CGameObject, base of CEffectPrim
+0057d6c0	world	class	class CGameObject, base of CEffectPrim
+0057da50	world	class	class CGameObject, base of CEffectPrim
 0057dce0	world	class	class CGameObject, base of CEffectPrim
-0057e180	world	neighbours	between 0057dce0 and 00581520
-0057e4a0	world	neighbours	between 0057dce0 and 00581520
-0057e5e0	world	neighbours	between 0057dce0 and 00581520
-0057e660	world	neighbours	between 0057dce0 and 00581520
-0057e7a0	world	neighbours	between 0057dce0 and 00581520
-0057e8e0	world	neighbours	between 0057dce0 and 00581520
-0057edd0	world	neighbours	between 0057dce0 and 00581520
-0057f270	world	neighbours	between 0057dce0 and 00581520
-0057f4a0	world	neighbours	between 0057dce0 and 00581520
-0057f6d0	world	neighbours	between 0057dce0 and 00581520
-0057f8c0	world	neighbours	between 0057dce0 and 00581520
-0057fa50	world	neighbours	between 0057dce0 and 00581520
-0057fb90	world	neighbours	between 0057dce0 and 00581520
-005802b0	world	neighbours	between 0057dce0 and 00581520
-005809a0	world	neighbours	between 0057dce0 and 00581520
-00580bc0	world	neighbours	between 0057dce0 and 00581520
-00580df0	world	neighbours	between 0057dce0 and 00581520
-00581050	world	neighbours	between 0057dce0 and 00581520
-005811f0	world	neighbours	between 0057dce0 and 00581520
-00581290	world	neighbours	between 0057dce0 and 00581520
-005812a0	world	neighbours	between 0057dce0 and 00581520
+0057e180	world	class	class CGameObject, base of CEffectPrim
+0057e4a0	world	class	class CGameObject, base of CEffectPrim
+0057e5e0	world	class	class CGameObject, base of CEffectPrim
+0057e660	world	class	class CGameObject, base of CEffectPrim
+0057e7a0	world	class	class CGameObject, base of CEffectPrim
+0057e8e0	world	class	class CGameObject, base of CEffectPrim
+0057edd0	world	class	class CGameObject, base of CEffectPrim
+0057f270	world	class	class CGameObject, base of CEffectPrim
+0057f4a0	world	class	class CGameObject, base of CEffectPrim
+0057f6d0	world	class	class CGameObject, base of CEffectPrim
+0057f8c0	world	class	class CGameObject, base of CEffectPrim
+0057fa50	world	neighbours	between 0057f8c0 and 0057fb90
+0057fb90	world	class	class CGameObject, base of CEffectPrim
+005802b0	world	class	class CGameObject, base of CEffectPrim
+005809a0	world	class	class CGameObject, base of CEffectPrim
+00580bc0	world	class	class CGameObject, base of CEffectPrim
+00580df0	world	class	class CGameObject, base of CEffectPrim
+00581050	world	class	class CGameObject, base of CEffectPrim
+005811f0	world	class	class CGameObject, base of CEffectPrim
+00581290	world	class	class CGameObject, base of CEffectPrim
+005812a0	world	class	class CGameObject, base of CEffectPrim
 00581520	world	class	class CGameObject, base of CEffectPrim
-00581820	world	neighbours	between 00581520 and 00586050
-00581990	world	neighbours	between 00581520 and 00586050
-00581b00	world	neighbours	between 00581520 and 00586050
-00581d00	world	neighbours	between 00581520 and 00586050
-00581ff0	world	neighbours	between 00581520 and 00586050
-00582350	world	neighbours	between 00581520 and 00586050
-00582990	world	neighbours	between 00581520 and 00586050
-00582fd0	world	neighbours	between 00581520 and 00586050
-00583660	world	neighbours	between 00581520 and 00586050
-00583910	world	neighbours	between 00581520 and 00586050
-005841b0	world	neighbours	between 00581520 and 00586050
-00584a20	world	neighbours	between 00581520 and 00586050
-00585220	world	neighbours	between 00581520 and 00586050
-005857e0	world	neighbours	between 00581520 and 00586050
+00581820	world	class	class CGameObject, base of CEffectPrim
+00581990	world	class	class CGameObject, base of CEffectPrim
+00581b00	world	class	class CGameObject, base of CEffectPrim
+00581d00	world	class	class CGameObject, base of CEffectPrim
+00581ff0	world	class	class CGameObject, base of CEffectPrim
+00582350	world	neighbours	between 00581ff0 and 00582990
+00582990	world	class	class CGameObject, base of CEffectPrim
+00582fd0	world	class	class CGameObject, base of CEffectPrim
+00583660	world	class	class CGameObject, base of CEffectPrim
+00583910	world	class	class CGameObject, base of CEffectPrim
+005841b0	world	class	class CGameObject, base of CEffectPrim
+00584a20	world	class	class CGameObject, base of CEffectPrim
+00585220	world	class	class CGameObject, base of CEffectPrim
+005857e0	world	class	class CGameObject, base of CEffectPrim
 00586050	world	class	class CGameObject, base of CEffectPrim
 00586070	world	class	class CGameObject, base of CEffectPrim
-00586380	world	neighbours	between 00586070 and 00586400
+00586380	world	class	class CGameObject, base of CEffectPrim
 00586400	world	class	class WorldColorFade
 00586460	world	class	class WorldColorFade
 00586650	world	class	class WorldColorFade
@@ -4721,7 +4549,7 @@ entry	subsystem	rule	evidence
 00586840	game	neighbours	between 00586830 and 00586850
 00586850	game	callees	1 referenced function
 00586860	game	class	class ClientState
-00587370	game	neighbours	between 00586860 and 00587d70
+00587370	game	class	class ClientState
 00587d70	game	class	class ClientState
 00587d80	game	class	class ClientState
 00587d90	game	class	class ClientState
@@ -4756,10 +4584,10 @@ entry	subsystem	rule	evidence
 0058e560	game	class	class ClientState
 0058e6b0	game	class	class ClientState
 0058e870	game	class	class ClientState
-0058ea30	game	neighbours	between 0058e870 and 0058ec40
-0058eb20	game	neighbours	between 0058e870 and 0058ec40
-0058ec10	game	neighbours	between 0058e870 and 0058ec40
-0058ec20	game	neighbours	between 0058e870 and 0058ec40
+0058ea30	game	neighbours	between 0058e870 and 0058eb20
+0058eb20	game	class	class ClientState
+0058ec10	game	class	class ClientState
+0058ec20	game	class	class ClientState
 0058ec40	game	class	class ClientState
 0058ec70	game	class	class ClientState
 0058ecb0	game	class	class ClientState
@@ -4880,10 +4708,10 @@ entry	subsystem	rule	evidence
 00593200	game	class	class ClientState
 00593220	game	class	class ClientState
 00593240	game	class	class ClientState
-00593290	game	neighbours	between 00593240 and 005932a0
+00593290	game	class	class ClientState
 005932a0	game	class	class ClientState
-00593560	game	neighbours	between 005932a0 and 00593660
-005935e0	game	neighbours	between 005932a0 and 00593660
+00593560	game	class	class ClientState
+005935e0	game	neighbours	between 00593560 and 00593660
 00593660	game	class	class ClientState
 00593810	game	class	class ClientState
 00593830	game	class	class ClientState
@@ -4896,7 +4724,6 @@ entry	subsystem	rule	evidence
 00593b70	game	class	class ClientState
 00593bb0	game	class	class ClientState
 00593c10	game	class	class ClientState
-00593fb0	game	neighbours	between 00593c10 and 00594020
 00594020	game	class	class ClientState
 00594070	game	class	class ClientState
 00596210	game	class	class ClientState
@@ -4907,7 +4734,7 @@ entry	subsystem	rule	evidence
 00597820	game	neighbours	between 00597700 and 00597870
 00597870	game	class	class ClientState
 00597890	game	class	class ClientState
-005978c0	game	neighbours	between 00597890 and 00597920
+005978c0	game	class	class ClientState
 00597920	game	class	class ClientState
 00597940	game	class	class ClientState
 00597950	game	class	class ClientState
@@ -4924,7 +4751,6 @@ entry	subsystem	rule	evidence
 00598c20	game	class	class ClientState
 00598dd0	game	class	class ClientState
 00598e10	game	class	class ClientState
-00599140	game	neighbours	between 00598e10 and 005991f0
 005991f0	game	class	class ClientState
 00599400	game	neighbours	between 005991f0 and 005994f0
 00599470	game	neighbours	between 005991f0 and 005994f0
@@ -4951,7 +4777,7 @@ entry	subsystem	rule	evidence
 0059b840	game	neighbours	between 0059b7f0 and 0059b890
 0059b890	game	class	class ClientState
 0059b900	game	class	class ClientState
-0059b940	game	neighbours	between 0059b900 and 0059ba10
+0059b940	game	class	class ClientState
 0059ba10	game	class	class ClientState
 0059ba80	game	class	class ClientState
 0059baf0	game	class	class ClientState
@@ -4969,14 +4795,13 @@ entry	subsystem	rule	evidence
 0059bfd0	game	class	class ClientState
 0059bfe0	game	class	class ClientState
 0059c270	game	class	class ClientState
-0059c3d0	game	neighbours	between 0059c270 and 0059c800
-0059c500	game	neighbours	between 0059c270 and 0059c800
-0059c6a0	game	neighbours	between 0059c270 and 0059c800
+0059c3d0	game	class	class ClientState
+0059c500	game	class	class ClientState
+0059c6a0	game	neighbours	between 0059c500 and 0059c800
 0059c800	game	class	class ClientState
 0059c9f0	game	class	class ClientState
 0059ca40	game	class	class ClientState
 0059ca60	game	class	class ClientState
-0059cd60	game	neighbours	between 0059ca60 and 0059cdd0
 0059cdd0	game	class	class ClientState
 0059d0d0	game	class	class ClientState
 0059d1d0	game	neighbours	between 0059d0d0 and 0059d1f0
@@ -5002,116 +4827,9 @@ entry	subsystem	rule	evidence
 0059d530	game	neighbours	between 0059d2e0 and 005a4b10
 0059d550	game	neighbours	between 0059d2e0 and 005a4b10
 0059d560	game	neighbours	between 0059d2e0 and 005a4b10
-0059d570	game	neighbours	between 0059d2e0 and 005a4b10
-0059d770	game	neighbours	between 0059d2e0 and 005a4b10
-0059d7b0	game	neighbours	between 0059d2e0 and 005a4b10
-0059d9b0	game	neighbours	between 0059d2e0 and 005a4b10
-0059d9c0	game	neighbours	between 0059d2e0 and 005a4b10
-0059da00	game	neighbours	between 0059d2e0 and 005a4b10
-0059da40	game	neighbours	between 0059d2e0 and 005a4b10
-0059da70	game	neighbours	between 0059d2e0 and 005a4b10
-0059dab0	game	neighbours	between 0059d2e0 and 005a4b10
-0059dae0	game	neighbours	between 0059d2e0 and 005a4b10
-0059db10	game	neighbours	between 0059d2e0 and 005a4b10
-0059db30	game	neighbours	between 0059d2e0 and 005a4b10
-0059db90	game	neighbours	between 0059d2e0 and 005a4b10
-0059dbb0	game	neighbours	between 0059d2e0 and 005a4b10
-0059dc10	game	neighbours	between 0059d2e0 and 005a4b10
-0059dc40	game	neighbours	between 0059d2e0 and 005a4b10
-0059dc60	game	neighbours	between 0059d2e0 and 005a4b10
-0059dcd0	game	neighbours	between 0059d2e0 and 005a4b10
-0059de70	game	neighbours	between 0059d2e0 and 005a4b10
-0059df10	game	neighbours	between 0059d2e0 and 005a4b10
-0059df40	game	neighbours	between 0059d2e0 and 005a4b10
-0059df50	game	neighbours	between 0059d2e0 and 005a4b10
-0059e0f0	game	neighbours	between 0059d2e0 and 005a4b10
-0059e180	game	neighbours	between 0059d2e0 and 005a4b10
-0059e1b0	game	neighbours	between 0059d2e0 and 005a4b10
-0059e240	game	neighbours	between 0059d2e0 and 005a4b10
-0059e290	game	neighbours	between 0059d2e0 and 005a4b10
-0059e320	game	neighbours	between 0059d2e0 and 005a4b10
-0059e3c0	game	neighbours	between 0059d2e0 and 005a4b10
-0059e3f0	game	neighbours	between 0059d2e0 and 005a4b10
-0059e5c0	game	neighbours	between 0059d2e0 and 005a4b10
-0059e600	game	neighbours	between 0059d2e0 and 005a4b10
-0059e610	game	neighbours	between 0059d2e0 and 005a4b10
-0059e7d0	game	neighbours	between 0059d2e0 and 005a4b10
-0059e800	game	neighbours	between 0059d2e0 and 005a4b10
-0059e810	game	neighbours	between 0059d2e0 and 005a4b10
-0059e840	game	neighbours	between 0059d2e0 and 005a4b10
-0059e870	game	neighbours	between 0059d2e0 and 005a4b10
-0059e8a0	game	neighbours	between 0059d2e0 and 005a4b10
-0059eb90	game	neighbours	between 0059d2e0 and 005a4b10
-0059ede0	game	neighbours	between 0059d2e0 and 005a4b10
-0059ee00	game	neighbours	between 0059d2e0 and 005a4b10
-0059ee40	game	neighbours	between 0059d2e0 and 005a4b10
-0059ee70	game	neighbours	between 0059d2e0 and 005a4b10
-0059ee90	game	neighbours	between 0059d2e0 and 005a4b10
-0059eed0	game	neighbours	between 0059d2e0 and 005a4b10
-0059ef00	game	neighbours	between 0059d2e0 and 005a4b10
-0059ef20	game	neighbours	between 0059d2e0 and 005a4b10
-0059ef60	game	neighbours	between 0059d2e0 and 005a4b10
-0059ef90	game	neighbours	between 0059d2e0 and 005a4b10
-0059efc0	game	neighbours	between 0059d2e0 and 005a4b10
-0059efe0	game	neighbours	between 0059d2e0 and 005a4b10
-0059f210	game	neighbours	between 0059d2e0 and 005a4b10
-0059f460	game	neighbours	between 0059d2e0 and 005a4b10
-0059f690	game	neighbours	between 0059d2e0 and 005a4b10
-0059f8e0	game	neighbours	between 0059d2e0 and 005a4b10
-0059fa30	game	neighbours	between 0059d2e0 and 005a4b10
-0059fb20	game	neighbours	between 0059d2e0 and 005a4b10
-0059fbe0	game	neighbours	between 0059d2e0 and 005a4b10
-0059fc00	game	neighbours	between 0059d2e0 and 005a4b10
-0059fc20	game	neighbours	between 0059d2e0 and 005a4b10
 0059fea0	game	neighbours	between 0059d2e0 and 005a4b10
-0059ff10	game	neighbours	between 0059d2e0 and 005a4b10
-005a0150	game	neighbours	between 0059d2e0 and 005a4b10
-005a0280	game	neighbours	between 0059d2e0 and 005a4b10
-005a0450	game	neighbours	between 0059d2e0 and 005a4b10
-005a0590	game	neighbours	between 0059d2e0 and 005a4b10
-005a06d0	game	neighbours	between 0059d2e0 and 005a4b10
-005a0950	game	neighbours	between 0059d2e0 and 005a4b10
-005a0bb0	game	neighbours	between 0059d2e0 and 005a4b10
-005a0d40	game	neighbours	between 0059d2e0 and 005a4b10
 005a0fc0	game	neighbours	between 0059d2e0 and 005a4b10
-005a1030	game	neighbours	between 0059d2e0 and 005a4b10
-005a1280	game	neighbours	between 0059d2e0 and 005a4b10
-005a13e0	game	neighbours	between 0059d2e0 and 005a4b10
-005a1520	game	neighbours	between 0059d2e0 and 005a4b10
 005a1680	game	neighbours	between 0059d2e0 and 005a4b10
-005a16b0	game	neighbours	between 0059d2e0 and 005a4b10
-005a16d0	game	neighbours	between 0059d2e0 and 005a4b10
-005a17e0	game	neighbours	between 0059d2e0 and 005a4b10
-005a19c0	game	neighbours	between 0059d2e0 and 005a4b10
-005a1db0	game	neighbours	between 0059d2e0 and 005a4b10
-005a1de0	game	neighbours	between 0059d2e0 and 005a4b10
-005a1ef0	game	neighbours	between 0059d2e0 and 005a4b10
-005a2140	game	neighbours	between 0059d2e0 and 005a4b10
-005a2250	game	neighbours	between 0059d2e0 and 005a4b10
-005a2470	game	neighbours	between 0059d2e0 and 005a4b10
-005a2580	game	neighbours	between 0059d2e0 and 005a4b10
-005a2790	game	neighbours	between 0059d2e0 and 005a4b10
-005a29c0	game	neighbours	between 0059d2e0 and 005a4b10
-005a2b80	game	neighbours	between 0059d2e0 and 005a4b10
-005a2fa0	game	neighbours	between 0059d2e0 and 005a4b10
-005a34b0	game	neighbours	between 0059d2e0 and 005a4b10
-005a36b0	game	neighbours	between 0059d2e0 and 005a4b10
-005a3930	game	neighbours	between 0059d2e0 and 005a4b10
-005a3ac0	game	neighbours	between 0059d2e0 and 005a4b10
-005a3ce0	game	neighbours	between 0059d2e0 and 005a4b10
-005a3e80	game	neighbours	between 0059d2e0 and 005a4b10
-005a40a0	game	neighbours	between 0059d2e0 and 005a4b10
-005a4220	game	neighbours	between 0059d2e0 and 005a4b10
-005a4240	game	neighbours	between 0059d2e0 and 005a4b10
-005a4250	game	neighbours	between 0059d2e0 and 005a4b10
-005a4390	game	neighbours	between 0059d2e0 and 005a4b10
-005a44a0	game	neighbours	between 0059d2e0 and 005a4b10
-005a4690	game	neighbours	between 0059d2e0 and 005a4b10
-005a4720	game	neighbours	between 0059d2e0 and 005a4b10
-005a47e0	game	neighbours	between 0059d2e0 and 005a4b10
-005a4880	game	neighbours	between 0059d2e0 and 005a4b10
-005a49a0	game	neighbours	between 0059d2e0 and 005a4b10
-005a4a30	game	neighbours	between 0059d2e0 and 005a4b10
 005a4af0	game	stub	jumps to 005a4b00
 005a4b00	game	neighbours	between 0059d2e0 and 005a4b10
 005a4b10	game	class	class ClientState
@@ -5176,21 +4894,18 @@ entry	subsystem	rule	evidence
 005aaa70	game	neighbours	between 005aa810 and 005aacf0
 005aaa90	game	neighbours	between 005aa810 and 005aacf0
 005aacf0	game	class	class ClientState
-005aad00	game	neighbours	between 005aacf0 and 005aaee0
-005aae70	game	neighbours	between 005aacf0 and 005aaee0
+005aad00	game	class	class ClientState
+005aae70	game	class	class ClientState
 005aaee0	game	class	class ClientState
 005aaf10	game	class	class ClientState
 005aaf40	game	class	class ClientState
-005aafb0	game	callers	1 referencing function
+005aafb0	game	class	class ClientState
 005ab250	game	callers	1 referencing function
-005ab270	game	callers	1 referencing function
 005ab560	game	callers	1 referencing function
 005ab570	game	callers	1 referencing function
 005ab5b0	game	callers	1 referencing function
 005ab5e0	game	callers	1 referencing function
-005ab600	game	callers	1 referencing function
-005ab740	game	neighbours	between 005ab600 and 005ab770
-005ab770	game	callers	1 referencing function
+005ab740	world	initializer	initializer of the file starting here, before 005ab960
 005ab940	world	stub	jumps to 005ab950
 005ab950	world	initializer	initializer of the file starting here, before 005ab960
 005ab960	world	class	class CGameObject, base of CSkill
@@ -5213,13 +4928,13 @@ entry	subsystem	rule	evidence
 005ad610	world	class	class CGameObject, base of CGraffiSkill
 005ad620	world	class	class CGameObject, base of CGraffiSkill
 005ad870	world	class	class CGameObject, base of CGraffiSkill
-005ad8a5	world	neighbours	between 005ad870 and 005ad910
+005ad8a5	world	class	class CGameObject, base of CGraffiSkill
 005ad910	world	class	class CGameObject, base of CMsgEffect
 005ad960	world	class	class CGameObject, base of CMsgEffect
 005ad990	world	class	class CGameObject, base of CMsgEffect
 005ad9e0	world	class	class CGameObject, base of CMsgEffect
 005ada80	world	class	class CGameObject, base of CMsgEffect
-005adaa0	world	neighbours	between 005ada80 and 005ae0e0
+005adaa0	world	class	class CGameObject, base of CMsgEffect
 005ae0e0	world	class	class CGameObject, base of CMsgEffect
 005aee50	world	class	class CGameObject, base of CMsgEffect
 005af4c0	world	class	class CGameObject, base of CEffectMaker
@@ -5227,21 +4942,21 @@ entry	subsystem	rule	evidence
 005af520	world	class	class CGameObject, base of CEffectMaker
 005af550	world	class	class CGameObject, base of CEffectMaker
 005af5a0	world	class	class CGameObject, base of CEffectMaker
-005af5e0	world	neighbours	between 005af5a0 and 005af5f0
+005af5e0	world	class	class CGameObject, base of CEffectMaker
 005af5f0	world	class	class CGameObject, base of CEffectMaker
 005af6b0	world	class	class CGameObject, base of CEffectMaker
 005af7d0	world	class	class CGameObject, base of CMandraAttackEffect
 005af820	world	class	class CGameObject, base of CMandraAttackEffect
 005af850	world	class	class CGameObject, base of CMandraAttackEffect
 005af8a0	world	class	class CGameObject, base of CMandraAttackEffect
-005af8d0	world	neighbours	between 005af8a0 and 005af8e0
+005af8d0	world	class	class CGameObject, base of CMandraAttackEffect
 005af8e0	world	class	class CGameObject, base of CMandraAttackEffect
 005af9a0	world	class	class CGameObject, base of CMandraAttackEffect
 005afa80	world	class	class CGameObject, base of CArrowEffect
 005afad0	world	class	class CGameObject, base of CArrowEffect
 005afb00	world	class	class CGameObject, base of CArrowEffect
 005afb50	world	class	class CGameObject, base of CArrowEffect
-005afbb0	world	neighbours	between 005afb50 and 005afbc0
+005afbb0	world	class	class CGameObject, base of CArrowEffect
 005afbc0	world	class	class CGameObject, base of CArrowEffect
 005afe60	world	class	class CGameObject, base of CArrowEffect
 005affc0	world	class	class CGameObject, base of CDummyEffectLauncher
@@ -5252,7 +4967,7 @@ entry	subsystem	rule	evidence
 005b0160	world	class	class CGameObject, base of CGroundScope
 005b0180	world	class	class CGameObject, base of CGroundScope
 005b03f0	world	class	class CGameObject, base of CGroundScope
-005b0510	world	callers	1 referencing function
+005b0510	world	class	class CGameObject, base of CGroundScope
 005b0600	audio	initializer	initializer of the file starting here, before 005b0710
 005b0630	audio	stub	jumps to 005b0640
 005b0640	audio	initializer	initializer of the file starting here, before 005b0710
@@ -7689,24 +7404,24 @@ entry	subsystem	rule	evidence
 005dd580	game	funclet	EH tables of 0050f020
 005dd588	game	funclet	EH tables of 0050f020
 005dd5a0	game	funclet	EH tables of 0050fdf0
-005dd5c0	core	funclet	EH tables of 0050ff10
-005dd5e0	world	funclet	EH tables of 00510030
-005dd600	world	funclet	EH tables of 00510120
-005dd620	world	funclet	EH tables of 005101f0
+005dd5c0	game	funclet	EH tables of 0050ff10
+005dd5e0	game	funclet	EH tables of 00510030
+005dd600	game	funclet	EH tables of 00510120
+005dd620	game	funclet	EH tables of 005101f0
 005dd640	game	funclet	EH tables of 005102c0
-005dd660	world	funclet	EH tables of 00510380
-005dd680	world	funclet	EH tables of 00510440
-005dd688	world	funclet	EH tables of 00510440
-005dd690	world	funclet	EH tables of 00510440
-005dd6b0	world	funclet	EH tables of 005106a0
-005dd6b8	world	funclet	EH tables of 005106a0
-005dd6c0	world	funclet	EH tables of 005106a0
-005dd6e0	world	funclet	EH tables of 005111b0
-005dd6e8	world	funclet	EH tables of 005111b0
-005dd6f0	world	funclet	EH tables of 005111b0
-005dd6fb	world	funclet	EH tables of 005111b0
-005dd710	world	funclet	EH tables of 00511650
-005dd730	world	funclet	EH tables of 00511800
+005dd660	game	funclet	EH tables of 00510380
+005dd680	game	funclet	EH tables of 00510440
+005dd688	game	funclet	EH tables of 00510440
+005dd690	game	funclet	EH tables of 00510440
+005dd6b0	game	funclet	EH tables of 005106a0
+005dd6b8	game	funclet	EH tables of 005106a0
+005dd6c0	game	funclet	EH tables of 005106a0
+005dd6e0	game	funclet	EH tables of 005111b0
+005dd6e8	game	funclet	EH tables of 005111b0
+005dd6f0	game	funclet	EH tables of 005111b0
+005dd6fb	game	funclet	EH tables of 005111b0
+005dd710	game	funclet	EH tables of 00511650
+005dd730	game	funclet	EH tables of 00511800
 005dd750	game	funclet	EH tables of 00511ec0
 005dd770	game	funclet	EH tables of 00512d00
 005dd790	game	funclet	EH tables of 005130b0
@@ -7741,10 +7456,6 @@ entry	subsystem	rule	evidence
 005dd9d0	game	funclet	EH tables of 0051b1d0
 005dd9d8	game	funclet	EH tables of 0051b1d0
 005dd9e3	game	funclet	EH tables of 0051b1d0
-005dda00	game	funclet	EH tables of 0051d7d0
-005dda11	game	funclet	EH tables of 0051d7d0
-005dda19	game	funclet	EH tables of 0051d7d0
-005dda24	game	funclet	EH tables of 0051d7d0
 005dda40	game	funclet	EH tables of 0051d990
 005dda48	game	funclet	EH tables of 0051d990
 005dda50	game	funclet	EH tables of 0051d990
@@ -7935,8 +7646,6 @@ entry	subsystem	rule	evidence
 005de6e0	game	funclet	EH tables of 005388c0
 005de700	game	funclet	EH tables of 00538c60
 005de720	game	funclet	EH tables of 00539140
-005de780	game	funclet	EH tables of 0053a710
-005de7a0	game	funclet	EH tables of 0053a880
 005de7c0	world	funclet	EH tables of 0053abb0
 005de7c8	world	funclet	EH tables of 0053abb0
 005de7e0	world	funclet	EH tables of 0053ac50
@@ -7962,11 +7671,6 @@ entry	subsystem	rule	evidence
 005de8d9	game	funclet	EH tables of 0053ecd0
 005de8e4	game	funclet	EH tables of 0053ecd0
 005de8ef	game	funclet	EH tables of 0053ecd0
-005de910	game	funclet	EH tables of 0053f810
-005de921	game	funclet	EH tables of 0053f810
-005de929	game	funclet	EH tables of 0053f810
-005de934	game	funclet	EH tables of 0053f810
-005de93f	game	funclet	EH tables of 0053f810
 005de960	world	funclet	EH tables of 0053f950
 005de980	world	funclet	EH tables of 0053f9d0
 005de9a0	world	funclet	EH tables of 00540950
@@ -8306,72 +8010,6 @@ entry	subsystem	rule	evidence
 005dfe73	game	funclet	EH tables of 0059cdd0
 005dfe7b	game	funclet	EH tables of 0059cdd0
 005dfe83	game	funclet	EH tables of 0059cdd0
-005dfea0	game	funclet	EH tables of 0059f8e0
-005dfeb1	game	funclet	EH tables of 0059f8e0
-005dfed0	game	funclet	EH tables of 0059fa30
-005dfee1	game	funclet	EH tables of 0059fa30
-005dfee9	game	funclet	EH tables of 0059fa30
-005dff10	game	funclet	EH tables of 0059fb20
-005dff21	game	funclet	EH tables of 0059fb20
-005dff40	game	funclet	EH tables of 0059fc20
-005dff48	game	funclet	EH tables of 0059fc20
-005dff50	game	funclet	EH tables of 0059fc20
-005dff58	game	funclet	EH tables of 0059fc20
-005dff70	game	funclet	EH tables of 005a0150
-005dff90	game	funclet	EH tables of 005a0280
-005dffb0	game	funclet	EH tables of 005a06d0
-005dffb8	game	funclet	EH tables of 005a06d0
-005dffc0	game	funclet	EH tables of 005a06d0
-005dffc8	game	funclet	EH tables of 005a06d0
-005dffe0	game	funclet	EH tables of 005a0bb0
-005dffe8	game	funclet	EH tables of 005a0bb0
-005e0010	game	funclet	EH tables of 005a0d40
-005e0018	game	funclet	EH tables of 005a0d40
-005e0020	game	funclet	EH tables of 005a0d40
-005e0028	game	funclet	EH tables of 005a0d40
-005e0040	game	funclet	EH tables of 005a1280
-005e0060	game	funclet	EH tables of 005a16d0
-005e0068	game	funclet	EH tables of 005a16d0
-005e0080	game	funclet	EH tables of 005a17e0
-005e00a0	game	funclet	EH tables of 005a1de0
-005e00a8	game	funclet	EH tables of 005a1de0
-005e00c0	game	funclet	EH tables of 005a1ef0
-005e00e0	game	funclet	EH tables of 005a2140
-005e00e8	game	funclet	EH tables of 005a2140
-005e0100	game	funclet	EH tables of 005a2250
-005e0120	game	funclet	EH tables of 005a2470
-005e0128	game	funclet	EH tables of 005a2470
-005e0140	game	funclet	EH tables of 005a2580
-005e0160	game	funclet	EH tables of 005a2790
-005e0168	game	funclet	EH tables of 005a2790
-005e0170	game	funclet	EH tables of 005a2790
-005e0178	game	funclet	EH tables of 005a2790
-005e0180	game	funclet	EH tables of 005a2790
-005e01a0	game	funclet	EH tables of 005a29c0
-005e01a8	game	funclet	EH tables of 005a29c0
-005e01b0	game	funclet	EH tables of 005a29c0
-005e01d0	game	funclet	EH tables of 005a34b0
-005e01f0	game	funclet	EH tables of 005a36b0
-005e01f8	game	funclet	EH tables of 005a36b0
-005e0200	game	funclet	EH tables of 005a36b0
-005e0220	game	funclet	EH tables of 005a3930
-005e0228	game	funclet	EH tables of 005a3930
-005e0240	game	funclet	EH tables of 005a3ac0
-005e0248	game	funclet	EH tables of 005a3ac0
-005e0250	game	funclet	EH tables of 005a3ac0
-005e0258	game	funclet	EH tables of 005a3ac0
-005e0260	game	funclet	EH tables of 005a3ac0
-005e0280	game	funclet	EH tables of 005a3ce0
-005e0288	game	funclet	EH tables of 005a3ce0
-005e0290	game	funclet	EH tables of 005a3ce0
-005e02b0	game	funclet	EH tables of 005a3e80
-005e02b8	game	funclet	EH tables of 005a3e80
-005e02c0	game	funclet	EH tables of 005a3e80
-005e02c8	game	funclet	EH tables of 005a3e80
-005e02d0	game	funclet	EH tables of 005a3e80
-005e02f0	game	funclet	EH tables of 005a40a0
-005e02f8	game	funclet	EH tables of 005a40a0
-005e0300	game	funclet	EH tables of 005a40a0
 005e0320	game	funclet	EH tables of 005a54b0
 005e032b	game	funclet	EH tables of 005a54b0
 005e0333	game	funclet	EH tables of 005a54b0
@@ -8415,8 +8053,6 @@ entry	subsystem	rule	evidence
 005e04e0	game	funclet	EH tables of 005aa010
 005e0500	game	funclet	EH tables of 005aaa90
 005e0530	game	funclet	EH tables of 005aafb0
-005e0550	game	funclet	EH tables of 005ab770
-005e0558	game	funclet	EH tables of 005ab770
 005e0570	world	funclet	EH tables of 005ab960
 005e0590	world	funclet	EH tables of 005ab9e0
 005e05b0	world	funclet	EH tables of 005ac830

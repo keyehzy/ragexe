@@ -569,7 +569,7 @@ C3dGrannyGameActor	005e967c	00507ef3	C3dGrannyGameActor::~C3dGrannyGameActor
 CGrannyCorpse3d	005e9734	0050a02f	CGrannyCorpse3d::~CGrannyCorpse3d
 CGrannyCorpse3d	005e9734	00509f8e	CGrannyCorpse3d::CGrannyCorpse3d
 CGameMode	005e9770	0050c5c7	CGameMode::CGameMode
-CDummyEffectLauncher	005e97a4	0050ff51	FUN_0050ff10
+CDummyEffectLauncher	005e97a4	0050ff51	CGameMode::LaunchEffectAt
 UIVerticalNameBalloonText	005e97dc	00516726	CGameMode::method_00516650
 CItem	005e98ac	0053abfc	CItem::CItem
 CItem	005e98ac	0053ac6f	CItem::~CItem

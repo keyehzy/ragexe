@@ -389,7 +389,7 @@ address	namespace	name	calling_convention	evidence
 004cb350	CGameMode	method_004cb350	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050dc90
 004cb7a0	CMode	method_004cb7a0	__thiscall	__thiscall; called with this from 2 functions of CGameMode, CLoginMode, e.g. 00515d10
 004cb7e0	CMode	method_004cb7e0	__thiscall	__thiscall; called with this from 2 functions of CGameMode, CLoginMode, e.g. 00515d10
-004cb7f0	CGameMode	method_004cb7f0	__thiscall	__thiscall; called with this from 2 functions of CGameMode, e.g. 00513c20
+004cb7f0	CGameMode	method_004cb7f0	__thiscall	__thiscall; called with this from 5 functions of CGameMode, e.g. 00513860
 004cc4e0	PathFinder	method_004cc4e0	__thiscall	__thiscall; called with this from 2 functions of PathFinder, e.g. 004cc290
 004cc9d0	PathFinder	method_004cc9d0	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004cc5c0
 004ccb80	PathFinder	method_004ccb80	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004ccba0
@@ -425,7 +425,7 @@ address	namespace	name	calling_convention	evidence
 004d0ef0	std::Tree	method_004d0ef0	__thiscall	__thiscall; called with this from 2 functions of GuildInfo, mg::mgType1::CWorld, e.g. 004d0130
 004d11b0	std::list	method_004d11b0	__thiscall	__thiscall; called with this from 2 functions of GuildInfo, e.g. 004d0130
 004d1330	std::Tree	method_004d1330	__thiscall	__thiscall; called with this from 1 functions of GuildInfo, e.g. 004d0360
-004d1350	std::Tree	method_004d1350	__thiscall	__thiscall; called with this from 2 functions of GuildInfo, mg::mgType1::CWorld, e.g. 004d0360
+004d1350	std::Tree	method_004d1350	__thiscall	__thiscall; called with this from 3 functions of GuildInfo, mg::mgType1::CWorld, e.g. 004d0360
 004d2450	MannerFilter	method_004d2450	__thiscall	__thiscall; called with this from 1 functions of MannerFilter, e.g. 004d25e0
 004d2b40	MannerFilter	method_004d2b40	__thiscall	__thiscall; called with this from 1 functions of MannerFilter, e.g. 004d25e0
 004d2be0	MannerFilter	method_004d2be0	__thiscall	__thiscall; called with this from 1 functions of MannerFilter, e.g. 004d2450
@@ -485,32 +485,32 @@ address	namespace	name	calling_convention	evidence
 00500210	CArrowEffect	method_00500210	__thiscall	__thiscall; called with this from 1 functions of CArrowEffect, e.g. 005afbc0
 00500400	CRenderObject	method_00500400	__thiscall	__thiscall; called with this from 1 functions of CRenderObject, e.g. 005002b0
 00500520	CRenderObject	method_00500520	__thiscall	__thiscall; called with this from 1 functions of CRenderObject, e.g. 00500350
-00500530	CRenderObject	method_00500530	__thiscall	__thiscall; called with this from 5 functions of CEffectMaker, CRagEffect, CSoundMaker, mg::CArrow, e.g. 004eb260
+00500530	CRenderObject	method_00500530	__thiscall	__thiscall; called with this from 8 functions of CEffectMaker, CEffectPrim, CRagEffect, CSoundMaker and more, e.g. 004eb260
 00500560	CArrowEffect	method_00500560	__thiscall	__thiscall; called with this from 1 functions of CArrowEffect, e.g. 005afbc0
-005005b0	CRenderObject	method_005005b0	__thiscall	__thiscall; called with this from 4 functions of CArrowEffect, CGameActor, CRagEffect, e.g. 005034e0
+005005b0	CRenderObject	method_005005b0	__thiscall	__thiscall; called with this from 7 functions of CArrowEffect, CGameActor, CRagEffect, e.g. 005034e0
 00500660	CGameActor	method_00500660	__thiscall	__thiscall; called with this from 4 functions of CGrannyPc, CPc, CPlayer, mg::mgType1::CMonster, e.g. 004f0790
 00500720	CRenderObject	method_00500720	__thiscall	__thiscall; called with this from 4 functions of CBlurPC, CCorpse, CNumEffect, CPlayer, e.g. 00506c80
 00500760	CArrowEffect	method_00500760	__thiscall	__thiscall; called with this from 1 functions of CArrowEffect, e.g. 005afbc0
 00500940	CRenderObject	method_00500940	__thiscall	__thiscall; called with this from 4 functions of CBlowEffect, CGrannyPc, CPc, CPlayer, e.g. 00540a60
-00500e60	CRenderObject	method_00500e60	__thiscall	__thiscall; called with this from 2 functions of CPc, CRenderObject, e.g. 00500f70
+00500e60	CRenderObject	method_00500e60	__thiscall	__thiscall; called with this from 3 functions of CPc, CRenderObject, e.g. 00500f70
 00500f70	CRenderObject	method_00500f70	__thiscall	__thiscall; called with this from 2 functions of CItem, CRenderObject, e.g. 00501870
 00501550	CRenderObject	method_00501550	__thiscall	__thiscall; called with this from 4 functions of CBlurPC, CItem, CPc, CRenderObject, e.g. 00501870
 005018a0	CRenderObject	method_005018a0	__thiscall	__thiscall; called with this from 10 functions of CArrowEffect, CBlowEffect, CCorpse, CItem and more, e.g. 00500400
 005018e0	CGameActor	method_005018e0	__thiscall	__thiscall; called with this from 1 functions of CGameActor, e.g. 00503f30
-00501900	CRenderObject	method_00501900	__thiscall	__thiscall; called with this from 7 functions of CRenderObject, mg::CArrow, mg::mgType1::CItemObj, mg::mgType1::CMonster, e.g. 004eb460
+00501900	CRenderObject	method_00501900	__thiscall	__thiscall; called with this from 8 functions of CEffectPrim, CRenderObject, mg::CArrow, mg::mgType1::CItemObj and more, e.g. 004eb460
 00501910	CRenderObject	method_00501910	__thiscall	__thiscall; called with this from 11 functions of CArrowEffect, CBlowEffect, CBlurPC, CCorpse and more, e.g. 00500400
-00501950	CRenderObject	method_00501950	__thiscall	__thiscall; called with this from 17 functions of CBlowEffect, CCorpse, CGameActor, CItem and more, e.g. 004eb460
+00501950	CRenderObject	method_00501950	__thiscall	__thiscall; called with this from 20 functions of CBlowEffect, CCorpse, CEffectPrim, CGameActor and more, e.g. 004eb460
 00501960	CGameActor	method_00501960	__thiscall	__thiscall; called with this from 1 functions of CGameActor, e.g. 00503f30
 00501a50	CMousePointer	method_00501a50	__thiscall	__thiscall; called with this from 1 functions of CMousePointer, e.g. 00501980
 00501d40	CAbleToMakeEffect	method_00501d40	__thiscall	__thiscall; called with this from 1 functions of CAbleToMakeEffect, e.g. 00501be0
 00501d70	CAbleToMakeEffect	method_00501d70	__thiscall	__thiscall; called with this from 1 functions of CAbleToMakeEffect, e.g. 00501c90
-00501e10	CAbleToMakeEffect	method_00501e10	__thiscall	__thiscall; called with this from 9 functions of C3dGrannyGameActor, CAbleToMakeEffect, CEffectMaker, CNpc and more, e.g. 005020d0
+00501e10	CAbleToMakeEffect	method_00501e10	__thiscall	__thiscall; called with this from 13 functions of C3dGrannyGameActor, CAbleToMakeEffect, CEffectMaker, CGameActor and more, e.g. 005020d0
 00502850	CGameActor	method_00502850	__thiscall	__thiscall; called with this from 1 functions of CGameActor, e.g. 00502570
 00502a20	CGameActor	method_00502a20	__thiscall	__thiscall; called with this from 1 functions of CGameActor, e.g. 00502700
 00503020	CGameActor	method_00503020	__thiscall	__thiscall; called with this from 7 functions of C3dGrannyGameActor, CBlurPC, CGrannyPc, CNpc and more, e.g. 00508000
 00503210	CGameActor	method_00503210	__thiscall	__thiscall; called with this from 4 functions of CGrannyPc, CPc, CPlayer, CSkill, e.g. 00542e40
 00503440	CGameActor	method_00503440	__thiscall	__thiscall; called with this from 8 functions of C3dGrannyGameActor, CBlurPC, CGrannyPc, CNpc and more, e.g. 00508000
-00503490	CGameActor	method_00503490	__thiscall	__thiscall; called with this from 34 functions of CGameActor, CGrannyPc, CNpc, CPc and more, e.g. 00502b00
+00503490	CGameActor	method_00503490	__thiscall	__thiscall; called with this from 36 functions of CGameActor, CGrannyPc, CNpc, CPc and more, e.g. 00502b00
 00503830	CGameActor	method_00503830	__thiscall	__thiscall; called with this from 4 functions of CGameActor, CGrannyPc, CNpc, CPc, e.g. 005038c0
 00503f80	CGameActor	method_00503f80	__thiscall	__thiscall; called with this from 5 functions of C3dGrannyGameActor, CGrannyPc, CPc, CPlayer and more, e.g. 00508250
 00504000	CGameActor	method_00504000	__thiscall	__thiscall; called with this from 2 functions of CGameActor, CNpc, e.g. 005034e0
@@ -525,7 +525,7 @@ address	namespace	name	calling_convention	evidence
 00508460	C3dGrannyGameActor	method_00508460	__thiscall	__thiscall; called with this from 1 functions of C3dGrannyGameActor, e.g. 005083b0
 00509280	C3dGrannyGameActor	method_00509280	__thiscall	__thiscall; called with this from 1 functions of C3dGrannyGameActor, e.g. 005083b0
 005098d0	C3dGrannyGameActor	method_005098d0	__thiscall	__thiscall; called with this from 1 functions of C3dGrannyGameActor, e.g. 00509280
-00509a20	C3dGrannyGameActor	method_00509a20	__thiscall	__thiscall; called with this from 1 functions of C3dGrannyGameActor, e.g. 00509280
+00509a20	C3dGrannyGameActor	method_00509a20	__thiscall	__thiscall; called with this from 2 functions of C3dGrannyGameActor, e.g. 00508550
 0050a060	CGrannyCorpse3d	method_0050a060	__thiscall	__thiscall; called with this from 1 functions of CGrannyCorpse3d, e.g. 00509f60
 0050a220	CGrannyCorpse3d	method_0050a220	__thiscall	__thiscall; called with this from 1 functions of CGrannyCorpse3d, e.g. 0050a010
 0050a2f0	CGrannyCorpse3d	method_0050a2f0	__thiscall	__thiscall; called with this from 1 functions of CGrannyCorpse3d, e.g. 0050a380
@@ -554,11 +554,11 @@ address	namespace	name	calling_convention	evidence
 0050fdf0	CGameMode	method_0050fdf0	__thiscall	__thiscall; called with this from 2 functions of CGameMode, e.g. 0050cfb0
 00511940	CGameMode	method_00511940	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0052a070
 00511c30	CGameMode	method_00511c30	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00511f40
-00511d50	CGameMode	method_00511d50	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050f8e0
+00511d50	CGameMode	method_00511d50	__thiscall	__thiscall; called with this from 3 functions of CGameMode, e.g. 0050f8e0
 00511de0	CGameMode	method_00511de0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00530f40
 00511f40	CGameMode	method_00511f40	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 005159d0
 005121d0	CGameMode	method_005121d0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 005159d0
-00512230	CGameMode	method_00512230	__thiscall	__thiscall; called with this from 2 functions of CGameMode, e.g. 00511f40
+00512230	CGameMode	method_00512230	__thiscall	__thiscall; called with this from 4 functions of CGameMode, e.g. 00511a40
 005122a0	CGameMode	method_005122a0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00511f40
 00512310	CGameMode	method_00512310	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 005159d0
 005123c0	CGameMode	method_005123c0	__thiscall	__thiscall; called with this from 2 functions of CGameMode, e.g. 0050d400
@@ -568,7 +568,7 @@ address	namespace	name	calling_convention	evidence
 00512b80	CGameMode	method_00512b80	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00527b80
 00512c00	CGameMode	method_00512c00	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00533b00
 00512ca0	CGameMode	method_00512ca0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00512eb0
-00512d00	CGameMode	method_00512d00	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00515d10
+00512d00	CGameMode	method_00512d00	__thiscall	__thiscall; called with this from 3 functions of CGameMode, e.g. 00513860
 00512eb0	CGameMode	method_00512eb0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00512d00
 005130b0	CGameMode	method_005130b0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00515d10
 00513c20	CGameMode	method_00513c20	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00515d10
@@ -596,7 +596,7 @@ address	namespace	name	calling_convention	evidence
 00519480	CGameMode	method_00519480	__thiscall	__thiscall; called with this from 5 functions of CGameMode, e.g. 00527090
 005196a0	CGameMode	method_005196a0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050d630
 00519740	CGameMode	method_00519740	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050d400
-005198a0	std::Tree	method_005198a0	__thiscall	__thiscall; called with this from 4 functions of CGameMode, e.g. 005126f0
+005198a0	std::Tree	method_005198a0	__thiscall	__thiscall; called with this from 5 functions of CGameMode, e.g. 00512610
 005199f0	std::Tree	method_005199f0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050ccb0
 00519ae0	std::Tree	method_00519ae0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050ccb0
 00519bc0	std::Tree	method_00519bc0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050ccb0
@@ -608,13 +608,13 @@ address	namespace	name	calling_convention	evidence
 0051a550	std::Tree	method_0051a550	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00512b80
 0051a9b0	std::Tree	method_0051a9b0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050dc90
 0051ab50	std::Tree	method_0051ab50	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050dc90
-0051ac70	std::Tree	method_0051ac70	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050f190
+0051ac70	std::Tree	method_0051ac70	__thiscall	__thiscall; called with this from 2 functions of CGameMode, e.g. 0050f190
 0051b080	std::Tree	method_0051b080	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050dc90
 0051b4d0	std::Tree	method_0051b4d0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 005291e0
-0051ba90	std::Tree	method_0051ba90	__thiscall	__thiscall; called with this from 2 functions of CGameMode, e.g. 0052c940
+0051ba90	std::Tree	method_0051ba90	__thiscall	__thiscall; called with this from 3 functions of CGameMode, e.g. 00512610
 0051c0d0	std::Tree	method_0051c0d0	__thiscall	__thiscall; called with this from 2 functions of CGameMode, e.g. 00512510
 0051d0e0	std::Tree	method_0051d0e0	__thiscall	__thiscall; called with this from 3 functions of CGameMode, e.g. 005126f0
-0051d470	std::Tree	method_0051d470	__thiscall	__thiscall; called with this from 2 functions of CGameMode, e.g. 00512510
+0051d470	std::Tree	method_0051d470	__thiscall	__thiscall; called with this from 4 functions of CGameMode, e.g. 005124a0
 0051d5a0	std::Tree	method_0051d5a0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00512b80
 0051d6a0	std::Tree	method_0051d6a0	__thiscall	__thiscall; called with this from 2 functions of CGameMode, e.g. 00512510
 00523900	UIWindowMgr	method_00523900	__thiscall	__thiscall; called with this from 1 functions of UIWindowMgr, e.g. 0051d990
@@ -658,11 +658,11 @@ address	namespace	name	calling_convention	evidence
 00545bf0	CBlurPC	method_00545bf0	__thiscall	__thiscall; called with this from 1 functions of CBlurPC, e.g. 00540d20
 00545e30	CBlurPC	method_00545e30	__thiscall	__thiscall; called with this from 1 functions of CBlurPC, e.g. 00540d20
 00546070	CPc	method_00546070	__thiscall	__thiscall; called with this from 10 functions of CBlurPC, CPc, e.g. 00542320
-00546240	CPc	method_00546240	__thiscall	__thiscall; called with this from 2 functions of CPc, e.g. 00542320
-00546270	CPc	method_00546270	__thiscall	__thiscall; called with this from 1 functions of CPc, e.g. 00545540
+00546240	CPc	method_00546240	__thiscall	__thiscall; called with this from 3 functions of CPc, e.g. 00542320
+00546270	CPc	method_00546270	__thiscall	__thiscall; called with this from 2 functions of CPc, e.g. 00544be0
 00546290	CPc	method_00546290	__thiscall	__thiscall; called with this from 10 functions of CBlurPC, CPc, e.g. 00542320
-00546460	CPc	method_00546460	__thiscall	__thiscall; called with this from 2 functions of CPc, e.g. 00542320
-00546490	CPc	method_00546490	__thiscall	__thiscall; called with this from 1 functions of CPc, e.g. 00545540
+00546460	CPc	method_00546460	__thiscall	__thiscall; called with this from 3 functions of CPc, e.g. 00542320
+00546490	CPc	method_00546490	__thiscall	__thiscall; called with this from 2 functions of CPc, e.g. 00544be0
 00546f40	CGrannyPc	method_00546f40	__thiscall	__thiscall; called with this from 1 functions of CGrannyPc, e.g. 00546b30
 00547250	CGrannyPc	method_00547250	__thiscall	__thiscall; called with this from 1 functions of CGrannyPc, e.g. 00546d50
 00548580	CGrannyPc	method_00548580	__thiscall	__thiscall; called with this from 1 functions of CGrannyPc, e.g. 00547ea0
@@ -675,9 +675,9 @@ address	namespace	name	calling_convention	evidence
 0054b880	CPlayer	method_0054b880	__thiscall	__thiscall; called with this from 1 functions of CPlayer, e.g. 0054c550
 0054b8e0	CPlayer	method_0054b8e0	__thiscall	__thiscall; called with this from 1 functions of CPlayer, e.g. 0054b770
 0054cf80	CPlayer	method_0054cf80	__thiscall	__thiscall; called with this from 1 functions of CPlayer, e.g. 0054b4a0
-0054f9a0	CRagEffect	method_0054f9a0	__thiscall	__thiscall; called with this from 149 functions of CRagEffect, e.g. 005505a0
+0054f9a0	CRagEffect	method_0054f9a0	__thiscall	__thiscall; called with this from 153 functions of CRagEffect, e.g. 005505a0
 0054fb40	CRagEffect	method_0054fb40	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 005668d0
-0054fba0	CRagEffect	method_0054fba0	__thiscall	__thiscall; called with this from 47 functions of CRagEffect, e.g. 0054d4c0
+0054fba0	CRagEffect	method_0054fba0	__thiscall	__thiscall; called with this from 57 functions of CRagEffect, e.g. 0054d4c0
 00550070	CRagEffect	method_00550070	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054ee50
 005505a0	CRagEffect	method_005505a0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 00550c60	CRagEffect	method_00550c60	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
@@ -777,7 +777,7 @@ address	namespace	name	calling_convention	evidence
 00564160	CRagEffect	method_00564160	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 005643e0	CRagEffect	method_005643e0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 00564660	CRagEffect	method_00564660	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
-005647c0	CRagEffect	method_005647c0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
+005647c0	CRagEffect	method_005647c0	__thiscall	__thiscall; called with this from 4 functions of CRagEffect, e.g. 0054d4c0
 005648f0	CRagEffect	method_005648f0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 00564a90	CRagEffect	method_00564a90	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 00564b00	CRagEffect	method_00564b00	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0

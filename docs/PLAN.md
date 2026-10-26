@@ -1313,9 +1313,55 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     2%). Still 91.2% named or library-tagged; this step names nothing new. Converges
     in three passes.
 
+- [x] Naming run 6, to close the gap: the 580 unnamed reachable functions left, from
+  `0x4a5120` to the end of the game code. 99% needed 514 of them, so the round took all
+  580, split at a source-file boundary into two halves (300 and 280). Each half had its
+  own naming and reviewing agent, with the same prompts, and the two halves ran in
+  parallel. The halves cover game modes, actors, effects and the ~110 effect-primitive
+  update and render cases; then the world, `ClientState` and the main loop.
+  - **Quality.**
+    - The namers' confidence: 321 high, 233 medium, 26 low.
+    - The reviewers accepted 561 rows, revised 19 and rejected none:
+      - seven had game words the binary doesn't show ("attack", "skill", "ground",
+        "hit", "action", "layer", "dir"); they now have shape names
+        (`ProcessIdActionOnTarget`, `PackCoordinatesAndNibble`, ...);
+      - five were functions that never read ECX but whose callers pass a class
+        object in it; they moved into `CEffectPrim` or `ClientState` as `__thiscall`;
+      - the rest fixed argument order, a `ret` size and a table.
+    - The reviewers decoded `CEffectPrim::vf01`'s and `vf03`'s jump tables (`0x57e06c`,
+      `0x586268`) and confirmed every case number in the `UpdatePrim_<id>` rows; I
+      re-checked cases 7, 23 and 32. Those placeholders follow `HandlePacket_<id>`,
+      named after the switch's "Illegal Effect PrimitiveId %d" string.
+    - My checks: every address has one row, every namespace exists, and no name clashes
+      with an existing one. Two names repeat within the run on byte-identical copies
+      (`DestroyFourStrings`, `StringLess`). A third (`SetVector3`) was on different
+      code: the copy that returns `this` is now `InitVector3`. One review line had its
+      columns scrambled at `|` characters; I rebuilt it from its text. Eight evenly
+      spaced accepted game rows were correct against the disassembly.
+  - **`docs/naming.md`** gained the `stable_sort` internals, `UpdatePrim_<id>`-style
+    placeholders for switch cases, `...Tail` for jump-only fragments, and the
+    convention of empty functions that constructors and destructors call with ECX
+    still `this` (13 `NoOp`s, like `CConnection::OnConnect`).
+  - **Result.** 285 of the 580 are library code; 295 are named game functions. Code
+    functions named or library-tagged: 91.2% → **100%** of 6,619 reachable ones. Over
+    all 7,115 code functions it is 96.4%; what remains raw is unreachable code (left
+    out on purpose) and library code. Fields 10,460 → 10,578. Converges in two passes.
+  - **Cost.** 1.75M agent tokens (namers 538k and 535k, reviewers 362k and 310k), 392
+    tool calls, 30 minutes of wall time with the halves in parallel: 3.0k tokens a
+    function.
+  - **The namers' notes:** a disassembler option that lists jump-table cases (they
+    decoded three tables by hand); decoded CP949 strings in `disasm.py`; a layout map
+    for `CEffectPrim`, whose fields reach past `0x15000`; and a check, before an
+    agent's rows are merged, for the `review.tsv` columns.
+  - **Class proposals from the run, not yet decided:** `FourStringRecord` (64 bytes),
+    `ConnectionEntry` (0x48, the `connection` entries of clientinfo.xml),
+    `StringIntsRecord` (0x1c), `IntStringRecord` (0x14), `EffectPrimRing` (0xb8, four
+    at `CEffectPrim+0x156b0`), `EffectPrimHistoryEntry` (0x8c, fifty at
+    `CEffectPrim+0x358`) and `ProhibitionLogRecord` (0x74, written to
+    "\ProhibitionLog.gd").
+
 ### Next actions (M1)
-1. M1's naming exit is met (91.2% of reachable code). Check the other M1 items against
-   section 5 (constructors, destructors and sizes for all classes; the class graph;
-   `docs/architecture.md`) and close M1.
-2. The 580 reachable game functions still unnamed (174 KB) can be named the same way
-   when their subsystems are ported.
+1. Naming is complete for reachable code (100%; 96.4% of all code). Check the other M1
+   items against section 5 (constructors, destructors and sizes for all classes; the
+   class graph; `docs/architecture.md`) and close M1.
+2. Decide naming run 6's class proposals.

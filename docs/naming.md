@@ -35,7 +35,11 @@ Not allowed:
   - A constructor or destructor is named after its class.
   - A virtual function nobody has named is `vfNN`, its vtable slot.
 - **Generated placeholders:** `method_<address>` (the class is known, the purpose is
-  not), `HandlePacket_<id>`, `static_init_NNN`.
+  not), `HandlePacket_<id>`, `static_init_NNN`. A case of a dispatch switch whose
+  purpose is only its number is named the same way: `CEffectPrim::UpdatePrim_<id>`,
+  after the "Illegal Effect PrimitiveId %d" string of that switch.
+- **Code reached only by jumps from one function**, running in its frame, is named
+  after it with `Tail`: `std::string::ReallocateBufferTail`, `CGraffiSkill::vf02Tail`.
   - Initializer helpers are lower case: `construct_<global>`,
     `register_destroy_<global>`, `destroy_<global>`, `static_init_NNN_body`.
   - Globals are `g_<Name>`, pointers to them `g_p<Name>`.
@@ -90,6 +94,9 @@ to say what the code is.
 | | `AllocateElements` | `operator new` of n elements, as the containers' allocation helper |
 | | `QuickSortRange`, `InsertionSort`, `ShiftInsertSorted` | the parts of a sort: partition and recurse; sort a short range; move one element back to its place |
 | | `PartitionRange`, `MedianOfThree` | split a range around a pivot value, returning the split point; the middle of three values, the sort's pivot choice |
+| | `BufferedMergeSort`, `ChunkSortAndMerge`, `MergeWithBuffer`, `MergeRuns`, `MergeRunsIntoTempBuffer`, `MergeIntoTempBuffer` | the parts of `stable_sort`: sort with a temporary buffer; sort fixed chunks and merge them; merge two runs through the buffer; merge adjacent runs; the same into the buffer |
+| | `CopyToTempBuffer`, `InitTempIterator`, `ResetTempBuffer`, `FreeTempBuffer` | `stable_sort`'s temporary buffer |
+| | `sort`, `stable_sort`, `lower_bound`, `merge`, `rotate` | public algorithms |
 | | `HeapSiftUp` | move a new element up a binary heap to its place (the step `push_heap` uses) |
 | | `CharTraitsAssign` | copy one character (`char_traits` assignment) |
 | | `DequeIteratorDifference`, `DequeIteratorAdvance` | the distance between two iterators of a block list (a deque: first, last, current, map node), and moving one by n elements across blocks |
@@ -146,6 +153,9 @@ The procedure:
      such a call site does not count. `or ecx, -1` (the `strlen` idiom) writes ECX.
      `recover_layouts.py` applies the same test when it looks for methods.
    - A function with no arguments whose callers all set ECX is `__thiscall`.
+   - An empty function that a constructor or destructor calls while ECX still holds
+     `this` is `__thiscall` in that class (`CBlowEffect::NoOp`, like
+     `CConnection::OnConnect`), although no ECX write comes just before the call.
    - Otherwise `ret N` with N > 0 means `__stdcall`, and a plain `ret` means `__cdecl`.
 4. **Confidence.** High when the evidence pins the purpose. Medium for a descriptive
    name inferred from use. Low, or no row at all, when the purpose is unclear.
