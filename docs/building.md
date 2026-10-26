@@ -1,25 +1,19 @@
 # Building the client
 
-The new client is C++20, built with CMake and Ninja; its libraries come from vcpkg in
-manifest mode (`vcpkg.json`, pinned by `builtin-baseline`).
+The new client is C++20, built with CMake and Ninja. Third-party libraries are pinned in
+`cmake/dependencies.cmake` by release archive and SHA-256. CMake uses an installed
+package when it finds one (Homebrew's SDL3, for example), and otherwise downloads the
+pinned release and builds it with the project (`FetchContent`). A library is added
+there by the milestone that first uses it; so far SDL3 3.4.18 and, for the tests,
+Catch2 3.16.1.
 
 ## Prerequisites
 
 - CMake 3.25 or newer, Ninja, and a C++20 compiler: Apple Clang (Xcode), GCC 12+ or
   Clang 15+ on Linux, MSVC 2022 on Windows (run from a developer prompt).
-- vcpkg. Any checkout works when `VCPKG_ROOT` points at it. A local one inside the
-  project is ignored by git:
-
-  ```bash
-  git clone https://github.com/microsoft/vcpkg.git .vcpkg
-  ./.vcpkg/bootstrap-vcpkg.sh -disableMetrics
-  export VCPKG_ROOT=$PWD/.vcpkg
-  ```
-- On Linux, SDL3 builds against the system's X11, Wayland and input headers; the list
-  is in `.github/workflows/ci.yml`.
-
-The first configure builds the dependencies (a few minutes, mostly SDL3); later ones
-reuse vcpkg's binary cache.
+- Network access on the first configure, unless every library is installed.
+- On Linux, SDL3 builds against the system's X11, Wayland, input and D-Bus headers;
+  the package list is in `.github/workflows/ci.yml`.
 
 ## Presets
 
@@ -34,7 +28,17 @@ cmake --build --preset dev
 ctest --preset dev
 ```
 
-The test presets select SDL's `dummy` video driver, so the tests need no display.
+The sanitizers apply to the project's own targets only; the libraries are built without
+them. The test presets select SDL's `dummy` video driver, so the tests need no display.
+
+To build the pinned versions even where a package is installed, as CI does:
+
+```bash
+cmake --preset dev -DFETCHCONTENT_TRY_FIND_PACKAGE_MODE=NEVER
+```
+
+A fetched SDL3 is linked statically; an installed one is used as it is (shared, for
+Homebrew).
 
 ## Running
 

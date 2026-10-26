@@ -21,11 +21,6 @@ jobs:
     defaults:
       run:
         shell: bash
-    env:
-      # The commit vcpkg.json's builtin-baseline names.
-      VCPKG_COMMIT: 817892b0ecbc6af994dd6df999c73faf795adbf2
-      VCPKG_ROOT: ${{ github.workspace }}/../vcpkg
-      VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/../vcpkg-cache,readwrite
 
     steps:
       - uses: actions/checkout@v4
@@ -33,11 +28,11 @@ jobs:
       - name: CMake and Ninja
         uses: lukka/get-cmake@latest
 
-      - name: Linux packages SDL3 builds against
+      - name: Linux headers SDL3 builds against
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y autoconf autoconf-archive automake libtool pkg-config \
+          sudo apt-get install -y pkg-config \
             libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev \
             libxss-dev libxtst-dev libxkbcommon-dev libwayland-dev wayland-protocols \
             libegl1-mesa-dev libgles2-mesa-dev libdrm-dev libgbm-dev \
@@ -47,26 +42,10 @@ jobs:
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
 
-      - name: vcpkg at the manifest's baseline
-        run: |
-          git clone --quiet --filter=blob:none https://github.com/microsoft/vcpkg "$VCPKG_ROOT"
-          git -C "$VCPKG_ROOT" checkout --quiet "$VCPKG_COMMIT"
-          if [ "$RUNNER_OS" = Windows ]; then
-            "$VCPKG_ROOT/bootstrap-vcpkg.bat" -disableMetrics
-          else
-            "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
-          fi
-          mkdir -p "${{ github.workspace }}/../vcpkg-cache"
-
-      - name: vcpkg binary cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ github.workspace }}/../vcpkg-cache
-          key: vcpkg-${{ matrix.os }}-${{ env.VCPKG_COMMIT }}-${{ hashFiles('vcpkg.json') }}
-          restore-keys: vcpkg-${{ matrix.os }}-${{ env.VCPKG_COMMIT }}-
-
+      # Always the pinned SDL3 and Catch2 (cmake/dependencies.cmake), never a package
+      # the runner happens to have installed.
       - name: Configure (Debug, sanitizers)
-        run: cmake --preset dev
+        run: cmake --preset dev -DFETCHCONTENT_TRY_FIND_PACKAGE_MODE=NEVER
 
       - name: Build
         run: cmake --build --preset dev

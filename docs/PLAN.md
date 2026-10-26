@@ -195,7 +195,9 @@ Effort is for one engineer full time, with AI assistance. Treat it as rough.
   ledger populated.
 
 ### M2 — Portable skeleton (2–3 weeks)
-- CMake + C++20 + vcpkg manifest (SDL3, miniaudio, FreeType, zlib, stb, Catch2).
+- CMake + C++20, with the libraries (SDL3, miniaudio, FreeType, zlib, stb, Catch2) pinned
+  in `cmake/dependencies.cmake` and fetched with `FetchContent`, each added by the
+  milestone that first uses it.
 - Platform layer: window, events, timing (`timeGetTime` → SDL ticks), files, config.
 - Main loop and `CMode` state machine with stubbed modes.
 - CI on macOS arm64, Linux x86-64 and Windows x64, with ASan/UBSan.
@@ -1437,11 +1439,20 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     belongs with porting each class.
 
 ### M2 progress
-- [x] Build: CMake (3.25+), C++20, Ninja, and a vcpkg manifest (`vcpkg.json`) with the
-  libraries section 5 names: SDL3, miniaudio, FreeType (zlib only), zlib, stb, Catch2.
-  Pinned to vcpkg `817892b0` (2026-10-24). Presets `dev` (Debug with AddressSanitizer
-  and UndefinedBehaviorSanitizer; AddressSanitizer only with MSVC) and `release`. How to
-  build: `docs/building.md`.
+- [x] Build: CMake (3.25+), C++20 and Ninja. Presets `dev` (Debug with
+  AddressSanitizer and UndefinedBehaviorSanitizer; AddressSanitizer only with MSVC) and
+  `release`. How to build: `docs/building.md`.
+  - **Libraries.** `cmake/dependencies.cmake` pins each by release archive and SHA-256:
+    SDL3 3.4.18 and Catch2 3.16.1. CMake uses an installed package when `find_package`
+    finds one (Homebrew's SDL3 here), and otherwise `FetchContent` downloads and builds
+    the pinned release, SDL3 as a static library. The other libraries of section 5
+    are added by the milestones that use them.
+  - **vcpkg, tried first and dropped.** The first version used a vcpkg manifest. Both
+    CI attempts on Linux and Windows failed in vcpkg's own setup, never in our code.
+    On Linux, SDL3's default features made vcpkg build dbus and libxcrypt, which needed
+    more system tools. On Windows, getting vcpkg itself failed both times. For six libraries,
+    three of them single headers, pinned archives are simpler: no extra tool, no
+    bootstrap, no baseline.
 - [x] Code in `src/`, one static library per layer:
   - `core`: `FrameTimer`, the original's fixed step (`ResetFrameTimer`, `SetFrameRate`,
     `GetFrameStepsDue`): a period of `1000 / fps` whole milliseconds; each frame runs
@@ -1471,15 +1482,17 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   release build.
 - [x] On macOS arm64 the client opens its window and runs the mode loop: on a 120 Hz
   display the game mode drew 59 frames in 0.49 s and ran 29 world steps, 62.5 a second.
-- [ ] CI (`.github/workflows/ci.yml`): macOS arm64 (`macos-14`), Linux x86-64
-  (`ubuntu-24.04`) and Windows x64 (`windows-2022`). Each job builds vcpkg at the
-  manifest's baseline, caches its binary packages, then runs `cmake`, the build and
-  `ctest` with the `dev` preset. **Not run yet:** the repository has no GitHub remote.
-  Until it does, Linux and Windows are unverified, and with them M2's exit (an empty
-  window running the mode loop on all three platforms).
+- [ ] CI (`.github/workflows/ci.yml`, on https://github.com/keyehzy/ragexe):
+  - macOS arm64 (`macos-14`), Linux x86-64 (`ubuntu-24.04`) and Windows x64
+    (`windows-2022`). Each job configures the `dev` preset with
+    `FETCHCONTENT_TRY_FIND_PACKAGE_MODE=NEVER`, so every platform builds the pinned
+    libraries, then builds and runs `ctest`. Linux first installs the X11, Wayland,
+    input and D-Bus headers SDL3 builds against.
+  - The vcpkg version passed on macOS twice and failed in setup on Linux and Windows.
+    The FetchContent version builds and passes locally both ways: with fetched static
+    SDL3 and Catch2, and with Homebrew's SDL3. Its first CI run follows this commit.
 
 ### Next actions (M2)
-1. Push the repository to GitHub and get the CI workflow green on all three platforms;
-   that verifies M2's exit.
+1. Get the CI workflow green on all three platforms; that verifies M2's exit.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.
