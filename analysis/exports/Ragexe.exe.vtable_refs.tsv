@@ -422,7 +422,7 @@ C3dGround	005e8900	004bc22d	C3dGround::C3dGround
 C3dGround	005e8900	004bc3a0	C3dGround::~C3dGround
 CWorld	005e8970	004c3694	CWorld::CWorld
 CWorld	005e8970	004c3703	CWorld::~CWorld
-C3dGround15	005e897c	004c3d54	FUN_004c3ab0
+C3dGround15	005e897c	004c3d54	CWorld::LoadWorld
 CLanguage	005e89cc	004c7a37	CLanguage::CLanguage
 CLanguage	005e89cc	004c7ae9	CLanguage::~CLanguage
 CLanguageTC	005e89f8	004c8ca8	CLanguageTC::CLanguageTC

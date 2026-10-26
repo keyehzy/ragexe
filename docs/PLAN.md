@@ -1179,6 +1179,54 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - A 300-function batch's context takes about a minute instead of 10 s and is 16%
     longer.
 
+- [x] Naming run 4, the first with the richer context: the 321 unnamed reachable
+  functions of the source files from `0x4b6900` to `0x4d8d30`. They cover 3D nodes and
+  model instances, the ground, `CWorld` and its scene graph, IME and client
+  configuration, path finding, the view, the guild, the manner filter and the item
+  tables. The rows are in `inferred.functions.tsv`.
+  - **Quality.**
+    - The namer's confidence: 202 high, 108 medium, 11 low.
+    - The reviewer accepted 301 rows, revised 20 and rejected none:
+      - nine had words with nothing behind them in the binary. "Account id" was a
+        gloss on the XML element "aid"; item fields called rank, owner and kind are
+        now `FormatItemByte21Message`, `FormatItemIdName` and `FormatItemByte20Message`;
+      - five described behaviour wrongly. Two frustum classifiers had their results
+        swapped; `GetLicenceText` doesn't rewrite line breaks; and two `CView` setters
+        are `StartShake` and `SetShakeAmplitudes`, after the only code that reads their
+        fields;
+      - two cited the wrong one of two functions with the same name, and three were
+        renamed to follow existing patterns.
+    - My checks: every address has one row, every namespace exists, no malformed
+      names. Two names repeat existing ones (`IsFloatUintPairLess`,
+      `DestroyGuildPosition`); `fn_context.py` shows both are byte-identical copies.
+      Eight evenly spaced accepted game rows were correct against the disassembly.
+      The domain words have sources: the RTTI names `CSoundMaker`, `CEffectMaker`,
+      `CSkill`; the strings "MetalProcessItemList.txt", "ISLIGHTMAP",
+      "CardPrefixNameTable.txt" and "admin". "Frustum", "shake" and "translucent"
+      describe what the code does.
+  - **The new context, per the namer:** the "same code as" lines and the nil-node
+    labels settled about 60 duplicated tree, list and vector rows quickly, so most of
+    the time went to the game files. Still missing: what ECX is set to at each call
+    site (a member at `this+0x14` or the owner), and a reader for strings and floats
+    at arbitrary addresses. The namer wrote its own for the second.
+  - **`docs/naming.md`'s library table** gained `HeapSiftUp`, `CharTraitsAssign`,
+    `DequeIteratorDifference`/`DequeIteratorAdvance` (the manner filter's word store),
+    `std::string::GetEmptyCString` and `std::pair`'s destructors.
+  - **Result.** 181 of the 321 are STL template code, now library; 140 are named game
+    functions. Code functions named or library-tagged: 82.0% → **86.8%** of 6,619.
+    Converges in two passes.
+  - **Cost.** 926k agent tokens (namer 530k, reviewer 396k), 236 tool calls, 49
+    minutes: 2.9k tokens a function, down from run 3's 3.1k on a larger batch.
+  - **Class proposals from the run, not yet decided:**
+    - `LightmapAtlas` at `C3dGround+0x14` (built only when ISLIGHTMAP is set);
+    - `MovePath` at `CGameActor+0x170`, with a constructor that `CGameActor` calls;
+    - `ViewFrustum` at `CView+0xf4`, with a constructor and destructor;
+    - `SceneRayQuery`, built on the stack for picking;
+    - `ItemRecord` (0x44 bytes, also proposed in run 3), `ItemInfo` (0x78, the
+      `g_itemInfoById` value) and `CardInfo` (0x30, the `g_cardInfoById` value), each
+      with a constructor and destructor.
+
 ### Next actions (M1)
-1. Name the remaining 1,194 reachable game functions (309 KB) the same way, in
-   source-file batches, skipping unreachable code. 533 more are needed for 90%.
+1. Name the remaining 873 reachable game functions (243 KB) the same way, in
+   source-file batches, skipping unreachable code. 212 more are needed for 90%: one
+   more run.

@@ -228,9 +228,9 @@ address	namespace	name	calling_convention	evidence
 00483d30	std::string	method_00483d30	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050c320
 004840f0	std::list	method_004840f0	__thiscall	__thiscall; called with this from 1 functions of UIGuildSkillWnd, e.g. 00480070
 00484130	std::list	method_00484130	__thiscall	__thiscall; called with this from 1 functions of UIGuildPositionManageWnd, e.g. 0047e370
-004841a0	std::list	method_004841a0	__thiscall	__thiscall; called with this from 2 functions of GuildInfo, UIGuildPositionManageWnd, e.g. 0047e370
+004841a0	std::list	method_004841a0	__thiscall	__thiscall; called with this from 3 functions of GuildInfo, UIGuildPositionManageWnd, e.g. 0047e370
 00484200	std::list	method_00484200	__thiscall	__thiscall; called with this from 1 functions of UIGuildMemberManageWnd, e.g. 0047b920
-00484270	std::list	method_00484270	__thiscall	__thiscall; called with this from 2 functions of GuildInfo, UIGuildMemberManageWnd, e.g. 0047b920
+00484270	std::list	method_00484270	__thiscall	__thiscall; called with this from 3 functions of GuildInfo, UIGuildMemberManageWnd, e.g. 0047b920
 00484680	std::Tree	method_00484680	__thiscall	__thiscall; called with this from 1 functions of GuildInfo, e.g. 004d0360
 004846a0	std::Tree	method_004846a0	__thiscall	__thiscall; called with this from 2 functions of GuildInfo, UIGuildMemberManageWnd, e.g. 0047b7d0
 00484770	std::Tree	method_00484770	__thiscall	__thiscall; called with this from 1 functions of UIGuildPositionManageWnd, e.g. 0047e270
@@ -353,9 +353,9 @@ address	namespace	name	calling_convention	evidence
 004b63f0	std::Tree	method_004b63f0	__thiscall	__thiscall; called with this from 2 functions of UIWindowMgr, e.g. 004b41a0
 004b6c70	C3dNode	method_004b6c70	__thiscall	__thiscall; called with this from 1 functions of C3dNode, e.g. 004b6ac0
 004b8510	C3dNode	method_004b8510	__thiscall	__thiscall; called with this from 1 functions of C3dNode, e.g. 004b7e30
-004b9510	ModelInstance	method_004b9510	__thiscall	__thiscall; called with this from 1 functions of ModelInstance, e.g. 004b9820
+004b9510	ModelInstance	method_004b9510	__thiscall	__thiscall; called with this from 2 functions of ModelInstance, e.g. 004b96a0
 004b9550	ModelInstance	method_004b9550	__thiscall	__thiscall; called with this from 1 functions of ModelInstance, e.g. 004c33a0
-004b95f0	ModelInstance	method_004b95f0	__thiscall	__thiscall; called with this from 1 functions of ModelInstance, e.g. 004ba270
+004b95f0	ModelInstance	method_004b95f0	__thiscall	__thiscall; called with this from 2 functions of ModelInstance, e.g. 004b9740
 004b9820	ModelInstance	method_004b9820	__thiscall	__thiscall; called with this from 1 functions of ModelInstance, e.g. 004c33a0
 004b98c0	ModelInstance	method_004b98c0	__thiscall	__thiscall; called with this from 1 functions of ModelInstance, e.g. 004b9820
 004ba270	ModelInstance	method_004ba270	__thiscall	__thiscall; called with this from 1 functions of ModelInstance, e.g. 004c33a0
@@ -373,10 +373,10 @@ address	namespace	name	calling_convention	evidence
 004c3020	ThaiWordBreaker	method_004c3020	__thiscall	__thiscall; called with this from 1 functions of ThaiWordBreaker, e.g. 004c2740
 004c3200	ThaiWordBreaker	method_004c3200	__thiscall	__thiscall; called with this from 1 functions of ThaiWordBreaker, e.g. 004c2740
 004c3220	ThaiWordBreaker	method_004c3220	__thiscall	__thiscall; called with this from 1 functions of ThaiWordBreaker, e.g. 004c2740
-004c6c00	std::list	method_004c6c00	__thiscall	__thiscall; called with this from 1 functions of CWorld, e.g. 004c36e0
-004c6c90	std::list	method_004c6c90	__thiscall	__thiscall; called with this from 1 functions of CWorld, e.g. 004c36e0
-004c6d20	std::list	method_004c6d20	__thiscall	__thiscall; called with this from 1 functions of CWorld, e.g. 004c36e0
-004c6db0	std::list	method_004c6db0	__thiscall	__thiscall; called with this from 1 functions of CWorld, e.g. 004c36e0
+004c6c00	std::list	method_004c6c00	__thiscall	__thiscall; called with this from 2 functions of CWorld, e.g. 004c36e0
+004c6c90	std::list	method_004c6c90	__thiscall	__thiscall; called with this from 2 functions of CWorld, e.g. 004c36e0
+004c6d20	std::list	method_004c6d20	__thiscall	__thiscall; called with this from 2 functions of CWorld, e.g. 004c36e0
+004c6db0	std::list	method_004c6db0	__thiscall	__thiscall; called with this from 2 functions of CWorld, e.g. 004c36e0
 004c7c30	CLanguage	method_004c7c30	__thiscall	__thiscall; called with this from 1 functions of CLanguage, e.g. 0043e320; through the pointer at 0067c99c
 004c7d60	CLanguage	method_004c7d60	__thiscall	__thiscall; called with this from 4 functions of CLanguage, e.g. 0043dfc0; through the pointer at 0067c99c
 004c7ea0	CLanguage	method_004c7ea0	__thiscall	__thiscall; called with this from 1 functions of CLanguage, e.g. 0043e320; through the pointer at 0067c99c
@@ -385,15 +385,15 @@ address	namespace	name	calling_convention	evidence
 004c8120	CLanguage	method_004c8120	__thiscall	__thiscall; called with this from 1 functions of CLanguage, e.g. 005b1130; through the pointer at 0067c99c
 004c82a0	CLanguage	method_004c82a0	__thiscall	__thiscall; called with this from 1 functions of CLanguage, e.g. 005b1130; through the pointer at 0067c99c
 004c8320	CLanguage	method_004c8320	__thiscall	__thiscall; called with this from 1 functions of CLanguage, e.g. 0043dfc0; through the pointer at 0067c99c
-004c87c0	CLanguage	method_004c87c0	__thiscall	__thiscall; called with this from 3 functions of CLanguage, e.g. 0043dfc0
+004c87c0	CLanguage	method_004c87c0	__thiscall	__thiscall; called with this from 4 functions of CLanguage, e.g. 0043dfc0
 004c8aa0	CLanguage	method_004c8aa0	__thiscall	__thiscall; called with this from 2 functions of CLanguage, e.g. 004c8120
-004c8b00	CLanguage	method_004c8b00	__thiscall	__thiscall; called with this from 2 functions of CLanguage, e.g. 004c82a0
+004c8b00	CLanguage	method_004c8b00	__thiscall	__thiscall; called with this from 3 functions of CLanguage, e.g. 004c82a0
 004cada0	ClientState	method_004cada0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0053de30
 004cb350	CGameMode	method_004cb350	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050dc90
 004cb7a0	CMode	method_004cb7a0	__thiscall	__thiscall; called with this from 2 functions of CGameMode, CLoginMode, e.g. 00515d10
 004cb7e0	CMode	method_004cb7e0	__thiscall	__thiscall; called with this from 2 functions of CGameMode, CLoginMode, e.g. 00515d10
 004cb7f0	CGameMode	method_004cb7f0	__thiscall	__thiscall; called with this from 2 functions of CGameMode, e.g. 00513c20
-004cc4e0	PathFinder	method_004cc4e0	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004cc5c0
+004cc4e0	PathFinder	method_004cc4e0	__thiscall	__thiscall; called with this from 2 functions of PathFinder, e.g. 004cc290
 004cc9d0	PathFinder	method_004cc9d0	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004cc5c0
 004ccb80	PathFinder	method_004ccb80	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004ccba0
 004ccba0	PathFinder	method_004ccba0	__thiscall	__thiscall; called with this from 2 functions of PathFinder, e.g. 004cc5c0
@@ -425,8 +425,8 @@ address	namespace	name	calling_convention	evidence
 004d0b30	GuildInfo	method_004d0b30	__thiscall	__thiscall; called with this from 1 functions of GuildInfo, e.g. 00534040
 004d0bf0	GuildInfo	method_004d0bf0	__thiscall	__thiscall; called with this from 1 functions of GuildInfo, e.g. 00534aa0
 004d0c60	GuildInfo	method_004d0c60	__thiscall	__thiscall; called with this from 1 functions of GuildInfo, e.g. 0047ab90
-004d0ef0	std::Tree	method_004d0ef0	__thiscall	__thiscall; called with this from 1 functions of mg::mgType1::CWorld, e.g. 004fd1b0
-004d11b0	std::list	method_004d11b0	__thiscall	__thiscall; called with this from 1 functions of GuildInfo, e.g. 004d0360
+004d0ef0	std::Tree	method_004d0ef0	__thiscall	__thiscall; called with this from 2 functions of GuildInfo, mg::mgType1::CWorld, e.g. 004d0130
+004d11b0	std::list	method_004d11b0	__thiscall	__thiscall; called with this from 2 functions of GuildInfo, e.g. 004d0130
 004d1330	std::Tree	method_004d1330	__thiscall	__thiscall; called with this from 1 functions of GuildInfo, e.g. 004d0360
 004d1350	std::Tree	method_004d1350	__thiscall	__thiscall; called with this from 2 functions of GuildInfo, mg::mgType1::CWorld, e.g. 004d0360
 004d2450	MannerFilter	method_004d2450	__thiscall	__thiscall; called with this from 1 functions of MannerFilter, e.g. 004d25e0

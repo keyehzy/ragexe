@@ -82,12 +82,16 @@ to say what the code is.
 | | `FreeBuffer`, `GrowBuffer`, `ReallocateBuffer` | release (or drop a reference to) the copy-on-write buffer; make room for n characters; allocate a larger buffer and copy into it |
 | | `ReallocateBufferTail`, `GetRefCountByte` | the part of `ReallocateBuffer` reached only by its jump; the address of the reference count, the byte before the characters |
 | | `UnshareBuffer` | give the string its own copy of a shared buffer and set the reference count to `0xff`, so it is never shared again; called before handing out a writable pointer |
+| | `GetEmptyCString` | return the shared empty string (`0x5e2810`) that stands in for a null buffer |
 | | `assign`, `append`, `insert`, `erase`, `compare`, `find`, `replace`, `substr`, `resize`, `max_size`, `operator+=` | public members |
-| `std::pair` | `pair` | the pair constructor |
+| `std::pair` | `pair`, `~pair`, `` `scalar_deleting_destructor' `` | the pair constructor and destructors |
 | `std` | `ConstructAt`, `DestroyAt` | copy-construct a value at a pointer when it is not null; destroy the value at a pointer. `__cdecl`; the same operation called with ECX = an allocator is `std::allocator::construct` / `destroy` |
 | | `AllocateElements` | `operator new` of n elements, as the containers' allocation helper |
 | | `QuickSortRange`, `InsertionSort`, `ShiftInsertSorted` | the parts of a sort: partition and recurse; sort a short range; move one element back to its place |
 | | `PartitionRange`, `MedianOfThree` | split a range around a pivot value, returning the split point; the middle of three values, the sort's pivot choice |
+| | `HeapSiftUp` | move a new element up a binary heap to its place (the step `push_heap` uses) |
+| | `CharTraitsAssign` | copy one character (`char_traits` assignment) |
+| | `DequeIteratorDifference`, `DequeIteratorAdvance` | the distance between two iterators of a block list (a deque: first, last, current, map node), and moving one by n elements across blocks |
 | | `copy`, `copy_backward`, `fill`, `operator+` | public algorithms and operators, when the behaviour matches |
 | | `ThrowLengthError`, `ThrowOutOfRange` | throw `length_error` or `out_of_range` with the string the binary holds |
 | `std::StlLock` | `StlLock`, `~StlLock` | enter and leave the global critical section that guards the STL (`0x688a88`) |

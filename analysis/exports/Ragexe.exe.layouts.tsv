@@ -10,8 +10,8 @@ C3dGrannyModelRes	948	new	948	18	76	0.08
 C3dGround	236	new	236	40	164	0.69		
 C3dGround15	236	estimated		40	164	0.69		
 C3dModelRes	424	new	424	12	64	0.15		9 overlapping uses dropped
-C3dNode	336	new	336	34	175	0.52		15 overlapping uses dropped
-C3dNodeHAL	388	new	388	46	223	0.57		
+C3dNode	336	new	336	29	199	0.59		27 overlapping uses dropped
+C3dNodeHAL	388	new	388	41	247	0.64		
 C3dWorldRes	448	new	448	10	98	0.22		18 overlapping uses dropped
 CAbleToMakeEffect	192	estimated		54	183	0.95		3 overlapping uses dropped
 CActRes	324	new	324	14	51	0.16		
@@ -73,9 +73,9 @@ CSurface	16	estimated		3	16	1.00
 CSurfaceWallpaper	16	new	16	3	16	1.00		
 CTexture	296	new	296	10	41	0.14		1 overlapping uses dropped
 CTokenizer	12	estimated		2	8	0.67		
-CView	448	new	448	28	201	0.45		
+CView	448	new	448	31	213	0.48		
 CWave	280	new	280	3	16	0.06		
-CWorld	244	new	244	18	229	0.94		12 overlapping uses dropped
+CWorld	244	new	244	21	241	0.99		19 overlapping uses dropped
 ClientState	6356	estimated	6360	552	4613	0.73	0x17fc,0x179c,0x173c,0x17cc,0x176c,0xe60	the global at 00686670 is followed by a variable at 00687f48 (written by the dynamic initializer 00586800) | 53 overlapping uses dropped
 DataFile	16	estimated	31064	4	16	1.00		the global at 0067d4b8 is followed by a variable at 00684e10 (written by the dynamic initializer 0050c270); 16 addresses before it, 0067d4c8 first, are used only by other code: fields or variables; probably a variable from 0067d548 (+0x90) on, which only source files naming nothing else of the object use
 DirectInputMouse	60	estimated	64	13	52	0.87		the global at 00628b48 is followed by a variable at 00628b88 (another data label)
@@ -83,14 +83,14 @@ FontCache	16	estimated	16	4	13	0.81		the global at 00623c48 is followed by a var
 FontEntry	20	new	20	5	17	0.85		
 GndCell	28	new	28	7	28	1.00		
 GrannyMotionTable	644	estimated	8648	11	41	0.06	0x0	the global at 0063edc0 is followed by a variable at 00640f88 (another data label); 2 addresses before it, 00640f80 first, are used only by other code: fields or variables; probably a variable from 00640f80 (+0x21c0) on, which only source files naming nothing else of the object use | 1 overlapping uses dropped
-GuildInfo	296	estimated	296	44	290	0.98		the global at 0067cab8 is followed by a variable at 0067cbe0 (another data label) | 32 overlapping uses dropped
+GuildInfo	296	estimated	296	44	290	0.98		the global at 0067cab8 is followed by a variable at 0067cbe0 (another data label) | 33 overlapping uses dropped
 ImfRecord	48	new	48	9	36	0.75		
 KeyPadDispatcher	108	estimated	120	7	25	0.23		the global at 00628b88 is followed by a variable at 00628c00 (another data label); 3 addresses before it, 00628bf4 first, are used only by other code: fields or variables; probably a variable from 00628bf4 (+0x6c) on, which only source files naming nothing else of the object use
 MannerFilter	48	estimated	56	12	45	0.94		the global at 0067cbe8 is followed by a variable at 0067cc20 (another data label); 1 addresses before it, 0067cc18 first, are used only by other code: fields or variables; probably a variable from 0067cc18 (+0x30) on, which only source files naming nothing else of the object use
 Matrix	48	new	48	12	48	1.00		
 Md5Context	28	estimated		7	28	1.00	0x0,0x8	
-ModeSwitcher	96	estimated	108	6	24	0.25		the global at 0067c9e8 is followed by a variable at 0067ca54 (written by the dynamic initializer 0050c220); 3 addresses before it, 0067ca48 first, are used only by other code: fields or variables | 1 overlapping uses dropped
-ModelInstance	512	new	512	50	290	0.57		15 overlapping uses dropped
+ModeSwitcher	96	estimated	120	6	24	0.25		the global at 0067c9e8 is followed by a variable at 0067ca60 (another data label); 5 addresses before it, 0067ca48 first, are used only by other code: fields or variables; probably a variable from 0067ca54 (+0x6c) on, which only source files naming nothing else of the object use | 1 overlapping uses dropped
+ModelInstance	512	new	512	51	294	0.57		15 overlapping uses dropped
 ModelResMesh	564	new	564	10	560	0.99		2 overlapping uses dropped
 ModelResNode	364	new	364	14	58	0.16		3 overlapping uses dropped
 MoviePlayer	16	estimated	1544	4	13	0.81		the global at 00688480 is followed by a variable at 00688a88 (another data label); 29 addresses before it, 00688498 first, are used only by other code: fields or variables; probably a variable from 0068851c (+0x9c) on, which only source files naming nothing else of the object use; 1 of them named with an absolute address by the class's own methods, e.g. 00688a60 by 004dbfc0
@@ -104,7 +104,7 @@ ResourceManager	172	estimated	176	31	139	0.81		the global at 0067cd88 is followe
 RmaActionRecord	28	new	28	6	24	0.86	0x0	
 RotationKeys	16	new	16	3	12	0.75		
 ScaleKeys	16	new	16	3	12	0.75		
-SceneGraphNode	128	new	128	19	73	0.57		
+SceneGraphNode	128	new	128	28	109	0.85		
 SceneRenderer	672	new	672	115	585	0.87	0x0,0x198,0x194	1 overlapping uses dropped
 SnapObject	60	new	60	3	60	1.00	0x0,0xc,0x8,0x10	1 overlapping uses dropped
 TextureCache	16	estimated	16	1	16	1.00		the global at 00625e88 is followed by a variable at 00625e98 (another data label) | 2 overlapping uses dropped
