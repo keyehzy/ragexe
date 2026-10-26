@@ -4,8 +4,8 @@ The new client is C++20, built with CMake and Ninja. Third-party libraries are p
 `cmake/dependencies.cmake` by release archive and SHA-256. CMake uses an installed
 package when it finds one (Homebrew's SDL3, for example), and otherwise downloads the
 pinned release and builds it with the project (`FetchContent`). A library is added
-there by the milestone that first uses it; so far SDL3 3.4.18 and, for the tests,
-Catch2 3.16.1.
+there by the milestone that first uses it; so far SDL3 3.4.18, zlib 1.3.2 and, for the
+tests, Catch2 3.16.1.
 
 ## Prerequisites
 
@@ -37,8 +37,8 @@ To build the pinned versions even where a package is installed, as CI does:
 cmake --preset dev -DFETCHCONTENT_TRY_FIND_PACKAGE_MODE=NEVER
 ```
 
-A fetched SDL3 is linked statically; an installed one is used as it is (shared, for
-Homebrew).
+A fetched SDL3 or zlib is linked statically; an installed one is used as it is (shared
+SDL3 from Homebrew, the system zlib on macOS and Linux).
 
 ## Running
 
@@ -57,10 +57,39 @@ Windows), created with defaults on the first run. Options for unattended runs:
 | `--auto-login N` | leave the login mode for the game mode after N frames |
 | `--map NAME` | the map `--auto-login` enters (default `prontera.rsw`) |
 
+## ragres
+
+`ragres` reads the game's archives (format: `docs/formats/grf.md`):
+
+```bash
+./build/dev/src/ragres list original/install/data.grf
+```
+
+```bash
+./build/dev/src/ragres extract original/install/data.grf out 'data\clientinfo.xml'
+```
+
+```bash
+./build/dev/src/ragres check original/install/data.grf original/install/*.gpf
+```
+
+- **`list`** prints size, stored size, flags, offset and name.
+- **`extract`** writes every file, or only the named ones, under the output directory.
+- **`check`** reads and inflates every entry.
+
+Names are matched without regard to A–Z case, and inside the archive `\` is the
+separator. When `original/install` is present at configure time, `ctest` also runs
+`check` on all its archives (`grf_check_original`).
+
 ## Layout
 
-`src/` has one static library per layer: `core` (no SDL), `platform` (SDL), `game`
-(modes), and the executable in `app/`. The remaining layers of `docs/PLAN.md` §3
-(`res`, `render`, `audio`, `net`, `ui`, `world`) arrive with the milestones that port
-them. Unit tests (Catch2) are in `tests/unit`; the Python tests of the analysis tools
+`src/` has one static library per layer:
+- `core` (no SDL);
+- `platform` (SDL);
+- `res` (archives and resources; zlib);
+- `game` (modes).
+
+The executables are in `app/` (the client) and `ragres/`. The remaining layers of
+`docs/PLAN.md` §3 (`render`, `audio`, `net`, `ui`, `world`) arrive with the
+milestones that port them. Unit tests (Catch2) are in `tests/unit`; the Python tests of the analysis tools
 stay in `tests/` and run with `unittest`.

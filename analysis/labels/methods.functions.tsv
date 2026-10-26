@@ -449,18 +449,6 @@ address	namespace	name	calling_convention	evidence
 004dbee0	MoviePlayer	method_004dbee0	__thiscall	__thiscall; called with this from 1 functions of MoviePlayer, e.g. 004dbfc0
 004dbf50	MoviePlayer	method_004dbf50	__thiscall	__thiscall; called with this from 1 functions of MoviePlayer, e.g. 004dbfc0
 004dd4e0	DataFile	method_004dd4e0	__thiscall	__thiscall; called with this from 1 functions of DataFile, e.g. 004341d0
-004dd9f0	CGPak	method_004dd9f0	__thiscall	__thiscall; called with this from 1 functions of CGPak, e.g. 004dd3f0; through the pointer at 0067cd84
-004dda60	CGPak	method_004dda60	__thiscall	__thiscall; called with this from 1 functions of CGPak, e.g. 004dd820
-004dda80	CGPak	method_004dda80	__thiscall	__thiscall; called with this from 1 functions of CGPak, e.g. 004dd900
-004ddae0	CGPak	method_004ddae0	__thiscall	__thiscall; called with this from 1 functions of CGPak, e.g. 004dd820
-004de460	CGPak	method_004de460	__thiscall	__thiscall; called with this from 1 functions of CGPak, e.g. 004dda80
-004de4b0	CGPak	method_004de4b0	__thiscall	__thiscall; called with this from 1 functions of CGPak, e.g. 004ddae0
-004de530	CGPak	method_004de530	__thiscall	__thiscall; called with this from 2 functions of CGPak, e.g. 004ddae0
-004de830	CGPak	method_004de830	__thiscall	__thiscall; called with this from 2 functions of CGPak, CSakGPak, e.g. 004dd9a0
-004dea90	CGPak	method_004dea90	__thiscall	__thiscall; called with this from 2 functions of CGPak, CSakGPak, e.g. 004dd9a0
-004deb20	CGPak	method_004deb20	__thiscall	__thiscall; called with this from 2 functions of CGPak, CSakGPak, e.g. 004dda10
-004dec80	CGPak	method_004dec80	__thiscall	__thiscall; called with this from 1 functions of CGPak, e.g. 004de830
-004decd0	CGPak	method_004decd0	__thiscall	__thiscall; called with this from 1 functions of CGPak, e.g. 004de830
 004e1db0	std::Tree	method_004e1db0	__thiscall	__thiscall; called with this from 3 functions of ResourceManager, mg::CScript, e.g. 004dfcd0
 004e2030	std::Tree	method_004e2030	__thiscall	__thiscall; called with this from 4 functions of ResourceManager, mg::CScript, e.g. 004dfcd0
 004e65c0	XmlDocument	method_004e65c0	__thiscall	__thiscall; called with this from 2 functions of XmlDocument, e.g. 004e6590

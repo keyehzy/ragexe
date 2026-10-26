@@ -141,6 +141,22 @@ address	namespace	name	calling_convention	evidence
 00537a40	CGameMode	HandlePacket_01C7	__thiscall	case 0x01C7 of CGameMode::DispatchPackets 00524d80 (index table 00526188, id - 0x73); calls CRagConnection::SetExpectedModules
 0053eba0	CLoginMode	HandlePacket_01C7	__thiscall	case 0x01C7 of CLoginMode::DispatchPackets 0053cfa0 (index table 0053d1d8, id - 0x187); calls CRagConnection::SetExpectedModules
 # CGPak
+004dd9a0	CGPak	LoadFile	__thiscall	vf01 (key, size*): under the critical section at +0x14, LoadFromArchive, then LoadFromDisk; DataFile::Open 004dd310 calls it through g_pCGPak (docs/formats/grf.md)
+004dd9f0	CGPak	FreeFile	__thiscall	(buffer): VirtualFree of a buffer LoadFile returned; DataFile::Close 004dd3f0
+004dda10	CGPak	Exists	__thiscall	vf02 (key): ContainsInArchive, then ExistsOnDisk (FindFirstFileA)
+004dda60	CGPak	ResetMapping	__thiscall	zeroes the open flag +0x2c and the file, mapping and view fields +0x30..+0x48; the constructor calls it before Open
+004dda80	CGPak	Close	__thiscall	CloseMapping, empties the entry vector at +0x58 and clears the open flag +0x2c; the destructor calls it
+004ddae0	CGPak	Open	__thiscall	(path): maps the file, checks "Master of Magic" and the version (0x100..0x103), decodes the table into 0x114-byte entries at +0x58, sorts them by HashedFileName::IsLess and sizes the decode buffer +0x78 to the largest stored size (docs/formats/grf.md)
+004de460	CGPak	CloseMapping	__thiscall	UnmapViewOfFile of the view +0x38, CloseHandle of the mapping +0x34 and the file +0x30
+004de4b0	CGPak	OpenMapping	__thiscall	(path): CreateFileA for reading, CreateFileMappingA (PAGE_READONLY) and GetFileSize into +0x40
+004de530	CGPak	MapRange	__thiscall	(offset, size): returns a pointer to that range of the file, through a MapViewOfFile window of up to 0x20000000 bytes (+0x50, halved on failure) or, without a mapping, ReadFile into the vector at +0x64
+004de830	CGPak	LoadFromArchive	__thiscall	(key, size*): binary search of the entries, then the stored bytes decoded (DecryptFirstBlocks for .gnd/.gat/.act/.str, else DecryptBlocksMixed) and inflated with CPS.DLL uncompress into VirtualAlloc memory (docs/formats/grf.md)
+004dea90	CGPak	LoadFromDisk	__thiscall	(key, size*): CreateFileA of the key's name and the whole file into VirtualAlloc memory
+004deb20	CGPak	ContainsInArchive	__thiscall	(key): binary search of the entries with HashedFileName::IsLess and NotEqual
+004dec80	CGPak	HasFirstBlocksExtension	__thiscall	(name): whether the name's extension (strrchr '.') is one of .gnd .gat .act .str (006125dc, _stricmp); those entries get only their first 20 blocks decoded
+004decd0	CGPak	MakeFileCipherKey	__thiscall	(file name, key*): 'n' + the first 6 characters (repeated when shorter) + 'k'; DesCipher::SetKey ignores it in effect (docs/formats/grf.md)
+004dedc0	CSakGPak	LoadFile	__thiscall	vf01: LoadFromArchive of its own table, then of the CGPak at +0x84, then LoadFromDisk; nothing constructs a CSakGPak
+004dee30	CSakGPak	Exists	__thiscall	vf02: ContainsInArchive of its own table, then of the CGPak at +0x84, then ExistsOnDisk
 004dec00	CGPak	GetFileName	__thiscall	(dst, path): copies the part of path after its last '\' or '/' (all of it when there is none) to dst; checked against that rule in the emulation oracle (tests/emu/test_oracle.py)
 # Main loop, modes and frame timing (docs/architecture.md)
 005b17a0	Global	CreateMainWindow		(instance, show command): RegisterClassA with WindowProc, AdjustWindowRect, CreateWindowExA; "Window Creation Failed"; stores the window handle at 00688a60

@@ -11,6 +11,13 @@ add_library(ragexe_platform STATIC
 target_include_directories(ragexe_platform PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(ragexe_platform PUBLIC SDL3::SDL3 PRIVATE ragexe_options)
 
+add_library(ragexe_res STATIC
+  res/grf.cpp
+  res/grf_cipher.cpp
+  res/hashed_file_name.cpp)
+target_include_directories(ragexe_res PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(ragexe_res PRIVATE ZLIB::ZLIB ragexe_options)
+
 add_library(ragexe_game STATIC
   game/client.cpp
   game/game_mode.cpp
@@ -22,3 +29,6 @@ target_link_libraries(ragexe_game PUBLIC ragexe_core ragexe_platform PRIVATE rag
 
 add_executable(ragexe app/main.cpp)
 target_link_libraries(ragexe PRIVATE ragexe_game ragexe_options)
+
+add_executable(ragres ragres/main.cpp)
+target_link_libraries(ragres PRIVATE ragexe_res ragexe_options)

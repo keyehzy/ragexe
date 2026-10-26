@@ -1497,9 +1497,53 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   with a real window on the display. Linux and Windows have not shown a window on a
   real display yet; the first time someone runs it there is the remaining check.
 
+### M3: in progress
+- [x] GRF archive reader. The format, from `CGPak` (`004dd820`–`004decd0`), `DesCipher`
+  and `HashedFileName`, is in `docs/formats/grf.md`:
+  - **Header:** `Master of Magic`, versions 0x100 to 0x103.
+  - **Table:** encoded name records.
+  - **Per-file decoding:** a single DES round on the first 20 blocks and every cycle-th
+    block, plus a byte shuffle on others; `.gnd`, `.gat`, `.act` and `.str` get their
+    first 20 blocks only.
+  - **Findings:**
+    - `DesCipher::SetKey` ANDs the key bits into zeroed registers, so every subkey is
+      zero and the per-name keys have no effect. The emulator shows it on a nonzero key.
+    - Ragexe opens only `data.grf`; nothing constructs `CSakGPak`.
+    - The archive always wins over a loose file.
+  - **Code:** `src/res` (`ragexe_res`): `GrfArchive`, the cipher in `grf_cipher`, and
+    `HashedFileName`.
+- [x] `cps.dll` is zlib 1.0.4, by its own copyright strings, exporting `compress` and
+  `uncompress`. It is replaced by zlib 1.3.2, pinned in `cmake/dependencies.cmake`.
+  One entry, `data\wav\worm_tail_damage.wav` (in `data.grf` and two patches), has a
+  cut-off stream. The client ignores `uncompress`'s result and keeps the zeroed buffer,
+  and the reader does the same.
+- [x] `ragres list | extract | check` (`src/ragres`). Names with non-ASCII bytes are
+  written as `%XX` until the CP949 table exists.
+  - **`ragres check`** on `data.grf` and the nine `.gpf` patches: version 0x103 and
+    0x102; 20,508 entries, of which 19,879 are files totalling 2.56 GB. All decode and
+    inflate to their recorded sizes (one damaged, as above). The other 629 entries are
+    directory entries (flags 0). There are no duplicate names.
+  - **`grf_check_original`** runs this as a `ctest` test when `original/install` is
+    present.
+- [x] Tests: the cipher against outputs of the original's `DecryptBlocksMixed`,
+  `DecryptFirstBlocks` and `HashedFileName::Set` in the emulation oracle
+  (`tools/grf_vectors.py` → `tests/unit/grf_cipher_vectors.inc`); a synthetic archive
+  written to the spec and read back (both decode paths, flags 0, CP949 names,
+  case-insensitive lookup); the broken stream; refused archives; version 0x100 tables.
+- [x] Labels: the `CGPak` and `CSakGPak` methods are named (`Open`, `LoadFile`,
+  `LoadFromArchive`, `MapRange`, …).
+- [ ] Loose files and lookup: `MakeDataPath`, `DataFile`, the archive-then-disk order
+  on a case-sensitive file system.
+- [ ] `CRes` and the resource manager (`ResNameTable.txt`, the per-type maps).
+- [ ] Loaders in dependency order, each compared with the original in the emulation
+  oracle.
+- [ ] Fuzzing the parsers, starting with `ParseGrfTable`.
+
 ### Next actions (M3)
-1. Start M3, the resource system (section 5): the GRF reader (header, table, per-file
-   decoding, `cps.dll` against zlib), loose-file lookup and the `CRes` cache, then the
-   loaders in dependency order, with the `ragres` tool and oracle comparisons.
-2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
+1. Loose-file lookup and the `CRes` cache: `DataFile`, `MakeDataPath`, the
+   `ResourceManager` (`GetResource`, `ResNameTable.txt`), with the loose-file order
+   decided for case-sensitive file systems.
+2. Then the loaders in dependency order (`CBitmapRes` first), each with oracle
+   comparisons and a `ragres dump` mode.
+3. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

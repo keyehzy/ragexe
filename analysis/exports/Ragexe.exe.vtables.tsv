@@ -6018,11 +6018,11 @@ CView	005e8aa0	0	2	004cf220	CView::vf02
 CView	005e8aa0	0	3	004cf4d0	CView::vf03	
 CView	005e8aa0	0	4	004cf260	CView::vf04	
 CGPak	005e8e50	0	0	004dd8d0	CGPak::`scalar_deleting_destructor'	
-CGPak	005e8e50	0	1	004dd9a0	CGPak::vf01	
-CGPak	005e8e50	0	2	004dda10	CGPak::vf02	
+CGPak	005e8e50	0	1	004dd9a0	CGPak::LoadFile	
+CGPak	005e8e50	0	2	004dda10	CGPak::Exists	
 CSakGPak	005e8e60	0	0	004ded80	CSakGPak::`scalar_deleting_destructor'	
-CSakGPak	005e8e60	0	1	004dedc0	CSakGPak::vf01	
-CSakGPak	005e8e60	0	2	004dee30	CSakGPak::vf02	
+CSakGPak	005e8e60	0	1	004dedc0	CSakGPak::LoadFile	
+CSakGPak	005e8e60	0	2	004dee30	CSakGPak::Exists	
 std::bad_cast	005e8e70	0	0	004e5b80	std::bad_cast::`scalar_deleting_destructor'	
 std::bad_cast	005e8e70	0	1	005c377b	exception::vf01	
 std::bad_cast	005e8e70	0	2	004e5b60	std::bad_cast::vf02	
