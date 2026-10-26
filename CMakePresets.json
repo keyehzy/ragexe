@@ -27,11 +27,23 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo"
       }
+    },
+    {
+      "name": "fuzz",
+      "displayName": "libFuzzer targets, optimised, with AddressSanitizer and UndefinedBehaviorSanitizer (set CC and CXX to LLVM Clang)",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "RAGEXE_SANITIZE": "ON",
+        "RAGEXE_FUZZ": "ON",
+        "FETCHCONTENT_TRY_FIND_PACKAGE_MODE": "NEVER"
+      }
     }
   ],
   "buildPresets": [
     { "name": "dev", "configurePreset": "dev" },
-    { "name": "release", "configurePreset": "release" }
+    { "name": "release", "configurePreset": "release" },
+    { "name": "fuzz", "configurePreset": "fuzz" }
   ],
   "testPresets": [
     {

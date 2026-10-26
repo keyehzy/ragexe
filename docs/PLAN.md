@@ -1544,7 +1544,19 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
 - [ ] `CRes` and the resource manager (`ResNameTable.txt`, the per-type maps).
 - [ ] Loaders in dependency order, each compared with the original in the emulation
   oracle.
-- [ ] Fuzzing the parsers, starting with `ParseGrfTable`.
+- [x] Fuzzing the GRF reader (`fuzz/`, `docs/building.md`):
+  - **Targets:** libFuzzer targets for `ParseGrfTable` and for a whole archive from
+    memory (header, table, lookups, duplicate report, reads), with seeds from
+    `make_grf_seeds` and a dictionary.
+  - **Run locally** (Homebrew LLVM 22, AddressSanitizer and UndefinedBehaviorSanitizer):
+    15 minutes per target, about 22 million inputs each. No crashes and no broken
+    invariants; the archive corpus covers every reachable line of the reader and the
+    cipher.
+  - **In every build,** `ctest` replays the seeds and the saved regressions, and CI
+    fuzzes each target for 60 seconds.
+  - **One change came out of it:** `Read` now refuses a recorded size more than 1032 times
+    the stored size, instead of allocating gigabytes for a corrupt table.
+  - Later parsers get their targets as they are written.
 
 ### Next actions (M3)
 1. Loose-file lookup and the `CRes` cache: `DataFile`, `MakeDataPath`, the

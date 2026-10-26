@@ -17,6 +17,54 @@ jobs:
           .lint/bin/pip install -q -r tools/requirements-lint.txt
           git ls-files -z '*.cpp' '*.h' | xargs -0 .lint/bin/clang-format --dry-run --Werror
 
+  fuzz:
+    name: Fuzz (60 s per target)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: CMake and Ninja
+        uses: lukka/get-cmake@latest
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ubuntu-24.04-fuzz
+          max-size: 500M
+
+      - name: Linux headers SDL3 builds against
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config \
+            libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev \
+            libxss-dev libxtst-dev libxkbcommon-dev libwayland-dev wayland-protocols \
+            libegl1-mesa-dev libgles2-mesa-dev libdrm-dev libgbm-dev \
+            libibus-1.0-dev libdbus-1-dev libudev-dev
+
+      - name: Configure and build (Clang, libFuzzer, sanitizers)
+        run: |
+          CC=clang CXX=clang++ cmake --preset fuzz
+          cmake --build --preset fuzz --target grf_table_fuzz grf_archive_fuzz make_grf_seeds
+
+      - name: Fuzz
+        run: |
+          build/fuzz/fuzz/make_grf_seeds seeds
+          mkdir -p corpus crashes
+          for target in grf_table grf_archive; do
+            mkdir -p corpus/$target
+            build/fuzz/fuzz/${target}_fuzz corpus/$target seeds/$target fuzz/regressions/$target \
+              -dict=fuzz/grf.dict -max_len=8192 -max_total_time=60 \
+              -artifact_prefix=crashes/$target- -print_final_stats=1
+          done
+
+      - name: Keep the crashing inputs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-crashes
+          path: crashes/
+
   build:
     name: ${{ matrix.name }}
     strategy:
@@ -73,7 +121,7 @@ jobs:
         run: |
           python3 -m venv .lint
           .lint/bin/pip install -q -r tools/requirements-lint.txt
-          git ls-files 'src/*.cpp' 'tests/unit/*.cpp' | xargs .lint/bin/clang-tidy -p build/dev --quiet
+          git ls-files 'src/*.cpp' 'tests/unit/*.cpp' 'fuzz/*.cpp' | xargs .lint/bin/clang-tidy -p build/dev --quiet
 
       - name: Build
         run: cmake --build --preset dev

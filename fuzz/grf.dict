@@ -1,0 +1,12 @@
+# Tokens of the GRF format (docs/formats/grf.md), for libFuzzer's -dict.
+"Master of Magic\x00"
+".gnd"
+".gat"
+".act"
+".str"
+"data\\"
+"\x01\x01\x00\x00"
+"\x02\x01\x00\x00"
+"\x03\x01\x00\x00"
+"\x78\x9c"
+"\x78\x01"

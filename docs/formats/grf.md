@@ -259,6 +259,10 @@ blocks 0 to 19, stopping early after the block that reaches n (`004dce00`–`004
     so the last data byte and the checksum are missing.
   - The reader gives the 1409 bytes followed by a zero, and reports the entry as
     damaged.
+- **Sizes that cannot be real.** zlib never expands data more than 1032 times. The
+  reader refuses a compressed entry whose recorded size is more than 1032 times its
+  stored size, plus 1032, instead of allocating it. The client would try `VirtualAlloc`
+  and fail. Every entry of our archives is well inside the limit.
 - **Duplicate names.** The original's `std::sort` would leave the order of duplicates
   unspecified; `ragres check` reports them, and our archives have none.
 - **Test vectors.** `tests/unit/grf_cipher_vectors.inc` holds the original's outputs,

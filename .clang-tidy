@@ -1,7 +1,7 @@
 # Checks that find bugs and wasted work, plus a few modernizations. Run the pinned version
 # (tools/requirements-lint.txt) on a configured build; on macOS add
 # --extra-arg=-isysroot$(xcrun --show-sdk-path) so it finds the SDK's headers:
-# git ls-files 'src/*.cpp' 'tests/unit/*.cpp' | xargs .venv/bin/clang-tidy -p build/dev --quiet
+# git ls-files 'src/*.cpp' 'tests/unit/*.cpp' 'fuzz/*.cpp' | xargs .venv/bin/clang-tidy -p build/dev --quiet
 Checks: >
   -*,
   bugprone-*,
@@ -36,5 +36,5 @@ Checks: >
   readability-redundant-*,
   readability-simplify-boolean-expr
 WarningsAsErrors: '*'
-HeaderFilterRegex: '(src|tests/unit)/'
+HeaderFilterRegex: '(src|tests|fuzz)/'
 ExcludeHeaderFilterRegex: '/_deps/'

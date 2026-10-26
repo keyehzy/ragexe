@@ -4,6 +4,7 @@ add_executable(ragexe_tests
   mode_switcher_test.cpp
   settings_test.cpp
   windows_no_dialogs.cpp)
+target_include_directories(ragexe_tests PRIVATE ${PROJECT_SOURCE_DIR}/tests)
 target_link_libraries(ragexe_tests PRIVATE ragexe_game ragexe_res ZLIB::ZLIB Catch2::Catch2WithMain ragexe_options)
 
 include(Catch)

@@ -12,8 +12,12 @@
 
 #include "res/grf_cipher.h"
 #include "res/hashed_file_name.h"
+#include "support/grf_builder.h"
 
 using namespace ragexe::res;
+using ragexe::testing::BuildArchive;
+using ragexe::testing::PutU32;
+using ragexe::testing::TestFile;
 
 namespace {
 
@@ -44,73 +48,6 @@ std::uint64_t Fnv1a64(const std::vector<std::uint8_t>& data) {
   std::uint64_t h = 0xcbf29ce484222325ull;
   for (std::uint8_t b : data) h = (h ^ b) * 0x100000001b3ull;
   return h;
-}
-
-void PutU32(std::vector<std::uint8_t>& out, std::uint32_t v) {
-  for (int i = 0; i < 4; ++i) out.push_back(static_cast<std::uint8_t>(v >> (8 * i)));
-}
-
-struct TestFile {
-  std::string name;
-  std::vector<std::uint8_t> data;
-  std::uint8_t flags = 1;
-};
-
-// Writes an archive the way the format describes it, encoding with the inverse functions.
-std::vector<std::uint8_t> BuildArchive(const std::vector<TestFile>& files,
-                                       std::uint32_t version = 0x103) {
-  std::vector<std::uint8_t> body, table;
-  for (const TestFile& f : files) {
-    std::vector<std::uint8_t> stored;
-    std::int32_t compressed_size;
-    if (f.flags == 1) {
-      uLongf n = compressBound(static_cast<uLong>(f.data.size()));
-      stored.resize(n);
-      REQUIRE(compress(stored.data(), &n, f.data.data(), static_cast<uLong>(f.data.size())) ==
-              Z_OK);
-      stored.resize(n);
-      compressed_size = static_cast<std::int32_t>(n);
-    } else {
-      stored = f.data;
-      compressed_size = static_cast<std::int32_t>(stored.size());
-    }
-    stored.resize((stored.size() + 7) / 8 * 8);
-    if (grf::HasFirstBlocksExtension(f.name)) {
-      if (f.flags == 1) grf::DecodeFirstBlocks(stored);
-    } else {
-      grf::EncodeMixed(stored, grf::DecimalDigits(compressed_size));
-    }
-    const auto offset = static_cast<std::uint32_t>(body.size());
-    body.insert(body.end(), stored.begin(), stored.end());
-
-    std::vector<std::uint8_t> name(f.name.begin(), f.name.end());
-    name.push_back(0);
-    name.resize((name.size() + 7) / 8 * 8);
-    grf::DecodeMixed(name, 1);  // the block function is its own inverse
-    grf::SwapNibbles(name);
-    PutU32(table, static_cast<std::uint32_t>(name.size() + 6));
-    table.push_back(0xaa);
-    table.push_back(0xbb);
-    table.insert(table.end(), name.begin(), name.end());
-    PutU32(table, 0xdeadbeef);
-    const auto size = static_cast<std::uint32_t>(f.data.size());
-    PutU32(table, static_cast<std::uint32_t>(compressed_size) + size + 0x2cb);
-    PutU32(table, static_cast<std::uint32_t>(stored.size()) + 0x92cb);
-    PutU32(table, size);
-    table.push_back(f.flags);
-    PutU32(table, offset);
-  }
-  static constexpr char kMagic[] = "Master of Magic";
-  std::vector<std::uint8_t> out(std::begin(kMagic), std::end(kMagic));
-  for (std::uint8_t i = 1; i <= 14; ++i) out.push_back(i);
-  const std::uint32_t seed = 1234;
-  PutU32(out, static_cast<std::uint32_t>(body.size()));
-  PutU32(out, seed);
-  PutU32(out, static_cast<std::uint32_t>(files.size()) + seed + 7);
-  PutU32(out, version);
-  out.insert(out.end(), body.begin(), body.end());
-  out.insert(out.end(), table.begin(), table.end());
-  return out;
 }
 
 std::filesystem::path WriteTemp(const std::vector<std::uint8_t>& bytes, const char* name) {
@@ -201,6 +138,31 @@ TEST_CASE("an archive written to the format reads back") {
   CHECK(grf->Find("data\\missing.gat") == nullptr);
   grf.reset();
   std::filesystem::remove(path);
+}
+
+TEST_CASE("an archive in memory reads like one on disk") {
+  const std::vector<TestFile> files = {{"data\\a.rsw", std::vector<std::uint8_t>(500, 7), 1},
+                                       {"data\\b.gnd", std::vector<std::uint8_t>(90, 3), 1}};
+  std::string error;
+  auto grf = GrfArchive::FromBytes(BuildArchive(files), &error);
+  REQUIRE(grf != nullptr);
+  for (const TestFile& f : files) {
+    const GrfEntry* e = grf->Find(f.name);
+    REQUIRE(e != nullptr);
+    CHECK(grf->Read(*e, &error) == f.data);
+  }
+  CHECK(GrfArchive::FromBytes({}, &error) == nullptr);
+}
+
+TEST_CASE("a recorded size beyond what the stored data can inflate to is refused") {
+  auto bytes = BuildArchive({{"data\\a.rsw", std::vector<std::uint8_t>(64, 1), 1}});
+  // The size field, 8 bytes into the last 17; deflate cannot expand 16 bytes to 2^31.
+  bytes[bytes.size() - 17 + 11] = 0x80;
+  std::string error;
+  auto grf = GrfArchive::FromBytes(bytes, &error);
+  REQUIRE(grf != nullptr);
+  CHECK_FALSE(grf->Read(grf->entries()[0], &error).has_value());
+  CHECK(error.find("inflate") != std::string::npos);
 }
 
 TEST_CASE("a stream that breaks off is zero-filled to the recorded size") {

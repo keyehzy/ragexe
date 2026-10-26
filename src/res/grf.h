@@ -35,6 +35,8 @@ class GrfArchive {
   static constexpr std::uint32_t kHeaderSize = 0x2e;
 
   static std::unique_ptr<GrfArchive> Open(const std::filesystem::path& path, std::string* error);
+  // An archive held in memory, for the tests and the fuzzer.
+  static std::unique_ptr<GrfArchive> FromBytes(std::vector<std::uint8_t> bytes, std::string* error);
 
   std::uint32_t version() const { return version_; }
   // In table order.
@@ -54,10 +56,13 @@ class GrfArchive {
  private:
   GrfArchive() = default;
 
+  bool Load(std::string* error);
   bool ReadAt(std::uint64_t offset, std::uint8_t* out, std::size_t n) const;
 
   mutable std::mutex mutex_;
   mutable std::ifstream file_;
+  std::vector<std::uint8_t> memory_;
+  bool in_memory_ = false;
   std::uint64_t file_size_ = 0;
   std::uint32_t version_ = 0;
   std::vector<GrfEntry> entries_;

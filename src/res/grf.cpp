@@ -40,6 +40,7 @@ void ReadFields(const std::uint8_t* p, GrfEntry& e) {
 }
 
 constexpr std::size_t kFieldsSize = 17;
+constexpr std::uint64_t kMaxInflateRatio = 1032;
 
 }  // namespace
 
@@ -111,43 +112,57 @@ std::unique_ptr<GrfArchive> GrfArchive::Open(const std::filesystem::path& path,
   }
   grf->file_.seekg(0, std::ios::end);
   grf->file_size_ = static_cast<std::uint64_t>(grf->file_.tellg());
+  if (!grf->Load(error)) return nullptr;
+  return grf;
+}
 
+std::unique_ptr<GrfArchive> GrfArchive::FromBytes(std::vector<std::uint8_t> bytes,
+                                                  std::string* error) {
+  std::unique_ptr<GrfArchive> grf(new GrfArchive());
+  grf->memory_ = std::move(bytes);
+  grf->in_memory_ = true;
+  grf->file_size_ = grf->memory_.size();
+  if (!grf->Load(error)) return nullptr;
+  return grf;
+}
+
+bool GrfArchive::Load(std::string* error) {
   std::uint8_t header[kHeaderSize];
-  if (!grf->ReadAt(0, header, kHeaderSize) || std::memcmp(header, kMagic, sizeof kMagic) != 0) {
+  if (!ReadAt(0, header, kHeaderSize) || std::memcmp(header, kMagic, sizeof kMagic) != 0) {
     Fail(error, "not a GRF archive (no \"Master of Magic\" header)");
-    return nullptr;
+    return false;
   }
   const std::uint32_t table_offset = U32(header + 0x1e);
   const std::uint32_t seed = U32(header + 0x22);
   const std::uint32_t count = U32(header + 0x26) - seed - 7;
-  grf->version_ = U32(header + 0x2a);
-  if (grf->version_ < 0x100 || grf->version_ > 0x103) {
+  version_ = U32(header + 0x2a);
+  if (version_ < 0x100 || version_ > 0x103) {
     char buf[64];
-    std::snprintf(buf, sizeof buf, "unsupported GRF version 0x%x", grf->version_);
+    std::snprintf(buf, sizeof buf, "unsupported GRF version 0x%x", version_);
     Fail(error, buf);
-    return nullptr;
+    return false;
   }
   const std::uint64_t table_start = std::uint64_t{kHeaderSize} + table_offset;
-  if (table_start > grf->file_size_) {
+  if (table_start > file_size_) {
     Fail(error, "the table offset is past the end of the file");
-    return nullptr;
+    return false;
   }
-  std::vector<std::uint8_t> table(static_cast<std::size_t>(grf->file_size_ - table_start));
-  if (!grf->ReadAt(table_start, table.data(), table.size())) {
+  std::vector<std::uint8_t> table(static_cast<std::size_t>(file_size_ - table_start));
+  if (!ReadAt(table_start, table.data(), table.size())) {
     Fail(error, "cannot read the table");
-    return nullptr;
+    return false;
   }
-  auto entries = ParseGrfTable(grf->version_, count, std::move(table), error);
-  if (!entries) return nullptr;
-  grf->entries_ = std::move(*entries);
+  auto entries = ParseGrfTable(version_, count, std::move(table), error);
+  if (!entries) return false;
+  entries_ = std::move(*entries);
 
-  grf->sorted_.resize(grf->entries_.size());
-  for (std::uint32_t i = 0; i < grf->sorted_.size(); ++i) grf->sorted_[i] = i;
+  sorted_.resize(entries_.size());
+  for (std::uint32_t i = 0; i < sorted_.size(); ++i) sorted_[i] = i;
   // Stable, so that of two equal names the first in the table is found.
-  std::stable_sort(grf->sorted_.begin(), grf->sorted_.end(), [&](std::uint32_t a, std::uint32_t b) {
-    return grf->entries_[a].key < grf->entries_[b].key;
+  std::stable_sort(sorted_.begin(), sorted_.end(), [&](std::uint32_t a, std::uint32_t b) {
+    return entries_[a].key < entries_[b].key;
   });
-  return grf;
+  return true;
 }
 
 const GrfEntry* GrfArchive::Find(std::string_view name) const {
@@ -172,6 +187,10 @@ std::vector<std::string> GrfArchive::DuplicateNames() const {
 
 bool GrfArchive::ReadAt(std::uint64_t offset, std::uint8_t* out, std::size_t n) const {
   if (offset > file_size_ || n > file_size_ - offset) return false;
+  if (in_memory_) {
+    std::memcpy(out, memory_.data() + offset, n);
+    return true;
+  }
   std::scoped_lock lock(mutex_);
   file_.clear();
   file_.seekg(static_cast<std::streamoff>(offset));
@@ -204,15 +223,21 @@ std::optional<std::vector<std::uint8_t>> GrfArchive::Read(const GrfEntry& entry,
     grf::DecodeMixed(stored, grf::DecimalDigits(entry.compressed_size));
   }
 
-  std::vector<std::uint8_t> out(entry.size);
   if (!entry.compressed()) {
     if (entry.size > entry.stored_size) {
       Fail(error, entry.name + ": the size is larger than the stored data");
       return std::nullopt;
     }
-    std::memcpy(out.data(), stored.data(), entry.size);
-    return out;
+    return std::vector<std::uint8_t>(stored.begin(),
+                                     stored.begin() + static_cast<std::ptrdiff_t>(entry.size));
   }
+  // Deflate expands at most 1032 times (zlib's limit), so a larger recorded size cannot be
+  // an entry's real size; refusing it keeps a corrupt table from allocating gigabytes.
+  if (entry.size > std::uint64_t{entry.stored_size} * kMaxInflateRatio + kMaxInflateRatio) {
+    Fail(error, entry.name + ": the size is larger than its stored data can inflate to");
+    return std::nullopt;
+  }
+  std::vector<std::uint8_t> out(entry.size);
   // The client ignores uncompress's result (004de947, 004dea1d) and keeps the recorded
   // size, so a stream that breaks off gives what inflated before the break and zeros
   // after it (VirtualAlloc memory). data\wav\worm_tail_damage.wav is one: its stored

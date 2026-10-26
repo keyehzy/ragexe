@@ -13,6 +13,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(RAGEXE_BUILD_TESTS "Build the Catch2 unit tests" ON)
 option(RAGEXE_SANITIZE "Build with AddressSanitizer (and UndefinedBehaviorSanitizer where the compiler has it)" OFF)
 option(RAGEXE_CCACHE "Compile through ccache when it is installed" ON)
+option(RAGEXE_FUZZ "Build the fuzz targets with libFuzzer (Clang only)" OFF)
 
 # ccache for every target, the fetched libraries included. MSVC's debug information must
 # then go into the object files (/Z7): ccache cannot cache a compile that writes a shared
@@ -50,6 +51,15 @@ else()
   endif()
 endif()
 
+# Coverage instrumentation for libFuzzer in all of our code; the fuzz targets add the
+# fuzzer's main (fuzz/CMakeLists.txt).
+if(RAGEXE_FUZZ)
+  if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+    message(FATAL_ERROR "RAGEXE_FUZZ needs LLVM Clang with libFuzzer (on macOS: Homebrew's llvm)")
+  endif()
+  target_compile_options(ragexe_options INTERFACE -fsanitize=fuzzer-no-link)
+endif()
+
 include(cmake/dependencies.cmake)
 
 add_subdirectory(src)
@@ -58,3 +68,5 @@ if(RAGEXE_BUILD_TESTS)
   enable_testing()
   add_subdirectory(tests/unit)
 endif()
+
+add_subdirectory(fuzz)

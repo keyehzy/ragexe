@@ -82,11 +82,55 @@ Lint a configured build. The checks are in `.clang-tidy`, and every finding is a
 on macOS, also pass `--extra-arg=-isysroot$(xcrun --show-sdk-path)`:
 
 ```bash
-git ls-files 'src/*.cpp' 'tests/unit/*.cpp' | xargs .venv/bin/clang-tidy -p build/dev --quiet
+git ls-files 'src/*.cpp' 'tests/unit/*.cpp' 'fuzz/*.cpp' | xargs .venv/bin/clang-tidy -p build/dev --quiet
 ```
 
 CI runs both: the format check as its own job, and clang-tidy in the Linux job after
 configuring.
+
+## Fuzzing
+
+The parsers have libFuzzer targets in `fuzz/`:
+
+| Target | Input |
+|--------|-------|
+| `grf_table_fuzz` | `ParseGrfTable` |
+| `grf_archive_fuzz` | a whole archive from memory: header, table, lookups, reads |
+
+Each target aborts when an invariant breaks, which the fuzzer reports as a crash.
+
+**Building them** needs LLVM Clang, because Apple Clang has no libFuzzer; on macOS use
+Homebrew's `llvm`. The `fuzz` preset builds the pinned libraries, optimized, with the
+sanitizers:
+
+```bash
+CC=$(brew --prefix llvm)/bin/clang CXX=$(brew --prefix llvm)/bin/clang++ cmake --preset fuzz
+```
+
+```bash
+cmake --build --preset fuzz --target grf_table_fuzz grf_archive_fuzz make_grf_seeds
+```
+
+**Running one:** `make_grf_seeds` writes small valid archives and tables to start from,
+and `fuzz/grf.dict` holds the format's tokens. Ten minutes on the archive target:
+
+```bash
+build/fuzz/fuzz/make_grf_seeds seeds
+```
+
+```bash
+build/fuzz/fuzz/grf_archive_fuzz corpus seeds/grf_archive -dict=fuzz/grf.dict -max_len=8192 -max_total_time=600
+```
+
+**A crash** leaves its input in a `crash-…` file. Save it in
+`fuzz/regressions/<target>/` once fixed.
+
+**In `ctest`,** every build replays the seeds and the saved regressions through each
+target (`*_fuzz_replay`). Without libFuzzer the targets are linked with
+`fuzz/replay_main.cpp`, which runs them over the inputs once.
+
+**In CI,** a separate job fuzzes each target for 60 seconds and keeps any crashing
+input as an artifact.
 
 ## ragres
 
