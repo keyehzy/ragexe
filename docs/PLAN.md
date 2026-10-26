@@ -1438,7 +1438,7 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     `method_` functions, 64% of the game's bytes, is still to be read. That reading
     belongs with porting each class.
 
-### M2 progress
+### M2: done
 - [x] Build: CMake (3.25+), C++20 and Ninja. Presets `dev` (Debug with
   AddressSanitizer and UndefinedBehaviorSanitizer; AddressSanitizer only with MSVC) and
   `release`. How to build: `docs/building.md`.
@@ -1482,17 +1482,24 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   release build.
 - [x] On macOS arm64 the client opens its window and runs the mode loop: on a 120 Hz
   display the game mode drew 59 frames in 0.49 s and ran 29 world steps, 62.5 a second.
-- [ ] CI (`.github/workflows/ci.yml`, on https://github.com/keyehzy/ragexe):
+- [x] CI (`.github/workflows/ci.yml`, on https://github.com/keyehzy/ragexe):
   - macOS arm64 (`macos-14`), Linux x86-64 (`ubuntu-24.04`) and Windows x64
     (`windows-2022`). Each job configures the `dev` preset with
     `FETCHCONTENT_TRY_FIND_PACKAGE_MODE=NEVER`, so every platform builds the pinned
     libraries, then builds and runs `ctest`. Linux first installs the X11, Wayland,
     input and D-Bus headers SDL3 builds against.
-  - The vcpkg version passed on macOS twice and failed in setup on Linux and Windows.
-    The FetchContent version builds and passes locally both ways: with fetched static
-    SDL3 and Catch2, and with Homebrew's SDL3. Its first CI run follows this commit.
+  - Run 40285434608, the first with FetchContent, passed on all three in under two
+    minutes each. All 15 tests passed on each platform, under AddressSanitizer
+    (and UndefinedBehaviorSanitizer on macOS and Linux), including the client's smoke
+    run from login to game mode.
+- [x] **M2 exit.** The client runs its mode loop on all three platforms: in CI with
+  SDL's dummy video driver, which creates its window off screen, and on macOS also
+  with a real window on the display. Linux and Windows have not shown a window on a
+  real display yet; the first time someone runs it there is the remaining check.
 
-### Next actions (M2)
-1. Get the CI workflow green on all three platforms; that verifies M2's exit.
+### Next actions (M3)
+1. Start M3, the resource system (section 5): the GRF reader (header, table, per-file
+   decoding, `cps.dll` against zlib), loose-file lookup and the `CRes` cache, then the
+   loaders in dependency order, with the `ragres` tool and oracle comparisons.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.
