@@ -100,7 +100,8 @@ std::vector<std::uint8_t> BuildArchive(const std::vector<TestFile>& files,
     table.push_back(f.flags);
     PutU32(table, offset);
   }
-  std::vector<std::uint8_t> out(std::begin("Master of Magic"), std::end("Master of Magic"));
+  static constexpr char kMagic[] = "Master of Magic";
+  std::vector<std::uint8_t> out(std::begin(kMagic), std::end(kMagic));
   for (std::uint8_t i = 1; i <= 14; ++i) out.push_back(i);
   const std::uint32_t seed = 1234;
   PutU32(out, static_cast<std::uint32_t>(body.size()));
