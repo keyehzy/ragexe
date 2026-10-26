@@ -1,18 +1,18 @@
 entry	size	kind	library	subsystem	reach	status	namespace	name	notes
-00401000	68	code	0	render		named	Global	LerpTranslationKey	
+00401000	68	code	0	core		named	Global	LerpTranslationKey	
 00401050	283	code	0	world		named	Global	SlerpRotationKey	
 00401170	330	code	0	world	unreferenced	raw	Global	FUN_00401170	
-004012c0	502	code	0	world		named	Global	AddTranslationKey	
+004012c0	502	code	0	world		named	TranslationKeys	Add	
 004014c0	88	code	0	world	unreferenced	raw	Global	FUN_004014c0	
-00401520	181	code	0	world		named	Global	GetTranslationMatrixAt	
-004015e0	558	code	0	res		named	Global	ReadTranslationKeys	
-00401810	604	code	0	res		named	Global	ReadRotationKeys	
-00401a70	581	code	0	world		named	Global	AddRotationKeyFromAxisAngle	
+00401520	181	code	0	world		named	TranslationKeys	GetMatrixAt	
+004015e0	558	code	0	world		named	TranslationKeys	Read	
+00401810	604	code	0	world		named	RotationKeys	Read	
+00401a70	581	code	0	world		named	RotationKeys	AddFromAxisAngle	
 00401cc0	76	code	0	world	unreferenced	raw	Global	FUN_00401cc0	
-00401d10	251	code	0	world		named	Global	GetRotationMatrixAt	
-00401e10	518	code	0	world		named	Global	AddScaleKey	
+00401d10	251	code	0	world		named	RotationKeys	GetMatrixAt	
+00401e10	518	code	0	world		named	ScaleKeys	Add	
 00402020	76	code	0	world	unreferenced	raw	Global	FUN_00402020	
-00402070	72	code	0	world		named	Global	GetScaleMatrixAt	
+00402070	72	code	0	world		named	ScaleKeys	GetMatrixAt	
 004020c0	519	code	0	world	unreferenced	raw	Global	FUN_004020c0	
 004022d0	19	code	1	stl		named	std::vector	size	
 004022f0	33	code	1	stl		named	std::vector	size	
@@ -158,13 +158,13 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00407590	232	code	1	stl		named	std::Tree	~Tree	
 00407680	237	code	0	render		named	Global	GetSurfaceDCWithFont	
 00407770	89	code	0	render		named	Global	ReleaseSurfaceDC	
-004077d0	126	code	0	render		named	Global	InitFontEntry	
-00407870	68	code	0	render		named	Global	CreateFontForEntry	
-004078c0	88	code	0	render		named	Global	IsFontEntryLess	
-00407920	60	code	0	render		named	Global	IsFontEntryEqual	
+004077d0	126	code	0	render		named	FontEntry	FontEntry	
+00407870	68	code	0	render		named	FontEntry	CreateFont	
+004078c0	88	code	0	render		named	FontEntry	IsLess	
+00407920	60	code	0	render		named	FontEntry	IsEqual	
 00407960	26	code	0	render		named	Global	MatchFaceNameProc	
-00407980	172	code	0	render		named	Global	GetInstalledFaceName	
-00407a30	10	code	0	render		named	Global	GetFontCharSet	
+00407980	172	code	0	render		named	FontEntry	GetInstalledFaceName	
+00407a30	10	code	0	render		named	FontEntry	GetCharSet	
 00407a40	122	code	0	render		named	FontCache	~FontCache	
 00407ac0	1087	code	0	render		named	FontCache	GetFont	
 00407f00	172	code	1	stl		named	std::Tree	InitHead	
@@ -253,16 +253,16 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0040c030	10	code	0	render		named	Global	destroy_g_VertexBuffer_00625e68	
 0040c040	168	code	0	render		named	Global	DrawVertexBufferRange	
 0040c0f0	177	code	0	render		named	Global	DrawIndexedVertexBufferRange	
-0040c1b0	40	code	0	render		named	Global	InitRenderPrimitive	
-0040c1e0	24	code	0	render		named	Global	SetPrimitiveArrays	
-0040c200	54	code	0	render		named	Global	SetVertexPosition	
+0040c1b0	40	code	0	render		named	RenderPrimitive	RenderPrimitive	
+0040c1e0	24	code	0	render		named	RenderPrimitive	SetArrays	
+0040c200	54	code	0	render		named	RenderPrimitive	SetVertexPosition	
 0040c240	54	code	0	render	unreferenced	raw	Global	FUN_0040c240	
-0040c280	81	code	0	render		named	Global	ScaleTexCoordsByTexture	
-0040c2e0	180	code	0	render		named	Global	ComputeVertexFog	
-0040c3a0	50	code	0	render		named	Global	DrawRenderPrimitive	
-0040c3e0	391	code	0	render		named	Global	DrawPrimitiveTwoTexCoords	
+0040c280	81	code	0	render		named	RenderPrimitive	ScaleTexCoordsByTexture	
+0040c2e0	180	code	0	render		named	RenderPrimitive	ComputeVertexFog	
+0040c3a0	50	code	0	render		named	RenderPrimitive	Draw	
+0040c3e0	391	code	0	render		named	RenderPrimitive	DrawTwoTexCoords	
 0040c570	32	code	0	render		named	Global	destroy_g_twoTexCoordVertices	
-0040c590	96	code	0	render		named	Global	DrawPrimitiveWithTexCoordArray	
+0040c590	96	code	0	render		named	RenderPrimitive	DrawWithTexCoordArray	
 0040c5f0	47	code	0	render		named	RenderTriangle	RenderTriangle	
 0040c620	64	code	0	render	unreferenced	named	RenderTriangle	RenderTriangle	
 0040c660	22	code	0	render	unreferenced	raw	Global	FUN_0040c660	

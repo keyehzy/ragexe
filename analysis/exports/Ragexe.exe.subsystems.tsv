@@ -1,18 +1,18 @@
 entry	subsystem	rule	evidence
-00401000	render	callers	1 referencing function
+00401000	core	shared	render 1, world 1
 00401050	world	callers	1 referencing function
 00401170	world	neighbours	between 00401050 and 004012c0
-004012c0	world	callers	2 referencing functions
+004012c0	world	class	class TranslationKeys
 004014c0	world	neighbours	between 004012c0 and 00401520
-00401520	world	callers	1 referencing function
-004015e0	res	callers	1 referencing function
-00401810	res	callers	1 referencing function
-00401a70	world	callers	2 referencing functions
+00401520	world	class	class TranslationKeys
+004015e0	world	class	class TranslationKeys
+00401810	world	class	class RotationKeys
+00401a70	world	class	class RotationKeys
 00401cc0	world	neighbours	between 00401a70 and 00401d10
-00401d10	world	callers	1 referencing function
-00401e10	world	callers	2 referencing functions
+00401d10	world	class	class RotationKeys
+00401e10	world	class	class ScaleKeys
 00402020	world	neighbours	between 00401e10 and 00402070
-00402070	world	callers	1 referencing function
+00402070	world	class	class ScaleKeys
 004020c0	world	previous	after 00402070, nothing references it
 00402570	core	initializer	initializer of the file starting here, before 004025a0
 004025a0	core	shared	audio 3, core 5, game 23, net 3, render 7, res 22, ui 18, world 15
@@ -129,22 +129,22 @@ entry	subsystem	rule	evidence
 00406b40	render	neighbours	between 00406960 and 00406b60
 00406b50	render	neighbours	between 00406960 and 00406b60
 00406b60	render	class	class FontCache
-00406b80	render	neighbours	between 00406b60 and 00407a40
-00407260	render	neighbours	between 00406b60 and 00407a40
-00407290	render	neighbours	between 00406b60 and 00407a40
-00407540	render	neighbours	between 00406b60 and 00407a40
-00407550	render	neighbours	between 00406b60 and 00407a40
-00407570	render	neighbours	between 00406b60 and 00407a40
-00407580	render	neighbours	between 00406b60 and 00407a40
-00407680	render	neighbours	between 00406b60 and 00407a40
-00407770	render	neighbours	between 00406b60 and 00407a40
-004077d0	render	neighbours	between 00406b60 and 00407a40
-00407870	render	neighbours	between 00406b60 and 00407a40
-004078c0	render	neighbours	between 00406b60 and 00407a40
-00407920	render	neighbours	between 00406b60 and 00407a40
-00407960	render	neighbours	between 00406b60 and 00407a40
-00407980	render	neighbours	between 00406b60 and 00407a40
-00407a30	render	neighbours	between 00406b60 and 00407a40
+00406b80	render	neighbours	between 00406b60 and 004077d0
+00407260	render	neighbours	between 00406b60 and 004077d0
+00407290	render	neighbours	between 00406b60 and 004077d0
+00407540	render	neighbours	between 00406b60 and 004077d0
+00407550	render	neighbours	between 00406b60 and 004077d0
+00407570	render	neighbours	between 00406b60 and 004077d0
+00407580	render	neighbours	between 00406b60 and 004077d0
+00407680	render	neighbours	between 00406b60 and 004077d0
+00407770	render	neighbours	between 00406b60 and 004077d0
+004077d0	render	class	class FontEntry
+00407870	render	class	class FontEntry
+004078c0	render	class	class FontEntry
+00407920	render	class	class FontEntry
+00407960	render	neighbours	between 00407920 and 00407980
+00407980	render	class	class FontEntry
+00407a30	render	class	class FontEntry
 00407a40	render	class	class FontCache
 00407ac0	render	class	class FontCache
 00408a90	res	initializer	initializer of the file starting here, before 00408d30
@@ -218,16 +218,16 @@ entry	subsystem	rule	evidence
 0040c030	render	neighbours	between 0040c010 and 0040c040
 0040c040	render	callers	3 referencing functions
 0040c0f0	render	callers	1 referencing function
-0040c1b0	render	callers	6 referencing functions
-0040c1e0	render	neighbours	between 0040c1b0 and 0040c2e0
-0040c200	render	neighbours	between 0040c1b0 and 0040c2e0
-0040c240	render	neighbours	between 0040c1b0 and 0040c2e0
-0040c280	render	neighbours	between 0040c1b0 and 0040c2e0
-0040c2e0	render	callers	1 referencing function
-0040c3a0	render	callers	9 referencing functions
-0040c3e0	render	callers	2 referencing functions
+0040c1b0	render	class	class RenderPrimitive
+0040c1e0	render	class	class RenderPrimitive
+0040c200	render	class	class RenderPrimitive
+0040c240	render	neighbours	between 0040c200 and 0040c280
+0040c280	render	class	class RenderPrimitive
+0040c2e0	render	class	class RenderPrimitive
+0040c3a0	render	class	class RenderPrimitive
+0040c3e0	render	class	class RenderPrimitive
 0040c570	render	neighbours	between 0040c3e0 and 0040c590
-0040c590	render	callers	1 referencing function
+0040c590	render	class	class RenderPrimitive
 0040c5f0	render	class	class RenderTriangle
 0040c620	render	class	class RenderTriangle
 0040c660	render	neighbours	between 0040c620 and 0040c680

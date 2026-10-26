@@ -1063,6 +1063,38 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
       `SceneRenderer+0x138`) and `TexturePoolEntry` (0x2c bytes, in 16 size-binned
       lists at `SceneRenderer+0x194`).
 
+- [x] Class proposals from naming run 2, by run 1's test: `__thiscall` methods that callers
+  apply to one kind of object, with the size shown in the code. Five classes are in
+  `inferred.classes.tsv`, with subsystem rules, and 22 functions moved into them:
+  - `TranslationKeys`, `RotationKeys`, `ScaleKeys` (16 bytes each: a vector of 16-, 20-
+    and 32-byte keys). They sit at `C3dNode+0xe4`, `+0xf4` and `+0x104`, and the first
+    two also at `ModelResNode+0x14c` and `+0x15c`. Their methods are `Read` (from
+    `C3dModelRes::vf03`), `Add` (from `C3dNode::vf01` and `C3dNodeHAL::vf01`) and
+    `GetMatrixAt` (from `0x4b6db0`). The element sizes come from how the code counts
+    them (division by 20, `sar 5`).
+  - `FontEntry` (20 bytes): the element of `FontCache`'s vector, stepped by `0x14` in
+    `GetFont`. Six methods, including its constructor (`0x4077d0`), `IsLess` (26 call
+    sites, in `GetFont` and the sort) and `CreateFont`.
+  - `RenderPrimitive` (36 bytes): the base of `RenderTriangle` and `RenderQuad`, whose
+    constructors call its constructor (`0x40c1b0`) on `this` and keep their vertices
+    right after it at `+0x24`. `SceneRenderer` builds one on its stack and copies its 9
+    dwords into the 0x2c-byte nodes of its list at `+0x260`. Eight methods: the
+    constructor, `SetArrays`, `SetVertexPosition`, `ComputeVertexFog`,
+    `ScaleTexCoordsByTexture` and three `Draw` variants. The base relation is in the
+    evidence only: the tools take bases from RTTI.
+  - **Not accepted:**
+    - `VertexBufferRange`: two methods, but the objects are only reached through
+      the vector of pointers at `SceneRenderer+0x134`, so the size never shows.
+    - `TexturePoolEntry`: one function.
+  - **`recover_layouts`:** a call with `ECX = this + n` to a curated method of a sized
+    curated class now types the member at `n`, as a constructor call already did. This
+    adds the three key vectors to `C3dNode` (and so `C3dNodeHAL`), two `Matrix` members
+    to `ModelInstance` (`+0xc0`, `+0xf0`, replacing 12 loose floats) and two to `CView`
+    (`+0x94`, `+0xc4`). The `PacketQueue` members of `CConnection` now count all their
+    uses. Fields 10,243 → 10,235.
+  - Still 76.2% named or library-tagged; this step moves names and names nothing new.
+    Converges in two passes.
+
 ### Next actions (M1)
 1. Name the remaining 1,576 reachable game functions (371 KB) the same way, in
    source-file batches, skipping unreachable code. 915 more are needed for 90%.

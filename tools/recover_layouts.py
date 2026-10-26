@@ -13,7 +13,8 @@ Field types come from how a field is used:
   std_string         a std::string method (FreeBuffer, GrowBuffer, ...) is called on this + n
   std_list:<elem>    this + n + 4 receives a fresh operator new(8 + elem) node whose
                      next and prev were set to itself (the MSVC 6 list constructor)
-  class:<Class>      a constructor of <Class> is called on this + n
+  class:<Class>      a constructor of <Class>, or a curated method of a sized curated class,
+                     is called on this + n
   array:<elem>:<n>   eh_vector_constructor_iterator(this + n, size, count, ctor, ...)
   byte/word/dword    otherwise, from the access width
 
@@ -138,9 +139,12 @@ class Layouts:
             if not r["name"].startswith(("~", "`")):
                 self.ctor_class[int(r["address"], 16)] = r["namespace"]
         curated_names = {r["class"] for r in curated}
+        self.curated_method_class = {}        # curated method of a sized curated class -> class
         for r in read_tsv(os.path.join(LABELS, "inferred.functions.tsv")):
             if r["namespace"] in curated_names and r["name"] == r["namespace"]:
                 self.ctor_class[int(r["address"], 16)] = r["namespace"]
+            elif r["namespace"] in curated_names and r["namespace"] in self.sizes:
+                self.curated_method_class[int(r["address"], 16)] = r["namespace"]
         self.vfptrs = defaultdict(set)
         for r in read_tsv(os.path.join(EXPORTS, "Ragexe.exe.vtables.tsv")):
             self.vfptrs[r["class"]].add(int(r["vfptr_offset"]))
@@ -994,8 +998,8 @@ class Layouts:
         self.global_access_counts = {cls: len(self.raw[cls]) - n for cls, n in before.items()}
 
     def member_call(self, cls, off, t, func, insn):
-        """A call with ECX = this + off: a container method or member constructor puts that
-        member at off."""
+        """A call with ECX = this + off: a container method, a member constructor or a method
+        of a sized class from inferred.functions.tsv puts that member at off."""
         out = self.raw[cls]
         owner = self.assigned.get(t, (None,))[0]
         if t in self.tree_nodes:
@@ -1010,6 +1014,10 @@ class Layouts:
         elif t in self.ctor_class and off != 0 and (self.ctor_class[t], off) not in self.bases.get(cls, ()):
             m = self.ctor_class[t]
             out.append(Access(off, self.sizes.get(m, 0), f"class:{m}", func, insn, True))
+        elif t in self.curated_method_class and off != 0 \
+                and (self.curated_method_class[t], off) not in self.bases.get(cls, ()):
+            m = self.curated_method_class[t]
+            out.append(Access(off, self.sizes[m], f"class:{m}", func, insn, False))
 
     # -- where global objects end -------------------------------------------------------
 

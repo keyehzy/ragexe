@@ -339,3 +339,8 @@ ActFrame	Global	6	0
 ImfRecord	Global	3	0
 GndCell	Global	4	0
 AnimFrameArrays	Global	4	0
+TranslationKeys	Global	3	0
+RotationKeys	Global	3	0
+ScaleKeys	Global	2	0
+FontEntry	Global	6	0
+RenderPrimitive	Global	8	0
