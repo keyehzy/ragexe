@@ -7,6 +7,7 @@
 #include <windows.h>
 
 #include <cstdlib>
+#include <initializer_list>
 
 namespace {
 
