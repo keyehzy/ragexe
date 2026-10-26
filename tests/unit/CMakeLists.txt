@@ -1,0 +1,17 @@
+add_executable(ragexe_tests
+  frame_timer_test.cpp
+  mode_switcher_test.cpp
+  settings_test.cpp)
+target_link_libraries(ragexe_tests PRIVATE ragexe_game Catch2::Catch2WithMain ragexe_options)
+
+include(Catch)
+catch_discover_tests(ragexe_tests DISCOVERY_MODE PRE_TEST)
+
+# The client itself, unattended: login mode, the move to the game mode, then quit. The
+# test environment selects SDL's dummy video driver (CMakePresets.json), so it runs
+# without a display.
+add_test(NAME client_smoke
+  COMMAND ragexe --frames 180 --auto-login 60 --map prontera.rsw)
+set_tests_properties(client_smoke PROPERTIES
+  ENVIRONMENT "SDL_VIDEO_DRIVER=dummy"
+  PASS_REGULAR_EXPRESSION "game mode: init \\(prontera.rsw\\).*quit after 180 frames")

@@ -1436,9 +1436,50 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     `method_` functions, 64% of the game's bytes, is still to be read. That reading
     belongs with porting each class.
 
+### M2 progress
+- [x] Build: CMake (3.25+), C++20, Ninja, and a vcpkg manifest (`vcpkg.json`) with the
+  libraries section 5 names: SDL3, miniaudio, FreeType (zlib only), zlib, stb, Catch2.
+  Pinned to vcpkg `817892b0` (2026-10-24). Presets `dev` (Debug with AddressSanitizer
+  and UndefinedBehaviorSanitizer; AddressSanitizer only with MSVC) and `release`. How to
+  build: `docs/building.md`.
+- [x] Code in `src/`, one static library per layer:
+  - `core`: `FrameTimer`, the original's fixed step (`ResetFrameTimer`, `SetFrameRate`,
+    `GetFrameStepsDue`): a period of `1000 / fps` whole milliseconds; each frame runs
+    the whole periods elapsed and advances the base by them. With catch-up off (the flag
+    at `0x61ec58`) it returns 1 but still advances the base, as the original does.
+    Times are wrapping 32-bit milliseconds, like `timeGetTime`.
+  - `platform`: SDL start-up, the wrapping millisecond clock, the user data directory,
+    events (quit, focus, keys, text), a window with a clear-and-present stand-in until
+    the SDL_GPU renderer, and the video settings. These were registry values
+    (`ISFULLSCREENMODE`, `WIDTH`, `HEIGHT`, `BITPERPIXEL`) and are now a
+    `settings.txt` of `KEY=value` lines.
+  - `game`: `Mode` (`CMode`: `OnInit`, `Run`, `OnExit`, `OnFrame`, `SendMsg`,
+    `OnChangeState`, with the pending state applied at the top of each `Run` iteration)
+    and `ModeSwitcher` (`Run`, `RequestMode`, `Quit`). Stubbed `LoginMode` and
+    `GameMode` keep the original's frame order: events, then the world steps due, then
+    drawing. `GameMode::OnInit` resets the timer, as `CGameMode::OnInit` does. A
+    `Client` object holds what the original keeps in globals.
+  - `app/main.cpp`: settings, platform, window, `SetFrameRate(60)`, then
+    `ModeSwitcher::Run(Login, "login.rsw")`. Not ported: the `1rag1` command-line
+    check, the instance mutex and its name checksum, and the self-update.
+- [x] Tests (`tests/unit`, Catch2, run by `ctest`): the frame timer (16 ms period,
+  carried remainder, catch-up, 62.5 steps a second over a minute, the 32-bit wrap,
+  catch-up off), the mode switcher (login → game → map change → quit, with each
+  slot's order, pending states, quit before run) and the settings file. A smoke test
+  runs the client itself on SDL's dummy video driver: login, the move to the game mode
+  on `prontera.rsw`, quit after 180 frames. All 15 pass under the sanitizers and in the
+  release build.
+- [x] On macOS arm64 the client opens its window and runs the mode loop: on a 120 Hz
+  display the game mode drew 59 frames in 0.49 s and ran 29 world steps, 62.5 a second.
+- [ ] CI (`.github/workflows/ci.yml`): macOS arm64 (`macos-14`), Linux x86-64
+  (`ubuntu-24.04`) and Windows x64 (`windows-2022`). Each job builds vcpkg at the
+  manifest's baseline, caches its binary packages, then runs `cmake`, the build and
+  `ctest` with the `dev` preset. **Not run yet:** the repository has no GitHub remote.
+  Until it does, Linux and Windows are unverified, and with them M2's exit (an empty
+  window running the mode loop on all three platforms).
+
 ### Next actions (M2)
-1. Start M2, the portable skeleton (section 5): CMake, C++20 and the vcpkg manifest; the
-   platform layer; the main loop and the `CMode` state machine with stubbed modes; CI on
-   the three platforms.
+1. Push the repository to GitHub and get the CI workflow green on all three platforms;
+   that verifies M2's exit.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

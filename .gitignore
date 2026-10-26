@@ -23,3 +23,6 @@ __pycache__/
 *.pyc
 /build/
 .DS_Store
+
+# Local vcpkg checkout (CI uses its own).
+/.vcpkg/
