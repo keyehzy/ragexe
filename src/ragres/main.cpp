@@ -13,6 +13,7 @@
 //   ragres decode-gnds FILE...             decodes .gnd files as CGndRes does, as hashes
 //   ragres decode-rsws [--no-lightmaps] FILE...
 //                                          decodes .rsw files as C3dWorldRes does
+//   ragres decode-rsms FILE...             decodes .rsm files as C3dModelRes does
 //   ragres check ARCHIVE...                reads every compressed entry and checks its size;
 //                                          fails on an entry that cannot be read
 //
@@ -36,6 +37,7 @@
 #include "res/grf.h"
 #include "res/palette.h"
 #include "res/resource.h"
+#include "res/rsm.h"
 #include "res/rsw.h"
 #include "res/sprite.h"
 
@@ -538,6 +540,104 @@ int DecodeRsws(std::vector<std::string> files) {
   return failed == 0 ? 0 : 1;
 }
 
+// Decodes .rsm files as C3dModelRes does and prints, per file, "n ok animation-length
+// +0x190 alpha root-hex node-count volumes-count:hash", then per node "N index name-hex
+// parent children textures-hash fields-hash vertices tex-coords faces face-normals
+// corner-normals translation-keys rotation-keys", each a count:hash of the values' bytes
+// (names with a NUL each); or "n failed error".
+int DecodeRsms(const std::vector<std::string>& files) {
+  int failed = 0;
+  for (std::size_t n = 0; n < files.size(); ++n) {
+    ragexe::res::Model model;
+    std::string error;
+    if (!ragexe::res::DecodeModel(ReadFile(files[n]), model, &error)) {
+      std::printf("%zu failed %s\n", n, error.c_str());
+      ++failed;
+      continue;
+    }
+    const auto bytes = [](const auto& values) {
+      std::vector<std::uint8_t> out(sizeof values[0] * values.size());
+      if (!out.empty()) std::memcpy(out.data(), values.data(), out.size());
+      return out;
+    };
+    const auto hash = [](std::size_t count, const std::vector<std::uint8_t>& b) {
+      char text[48];
+      std::snprintf(text, sizeof text, "%zu:%016llx", count,
+                    static_cast<unsigned long long>(Fnv1a64(b)));
+      return std::string(text);
+    };
+    std::vector<std::uint8_t> volumes;
+    for (const auto& volume : model.volumes) {
+      const auto b = bytes(volume.values);
+      volumes.insert(volumes.end(), b.begin(), b.end());
+      for (int k = 0; k < 4; ++k)
+        volumes.push_back(
+            static_cast<std::uint8_t>(static_cast<std::uint32_t>(volume.flag) >> (8 * k)));
+    }
+    std::printf("%zu ok %d %d %u %s %zu %s\n", n, model.animation_length, model.field_190,
+                model.alpha, Hex(model.root).c_str(), model.nodes.size(),
+                hash(model.volumes.size(), volumes).c_str());
+    for (std::size_t k = 0; k < model.nodes.size(); ++k) {
+      const auto& node = model.nodes[k];
+      std::string children;
+      for (int c : node.children) children += (children.empty() ? "" : ",") + std::to_string(c);
+      std::vector<std::uint8_t> names;
+      for (std::int32_t id : node.textures) {
+        const std::string& name = model.textures[static_cast<std::size_t>(id)];
+        names.insert(names.end(), name.begin(), name.end());
+        names.push_back(0);
+      }
+      std::vector<std::uint8_t> fields;
+      for (const auto* v : {&node.position, &node.rotation_axis}) {
+        const auto b = bytes(*v);
+        fields.insert(fields.end(), b.begin(), b.end());
+      }
+      const auto angle = bytes(std::array<float, 1>{node.rotation_angle});
+      fields.insert(fields.end(), angle.begin(), angle.end());
+      const auto scale = bytes(node.scale);
+      fields.insert(fields.end(), scale.begin(), scale.end());
+      fields.push_back(node.alpha);
+      const auto& mesh = node.mesh;
+      std::vector<std::uint8_t> faces;
+      for (const auto& f : mesh.faces) {
+        std::uint8_t record[24];
+        std::memcpy(record, f.vertices.data(), 6);
+        std::memcpy(record + 6, f.tex_coords.data(), 6);
+        std::memcpy(record + 12, &f.texture, 2);
+        std::memcpy(record + 14, &f.field_0e, 2);
+        std::memcpy(record + 16, &f.field_10, 4);
+        std::memcpy(record + 20, &f.smoothing_group, 4);
+        faces.insert(faces.end(), record, record + 24);
+      }
+      std::vector<std::uint8_t> tkeys;
+      for (const auto& key : node.translation_keys) {
+        std::uint8_t record[16];
+        std::memcpy(record, &key.frame, 4);
+        std::memcpy(record + 4, key.value.data(), 12);
+        tkeys.insert(tkeys.end(), record, record + 16);
+      }
+      std::vector<std::uint8_t> rkeys;
+      for (const auto& key : node.rotation_keys) {
+        std::uint8_t record[20];
+        std::memcpy(record, &key.frame, 4);
+        std::memcpy(record + 4, key.value.data(), 16);
+        rkeys.insert(rkeys.end(), record, record + 20);
+      }
+      std::printf("N %zu %s %d %s %s %s %s %s %s %s %s %s %s\n", k, Hex(node.name).c_str(),
+                  node.parent, children.empty() ? "-" : children.c_str(),
+                  hash(node.textures.size(), names).c_str(), hash(1, fields).c_str(),
+                  hash(mesh.vertices.size(), bytes(mesh.vertices)).c_str(),
+                  hash(mesh.tex_coords.size(), bytes(mesh.tex_coords)).c_str(),
+                  hash(mesh.faces.size(), faces).c_str(),
+                  hash(mesh.face_normals.size(), bytes(mesh.face_normals)).c_str(),
+                  hash(mesh.corner_normals.size(), bytes(mesh.corner_normals)).c_str(),
+                  hash(node.translation_keys.size(), tkeys).c_str(),
+                  hash(node.rotation_keys.size(), rkeys).c_str());
+    }
+  }
+  return failed == 0 ? 0 : 1;
+}
+
 int Usage() {
   std::fprintf(stderr,
                "usage: ragres list ARCHIVE\n"
@@ -549,7 +649,8 @@ int Usage() {
                "       ragres decode-acts [--halve-x] [--halve-y] FILE...\n"
                "       ragres decode-gats FILE...\n"
                "       ragres decode-gnds FILE...\n"
-               "       ragres decode-rsws [--no-lightmaps] FILE...\n");
+               "       ragres decode-rsws [--no-lightmaps] FILE...\n"
+               "       ragres decode-rsms FILE...\n");
   return 2;
 }
 
@@ -576,6 +677,7 @@ int main(int argc, char** argv) {
   if (command == "decode-gats") return DecodeGats(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-gnds") return DecodeGnds(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-rsws") return DecodeRsws(std::vector<std::string>(argv + 2, argv + argc));
+  if (command == "decode-rsms") return DecodeRsms(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "check") {
     int status = 0;
     for (int i = 2; i < argc; ++i) status |= Check(argv[i]);

@@ -140,9 +140,9 @@ CImfRes	005e2990	0	4	00420890	CRes::Reset
 CImfRes	005e2990	0	5	004df9d0	CRes::OnLoadError	
 C3dModelRes	005e29c0	0	0	0042b800	C3dModelRes::`scalar_deleting_destructor'	
 C3dModelRes	005e29c0	0	1	00420880	CRes::LoadFromMemory	
-C3dModelRes	005e29c0	0	2	0042b7a0	C3dModelRes::vf02	
-C3dModelRes	005e29c0	0	3	0042be00	C3dModelRes::vf03	
-C3dModelRes	005e29c0	0	4	0042bc70	C3dModelRes::vf04	
+C3dModelRes	005e29c0	0	2	0042b7a0	C3dModelRes::Clone	
+C3dModelRes	005e29c0	0	3	0042be00	C3dModelRes::Load	
+C3dModelRes	005e29c0	0	4	0042bc70	C3dModelRes::Reset	
 C3dModelRes	005e29c0	0	5	004df9d0	CRes::OnLoadError	
 C3dAnimModelRes	005e29e4	0	0	0042db60	C3dAnimModelRes::`scalar_deleting_destructor'	
 C3dAnimModelRes	005e29e4	0	1	00420880	CRes::LoadFromMemory	

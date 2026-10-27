@@ -139,7 +139,7 @@ How the loader treats these:
 
 `CWorld::LoadWorld` builds a `ModelInstance` at once for each model within 200.0
 (`005e8974`) of the player; the others go to a list that `LazyModelLoadThread` loads
-later. The node name selects part of the model (`C3dModelRes::method_0042cbd0`). It
+later. The node name selects part of the model (`C3dModelRes::FindNode`, `0042cbd0`). It
 copies:
 - the position, rotation and scale, which `ModelInstance::method_004b98c0` turns into a
   matrix;

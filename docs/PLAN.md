@@ -1707,8 +1707,32 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Where the port differs:** truncated files fail, and so do unterminated names.
   - **Fuzzing:** `rsw_fuzz`, 78 million inputs with no findings.
 
+- [x] `C3dModelRes` (`docs/formats/rsm.md`, `src/res/rsm`):
+  - **Format:** `GRSM` 1.0 to 1.5: textures, then a tree of nodes, each with names,
+    textures, a matrix, placement, a mesh and keys; then volumes.
+  - **The loader does more than read:**
+    - it bakes each node's matrix into its vertices;
+    - it sorts each mesh's faces by texture with the client's `std::sort`;
+    - it computes face normals and per-smoothing-group corner normals.
+
+    The port does all three as the original does:
+    - the sort is not stable;
+    - its copies leave bytes 0xe to 0x13 of each face in place;
+    - degenerate faces get the x87's negative NaN.
+  - **Field meanings** come from `C3dNode::vf01` and `ModelInstance`: position, rotation
+    axis and angle, scale, alpha and animation length.
+  - **Oracle** (`tools/rsm_oracle.py`, in `ctest` when the data is present):
+    - all 1,127 models in `data.grf` (all 1.4) match the original `Load`, bit for bit,
+      in every vertex, face and normal;
+    - so do 13 synthetic models of every version;
+    - it runs in 30 s;
+    - a stable sort in place of the client's makes 879 models differ.
+  - **Where the port differs:** truncated files, bad indices and missing parents or
+    roots fail, where the original reads through bad pointers.
+  - **Fuzzing:** `rsm_fuzz`, 82 million inputs with no findings.
+
 ### Next actions (M3)
-1. The remaining loaders in dependency order (`C3dModelRes`, …),
+1. The remaining loaders in dependency order (`C3dAnimModelRes`, `CImfRes`, …),
    each registered with the resource manager, compared with the original in the
    emulation oracle (its `Load`, through `serve_data_files`), fuzzed, and with a
    `ragres` mode.
