@@ -186,8 +186,9 @@ TEST_CASE("models the original refuses, cannot link, or reads past") {
   CHECK_FALSE(DecodeModel(Rsm(6), model, &error));
   CHECK(error == "an unsupported version; the contents may be broken");
   auto orphan = Rsm(4);
+  static constexpr char kRoot[] = {'r', 'o', 'o', 't'};
   const auto at =
-      std::search(orphan.begin() + 200, orphan.end(), std::begin("root"), std::begin("root") + 4);
+      std::search(orphan.begin() + 200, orphan.end(), std::begin(kRoot), std::end(kRoot));
   REQUIRE(at != orphan.end());
   (*at) = 'x';  // the arm's parent name: its parent goes missing
   CHECK_FALSE(DecodeModel(orphan, model, &error));
