@@ -2,12 +2,12 @@
 // decode paths, directory entries and a stream that breaks off, their tables, and a
 // ResNameTable.txt, small images of each kind the bitmap decoders read, sprites and
 // actions, attribute maps, grounds, worlds, models, animated models, .imf
-// and .rma files, effects, emblems, waves, item tables, and name-pair tables.
+// and .rma files, effects, emblems, waves, item tables, and ClientState's tables.
 //
 //   make_grf_seeds DIR    writes DIR/grf_archive, DIR/grf_table, DIR/res_name_table,
 //                         DIR/bitmap, DIR/sprite, DIR/act, DIR/gat, DIR/gnd,
 //                         DIR/rsw, DIR/rsm, DIR/rsx, DIR/imf, DIR/rma, DIR/str,
-//                         DIR/ebm, DIR/wav, DIR/item_tables and DIR/name_pairs
+//                         DIR/ebm, DIR/wav, DIR/item_tables and DIR/client_tables
 
 #include <zlib.h>
 
@@ -478,7 +478,7 @@ int main(int argc, char** argv) {
   std::filesystem::create_directories(dir / "ebm");
   std::filesystem::create_directories(dir / "wav");
   std::filesystem::create_directories(dir / "item_tables");
-  std::filesystem::create_directories(dir / "name_pairs");
+  std::filesystem::create_directories(dir / "client_tables");
 
   std::vector<std::uint8_t> text(300);
   for (std::size_t i = 0; i < text.size(); ++i) text[i] = static_cast<std::uint8_t>('a' + i % 26);
@@ -600,10 +600,11 @@ int main(int argc, char** argv) {
   Write(dir / "item_tables" / "small.bin",
         std::vector<std::uint8_t>(item_tables.begin(), item_tables.end()));
   ++n;
-  const std::string name_pairs =
-      "prontera.rsw#Prontera#\r\ngeffen.rsw#Geffen#\r\nk##v#\r\nb#2#\r\na#1#\r\n";
-  Write(dir / "name_pairs" / "small.bin",
-        std::vector<std::uint8_t>(name_pairs.begin(), name_pairs.end()));
+  const std::string client_tables =
+      "prontera.rsw#Prontera#\r\ngeffen.rsw#Geffen#\r\nk##v#\r\nSM_BASH#\r\n8#\r\n@\r\n"
+      "NV_BASIC#\r\nBasic Skill\r\n#\r\n";
+  Write(dir / "client_tables" / "small.bin",
+        std::vector<std::uint8_t>(client_tables.begin(), client_tables.end()));
   ++n;
   std::printf("wrote %d seeds to %s\n", n, dir.string().c_str());
   return 0;

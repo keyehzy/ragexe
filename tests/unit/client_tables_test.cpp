@@ -51,3 +51,27 @@ TEST_CASE("the VC6 sort leaves ties as its quicksort and insertions do") {
   }
   CHECK(zeros != std::vector<int>{0, 2, 4, 6, 8, 10, 12, 14, 16, 18});
 }
+
+TEST_CASE("number records: a name, numbers, '@', sorted by name") {
+  const NumberRecords records =
+      ParseNumberRecords(Bytes("SM_BASH#\r\n8#\r\n15#\r\n@\r\nMG_SIGHT#\r\n10#\r\n@\r\n"));
+  CHECK(records == NumberRecords{{"MG_SIGHT", {10}}, {"SM_BASH", {8, 15}}});
+  // The name is the field as it is; the numbers go through atoi. '@' does not move the
+  // field start, so with no line break after it, the next name begins with it.
+  CHECK(ParseNumberRecords(Bytes("  -12x#  7#+3#@#5#6#@")) ==
+        NumberRecords{{"  -12x", {7, 3}}, {"@", {5, 6}}});
+  // An empty first field leaves the name empty for the next one.
+  CHECK(ParseNumberRecords(Bytes("#5#6#@")) == NumberRecords{{"5", {6}}});
+  CHECK(ParseNumberRecords(Bytes("A#1\r\n2#@")) == NumberRecords{{"A", {2}}});
+  CHECK(ParseNumberRecords(Bytes("open#1#2#")).empty());
+}
+
+TEST_CASE("line records: every line break after the name ends a line") {
+  const LineRecords records =
+      ParseLineRecords(Bytes("NV_BASIC#\r\nBasic Skill\r\n#\r\nAL_HEAL#\r\nHeal\r\n#"));
+  CHECK(records == LineRecords{{"AL_HEAL", {"", "", "Heal", "", ""}},
+                               {"NV_BASIC", {"", "", "Basic Skill", "", ""}}});
+  CHECK(ParseLineRecords(Bytes(std::string_view("N#a\0b\r\n#", 8))) ==
+        LineRecords{{"N", {"a", "", ""}}});
+  CHECK(ParseLineRecords(Bytes("open#line\r\n")).empty());
+}

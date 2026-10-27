@@ -23,6 +23,9 @@
 //   ragres decode-wavs FILE...             decodes .wav files as CWave does
 //   ragres decode-name-pairs FILE...       decodes ClientState's name-pair tables
 //                                          (mapNameTable.txt and the like)
+//   ragres decode-number-records FILE...   decodes LevelUseskillSpAmount.txt and
+//                                          skillAfterDelay.txt as ClientState does
+//   ragres decode-line-records FILE...     decodes skillDescTable.txt as ClientState does
 //   ragres decode-item-tables DIR [--korea] [--code-page N]
 //                                          loads the item and card tables from DIR's data
 //                                          folder as LoadItemTables does
@@ -922,6 +925,30 @@ int DecodeNamePairs(const std::vector<std::string>& files) {
   return 0;
 }
 
+int DecodeNumberRecords(const std::vector<std::string>& files) {
+  for (std::size_t n = 0; n < files.size(); ++n) {
+    const auto records = ragexe::res::ParseNumberRecords(ReadFile(files[n]));
+    std::printf("%zu ok %zu\n", n, records.size());
+    for (const auto& [name, numbers] : records) {
+      std::vector<std::uint32_t> values(numbers.begin(), numbers.end());
+      std::printf("R %s %zu:%016llx\n", TextHash(name).c_str(), values.size(),
+                  static_cast<unsigned long long>(Fnv1a64(values)));
+    }
+  }
+  return 0;
+}
+
+int DecodeLineRecords(const std::vector<std::string>& files) {
+  for (std::size_t n = 0; n < files.size(); ++n) {
+    const auto records = ragexe::res::ParseLineRecords(ReadFile(files[n]));
+    std::printf("%zu ok %zu\n", n, records.size());
+    for (const auto& [name, lines] : records) {
+      std::printf("R %s %s\n", TextHash(name).c_str(), LinesHash(lines).c_str());
+    }
+  }
+  return 0;
+}
+
 int DecodeItemTables(const std::vector<std::string>& args) {
   if (args.empty()) return Usage();
   ragexe::res::ItemTableSettings settings;
@@ -971,6 +998,8 @@ int Usage() {
                "       ragres decode-ebms FILE...\n"
                "       ragres decode-wavs FILE...\n"
                "       ragres decode-name-pairs FILE...\n"
+               "       ragres decode-number-records FILE...\n"
+               "       ragres decode-line-records FILE...\n"
                "       ragres decode-item-tables DIR [--korea] [--code-page N]\n");
   return 2;
 }
@@ -1007,6 +1036,12 @@ int main(int argc, char** argv) {
   if (command == "decode-wavs") return DecodeWavs(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-name-pairs") {
     return DecodeNamePairs(std::vector<std::string>(argv + 2, argv + argc));
+  }
+  if (command == "decode-number-records") {
+    return DecodeNumberRecords(std::vector<std::string>(argv + 2, argv + argc));
+  }
+  if (command == "decode-line-records") {
+    return DecodeLineRecords(std::vector<std::string>(argv + 2, argv + argc));
   }
   if (command == "decode-item-tables") {
     return DecodeItemTables(std::vector<std::string>(argv + 2, argv + argc));

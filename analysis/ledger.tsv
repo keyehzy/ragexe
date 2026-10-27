@@ -5915,12 +5915,12 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0059c800	495	code	0	game		named	ClientState	SaveEmblemFile	
 0059c9f0	77	code	0	game		named	ClientState	GetEmblemFileName	
 0059ca40	19	code	0	game		named	ClientState	method_0059ca40	
-0059ca60	685	code	0	game		named	ClientState	method_0059ca60	
+0059ca60	685	code	0	game		named	ClientState	LoadLevelUseSkillSpAmount	
 0059cd60	98	code	1	stl		named	std::pair	~pair	
-0059cdd0	671	code	0	game		named	ClientState	method_0059cdd0	
+0059cdd0	671	code	0	game		named	ClientState	LoadSkillAfterDelay	
 0059d0d0	241	code	0	game		named	ClientState	method_0059d0d0	
 0059d1d0	32	code	0	game		named	Global	destroy_global_006865f8	
-0059d1f0	208	code	0	game		named	ClientState	method_0059d1f0	
+0059d1f0	208	code	0	game		named	ClientState	IndexSpAmountBySkillId	
 0059d2c0	19	code	0	game		named	ClientState	method_0059d2c0	
 0059d2e0	78	code	0	game		named	ClientState	method_0059d2e0	
 0059d330	15	code	0	game		named	Global	IsZero	
@@ -6073,7 +6073,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005a53b0	43	code	0	game		named	ClientState	method_005a53b0	
 005a53e0	41	code	0	game		named	ClientState	method_005a53e0	
 005a5410	146	code	0	game		named	ClientState	method_005a5410	
-005a54b0	1018	code	0	game		named	ClientState	method_005a54b0	
+005a54b0	1018	code	0	game		named	ClientState	LoadSkillDescTable	
 005a58b0	198	code	0	game		named	ClientState	method_005a58b0	
 005a5980	114	code	0	game		named	Global	destroy_global_00687f50	
 005a5a00	3713	code	0	game		named	ClientState	method_005a5a00	

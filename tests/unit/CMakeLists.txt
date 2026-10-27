@@ -108,10 +108,10 @@ if(RAGEXE_ARCHIVES)
     add_test(NAME item_tables_oracle
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/item_tables_oracle.py"
         --ragres $<TARGET_FILE:ragres> --install "${RAGEXE_INSTALL_DIR}")
-    # ClientState's name-pair tables, real and synthetic, against its loaders
-    # (tools/name_pairs_oracle.py).
-    add_test(NAME name_pairs_oracle
-      COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/name_pairs_oracle.py"
+    # ClientState's tables, real and synthetic, against its loaders
+    # (tools/client_tables_oracle.py).
+    add_test(NAME client_tables_oracle
+      COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/client_tables_oracle.py"
         --ragres $<TARGET_FILE:ragres> --install "${RAGEXE_INSTALL_DIR}")
     # Every palette, against the original conversion (tools/palette_oracle.py).
     add_test(NAME palette_oracle

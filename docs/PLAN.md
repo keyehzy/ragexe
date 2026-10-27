@@ -1876,10 +1876,21 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     line breaks, NULs, high bytes); every pair matches in order.
   - **Fuzzing:** `name_pairs_fuzz`, 8.6 million inputs with no findings.
 
+- [x] `ClientState`'s skill tables (`docs/formats/client_tables.md`):
+  - **`LevelUseskillSpAmount` and `skillAfterDelay`** are read by one loader into
+    records of a skill id and numbers, closed by `@`.
+  - **`skillDescTable`** is read into records of a skill id and lines. Every line break
+    after the id ends a line, so CRLF adds an empty one.
+  - **Both are sorted** with `Vc6Sort`.
+  - **The SP table's skill id index** (`0059d1f0`) is left to the skills.
+  - **The oracle** became `tools/client_tables_oracle.py`, covering all seven loaders.
+    Their real tables and 23 synthetic ones match.
+  - **Fuzzing:** `name_pairs_fuzz` became `client_tables_fuzz`, over all three
+    parsers: 3.2 million inputs with no findings.
+
 ### Next actions (M3)
 1. The rest of `ClientState`'s tables, each with a `ragres` mode and compared with the
    client in the emulation oracle:
-   - `skillDescTable`, `LevelUseskillSpAmount` and `skillAfterDelay`;
    - `msgStringTable`, `fogParameterTable` and `indoorRswTable`;
    - `PetTalkTable.xml`;
    - then `clientinfo.xml`.
