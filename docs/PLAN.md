@@ -1915,9 +1915,28 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
       the client.
   - **Fuzzing:** `xml_fuzz`, 48 million inputs with no findings.
 
+- [x] `clientinfo.xml` (`docs/formats/clientinfo.md`, `src/res/client_info`):
+  - **`ReadClientInfoSettings`** reads the service and server type and three flags.
+  - **`InitDefaultClientInfo`** fills the admin lists and, for the Korean service, the
+    built-in servers.
+  - **`LoadConnectionSettings`** applies a connection: address, port, version, the admin
+    ids, and its `langtype`, which replaces the service type.
+  - **`SelectLanguage`** picks the code page and charset.
+  - **The rest of `LoadClientInfo`** sets the executable, patcher, licence and registry
+    names.
+  - **Oracle** (`tools/clientinfo_oracle.py`, in `ctest` when the data is present):
+    - it reads back every global the client sets, the messages it shows, and the login
+      screen's connection list;
+    - `data.grf`'s file (three ways) and 54 synthetic files match;
+    - an `<aid>` with no `<admin>` faults in the client and fails in the port.
+  - **Fuzzing:** `clientinfo_fuzz`, 17 million inputs with no findings.
+
 ### Next actions (M3)
-1. `clientinfo.xml`'s settings (`ReadClientInfoSettings` and the connection list), with a
-   `ragres` mode and compared with the client in the emulation oracle.
+1. The last text readers: the tip of the day (`TipOfTheDayList::Load`, `004db290`) and
+   `manner.txt` (`MannerFilter`, from `WinMain`). Each gets a `ragres` mode and is
+   compared with the client in the emulation oracle.
+2. The M3 exit check: every entry of `data.grf` and the patches through the loader its
+   extension selects, with the failures accounted for.
 
    `C3dGrannyModelRes` (`.gr2`, through `granny2.dll`) is the one registered type not in
    the M3 list.

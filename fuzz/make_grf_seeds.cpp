@@ -2,13 +2,14 @@
 // decode paths, directory entries and a stream that breaks off, their tables, and a
 // ResNameTable.txt, small images of each kind the bitmap decoders read, sprites and
 // actions, attribute maps, grounds, worlds, models, animated models, .imf
-// and .rma files, effects, emblems, waves, item tables, ClientState's tables, and XML.
+// and .rma files, effects, emblems, waves, item tables, ClientState's tables, XML, and
+// clientinfo.xml.
 //
 //   make_grf_seeds DIR    writes DIR/grf_archive, DIR/grf_table, DIR/res_name_table,
 //                         DIR/bitmap, DIR/sprite, DIR/act, DIR/gat, DIR/gnd,
 //                         DIR/rsw, DIR/rsm, DIR/rsx, DIR/imf, DIR/rma, DIR/str,
 //                         DIR/ebm, DIR/wav, DIR/item_tables, DIR/client_tables
-//                         and DIR/xml
+//                         DIR/xml and DIR/clientinfo
 
 #include <zlib.h>
 
@@ -481,6 +482,7 @@ int main(int argc, char** argv) {
   std::filesystem::create_directories(dir / "item_tables");
   std::filesystem::create_directories(dir / "client_tables");
   std::filesystem::create_directories(dir / "xml");
+  std::filesystem::create_directories(dir / "clientinfo");
 
   std::vector<std::uint8_t> text(300);
   for (std::size_t i = 0; i < text.size(); ++i) text[i] = static_cast<std::uint8_t>('a' + i % 26);
@@ -613,6 +615,15 @@ int main(int argc, char** argv) {
       "\t<connection k=\"v\"><display>iRO &amp; &lt;test&gt;</display><aid/></connection>\r\n"
       "<!-- comment --></clientinfo>\r\n";
   Write(dir / "xml" / "small.bin", std::vector<std::uint8_t>(xml.begin(), xml.end()));
+  ++n;
+  const std::string clientinfo =
+      "<clientinfo><servicetype>america</servicetype><servertype>sakray</servertype>"
+      "<hideaccountlist/><connection><display>A</display><address>1.2.3.4</address>"
+      "<port>6900</port><version>18</version><langtype>1</langtype>"
+      "<aid><admin>5</admin><admin>-3</admin></aid></connection>"
+      "<connection><langtype>4</langtype></connection></clientinfo>";
+  Write(dir / "clientinfo" / "small.bin",
+        std::vector<std::uint8_t>(clientinfo.begin(), clientinfo.end()));
   ++n;
   std::printf("wrote %d seeds to %s\n", n, dir.string().c_str());
   return 0;

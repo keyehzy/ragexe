@@ -30,6 +30,10 @@
 //                                          indoorRswTable.txt, as ClientState does
 //   ragres decode-fog-parameters FILE...   decodes fogParameterTable.txt as ClientState does
 //   ragres decode-xml FILE...              parses XML files as XmlDocument does
+//   ragres decode-clientinfo [--connection N] FILE...
+//                                          reads clientinfo.xml files as LoadClientInfo
+//                                          does, then the Nth connection as the login
+//                                          screen would
 //   ragres decode-item-tables DIR [--korea] [--code-page N]
 //                                          loads the item and card tables from DIR's data
 //                                          folder as LoadItemTables does
@@ -52,6 +56,7 @@
 
 #include "res/act.h"
 #include "res/bitmap.h"
+#include "res/client_info.h"
 #include "res/client_tables.h"
 #include "res/data_files.h"
 #include "res/ebm.h"
@@ -999,6 +1004,80 @@ int DecodeXml(const std::vector<std::string>& files) {
   return failed == 0 ? 0 : 1;
 }
 
+// A string in double quotes, with '"', '\\' and bytes outside 0x20..0x7e escaped.
+std::string Quoted(std::string_view text) {
+  std::string out = "\"";
+  for (const char c : text) {
+    const auto b = static_cast<unsigned char>(c);
+    if (c == '"' || c == '\\') {
+      out.push_back('\\');
+      out.push_back(c);
+    } else if (b < 0x20 || b > 0x7e) {
+      char hex[5];
+      std::snprintf(hex, sizeof hex, "\\x%02x", b);
+      out += hex;
+    } else {
+      out.push_back(c);
+    }
+  }
+  return out + "\"";
+}
+
+void PrintClientInfo(const ragexe::res::ClientInfo& info) {
+  static constexpr const char* kLanguages[] = {"default", "traditional-chinese", "thai"};
+  std::printf("service_type %d\nserver_type %d\n", info.service_type, info.server_type);
+  std::printf("hide_account_list %d\npassword_encrypt %d\npassword_encrypt2 %d\n",
+              info.hide_account_list, info.password_encrypt, info.password_encrypt2);
+  std::printf("address %s\nport %s\nregistration_web %s\nversion %d\n",
+              Quoted(info.address).c_str(), Quoted(info.port).c_str(),
+              Quoted(info.registration_web).c_str(), info.version);
+  for (const auto& [name, ids] :
+       {std::pair{"admins_a", &info.admins_a}, std::pair{"admins_b", &info.admins_b}}) {
+    std::printf("%s %zu", name, ids->size());
+    for (const std::int32_t id : *ids) std::printf(" %d", id);
+    std::printf("\n");
+  }
+  std::printf("charset %d\ncode_page %u\nlanguage %s\n", info.charset, info.code_page,
+              kLanguages[static_cast<int>(info.language)]);
+  std::printf("flag_67c9cf %d\nflag_67c9d0 %d\nvalue_60bbd8 %d\n", info.flag_67c9cf,
+              info.flag_67c9d0, info.value_60bbd8);
+  for (const auto& [name, text] :
+       {std::pair{"licence", &info.licence}, std::pair{"registry_path", &info.registry_path},
+        std::pair{"game_name", &info.game_name}, std::pair{"executable", &info.executable},
+        std::pair{"patcher", &info.patcher}, std::pair{"run_message", &info.run_message}}) {
+    std::printf("%s %s\n", name, Quoted(*text).c_str());
+  }
+  for (const std::string& message : info.messages)
+    std::printf("message %s\n", Quoted(message).c_str());
+}
+
+int DecodeClientInfo(std::vector<std::string> args) {
+  int connection = -1;
+  if (args.size() >= 2 && args[0] == "--connection") {
+    connection = std::stoi(args[1]);
+    args.erase(args.begin(), args.begin() + 2);
+  }
+  int failed = 0;
+  for (std::size_t n = 0; n < args.size(); ++n) {
+    ragexe::res::XmlElement document;
+    ragexe::res::ClientInfo info;
+    std::string error;
+    if (!ragexe::res::ParseXml(ReadFile(args[n]), document, &error) ||
+        !ragexe::res::ReadClientInfo(document, info, &error) ||
+        (connection >= 0 && !ragexe::res::SelectConnection(document, connection, info, &error))) {
+      std::printf("%zu failed %s\n", n, error.c_str());
+      ++failed;
+      continue;
+    }
+    std::printf("%zu ok\n", n);
+    PrintClientInfo(info);
+    for (const auto& entry : ragexe::res::ListConnections(document)) {
+      std::printf("connection %s %s\n", Quoted(entry.display).c_str(), Quoted(entry.desc).c_str());
+    }
+  }
+  return failed == 0 ? 0 : 1;
+}
+
 int DecodeItemTables(const std::vector<std::string>& args) {
   if (args.empty()) return Usage();
   ragexe::res::ItemTableSettings settings;
@@ -1053,6 +1132,7 @@ int Usage() {
                "       ragres decode-fields [--sorted] FILE...\n"
                "       ragres decode-fog-parameters FILE...\n"
                "       ragres decode-xml FILE...\n"
+               "       ragres decode-clientinfo [--connection N] FILE...\n"
                "       ragres decode-item-tables DIR [--korea] [--code-page N]\n");
   return 2;
 }
@@ -1103,6 +1183,9 @@ int main(int argc, char** argv) {
     return DecodeFogParameters(std::vector<std::string>(argv + 2, argv + argc));
   }
   if (command == "decode-xml") return DecodeXml(std::vector<std::string>(argv + 2, argv + argc));
+  if (command == "decode-clientinfo") {
+    return DecodeClientInfo(std::vector<std::string>(argv + 2, argv + argc));
+  }
   if (command == "decode-item-tables") {
     return DecodeItemTables(std::vector<std::string>(argv + 2, argv + argc));
   }

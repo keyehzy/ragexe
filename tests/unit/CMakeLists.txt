@@ -1,6 +1,7 @@
 add_executable(ragexe_tests
   act_test.cpp
   bitmap_test.cpp
+  client_info_test.cpp
   client_tables_test.cpp
   ebm_test.cpp
   frame_timer_test.cpp
@@ -118,6 +119,11 @@ if(RAGEXE_ARCHIVES)
     # original parser (tools/xml_oracle.py).
     add_test(NAME xml_oracle
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/xml_oracle.py"
+        --ragres $<TARGET_FILE:ragres> --install "${RAGEXE_INSTALL_DIR}")
+    # clientinfo.xml, real and synthetic, against LoadClientInfo and the connection
+    # loaders (tools/clientinfo_oracle.py).
+    add_test(NAME clientinfo_oracle
+      COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/clientinfo_oracle.py"
         --ragres $<TARGET_FILE:ragres> --install "${RAGEXE_INSTALL_DIR}")
     # Every palette, against the original conversion (tools/palette_oracle.py).
     add_test(NAME palette_oracle

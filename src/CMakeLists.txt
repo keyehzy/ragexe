@@ -27,6 +27,7 @@ endif()
 add_library(ragexe_res STATIC
   res/act.cpp
   res/bitmap.cpp
+  res/client_info.cpp
   res/client_tables.cpp
   res/data_file.cpp
   res/data_files.cpp
