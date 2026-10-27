@@ -400,6 +400,9 @@ address	namespace	name	calling_convention	evidence
 004267f0	std::vector	operator=	__thiscall	(other*): assigns a vector of 4-byte elements, in place when it fits or reallocated, and returns this; 21 call sites, e.g. the record erase 00423520 for the int vector at +0xc.
 00426980	std	copy	__cdecl	(first, last, dest): copies 0x24-byte elements of first..last to dest without null checks and returns the destination end; ActFrame::operator= 00425d00 calls it at 00425e70.
 00426b90	Global	ConstructAttrCell	__thiscall	returns ECX unchanged: the trivial constructor of a 0x14-byte C3dAttr cell; C3dAttr::Resize 00426bf0 runs it on its local fill value at 00426c06.
+00426aa0	C3dAttr	Clone	__thiscall	vf02: operator new(0x12c) and the constructor 00426ba0
+00426eb0	C3dAttr	Reset	__thiscall	vf04: zeroes width +0x110 and height +0x114, keeping the cells
+00426ec0	C3dAttr	Load	__thiscall	vf03 (path): "GRAT", version 1.0 to 1.2, width, height, then width * height 0x14-byte cells (four corner heights and an attribute) in one DataFile::Read; another version shows "C3dAttr::Unsupported Version" and still succeeds (docs/formats/gat.md)
 00426bf0	C3dAttr	Resize	__thiscall	(width, height): calls virtual slot 4 (C3dAttr::vf04), grows or shrinks the vector of 0x14-byte cells at +0x11c..+0x128 to width * height (operator new, 00427530, 00427570), then stores width at +0x110 and height at +0x114; called by C3dAttr::vf03.
 00427050	C3dAttr	GetCellAttributeAt	__thiscall	(x, z): converts world coordinates to a cell with the cell size +0x118 and the grid +0x110 x +0x114 and returns the int at +0x10 of that 0x14-byte cell; outside the grid it reports the coordinates with 004cc140 and returns 1; called by 004c44a0 and 004c46e0.
 00427100	C3dAttr	CellToWorld	__thiscall	(cellX, cellZ, out*): out = ((cellX - width/2) * size, (cellZ - height/2) * size) using +0x110, +0x114 and the cell size +0x118; no callers.

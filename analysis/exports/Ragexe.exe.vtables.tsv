@@ -104,9 +104,9 @@ std::basic_streambuf<char,std::char_traits<char>_>	005e2894	0	11	00423140	std::b
 std::basic_streambuf<char,std::char_traits<char>_>	005e2894	0	12	00423150	std::basic_streambuf<char,std::char_traits<char>_>::vf12	
 C3dAttr	005e28dc	0	0	00426b00	C3dAttr::`scalar_deleting_destructor'	
 C3dAttr	005e28dc	0	1	00420880	CRes::LoadFromMemory	
-C3dAttr	005e28dc	0	2	00426aa0	C3dAttr::vf02	
-C3dAttr	005e28dc	0	3	00426ec0	C3dAttr::vf03	
-C3dAttr	005e28dc	0	4	00426eb0	C3dAttr::vf04	
+C3dAttr	005e28dc	0	2	00426aa0	C3dAttr::Clone	
+C3dAttr	005e28dc	0	3	00426ec0	C3dAttr::Load	
+C3dAttr	005e28dc	0	4	00426eb0	C3dAttr::Reset	
 C3dAttr	005e28dc	0	5	004df9d0	CRes::OnLoadError	
 CBitmapRes	005e28f8	0	0	004276d0	CBitmapRes::`scalar_deleting_destructor'	
 CBitmapRes	005e28f8	0	1	004278a0	CBitmapRes::LoadFromMemory	

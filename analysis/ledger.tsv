@@ -785,7 +785,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004269f0	10	code	0	res		named	Global	static_init_034	
 00426a00	32	code	0	res		named	Global	static_init_034_body	
 00426a20	118	code	0	res		named	C3dAttr	C3dAttr	
-00426aa0	89	code	0	res		named	C3dAttr	vf02	
+00426aa0	89	code	0	res		named	C3dAttr	Clone	
 00426b00	33	code	0	res		named	C3dAttr	`scalar_deleting_destructor'	
 00426b30	56	code	0	res		named	C3dAttr	~C3dAttr	
 00426b70	12	code	0	res		named	Global	register_destroy_g_C3dAttr	
@@ -793,8 +793,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00426b90	3	code	0	res		named	Global	ConstructAttrCell	
 00426ba0	76	code	0	res		named	C3dAttr	C3dAttr	
 00426bf0	700	code	0	res		named	C3dAttr	Resize	
-00426eb0	15	code	0	res		named	C3dAttr	vf04	
-00426ec0	400	code	0	res		named	C3dAttr	vf03	
+00426eb0	15	code	0	res		named	C3dAttr	Reset	
+00426ec0	400	code	0	res		named	C3dAttr	Load	
 00427050	171	code	0	res	dead	named	C3dAttr	GetCellAttributeAt	
 00427100	72	code	0	res	unreferenced	named	C3dAttr	CellToWorld	
 00427150	217	code	0	res		named	C3dAttr	GetHeight	

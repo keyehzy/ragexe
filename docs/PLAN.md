@@ -1653,8 +1653,19 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Oracle runs:** `tools/oracle_pool.py` spreads them over cores with progress. The
     full ACT run takes 6.5 minutes, and the sprite oracle uses the pool too.
 
+- [x] `C3dAttr` (`docs/formats/gat.md`, `src/res/gat`):
+  - **Format:** `GRAT` 1.0 to 1.2, then width × height cells of four corner heights and
+    an attribute; the cell size is 5.
+  - **Kept from the original:** an unsupported version still succeeds, with an empty
+    map.
+  - **Oracle** (`tools/gat_oracle.py`, in `ctest` when the data is present): all 208
+    maps in `data.grf` match the original `Load`, cell for cell, in 90 s.
+  - **Fuzzing:** `gat_fuzz`, 285 million inputs with no findings.
+  - **Queries:** `GetHeight` and the other queries are documented for M5, which ports
+    them with the walking code.
+
 ### Next actions (M3)
-1. The remaining loaders in dependency order (`C3dAttr`, `CGndRes`, `C3dWorldRes`, …),
+1. The remaining loaders in dependency order (`CGndRes`, `C3dWorldRes`, `C3dModelRes`, …),
    each registered with the resource manager, compared with the original in the
    emulation oracle (its `Load`, through `serve_data_files`), fuzzed, and with a
    `ragres` mode.

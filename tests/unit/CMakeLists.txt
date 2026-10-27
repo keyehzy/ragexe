@@ -2,6 +2,7 @@ add_executable(ragexe_tests
   act_test.cpp
   bitmap_test.cpp
   frame_timer_test.cpp
+  gat_test.cpp
   grf_test.cpp
   resource_test.cpp
   mode_switcher_test.cpp
@@ -48,6 +49,10 @@ if(RAGEXE_ARCHIVES)
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/act_oracle.py"
         --sample 40 --scales 00,11,10,01 --ragres $<TARGET_FILE:ragres>
         --archive "${RAGEXE_INSTALL_DIR}/data.grf")
+    # Every attribute map, against the original loader (tools/gat_oracle.py).
+    add_test(NAME gat_oracle
+      COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/gat_oracle.py"
+        --ragres $<TARGET_FILE:ragres> --archive "${RAGEXE_INSTALL_DIR}/data.grf")
     # Every palette, against the original conversion (tools/palette_oracle.py).
     add_test(NAME palette_oracle
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/palette_oracle.py"

@@ -100,6 +100,7 @@ The parsers have libFuzzer targets in `fuzz/`:
 | `bitmap_fuzz` | the BMP, TGA and JPEG decoders |
 | `sprite_fuzz` | the sprite decoder, at each detail level |
 | `act_fuzz` | the action decoder, with a stand-in sprite |
+| `gat_fuzz` | the attribute-map decoder |
 
 Each target aborts when an invariant breaks, which the fuzzer reports as a crash.
 
@@ -112,7 +113,7 @@ CC=$(brew --prefix llvm)/bin/clang CXX=$(brew --prefix llvm)/bin/clang++ cmake -
 ```
 
 ```bash
-cmake --build --preset fuzz --target grf_table_fuzz grf_archive_fuzz res_name_table_fuzz bitmap_fuzz sprite_fuzz act_fuzz make_grf_seeds
+cmake --build --preset fuzz --target grf_table_fuzz grf_archive_fuzz res_name_table_fuzz bitmap_fuzz sprite_fuzz act_fuzz gat_fuzz make_grf_seeds
 ```
 
 **Running one:** `make_grf_seeds` writes small valid archives and tables to start from,

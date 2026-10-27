@@ -1,10 +1,10 @@
 // Writes the seed inputs of the fuzz targets: small archives of each version, with both
 // decode paths, directory entries and a stream that breaks off, their tables, and a
 // ResNameTable.txt, small images of each kind the bitmap decoders read, sprites and
-// actions.
+// actions and attribute maps.
 //
 //   make_grf_seeds DIR    writes DIR/grf_archive, DIR/grf_table, DIR/res_name_table,
-//                         DIR/bitmap, DIR/sprite and DIR/act
+//                         DIR/bitmap, DIR/sprite, DIR/act and DIR/gat
 
 #include <cstdint>
 #include <cstdio>
@@ -205,6 +205,7 @@ int main(int argc, char** argv) {
   std::filesystem::create_directories(dir / "bitmap");
   std::filesystem::create_directories(dir / "sprite");
   std::filesystem::create_directories(dir / "act");
+  std::filesystem::create_directories(dir / "gat");
 
   std::vector<std::uint8_t> text(300);
   for (std::size_t i = 0; i < text.size(); ++i) text[i] = static_cast<std::uint8_t>('a' + i % 26);
@@ -259,6 +260,13 @@ int main(int argc, char** argv) {
     Write(dir / "act" / name, ActInput(static_cast<std::uint16_t>(version)));
     ++n;
   }
+  // A 3 x 2 attribute map, version 1.2.
+  std::vector<std::uint8_t> gat = {'G', 'R', 'A', 'T', 1, 2};
+  Put32(gat, 3);
+  Put32(gat, 2);
+  for (int i = 0; i < 6 * 20; ++i) gat.push_back(static_cast<std::uint8_t>(i % 5 == 4 ? 1 : 0));
+  Write(dir / "gat" / "small.bin", gat);
+  ++n;
   std::printf("wrote %d seeds to %s\n", n, dir.string().c_str());
   return 0;
 }

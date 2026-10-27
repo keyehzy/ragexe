@@ -9,6 +9,7 @@
 //                                          decodes .spr files as CSprRes does, as hashes
 //   ragres decode-acts [--halve-x] [--halve-y] FILE...
 //                                          decodes .act files as CActRes does, every field
+//   ragres decode-gats FILE...             decodes .gat files as C3dAttr does, as hashes
 //   ragres check ARCHIVE...                reads every compressed entry and checks its size;
 //                                          fails on an entry that cannot be read
 //
@@ -27,6 +28,7 @@
 
 #include "res/act.h"
 #include "res/bitmap.h"
+#include "res/gat.h"
 #include "res/grf.h"
 #include "res/palette.h"
 #include "res/resource.h"
@@ -378,6 +380,34 @@ int DecodeActs(const std::vector<std::string>& args) {
   return failed == 0 ? 0 : 1;
 }
 
+// Decodes .gat files as C3dAttr does and prints, per file, "n ok major minor width height
+// cell-size cells-hash" (FNV-1a over each cell's four float bits and attribute) or
+// "n failed error".
+int DecodeGats(const std::vector<std::string>& files) {
+  int failed = 0;
+  for (std::size_t n = 0; n < files.size(); ++n) {
+    std::ifstream in(files[n], std::ios::binary);
+    const std::vector<std::uint8_t> bytes((std::istreambuf_iterator<char>(in)),
+                                          std::istreambuf_iterator<char>());
+    ragexe::res::AttrMap map;
+    std::string error;
+    if (!ragexe::res::DecodeAttrMap(bytes, map, &error)) {
+      std::printf("%zu failed %s\n", n, error.c_str());
+      ++failed;
+      continue;
+    }
+    std::vector<std::uint32_t> values;
+    values.reserve(map.cells.size() * 5);
+    for (const auto& cell : map.cells) {
+      for (float h : cell.heights) values.push_back(FloatBits(h));
+      values.push_back(static_cast<std::uint32_t>(cell.attribute));
+    }
+    std::printf("%zu ok %u %u %d %d %d %016llx\n", n, map.major, map.minor, map.width, map.height,
+                map.cell_size, static_cast<unsigned long long>(Fnv1a64(values)));
+  }
+  return failed == 0 ? 0 : 1;
+}
+
 int Usage() {
   std::fprintf(stderr,
                "usage: ragres list ARCHIVE\n"
@@ -386,7 +416,8 @@ int Usage() {
                "       ragres decode-images DIR FILE...\n"
                "       ragres decode-palettes FILE...\n"
                "       ragres decode-sprites [--halve-x] [--halve-y] FILE...\n"
-               "       ragres decode-acts [--halve-x] [--halve-y] FILE...\n");
+               "       ragres decode-acts [--halve-x] [--halve-y] FILE...\n"
+               "       ragres decode-gats FILE...\n");
   return 2;
 }
 
@@ -410,6 +441,7 @@ int main(int argc, char** argv) {
   if (command == "decode-acts") {
     return DecodeActs(std::vector<std::string>(argv + 2, argv + argc));
   }
+  if (command == "decode-gats") return DecodeGats(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "check") {
     int status = 0;
     for (int i = 2; i < argc; ++i) status |= Check(argv[i]);
