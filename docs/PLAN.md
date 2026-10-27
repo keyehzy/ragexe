@@ -1757,8 +1757,28 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     files in `data.grf` and 8 synthetic ones match the original `Load`.
   - **Fuzzing:** `imf_fuzz`, 279 million inputs with no findings.
 
+- [x] `CRmaRes` (`docs/formats/rma.md`, `src/res/rma`):
+  - **Format:** text, read line by line through the client's `CTokenizer`. The lines are
+    `#rsxname`, `#action` (numbered records tied to the last name) and the interior and
+    shadow settings.
+  - **No data:** no `.rma` ships, and no getter has a caller. The client names one file,
+    `캐릭터\칼질몬스터.rma`, and since `Load` never checks the open, it loads empty and
+    succeeds. The port does the same.
+  - **The tokenizer** is ported quirk for quirk:
+    - `//` drops the token it cuts;
+    - a quote drops what came before it;
+    - a space ends a token only when it is not the line's first character;
+    - lines go into a 1023-character `getline` buffer, and the text stops at the first
+      NUL.
+  - **Oracle** (`tools/rma_oracle.py`, in `ctest`): 14 synthetic files match the original
+    `Load`, including the count of messages it shows. It loads one file before marking
+    the heap, because the first `istream` read builds the C locale's `ctype` facet there.
+  - **Where the port differs:** lines with too few tokens fail, where the original reads
+    past its token vector, and so do action numbers outside 0 to 65535.
+  - **Fuzzing:** `rma_fuzz`: its first run stopped on a wrong check of its own (an action number never given keeps name index 0 even with no names), kept as a regression; then 9.6 million inputs with no findings.
+
 ### Next actions (M3)
-1. The remaining loaders in dependency order (`CRmaRes`, `CEZeffectRes`, …),
+1. The remaining loaders in dependency order (`CEZeffectRes`, …),
    each registered with the resource manager, compared with the original in the
    emulation oracle (its `Load`, through `serve_data_files`), fuzzed, and with a
    `ragres` mode.

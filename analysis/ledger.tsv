@@ -673,13 +673,13 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00421b00	10	code	0	res		named	Global	static_init_032	
 00421b10	32	code	0	res		named	Global	static_init_032_body	
 00421b30	172	code	0	res		named	CRmaRes	CRmaRes	
-00421be0	89	code	0	res		named	CRmaRes	vf02	
+00421be0	89	code	0	res		named	CRmaRes	Clone	
 00421c40	33	code	0	res		named	CRmaRes	`scalar_deleting_destructor'	
 00421c70	12	code	0	res		named	Global	register_destroy_g_CRmaRes	
 00421c80	10	code	0	res		named	Global	destroy_g_CRmaRes	
 00421c90	149	code	0	res		named	CRmaRes	CRmaRes	
 00421d30	265	code	0	res		named	CRmaRes	~CRmaRes	
-00421e40	257	code	0	res		named	CRmaRes	vf04	
+00421e40	257	code	0	res		named	CRmaRes	Reset	
 00421f50	30	code	0	res	unreferenced	named	CRmaRes	GetActionRsxName	
 00421f70	29	code	0	res	unreferenced	named	CRmaRes	GetActionValue1	
 00421f90	28	code	0	res	unreferenced	named	CRmaRes	GetActionValue2	
@@ -687,7 +687,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00421fd0	59	code	0	res	unreferenced	named	CRmaRes	GetActionFirstListValue	
 00422010	86	code	0	res	unreferenced	named	CRmaRes	ActionListContains	
 00422070	92	code	0	res	unreferenced	named	CRmaRes	HasAction	
-004220d0	2643	code	0	res		named	CRmaRes	vf03	
+004220d0	2643	code	0	res		named	CRmaRes	Load	
 00422b30	118	code	0	res		named	CTokenizer	operator[]	
 00422bb0	231	code	1	stl		named	std::strstreambuf	strstreambuf	
 00422ca0	33	code	1	stl		named	std::strstreambuf	`scalar_deleting_destructor'	

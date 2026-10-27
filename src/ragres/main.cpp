@@ -16,6 +16,7 @@
 //   ragres decode-rsms FILE...             decodes .rsm files as C3dModelRes does
 //   ragres decode-rsxs FILE...             decodes .rsx files as C3dAnimModelRes does
 //   ragres decode-imfs FILE...             decodes .imf files as CImfRes does
+//   ragres decode-rmas FILE...             decodes .rma files as CRmaRes does
 //   ragres check ARCHIVE...                reads every compressed entry and checks its size;
 //                                          fails on an entry that cannot be read
 //
@@ -40,6 +41,7 @@
 #include "res/imf.h"
 #include "res/palette.h"
 #include "res/resource.h"
+#include "res/rma.h"
 #include "res/rsm.h"
 #include "res/rsw.h"
 #include "res/rsx.h"
@@ -744,6 +746,43 @@ int DecodeImfs(const std::vector<std::string>& files) {
   return failed == 0 ? 0 : 1;
 }
 
+// Decodes .rma files as CRmaRes does and prints, per file, "n ok interior-zoom-bits
+// shadow-zoom-bits offset-x offset-y frames frames message-count names actions", names
+// as count:hash of each name and a NUL, actions as count:hash of each action's three
+// values, list length, list and name index; or "n failed error".
+int DecodeRmas(const std::vector<std::string>& files) {
+  int failed = 0;
+  for (std::size_t n = 0; n < files.size(); ++n) {
+    ragexe::res::Rma rma;
+    std::string error;
+    if (!ragexe::res::DecodeRma(ReadFile(files[n]), rma, &error)) {
+      std::printf("%zu failed %s\n", n, error.c_str());
+      ++failed;
+      continue;
+    }
+    std::vector<std::uint8_t> names;
+    for (const std::string& name : rma.rsx_names) {
+      names.insert(names.end(), name.begin(), name.end());
+      names.push_back(0);
+    }
+    std::vector<std::uint32_t> actions;
+    for (const auto& action : rma.actions) {
+      for (std::int32_t v : {action.value_0, action.value_4, action.value_8,
+                             static_cast<std::int32_t>(action.list.size())})
+        actions.push_back(static_cast<std::uint32_t>(v));
+      for (std::int32_t v : action.list) actions.push_back(static_cast<std::uint32_t>(v));
+      actions.push_back(static_cast<std::uint32_t>(action.rsx));
+    }
+    std::printf("%zu ok %08x %08x %d %d %d %d %zu %zu:%016llx %zu:%016llx\n", n,
+                FloatBits(rma.interior_zoom), FloatBits(rma.shadow_zoom), rma.interior_offset_x,
+                rma.interior_offset_y, rma.interior_frames[0], rma.interior_frames[1],
+                rma.messages.size(), rma.rsx_names.size(),
+                static_cast<unsigned long long>(Fnv1a64(names)), rma.actions.size(),
+                static_cast<unsigned long long>(Fnv1a64(actions)));
+  }
+  return failed == 0 ? 0 : 1;
+}
+
 int Usage() {
   std::fprintf(stderr,
                "usage: ragres list ARCHIVE\n"
@@ -758,7 +797,8 @@ int Usage() {
                "       ragres decode-rsws [--no-lightmaps] FILE...\n"
                "       ragres decode-rsms FILE...\n"
                "       ragres decode-rsxs FILE...\n"
-               "       ragres decode-imfs FILE...\n");
+               "       ragres decode-imfs FILE...\n"
+               "       ragres decode-rmas FILE...\n");
   return 2;
 }
 
@@ -788,6 +828,7 @@ int main(int argc, char** argv) {
   if (command == "decode-rsms") return DecodeRsms(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-rsxs") return DecodeRsxs(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-imfs") return DecodeImfs(std::vector<std::string>(argv + 2, argv + argc));
+  if (command == "decode-rmas") return DecodeRmas(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "check") {
     int status = 0;
     for (int i = 2; i < argc; ++i) status |= Check(argv[i]);

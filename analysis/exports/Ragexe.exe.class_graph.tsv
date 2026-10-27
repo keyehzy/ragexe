@@ -15,7 +15,7 @@ CRmaRes	rtti	CRes@0	344	new	1	00421b30 00421c90		00421d30	00421c40	14	7	res	Hash
 std::ios_base	rtti		36	estimated	1			005b47de	005b482e	5	5	stl		
 std::basic_ios<char,std::char_traits<char>_>	rtti	std::ios_base@0	44	estimated	1		FUN_005b34e3; FUN_005b3667; FUN_005b3d04; FUN_005b3dcf; std::basic_ios<char,std::char_traits<char>_>::basic_ios<char,std::char_traits<char>_>; std::basic_ios<char,std::char_traits<char>_>::~basic_ios<char,std::char_traits<char>_>; std::basic_istream<char,std::char_traits<char>_>::basic_istream<char,std::char_traits<char>_>		004235b0	4	4	stl		
 std::basic_istream<char,std::char_traits<char>_>	rtti	std::basic_ios<char,std::char_traits<char>_>@0v0,4	48	estimated	1		std::basic_iostream<char,std::char_traits<char>_>::~basic_iostream<char,std::char_traits<char>_>; std::basic_istream<char,std::char_traits<char>_>::basic_istream<char,std::char_traits<char>_>; std::basic_istream<char,std::char_traits<char>_>::~basic_istream<char,std::char_traits<char>_>		004235e0	6	6	stl		
-std::istrstream	rtti	std::basic_istream<char,std::char_traits<char>_>@0	92	estimated	1		CRmaRes::vf03	005b349d	00422d70	3	3	stl		
+std::istrstream	rtti	std::basic_istream<char,std::char_traits<char>_>@0	92	estimated	1		CRmaRes::Load	005b349d	00422d70	3	3	stl		
 std::basic_streambuf<char,std::char_traits<char>_>	rtti		56	estimated	1		FUN_005b34e3; FUN_005b3667; std::basic_streambuf<char,std::char_traits<char>_>::~basic_streambuf<char,std::char_traits<char>_>		00423620	15	15	stl		
 std::strstreambuf	rtti	std::basic_streambuf<char,std::char_traits<char>_>@0	80	estimated	1	00422bb0		005b3798	00422ca0	9	9	stl		
 C3dAttr	rtti	CRes@0	300	new	1	00426a20 00426ba0		00426b30	00426b00	13	11	res	HashedFileName@0x10	

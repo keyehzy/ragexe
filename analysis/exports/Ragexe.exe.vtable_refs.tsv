@@ -53,7 +53,7 @@ CRmaRes	005e2818	00421bb7	CRmaRes::CRmaRes
 CRmaRes	005e2818	00421d0c	CRmaRes::CRmaRes
 CRmaRes	005e2818	00421d53	CRmaRes::~CRmaRes
 std::istrstream	005e2834	005b34b2	std::istrstream::~istrstream
-std::istrstream	005e2834	004221b0	CRmaRes::vf03
+std::istrstream	005e2834	004221b0	CRmaRes::Load
 std::strstreambuf	005e2844	005b3572	FUN_005b34e3
 std::strstreambuf	005e2844	005b36fd	FUN_005b3667
 std::strstreambuf	005e2844	005b37a9	std::strstreambuf::~strstreambuf

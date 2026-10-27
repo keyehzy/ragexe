@@ -1,12 +1,12 @@
 // Writes the seed inputs of the fuzz targets: small archives of each version, with both
 // decode paths, directory entries and a stream that breaks off, their tables, and a
 // ResNameTable.txt, small images of each kind the bitmap decoders read, sprites and
-// actions, attribute maps, grounds, worlds, models, animated models and
-// .imf files.
+// actions, attribute maps, grounds, worlds, models, animated models, .imf
+// and .rma files.
 //
 //   make_grf_seeds DIR    writes DIR/grf_archive, DIR/grf_table, DIR/res_name_table,
 //                         DIR/bitmap, DIR/sprite, DIR/act, DIR/gat, DIR/gnd,
-//                         DIR/rsw, DIR/rsm, DIR/rsx and DIR/imf
+//                         DIR/rsw, DIR/rsm, DIR/rsx, DIR/imf and DIR/rma
 
 #include <cstdint>
 #include <cstdio>
@@ -409,6 +409,7 @@ int main(int argc, char** argv) {
   std::filesystem::create_directories(dir / "rsm");
   std::filesystem::create_directories(dir / "rsx");
   std::filesystem::create_directories(dir / "imf");
+  std::filesystem::create_directories(dir / "rma");
 
   std::vector<std::uint8_t> text(300);
   for (std::size_t i = 0; i < text.size(); ++i) text[i] = static_cast<std::uint8_t>('a' + i % 26);
@@ -487,6 +488,12 @@ int main(int argc, char** argv) {
   Write(dir / "rsx" / "v1.3.bin", RsxInput());
   ++n;
   Write(dir / "imf" / "v1.01.bin", ImfInput());
+  ++n;
+  const std::string rma =
+      "// an .rma\n#rsxname door.rsx\n#rsxname \"gate b.rsx\"\n#action 0 4 1 2 3 4\n"
+      "#action 2 4 5 6\n#interiorzoom 1.5\n#interioroffsetx -4\n#interioroffsety 2\n"
+      "#interiorframes 3 7\n#shadowzoom .5\n";
+  Write(dir / "rma" / "sample.bin", std::vector<std::uint8_t>(rma.begin(), rma.end()));
   ++n;
   std::printf("wrote %d seeds to %s\n", n, dir.string().c_str());
   return 0;

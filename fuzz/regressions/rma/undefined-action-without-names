@@ -1,0 +1,10 @@
+// an .rma
+#psxname door.rsx
+#rsxna`e "gate b.rsx"
+#action 0 4 1 2 3 4
+#action 2 4 5 6
+#interiorzoom 1.5
+#interioroffsetx -4
+#inter)oroffsety 2
+#interiorframes 3 7
+#ruxnaxname .5
