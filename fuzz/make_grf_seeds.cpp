@@ -2,11 +2,12 @@
 // decode paths, directory entries and a stream that breaks off, their tables, and a
 // ResNameTable.txt, small images of each kind the bitmap decoders read, sprites and
 // actions, attribute maps, grounds, worlds, models, animated models, .imf
-// and .rma files.
+// and .rma files, and effects.
 //
 //   make_grf_seeds DIR    writes DIR/grf_archive, DIR/grf_table, DIR/res_name_table,
 //                         DIR/bitmap, DIR/sprite, DIR/act, DIR/gat, DIR/gnd,
-//                         DIR/rsw, DIR/rsm, DIR/rsx, DIR/imf and DIR/rma
+//                         DIR/rsw, DIR/rsm, DIR/rsx, DIR/imf, DIR/rma
+//                         and DIR/str
 
 #include <cstdint>
 #include <cstdio>
@@ -391,6 +392,28 @@ std::vector<std::uint8_t> ImfInput() {
   return out;
 }
 
+// An effect of two layers: two textures and three keys, then none and one.
+std::vector<std::uint8_t> StrInput() {
+  std::vector<std::uint8_t> out = {'S', 'T', 'R', 'M'};
+  for (std::uint32_t v : {0x94u, 60u, 30u, 2u, 0u, 0u, 0u, 0u}) Put32(out, v);
+  const std::pair<int, int> layers[2] = {{2, 3}, {0, 1}};
+  for (auto [textures, keys] : layers) {
+    Put32(out, static_cast<std::uint32_t>(textures));
+    for (int k = 0; k < textures; ++k) {
+      const std::string name = "spark" + std::to_string(k) + ".bmp";
+      out.insert(out.end(), name.begin(), name.end());
+      out.resize(out.size() + 0x80 - name.size(), 0);
+    }
+    Put32(out, static_cast<std::uint32_t>(keys));
+    for (int k = 0; k < keys; ++k) {
+      Put32(out, static_cast<std::uint32_t>(10 * k));
+      Put32(out, static_cast<std::uint32_t>(k % 2));
+      for (int v = 0; v < 29; ++v) Put32(out, 0x3f800000);
+    }
+  }
+  return out;
+}
+
 int main(int argc, char** argv) {
   if (argc != 2) {
     std::fprintf(stderr, "usage: make_grf_seeds DIR\n");
@@ -410,6 +433,7 @@ int main(int argc, char** argv) {
   std::filesystem::create_directories(dir / "rsx");
   std::filesystem::create_directories(dir / "imf");
   std::filesystem::create_directories(dir / "rma");
+  std::filesystem::create_directories(dir / "str");
 
   std::vector<std::uint8_t> text(300);
   for (std::size_t i = 0; i < text.size(); ++i) text[i] = static_cast<std::uint8_t>('a' + i % 26);
@@ -494,6 +518,8 @@ int main(int argc, char** argv) {
       "#action 2 4 5 6\n#interiorzoom 1.5\n#interioroffsetx -4\n#interioroffsety 2\n"
       "#interiorframes 3 7\n#shadowzoom .5\n";
   Write(dir / "rma" / "sample.bin", std::vector<std::uint8_t>(rma.begin(), rma.end()));
+  ++n;
+  Write(dir / "str" / "v0x94.bin", StrInput());
   ++n;
   std::printf("wrote %d seeds to %s\n", n, dir.string().c_str());
   return 0;

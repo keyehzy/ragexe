@@ -42,7 +42,8 @@ add_library(ragexe_res STATIC
   res/palette.cpp
   res/resource.cpp
   res/rma.cpp
-  res/sprite.cpp)
+  res/sprite.cpp
+  res/str.cpp)
 target_include_directories(ragexe_res PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(ragexe_res PRIVATE ZLIB::ZLIB ragexe_stb_image ragexe_options)
 

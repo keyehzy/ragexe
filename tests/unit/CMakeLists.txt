@@ -15,6 +15,7 @@ add_executable(ragexe_tests
   palette_test.cpp
   settings_test.cpp
   sprite_test.cpp
+  str_test.cpp
   windows_no_dialogs.cpp)
 target_include_directories(ragexe_tests PRIVATE ${PROJECT_SOURCE_DIR}/tests)
 target_link_libraries(ragexe_tests PRIVATE ragexe_game ragexe_res ragexe_stb_image ZLIB::ZLIB Catch2::Catch2WithMain ragexe_options)
@@ -84,6 +85,10 @@ if(RAGEXE_ARCHIVES)
     add_test(NAME rma_oracle
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/rma_oracle.py"
         --ragres $<TARGET_FILE:ragres>)
+    # Every effect, against the original loader (tools/str_oracle.py).
+    add_test(NAME str_oracle
+      COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/str_oracle.py"
+        --ragres $<TARGET_FILE:ragres> --archive "${RAGEXE_INSTALL_DIR}/data.grf")
     # Every palette, against the original conversion (tools/palette_oracle.py).
     add_test(NAME palette_oracle
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/palette_oracle.py"

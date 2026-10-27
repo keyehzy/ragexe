@@ -17,6 +17,7 @@
 //   ragres decode-rsxs FILE...             decodes .rsx files as C3dAnimModelRes does
 //   ragres decode-imfs FILE...             decodes .imf files as CImfRes does
 //   ragres decode-rmas FILE...             decodes .rma files as CRmaRes does
+//   ragres decode-strs FILE...             decodes .str files as CEZeffectRes does
 //   ragres check ARCHIVE...                reads every compressed entry and checks its size;
 //                                          fails on an entry that cannot be read
 //
@@ -46,6 +47,7 @@
 #include "res/rsw.h"
 #include "res/rsx.h"
 #include "res/sprite.h"
+#include "res/str.h"
 
 namespace {
 
@@ -783,6 +785,43 @@ int DecodeRmas(const std::vector<std::string>& files) {
   return failed == 0 ? 0 : 1;
 }
 
+// Decodes .str files as CEZeffectRes does and prints, per file, "n ok +0x110 +0x114
+// layer-count", then per layer "L index texture-count names keys", names as count:hash of
+// each name and a NUL and keys as count:hash of their 0x7c bytes; or "n failed error".
+int DecodeStrs(const std::vector<std::string>& files) {
+  int failed = 0;
+  for (std::size_t n = 0; n < files.size(); ++n) {
+    ragexe::res::Str str;
+    std::string error;
+    if (!ragexe::res::DecodeStr(ReadFile(files[n]), str, &error)) {
+      std::printf("%zu failed %s\n", n, error.c_str());
+      ++failed;
+      continue;
+    }
+    std::printf("%zu ok %d %d %zu\n", n, str.field_110, str.field_114, str.layers.size());
+    for (std::size_t k = 0; k < str.layers.size(); ++k) {
+      const auto& layer = str.layers[k];
+      std::vector<std::uint8_t> names;
+      for (const std::string& name : layer.textures) {
+        names.insert(names.end(), name.begin(), name.end());
+        names.push_back(0);
+      }
+      std::vector<std::uint8_t> keys;
+      for (const auto& key : layer.keys) {
+        std::uint8_t record[0x7c];
+        std::memcpy(record, &key.frame, 4);
+        std::memcpy(record + 4, &key.type, 4);
+        std::memcpy(record + 8, key.values.data(), sizeof key.values);
+        keys.insert(keys.end(), record, record + sizeof record);
+      }
+      std::printf("L %zu %d %zu:%016llx %zu:%016llx\n", k, layer.texture_count,
+                  layer.textures.size(), static_cast<unsigned long long>(Fnv1a64(names)),
+                  layer.keys.size(), static_cast<unsigned long long>(Fnv1a64(keys)));
+    }
+  }
+  return failed == 0 ? 0 : 1;
+}
+
 int Usage() {
   std::fprintf(stderr,
                "usage: ragres list ARCHIVE\n"
@@ -798,7 +837,8 @@ int Usage() {
                "       ragres decode-rsms FILE...\n"
                "       ragres decode-rsxs FILE...\n"
                "       ragres decode-imfs FILE...\n"
-               "       ragres decode-rmas FILE...\n");
+               "       ragres decode-rmas FILE...\n"
+               "       ragres decode-strs FILE...\n");
   return 2;
 }
 
@@ -829,6 +869,7 @@ int main(int argc, char** argv) {
   if (command == "decode-rsxs") return DecodeRsxs(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-imfs") return DecodeImfs(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-rmas") return DecodeRmas(std::vector<std::string>(argv + 2, argv + argc));
+  if (command == "decode-strs") return DecodeStrs(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "check") {
     int status = 0;
     for (int i = 2; i < argc; ++i) status |= Check(argv[i]);

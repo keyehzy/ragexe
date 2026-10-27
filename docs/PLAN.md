@@ -1777,8 +1777,21 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     past its token vector, and so do action numbers outside 0 to 65535.
   - **Fuzzing:** `rma_fuzz`: its first run stopped on a wrong check of its own (an action number never given keeps name index 0 even with no names), kept as a regression; then 9.6 million inputs with no findings.
 
+- [x] `CEZeffectRes` (`docs/formats/str.md`, `src/res/str`):
+  - **Format:** `STRM` version `0x94`, then layers of 128-byte texture names and 0x7c-byte
+    keyframes.
+  - **The original's loader** keeps the file open and points into it, as `CGndRes`
+    does. It points unused texture slots at "1.bmp", and checks neither its 60-layer
+    array nor its 110 slots per layer.
+  - **The player** is `CRagEffect`: type-0 keys set the values and the others add to
+    them. The meanings of the 29 values come with the effect player.
+  - **Oracle** (`tools/str_oracle.py`, in `ctest` when the data is present): all 137
+    effects in `data.grf` and 6 synthetic ones match the original `Load`, names read
+    through its pointers.
+  - **Fuzzing:** `str_fuzz`, 123 million inputs with no findings.
+
 ### Next actions (M3)
-1. The remaining loaders in dependency order (`CEZeffectRes`, …),
+1. The remaining loaders in dependency order (`CEmblemRes`, `CWave`, …),
    each registered with the resource manager, compared with the original in the
    emulation oracle (its `Load`, through `serve_data_files`), fuzzed, and with a
    `ragres` mode.

@@ -850,7 +850,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00428760	10	code	0	res		named	Global	static_init_042	
 00428770	32	code	0	res		named	Global	static_init_042_body	
 00428790	137	code	0	res		named	CEZeffectRes	CEZeffectRes	
-00428820	89	code	0	res		named	CEZeffectRes	vf02	
+00428820	89	code	0	res		named	CEZeffectRes	Clone	
 00428880	33	code	0	res		named	CEZeffectRes	`scalar_deleting_destructor'	
 004288b0	22	code	0	res		named	CEZeffectRes	DestroyEntryArray	
 004288d0	98	code	0	res		named	CEZeffectRes	~CEZeffectRes	
@@ -858,8 +858,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00428950	10	code	0	res		named	Global	destroy_g_CEZeffectRes	
 004289a0	243	code	0	res		named	Global	GetEffectEntryTexture	
 00428aa0	131	code	0	res		named	CEZeffectRes	CEZeffectRes	
-00428b30	31	code	0	res		named	CEZeffectRes	vf04	
-00428b50	748	code	0	res		named	CEZeffectRes	vf03	
+00428b30	31	code	0	res		named	CEZeffectRes	Reset	
+00428b50	748	code	0	res		named	CEZeffectRes	Load	
 00428e40	37	code	0	res		named	Global	static_init_043	
 00428e70	5	thunk	0	res		-	Global	static_init_044	
 00428e80	11	code	0	res		named	Global	static_init_044_body	
