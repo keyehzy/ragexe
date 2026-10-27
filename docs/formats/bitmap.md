@@ -2,7 +2,7 @@
 
 `CBitmapRes` (RTTI) holds one 32-bit image. It is registered for `bmp`, `tga` and `jpg`
 under `texture\` ([resources.md](resources.md#types)), and `CEmblemRes` keeps one at
-`+0x110` for guild emblems.
+`+0x110` for guild emblems ([ebm.md](ebm.md)).
 
 ## Members
 

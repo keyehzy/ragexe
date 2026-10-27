@@ -1790,8 +1790,31 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     through its pointers.
   - **Fuzzing:** `str_fuzz`, 123 million inputs with no findings.
 
+- [x] `CEmblemRes` (`docs/formats/ebm.md`, `src/res/ebm`):
+  - **Format:** a zlib stream of a BMP, written to `_tmpEmblem` from what the server
+    sends (`SaveEmblemFile`, `0059c800`). None ships in `data.grf`.
+  - **The original's loader** reads the file into an 8 KB stack buffer without checking
+    its size, then inflates it into another with `cps.dll`.
+    - **A length left at 8 KB** (an error, or an image that fills the buffer) or a BMP
+      that fails gives a white 24 × 24 emblem.
+    - **A decoded BMP** has its width and height clamped to 24, without moving its pixels.
+  - **`cps.dll` is zlib 1.0.4,** and the port follows what it accepts:
+    - a distance before the start of the output copies zeros, through a zeroed preset
+      dictionary;
+    - fixed-code length symbols 286 and 287, on which 1.0.4 copies without end (the load
+      fails through `Uncompress`'s exception handler), fail.
+  - **The emulator** gained `load_cps`, which maps the original `cps.dll` and sends the
+    client's imports to it, and a `lstrcmpiA` stub.
+  - **Oracle** (`tools/ebm_oracle.py`, in `ctest`): 31 synthetic emblems and 400 mutated
+    streams match the original `Load`, bitmap and inflated bytes compared separately.
+    - **Where 1.0.4 faults or runs away,** the port must not decode an image: at 3,000
+      mutations it fails 40 of 41 and gives the blank emblem for 1.
+    - **What the original builds from bytes nobody set** is compared only as far as the
+      inflated bytes.
+  - **Fuzzing:** `ebm_fuzz`, 66 million inputs with no findings.
+
 ### Next actions (M3)
-1. The remaining loaders in dependency order (`CEmblemRes`, `CWave`, …),
+1. The remaining loaders in dependency order (`CWave`, …),
    each registered with the resource manager, compared with the original in the
    emulation oracle (its `Load`, through `serve_data_files`), fuzzed, and with a
    `ragres` mode.

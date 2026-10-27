@@ -17,6 +17,7 @@ constructor, never runs. The parts of the CRT that need its own start-up are rep
 
   - DirectDraw 7 and Direct3D 7 are fakes that record every call (directx.py), reached
     through DirectDrawCreateEx.
+  - cps.dll's compress and uncompress have no stubs: load_cps() maps the original DLL in.
 
 call() pushes the arguments, sets ECX for __thiscall, returns to a sentinel address and
 gives back EAX, EDX and ST(0). Memory helpers place inputs in a scratch area and read
@@ -53,6 +54,9 @@ HEAP_BASE, HEAP_SIZE = 0x20000000, 0x04000000
 G_CGPAK, G_PCGPAK, CGPAK_VFTABLE = 0x67CD00, 0x67CD84, 0x5E8E50
 CGPAK_LOAD_FILE, CGPAK_FREE_FILE, CGPAK_EXISTS = 0x4DD9A0, 0x4DD9F0, 0x4DDA10
 SCRATCH_BASE, SCRATCH_SIZE = 0x30000000, 0x01000000
+# cps.dll, relocated from its preferred 0x10000000 (the stack); its default zalloc and
+# zfree, as offsets from its base (installed at 10003d45 and 10003d54 when a stream has none)
+CPS_BASE, CPS_ZALLOC, CPS_ZFREE = 0x60000000, 0x6B20, 0x6B40
 
 IOINIT = 0x5C9365                         # the start-up step before _cinit; builds __pioinfo
 FPINIT_POINTER = 0x61FE78                 # _cinit calls through it when it is non-zero
@@ -301,6 +305,36 @@ class Emulator:
         self.replace_thiscall(CGPAK_LOAD_FILE, 2, load_file)
         self.replace_thiscall(CGPAK_FREE_FILE, 1, lambda this, buffer: 0)
         self.replace_thiscall(CGPAK_EXISTS, 1, lambda this, key: int(self.read_cstr(key + 4, 256) in self.data_files))
+
+    def load_cps(self, path=None):
+        """Map cps.dll (zlib 1.0.4) at CPS_BASE and send the client's compress and
+        uncompress imports to it, so the original decompressor runs. Its DllMain and CRT
+        start-up never run: its default zalloc and zfree (CPS_ZALLOC, CPS_ZFREE) are
+        served from the emulated heap, and a call to any of its own imports stops the run.
+        Returns self."""
+        pe = pefile.PE(path or os.path.join(os.path.dirname(EXE), "cps.dll"))
+        pe.relocate_image(CPS_BASE)
+        size = _page_up(pe.OPTIONAL_HEADER.SizeOfImage)
+        self.uc.mem_map(CPS_BASE, size, UC_PROT_ALL)
+        self.uc.mem_write(CPS_BASE, pe.get_memory_mapped_image()[:size])
+        trap = CPS_BASE + size
+        imports = [(imp.address, f"{d.dll.decode()}!{imp.name.decode() if imp.name else imp.ordinal}")
+                   for d in pe.DIRECTORY_ENTRY_IMPORT for imp in d.imports]
+        self.uc.mem_map(trap, _page_up(len(imports) + 1), UC_PROT_READ | UC_PROT_EXEC)
+        for k, (iat, name) in enumerate(imports):
+            self.write_u32(iat, trap + k)
+        self.hook_code(trap, trap + len(imports) - 1, lambda uc, address, size, _: self.fault(
+            f"cps.dll called its import {imports[address - trap][1]}"))
+        exports = {e.name.decode(): CPS_BASE + e.address for e in pe.DIRECTORY_ENTRY_EXPORT.symbols}
+        for iat, name in ((imp.address, imp.name.decode()) for d in self.pe.DIRECTORY_ENTRY_IMPORT
+                          if d.dll.decode().upper() == "CPS.DLL" for imp in d.imports):
+            self.uc.mem_protect(iat & ~0xFFF, 0x1000, UC_PROT_READ | UC_PROT_WRITE)
+            self.write_u32(iat, exports[name])
+            self.uc.mem_protect(iat & ~0xFFF, 0x1000, UC_PROT_READ)
+        zalloc, zfree = CPS_BASE + CPS_ZALLOC, CPS_BASE + CPS_ZFREE
+        self.hook_code(zalloc, zalloc, self._runtime_hook(3, lambda opaque, n, size: self.alloc(n * size)))
+        self.hook_code(zfree, zfree, self._runtime_hook(2, lambda opaque, block: self.freed.append(block) or 0))
+        return self
 
     def hook_code(self, begin, end, fn):
         self.uc.hook_add(UC_HOOK_CODE, fn, begin=begin, end=end)

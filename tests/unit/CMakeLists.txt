@@ -1,6 +1,7 @@
 add_executable(ragexe_tests
   act_test.cpp
   bitmap_test.cpp
+  ebm_test.cpp
   frame_timer_test.cpp
   gat_test.cpp
   gnd_test.cpp
@@ -89,6 +90,11 @@ if(RAGEXE_ARCHIVES)
     add_test(NAME str_oracle
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/str_oracle.py"
         --ragres $<TARGET_FILE:ragres> --archive "${RAGEXE_INSTALL_DIR}/data.grf")
+    # Synthetic emblems and mutated streams, against the original loader and cps.dll
+    # (tools/ebm_oracle.py).
+    add_test(NAME ebm_oracle
+      COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/ebm_oracle.py"
+        --ragres $<TARGET_FILE:ragres>)
     # Every palette, against the original conversion (tools/palette_oracle.py).
     add_test(NAME palette_oracle
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/palette_oracle.py"

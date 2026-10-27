@@ -87,6 +87,7 @@ class WinApi:
             "HeapSize": Stub(3, lambda heap, flags, block: e.blocks.get(block, 0)),
             "HeapCompact": Stub(2, lambda heap, flags: 0),
             "lstrlenA": Stub(1, lambda p: len(e.read_cstr(p)) if p else 0),
+            "lstrcmpiA": Stub(2, self.lstrcmpi),
             "OutputDebugStringA": Stub(1, lambda p: 0),
             "CreateFileA": Stub(7, self.create_file),
             "ReadFile": Stub(5, self.read_file),
@@ -174,6 +175,12 @@ class WinApi:
         """A STARTUPINFOA with only cb set: no inherited handles (cbReserved2 = 0)."""
         self.emu.mem_write(out, struct.pack("<I", STARTUPINFO_SIZE) + b"\0" * (STARTUPINFO_SIZE - 4))
         return 0
+
+    def lstrcmpi(self, a, b):
+        """Case-insensitive, by code point: the word sort of the real call orders some
+        punctuation differently, but equality, all the client tests, is the same."""
+        x, y = (self.emu.read_cstr(p).lower() if p else "" for p in (a, b))
+        return (x > y) - (x < y)
 
     def not_implemented(self, *args):
         """The wide-character functions are absent, as on Windows 9x; the CRT falls back to

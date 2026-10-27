@@ -18,6 +18,8 @@
 //   ragres decode-imfs FILE...             decodes .imf files as CImfRes does
 //   ragres decode-rmas FILE...             decodes .rma files as CRmaRes does
 //   ragres decode-strs FILE...             decodes .str files as CEZeffectRes does
+//   ragres decode-ebms FILE...             decodes .ebm files as CEmblemRes does, with the
+//                                          bytes it inflates
 //   ragres check ARCHIVE...                reads every compressed entry and checks its size;
 //                                          fails on an entry that cannot be read
 //
@@ -36,6 +38,7 @@
 
 #include "res/act.h"
 #include "res/bitmap.h"
+#include "res/ebm.h"
 #include "res/gat.h"
 #include "res/gnd.h"
 #include "res/grf.h"
@@ -822,6 +825,34 @@ int DecodeStrs(const std::vector<std::string>& files) {
   return failed == 0 ? 0 : 1;
 }
 
+int DecodeEbms(const std::vector<std::string>& files) {
+  int failed = 0;
+  for (std::size_t n = 0; n < files.size(); ++n) {
+    ragexe::res::Bitmap emblem;
+    std::string error;
+    if (!ragexe::res::DecodeEmblem(ReadFile(files[n]), emblem, &error)) {
+      std::printf("%zu failed %s\n", n, error.c_str());
+      ++failed;
+      continue;
+    }
+    std::vector<std::uint8_t> pixels(emblem.pixels.size() * 4);
+    std::memcpy(pixels.data(), emblem.pixels.data(), pixels.size());
+    std::printf("%zu ok %d %d %zu:%016llx\n", n, emblem.width, emblem.height, emblem.pixels.size(),
+                static_cast<unsigned long long>(Fnv1a64(pixels)));
+    // The inflated bytes the client hands to its bitmap, or "-" where it hands none.
+    std::vector<std::uint8_t> inflated;
+    if (ragexe::res::InflateEmblem(ReadFile(files[n]), inflated) ==
+            ragexe::res::EmblemInflate::kInflated &&
+        inflated.size() != ragexe::res::kEmblemBufferSize) {
+      std::printf("I %zu:%016llx\n", inflated.size(),
+                  static_cast<unsigned long long>(Fnv1a64(inflated)));
+    } else {
+      std::printf("I -\n");
+    }
+  }
+  return failed == 0 ? 0 : 1;
+}
+
 int Usage() {
   std::fprintf(stderr,
                "usage: ragres list ARCHIVE\n"
@@ -838,7 +869,8 @@ int Usage() {
                "       ragres decode-rsxs FILE...\n"
                "       ragres decode-imfs FILE...\n"
                "       ragres decode-rmas FILE...\n"
-               "       ragres decode-strs FILE...\n");
+               "       ragres decode-strs FILE...\n"
+               "       ragres decode-ebms FILE...\n");
   return 2;
 }
 
@@ -870,6 +902,7 @@ int main(int argc, char** argv) {
   if (command == "decode-imfs") return DecodeImfs(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-rmas") return DecodeRmas(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-strs") return DecodeStrs(std::vector<std::string>(argv + 2, argv + argc));
+  if (command == "decode-ebms") return DecodeEbms(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "check") {
     int status = 0;
     for (int i = 2; i < argc; ++i) status |= Check(argv[i]);

@@ -836,15 +836,15 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00428330	10	code	0	res		named	Global	static_init_040	
 00428340	32	code	0	res		named	Global	static_init_040_body	
 00428360	104	code	0	res		named	CEmblemRes	CEmblemRes	
-004283d0	89	code	0	res		named	CEmblemRes	vf02	
-00428430	3	code	0	res		named	CEmblemRes	vf05	
+004283d0	89	code	0	res		named	CEmblemRes	Clone	
+00428430	3	code	0	res		named	CEmblemRes	OnLoadError	
 00428440	33	code	0	res		named	CEmblemRes	`scalar_deleting_destructor'	
 00428470	17	code	0	res		named	CEmblemRes	~CEmblemRes	
 00428490	12	code	0	res		named	Global	register_destroy_g_CEmblemRes	
 004284a0	10	code	0	res		named	Global	destroy_g_CEmblemRes	
 004284b0	77	code	0	res		named	CEmblemRes	CEmblemRes	
-00428500	358	code	0	res		named	CEmblemRes	vf03	
-00428670	15	code	0	res		named	CEmblemRes	vf04	
+00428500	358	code	0	res		named	CEmblemRes	Load	
+00428670	15	code	0	res		named	CEmblemRes	Reset	
 00428680	111	code	0	res		named	CEmblemRes	Uncompress	
 00428730	37	code	0	res		named	Global	static_init_041	
 00428760	10	code	0	res		named	Global	static_init_042	
@@ -5912,8 +5912,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0059c3d0	303	code	0	game		named	ClientState	DecodeScrambledValue	
 0059c500	408	code	0	game		named	ClientState	PreloadSpriteResources	
 0059c6a0	338	code	0	game	unreferenced	raw	Global	FUN_0059c6a0	
-0059c800	495	code	0	game		named	ClientState	method_0059c800	
-0059c9f0	77	code	0	game		named	ClientState	method_0059c9f0	
+0059c800	495	code	0	game		named	ClientState	SaveEmblemFile	
+0059c9f0	77	code	0	game		named	ClientState	GetEmblemFileName	
 0059ca40	19	code	0	game		named	ClientState	method_0059ca40	
 0059ca60	685	code	0	game		named	ClientState	method_0059ca60	
 0059cd60	98	code	1	stl		named	std::pair	~pair	

@@ -2,12 +2,14 @@
 // decode paths, directory entries and a stream that breaks off, their tables, and a
 // ResNameTable.txt, small images of each kind the bitmap decoders read, sprites and
 // actions, attribute maps, grounds, worlds, models, animated models, .imf
-// and .rma files, and effects.
+// and .rma files, effects, and emblems.
 //
 //   make_grf_seeds DIR    writes DIR/grf_archive, DIR/grf_table, DIR/res_name_table,
 //                         DIR/bitmap, DIR/sprite, DIR/act, DIR/gat, DIR/gnd,
-//                         DIR/rsw, DIR/rsm, DIR/rsx, DIR/imf, DIR/rma
-//                         and DIR/str
+//                         DIR/rsw, DIR/rsm, DIR/rsx, DIR/imf, DIR/rma, DIR/str
+//                         and DIR/ebm
+
+#include <zlib.h>
 
 #include <cstdint>
 #include <cstdio>
@@ -414,6 +416,15 @@ std::vector<std::uint8_t> StrInput() {
   return out;
 }
 
+// An emblem: a BMP, zlib-compressed.
+std::vector<std::uint8_t> EbmInput(const std::vector<std::uint8_t>& bmp) {
+  uLongf size = compressBound(static_cast<uLong>(bmp.size()));
+  std::vector<std::uint8_t> out(size);
+  compress(out.data(), &size, bmp.data(), static_cast<uLong>(bmp.size()));
+  out.resize(size);
+  return out;
+}
+
 int main(int argc, char** argv) {
   if (argc != 2) {
     std::fprintf(stderr, "usage: make_grf_seeds DIR\n");
@@ -434,6 +445,7 @@ int main(int argc, char** argv) {
   std::filesystem::create_directories(dir / "imf");
   std::filesystem::create_directories(dir / "rma");
   std::filesystem::create_directories(dir / "str");
+  std::filesystem::create_directories(dir / "ebm");
 
   std::vector<std::uint8_t> text(300);
   for (std::size_t i = 0; i < text.size(); ++i) text[i] = static_cast<std::uint8_t>('a' + i % 26);
@@ -521,6 +533,10 @@ int main(int argc, char** argv) {
   ++n;
   Write(dir / "str" / "v0x94.bin", StrInput());
   ++n;
+  Write(dir / "ebm" / "bmp24.bin", EbmInput(Bmp(24, 24, 24)));
+  Write(dir / "ebm" / "bmp8.bin", EbmInput(Bmp(8, 24, 24)));
+  Write(dir / "ebm" / "wide.bin", EbmInput(Bmp(24, 30, 20)));
+  n += 3;
   std::printf("wrote %d seeds to %s\n", n, dir.string().c_str());
   return 0;
 }
