@@ -170,9 +170,9 @@ CSprRes	005e2a74	0	4	00434110	CSprRes::Reset
 CSprRes	005e2a74	0	5	004df9d0	CRes::OnLoadError	
 CWave	005e2a90	0	0	004353e0	CWave::`scalar_deleting_destructor'	
 CWave	005e2a90	0	1	00420880	CRes::LoadFromMemory	
-CWave	005e2a90	0	2	00435380	CWave::vf02	
-CWave	005e2a90	0	3	004354a0	CWave::vf03	
-CWave	005e2a90	0	4	00435460	CWave::vf04	
+CWave	005e2a90	0	2	00435380	CWave::Clone	
+CWave	005e2a90	0	3	004354a0	CWave::Load	
+CWave	005e2a90	0	4	00435460	CWave::Reset	
 CWave	005e2a90	0	5	004df9d0	CRes::OnLoadError	
 C3dWorldRes	005e2ab8	0	0	004359a0	C3dWorldRes::`scalar_deleting_destructor'	
 C3dWorldRes	005e2ab8	0	1	00420880	CRes::LoadFromMemory	

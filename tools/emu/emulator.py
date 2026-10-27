@@ -17,7 +17,8 @@ constructor, never runs. The parts of the CRT that need its own start-up are rep
 
   - DirectDraw 7 and Direct3D 7 are fakes that record every call (directx.py), reached
     through DirectDrawCreateEx.
-  - cps.dll's compress and uncompress have no stubs: load_cps() maps the original DLL in.
+  - cps.dll and Mss32.dll have no stubs: load_cps() and load_mss() map the original DLLs
+    in.
 
 call() pushes the arguments, sets ECX for __thiscall, returns to a sentinel address and
 gives back EAX, EDX and ST(0). Memory helpers place inputs in a scratch area and read
@@ -57,6 +58,7 @@ SCRATCH_BASE, SCRATCH_SIZE = 0x30000000, 0x01000000
 # cps.dll, relocated from its preferred 0x10000000 (the stack); its default zalloc and
 # zfree, as offsets from its base (installed at 10003d45 and 10003d54 when a stream has none)
 CPS_BASE, CPS_ZALLOC, CPS_ZFREE = 0x60000000, 0x6B20, 0x6B40
+MSS_BASE = 0x61000000         # Mss32.dll, relocated from 0x21100000 (the heap)
 
 IOINIT = 0x5C9365                         # the start-up step before _cinit; builds __pioinfo
 FPINIT_POINTER = 0x61FE78                 # _cinit calls through it when it is non-zero
@@ -201,13 +203,14 @@ class Emulator:
         for addr, (nargs, fn) in hooks.items():
             self.uc.hook_add(UC_HOOK_CODE, self._runtime_hook(nargs, fn), begin=addr, end=addr)
 
-    def _runtime_hook(self, nargs, fn):
+    def _runtime_hook(self, nargs, fn, stdcall=False):
         def hook(uc, address, size, _):
             esp = uc.reg_read(UC_X86_REG_ESP)
             ret = self.read_u32(esp)
             args = [self.read_u32(esp + 4 + 4 * k) for k in range(nargs)]
             uc.reg_write(UC_X86_REG_EAX, fn(*args) & 0xFFFFFFFF)
-            uc.reg_write(UC_X86_REG_ESP, esp + 4)                # cdecl: the caller pops the arguments
+            # cdecl leaves the arguments to the caller; stdcall pops them
+            uc.reg_write(UC_X86_REG_ESP, esp + 4 + (4 * nargs if stdcall else 0))
             uc.reg_write(UC_X86_REG_EIP, ret)
         return hook
 
@@ -308,33 +311,50 @@ class Emulator:
 
     def load_cps(self, path=None):
         """Map cps.dll (zlib 1.0.4) at CPS_BASE and send the client's compress and
-        uncompress imports to it, so the original decompressor runs. Its DllMain and CRT
-        start-up never run: its default zalloc and zfree (CPS_ZALLOC, CPS_ZFREE) are
-        served from the emulated heap, and a call to any of its own imports stops the run.
-        Returns self."""
-        pe = pefile.PE(path or os.path.join(os.path.dirname(EXE), "cps.dll"))
-        pe.relocate_image(CPS_BASE)
+        uncompress imports to it, so the original decompressor runs. Its default zalloc and
+        zfree (CPS_ZALLOC, CPS_ZFREE) are served from the emulated heap. Returns self."""
+        self._load_dll(path or os.path.join(os.path.dirname(EXE), "cps.dll"), CPS_BASE)
+        zalloc, zfree = CPS_BASE + CPS_ZALLOC, CPS_BASE + CPS_ZFREE
+        self.hook_code(zalloc, zalloc, self._runtime_hook(3, lambda opaque, n, size: self.alloc(n * size)))
+        self.hook_code(zfree, zfree, self._runtime_hook(2, lambda opaque, block: self.freed.append(block) or 0))
+        return self
+
+    def load_mss(self, path=None):
+        """Map Mss32.dll (Miles Sound System 6.1a) at MSS_BASE and send the client's imports
+        of it to it, so that its file-type check and decoders run. AIL_mem_alloc_lock and
+        AIL_mem_free_lock are served from the emulated heap. Returns self."""
+        exports = self._load_dll(path or os.path.join(os.path.dirname(EXE), "Mss32.dll"), MSS_BASE)
+        alloc, free = exports["_AIL_mem_alloc_lock@4"], exports["_AIL_mem_free_lock@4"]
+        self.hook_code(alloc, alloc, self._runtime_hook(1, self.alloc, stdcall=True))
+        self.hook_code(free, free, self._runtime_hook(1, lambda block: self.freed.append(block) or 0,
+                                                      stdcall=True))
+        return self
+
+    def _load_dll(self, path, base):
+        """Map a DLL at base, relocated, and send the client's imports of it there. Its
+        DllMain and CRT start-up never run, and a call to any of its own imports stops the
+        run. Returns its exports by name."""
+        pe = pefile.PE(path)
+        pe.relocate_image(base)
         size = _page_up(pe.OPTIONAL_HEADER.SizeOfImage)
-        self.uc.mem_map(CPS_BASE, size, UC_PROT_ALL)
-        self.uc.mem_write(CPS_BASE, pe.get_memory_mapped_image()[:size])
-        trap = CPS_BASE + size
+        self.uc.mem_map(base, size, UC_PROT_ALL)
+        self.uc.mem_write(base, pe.get_memory_mapped_image()[:size])
+        dll = os.path.basename(path)
+        trap = base + size
         imports = [(imp.address, f"{d.dll.decode()}!{imp.name.decode() if imp.name else imp.ordinal}")
                    for d in pe.DIRECTORY_ENTRY_IMPORT for imp in d.imports]
         self.uc.mem_map(trap, _page_up(len(imports) + 1), UC_PROT_READ | UC_PROT_EXEC)
         for k, (iat, name) in enumerate(imports):
             self.write_u32(iat, trap + k)
         self.hook_code(trap, trap + len(imports) - 1, lambda uc, address, size, _: self.fault(
-            f"cps.dll called its import {imports[address - trap][1]}"))
-        exports = {e.name.decode(): CPS_BASE + e.address for e in pe.DIRECTORY_ENTRY_EXPORT.symbols}
+            f"{dll} called its import {imports[address - trap][1]}"))
+        exports = {e.name.decode(): base + e.address for e in pe.DIRECTORY_ENTRY_EXPORT.symbols if e.name}
         for iat, name in ((imp.address, imp.name.decode()) for d in self.pe.DIRECTORY_ENTRY_IMPORT
-                          if d.dll.decode().upper() == "CPS.DLL" for imp in d.imports):
+                          if d.dll.decode().upper() == dll.upper() for imp in d.imports):
             self.uc.mem_protect(iat & ~0xFFF, 0x1000, UC_PROT_READ | UC_PROT_WRITE)
             self.write_u32(iat, exports[name])
             self.uc.mem_protect(iat & ~0xFFF, 0x1000, UC_PROT_READ)
-        zalloc, zfree = CPS_BASE + CPS_ZALLOC, CPS_BASE + CPS_ZFREE
-        self.hook_code(zalloc, zalloc, self._runtime_hook(3, lambda opaque, n, size: self.alloc(n * size)))
-        self.hook_code(zfree, zfree, self._runtime_hook(2, lambda opaque, block: self.freed.append(block) or 0))
-        return self
+        return exports
 
     def hook_code(self, begin, end, fn):
         self.uc.hook_add(UC_HOOK_CODE, fn, begin=begin, end=end)

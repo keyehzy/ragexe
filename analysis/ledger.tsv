@@ -1107,14 +1107,14 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004352f0	10	code	0	res		named	Global	static_init_060	
 00435300	32	code	0	res		named	Global	static_init_060_body	
 00435320	89	code	0	res		named	CWave	CWave	
-00435380	89	code	0	res		named	CWave	vf02	
+00435380	89	code	0	res		named	CWave	Clone	
 004353e0	33	code	0	res		named	CWave	`scalar_deleting_destructor'	
 00435410	7	code	0	res		named	CWave	~CWave	
 00435420	12	code	0	res		named	Global	register_destroy_g_CWave	
 00435430	10	code	0	res		named	Global	destroy_g_CWave	
 00435440	32	code	0	res		named	CWave	CWave	
-00435460	64	code	0	res		named	CWave	vf04	
-004354a0	671	code	0	res		named	CWave	vf03	
+00435460	64	code	0	res		named	CWave	Reset	
+004354a0	671	code	0	res		named	CWave	Load	
 00435740	100	code	0	res		named	CWave	Play	
 004357b0	37	code	0	res		named	Global	static_init_061	
 004357e0	5	thunk	0	res		-	Global	static_init_062	

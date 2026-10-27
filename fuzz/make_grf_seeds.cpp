@@ -2,12 +2,12 @@
 // decode paths, directory entries and a stream that breaks off, their tables, and a
 // ResNameTable.txt, small images of each kind the bitmap decoders read, sprites and
 // actions, attribute maps, grounds, worlds, models, animated models, .imf
-// and .rma files, effects, and emblems.
+// and .rma files, effects, emblems, and waves.
 //
 //   make_grf_seeds DIR    writes DIR/grf_archive, DIR/grf_table, DIR/res_name_table,
 //                         DIR/bitmap, DIR/sprite, DIR/act, DIR/gat, DIR/gnd,
-//                         DIR/rsw, DIR/rsm, DIR/rsx, DIR/imf, DIR/rma, DIR/str
-//                         and DIR/ebm
+//                         DIR/rsw, DIR/rsm, DIR/rsx, DIR/imf, DIR/rma, DIR/str,
+//                         DIR/ebm and DIR/wav
 
 #include <zlib.h>
 
@@ -425,6 +425,36 @@ std::vector<std::uint8_t> EbmInput(const std::vector<std::uint8_t>& bmp) {
   return out;
 }
 
+// A wave: format tag, channels, bits and block size, with a "fact" chunk when samples is
+// not 0, and data of the given size.
+std::vector<std::uint8_t> WavInput(std::uint16_t tag, std::uint16_t channels, std::uint16_t bits,
+                                   std::uint16_t align, std::uint32_t samples,
+                                   std::uint32_t data_size) {
+  std::vector<std::uint8_t> out = {'R', 'I', 'F', 'F'};
+  const std::uint32_t fact = samples != 0 ? 12 : 0;
+  Put32(out, 4 + 24 + fact + 8 + data_size);
+  for (char c : std::string("WAVEfmt ")) out.push_back(static_cast<std::uint8_t>(c));
+  Put32(out, 16);
+  Put16(out, tag);
+  Put16(out, channels);
+  Put32(out, 22050);
+  Put32(out, 22050u * align);
+  Put16(out, align);
+  Put16(out, bits);
+  if (samples != 0) {
+    for (char c : std::string("fact")) out.push_back(static_cast<std::uint8_t>(c));
+    Put32(out, 4);
+    Put32(out, samples);
+  }
+  for (char c : std::string("data")) out.push_back(static_cast<std::uint8_t>(c));
+  Put32(out, data_size);
+  for (std::uint32_t i = 0; i < data_size; ++i) {
+    // Each block header's step index (its third byte) stays in range.
+    out.push_back(static_cast<std::uint8_t>(i % 4 == 2 ? i % 89 : i * 13));
+  }
+  return out;
+}
+
 int main(int argc, char** argv) {
   if (argc != 2) {
     std::fprintf(stderr, "usage: make_grf_seeds DIR\n");
@@ -446,6 +476,7 @@ int main(int argc, char** argv) {
   std::filesystem::create_directories(dir / "rma");
   std::filesystem::create_directories(dir / "str");
   std::filesystem::create_directories(dir / "ebm");
+  std::filesystem::create_directories(dir / "wav");
 
   std::vector<std::uint8_t> text(300);
   for (std::size_t i = 0; i < text.size(); ++i) text[i] = static_cast<std::uint8_t>('a' + i % 26);
@@ -537,6 +568,13 @@ int main(int argc, char** argv) {
   Write(dir / "ebm" / "bmp8.bin", EbmInput(Bmp(8, 24, 24)));
   Write(dir / "ebm" / "wide.bin", EbmInput(Bmp(24, 30, 20)));
   n += 3;
+  Write(dir / "wav" / "pcm.bin", WavInput(1, 1, 16, 2, 0, 64));
+  Write(dir / "wav" / "ima_mono.bin", WavInput(0x11, 1, 4, 64, 0, 128));
+  Write(dir / "wav" / "ima_stereo.bin", WavInput(0x11, 2, 4, 64, 100, 128));
+  std::vector<std::uint8_t> mp3 = {0xff, 0xfb, 0x90, 0x00};
+  mp3.resize(420, 0);
+  Write(dir / "wav" / "mp3.bin", mp3);
+  n += 4;
   std::printf("wrote %d seeds to %s\n", n, dir.string().c_str());
   return 0;
 }

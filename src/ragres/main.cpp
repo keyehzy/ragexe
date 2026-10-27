@@ -20,6 +20,7 @@
 //   ragres decode-strs FILE...             decodes .str files as CEZeffectRes does
 //   ragres decode-ebms FILE...             decodes .ebm files as CEmblemRes does, with the
 //                                          bytes it inflates
+//   ragres decode-wavs FILE...             decodes .wav files as CWave does
 //   ragres check ARCHIVE...                reads every compressed entry and checks its size;
 //                                          fails on an entry that cannot be read
 //
@@ -51,6 +52,7 @@
 #include "res/rsx.h"
 #include "res/sprite.h"
 #include "res/str.h"
+#include "res/wav.h"
 
 namespace {
 
@@ -853,6 +855,23 @@ int DecodeEbms(const std::vector<std::string>& files) {
   return failed == 0 ? 0 : 1;
 }
 
+int DecodeWavs(const std::vector<std::string>& files) {
+  static constexpr const char* kTypes[] = {"other", "pcm", "ima-adpcm", "mpeg-layer3"};
+  int failed = 0;
+  for (std::size_t n = 0; n < files.size(); ++n) {
+    ragexe::res::Wave wave;
+    std::string error;
+    if (!ragexe::res::DecodeWave(ReadFile(files[n]), wave, &error)) {
+      std::printf("%zu failed %s\n", n, error.c_str());
+      ++failed;
+      continue;
+    }
+    std::printf("%zu ok %s %zu:%016llx\n", n, kTypes[static_cast<int>(wave.type)],
+                wave.sample.size(), static_cast<unsigned long long>(Fnv1a64(wave.sample)));
+  }
+  return failed == 0 ? 0 : 1;
+}
+
 int Usage() {
   std::fprintf(stderr,
                "usage: ragres list ARCHIVE\n"
@@ -870,7 +889,8 @@ int Usage() {
                "       ragres decode-imfs FILE...\n"
                "       ragres decode-rmas FILE...\n"
                "       ragres decode-strs FILE...\n"
-               "       ragres decode-ebms FILE...\n");
+               "       ragres decode-ebms FILE...\n"
+               "       ragres decode-wavs FILE...\n");
   return 2;
 }
 
@@ -903,6 +923,7 @@ int main(int argc, char** argv) {
   if (command == "decode-rmas") return DecodeRmas(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-strs") return DecodeStrs(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-ebms") return DecodeEbms(std::vector<std::string>(argv + 2, argv + argc));
+  if (command == "decode-wavs") return DecodeWavs(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "check") {
     int status = 0;
     for (int i = 2; i < argc; ++i) status |= Check(argv[i]);

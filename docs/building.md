@@ -109,6 +109,7 @@ The parsers have libFuzzer targets in `fuzz/`:
 | `rma_fuzz` | the `.rma` text decoder and its tokenizer |
 | `str_fuzz` | the effect decoder |
 | `ebm_fuzz` | the emblem decoder, with its inflate |
+| `wav_fuzz` | the wave decoder: Miles' file type and IMA ADPCM |
 
 Each target aborts when an invariant breaks, which the fuzzer reports as a crash.
 
@@ -121,7 +122,7 @@ CC=$(brew --prefix llvm)/bin/clang CXX=$(brew --prefix llvm)/bin/clang++ cmake -
 ```
 
 ```bash
-cmake --build --preset fuzz --target grf_table_fuzz grf_archive_fuzz res_name_table_fuzz bitmap_fuzz sprite_fuzz act_fuzz gat_fuzz gnd_fuzz rsw_fuzz rsm_fuzz rsx_fuzz imf_fuzz rma_fuzz str_fuzz ebm_fuzz make_grf_seeds
+cmake --build --preset fuzz --target grf_table_fuzz grf_archive_fuzz res_name_table_fuzz bitmap_fuzz sprite_fuzz act_fuzz gat_fuzz gnd_fuzz rsw_fuzz rsm_fuzz rsx_fuzz imf_fuzz rma_fuzz str_fuzz ebm_fuzz wav_fuzz make_grf_seeds
 ```
 
 **Running one:** `make_grf_seeds` writes small valid archives and tables to start from,
@@ -132,11 +133,14 @@ build/fuzz/fuzz/make_grf_seeds seeds
 ```
 
 ```bash
-build/fuzz/fuzz/grf_archive_fuzz corpus seeds/grf_archive -dict=fuzz/grf.dict -max_len=8192 -max_total_time=600
+build/fuzz/fuzz/grf_archive_fuzz corpus seeds/grf_archive -dict=fuzz/grf.dict -max_len=8192 -max_total_time=600 -timeout=10
 ```
 
-**A crash** leaves its input in a `crash-…` file. Save it in
-`fuzz/regressions/<target>/` once fixed.
+`-max_total_time` is only checked between inputs, so `-timeout` is what stops an input
+that never ends; libFuzzer's own default is 20 minutes.
+
+**A crash** leaves its input in a `crash-…` file, **a hang** in a `timeout-…` file. Save it
+in `fuzz/regressions/<target>/` once fixed.
 
 **In `ctest`,** every build replays the seeds and the saved regressions through each
 target (`*_fuzz_replay`). Without libFuzzer the targets are linked with

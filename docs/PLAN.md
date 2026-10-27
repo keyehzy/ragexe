@@ -1813,10 +1813,35 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
       inflated bytes.
   - **Fuzzing:** `ebm_fuzz`, 66 million inputs with no findings.
 
+- [x] `CWave` (`docs/formats/wav.md`, `src/res/wav`):
+  - **The loader** keeps the file as it is, unless Miles' `AIL_file_type` says IMA
+    ADPCM, which `AIL_decompress_ADPCM` turns into a 16-bit PCM wave, or MPEG Layer III,
+    which goes to the ASI codec.
+  - **`Mss32.dll` 6.1a** was read for what the client calls:
+    - `AIL_file_type`: wave tags, then signatures, then an MPEG frame-sync scan of the
+      first 4 KB;
+    - `AIL_WAV_info`: a chunk walk that checks only `WAVE` and is bounded by the RIFF
+      size;
+    - the assembly IMA decoders, whose tables are the standard ones entry for entry.
+  - **MPEG Layer III** is classified but left to the sound layer; none ships.
+  - **The emulator** gained `load_mss`, which maps the original `Mss32.dll`. Its code
+    for these calls needs no stubs.
+  - **Oracle** (`tools/wav_oracle.py`, in `ctest` when the data is present): all 988
+    files in `data.grf` and 39 synthetic ones match the original `Load`. That covers
+    Miles' answer and the sample byte for byte; the 5 IMA ADPCM files decode
+    identically.
+    - **Where `Mss32.dll` reads or writes past its buffers, or walks its chunks forever,**
+      the port fails, and the oracle checks it on 6 synthetic files.
+  - **Fuzzing:** `wav_fuzz`.
+    - **Its first run hung** on a chunk size of `0xfffffff8`, which keeps the walk in
+      place (the client hangs on it too). That input is now a regression; the port fails
+      on it, and CI's fuzz step stops any input after 10 seconds.
+    - **Then** 1.2 million inputs with no findings. That is slow, since mutated sample
+      counts ask for decoded waves of up to the port's 64 MB limit.
+
 ### Next actions (M3)
-1. The remaining loaders in dependency order (`CWave`, …),
-   each registered with the resource manager, compared with the original in the
-   emulation oracle (its `Load`, through `serve_data_files`), fuzzed, and with a
-   `ragres` mode.
+1. The text tables and `clientinfo.xml`, each with a `ragres` mode and, where the client
+   parses them itself, compared with it in the emulation oracle. `C3dGrannyModelRes`
+   (`.gr2`, through `granny2.dll`) is the one registered type not in the M3 list.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

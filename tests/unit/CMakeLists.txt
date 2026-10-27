@@ -17,6 +17,7 @@ add_executable(ragexe_tests
   settings_test.cpp
   sprite_test.cpp
   str_test.cpp
+  wav_test.cpp
   windows_no_dialogs.cpp)
 target_include_directories(ragexe_tests PRIVATE ${PROJECT_SOURCE_DIR}/tests)
 target_link_libraries(ragexe_tests PRIVATE ragexe_game ragexe_res ragexe_stb_image ZLIB::ZLIB Catch2::Catch2WithMain ragexe_options)
@@ -95,6 +96,11 @@ if(RAGEXE_ARCHIVES)
     add_test(NAME ebm_oracle
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/ebm_oracle.py"
         --ragres $<TARGET_FILE:ragres>)
+    # Every wave and synthetic ones, against the original loader and Mss32.dll
+    # (tools/wav_oracle.py).
+    add_test(NAME wav_oracle
+      COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/wav_oracle.py"
+        --ragres $<TARGET_FILE:ragres> --archive "${RAGEXE_INSTALL_DIR}/data.grf")
     # Every palette, against the original conversion (tools/palette_oracle.py).
     add_test(NAME palette_oracle
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/palette_oracle.py"
