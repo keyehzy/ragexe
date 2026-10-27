@@ -1039,11 +1039,8 @@ address	namespace	name	calling_convention	evidence
 005981b0	ClientState	method_005981b0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0050cfb0
 00598630	ClientState	method_00598630	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0050dbb0
 005986d0	ClientState	method_005986d0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0046a560
-005988c0	ClientState	method_005988c0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588a00
 00598ba0	ClientState	method_00598ba0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0050d9e0
-00598c20	ClientState	method_00598c20	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 004d8e40
 00598dd0	ClientState	method_00598dd0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 004d8e40
-00598e10	ClientState	method_00598e10	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588a00
 005991f0	ClientState	method_005991f0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00516570
 005994f0	ClientState	method_005994f0	__thiscall	__thiscall; called with this from 6 functions of ClientState, e.g. 0044ffb0
 00599520	ClientState	method_00599520	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0044ffb0

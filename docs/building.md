@@ -111,7 +111,7 @@ The parsers have libFuzzer targets in `fuzz/`:
 | `ebm_fuzz` | the emblem decoder, with its inflate |
 | `wav_fuzz` | the wave decoder: Miles' file type and IMA ADPCM |
 | `item_tables_fuzz` | the item and card tables, and their field splitter |
-| `client_tables_fuzz` | `ClientState`'s tables: name pairs, number and line records, with the VC6 sort |
+| `client_tables_fuzz` | `ClientState`'s tables: name pairs, number and line records, fields, fog records, with the VC6 sort |
 
 Each target aborts when an invariant breaks, which the fuzzer reports as a crash.
 

@@ -5859,11 +5859,11 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00598630	146	code	0	game		named	ClientState	method_00598630	
 005986d0	414	code	0	game		named	ClientState	method_005986d0	
 00598870	69	code	0	game		named	Global	destroy_global_00686628	
-005988c0	730	code	0	game		named	ClientState	method_005988c0	
+005988c0	730	code	0	game		named	ClientState	LoadIndoorRswTable	
 00598ba0	128	code	0	game		named	ClientState	method_00598ba0	
-00598c20	423	code	0	game		named	ClientState	method_00598c20	
+00598c20	423	code	0	game		named	ClientState	LoadMsgStringTable	
 00598dd0	63	code	0	game		named	ClientState	method_00598dd0	
-00598e10	805	code	0	game		named	ClientState	method_00598e10	
+00598e10	805	code	0	game		named	ClientState	LoadFogParameterTable	
 00599140	166	code	1	stl		named	std::pair	~pair	
 005991f0	518	code	0	game		named	ClientState	method_005991f0	
 00599400	110	code	0	game		named	Global	StringLess	

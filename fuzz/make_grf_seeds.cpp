@@ -602,7 +602,7 @@ int main(int argc, char** argv) {
   ++n;
   const std::string client_tables =
       "prontera.rsw#Prontera#\r\ngeffen.rsw#Geffen#\r\nk##v#\r\nSM_BASH#\r\n8#\r\n@\r\n"
-      "NV_BASIC#\r\nBasic Skill\r\n#\r\n";
+      "NV_BASIC#\r\nBasic Skill\r\n#\r\ngef.rsw#\r\n0.2#\r\n0.45#\r\n0x2275A9FF#\r\n0.5#\r\n";
   Write(dir / "client_tables" / "small.bin",
         std::vector<std::uint8_t>(client_tables.begin(), client_tables.end()));
   ++n;

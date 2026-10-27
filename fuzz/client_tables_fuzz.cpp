@@ -1,10 +1,11 @@
-// ClientState's tables on arbitrary files, through each of its three parsers.
+// ClientState's tables on arbitrary files, through each of its parsers.
 
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <span>
 #include <string>
+#include <vector>
 
 #include "fuzz_check.h"
 #include "res/client_tables.h"
@@ -34,6 +35,16 @@ extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size
   for (const auto& [name, text] : lines) {
     FUZZ_CHECK(!name.empty());
     FUZZ_CHECK(!text.empty());
+  }
+  CheckSorted(ragexe::res::ParseFogParameters(input));
+  for (const auto& [name, values] : ragexe::res::ParseFogParameters(input)) {
+    FUZZ_CHECK(values.size() == 4);
+  }
+  const std::vector<std::string> fields = ragexe::res::ParseFields(input, false);
+  std::vector<std::string> sorted = ragexe::res::ParseFields(input, true);
+  FUZZ_CHECK(sorted.size() == fields.size());
+  for (std::size_t k = 1; k < sorted.size(); ++k) {
+    FUZZ_CHECK(std::strcmp(sorted[k - 1].c_str(), sorted[k].c_str()) <= 0);
   }
   return 0;
 }

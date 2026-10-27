@@ -1,6 +1,7 @@
 #include "res/client_tables.h"
 
 #include <cstring>
+#include <utility>
 
 #include "res/data_file.h"
 #include "res/item_tables.h"
@@ -17,6 +18,21 @@ void SortByName(std::vector<Record>& records) {
   Vc6Sort(records.data(), records.data() + records.size(), [](const Record& a, const Record& b) {
     return std::strcmp(a.first.c_str(), b.first.c_str()) < 0;
   });
+}
+
+// The loaders that keep raw fields: '\r' and '\n' move the field start, and each '#'
+// hands on the bytes since it, NULs and all, then moves it past the '#'.
+template <typename OnField>
+void ForEachField(std::span<const std::uint8_t> data, OnField on_field) {
+  std::size_t start = 0;
+  for (std::size_t i = 0; i < data.size(); ++i) {
+    if (data[i] == '\n' || data[i] == '\r') {
+      start = i + 1;
+    } else if (data[i] == '#') {
+      on_field(std::string(reinterpret_cast<const char*>(data.data()) + start, i - start));
+      start = i + 1;
+    }
+  }
 }
 
 }  // namespace
@@ -148,6 +164,55 @@ bool LoadLineRecords(const DataFiles& files, std::string_view name, LineRecords&
   DataFile file;
   if (!file.Open(files, name)) return false;
   out = ParseLineRecords(file.data());
+  return true;
+}
+
+std::vector<std::string> ParseFields(std::span<const std::uint8_t> data, bool sorted) {
+  std::vector<std::string> out;
+  ForEachField(data, [&](std::string field) { out.push_back(std::move(field)); });
+  if (sorted) {
+    // The inline strcmp of 005a1ef0 and its InsertionSort and QuickSortRange.
+    Vc6Sort(out.data(), out.data() + out.size(), [](const std::string& a, const std::string& b) {
+      return std::strcmp(a.c_str(), b.c_str()) < 0;
+    });
+  }
+  return out;
+}
+
+bool LoadFields(const DataFiles& files, std::string_view name, bool sorted,
+                std::vector<std::string>& out) {
+  out.clear();
+  DataFile file;
+  if (!file.Open(files, name)) return false;
+  out = ParseFields(file.data(), sorted);
+  return true;
+}
+
+LineRecords ParseFogParameters(std::span<const std::uint8_t> data) {
+  LineRecords out;
+  std::string name;
+  std::vector<std::string> values;
+  ForEachField(data, [&](std::string field) {
+    if (name.empty()) {
+      name = std::move(field);
+    } else if (values.size() < 3) {
+      values.push_back(std::move(field));
+    } else {
+      values.push_back(std::move(field));
+      out.emplace_back(std::move(name), std::move(values));
+      name.clear();
+      values.clear();
+    }
+  });
+  SortByName(out);
+  return out;
+}
+
+bool LoadFogParameters(const DataFiles& files, LineRecords& out) {
+  out.clear();
+  DataFile file;
+  if (!file.Open(files, kFogParameterTable)) return false;
+  out = ParseFogParameters(file.data());
   return true;
 }
 

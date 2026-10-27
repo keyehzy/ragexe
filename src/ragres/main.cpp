@@ -26,6 +26,9 @@
 //   ragres decode-number-records FILE...   decodes LevelUseskillSpAmount.txt and
 //                                          skillAfterDelay.txt as ClientState does
 //   ragres decode-line-records FILE...     decodes skillDescTable.txt as ClientState does
+//   ragres decode-fields [--sorted] FILE... decodes msgStringTable.txt, or with --sorted
+//                                          indoorRswTable.txt, as ClientState does
+//   ragres decode-fog-parameters FILE...   decodes fogParameterTable.txt as ClientState does
 //   ragres decode-item-tables DIR [--korea] [--code-page N]
 //                                          loads the item and card tables from DIR's data
 //                                          folder as LoadItemTables does
@@ -949,6 +952,28 @@ int DecodeLineRecords(const std::vector<std::string>& files) {
   return 0;
 }
 
+int DecodeFields(std::vector<std::string> files) {
+  const bool sorted = !files.empty() && files[0] == "--sorted";
+  if (sorted) files.erase(files.begin());
+  for (std::size_t n = 0; n < files.size(); ++n) {
+    const auto fields = ragexe::res::ParseFields(ReadFile(files[n]), sorted);
+    std::printf("%zu ok %zu\n", n, fields.size());
+    for (const std::string& field : fields) std::printf("F %s\n", TextHash(field).c_str());
+  }
+  return 0;
+}
+
+int DecodeFogParameters(const std::vector<std::string>& files) {
+  for (std::size_t n = 0; n < files.size(); ++n) {
+    const auto records = ragexe::res::ParseFogParameters(ReadFile(files[n]));
+    std::printf("%zu ok %zu\n", n, records.size());
+    for (const auto& [name, values] : records) {
+      std::printf("R %s %s\n", TextHash(name).c_str(), LinesHash(values).c_str());
+    }
+  }
+  return 0;
+}
+
 int DecodeItemTables(const std::vector<std::string>& args) {
   if (args.empty()) return Usage();
   ragexe::res::ItemTableSettings settings;
@@ -1000,6 +1025,8 @@ int Usage() {
                "       ragres decode-name-pairs FILE...\n"
                "       ragres decode-number-records FILE...\n"
                "       ragres decode-line-records FILE...\n"
+               "       ragres decode-fields [--sorted] FILE...\n"
+               "       ragres decode-fog-parameters FILE...\n"
                "       ragres decode-item-tables DIR [--korea] [--code-page N]\n");
   return 2;
 }
@@ -1042,6 +1069,12 @@ int main(int argc, char** argv) {
   }
   if (command == "decode-line-records") {
     return DecodeLineRecords(std::vector<std::string>(argv + 2, argv + argc));
+  }
+  if (command == "decode-fields") {
+    return DecodeFields(std::vector<std::string>(argv + 2, argv + argc));
+  }
+  if (command == "decode-fog-parameters") {
+    return DecodeFogParameters(std::vector<std::string>(argv + 2, argv + argc));
   }
   if (command == "decode-item-tables") {
     return DecodeItemTables(std::vector<std::string>(argv + 2, argv + argc));

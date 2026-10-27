@@ -75,3 +75,20 @@ TEST_CASE("line records: every line break after the name ends a line") {
         LineRecords{{"N", {"a", "", ""}}});
   CHECK(ParseLineRecords(Bytes("open#line\r\n")).empty());
 }
+
+TEST_CASE("fields: each '#' ends one, line breaks move its start; sorted for the indoor maps") {
+  using Strings = std::vector<std::string>;
+  CHECK(ParseFields(Bytes("Hello#\r\nWorld#\r\n#\r\n"), false) == Strings{"Hello", "World", ""});
+  CHECK(ParseFields(Bytes("a\r\nb#c\nd#e#"), false) == Strings{"b", "d", "e"});
+  CHECK(ParseFields(Bytes("open\r\nfield"), false).empty());
+  CHECK(ParseFields(Bytes("payon_in01.rsw#\r\nalberta_in.rsw#\r\n"), true) ==
+        Strings{"alberta_in.rsw", "payon_in01.rsw"});
+}
+
+TEST_CASE("fog parameters: a name and four values a record, sorted by name") {
+  CHECK(ParseFogParameters(Bytes("gef.rsw#\r\n0.2#\r\n0.45#\r\n0x2275A9FF#\r\n0.5#\r\n"
+                                 "beach.rsw#1#2#3#4#")) ==
+        LineRecords{{"beach.rsw", {"1", "2", "3", "4"}},
+                    {"gef.rsw", {"0.2", "0.45", "0x2275A9FF", "0.5"}}});
+  CHECK(ParseFogParameters(Bytes("a#1#2#3#")).empty());
+}

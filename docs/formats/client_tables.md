@@ -123,6 +123,46 @@ records at +0x420: a skill id and its description lines.
   patch carries a longer version.
 - **`skillAfterDelay.txt`** is in neither `data.grf` nor the patches.
 
+## Fields
+
+Three loaders keep the `#`-ended fields themselves. Each walks the bytes with a field
+start:
+- **`\r` or `\n`** moves the start after it.
+- **`#`** takes the bytes from the start up to it, NULs and all, as the field, and moves
+  the start after it.
+
+What follows the last `#` is dropped.
+
+| Table | Loader | Into | Kept as |
+|-------|--------|------|---------|
+| `msgStringTable.txt` | `00598c20` | +0x16c0, a vector of strings | each field, in order |
+| `indoorRswTable.txt` | `005988c0` | +0x16a0, a vector of strings | each field, then sorted |
+| `fogParameterTable.txt` | `00598e10` | +0x1690, {string, vector of strings} records | a name and four values a record, then sorted by name |
+
+**The details:**
+- **Each loader** empties its vector first. If the file does not open, it returns 0.
+- **The sorts** are the library's, as above. The indoor maps are compared by an inline
+  `strcmp` (`005a1ef0`); the fog records by name (`005a06d0`).
+- **Fog records:**
+  - while there is no name, a field becomes the name;
+  - the next three are values;
+  - the fourth value closes the record, and the name and values are emptied.
+
+  A record cut short at the end is dropped.
+- **Messages:** `InitMsgStringTable` (`004d8e40`, from `WinMain`) calls this loader
+  unless the service is Korea, which uses 0x2cb built-in strings instead.
+
+### In data.grf
+
+| Table | Fields | Kept |
+|-------|-------:|------|
+| `msgStringTable.txt` | 703 | 703 messages, one a line, two with bytes above 0x7f |
+| `indoorRswTable.txt` | 23 | 23 map files |
+| `fogParameterTable.txt` | 690 | 138 maps with four values each: two decimals, a hexadecimal colour such as `0x2275A9FF`, and another decimal |
+
+The last lines of the indoor and fog tables have no line break, which changes nothing.
+The patches carry longer versions of both.
+
 ## An unused loader
 
 `LoadSkillTablesByName` (`004d95b0`) is not called from anywhere, and its address
@@ -137,15 +177,17 @@ the field. The client reads its skill names, descriptions and SP amounts with
 ## In the port
 
 `src/res/client_tables.{h,cpp}`:
-- `ParseNamePairs`, `ParseNumberRecords` and `ParseLineRecords`;
+- `ParseNamePairs`, `ParseNumberRecords`, `ParseLineRecords`, `ParseFields` and
+  `ParseFogParameters`;
 - their `Load…` counterparts.
 
 The sort is `Vc6Sort` (`src/res/vc6_sort.h`), which the model loader shares.
 
-**The oracle:** `tools/client_tables_oracle.py` runs each of the seven loaders in the
+**The oracle:** `tools/client_tables_oracle.py` runs each of the ten loaders in the
 emulation oracle on its table from `data.grf` and from the `.gpf` patches that carry it.
 - **Synthetic tables:** it also runs one loader of each kind on synthetic tables: 8 name
-  pair tables, 8 number tables and 7 line tables. They cover:
+  pair tables, 8 number tables, 7 line tables, 6 field tables (through both the message
+  and the indoor loaders) and 6 fog tables. They cover:
   - line breaks inside a record, empty names and NULs;
   - `atoi` on signs and junk, and `@` with no line break after it;
   - bytes above 0x7f, which sort after ASCII;

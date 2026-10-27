@@ -1888,10 +1888,20 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Fuzzing:** `name_pairs_fuzz` became `client_tables_fuzz`, over all three
     parsers: 3.2 million inputs with no findings.
 
+- [x] `msgStringTable`, `indoorRswTable` and `fogParameterTable`
+  (`docs/formats/client_tables.md`):
+  - **Their loaders** keep the raw `#`-ended fields:
+    - the messages, in order;
+    - the indoor maps, sorted;
+    - the fog records, a name and four values each, sorted by name.
+  - **`client_tables_oracle`** now runs all ten loaders. Their real tables and 41
+    synthetic ones match.
+  - **Fuzzing:** `client_tables_fuzz` now covers these parsers too: 1.6 million inputs
+    with no findings.
+
 ### Next actions (M3)
-1. The rest of `ClientState`'s tables, each with a `ragres` mode and compared with the
-   client in the emulation oracle:
-   - `msgStringTable`, `fogParameterTable` and `indoorRswTable`;
+1. The rest of the text data, each with a `ragres` mode and compared with the client in
+   the emulation oracle:
    - `PetTalkTable.xml`;
    - then `clientinfo.xml`.
 

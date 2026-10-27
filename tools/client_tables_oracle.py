@@ -8,9 +8,11 @@ loader of each kind:
   - name pairs: mapNameTable.txt (005979d0), mapObjLightTable.txt (00597e10),
     mp3NameTable.txt (00598290), skillNameTable.txt (00593c10);
   - number records: LevelUseskillSpAmount.txt (0059ca60), skillAfterDelay.txt (0059cdd0);
-  - line records: skillDescTable.txt (005a54b0).
-Every record of the sorted vector the loader leaves is compared in order with
-`ragres decode-name-pairs`, `decode-number-records` or `decode-line-records`.
+  - line records: skillDescTable.txt (005a54b0);
+  - fields: msgStringTable.txt (00598c20), and indoorRswTable.txt (005988c0), sorted;
+  - fog records: fogParameterTable.txt (00598e10).
+Every record of the vector the loader leaves is compared in order with the matching
+`ragres decode-…` mode.
 """
 import argparse
 import os
@@ -33,8 +35,13 @@ LOADERS = {
     "LevelUseskillSpAmount.txt": (0x59CA60, 0x430, "numbers"),
     "skillAfterDelay.txt": (0x59CDD0, 0x440, "numbers"),
     "skillDescTable.txt": (0x5A54B0, 0x420, "lines"),
+    "msgStringTable.txt": (0x598C20, 0x16C0, "fields"),
+    "indoorRswTable.txt": (0x5988C0, 0x16A0, "sorted"),
+    "fogParameterTable.txt": (0x598E10, 0x1690, "fog"),
 }
-COMMANDS = {"pairs": "decode-name-pairs", "numbers": "decode-number-records", "lines": "decode-line-records"}
+COMMANDS = {"pairs": ["decode-name-pairs"], "numbers": ["decode-number-records"],
+            "lines": ["decode-line-records"], "fields": ["decode-fields"],
+            "sorted": ["decode-fields", "--sorted"], "fog": ["decode-fog-parameters"]}
 # The LevelUseskillSpAmount loader then indexes the records by skill id (0059d1f0): 158
 # pointers in a vector at +0x460, found through the skill id names, which a start-up
 # routine sets up. The index is skipped here; the records are compared.
@@ -88,8 +95,31 @@ def synthetic_lines():
     yield bytes(rng.choice(b"ab#\r\n\0") for _ in range(4000))
 
 
+def synthetic_fields():
+    yield b"Hello#\r\nWorld#\r\n#\r\n"
+    yield b"a\r\nb#c\nd#e#"                                     # breaks move the start
+    yield b"x\0y#\xb0#B#a#\r\n#\r\n"                               # NULs, high bytes, empties
+    yield b"open\r\nfield"                                       # no '#': no field
+    rng = random.Random(4)
+    yield b"".join(bytes(rng.choice(b"pqPQ_.\xb0") for _ in range(rng.randrange(0, 3))) + b"#\r\n"
+                   for _ in range(300))                                 # many ties when sorted
+    yield bytes(rng.choice(b"ab#\r\n\0") for _ in range(4000))
+
+
+def synthetic_fog():
+    yield b"gef_fild12.rsw#\r\n0.2#\r\n0.45#\r\n0x2275A9FF#\r\n0.5#\r\nbeach_dun.rsw#1#2#3#4#\r\n"
+    yield b"a#1#2#3#\r\n"                                          # three values: no record
+    yield b"#\r\nlate#1\n#2#3#4#5#"                                 # an empty name waits
+    yield b"N\0#1#2#3#4#M#5#6#7#8#"                                  # a NUL in a name
+    rng = random.Random(5)
+    yield b"".join(bytes(rng.choice(b"XY") for _ in range(rng.randrange(1, 3))) + b"#" +
+                   b"".join(b"%d#" % rng.randrange(9) for _ in range(4)) + b"\r\n" for _ in range(150))
+    yield bytes(rng.choice(b"ab1#\r\n\0") for _ in range(4000))
+
+
 SYNTHETIC = {"mapNameTable.txt": synthetic_pairs, "LevelUseskillSpAmount.txt": synthetic_numbers,
-             "skillDescTable.txt": synthetic_lines}
+             "skillDescTable.txt": synthetic_lines, "msgStringTable.txt": synthetic_fields,
+             "indoorRswTable.txt": synthetic_fields, "fogParameterTable.txt": synthetic_fog}
 
 
 def init():
@@ -113,6 +143,8 @@ def record_line(emu, kind, p):
     name = f"{fnv1a64(read_string(emu, p)):016x}"
     if kind == "pairs":
         return f"P {name} {fnv1a64(read_string(emu, p + 16)):016x}"
+    if kind in ("fields", "sorted"):
+        return f"F {name}"
     if kind == "numbers":
         values = b"".join(emu.mem_read(q, 4) for q in read_vector(emu, p + 16, 4))
         return f"R {name} {len(values) // 4}:{fnv1a64(values):016x}"
@@ -130,7 +162,7 @@ def work(state, item):
     emu.serve_data_files({"data\\" + table.lower(): data})
     emu.mem_write(obj, bytes(CLIENT_STATE_SIZE))
     emu.call(loader, this=obj)
-    records = list(read_vector(emu, obj + offset, 32))
+    records = list(read_vector(emu, obj + offset, 16 if kind in ("fields", "sorted") else 32))
     lines = [f"ok {len(records)}"] + [record_line(emu, kind, p) for p in records]
     emu.heap_release(mark)
     return "\n".join(lines)
@@ -165,11 +197,11 @@ def main():
         ours = {}
         for kind, command in COMMANDS.items():
             chosen = [n for n, (table, _) in enumerate(items) if LOADERS[table][2] == kind]
-            out = subprocess.run([args.ragres, command, *[items[n][1] for n in chosen]],
+            out = subprocess.run([args.ragres, *command, *[items[n][1] for n in chosen]],
                                  capture_output=True, text=True).stdout
             current = None
             for line in out.splitlines():
-                if line[0] in "PR" and line[1] == " ":
+                if line[0] in "PRF" and line[1] == " ":
                     ours[current].append(line)
                 else:
                     k, rest = line.split(" ", 1)

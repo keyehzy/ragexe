@@ -50,4 +50,21 @@ inline constexpr std::string_view kSkillDescTable = "skillDescTable.txt";
 LineRecords ParseLineRecords(std::span<const std::uint8_t> data);
 bool LoadLineRecords(const DataFiles& files, std::string_view name, LineRecords& out);
 
+// Every '#'-ended field in order, each the bytes since the last '#' or line break:
+// msgStringTable.txt (00598c20, into +0x16c0). indoorRswTable.txt (005988c0, into
+// +0x16a0) is the same, then sorted.
+inline constexpr std::string_view kMsgStringTable = "msgStringTable.txt";
+inline constexpr std::string_view kIndoorRswTable = "indoorRswTable.txt";
+
+std::vector<std::string> ParseFields(std::span<const std::uint8_t> data, bool sorted);
+bool LoadFields(const DataFiles& files, std::string_view name, bool sorted,
+                std::vector<std::string>& out);
+
+// fogParameterTable.txt (00598e10, into +0x1690): fields as above, each record a name and
+// four values, sorted by name.
+inline constexpr std::string_view kFogParameterTable = "fogParameterTable.txt";
+
+LineRecords ParseFogParameters(std::span<const std::uint8_t> data);
+bool LoadFogParameters(const DataFiles& files, LineRecords& out);
+
 }  // namespace ragexe::res
