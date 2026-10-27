@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include "res/data_file.h"
+#include "res/record_reader.h"
 
 namespace ragexe::res {
 
@@ -24,33 +25,6 @@ bool Fail(std::string* error, const char* message) {
   if (error != nullptr) *error = message;
   return false;
 }
-
-// A cursor over the file that fails, instead of reading past its end.
-class Reader {
- public:
-  explicit Reader(std::span<const std::uint8_t> data) : data_(data) {}
-
-  bool Bytes(void* out, std::size_t n) {
-    if (data_.size() - pos_ < n) return false;
-    std::memcpy(out, data_.data() + pos_, n);
-    pos_ += n;
-    return true;
-  }
-  template <typename T>
-  bool Value(T& out) {
-    return Bytes(&out, sizeof out);
-  }
-  bool Skip(std::size_t n) {
-    if (data_.size() - pos_ < n) return false;
-    pos_ += n;
-    return true;
-  }
-  std::size_t remaining() const { return data_.size() - pos_; }
-
- private:
-  std::span<const std::uint8_t> data_;
-  std::size_t pos_ = 0;
-};
 
 // The C string at the start of a record; false when it has no NUL there.
 bool CString(const std::uint8_t* record, std::size_t size, std::string& out) {
@@ -105,7 +79,7 @@ std::array<float, 3> WorldLightVector(std::int32_t angle_y, std::int32_t angle_x
 bool DecodeWorld(std::span<const std::uint8_t> data, bool lightmaps, World& out,
                  std::string* error) {
   out = World{};
-  Reader in(data);
+  RecordReader in(data);
   char magic[4] = {};
   if (!in.Bytes(magic, 4) || std::memcmp(magic, "GRSW", 4) != 0)
     return Fail(error, "Invalid Format");  // 006065c4

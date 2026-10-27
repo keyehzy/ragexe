@@ -8,6 +8,7 @@ add_executable(ragexe_tests
   resource_test.cpp
   rsm_test.cpp
   rsw_test.cpp
+  rsx_test.cpp
   mode_switcher_test.cpp
   palette_test.cpp
   settings_test.cpp
@@ -67,6 +68,11 @@ if(RAGEXE_ARCHIVES)
     # Every model, against the original loader (tools/rsm_oracle.py).
     add_test(NAME rsm_oracle
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/rsm_oracle.py"
+        --ragres $<TARGET_FILE:ragres> --archive "${RAGEXE_INSTALL_DIR}/data.grf")
+    # The animated model and synthetic ones, against the original loader
+    # (tools/rsx_oracle.py).
+    add_test(NAME rsx_oracle
+      COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/rsx_oracle.py"
         --ragres $<TARGET_FILE:ragres> --archive "${RAGEXE_INSTALL_DIR}/data.grf")
     # Every palette, against the original conversion (tools/palette_oracle.py).
     add_test(NAME palette_oracle

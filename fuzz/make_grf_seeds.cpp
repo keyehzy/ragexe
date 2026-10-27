@@ -1,11 +1,11 @@
 // Writes the seed inputs of the fuzz targets: small archives of each version, with both
 // decode paths, directory entries and a stream that breaks off, their tables, and a
 // ResNameTable.txt, small images of each kind the bitmap decoders read, sprites and
-// actions, attribute maps, grounds, worlds and models.
+// actions, attribute maps, grounds, worlds, models and animated models.
 //
 //   make_grf_seeds DIR    writes DIR/grf_archive, DIR/grf_table, DIR/res_name_table,
 //                         DIR/bitmap, DIR/sprite, DIR/act, DIR/gat, DIR/gnd,
-//                         DIR/rsw and DIR/rsm
+//                         DIR/rsw, DIR/rsm and DIR/rsx
 
 #include <cstdint>
 #include <cstdio>
@@ -340,6 +340,40 @@ std::vector<std::uint8_t> RsmInput(std::uint8_t minor) {
   return out;
 }
 
+// An animated model of version 1.3 with two frames and two nodes, the second a child of
+// the first with shared texture coordinates.
+std::vector<std::uint8_t> RsxInput() {
+  const auto name = [](std::vector<std::uint8_t>& out, const std::string& s) {
+    out.insert(out.end(), s.begin(), s.end());
+    out.resize(out.size() + 40 - s.size(), 0);
+  };
+  std::vector<std::uint8_t> out = {'G', 'R', 'S', 'X', 1, 3};
+  for (std::uint32_t v : {0x3f800000u, 0u, 0u, 0u, 255u, 1u, 2u, 160u}) Put32(out, v);
+  out.resize(out.size() + 16, 0);
+  Put32(out, 1);
+  name(out, "gate.bmp");
+  name(out, "base");
+  Put32(out, 2);
+  for (int k = 0; k < 2; ++k) {
+    Put32(out, 0x12345678);
+    name(out, k == 0 ? "base" : "arm");
+    name(out, k == 0 ? "" : "base");
+    Put32(out, 1);
+    Put32(out, 0);
+    Put32(out, 3);
+    for (int i = 0; i < 2 * 3 * 3; ++i) Put32(out, i % 4 == 0 ? 0x3f800000 : 0);
+    Put32(out, 1);
+    Put32(out, static_cast<std::uint32_t>(k));
+    for (int set = 0; set < (k == 0 ? 2 : 1); ++set) {
+      for (std::uint32_t v : {0xffffffffu, 0u, 0x3f000000u}) Put32(out, v);
+    }
+    Put32(out, 1);
+    for (std::uint32_t v : {0x00010000u, 2u, 0u, 0u, 0u, 0u}) Put32(out, v);
+    Put32(out, 0x12345678);
+  }
+  return out;
+}
+
 int main(int argc, char** argv) {
   if (argc != 2) {
     std::fprintf(stderr, "usage: make_grf_seeds DIR\n");
@@ -356,6 +390,7 @@ int main(int argc, char** argv) {
   std::filesystem::create_directories(dir / "gnd");
   std::filesystem::create_directories(dir / "rsw");
   std::filesystem::create_directories(dir / "rsm");
+  std::filesystem::create_directories(dir / "rsx");
 
   std::vector<std::uint8_t> text(300);
   for (std::size_t i = 0; i < text.size(); ++i) text[i] = static_cast<std::uint8_t>('a' + i % 26);
@@ -431,6 +466,8 @@ int main(int argc, char** argv) {
           RsmInput(static_cast<std::uint8_t>(minor)));
     ++n;
   }
+  Write(dir / "rsx" / "v1.3.bin", RsxInput());
+  ++n;
   std::printf("wrote %d seeds to %s\n", n, dir.string().c_str());
   return 0;
 }

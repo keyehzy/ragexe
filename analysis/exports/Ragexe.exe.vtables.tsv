@@ -146,9 +146,9 @@ C3dModelRes	005e29c0	0	4	0042bc70	C3dModelRes::Reset
 C3dModelRes	005e29c0	0	5	004df9d0	CRes::OnLoadError	
 C3dAnimModelRes	005e29e4	0	0	0042db60	C3dAnimModelRes::`scalar_deleting_destructor'	
 C3dAnimModelRes	005e29e4	0	1	00420880	CRes::LoadFromMemory	
-C3dAnimModelRes	005e29e4	0	2	0042daf0	C3dAnimModelRes::vf02	
-C3dAnimModelRes	005e29e4	0	3	0042df00	C3dAnimModelRes::vf03	
-C3dAnimModelRes	005e29e4	0	4	0042db50	C3dAnimModelRes::vf04	
+C3dAnimModelRes	005e29e4	0	2	0042daf0	C3dAnimModelRes::Clone	
+C3dAnimModelRes	005e29e4	0	3	0042df00	C3dAnimModelRes::Load	
+C3dAnimModelRes	005e29e4	0	4	0042db50	C3dAnimModelRes::Reset	
 C3dAnimModelRes	005e29e4	0	5	004df9d0	CRes::OnLoadError	
 C3dGrannyModelRes	005e2a00	0	0	0042e9f0	C3dGrannyModelRes::`scalar_deleting_destructor'	
 C3dGrannyModelRes	005e2a00	0	1	00420880	CRes::LoadFromMemory	

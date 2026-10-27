@@ -1731,8 +1731,23 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     roots fail, where the original reads through bad pointers.
   - **Fuzzing:** `rsm_fuzz`, 82 million inputs with no findings.
 
+- [x] `C3dAnimModelRes` (`docs/formats/rsx.md`, `src/res/rsx`):
+  - **Format:** a version and header values, then texture names, the root name, and
+    nodes fenced by `0x12345678`. Each node carries:
+    - its vertices for every frame;
+    - texture coordinates per frame, or one shared set;
+    - its faces, in the `.rsm` layout.
+  - **The original checks neither the magic nor the version.** The port does not either.
+  - **One file:** `data.grf` has a single `.rsx`, so 8 synthetic files carry most of the
+    oracle (`tools/rsx_oracle.py`, in `ctest` when the data is present). It covers every
+    version, both texture-coordinate modes, zero frames and a bad marker, and all of them
+    match the original `Load`.
+  - **Shared reader:** the loaders that read field by field (`.rsw`, `.rsm`, `.rsx`) now
+    share `RecordReader`.
+  - **Fuzzing:** `rsx_fuzz`, 183 million inputs with no findings.
+
 ### Next actions (M3)
-1. The remaining loaders in dependency order (`C3dAnimModelRes`, `CImfRes`, …),
+1. The remaining loaders in dependency order (`CImfRes`, …),
    each registered with the resource manager, compared with the original in the
    emulation oracle (its `Load`, through `serve_data_files`), fuzzed, and with a
    `ragres` mode.

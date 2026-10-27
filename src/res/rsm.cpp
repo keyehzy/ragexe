@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "res/data_file.h"
+#include "res/record_reader.h"
 
 namespace ragexe::res {
 
@@ -19,42 +20,6 @@ bool Fail(std::string* error, const char* message) {
   if (error != nullptr) *error = message;
   return false;
 }
-
-// A cursor over the file that fails, instead of reading past its end.
-class Reader {
- public:
-  explicit Reader(std::span<const std::uint8_t> data) : data_(data) {}
-
-  bool Bytes(void* out, std::size_t n) {
-    if (data_.size() - pos_ < n) return false;
-    std::memcpy(out, data_.data() + pos_, n);
-    pos_ += n;
-    return true;
-  }
-  template <typename T>
-  bool Value(T& out) {
-    return Bytes(&out, sizeof out);
-  }
-  // A count of records of at least `size` bytes each that the file can hold.
-  bool Count(std::int32_t& n, std::size_t size) {
-    return Value(n) && n >= 0 && static_cast<std::size_t>(n) <= remaining() / size;
-  }
-  bool Name(std::string& out) {
-    std::uint8_t record[kNameSize];
-    if (!Bytes(record, kNameSize)) return false;
-    const std::uint8_t* begin = record;
-    const std::uint8_t* end = begin + kNameSize;
-    const std::uint8_t* nul = std::find(begin, end, std::uint8_t{0});
-    if (nul == end) return false;
-    out.assign(begin, nul);
-    return true;
-  }
-  std::size_t remaining() const { return data_.size() - pos_; }
-
- private:
-  std::span<const std::uint8_t> data_;
-  std::size_t pos_ = 0;
-};
 
 // FPU arithmetic in double, with the x87's NaN rules: a NaN operand comes out quiet (the
 // one with the larger significand when both are), and an invalid operation gives the
@@ -257,7 +222,7 @@ bool ComputeModelNormals(ModelMesh& mesh) {
 
 bool DecodeModel(std::span<const std::uint8_t> data, Model& out, std::string* error) {
   out = Model{};
-  Reader in(data);
+  RecordReader in(data);
   char magic[4] = {};
   if (!in.Bytes(magic, 4) || std::memcmp(magic, "GRSM", 4) != 0) {
     // 00606194, in CP949: "a model file of the wrong format."
