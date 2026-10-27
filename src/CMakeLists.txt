@@ -32,6 +32,7 @@ add_library(ragexe_res STATIC
   res/data_path.cpp
   res/gat.cpp
   res/gnd.cpp
+  res/imf.cpp
   res/rsm.cpp
   res/rsw.cpp
   res/rsx.cpp

@@ -5,6 +5,7 @@ add_executable(ragexe_tests
   gat_test.cpp
   gnd_test.cpp
   grf_test.cpp
+  imf_test.cpp
   resource_test.cpp
   rsm_test.cpp
   rsw_test.cpp
@@ -73,6 +74,10 @@ if(RAGEXE_ARCHIVES)
     # (tools/rsx_oracle.py).
     add_test(NAME rsx_oracle
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/rsx_oracle.py"
+        --ragres $<TARGET_FILE:ragres> --archive "${RAGEXE_INSTALL_DIR}/data.grf")
+    # Every .imf, against the original loader (tools/imf_oracle.py).
+    add_test(NAME imf_oracle
+      COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/imf_oracle.py"
         --ragres $<TARGET_FILE:ragres> --archive "${RAGEXE_INSTALL_DIR}/data.grf")
     # Every palette, against the original conversion (tools/palette_oracle.py).
     add_test(NAME palette_oracle

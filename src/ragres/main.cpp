@@ -15,6 +15,7 @@
 //                                          decodes .rsw files as C3dWorldRes does
 //   ragres decode-rsms FILE...             decodes .rsm files as C3dModelRes does
 //   ragres decode-rsxs FILE...             decodes .rsx files as C3dAnimModelRes does
+//   ragres decode-imfs FILE...             decodes .imf files as CImfRes does
 //   ragres check ARCHIVE...                reads every compressed entry and checks its size;
 //                                          fails on an entry that cannot be read
 //
@@ -36,6 +37,7 @@
 #include "res/gat.h"
 #include "res/gnd.h"
 #include "res/grf.h"
+#include "res/imf.h"
 #include "res/palette.h"
 #include "res/resource.h"
 #include "res/rsm.h"
@@ -707,6 +709,41 @@ int DecodeRsxs(const std::vector<std::string>& files) {
   return failed == 0 ? 0 : 1;
 }
 
+// Decodes .imf files as CImfRes does and prints, per file, "n ok version-bits +4
+// layer-count actions frames hash", the hash an FNV-1a of each layer's action count, each
+// action's frame count and each frame's three ints; or "n failed error".
+int DecodeImfs(const std::vector<std::string>& files) {
+  int failed = 0;
+  for (std::size_t n = 0; n < files.size(); ++n) {
+    ragexe::res::Imf imf;
+    std::string error;
+    if (!ragexe::res::DecodeImf(ReadFile(files[n]), imf, &error)) {
+      std::printf("%zu failed %s\n", n, error.c_str());
+      ++failed;
+      continue;
+    }
+    std::vector<std::uint32_t> values;
+    std::size_t actions = 0;
+    std::size_t frames = 0;
+    for (const auto& layer : imf.layers) {
+      values.push_back(static_cast<std::uint32_t>(layer.size()));
+      actions += layer.size();
+      for (const auto& action : layer) {
+        values.push_back(static_cast<std::uint32_t>(action.size()));
+        frames += action.size();
+        for (const auto& frame : action) {
+          for (std::int32_t v : {frame.order, frame.x, frame.y})
+            values.push_back(static_cast<std::uint32_t>(v));
+        }
+      }
+    }
+    std::printf("%zu ok %08x %u %zu %zu %zu %016llx\n", n, FloatBits(imf.version), imf.field_4,
+                imf.layers.size(), actions, frames,
+                static_cast<unsigned long long>(Fnv1a64(values)));
+  }
+  return failed == 0 ? 0 : 1;
+}
+
 int Usage() {
   std::fprintf(stderr,
                "usage: ragres list ARCHIVE\n"
@@ -720,7 +757,8 @@ int Usage() {
                "       ragres decode-gnds FILE...\n"
                "       ragres decode-rsws [--no-lightmaps] FILE...\n"
                "       ragres decode-rsms FILE...\n"
-               "       ragres decode-rsxs FILE...\n");
+               "       ragres decode-rsxs FILE...\n"
+               "       ragres decode-imfs FILE...\n");
   return 2;
 }
 
@@ -749,6 +787,7 @@ int main(int argc, char** argv) {
   if (command == "decode-rsws") return DecodeRsws(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-rsms") return DecodeRsms(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-rsxs") return DecodeRsxs(std::vector<std::string>(argv + 2, argv + argc));
+  if (command == "decode-imfs") return DecodeImfs(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "check") {
     int status = 0;
     for (int i = 2; i < argc; ++i) status |= Check(argv[i]);

@@ -1,11 +1,12 @@
 // Writes the seed inputs of the fuzz targets: small archives of each version, with both
 // decode paths, directory entries and a stream that breaks off, their tables, and a
 // ResNameTable.txt, small images of each kind the bitmap decoders read, sprites and
-// actions, attribute maps, grounds, worlds, models and animated models.
+// actions, attribute maps, grounds, worlds, models, animated models and
+// .imf files.
 //
 //   make_grf_seeds DIR    writes DIR/grf_archive, DIR/grf_table, DIR/res_name_table,
 //                         DIR/bitmap, DIR/sprite, DIR/act, DIR/gat, DIR/gnd,
-//                         DIR/rsw, DIR/rsm and DIR/rsx
+//                         DIR/rsw, DIR/rsm, DIR/rsx and DIR/imf
 
 #include <cstdint>
 #include <cstdio>
@@ -374,6 +375,22 @@ std::vector<std::uint8_t> RsxInput() {
   return out;
 }
 
+// An .imf file of version 1.01: two layers of three actions of up to two frames.
+std::vector<std::uint8_t> ImfInput() {
+  std::vector<std::uint8_t> out;
+  for (std::uint32_t v : {0x3f8147aeu, 0u, 1u}) Put32(out, v);
+  for (int layer = 0; layer < 2; ++layer) {
+    Put32(out, 3);
+    for (std::uint32_t frames = 0; frames < 3; ++frames) {
+      Put32(out, frames);
+      for (std::uint32_t k = 0; k < frames; ++k) {
+        for (std::uint32_t v : {static_cast<std::uint32_t>(layer), k, 0xfffffff0u}) Put32(out, v);
+      }
+    }
+  }
+  return out;
+}
+
 int main(int argc, char** argv) {
   if (argc != 2) {
     std::fprintf(stderr, "usage: make_grf_seeds DIR\n");
@@ -391,6 +408,7 @@ int main(int argc, char** argv) {
   std::filesystem::create_directories(dir / "rsw");
   std::filesystem::create_directories(dir / "rsm");
   std::filesystem::create_directories(dir / "rsx");
+  std::filesystem::create_directories(dir / "imf");
 
   std::vector<std::uint8_t> text(300);
   for (std::size_t i = 0; i < text.size(); ++i) text[i] = static_cast<std::uint8_t>('a' + i % 26);
@@ -467,6 +485,8 @@ int main(int argc, char** argv) {
     ++n;
   }
   Write(dir / "rsx" / "v1.3.bin", RsxInput());
+  ++n;
+  Write(dir / "imf" / "v1.01.bin", ImfInput());
   ++n;
   std::printf("wrote %d seeds to %s\n", n, dir.string().c_str());
   return 0;

@@ -1746,8 +1746,19 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     share `RecordReader`.
   - **Fuzzing:** `rsx_fuzz`, 183 million inputs with no findings.
 
+- [x] `CImfRes` (`docs/formats/imf.md`, `src/res/imf`):
+  - **Format:** a float version (at least 1.01), then layers of actions of frames, each
+    frame holding an order, x and y.
+  - **Field meanings:** `CPc::RenderActFrameItems` asks `FindEntryWithValue` which layer
+    goes first in each action and frame, and `GetRecordPoint` gives x and y as a point.
+  - **The original's tables:** it keeps counts in fixed tables of 15 layers by 104
+    actions without checking them. The port refuses files that would overflow them.
+  - **Oracle** (`tools/imf_oracle.py`, in `ctest` when the data is present): all 31
+    files in `data.grf` and 8 synthetic ones match the original `Load`.
+  - **Fuzzing:** `imf_fuzz`, 279 million inputs with no findings.
+
 ### Next actions (M3)
-1. The remaining loaders in dependency order (`CImfRes`, …),
+1. The remaining loaders in dependency order (`CRmaRes`, `CEZeffectRes`, …),
    each registered with the resource manager, compared with the original in the
    emulation oracle (its `Load`, through `serve_data_files`), fuzzed, and with a
    `ragres` mode.
