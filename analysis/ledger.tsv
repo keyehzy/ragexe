@@ -1122,14 +1122,14 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00435800	10	code	0	res		named	Global	static_init_063	
 00435810	32	code	0	res		named	Global	static_init_063_body	
 00435830	266	code	0	res		named	C3dWorldRes	C3dWorldRes	
-00435940	89	code	0	res		named	C3dWorldRes	vf02	
+00435940	89	code	0	res		named	C3dWorldRes	Clone	
 004359a0	33	code	0	res		named	C3dWorldRes	`scalar_deleting_destructor'	
 004359d0	405	code	0	res		named	C3dWorldRes	~C3dWorldRes	
 00435b70	12	code	0	res		named	Global	register_destroy_g_C3dWorldRes	
 00435b80	10	code	0	res		named	Global	destroy_g_C3dWorldRes	
 00435b90	247	code	0	res		named	C3dWorldRes	C3dWorldRes	
-00435c90	309	code	0	res		named	C3dWorldRes	vf04	
-00435dd0	3030	code	0	res		named	C3dWorldRes	vf03	
+00435c90	309	code	0	res		named	C3dWorldRes	Reset	
+00435dd0	3030	code	0	res		named	C3dWorldRes	Load	
 004369c0	77	code	1	stl		named	std::list	~list	
 00436a10	69	code	1	stl		named	std::list	method_00436a10	
 00436a60	18	code	1	stl		named	std::list	IncrementIterator	

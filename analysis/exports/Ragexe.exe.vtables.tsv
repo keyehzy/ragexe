@@ -176,9 +176,9 @@ CWave	005e2a90	0	4	00435460	CWave::vf04
 CWave	005e2a90	0	5	004df9d0	CRes::OnLoadError	
 C3dWorldRes	005e2ab8	0	0	004359a0	C3dWorldRes::`scalar_deleting_destructor'	
 C3dWorldRes	005e2ab8	0	1	00420880	CRes::LoadFromMemory	
-C3dWorldRes	005e2ab8	0	2	00435940	C3dWorldRes::vf02	
-C3dWorldRes	005e2ab8	0	3	00435dd0	C3dWorldRes::vf03	
-C3dWorldRes	005e2ab8	0	4	00435c90	C3dWorldRes::vf04	
+C3dWorldRes	005e2ab8	0	2	00435940	C3dWorldRes::Clone	
+C3dWorldRes	005e2ab8	0	3	00435dd0	C3dWorldRes::Load	
+C3dWorldRes	005e2ab8	0	4	00435c90	C3dWorldRes::Reset	
 C3dWorldRes	005e2ab8	0	5	004df9d0	CRes::OnLoadError	
 CSkinMgr	005e2ae0	0	0	00437000	CSkinMgr::`scalar_deleting_destructor'	
 SnapObject	005e2af4	0	0	00438b30	SnapObject::`scalar_deleting_destructor'	

@@ -32,6 +32,7 @@ add_library(ragexe_res STATIC
   res/data_path.cpp
   res/gat.cpp
   res/gnd.cpp
+  res/rsw.cpp
   res/grf.cpp
   res/grf_cipher.cpp
   res/hashed_file_name.cpp

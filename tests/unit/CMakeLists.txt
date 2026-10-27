@@ -6,6 +6,7 @@ add_executable(ragexe_tests
   gnd_test.cpp
   grf_test.cpp
   resource_test.cpp
+  rsw_test.cpp
   mode_switcher_test.cpp
   palette_test.cpp
   settings_test.cpp
@@ -57,6 +58,10 @@ if(RAGEXE_ARCHIVES)
     # Every ground, against the original loader (tools/gnd_oracle.py).
     add_test(NAME gnd_oracle
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/gnd_oracle.py"
+        --ragres $<TARGET_FILE:ragres> --archive "${RAGEXE_INSTALL_DIR}/data.grf")
+    # Every world, against the original loader (tools/rsw_oracle.py).
+    add_test(NAME rsw_oracle
+      COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/rsw_oracle.py"
         --ragres $<TARGET_FILE:ragres> --archive "${RAGEXE_INSTALL_DIR}/data.grf")
     # Every palette, against the original conversion (tools/palette_oracle.py).
     add_test(NAME palette_oracle

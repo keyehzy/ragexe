@@ -1685,8 +1685,30 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **`ragres` reads files whole.** Its byte-by-byte reads took 2 minutes on the 828 MB
     of grounds in the sanitized build.
 
+- [x] `C3dWorldRes` (`docs/formats/rsw.md`, `src/res/rsw`):
+  - **Format:** `GRSW` to 2.1:
+    - the ground and attribute map names, the water and the light;
+    - objects: models, skipped type-2 records, sounds and effects;
+    - at 2.1, the bounds of a 1,365-node scene graph.
+  - **Field meanings** come from `CWorld::LoadWorld` and `C3dGround::SetWaterParams`.
+    The light colours are the diffuse and ambient of the `D3DLIGHT7` passed to
+    `IDirect3DDevice7::SetLight`, and model placement comes from `ModelInstance`.
+  - **Kept from the original:**
+    - the light vector, computed through the original's rotation helpers, bit for bit;
+    - the ISLIGHTMAP option's brighter ambient;
+    - models below 1.3 named by the loader's leftover name buffer;
+    - the speed clamp that turns NaN into 1.0, found by the oracle;
+    - 1.x sound records converted with `strncpy`.
+  - **Oracle** (`tools/rsw_oracle.py`, in `ctest` when the data is present):
+    - all 208 worlds in `data.grf` match the original `Load` with ISLIGHTMAP on and off;
+    - so do 19 synthetic ones, covering every version, odd objects and extreme light
+      angles;
+    - it runs in 20 s.
+  - **Where the port differs:** truncated files fail, and so do unterminated names.
+  - **Fuzzing:** `rsw_fuzz`, 78 million inputs with no findings.
+
 ### Next actions (M3)
-1. The remaining loaders in dependency order (`C3dWorldRes`, `C3dModelRes`, …),
+1. The remaining loaders in dependency order (`C3dModelRes`, …),
    each registered with the resource manager, compared with the original in the
    emulation oracle (its `Load`, through `serve_data_files`), fuzzed, and with a
    `ragres` mode.

@@ -176,7 +176,8 @@ unsigned and the texture index signed, as the builder reads them.
 
 **Where the port differs:**
 - **An unversioned file fails.** The client would load one, then read its cells through
-  an uninitialised version byte.
+  an uninitialised version byte. `CWorld::LoadWorld` builds no ground from one either
+  ([rsw.md](rsw.md#where-the-fields-go)).
 - **Truncated files fail,** where the original points past the buffer.
 - **So do these:** negative counts or sizes, and a name with no NUL inside its record.
   The original reads such a name on into what follows.

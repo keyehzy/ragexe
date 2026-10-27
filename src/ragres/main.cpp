@@ -11,6 +11,8 @@
 //                                          decodes .act files as CActRes does, every field
 //   ragres decode-gats FILE...             decodes .gat files as C3dAttr does, as hashes
 //   ragres decode-gnds FILE...             decodes .gnd files as CGndRes does, as hashes
+//   ragres decode-rsws [--no-lightmaps] FILE...
+//                                          decodes .rsw files as C3dWorldRes does
 //   ragres check ARCHIVE...                reads every compressed entry and checks its size;
 //                                          fails on an entry that cannot be read
 //
@@ -34,6 +36,7 @@
 #include "res/grf.h"
 #include "res/palette.h"
 #include "res/resource.h"
+#include "res/rsw.h"
 #include "res/sprite.h"
 
 namespace {
@@ -458,6 +461,83 @@ int DecodeGnds(const std::vector<std::string>& files) {
   return failed == 0 ? 0 : 1;
 }
 
+std::string Hex(std::string_view bytes) {
+  std::string out;
+  for (unsigned char c : bytes) {
+    char digits[3];
+    std::snprintf(digits, sizeof digits, "%02x", c);
+    out += digits;
+  }
+  return out.empty() ? "-" : out;
+}
+
+// Decodes .rsw files as C3dWorldRes does and prints, per file, "n ok major minor", the
+// three names in hex, the water and light values (floats as bits), the four ints at
+// +0x1b0, then count:hash for the models (name, file and node each with a NUL, the nine
+// floats' bits, +0xec, +0xf0 and the speed's bits), the sound and effect records (their
+// bytes) and the scene-graph bounds (their floats' bits); or "n failed error".
+int DecodeRsws(std::vector<std::string> files) {
+  bool lightmaps = true;
+  if (!files.empty() && files.front() == "--no-lightmaps") {
+    lightmaps = false;
+    files.erase(files.begin());
+  }
+  int failed = 0;
+  for (std::size_t n = 0; n < files.size(); ++n) {
+    ragexe::res::World world;
+    std::string error;
+    if (!ragexe::res::DecodeWorld(ReadFile(files[n]), lightmaps, world, &error)) {
+      std::printf("%zu failed %s\n", n, error.c_str());
+      ++failed;
+      continue;
+    }
+    std::printf("%zu ok %u %u %s %s %s %08x %d %08x %08x %08x %d %d %d", n, world.major,
+                world.minor, Hex(world.ground).c_str(), Hex(world.attr).c_str(),
+                Hex(world.extra).c_str(), FloatBits(world.water_level), world.water_type,
+                FloatBits(world.water_param_170), FloatBits(world.water_phase_step),
+                FloatBits(world.water_param_178), world.water_frame_interval, world.light_angle_y,
+                world.light_angle_x);
+    for (const auto* v : {&world.light_vector, &world.diffuse, &world.ambient}) {
+      for (float f : *v) std::printf(" %08x", FloatBits(f));
+    }
+    for (std::int32_t v : world.field_1b0) std::printf(" %d", v);
+    std::vector<std::uint8_t> models;
+    for (const auto& model : world.models) {
+      for (const std::string* s : {&model.name, &model.file, &model.node}) {
+        models.insert(models.end(), s->begin(), s->end());
+        models.push_back(0);
+      }
+      std::vector<std::uint32_t> values;
+      for (const auto* v : {&model.position, &model.rotation, &model.scale}) {
+        for (float f : *v) values.push_back(FloatBits(f));
+      }
+      values.push_back(static_cast<std::uint32_t>(model.field_ec));
+      values.push_back(model.field_f0);
+      values.push_back(FloatBits(model.animation_speed));
+      for (std::uint32_t v : values) {
+        for (int k = 0; k < 4; ++k) models.push_back(static_cast<std::uint8_t>(v >> (8 * k)));
+      }
+    }
+    std::vector<std::uint8_t> sounds;
+    for (const auto& sound : world.sounds) sounds.insert(sounds.end(), sound.begin(), sound.end());
+    std::vector<std::uint8_t> effects;
+    for (const auto& effect : world.effects)
+      effects.insert(effects.end(), effect.begin(), effect.end());
+    std::vector<std::uint32_t> bounds;
+    for (const auto& node : world.bounds) {
+      for (const auto* v : {&node.max, &node.min, &node.half_extent, &node.centre}) {
+        for (float f : *v) bounds.push_back(FloatBits(f));
+      }
+    }
+    std::printf(" %zu:%016llx %zu:%016llx %zu:%016llx %zu:%016llx\n", world.models.size(),
+                static_cast<unsigned long long>(Fnv1a64(models)), world.sounds.size(),
+                static_cast<unsigned long long>(Fnv1a64(sounds)), world.effects.size(),
+                static_cast<unsigned long long>(Fnv1a64(effects)), world.bounds.size(),
+                static_cast<unsigned long long>(Fnv1a64(bounds)));
+  }
+  return failed == 0 ? 0 : 1;
+}
+
 int Usage() {
   std::fprintf(stderr,
                "usage: ragres list ARCHIVE\n"
@@ -468,7 +548,8 @@ int Usage() {
                "       ragres decode-sprites [--halve-x] [--halve-y] FILE...\n"
                "       ragres decode-acts [--halve-x] [--halve-y] FILE...\n"
                "       ragres decode-gats FILE...\n"
-               "       ragres decode-gnds FILE...\n");
+               "       ragres decode-gnds FILE...\n"
+               "       ragres decode-rsws [--no-lightmaps] FILE...\n");
   return 2;
 }
 
@@ -494,6 +575,7 @@ int main(int argc, char** argv) {
   }
   if (command == "decode-gats") return DecodeGats(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-gnds") return DecodeGnds(std::vector<std::string>(argv + 2, argv + argc));
+  if (command == "decode-rsws") return DecodeRsws(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "check") {
     int status = 0;
     for (int i = 2; i < argc; ++i) status |= Check(argv[i]);
