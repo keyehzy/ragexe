@@ -1664,8 +1664,29 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Queries:** `GetHeight` and the other queries are documented for M5, which ports
     them with the walking code.
 
+- [x] `CGndRes` (`docs/formats/gnd.md`, `src/res/gnd`):
+  - **Format:** `GRGN` with a byte minor version, then texture names, 8 × 8 lightmaps,
+    40-byte surfaces and the cells. Cells are 0x18 bytes below minor 7 and 0x1c at 7;
+    `GetCell` widens both to the same form.
+  - **The original's loader** keeps the file open and points into it; it checks no
+    sizes and never the major version.
+  - **Field meanings** come from the builder, `C3dGround15::vf03`, and from
+    `LightmapAtlas::Build`. The lightmap index is unsigned: `gl_cas01.gnd` has 37,365
+    lightmaps.
+  - **Oracle** (`tools/gnd_oracle.py`, in `ctest` when the data is present):
+    - all 208 grounds in `data.grf` (all version 1.7) match the original `Load` in every
+      name, lightmap, surface and cell;
+    - so do 12 synthetic ones, covering every minor version and the failing minor 8.
+  - **Where the port differs:**
+    - an unversioned file fails: the client would read its cells through an
+      uninitialised version byte;
+    - so do truncated files.
+  - **Fuzzing:** `gnd_fuzz`, 315 million inputs with no findings.
+  - **`ragres` reads files whole.** Its byte-by-byte reads took 2 minutes on the 828 MB
+    of grounds in the sanitized build.
+
 ### Next actions (M3)
-1. The remaining loaders in dependency order (`CGndRes`, `C3dWorldRes`, `C3dModelRes`, …),
+1. The remaining loaders in dependency order (`C3dWorldRes`, `C3dModelRes`, …),
    each registered with the resource manager, compared with the original in the
    emulation oracle (its `Load`, through `serve_data_files`), fuzzed, and with a
    `ragres` mode.

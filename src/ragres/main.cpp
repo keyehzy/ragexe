@@ -10,6 +10,7 @@
 //   ragres decode-acts [--halve-x] [--halve-y] FILE...
 //                                          decodes .act files as CActRes does, every field
 //   ragres decode-gats FILE...             decodes .gat files as C3dAttr does, as hashes
+//   ragres decode-gnds FILE...             decodes .gnd files as CGndRes does, as hashes
 //   ragres check ARCHIVE...                reads every compressed entry and checks its size;
 //                                          fails on an entry that cannot be read
 //
@@ -29,6 +30,7 @@
 #include "res/act.h"
 #include "res/bitmap.h"
 #include "res/gat.h"
+#include "res/gnd.h"
 #include "res/grf.h"
 #include "res/palette.h"
 #include "res/resource.h"
@@ -176,6 +178,17 @@ int Check(const char* path) {
   return failed == 0 ? 0 : 1;
 }
 
+// The whole file, or nothing when it cannot be read.
+std::vector<std::uint8_t> ReadFile(const std::filesystem::path& path) {
+  std::ifstream in(path, std::ios::binary | std::ios::ate);
+  if (!in) return {};
+  std::vector<std::uint8_t> bytes(static_cast<std::size_t>(in.tellg()));
+  in.seekg(0);
+  in.read(reinterpret_cast<char*>(bytes.data()), static_cast<std::streamsize>(bytes.size()));
+  if (!in) return {};
+  return bytes;
+}
+
 // Decodes image files as CBitmapRes does and writes DIR/<n>.argb for the n-th file: width,
 // height and the alpha flag as 32-bit little-endian values, then the pixels. Prints one
 // line per file: n, ok or failed, width, height, alpha flag, error.
@@ -183,9 +196,7 @@ int DecodeImages(const std::filesystem::path& dir, const std::vector<std::string
   std::filesystem::create_directories(dir);
   int failed = 0;
   for (std::size_t n = 0; n < files.size(); ++n) {
-    std::ifstream in(files[n], std::ios::binary);
-    const std::vector<std::uint8_t> bytes((std::istreambuf_iterator<char>(in)),
-                                          std::istreambuf_iterator<char>());
+    const std::vector<std::uint8_t> bytes = ReadFile(files[n]);
     ragexe::res::Bitmap bitmap;
     std::string error;
     const bool ok = ragexe::res::DecodeBitmap(files[n], bytes, bitmap, &error);
@@ -214,9 +225,7 @@ int DecodeImages(const std::filesystem::path& dir, const std::vector<std::string
 int DecodePalettes(const std::vector<std::string>& files) {
   int failed = 0;
   for (std::size_t n = 0; n < files.size(); ++n) {
-    std::ifstream in(files[n], std::ios::binary);
-    const std::vector<std::uint8_t> bytes((std::istreambuf_iterator<char>(in)),
-                                          std::istreambuf_iterator<char>());
+    const std::vector<std::uint8_t> bytes = ReadFile(files[n]);
     ragexe::res::PaletteRes palette;
     const bool ok = palette.LoadFromBytes(bytes);
     std::printf("%zu\t%s", n, ok ? "ok" : "failed");
@@ -265,9 +274,7 @@ int DecodeSprites(const std::vector<std::string>& args) {
   }
   int failed = 0;
   for (std::size_t n = 0; n < files.size(); ++n) {
-    std::ifstream in(files[n], std::ios::binary);
-    const std::vector<std::uint8_t> bytes((std::istreambuf_iterator<char>(in)),
-                                          std::istreambuf_iterator<char>());
+    const std::vector<std::uint8_t> bytes = ReadFile(files[n]);
     ragexe::res::Sprite sprite;
     std::string error;
     const bool ok = ragexe::res::DecodeSprite(bytes, scale, sprite, &error);
@@ -313,11 +320,6 @@ int DecodeActs(const std::vector<std::string>& args) {
       files.push_back(a);
     }
   }
-  auto read = [](const std::filesystem::path& path) {
-    std::ifstream in(path, std::ios::binary);
-    return std::vector<std::uint8_t>((std::istreambuf_iterator<char>(in)),
-                                     std::istreambuf_iterator<char>());
-  };
   int failed = 0;
   for (std::size_t n = 0; n < files.size(); ++n) {
     std::filesystem::path sprite_path = files[n];
@@ -329,7 +331,7 @@ int DecodeActs(const std::vector<std::string>& args) {
         sprite.emplace();
         std::string ignored;
         if (!std::filesystem::exists(sprite_path) ||
-            !ragexe::res::DecodeSprite(read(sprite_path), scale, *sprite, &ignored)) {
+            !ragexe::res::DecodeSprite(ReadFile(sprite_path), scale, *sprite, &ignored)) {
           *sprite = ragexe::res::Sprite{};
         }
       }
@@ -346,7 +348,7 @@ int DecodeActs(const std::vector<std::string>& args) {
     };
     ragexe::res::Act act;
     std::string error;
-    if (!ragexe::res::DecodeAct(read(files[n]), lookup, act, &error)) {
+    if (!ragexe::res::DecodeAct(ReadFile(files[n]), lookup, act, &error)) {
       std::printf("A %zu failed %s\n", n, error.c_str());
       ++failed;
       continue;
@@ -386,9 +388,7 @@ int DecodeActs(const std::vector<std::string>& args) {
 int DecodeGats(const std::vector<std::string>& files) {
   int failed = 0;
   for (std::size_t n = 0; n < files.size(); ++n) {
-    std::ifstream in(files[n], std::ios::binary);
-    const std::vector<std::uint8_t> bytes((std::istreambuf_iterator<char>(in)),
-                                          std::istreambuf_iterator<char>());
+    const std::vector<std::uint8_t> bytes = ReadFile(files[n]);
     ragexe::res::AttrMap map;
     std::string error;
     if (!ragexe::res::DecodeAttrMap(bytes, map, &error)) {
@@ -408,6 +408,56 @@ int DecodeGats(const std::vector<std::string>& files) {
   return failed == 0 ? 0 : 1;
 }
 
+// Decodes .gnd files as CGndRes does and prints, per file, "n ok major minor width height
+// cell-size-bits", then count:hash for the textures (each name and a NUL), the lightmaps
+// (their 256 bytes), the surfaces (eight float bits, the texture index sign-extended, the
+// lightmap index, the colour) and the cells (four float bits, three surface indices); or
+// "n failed error".
+int DecodeGnds(const std::vector<std::string>& files) {
+  int failed = 0;
+  for (std::size_t n = 0; n < files.size(); ++n) {
+    const std::vector<std::uint8_t> bytes = ReadFile(files[n]);
+    ragexe::res::Ground ground;
+    std::string error;
+    if (!ragexe::res::DecodeGround(bytes, ground, &error)) {
+      std::printf("%zu failed %s\n", n, error.c_str());
+      ++failed;
+      continue;
+    }
+    std::vector<std::uint8_t> names;
+    for (const std::string& name : ground.textures) {
+      names.insert(names.end(), name.begin(), name.end());
+      names.push_back(0);
+    }
+    std::vector<std::uint8_t> lightmaps;
+    for (const auto& lightmap : ground.lightmaps) {
+      lightmaps.insert(lightmaps.end(), lightmap.alpha.begin(), lightmap.alpha.end());
+      lightmaps.insert(lightmaps.end(), lightmap.color.begin(), lightmap.color.end());
+    }
+    std::vector<std::uint32_t> surfaces;
+    for (const auto& surface : ground.surfaces) {
+      for (float u : surface.u) surfaces.push_back(FloatBits(u));
+      for (float v : surface.v) surfaces.push_back(FloatBits(v));
+      surfaces.push_back(static_cast<std::uint32_t>(std::int32_t{surface.texture}));
+      surfaces.push_back(surface.lightmap);
+      surfaces.push_back(surface.color);
+    }
+    std::vector<std::uint32_t> cells;
+    for (const auto& cell : ground.cells) {
+      for (float h : cell.heights) cells.push_back(FloatBits(h));
+      for (std::int32_t s : cell.surfaces) cells.push_back(static_cast<std::uint32_t>(s));
+    }
+    std::printf("%zu ok %u %u %d %d %08x %zu:%016llx %zu:%016llx %zu:%016llx %zu:%016llx\n", n,
+                ground.major, ground.minor, ground.width, ground.height,
+                FloatBits(ground.cell_size), ground.textures.size(),
+                static_cast<unsigned long long>(Fnv1a64(names)), ground.lightmaps.size(),
+                static_cast<unsigned long long>(Fnv1a64(lightmaps)), ground.surfaces.size(),
+                static_cast<unsigned long long>(Fnv1a64(surfaces)), ground.cells.size(),
+                static_cast<unsigned long long>(Fnv1a64(cells)));
+  }
+  return failed == 0 ? 0 : 1;
+}
+
 int Usage() {
   std::fprintf(stderr,
                "usage: ragres list ARCHIVE\n"
@@ -417,7 +467,8 @@ int Usage() {
                "       ragres decode-palettes FILE...\n"
                "       ragres decode-sprites [--halve-x] [--halve-y] FILE...\n"
                "       ragres decode-acts [--halve-x] [--halve-y] FILE...\n"
-               "       ragres decode-gats FILE...\n");
+               "       ragres decode-gats FILE...\n"
+               "       ragres decode-gnds FILE...\n");
   return 2;
 }
 
@@ -442,6 +493,7 @@ int main(int argc, char** argv) {
     return DecodeActs(std::vector<std::string>(argv + 2, argv + argc));
   }
   if (command == "decode-gats") return DecodeGats(std::vector<std::string>(argv + 2, argv + argc));
+  if (command == "decode-gnds") return DecodeGnds(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "check") {
     int status = 0;
     for (int i = 2; i < argc; ++i) status |= Check(argv[i]);

@@ -866,7 +866,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00428e90	10	code	0	res		named	Global	static_init_045	
 00428ea0	32	code	0	res		named	Global	static_init_045_body	
 00428ec0	133	code	0	res		named	CGndRes	CGndRes	
-00428f50	89	code	0	res		named	CGndRes	vf02	
+00428f50	89	code	0	res		named	CGndRes	Clone	
 00428fb0	33	code	0	res		named	CGndRes	`scalar_deleting_destructor'	
 00428fe0	108	code	0	res		named	CGndRes	~CGndRes	
 00429050	12	code	0	res		named	Global	register_destroy_g_CGndRes	
@@ -876,8 +876,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004290f0	55	code	0	res	unreferenced	named	GndCell	SetFromRecordCopy2	
 00429130	55	code	0	res	unreferenced	named	GndCell	SetFromRecordCopy3	
 00429170	138	code	0	res		named	CGndRes	CGndRes	
-00429200	112	code	0	res		named	CGndRes	vf03	
-00429270	97	code	0	res		named	CGndRes	vf04	
+00429200	112	code	0	res		named	CGndRes	Load	
+00429270	97	code	0	res		named	CGndRes	Reset	
 004292e0	265	code	0	res		named	CGndRes	ParseUnversioned	
 004293f0	501	code	0	res		named	CGndRes	ParseVersioned	
 004295f0	134	code	0	res		named	CGndRes	GetCell	

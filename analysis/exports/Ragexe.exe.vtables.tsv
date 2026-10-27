@@ -128,9 +128,9 @@ CEZeffectRes	005e294c	0	4	00428b30	CEZeffectRes::vf04
 CEZeffectRes	005e294c	0	5	004df9d0	CRes::OnLoadError	
 CGndRes	005e2974	0	0	00428fb0	CGndRes::`scalar_deleting_destructor'	
 CGndRes	005e2974	0	1	00420880	CRes::LoadFromMemory	
-CGndRes	005e2974	0	2	00428f50	CGndRes::vf02	
-CGndRes	005e2974	0	3	00429200	CGndRes::vf03	
-CGndRes	005e2974	0	4	00429270	CGndRes::vf04	
+CGndRes	005e2974	0	2	00428f50	CGndRes::Clone	
+CGndRes	005e2974	0	3	00429200	CGndRes::Load	
+CGndRes	005e2974	0	4	00429270	CGndRes::Reset	
 CGndRes	005e2974	0	5	004df9d0	CRes::OnLoadError	
 CImfRes	005e2990	0	0	00429aa0	CImfRes::`scalar_deleting_destructor'	
 CImfRes	005e2990	0	1	00420880	CRes::LoadFromMemory	
