@@ -21,6 +21,8 @@
 //   ragres decode-ebms FILE...             decodes .ebm files as CEmblemRes does, with the
 //                                          bytes it inflates
 //   ragres decode-wavs FILE...             decodes .wav files as CWave does
+//   ragres decode-name-pairs FILE...       decodes ClientState's name-pair tables
+//                                          (mapNameTable.txt and the like)
 //   ragres decode-item-tables DIR [--korea] [--code-page N]
 //                                          loads the item and card tables from DIR's data
 //                                          folder as LoadItemTables does
@@ -43,6 +45,7 @@
 
 #include "res/act.h"
 #include "res/bitmap.h"
+#include "res/client_tables.h"
 #include "res/data_files.h"
 #include "res/ebm.h"
 #include "res/gat.h"
@@ -908,6 +911,17 @@ void PrintCard(const char* id, const ragexe::res::CardInfo& card) {
               TextHash(card.prefix).c_str(), TextHash(card.postfix).c_str());
 }
 
+int DecodeNamePairs(const std::vector<std::string>& files) {
+  for (std::size_t n = 0; n < files.size(); ++n) {
+    const ragexe::res::NamePairs pairs = ragexe::res::ParseNamePairs(ReadFile(files[n]));
+    std::printf("%zu ok %zu\n", n, pairs.size());
+    for (const auto& [first, second] : pairs) {
+      std::printf("P %s %s\n", TextHash(first).c_str(), TextHash(second).c_str());
+    }
+  }
+  return 0;
+}
+
 int DecodeItemTables(const std::vector<std::string>& args) {
   if (args.empty()) return Usage();
   ragexe::res::ItemTableSettings settings;
@@ -956,6 +970,7 @@ int Usage() {
                "       ragres decode-strs FILE...\n"
                "       ragres decode-ebms FILE...\n"
                "       ragres decode-wavs FILE...\n"
+               "       ragres decode-name-pairs FILE...\n"
                "       ragres decode-item-tables DIR [--korea] [--code-page N]\n");
   return 2;
 }
@@ -990,6 +1005,9 @@ int main(int argc, char** argv) {
   if (command == "decode-strs") return DecodeStrs(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-ebms") return DecodeEbms(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-wavs") return DecodeWavs(std::vector<std::string>(argv + 2, argv + argc));
+  if (command == "decode-name-pairs") {
+    return DecodeNamePairs(std::vector<std::string>(argv + 2, argv + argc));
+  }
   if (command == "decode-item-tables") {
     return DecodeItemTables(std::vector<std::string>(argv + 2, argv + argc));
   }

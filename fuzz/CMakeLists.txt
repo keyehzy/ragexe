@@ -6,7 +6,7 @@ add_executable(make_grf_seeds make_grf_seeds.cpp)
 target_include_directories(make_grf_seeds PRIVATE ${PROJECT_SOURCE_DIR}/tests)
 target_link_libraries(make_grf_seeds PRIVATE ragexe_res ragexe_stb_image ZLIB::ZLIB ragexe_options)
 
-set(RAGEXE_FUZZ_TARGETS grf_table grf_archive res_name_table bitmap sprite act gat gnd rsw rsm rsx imf rma str ebm wav item_tables)
+set(RAGEXE_FUZZ_TARGETS grf_table grf_archive res_name_table bitmap sprite act gat gnd rsw rsm rsx imf rma str ebm wav item_tables name_pairs)
 foreach(target IN LISTS RAGEXE_FUZZ_TARGETS)
   add_executable(${target}_fuzz ${target}_fuzz.cpp)
   target_link_libraries(${target}_fuzz PRIVATE ragexe_res ragexe_options)

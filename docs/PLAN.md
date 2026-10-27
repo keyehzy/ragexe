@@ -1859,12 +1859,29 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
       too.
   - **Fuzzing:** `item_tables_fuzz`, 6.2 million inputs with no findings.
 
+- [x] `ClientState`'s name-pair tables (`docs/formats/client_tables.md`,
+  `src/res/client_tables`):
+  - **What they are:** `mapNameTable`, `mapObjLightTable`, `mp3NameTable` and
+    `skillNameTable`, read by one loader, copied four times, into vectors of string
+    pairs.
+  - **The parser:** two character buffers that `#` switches between, where a line break
+    empties only the one being filled. The pairs are then put through the library's
+    `std::sort`, which is not stable.
+  - **That sort** is now `Vc6Sort` (`src/res/vc6_sort.h`), shared with the model loader;
+    `rsm_oracle` still matches.
+  - **The skill tables:** the lowercase ones that `LoadHashSeparatedStrings` would read
+    belong to `LoadSkillTablesByName` (`004d95b0`), which nothing calls.
+  - **Oracle** (`tools/name_pairs_oracle.py`, in `ctest` when the data is present): each
+    loader on its tables from `data.grf` and the patches, and 8 synthetic tables (ties,
+    line breaks, NULs, high bytes); every pair matches in order.
+  - **Fuzzing:** `name_pairs_fuzz`, 8.6 million inputs with no findings.
+
 ### Next actions (M3)
-1. The other text tables, each with a `ragres` mode and compared with the client in the
-   emulation oracle:
-   - the skill tables, read through the same splitter (`FUN_004d95b0`);
-   - `ClientState`'s own tables (`mapNameTable`, `msgStringTable`, `fogParameterTable`
-     and others);
+1. The rest of `ClientState`'s tables, each with a `ragres` mode and compared with the
+   client in the emulation oracle:
+   - `skillDescTable`, `LevelUseskillSpAmount` and `skillAfterDelay`;
+   - `msgStringTable`, `fogParameterTable` and `indoorRswTable`;
+   - `PetTalkTable.xml`;
    - then `clientinfo.xml`.
 
    `C3dGrannyModelRes` (`.gr2`, through `granny2.dll`) is the one registered type not in

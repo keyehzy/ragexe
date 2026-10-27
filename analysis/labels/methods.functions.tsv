@@ -1024,7 +1024,6 @@ address	namespace	name	calling_convention	evidence
 00593ae0	ClientState	method_00593ae0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00542480
 00593b70	ClientState	method_00593b70	__thiscall	__thiscall; called with this from 7 functions of ClientState, e.g. 0044dad0
 00593bb0	ClientState	method_00593bb0	__thiscall	__thiscall; called with this from 5 functions of ClientState, e.g. 0044dad0
-00593c10	ClientState	method_00593c10	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588a00
 00594020	ClientState	method_00594020	__thiscall	__thiscall; called with this from 5 functions of ClientState, e.g. 0044dad0
 00594070	ClientState	method_00594070	__thiscall	__thiscall; called with this from 4 functions of ClientState, e.g. 00452500
 00596210	ClientState	method_00596210	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588a00
@@ -1036,11 +1035,8 @@ address	namespace	name	calling_convention	evidence
 00597920	ClientState	method_00597920	__thiscall	__thiscall; called with this from 12 functions of ClientState, e.g. 004601a0
 00597940	ClientState	method_00597940	__thiscall	__thiscall; called with this from 4 functions of ClientState, e.g. 00529520
 00597950	ClientState	method_00597950	__thiscall	__thiscall; called with this from 18 functions of ClientState, e.g. 004b25f0
-005979d0	ClientState	method_005979d0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588a00
 00597d70	ClientState	method_00597d70	__thiscall	__thiscall; called with this from 3 functions of ClientState, e.g. 0046a560
-00597e10	ClientState	method_00597e10	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588a00
 005981b0	ClientState	method_005981b0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0050cfb0
-00598290	ClientState	method_00598290	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588a00
 00598630	ClientState	method_00598630	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0050dbb0
 005986d0	ClientState	method_005986d0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0046a560
 005988c0	ClientState	method_005988c0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588a00

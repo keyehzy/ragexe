@@ -3667,7 +3667,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004d9480	31	code	0	game		named	Global	destroy_g_skillInfoById	
 004d94a0	242	code	1	stl		named	std::Tree	~Tree	
 004d95a0	13	code	0	ui		named	SkillRecord	GetIdName	
-004d95b0	866	code	0	game	unreferenced	raw	Global	FUN_004d95b0	
+004d95b0	866	code	0	game	unreferenced	named	Global	LoadSkillTablesByName	
 004d9920	39	code	0	game		named	Global	IsSkillIdInFlagList	
 004d99e0	37	code	0	world		named	Global	IsIdNotInFixedList	
 004d9a60	19	code	0	core		named	Global	GetSkillIdName	
@@ -5835,7 +5835,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00593ae0	137	code	0	game		named	ClientState	method_00593ae0	
 00593b70	54	code	0	game		named	ClientState	method_00593b70	
 00593bb0	93	code	0	game		named	ClientState	method_00593bb0	
-00593c10	918	code	0	game		named	ClientState	method_00593c10	
+00593c10	918	code	0	game		named	ClientState	LoadSkillNameTable	
 00593fb0	109	code	1	stl		named	std::pair	~pair	
 00594020	68	code	0	game		named	ClientState	method_00594020	
 00594070	8596	code	0	game		named	ClientState	method_00594070	
@@ -5851,11 +5851,11 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00597920	27	code	0	game		named	ClientState	method_00597920	
 00597940	14	code	0	game		named	ClientState	method_00597940	
 00597950	97	code	0	game		named	ClientState	method_00597950	
-005979d0	914	code	0	game		named	ClientState	method_005979d0	
+005979d0	914	code	0	game		named	ClientState	LoadMapNameTable	
 00597d70	154	code	0	game		named	ClientState	method_00597d70	
-00597e10	914	code	0	game		named	ClientState	method_00597e10	
+00597e10	914	code	0	game		named	ClientState	LoadMapObjLightTable	
 005981b0	215	code	0	game		named	ClientState	method_005981b0	
-00598290	914	code	0	game		named	ClientState	method_00598290	
+00598290	914	code	0	game		named	ClientState	LoadMp3NameTable	
 00598630	146	code	0	game		named	ClientState	method_00598630	
 005986d0	414	code	0	game		named	ClientState	method_005986d0	
 00598870	69	code	0	game		named	Global	destroy_global_00686628	

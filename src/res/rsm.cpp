@@ -9,6 +9,7 @@
 
 #include "res/data_file.h"
 #include "res/record_reader.h"
+#include "res/vc6_sort.h"
 
 namespace ragexe::res {
 
@@ -77,54 +78,6 @@ struct Moving {
   std::int32_t smoothing_group;
 };
 
-void InsertionSort(Moving* first, Moving* last) {
-  if (first == last) return;
-  for (Moving* i = first + 1; i != last; ++i) {
-    const Moving v = *i;
-    if (v.texture < first->texture) {
-      std::copy_backward(first, i, i + 1);
-      *first = v;
-    } else {
-      Moving* p = i;
-      for (; v.texture < (p - 1)->texture; --p) *p = *(p - 1);
-      *p = v;
-    }
-  }
-}
-
-std::uint16_t MedianKey(const Moving& a, const Moving& b, const Moving& c) {
-  if (a.texture < b.texture) {
-    if (b.texture < c.texture) return b.texture;
-    return c.texture <= a.texture ? a.texture : c.texture;
-  }
-  if (a.texture < c.texture) return a.texture;
-  return c.texture <= b.texture ? b.texture : c.texture;
-}
-
-void QuickSortRange(Moving* first, Moving* last) {
-  for (std::ptrdiff_t n = last - first; n > 16; n = last - first) {
-    const std::uint16_t pivot = MedianKey(*first, first[n / 2], *(last - 1));
-    Moving* i = first;
-    Moving* j = last;
-    for (;;) {
-      while (i->texture < pivot) ++i;
-      do {
-        --j;
-      } while (pivot < j->texture);
-      if (j <= i) break;
-      std::swap(*i, *j);
-      ++i;
-    }
-    if (i - first < last - i) {
-      QuickSortRange(first, i);
-      first = i;
-    } else {
-      QuickSortRange(i, last);
-      last = i;
-    }
-  }
-}
-
 }  // namespace
 
 void SortModelFaces(std::vector<ModelFace>& faces) {
@@ -133,20 +86,8 @@ void SortModelFaces(std::vector<ModelFace>& faces) {
     const ModelFace& f = faces[k];
     moving[k] = {f.vertices, f.tex_coords, f.texture, f.smoothing_group};
   }
-  Moving* first = moving.data();
-  Moving* last = first + moving.size();
-  if (moving.size() <= 16) {
-    InsertionSort(first, last);
-  } else {
-    QuickSortRange(first, last);
-    InsertionSort(first, first + 16);
-    for (Moving* i = first + 16; i != last; ++i) {
-      const Moving v = *i;
-      Moving* p = i;
-      for (; v.texture < (p - 1)->texture; --p) *p = *(p - 1);
-      *p = v;
-    }
-  }
+  Vc6Sort(moving.data(), moving.data() + moving.size(),
+          [](const Moving& a, const Moving& b) { return a.texture < b.texture; });
   for (std::size_t k = 0; k < faces.size(); ++k) {
     ModelFace& f = faces[k];
     f.vertices = moving[k].vertices;

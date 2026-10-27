@@ -203,7 +203,7 @@ entry	size	kind	library	reach	name	referenced_by
 004cd150	13	code	0	unreferenced	Global::FUN_004cd150	
 004cf240	16	code	0	unreferenced	Global::FUN_004cf240	
 004cf250	16	code	0	unreferenced	Global::FUN_004cf250	
-004d95b0	866	code	0	unreferenced	Global::FUN_004d95b0	
+004d95b0	866	code	0	unreferenced	Global::LoadSkillTablesByName	
 004d9b30	6	code	0	dead	Global::FUN_004d9b30	004d95b0
 004da100	407	code	0	dead	Global::FUN_004da100	004d95b0
 004da2a0	275	code	0	dead	Global::FUN_004da2a0	004d95b0
