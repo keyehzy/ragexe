@@ -29,6 +29,7 @@
 //   ragres decode-fields [--sorted] FILE... decodes msgStringTable.txt, or with --sorted
 //                                          indoorRswTable.txt, as ClientState does
 //   ragres decode-fog-parameters FILE...   decodes fogParameterTable.txt as ClientState does
+//   ragres decode-xml FILE...              parses XML files as XmlDocument does
 //   ragres decode-item-tables DIR [--korea] [--code-page N]
 //                                          loads the item and card tables from DIR's data
 //                                          folder as LoadItemTables does
@@ -68,6 +69,7 @@
 #include "res/sprite.h"
 #include "res/str.h"
 #include "res/wav.h"
+#include "res/xml.h"
 
 namespace {
 
@@ -974,6 +976,29 @@ int DecodeFogParameters(const std::vector<std::string>& files) {
   return 0;
 }
 
+// Each element in document order: its depth, name, text and number of children.
+void PrintXml(const ragexe::res::XmlElement& element, int depth) {
+  std::printf("E %d %s %s %zu\n", depth, TextHash(element.name).c_str(),
+              TextHash(element.text).c_str(), element.children.size());
+  for (const auto& child : element.children) PrintXml(child, depth + 1);
+}
+
+int DecodeXml(const std::vector<std::string>& files) {
+  int failed = 0;
+  for (std::size_t n = 0; n < files.size(); ++n) {
+    ragexe::res::XmlElement document;
+    std::string error;
+    if (!ragexe::res::ParseXml(ReadFile(files[n]), document, &error)) {
+      std::printf("%zu failed %s\n", n, error.c_str());
+      ++failed;
+      continue;
+    }
+    std::printf("%zu ok\n", n);
+    PrintXml(document, 0);
+  }
+  return failed == 0 ? 0 : 1;
+}
+
 int DecodeItemTables(const std::vector<std::string>& args) {
   if (args.empty()) return Usage();
   ragexe::res::ItemTableSettings settings;
@@ -1027,6 +1052,7 @@ int Usage() {
                "       ragres decode-line-records FILE...\n"
                "       ragres decode-fields [--sorted] FILE...\n"
                "       ragres decode-fog-parameters FILE...\n"
+               "       ragres decode-xml FILE...\n"
                "       ragres decode-item-tables DIR [--korea] [--code-page N]\n");
   return 2;
 }
@@ -1076,6 +1102,7 @@ int main(int argc, char** argv) {
   if (command == "decode-fog-parameters") {
     return DecodeFogParameters(std::vector<std::string>(argv + 2, argv + argc));
   }
+  if (command == "decode-xml") return DecodeXml(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-item-tables") {
     return DecodeItemTables(std::vector<std::string>(argv + 2, argv + argc));
   }

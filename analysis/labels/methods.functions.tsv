@@ -444,7 +444,6 @@ address	namespace	name	calling_convention	evidence
 004dd4e0	DataFile	method_004dd4e0	__thiscall	__thiscall; called with this from 1 functions of DataFile, e.g. 004341d0
 004e1db0	std::Tree	method_004e1db0	__thiscall	__thiscall; called with this from 3 functions of ResourceManager, mg::CScript, e.g. 004dfcd0
 004e2030	std::Tree	method_004e2030	__thiscall	__thiscall; called with this from 4 functions of ResourceManager, mg::CScript, e.g. 004dfcd0
-004e65c0	XmlDocument	method_004e65c0	__thiscall	__thiscall; called with this from 2 functions of XmlDocument, e.g. 004e6590
 004ebb60	mg::CMGEngine	method_004ebb60	__thiscall	__thiscall; called with this from 2 functions of mg::CMGEngine, mg::mgType1::CMiniGame001, e.g. 004ebac0
 004ebc00	mg::mgType1::CMiniGame001	method_004ebc00	__thiscall	__thiscall; called with this from 1 functions of mg::mgType1::CMiniGame001, e.g. 004ffb80
 004ec5a0	mg::CMGEngine	method_004ec5a0	__thiscall	__thiscall; called with this from 2 functions of mg::CMGEngine, e.g. 004ec640
@@ -1110,7 +1109,6 @@ address	namespace	name	calling_convention	evidence
 005a7f50	ClientState	method_005a7f50	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 00513860
 005a8080	ClientState	method_005a8080	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00562b30
 005a85a0	ClientState	method_005a85a0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00586860
-005a8aa0	ClientState	method_005a8aa0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00586860
 005a8b30	ClientState	method_005a8b30	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 005367f0
 005a9800	ClientState	method_005a9800	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 005a8b30
 005a9a30	ClientState	method_005a9a30	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 005a8b30

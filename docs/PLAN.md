@@ -1899,11 +1899,25 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Fuzzing:** `client_tables_fuzz` now covers these parsers too: 1.6 million inputs
     with no findings.
 
+- [x] `PetTalkTable.xml` and the XML parser (`docs/formats/xml.md`, `src/res/xml`):
+  - **The parser** is the client's own `XmlDocument`:
+    - elements by tag name, attributes ignored;
+    - text kept byte for byte, minus line breaks, tabs included;
+    - three entities;
+    - closing tags of other elements skipped.
+  - **The pet talk loader** parses into a document inside `ClientState` without checking
+    the open.
+  - **Oracle** (`tools/xml_oracle.py`, in `ctest` when the data is present): each document
+    ends at the end of mapped memory, so a read past it faults.
+    - **What matches:** the real XML (pet talk, `clientinfo.xml` and the patches'
+      `monsterskillinfo.xml`) and 20 synthetic documents, element for element.
+    - **What fails:** the 8 that make the client read past the data, in the port as in
+      the client.
+  - **Fuzzing:** `xml_fuzz`, 48 million inputs with no findings.
+
 ### Next actions (M3)
-1. The rest of the text data, each with a `ragres` mode and compared with the client in
-   the emulation oracle:
-   - `PetTalkTable.xml`;
-   - then `clientinfo.xml`.
+1. `clientinfo.xml`'s settings (`ReadClientInfoSettings` and the connection list), with a
+   `ragres` mode and compared with the client in the emulation oracle.
 
    `C3dGrannyModelRes` (`.gr2`, through `granny2.dll`) is the one registered type not in
    the M3 list.

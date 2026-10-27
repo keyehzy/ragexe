@@ -3930,7 +3930,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004e6480	119	code	0	res		named	XmlElement	FindChild	
 004e6500	132	code	0	res		named	XmlElement	FindNextSibling	
 004e6590	35	code	0	res		named	XmlDocument	Parse	
-004e65c0	678	code	0	res		named	XmlDocument	method_004e65c0	
+004e65c0	678	code	0	res		named	XmlDocument	ParseContent	
 004e6870	371	code	0	res		named	XmlDocument	ParseElement	
 004e69f0	292	code	0	res		named	Global	ReadXmlTagName	
 004e6b20	329	code	0	res		named	Global	DecodeXmlEntity	
@@ -6085,7 +6085,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005a8080	649	code	0	game		named	ClientState	method_005a8080	
 005a8560	63	code	0	game	unreferenced	raw	Global	FUN_005a8560	
 005a85a0	1274	code	0	game		named	ClientState	method_005a85a0	
-005a8aa0	140	code	0	game		named	ClientState	method_005a8aa0	
+005a8aa0	140	code	0	game		named	ClientState	LoadPetTalkTable	
 005a8b30	1012	code	0	game		named	ClientState	method_005a8b30	
 005a8f30	1117	code	0	game	unreferenced	raw	Global	FUN_005a8f30	
 005a9390	1128	code	0	game	unreferenced	raw	Global	FUN_005a9390	

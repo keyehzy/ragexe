@@ -2,12 +2,13 @@
 // decode paths, directory entries and a stream that breaks off, their tables, and a
 // ResNameTable.txt, small images of each kind the bitmap decoders read, sprites and
 // actions, attribute maps, grounds, worlds, models, animated models, .imf
-// and .rma files, effects, emblems, waves, item tables, and ClientState's tables.
+// and .rma files, effects, emblems, waves, item tables, ClientState's tables, and XML.
 //
 //   make_grf_seeds DIR    writes DIR/grf_archive, DIR/grf_table, DIR/res_name_table,
 //                         DIR/bitmap, DIR/sprite, DIR/act, DIR/gat, DIR/gnd,
 //                         DIR/rsw, DIR/rsm, DIR/rsx, DIR/imf, DIR/rma, DIR/str,
-//                         DIR/ebm, DIR/wav, DIR/item_tables and DIR/client_tables
+//                         DIR/ebm, DIR/wav, DIR/item_tables, DIR/client_tables
+//                         and DIR/xml
 
 #include <zlib.h>
 
@@ -479,6 +480,7 @@ int main(int argc, char** argv) {
   std::filesystem::create_directories(dir / "wav");
   std::filesystem::create_directories(dir / "item_tables");
   std::filesystem::create_directories(dir / "client_tables");
+  std::filesystem::create_directories(dir / "xml");
 
   std::vector<std::uint8_t> text(300);
   for (std::size_t i = 0; i < text.size(); ++i) text[i] = static_cast<std::uint8_t>('a' + i % 26);
@@ -605,6 +607,12 @@ int main(int argc, char** argv) {
       "NV_BASIC#\r\nBasic Skill\r\n#\r\ngef.rsw#\r\n0.2#\r\n0.45#\r\n0x2275A9FF#\r\n0.5#\r\n";
   Write(dir / "client_tables" / "small.bin",
         std::vector<std::uint8_t>(client_tables.begin(), client_tables.end()));
+  ++n;
+  const std::string xml =
+      "<?xml version=\"1.0\"?>\r\n<clientinfo>\r\n\t<servicetype>america</servicetype>\r\n"
+      "\t<connection k=\"v\"><display>iRO &amp; &lt;test&gt;</display><aid/></connection>\r\n"
+      "<!-- comment --></clientinfo>\r\n";
+  Write(dir / "xml" / "small.bin", std::vector<std::uint8_t>(xml.begin(), xml.end()));
   ++n;
   std::printf("wrote %d seeds to %s\n", n, dir.string().c_str());
   return 0;

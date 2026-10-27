@@ -20,7 +20,8 @@ add_executable(ragexe_tests
   sprite_test.cpp
   str_test.cpp
   wav_test.cpp
-  windows_no_dialogs.cpp)
+  windows_no_dialogs.cpp
+  xml_test.cpp)
 target_include_directories(ragexe_tests PRIVATE ${PROJECT_SOURCE_DIR}/tests)
 target_link_libraries(ragexe_tests PRIVATE ragexe_game ragexe_res ragexe_stb_image ZLIB::ZLIB Catch2::Catch2WithMain ragexe_options)
 
@@ -112,6 +113,11 @@ if(RAGEXE_ARCHIVES)
     # (tools/client_tables_oracle.py).
     add_test(NAME client_tables_oracle
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/client_tables_oracle.py"
+        --ragres $<TARGET_FILE:ragres> --install "${RAGEXE_INSTALL_DIR}")
+    # The XML documents of data.grf and the patches, and synthetic ones, against the
+    # original parser (tools/xml_oracle.py).
+    add_test(NAME xml_oracle
+      COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/xml_oracle.py"
         --ragres $<TARGET_FILE:ragres> --install "${RAGEXE_INSTALL_DIR}")
     # Every palette, against the original conversion (tools/palette_oracle.py).
     add_test(NAME palette_oracle

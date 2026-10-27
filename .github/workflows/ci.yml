@@ -45,13 +45,13 @@ jobs:
       - name: Configure and build (Clang, libFuzzer, sanitizers)
         run: |
           CC=clang CXX=clang++ cmake --preset fuzz
-          cmake --build --preset fuzz --target grf_table_fuzz grf_archive_fuzz res_name_table_fuzz bitmap_fuzz sprite_fuzz act_fuzz gat_fuzz gnd_fuzz rsw_fuzz rsm_fuzz rsx_fuzz imf_fuzz rma_fuzz str_fuzz ebm_fuzz wav_fuzz item_tables_fuzz client_tables_fuzz make_grf_seeds
+          cmake --build --preset fuzz --target grf_table_fuzz grf_archive_fuzz res_name_table_fuzz bitmap_fuzz sprite_fuzz act_fuzz gat_fuzz gnd_fuzz rsw_fuzz rsm_fuzz rsx_fuzz imf_fuzz rma_fuzz str_fuzz ebm_fuzz wav_fuzz item_tables_fuzz client_tables_fuzz xml_fuzz make_grf_seeds
 
       - name: Fuzz
         run: |
           build/fuzz/fuzz/make_grf_seeds seeds
           mkdir -p corpus crashes
-          for target in grf_table grf_archive res_name_table bitmap sprite act gat gnd rsw rsm rsx imf rma str ebm wav item_tables client_tables; do
+          for target in grf_table grf_archive res_name_table bitmap sprite act gat gnd rsw rsm rsx imf rma str ebm wav item_tables client_tables xml; do
             mkdir -p corpus/$target
             build/fuzz/fuzz/${target}_fuzz corpus/$target seeds/$target fuzz/regressions/$target \
               -dict=fuzz/grf.dict -max_len=8192 -max_total_time=60 -timeout=10 \
