@@ -407,6 +407,15 @@ address	namespace	name	calling_convention	evidence
 00427530	std::vector	CopyUninitialized	__thiscall	(first, last, dest): copies 0x14-byte cells into dest when it is not null and returns the destination end; C3dAttr::Resize 00426bf0 calls it four times.
 00427570	std::vector	FillUninitialized	__thiscall	(dest, n, value*): copies the 0x14-byte value into n consecutive slots of raw memory, skipping null; C3dAttr::Resize 00426bf0 calls it twice.
 004279d0	CBitmapRes	ApplyAlphaBitmap	__thiscall	(name): loads a second CBitmapRes (CBitmapRes::vf03), then sets each pixel's alpha byte in the ARGB array +0x11c (width +0x114, height +0x118) to the average of the matching pixel's three colour channels (CBitmapRes::method_00427980); "Error reading alpha bitmap" on failure.
+004278a0	CBitmapRes	LoadFromMemory	__thiscall	vf01 (name, data, size): LoadBmp, LoadTga or LoadJpeg by the extension from the last '.' (lstrcmpiA with .bmp, .tga, .jpg); "Unsupport fileformat!" otherwise (docs/formats/bitmap.md)
+00427670	CBitmapRes	Clone	__thiscall	vf02: operator new(0x120) and the constructor 004277d0; ResourceManager::GetResource clones the registered prototype through this slot
+004277f0	CBitmapRes	Load	__thiscall	vf03 (path): DataFile::Open of the path, then LoadFromMemory of its bytes
+00427940	CBitmapRes	Reset	__thiscall	vf04: frees the pixels at +0x11c and zeroes width +0x114, height +0x118 and the pointer
+00427980	CBitmapRes	GetPixel	__thiscall	(x, y): the pixel, or 0x00ff0000 out of range; the y test is "y >= 0 || y < height", always true (docs/formats/bitmap.md)
+00427b90	CBitmapRes	LoadBmp	__thiscall	(data, size): 8- and 24-bit bottom-up BMPs into ARGB pixels; "Only 16M or 8bit color format supported" otherwise (docs/formats/bitmap.md)
+00420880	CRes	LoadFromMemory	__thiscall	vf01: the base class cannot load from memory and returns false
+00420890	CRes	Reset	__thiscall	vf04: empty in the base class; ResourceManager calls it before destroying a resource
+004df9d0	CRes	OnLoadError	__thiscall	vf05 (name): "ResourceError : Can't find file %s" through ShowErrorMessage; ResourceManager::GetResource calls it with the lower-cased name when both loads fail
 00427b30	CBitmapRes	Create	__thiscall	(width, height): stores width at +0x114 and height at +0x118, clears the flag +0x110 and allocates width * height ARGB pixels at +0x11c filled with 0xffffffff; CEmblemRes::vf03 calls it.
 00427e30	CBitmapRes	LoadTga	__thiscall	(data): accepts colour-map type 0 and image type 2 or 10 (run-length), skips the id field, reads width/height from header offsets 12/14 and 24- or 32-bit (' ') pixels bottom-up into the ARGB array +0x11c; called by CBitmapRes::vf01, which also checks ".tga".
 004280d0	CBitmapRes	LoadJpeg	__thiscall	(data, size): IJL15 ordinal #2 (init, 004280f8), #4 twice (read header 00428127, read pixels 004281c9) and #3 (free, 00428206) decode a JPEG from memory into 24-bit rows, converted to ARGB at +0x11c with alpha 0xff; magenta pixels (R and B >= 0xfe, G <= 3) become 0x000a0a0a with zero alpha; called by CBitmapRes::vf01, which also checks ".jpg".

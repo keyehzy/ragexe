@@ -17,9 +17,9 @@ CBitmapRes	288	1	00427610,004277d0	00427700	004276d0
 CBlowEffect	160	1	00540950	005409d0	005409a0	
 CBlurPC	796	3	00540d20	005410a0	00541070	
 CConnection		0	004184d0	00418290	004182f0	
-CController		0	0041da90,0041dac0			
+CController		0	0041da90		0041dac0	
 CCorpse	160	1	00540b70	00540bf0	00540bc0	
-CDC		0	00402fb0			
+CDC		0			00402fb0	
 CDCBitmap	44	1	004035c0	00403680	00403650	
 CDCSurface		0	00402f40,00403010	00403070	00402fe0	
 CDummyEffectLauncher	196	1		00510010	0050ffe0	
@@ -57,7 +57,7 @@ CPlayer	988	1	0054b1d0	0054b420	0054b3f0
 CRagConnection		0	00418d90	00418150	00418ef0	
 CRagEffect		0	0054d220	0054d370	0054d340	
 CRenderObject		0	005002b0	00500350	00500320	
-CRes		0	004208a0,004df920			
+CRes		0	004df920		004208a0	
 CRmaRes	344	1	00421b30,00421c90	00421d30	00421c40	
 CSakGPak		0	004ded50	004dedb0	004ded80	
 CSkill	656	2	005ab960	005ab9e0	005ab9b0	
@@ -263,7 +263,7 @@ std::ios_base::failure		0	005b4671	005b45fb	005b4655
 std::istrstream		0		005b349d	00422d70	
 std::length_error		0	005b33e8	005b3372	005b33cc	
 std::locale::_Locimp		0		005b4351	005b4335	
-std::locale::facet		0	004e5d30			
+std::locale::facet		0			004e5d30	
 std::logic_error		0		004eef60	004eefb0	
 std::messages<char>	16	1		005bedc9	005bedad	
 std::messages<unsigned_short>	16	1		005b9f5f	005b9f43	

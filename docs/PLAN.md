@@ -1572,9 +1572,33 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     the stored size, instead of allocating gigabytes for a corrupt table.
   - Later parsers get their targets as they are written.
 
+- [x] `CBitmapRes` (`docs/formats/bitmap.md`, `src/res/bitmap`):
+  - **Formats:** BMP (8- and 24-bit), TGA (types 2 and 10) and JPEG, registered for
+    `bmp`, `tga` and `jpg` under `texture\`. JPEG goes through stb_image (v2.30,
+    pinned) in place of `ijl15.dll`.
+  - **Quirks kept:** the magenta key of JPEGs, the alpha flag of TGAs, run-length
+    packets that run past their row, and `ApplyAlphaBitmap`'s odd average.
+  - **Bugs not kept:** where the original reads or writes out of bounds, the port stays
+    in bounds.
+  - **Oracle** (`tools/bitmap_oracle.py`): every BMP and TGA in `data.grf` is
+    pixel-identical to the original decoders run in the emulator (5,587 images), and
+    the 3 four-bit BMPs are refused by both. JPEGs are within 3 levels of Pillow.
+    `ctest` runs a sample of 30 of each when the data is present.
+  - **Fuzzing:** `bitmap_fuzz` ran 15 minutes (about 238,000 inputs, slow because
+    stb_image is instrumented too) with no crash and no broken invariant. UBSan found
+    signed overflow in stb_image's IDCT on corrupt coefficients, which stb then clamps;
+    stb_image is now compiled with `-fwrapv`, which makes that overflow defined.
+  - **Supporting changes:** a `bitmap_fuzz` target, `ragres decode-images`, and
+    `ragres extract` with `*.ext` filters. The emulator gained `heap_mark` and
+    `heap_release` for batch runs, and a `MessageBoxA` stub.
+  - **Labels:** the `CBitmapRes` and `CRes` slots are named. `recover_objects.py` now
+    also finds deleting destructors that test their flag in a register, which renames 4
+    functions that had been taken for constructors (`CRes`, `CDC`, `CController`,
+    `std::locale::facet`).
+
 ### Next actions (M3)
-1. The loaders in dependency order (`CBitmapRes` first), each registered with the
-   resource manager, compared with the original in the emulation oracle, fuzzed, and
-   with a `ragres dump` mode.
+1. The remaining loaders in dependency order (`CPaletteRes`, `CSprRes`, `CActRes`, …),
+   each registered with the resource manager, compared with the original in the
+   emulation oracle, fuzzed, and with a `ragres` mode.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

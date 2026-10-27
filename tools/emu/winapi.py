@@ -117,11 +117,13 @@ class WinApi:
             "ClientToScreen": Stub(2, self.client_to_screen),
             "SetRect": Stub(5, self.set_rect),
             "SetWindowLongA": Stub(3, self.set_window_long),
+            "MessageBoxA": Stub(4, self.message_box),
         }
         ddraw = {
             "DirectDrawCreateEx": Stub(4, self.direct_draw_create_ex),
         }
         self.window_longs = {}
+        self.messages = []                # (caption, text) of every MessageBoxA, in order
         self.stubs = {f"KERNEL32.DLL!{k}": v for k, v in k32.items()}
         self.stubs.update({f"WINMM.DLL!{k}": v for k, v in winmm.items()})
         self.stubs.update({f"USER32.DLL!{k}": v for k, v in user32.items()})
@@ -232,6 +234,12 @@ class WinApi:
         return 1
 
     # -- windows ----------------------------------------------------------------------
+
+    def message_box(self, hwnd, text, caption, flags):
+        """Records the box and answers IDOK, as a user dismissing it would."""
+        read = lambda p: self.emu.read_cstr(p) if p else ""
+        self.messages.append((read(caption), read(text)))
+        return 1
 
     def get_client_rect(self, hwnd, out):
         w, h, _ = self.emu.directx.profile.display

@@ -1,7 +1,9 @@
 // ragres: list, extract and check the game's archives.
 //
 //   ragres list ARCHIVE                    one line per entry: size, stored, flags, offset, name
-//   ragres extract ARCHIVE DIR [NAME...]   writes the files (all, or the named ones) under DIR
+//   ragres extract ARCHIVE DIR [NAME...]   writes the files (all, or the named ones) under DIR;
+//                                          a NAME of "*.bmp" selects every .bmp
+//   ragres decode-images DIR FILE...       decodes images as CBitmapRes does into DIR/<n>.argb
 //   ragres check ARCHIVE...                reads every compressed entry and checks its size;
 //                                          fails on an entry that cannot be read
 //
@@ -12,10 +14,13 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <string>
 #include <vector>
 
+#include "res/bitmap.h"
 #include "res/grf.h"
+#include "res/resource.h"
 
 namespace {
 
@@ -80,6 +85,14 @@ int Extract(const char* path, const std::filesystem::path& dir,
     }
   } else {
     for (const std::string& n : names) {
+      // "*.ext": every compressed entry with that extension, in any case.
+      if (n.starts_with("*.")) {
+        const std::string ext = ragexe::res::LowerCaseName(n.substr(1));
+        for (const GrfEntry& e : grf->entries()) {
+          if (e.compressed() && e.key.name.ends_with(ext)) wanted.push_back(&e);
+        }
+        continue;
+      }
       const GrfEntry* e = grf->Find(n);
       if (e == nullptr) {
         std::fprintf(stderr, "%s: not in the archive\n", n.c_str());
@@ -151,11 +164,45 @@ int Check(const char* path) {
   return failed == 0 ? 0 : 1;
 }
 
+// Decodes image files as CBitmapRes does and writes DIR/<n>.argb for the n-th file: width,
+// height and the alpha flag as 32-bit little-endian values, then the pixels. Prints one
+// line per file: n, ok or failed, width, height, alpha flag, error.
+int DecodeImages(const std::filesystem::path& dir, const std::vector<std::string>& files) {
+  std::filesystem::create_directories(dir);
+  int failed = 0;
+  for (std::size_t n = 0; n < files.size(); ++n) {
+    std::ifstream in(files[n], std::ios::binary);
+    const std::vector<std::uint8_t> bytes((std::istreambuf_iterator<char>(in)),
+                                          std::istreambuf_iterator<char>());
+    ragexe::res::Bitmap bitmap;
+    std::string error;
+    const bool ok = ragexe::res::DecodeBitmap(files[n], bytes, bitmap, &error);
+    std::printf("%zu\t%s\t%d\t%d\t%d\t%s\n", n, ok ? "ok" : "failed", bitmap.width, bitmap.height,
+                bitmap.has_alpha ? 1 : 0, error.c_str());
+    if (!ok) {
+      ++failed;
+      continue;
+    }
+    std::ofstream out(dir / (std::to_string(n) + ".argb"), std::ios::binary);
+    auto put = [&](std::uint32_t v) {
+      const char b[4] = {static_cast<char>(v), static_cast<char>(v >> 8),
+                         static_cast<char>(v >> 16), static_cast<char>(v >> 24)};
+      out.write(b, 4);
+    };
+    put(static_cast<std::uint32_t>(bitmap.width));
+    put(static_cast<std::uint32_t>(bitmap.height));
+    put(bitmap.has_alpha ? 1 : 0);
+    for (std::uint32_t pixel : bitmap.pixels) put(pixel);
+  }
+  return failed == 0 ? 0 : 1;
+}
+
 int Usage() {
   std::fprintf(stderr,
                "usage: ragres list ARCHIVE\n"
                "       ragres extract ARCHIVE DIR [NAME...]\n"
-               "       ragres check ARCHIVE...\n");
+               "       ragres check ARCHIVE...\n"
+               "       ragres decode-images DIR FILE...\n");
   return 2;
 }
 
@@ -167,6 +214,9 @@ int main(int argc, char** argv) {
   if (command == "list" && argc == 3) return List(argv[2]);
   if (command == "extract" && argc >= 4)
     return Extract(argv[2], argv[3], std::vector<std::string>(argv + 4, argv + argc));
+  if (command == "decode-images" && argc >= 4) {
+    return DecodeImages(argv[2], std::vector<std::string>(argv + 3, argv + argc));
+  }
   if (command == "check") {
     int status = 0;
     for (int i = 2; i < argc; ++i) status |= Check(argv[i]);

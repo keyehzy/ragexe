@@ -1,4 +1,5 @@
 add_executable(ragexe_tests
+  bitmap_test.cpp
   frame_timer_test.cpp
   grf_test.cpp
   resource_test.cpp
@@ -6,7 +7,7 @@ add_executable(ragexe_tests
   settings_test.cpp
   windows_no_dialogs.cpp)
 target_include_directories(ragexe_tests PRIVATE ${PROJECT_SOURCE_DIR}/tests)
-target_link_libraries(ragexe_tests PRIVATE ragexe_game ragexe_res ZLIB::ZLIB Catch2::Catch2WithMain ragexe_options)
+target_link_libraries(ragexe_tests PRIVATE ragexe_game ragexe_res ragexe_stb_image ZLIB::ZLIB Catch2::Catch2WithMain ragexe_options)
 
 include(Catch)
 catch_discover_tests(ragexe_tests DISCOVERY_MODE PRE_TEST)
@@ -26,4 +27,13 @@ set(RAGEXE_INSTALL_DIR "${PROJECT_SOURCE_DIR}/original/install")
 file(GLOB RAGEXE_ARCHIVES "${RAGEXE_INSTALL_DIR}/data.grf" "${RAGEXE_INSTALL_DIR}/*.gpf")
 if(RAGEXE_ARCHIVES)
   add_test(NAME grf_check_original COMMAND ragres check ${RAGEXE_ARCHIVES})
+  # 30 images of each kind against the original decoders in the emulation oracle
+  # (tools/bitmap_oracle.py, which needs the analysis virtual environment).
+  set(RAGEXE_PYTHON "${PROJECT_SOURCE_DIR}/.venv/bin/python")
+  if(EXISTS "${RAGEXE_PYTHON}" AND EXISTS "${PROJECT_SOURCE_DIR}/original/client/Ragexe.exe")
+    add_test(NAME bitmap_oracle_sample
+      COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/bitmap_oracle.py"
+        --sample 30 --ragres $<TARGET_FILE:ragres>
+        --archive "${RAGEXE_INSTALL_DIR}/data.grf")
+  endif()
 endif()

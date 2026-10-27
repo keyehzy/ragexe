@@ -1,8 +1,9 @@
 // Writes the seed inputs of the fuzz targets: small archives of each version, with both
 // decode paths, directory entries and a stream that breaks off, their tables, and a
-// ResNameTable.txt.
+// ResNameTable.txt, and small images of each kind the bitmap decoders read.
 //
-//   make_grf_seeds DIR    writes DIR/grf_archive, DIR/grf_table and DIR/res_name_table
+//   make_grf_seeds DIR    writes DIR/grf_archive, DIR/grf_table, DIR/res_name_table and
+//                         DIR/bitmap
 
 #include <cstdint>
 #include <cstdio>
@@ -12,6 +13,9 @@
 #include <vector>
 
 #include "support/grf_builder.h"
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb_image_write.h>
 
 namespace {
 
@@ -36,6 +40,77 @@ std::vector<std::uint8_t> TableInput(const std::vector<std::uint8_t>& archive,
   return out;
 }
 
+void Put16(std::vector<std::uint8_t>& out, std::uint32_t v) {
+  out.push_back(static_cast<std::uint8_t>(v));
+  out.push_back(static_cast<std::uint8_t>(v >> 8));
+}
+
+void Put32(std::vector<std::uint8_t>& out, std::uint32_t v) {
+  Put16(out, v & 0xffff);
+  Put16(out, v >> 16);
+}
+
+// The bitmap fuzz target's input: the format selector, then the file.
+std::vector<std::uint8_t> BitmapInput(std::uint8_t format, const std::vector<std::uint8_t>& file) {
+  std::vector<std::uint8_t> out = {format};
+  out.insert(out.end(), file.begin(), file.end());
+  return out;
+}
+
+std::vector<std::uint8_t> Bmp(std::uint16_t bits, std::uint32_t width, std::uint32_t height) {
+  const std::uint32_t palette = bits == 8 ? 256 : 0;
+  const std::uint32_t stride = bits == 8 ? (width + 3) & ~3u : (width * 3 + 3) & ~3u;
+  std::vector<std::uint8_t> out = {'B', 'M'};
+  Put32(out, 54 + palette * 4 + stride * height);
+  Put32(out, 0);
+  Put32(out, 54 + palette * 4);
+  for (std::uint32_t v : {40u, width, height}) Put32(out, v);
+  Put16(out, 1);
+  Put16(out, bits);
+  for (std::uint32_t v : {0u, stride * height, 2835u, 2835u, palette, 0u}) Put32(out, v);
+  for (std::uint32_t i = 0; i < palette * 4 + stride * height; ++i) {
+    out.push_back(static_cast<std::uint8_t>(i * 7));
+  }
+  return out;
+}
+
+std::vector<std::uint8_t> Tga(std::uint8_t type, std::uint8_t depth) {
+  std::vector<std::uint8_t> out = {0, 0, type, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  Put16(out, 4);
+  Put16(out, 2);
+  out.push_back(depth);
+  out.push_back(0);
+  const std::size_t px = depth / 8;
+  if (type == 2) {
+    for (std::size_t i = 0; i < 8 * px; ++i) out.push_back(static_cast<std::uint8_t>(i * 13));
+  } else {
+    for (int packet = 0; packet < 2; ++packet) {
+      out.push_back(0x80 | 3);
+      for (std::size_t i = 0; i < px; ++i)
+        out.push_back(static_cast<std::uint8_t>(static_cast<std::size_t>(packet) * 50 + i));
+      out.push_back(3);
+      for (std::size_t i = 0; i < 4 * px; ++i) out.push_back(static_cast<std::uint8_t>(i * 9));
+    }
+  }
+  return out;
+}
+
+std::vector<std::uint8_t> Jpeg() {
+  std::vector<std::uint8_t> rgb;
+  for (int i = 0; i < 16 * 16; ++i) {
+    rgb.insert(rgb.end(), {static_cast<std::uint8_t>(i), static_cast<std::uint8_t>(255 - i), 128});
+  }
+  std::vector<std::uint8_t> out;
+  stbi_write_jpg_to_func(
+      [](void* context, void* data, int size) {
+        auto* bytes = static_cast<std::vector<std::uint8_t>*>(context);
+        const auto* p = static_cast<const std::uint8_t*>(data);
+        bytes->insert(bytes->end(), p, p + size);
+      },
+      &out, 16, 16, 3, rgb.data(), 75);
+  return out;
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -47,6 +122,7 @@ int main(int argc, char** argv) {
   std::filesystem::create_directories(dir / "grf_archive");
   std::filesystem::create_directories(dir / "grf_table");
   std::filesystem::create_directories(dir / "res_name_table");
+  std::filesystem::create_directories(dir / "bitmap");
 
   std::vector<std::uint8_t> text(300);
   for (std::size_t i = 0; i < text.size(); ++i) text[i] = static_cast<std::uint8_t>('a' + i % 26);
@@ -83,6 +159,13 @@ int main(int argc, char** argv) {
   Write(dir / "res_name_table" / "sample.txt",
         std::vector<std::uint8_t>(table.begin(), table.end()));
   ++n;
+  Write(dir / "bitmap" / "bmp8.bin", BitmapInput(0, Bmp(8, 5, 3)));
+  Write(dir / "bitmap" / "bmp24.bin", BitmapInput(0, Bmp(24, 5, 3)));
+  Write(dir / "bitmap" / "tga32.bin", BitmapInput(1, Tga(2, 32)));
+  Write(dir / "bitmap" / "tga24_rle.bin", BitmapInput(1, Tga(10, 24)));
+  Write(dir / "bitmap" / "tga32_rle.bin", BitmapInput(1, Tga(10, 32)));
+  Write(dir / "bitmap" / "jpg.bin", BitmapInput(2, Jpeg()));
+  n += 6;
   std::printf("wrote %d seeds to %s\n", n, dir.string().c_str());
   return 0;
 }

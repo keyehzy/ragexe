@@ -53,7 +53,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00402f20	31	code	0	render	dead	raw	Global	FUN_00402f20	
 00402f40	85	code	0	render	unreferenced	named	CDCSurface	CDCSurface	
 00402fa0	7	code	0	render		named	CDC	~CDC	
-00402fb0	35	code	0	render		named	CDC	CDC	
+00402fb0	35	code	0	render		named	CDC	`scalar_deleting_destructor'	
 00402fe0	33	code	0	render		named	CDCSurface	`scalar_deleting_destructor'	
 00403010	89	code	0	render		named	CDCSurface	CDCSurface	
 00403070	73	code	0	render		named	CDCSurface	~CDCSurface	
@@ -561,7 +561,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0041da80	11	code	0	core		named	Global	static_init_024_body	
 0041da90	28	code	0	core		named	CController	CController	
 0041dab0	1	code	0	core		named	CController	vf02	
-0041dac0	35	code	0	core		named	CController	CController	
+0041dac0	35	code	0	core		named	CController	`scalar_deleting_destructor'	
 0041daf0	31	code	0	core		named	CController	method_0041daf0	
 0041db10	41	code	0	core		named	CController	vf01	
 0041db40	41	code	0	core		named	CController	vf03	
@@ -649,9 +649,9 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004207a0	32	code	0	res		named	Global	static_init_031_body	
 004207c0	172	code	0	res		named	CActRes	CActRes	
 00420870	7	code	0	res		named	CRes	~CRes	
-00420880	5	code	0	res		named	CRes	vf01	
-00420890	1	code	0	res		named	CRes	vf04	
-004208a0	35	code	0	res		named	CRes	CRes	
+00420880	5	code	0	res		named	CRes	LoadFromMemory	
+00420890	1	code	0	res		named	CRes	Reset	
+004208a0	35	code	0	res		named	CRes	`scalar_deleting_destructor'	
 004208d0	89	code	0	res		named	CActRes	vf02	
 00420930	33	code	0	res		named	CActRes	`scalar_deleting_destructor'	
 00420960	238	code	0	res		named	CActRes	~CActRes	
@@ -809,7 +809,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004275e0	10	code	0	res		named	Global	static_init_036	
 004275f0	32	code	0	res		named	Global	static_init_036_body	
 00427610	89	code	0	res		named	CBitmapRes	CBitmapRes	
-00427670	89	code	0	res		named	CBitmapRes	vf02	
+00427670	89	code	0	res		named	CBitmapRes	Clone	
 004276d0	33	code	0	res		named	CBitmapRes	`scalar_deleting_destructor'	
 00427700	7	code	0	res		named	CBitmapRes	~CBitmapRes	
 00427710	12	code	0	res		named	Global	register_destroy_g_CBitmapRes_00629278	
@@ -823,13 +823,13 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004277b0	12	code	0	res		named	Global	register_destroy_g_CBitmapRes_00629038	
 004277c0	10	code	0	res		named	Global	destroy_g_CBitmapRes_00629038	
 004277d0	32	code	0	res		named	CBitmapRes	CBitmapRes	
-004277f0	175	code	0	res		named	CBitmapRes	vf03	
-004278a0	158	code	0	res		named	CBitmapRes	vf01	
-00427940	54	code	0	res		named	CBitmapRes	vf04	
-00427980	69	code	0	res		named	CBitmapRes	method_00427980	
+004277f0	175	code	0	res		named	CBitmapRes	Load	
+004278a0	158	code	0	res		named	CBitmapRes	LoadFromMemory	
+00427940	54	code	0	res		named	CBitmapRes	Reset	
+00427980	69	code	0	res		named	CBitmapRes	GetPixel	
 004279d0	337	code	0	res	unreferenced	named	CBitmapRes	ApplyAlphaBitmap	
 00427b30	87	code	0	res		named	CBitmapRes	Create	
-00427b90	670	code	0	res		named	CBitmapRes	method_00427b90	
+00427b90	670	code	0	res		named	CBitmapRes	LoadBmp	
 00427e30	661	code	0	res		named	CBitmapRes	LoadTga	
 004280d0	546	code	0	res		named	CBitmapRes	LoadJpeg	
 00428300	37	code	0	res		named	Global	static_init_039	
@@ -3801,7 +3801,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004df980	4	code	0	res		named	CRes	GetName	
 004df990	36	code	0	res		named	CRes	SetNameAndType	
 004df9c0	14	code	0	res		named	CRes	Touch	
-004df9d0	51	code	0	res		named	CRes	vf05	
+004df9d0	51	code	0	res		named	CRes	OnLoadError	
 004dfa10	51	code	0	res		named	Global	GetResourceManager	
 004dfa50	10	code	0	res		named	Global	destroy_g_ResourceManager	
 004dfa60	372	code	1	stl		named	ResourceManager	ResourceManager	
@@ -3911,7 +3911,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004e5bd0	50	code	1	stl		named	std::locale	GetFacetIndex	
 004e5c10	262	code	1	stl		named	std::ctype<char>	ctype<char>	
 004e5d20	7	code	1	stl		named	std::locale::facet	~facet	
-004e5d30	35	code	1	stl		named	std::locale::facet	facet	
+004e5d30	35	code	1	stl		named	std::locale::facet	`scalar_deleting_destructor'	
 004e5d60	13	code	0	res		named	Global	destroy_global_00688ab4	
 004e5d70	28	code	1	stl		named	std::ctype<char>	vf02	
 004e5d90	56	code	1	stl		named	std::ctype<char>	vf01	

@@ -219,7 +219,10 @@ class Recovery:
                 continue
             flag = None
             for i in ins:
-                if i.id == x86.X86_INS_TEST and len(i.operands) == 2 and i.operands[0].type == x86.X86_OP_MEM \
+                # The flags argument is tested in place ("test byte [ebp+8], 1") or after a
+                # load into a register ("mov al, [ebp+8]; test al, 1").
+                if i.id == x86.X86_INS_TEST and len(i.operands) == 2 \
+                        and i.operands[0].type in (x86.X86_OP_MEM, x86.X86_OP_REG) \
                         and i.operands[1].type == x86.X86_OP_IMM:
                     flag = i.operands[1].imm
                     break

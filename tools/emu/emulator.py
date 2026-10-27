@@ -346,6 +346,21 @@ class Emulator:
         self.blocks[addr] = size
         return addr
 
+    def heap_mark(self):
+        """The heap and scratch positions, for heap_release."""
+        return self.heap_next, self.scratch_next
+
+    def heap_release(self, mark):
+        """Give back, zeroed, every heap block and scratch area placed since mark: for
+        batch runs that call a function many times and keep nothing between calls."""
+        heap, scratch = mark
+        for base, top in ((heap, self.heap_next), (scratch, self.scratch_next)):
+            if top > base:
+                self.mem_write(base, bytes(top - base))
+        self.heap_next, self.scratch_next = heap, scratch
+        self.blocks = {a: n for a, n in self.blocks.items() if a < heap}
+        self.freed = [a for a in self.freed if a < heap]
+
     def scratch(self, data=b"", size=None, align=16):
         """Place bytes in the scratch area (inputs and output buffers); returns the address."""
         n = max(len(data), size or 0, 1)

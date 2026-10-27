@@ -5,7 +5,7 @@
 # as CI does.
 #
 # A library is added here by the milestone that first uses it (docs/PLAN.md section 5:
-# miniaudio, FreeType and stb come later).
+# miniaudio and FreeType come later).
 
 include(FetchContent)
 
@@ -39,6 +39,15 @@ FetchContent_MakeAvailable(ZLIB)
 if(NOT TARGET ZLIB::ZLIB)
   add_library(ZLIB::ZLIB ALIAS zlibstatic)
 endif()
+
+# stb_image: JPEG decoding, in place of the original's ijl15.dll (docs/formats/bitmap.md).
+# A single header with no releases, pinned to the last commit that changed it (v2.30);
+# src/res/stb_image.c compiles it.
+FetchContent_Declare(stb
+  URL https://github.com/nothings/stb/archive/013ac3beddff3dbffafd5177e7972067cd2b5083.tar.gz
+  URL_HASH SHA256=b01aa93e1a968aed55f43e072c98ee401d2f20e897aabdb1a166c7166886ed11
+  DOWNLOAD_EXTRACT_TIMESTAMP ON)
+FetchContent_MakeAvailable(stb)
 
 if(RAGEXE_BUILD_TESTS)
   FetchContent_Declare(Catch2

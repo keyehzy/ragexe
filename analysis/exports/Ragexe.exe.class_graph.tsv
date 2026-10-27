@@ -1,15 +1,15 @@
 class	origin	bases	size	size_source	vtables	constructors	inlined_in	destructors	deleting_destructors	functions	reachable	subsystem	members	pointers
 CDCSurface	rtti	CDC@0	20	estimated	1	00402f40 00403010		00403070	00402fe0	12	11	render		
-CDC	rtti		4	estimated	1	00402fb0		00402fa0		2	2	render		
+CDC	rtti		4	estimated	1		CDC::CDC; CDCBitmap::CDCBitmap; CDCSurface::CDCSurface	00402fa0	00402fb0	2	2	render		
 CDCBitmap	rtti	CDC@0	44	new	1	004035c0		00403680	00403650	13	13	render		
 CSurface	rtti		16	estimated	1	00416080 004160e0		00416110	004160b0	9	9	render		
 CSurfaceWallpaper	rtti	CSurface@0	16	new	1	004164e0			00416510	3	3	render		
 CTexture	rtti	CSurface@0	296	new	1	004165e0 004166b0			00416680	16	16	render		
 CConnection	rtti		124	estimated	1	004184d0		00418290	004182f0	11	11	net	PacketQueue@0x24 PacketQueue@0x40 PacketQueue@0x5c	
 CRagConnection	rtti	CConnection@0	204	estimated	1	00418d90		00418150	00418ef0	17	17	net	PacketQueue@0x24 PacketQueue@0x40 PacketQueue@0x5c PacketQueue@0xa8	
-CController	rtti		172	estimated	1	0041da90 0041dac0		0041dd60		7	7	core		
+CController	rtti		172	estimated	1	0041da90		0041dd60	0041dac0	7	7	core		
 CKeyPad	rtti	CController@0	188	new	1	0041dc70		0041dda0	0041dd70	6	6	core		
-CRes	rtti		272	estimated	1	004208a0 004df920		00420870		11	11	res	HashedFileName@0x10	
+CRes	rtti		272	estimated	1	004df920		00420870	004208a0	11	11	res	HashedFileName@0x10	
 CActRes	rtti	CRes@0	324	new	1	004207c0 00420a70		00420960	00420930	14	14	res	HashedFileName@0x10	
 CRmaRes	rtti	CRes@0	344	new	1	00421b30 00421c90		00421d30	00421c40	14	7	res	HashedFileName@0x10	RmaActionRecord@0x114
 std::ios_base	rtti		36	estimated	1			005b47de	005b482e	5	5	stl		
@@ -200,7 +200,7 @@ CGPak	rtti		132	estimated	1	004dd820		004dd900	004dd8d0	19	19	res
 CSakGPak	rtti	CGPak@0	136	estimated	1	004ded50			004ded80	4	3	res		CGPak@0x84
 exception	rtti		12	estimated	1	005c36bf 005c36fc		005c3765	005c36a3	6	5	crt		
 std::bad_cast	rtti	exception@0	12	estimated	1	004e5b30 004e5bb0		004e5b50	004e5b80	5	5	stl		
-std::locale::facet	rtti		8	estimated	1	004e5d30		004e5d20		4	4	stl		
+std::locale::facet	rtti		8	estimated	1		FUN_005b42bc; FUN_005b432e; FUN_005b5163; FUN_005b7642; FUN_005b8517; FUN_005b851e; FUN_005bbe97; std::locale::facet::facet; std::money_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::~money_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>; std::money_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::~money_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>; std::money_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>::~money_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>; std::money_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::~money_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>; std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::~num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>; std::num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::~num_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>; std::num_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>::~num_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>; std::num_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::~num_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>; std::time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::~time_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>; std::time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::~time_get<unsigned_short,std::istreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>; std::time_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>::~time_put<char,std::ostreambuf_iterator<char,std::char_traits<char>_>_>; std::time_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::~time_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>	004e5d20	004e5d30	4	4	stl		
 std::ctype_base	rtti				0					0	0			
 std::ctype<char>	rtti	std::ctype_base@0 std::locale::facet@0	24	new	1		FUN_005b4e8f; std::ctype<char>::ctype<char>; std::use_facet		004e5e30	7	7	stl		
 CGameObject	rtti		4	estimated	1	00500030		00500090	00500060	8	8	world		

@@ -11,7 +11,21 @@ add_library(ragexe_platform STATIC
 target_include_directories(ragexe_platform PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(ragexe_platform PUBLIC SDL3::SDL3 PRIVATE ragexe_options)
 
+# stb_image, JPEG only, compiled once and without our warnings.
+add_library(ragexe_stb_image STATIC res/stb_image.c)
+target_include_directories(ragexe_stb_image SYSTEM PUBLIC ${stb_SOURCE_DIR})
+if(NOT MSVC)
+  # Its integer IDCT can overflow int on corrupt coefficients and then clamps the result;
+  # -fwrapv makes that overflow defined (it wraps, as on MSVC) instead of undefined.
+  target_compile_options(ragexe_stb_image PRIVATE -fwrapv)
+endif()
+if(RAGEXE_FUZZ)
+  # Instrumented like our code, so that the bitmap fuzzer sees inside the decoder.
+  target_compile_options(ragexe_stb_image PRIVATE -fsanitize=fuzzer-no-link,address,undefined)
+endif()
+
 add_library(ragexe_res STATIC
+  res/bitmap.cpp
   res/data_file.cpp
   res/data_files.cpp
   res/data_path.cpp
@@ -20,7 +34,7 @@ add_library(ragexe_res STATIC
   res/hashed_file_name.cpp
   res/resource.cpp)
 target_include_directories(ragexe_res PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(ragexe_res PRIVATE ZLIB::ZLIB ragexe_options)
+target_link_libraries(ragexe_res PRIVATE ZLIB::ZLIB ragexe_stb_image ragexe_options)
 
 add_library(ragexe_game STATIC
   game/client.cpp
