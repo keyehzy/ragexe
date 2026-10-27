@@ -1,4 +1,5 @@
 add_executable(ragexe_tests
+  act_test.cpp
   bitmap_test.cpp
   frame_timer_test.cpp
   grf_test.cpp
@@ -41,6 +42,11 @@ if(RAGEXE_ARCHIVES)
     add_test(NAME sprite_oracle_sample
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/sprite_oracle.py"
         --sample 20 --scales 00,11,10,01 --ragres $<TARGET_FILE:ragres>
+        --archive "${RAGEXE_INSTALL_DIR}/data.grf")
+    # 40 actions at every detail level, against the original loader (tools/act_oracle.py).
+    add_test(NAME act_oracle_sample
+      COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/act_oracle.py"
+        --sample 40 --scales 00,11,10,01 --ragres $<TARGET_FILE:ragres>
         --archive "${RAGEXE_INSTALL_DIR}/data.grf")
     # Every palette, against the original conversion (tools/palette_oracle.py).
     add_test(NAME palette_oracle

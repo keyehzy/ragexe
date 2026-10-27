@@ -57,9 +57,9 @@ CKeyPad	005e2774	0	2	0041ded0	CKeyPad::vf02
 CKeyPad	005e2774	0	3	0041db40	CController::vf03	
 CActRes	005e27d8	0	0	00420930	CActRes::`scalar_deleting_destructor'	
 CActRes	005e27d8	0	1	00420880	CRes::LoadFromMemory	
-CActRes	005e27d8	0	2	004208d0	CActRes::vf02	
-CActRes	005e27d8	0	3	00420f60	CActRes::vf03	
-CActRes	005e27d8	0	4	00420d60	CActRes::vf04	
+CActRes	005e27d8	0	2	004208d0	CActRes::Clone	
+CActRes	005e27d8	0	3	00420f60	CActRes::Load	
+CActRes	005e27d8	0	4	00420d60	CActRes::Reset	
 CActRes	005e27d8	0	5	004df9d0	CRes::OnLoadError	
 CRes	005e27f4	0	0	004208a0	CRes::`scalar_deleting_destructor'	
 CRes	005e27f4	0	1	00420880	CRes::LoadFromMemory	

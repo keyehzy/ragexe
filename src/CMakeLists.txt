@@ -25,6 +25,7 @@ if(RAGEXE_FUZZ)
 endif()
 
 add_library(ragexe_res STATIC
+  res/act.cpp
   res/bitmap.cpp
   res/data_file.cpp
   res/data_files.cpp

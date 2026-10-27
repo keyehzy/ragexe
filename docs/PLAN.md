@@ -1631,10 +1631,32 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     their run-length data can cover are now refused, which also took the fuzzer from
     43 to 15,000 inputs a second. Then 9.3 million inputs ran with no further findings.
 
+- [x] `CActRes` (`docs/formats/act.md`, `src/res/act`):
+  - **Format:** actions of frames of items and anchors, versions to 0x205, with event
+    names and delays.
+  - **Item adjustment:** items of versions 0x200 to 0x204 move from their centre to
+    their top-left corner, using the matching sprite's image sizes. That makes them
+    depend on the sprite's detail level. The port fetches the sprite through the
+    resource manager as the original does.
+  - **Field names** come from their consumers (`SceneRenderer::method_00410620`,
+    `CRenderObject::method_00500f70`, `CPc::RenderActFrameItems`).
+  - **Oracle** (`tools/act_oracle.py`):
+    - **Setup:** the original resource manager runs in the emulator with the sprite type
+      registered, so `Load` fetches the real `.spr`.
+    - **Result:** all 2,109 actions match at all four detail levels: 8,436 loads and
+      3,395,340 items, plus every frame, anchor, event and delay.
+    - **Faults:** the 7 actions with no sprite fault in the original (28 loads) and fail
+      in the port.
+    - **What it found:** anchors keep the last 12 of their 16 bytes, not the first 12.
+      `__ftol`'s 64-bit `fistp` turns the NaN of a 0 scale into 0 (2 items).
+  - **Fuzzing:** `act_fuzz`, 5.2 million inputs with no findings.
+  - **Oracle runs:** `tools/oracle_pool.py` spreads them over cores with progress. The
+    full ACT run takes 6.5 minutes, and the sprite oracle uses the pool too.
+
 ### Next actions (M3)
-1. The remaining loaders in dependency order (`CActRes`, `C3dAttr`, `CGndRes`, …),
+1. The remaining loaders in dependency order (`C3dAttr`, `CGndRes`, `C3dWorldRes`, …),
    each registered with the resource manager, compared with the original in the
    emulation oracle (its `Load`, through `serve_data_files`), fuzzed, and with a
-   `ragres` mode. The oracle scripts should run on several cores and report progress.
+   `ragres` mode.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

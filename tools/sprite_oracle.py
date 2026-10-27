@@ -1,6 +1,6 @@
 """Compares the port's sprite loader with the original (docs/formats/sprite.md).
 
-usage: .venv/bin/python -I tools/sprite_oracle.py [--sample N] [--scales 00,11,10,01]
+usage: .venv/bin/python -I tools/sprite_oracle.py [--sample N] [--scales 00,11,10,01] [--jobs J]
 
 Runs CSprRes::Load (004341d0) in the emulation oracle on every .spr of data.grf, behind
 a stand-in archive and with CTexture replaced to capture the 32-bit images, at each
@@ -18,6 +18,7 @@ import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
+import oracle_pool  # noqa: E402
 from emu import Emulator  # noqa: E402
 
 # analysis/labels/inferred.functions.tsv and objects.functions.tsv
@@ -49,26 +50,31 @@ def port_results(ragres, files, scale):
     return results
 
 
+def replace_textures(emu, captured=None):
+    """Stand in for CTexture: the constructor only sets the vtable, the upload (slot 1)
+    appends (width, height, pixels) to captured when given, and deletion does nothing."""
+    def ctor(this, w, h, flag):
+        emu.write_u32(this, CTEXTURE_VFTABLE)
+        return this
+
+    def update(this, x, y, w, h, pixels, a, b):
+        if captured is not None:
+            captured.append((w, h, emu.mem_read(pixels, w * h * 4)))
+        return 1
+
+    emu.replace_thiscall(CTEXTURE_CTOR, 3, ctor)
+    emu.replace_thiscall(CTEXTURE_UPDATE, 7, update)
+    emu.replace_thiscall(CTEXTURE_DELETE, 1, lambda this, flags: this)
+
+
 class Original:
     def __init__(self):
         # EncodeRle inserts into a vector a byte at a time, so a large sprite at a low detail
         # level takes far more than the default limit of instructions.
         self.emu = Emulator(max_instructions=2_000_000_000).init_crt()
         self.textures = []
-        emu = self.emu
-
-        def ctor(this, w, h, flag):
-            emu.write_u32(this, CTEXTURE_VFTABLE)
-            return this
-
-        def update(this, x, y, w, h, pixels, a, b):
-            self.textures.append((w, h, emu.mem_read(pixels, w * h * 4)))
-            return 1
-
-        emu.replace_thiscall(CTEXTURE_CTOR, 3, ctor)
-        emu.replace_thiscall(CTEXTURE_UPDATE, 7, update)
-        emu.replace_thiscall(CTEXTURE_DELETE, 1, lambda this, flags: this)
-        self.obj = emu.scratch(size=0x534)
+        replace_textures(self.emu, self.textures)
+        self.obj = self.emu.scratch(size=0x534)
 
     def load(self, data, scale):
         emu = self.emu
@@ -76,7 +82,7 @@ class Original:
         emu.write_u32(HALVE_X, scale[0])
         emu.write_u32(HALVE_Y, scale[1])
         emu.serve_data_files({"data\\sprite\\t.spr": data})
-        self.textures = []
+        self.textures.clear()
         emu.mem_write(self.obj, bytes(0x534))
         emu.call(CSPRRES_CTOR, this=self.obj)
         ok = emu.call(CSPRRES_LOAD, emu.cstr("sprite\\t.spr"), this=self.obj).eax & 0xFF
@@ -111,6 +117,16 @@ class Original:
         return out
 
 
+def init():
+    return Original()
+
+
+def work(original, job):
+    path, scale = job
+    with open(path, "rb") as f:
+        return original.load(f.read(), scale)
+
+
 def comparable(port_lines):
     """The port's lines without what the original does not record (the RLE size)."""
     head = port_lines[0].split()
@@ -125,6 +141,7 @@ def main():
     ap.add_argument("--ragres", default=os.path.join(ROOT, "build", "dev", "src", "ragres"))
     ap.add_argument("--sample", type=int, default=0, help="check N sprites (0: all)")
     ap.add_argument("--scales", default="00,11", help="detail levels: halve x and halve y digits")
+    ap.add_argument("--jobs", type=int, default=0, help="worker processes (0: one per core but one)")
     args = ap.parse_args()
     scales = [(int(s[0]), int(s[1])) for s in args.scales.split(",")]
 
@@ -134,15 +151,13 @@ def main():
         files = sorted(os.path.join(d, n) for d, _, ns in os.walk(tmp) for n in ns)
         if args.sample:
             files = sorted(random.Random(1).sample(files, min(args.sample, len(files))))
-        original = Original()
         mismatches = []
         counts = [0, 0, 0]
         for scale in scales:
             ours = port_results(args.ragres, files, scale)
-            for n, path in enumerate(files):
-                with open(path, "rb") as f:
-                    data = f.read()
-                want = original.load(data, scale)
+            originals = oracle_pool.run([(f, scale) for f in files], init, work, args.jobs or None,
+                                        label=f"spr {scale[0]}{scale[1]}")
+            for n, (path, want) in enumerate(zip(files, originals)):
                 got = comparable(ours.get(n, ["failed"]))
                 if got != want:
                     first = next((k for k, (a, b) in enumerate(zip(got, want)) if a != b), min(len(got), len(want)))

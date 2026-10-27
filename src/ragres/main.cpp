@@ -7,6 +7,8 @@
 //   ragres decode-palettes FILE...         decodes .pal files as CPaletteRes does
 //   ragres decode-sprites [--halve-x] [--halve-y] FILE...
 //                                          decodes .spr files as CSprRes does, as hashes
+//   ragres decode-acts [--halve-x] [--halve-y] FILE...
+//                                          decodes .act files as CActRes does, every field
 //   ragres check ARCHIVE...                reads every compressed entry and checks its size;
 //                                          fails on an entry that cannot be read
 //
@@ -18,10 +20,12 @@
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <optional>
 #include <span>
 #include <string>
 #include <vector>
 
+#include "res/act.h"
 #include "res/bitmap.h"
 #include "res/grf.h"
 #include "res/palette.h"
@@ -283,6 +287,97 @@ int DecodeSprites(const std::vector<std::string>& args) {
   return failed == 0 ? 0 : 1;
 }
 
+std::uint32_t FloatBits(float f) {
+  std::uint32_t u = 0;
+  std::memcpy(&u, &f, 4);
+  return u;
+}
+
+// Decodes .act files as CActRes does, taking image sizes from the .spr of the same name
+// beside each (decoded at the detail level given), and prints every field: "A n version
+// actions events max-items", "a frames" per action, "f header... event items anchors" per
+// frame, then "i x y image flags r g b a scale-x scale-y angle type" per item (scales as
+// float bits) and "n x y kind" per anchor, "e name-hex" per event, "d delay-bits" per
+// action; "A n failed error" when the file does not load.
+int DecodeActs(const std::vector<std::string>& args) {
+  ragexe::res::SpriteScale scale;
+  std::vector<std::string> files;
+  for (const std::string& a : args) {
+    if (a == "--halve-x") {
+      scale.halve_x = true;
+    } else if (a == "--halve-y") {
+      scale.halve_y = true;
+    } else {
+      files.push_back(a);
+    }
+  }
+  auto read = [](const std::filesystem::path& path) {
+    std::ifstream in(path, std::ios::binary);
+    return std::vector<std::uint8_t>((std::istreambuf_iterator<char>(in)),
+                                     std::istreambuf_iterator<char>());
+  };
+  int failed = 0;
+  for (std::size_t n = 0; n < files.size(); ++n) {
+    std::filesystem::path sprite_path = files[n];
+    sprite_path.replace_extension(".spr");
+    std::optional<ragexe::res::Sprite> sprite;
+    const ragexe::res::ActImageLookup lookup =
+        [&](std::int32_t type, std::int32_t index) -> std::optional<ragexe::res::ActImageSize> {
+      if (!sprite) {
+        sprite.emplace();
+        std::string ignored;
+        if (!std::filesystem::exists(sprite_path) ||
+            !ragexe::res::DecodeSprite(read(sprite_path), scale, *sprite, &ignored)) {
+          *sprite = ragexe::res::Sprite{};
+        }
+      }
+      const auto i = static_cast<std::size_t>(index);
+      if (index >= 0 && type == 0 && i < sprite->images.size()) {
+        const auto& image = sprite->images[i];
+        return ragexe::res::ActImageSize{image.width, image.height, image.halved_x, image.halved_y};
+      }
+      if (index >= 0 && type == 1 && i < sprite->images32.size()) {
+        const auto& image = sprite->images32[i];
+        return ragexe::res::ActImageSize{image.width, image.height, image.halved_x, image.halved_y};
+      }
+      return std::nullopt;
+    };
+    ragexe::res::Act act;
+    std::string error;
+    if (!ragexe::res::DecodeAct(read(files[n]), lookup, act, &error)) {
+      std::printf("A %zu failed %s\n", n, error.c_str());
+      ++failed;
+      continue;
+    }
+    std::printf("A %zu %x %zu %zu %d\n", n, act.version, act.actions.size(), act.events.size(),
+                act.max_items);
+    for (const auto& frames : act.actions) {
+      std::printf("a %zu\n", frames.size());
+      for (const auto& frame : frames) {
+        std::printf("f");
+        for (std::int32_t h : frame.header) std::printf(" %d", h);
+        std::printf(" %d %zu %zu\n", frame.event, frame.items.size(), frame.anchors.size());
+        for (const auto& item : frame.items) {
+          std::printf("i %d %d %d %u %u %u %u %u %08x %08x %d %d\n", item.x, item.y, item.image,
+                      item.flags, item.color[0], item.color[1], item.color[2], item.color[3],
+                      FloatBits(item.scale_x), FloatBits(item.scale_y), item.angle,
+                      item.image_type);
+        }
+        for (const auto& anchor : frame.anchors) {
+          std::printf("n %d %d %d\n", anchor.x, anchor.y, anchor.kind);
+        }
+      }
+    }
+    for (const std::string& event : act.events) {
+      std::printf("e ");
+      for (unsigned char c : event) std::printf("%02x", c);
+      std::printf("\n");
+    }
+    for (float delay : act.delays) std::printf("d %08x\n", FloatBits(delay));
+  }
+  return failed == 0 ? 0 : 1;
+}
+
 int Usage() {
   std::fprintf(stderr,
                "usage: ragres list ARCHIVE\n"
@@ -290,7 +385,8 @@ int Usage() {
                "       ragres check ARCHIVE...\n"
                "       ragres decode-images DIR FILE...\n"
                "       ragres decode-palettes FILE...\n"
-               "       ragres decode-sprites [--halve-x] [--halve-y] FILE...\n");
+               "       ragres decode-sprites [--halve-x] [--halve-y] FILE...\n"
+               "       ragres decode-acts [--halve-x] [--halve-y] FILE...\n");
   return 2;
 }
 
@@ -310,6 +406,9 @@ int main(int argc, char** argv) {
   }
   if (command == "decode-sprites") {
     return DecodeSprites(std::vector<std::string>(argv + 2, argv + argc));
+  }
+  if (command == "decode-acts") {
+    return DecodeActs(std::vector<std::string>(argv + 2, argv + argc));
   }
   if (command == "check") {
     int status = 0;

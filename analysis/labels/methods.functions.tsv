@@ -119,8 +119,6 @@ address	namespace	name	calling_convention	evidence
 0041db70	CKeyPad	method_0041db70	__thiscall	__thiscall; called with this from 1 functions of CKeyPad, e.g. 0041ded0
 0041e730	DirectInputMouse	method_0041e730	__thiscall	__thiscall; called with this from 2 functions of DirectInputMouse, e.g. 00515d10
 0041e8d0	DirectInputMouse	method_0041e8d0	__thiscall	__thiscall; called with this from 2 functions of DirectInputMouse, e.g. 0050dc90
-00420af0	CActRes	method_00420af0	__thiscall	__thiscall; called with this from 1 functions of CActRes, e.g. 00420f60
-00420e70	CActRes	method_00420e70	__thiscall	__thiscall; called with this from 1 functions of CActRes, e.g. 00420f60
 0042cbd0	C3dModelRes	method_0042cbd0	__thiscall	__thiscall; called with this from 1 functions of C3dModelRes, e.g. 0042be00
 0042ddc0	C3dAnimModelRes	method_0042ddc0	__thiscall	__thiscall; called with this from 1 functions of C3dAnimModelRes, e.g. 0042dcb0
 0042de70	C3dAnimModelRes	method_0042de70	__thiscall	__thiscall; called with this from 1 functions of C3dAnimModelRes, e.g. 0042df00

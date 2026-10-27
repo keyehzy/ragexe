@@ -1,9 +1,10 @@
 // Writes the seed inputs of the fuzz targets: small archives of each version, with both
 // decode paths, directory entries and a stream that breaks off, their tables, and a
-// ResNameTable.txt, small images of each kind the bitmap decoders read, and sprites.
+// ResNameTable.txt, small images of each kind the bitmap decoders read, sprites and
+// actions.
 //
 //   make_grf_seeds DIR    writes DIR/grf_archive, DIR/grf_table, DIR/res_name_table,
-//                         DIR/bitmap and DIR/sprite
+//                         DIR/bitmap, DIR/sprite and DIR/act
 
 #include <cstdint>
 #include <cstdio>
@@ -144,6 +145,52 @@ std::vector<std::uint8_t> SpriteInput(std::uint8_t level, std::uint16_t version)
   return out;
 }
 
+// An action of every field the version has: two actions, two frames, two items, an
+// anchor, an event and delays; the act fuzz target's input, so with its four image bytes
+// first (7 x 4, not halved, 4 images).
+std::vector<std::uint8_t> ActInput(std::uint16_t version) {
+  std::vector<std::uint8_t> out = {7, 4, 0, 4, 'A', 'C'};
+  Put16(out, version);
+  Put16(out, 2);
+  out.resize(out.size() + 10, 0);
+  for (int action = 0; action < 2; ++action) {
+    Put32(out, 2);
+    for (int frame = 0; frame < 2; ++frame) {
+      for (int i = 0; i < 8; ++i) Put32(out, 0);
+      Put32(out, 2);
+      for (std::uint32_t item = 0; item < 2; ++item) {
+        for (std::uint32_t v : {10u, 20u, item, 0u}) Put32(out, v);
+        if (version >= 0x200) {
+          out.insert(out.end(), {255, 255, 255, 255});
+          Put32(out, 0x3f800000);  // 1.0
+          if (version >= 0x204) Put32(out, 0x3f800000);
+          Put32(out, 0);
+          Put32(out, 0);
+          if (version >= 0x205) {
+            Put32(out, 7);
+            Put32(out, 4);
+          }
+        }
+      }
+      if (version >= 0x200) Put32(out, 0);
+      if (version >= 0x203) {
+        Put32(out, 1);
+        for (std::uint32_t v : {0u, 1u, 2u, 3u}) Put32(out, v);
+      }
+    }
+  }
+  if (version >= 0x201) {
+    Put32(out, 1);
+    out.insert(out.end(), {'a', 't', 'k'});
+    out.resize(out.size() + 37, 0);
+  }
+  if (version >= 0x202) {
+    Put32(out, 0x40800000);
+    Put32(out, 0x40800000);
+  }
+  return out;
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -157,6 +204,7 @@ int main(int argc, char** argv) {
   std::filesystem::create_directories(dir / "res_name_table");
   std::filesystem::create_directories(dir / "bitmap");
   std::filesystem::create_directories(dir / "sprite");
+  std::filesystem::create_directories(dir / "act");
 
   std::vector<std::uint8_t> text(300);
   for (std::size_t i = 0; i < text.size(); ++i) text[i] = static_cast<std::uint8_t>('a' + i % 26);
@@ -205,6 +253,12 @@ int main(int argc, char** argv) {
   Write(dir / "sprite" / "v201.bin", SpriteInput(0, 0x201));
   Write(dir / "sprite" / "v201_halved.bin", SpriteInput(3, 0x201));
   n += 4;
+  for (int version : {0x101, 0x200, 0x201, 0x202, 0x203, 0x204, 0x205}) {
+    char name[32];
+    std::snprintf(name, sizeof name, "v%x.bin", static_cast<unsigned>(version));
+    Write(dir / "act" / name, ActInput(static_cast<std::uint16_t>(version)));
+    ++n;
+  }
   std::printf("wrote %d seeds to %s\n", n, dir.string().c_str());
   return 0;
 }
