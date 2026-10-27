@@ -164,9 +164,9 @@ CPaletteRes	005e2a24	0	4	004320d0	CPaletteRes::Reset
 CPaletteRes	005e2a24	0	5	004df9d0	CRes::OnLoadError	
 CSprRes	005e2a74	0	0	00433fe0	CSprRes::`scalar_deleting_destructor'	
 CSprRes	005e2a74	0	1	00420880	CRes::LoadFromMemory	
-CSprRes	005e2a74	0	2	00433f80	CSprRes::vf02	
-CSprRes	005e2a74	0	3	004341d0	CSprRes::vf03	
-CSprRes	005e2a74	0	4	00434110	CSprRes::vf04	
+CSprRes	005e2a74	0	2	00433f80	CSprRes::Clone	
+CSprRes	005e2a74	0	3	004341d0	CSprRes::Load	
+CSprRes	005e2a74	0	4	00434110	CSprRes::Reset	
 CSprRes	005e2a74	0	5	004df9d0	CRes::OnLoadError	
 CWave	005e2a90	0	0	004353e0	CWave::`scalar_deleting_destructor'	
 CWave	005e2a90	0	1	00420880	CRes::LoadFromMemory	

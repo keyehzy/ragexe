@@ -5,6 +5,8 @@
 //                                          a NAME of "*.bmp" selects every .bmp
 //   ragres decode-images DIR FILE...       decodes images as CBitmapRes does into DIR/<n>.argb
 //   ragres decode-palettes FILE...         decodes .pal files as CPaletteRes does
+//   ragres decode-sprites [--halve-x] [--halve-y] FILE...
+//                                          decodes .spr files as CSprRes does, as hashes
 //   ragres check ARCHIVE...                reads every compressed entry and checks its size;
 //                                          fails on an entry that cannot be read
 //
@@ -16,6 +18,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -23,6 +26,7 @@
 #include "res/grf.h"
 #include "res/palette.h"
 #include "res/resource.h"
+#include "res/sprite.h"
 
 namespace {
 
@@ -220,13 +224,73 @@ int DecodePalettes(const std::vector<std::string>& files) {
   return failed == 0 ? 0 : 1;
 }
 
+std::uint64_t Fnv1a64(std::span<const std::uint8_t> bytes,
+                      std::uint64_t h = 0xcbf29ce484222325ull) {
+  for (std::uint8_t b : bytes) h = (h ^ b) * 0x100000001b3ull;
+  return h;
+}
+
+std::uint64_t Fnv1a64(std::span<const std::uint32_t> values) {
+  std::uint64_t h = 0xcbf29ce484222325ull;
+  for (std::uint32_t v : values) {
+    const std::uint8_t le[4] = {static_cast<std::uint8_t>(v), static_cast<std::uint8_t>(v >> 8),
+                                static_cast<std::uint8_t>(v >> 16),
+                                static_cast<std::uint8_t>(v >> 24)};
+    h = Fnv1a64(le, h);
+  }
+  return h;
+}
+
+// Decodes .spr files as CSprRes does, at a detail level, and prints FNV-1a hashes of what
+// the client would hold: "F n ok|failed version images images32 palette-hash", then per
+// 8-bit image "I width height halved-x halved-y decoded-hash rle-size" and per 32-bit
+// image "T width height halved-x halved-y pixel-width pixel-height pixels-hash".
+int DecodeSprites(const std::vector<std::string>& args) {
+  ragexe::res::SpriteScale scale;
+  std::vector<std::string> files;
+  for (const std::string& a : args) {
+    if (a == "--halve-x") {
+      scale.halve_x = true;
+    } else if (a == "--halve-y") {
+      scale.halve_y = true;
+    } else {
+      files.push_back(a);
+    }
+  }
+  int failed = 0;
+  for (std::size_t n = 0; n < files.size(); ++n) {
+    std::ifstream in(files[n], std::ios::binary);
+    const std::vector<std::uint8_t> bytes((std::istreambuf_iterator<char>(in)),
+                                          std::istreambuf_iterator<char>());
+    ragexe::res::Sprite sprite;
+    std::string error;
+    const bool ok = ragexe::res::DecodeSprite(bytes, scale, sprite, &error);
+    if (!ok) ++failed;
+    std::printf("F %zu %s %x %zu %zu %016llx\n", n, ok ? "ok" : "failed", sprite.version,
+                sprite.images.size(), sprite.images32.size(),
+                static_cast<unsigned long long>(Fnv1a64(sprite.palette)));
+    for (const auto& image : sprite.images) {
+      std::printf("I %d %d %d %d %016llx %zu\n", image.width, image.height, image.halved_x,
+                  image.halved_y, static_cast<unsigned long long>(Fnv1a64(image.Decode())),
+                  image.rle.size());
+    }
+    for (const auto& image : sprite.images32) {
+      std::printf("T %d %d %d %d %d %d %016llx\n", image.width, image.height, image.halved_x,
+                  image.halved_y, image.pixel_width, image.pixel_height,
+                  static_cast<unsigned long long>(Fnv1a64(image.pixels)));
+    }
+  }
+  return failed == 0 ? 0 : 1;
+}
+
 int Usage() {
   std::fprintf(stderr,
                "usage: ragres list ARCHIVE\n"
                "       ragres extract ARCHIVE DIR [NAME...]\n"
                "       ragres check ARCHIVE...\n"
                "       ragres decode-images DIR FILE...\n"
-               "       ragres decode-palettes FILE...\n");
+               "       ragres decode-palettes FILE...\n"
+               "       ragres decode-sprites [--halve-x] [--halve-y] FILE...\n");
   return 2;
 }
 
@@ -243,6 +307,9 @@ int main(int argc, char** argv) {
   }
   if (command == "decode-palettes") {
     return DecodePalettes(std::vector<std::string>(argv + 2, argv + argc));
+  }
+  if (command == "decode-sprites") {
+    return DecodeSprites(std::vector<std::string>(argv + 2, argv + argc));
   }
   if (command == "check") {
     int status = 0;

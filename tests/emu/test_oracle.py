@@ -207,6 +207,34 @@ class DirectXFakes(unittest.TestCase):
 
 
 @unittest.skipUnless(os.path.exists(EXE), "the original executable is not present")
+class DataFiles(unittest.TestCase):
+    """DataFile reading through the stand-in archive of Emulator.serve_data_files."""
+    DATA_FILE, DATA_FILE_OPEN, DATA_FILE_READ, DATA_FILE_EXISTS = 0x4DD2F0, 0x4DD310, 0x4DD430, 0x4DD550
+
+    def test_open_read_and_exists(self):
+        emu = Emulator().init_crt()
+        emu.serve_data_files({"data\\texture\\a.bmp": b"BMhello"})
+        df = emu.scratch(size=0x110)
+        emu.call(self.DATA_FILE, this=df)
+        self.assertEqual(emu.call(self.DATA_FILE_OPEN, emu.cstr("TEXTURE\\A.BMP"), 0, this=df).eax & 0xFF, 1)
+        self.assertEqual(emu.read_u32(df + 0xC), 7)
+        buf = emu.scratch(size=8)
+        self.assertEqual(emu.call(self.DATA_FILE_READ, buf, 7, this=df).eax & 0xFF, 1)
+        self.assertEqual(emu.mem_read(buf, 7), b"BMhello")
+        self.assertEqual(emu.call(self.DATA_FILE_READ, buf, 1, this=df).eax & 0xFF, 0)
+        self.assertEqual(emu.call(self.DATA_FILE_EXISTS, emu.cstr("texture\\a.bmp")).eax & 0xFF, 1)
+        self.assertEqual(emu.call(self.DATA_FILE_EXISTS, emu.cstr("texture\\b.bmp")).eax & 0xFF, 0)
+        df2 = emu.scratch(size=0x110)
+        emu.call(self.DATA_FILE, this=df2)
+        self.assertEqual(emu.call(self.DATA_FILE_OPEN, emu.cstr("missing.txt"), 0, this=df2).eax & 0xFF, 0)
+
+    def test_message_boxes_are_recorded(self):
+        emu = Emulator().init_crt()
+        emu.call(0x4CC110, emu.cstr("hello"))        # ShowErrorMessage
+        self.assertEqual(emu.api.messages, [("Error", "hello")])
+
+
+@unittest.skipUnless(os.path.exists(EXE), "the original executable is not present")
 class Harness(unittest.TestCase):
     def test_unstubbed_import_is_reported(self):
         emu = Emulator()

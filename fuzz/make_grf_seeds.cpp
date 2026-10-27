@@ -1,9 +1,9 @@
 // Writes the seed inputs of the fuzz targets: small archives of each version, with both
 // decode paths, directory entries and a stream that breaks off, their tables, and a
-// ResNameTable.txt, and small images of each kind the bitmap decoders read.
+// ResNameTable.txt, small images of each kind the bitmap decoders read, and sprites.
 //
-//   make_grf_seeds DIR    writes DIR/grf_archive, DIR/grf_table, DIR/res_name_table and
-//                         DIR/bitmap
+//   make_grf_seeds DIR    writes DIR/grf_archive, DIR/grf_table, DIR/res_name_table,
+//                         DIR/bitmap and DIR/sprite
 
 #include <cstdint>
 #include <cstdio>
@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 
+#include "res/sprite.h"
 #include "support/grf_builder.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -111,6 +112,38 @@ std::vector<std::uint8_t> Jpeg() {
   return out;
 }
 
+// A sprite with two 8-bit images and, from version 0x200, one 32-bit image; the sprite fuzz
+// target's input, so with its detail-level byte first.
+std::vector<std::uint8_t> SpriteInput(std::uint8_t level, std::uint16_t version) {
+  std::vector<std::uint8_t> out = {level, 'S', 'P'};
+  Put16(out, version);
+  Put16(out, 2);
+  if (version >= 0x200) Put16(out, 1);
+  for (int size : {6, 9}) {
+    std::vector<std::uint8_t> pixels(static_cast<std::size_t>(size * size));
+    for (std::size_t i = 0; i < pixels.size(); ++i)
+      pixels[i] = i % 3 == 0 ? 0 : static_cast<std::uint8_t>(i);
+    Put16(out, static_cast<std::uint32_t>(size));
+    Put16(out, static_cast<std::uint32_t>(size));
+    if (version < 0x201) {
+      out.insert(out.end(), pixels.begin(), pixels.end());
+    } else {
+      const auto rle = ragexe::res::EncodeSpriteRle(pixels, size, size);
+      Put16(out, static_cast<std::uint32_t>(rle.size()));
+      out.insert(out.end(), rle.begin(), rle.end());
+    }
+  }
+  if (version >= 0x200) {
+    Put16(out, 3);
+    Put16(out, 2);
+    for (int i = 0; i < 3 * 2 * 4; ++i) out.push_back(static_cast<std::uint8_t>(i * 11));
+  }
+  if (version > 0x100) {
+    for (int i = 0; i < 1024; ++i) out.push_back(static_cast<std::uint8_t>(i));
+  }
+  return out;
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -123,6 +156,7 @@ int main(int argc, char** argv) {
   std::filesystem::create_directories(dir / "grf_table");
   std::filesystem::create_directories(dir / "res_name_table");
   std::filesystem::create_directories(dir / "bitmap");
+  std::filesystem::create_directories(dir / "sprite");
 
   std::vector<std::uint8_t> text(300);
   for (std::size_t i = 0; i < text.size(); ++i) text[i] = static_cast<std::uint8_t>('a' + i % 26);
@@ -166,6 +200,11 @@ int main(int argc, char** argv) {
   Write(dir / "bitmap" / "tga32_rle.bin", BitmapInput(1, Tga(10, 32)));
   Write(dir / "bitmap" / "jpg.bin", BitmapInput(2, Jpeg()));
   n += 6;
+  Write(dir / "sprite" / "v100.bin", SpriteInput(0, 0x100));
+  Write(dir / "sprite" / "v200.bin", SpriteInput(0, 0x200));
+  Write(dir / "sprite" / "v201.bin", SpriteInput(0, 0x201));
+  Write(dir / "sprite" / "v201_halved.bin", SpriteInput(3, 0x201));
+  n += 4;
   std::printf("wrote %d seeds to %s\n", n, dir.string().c_str());
   return 0;
 }

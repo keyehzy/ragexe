@@ -1610,9 +1610,31 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     convert from stack garbage, fails in the port.
   - **Also:** `ragres decode-palettes`, and labels for the class's slots.
 
+- [x] `CSprRes` (`docs/formats/sprite.md`, `src/res/sprite`):
+  - **Format:** an `SP` header (versions to 0x201), 8-bit images raw or zero-run
+    encoded, 32-bit images (A, B, G, R, bottom-up), and the palette in the last 1024
+    bytes.
+  - **Kept from the original:** 8-bit images stay run-length encoded, as the client
+    keeps them, with its `EncodeRle`, `DecodeRle` and `ShrinkImage`, including the
+    encoder's 16-bit quirks. The detail level that halves images is a registration
+    option.
+  - **Oracle** (`tools/sprite_oracle.py`):
+    - **The stand-in archive:** the emulator now has one (`serve_data_files`), so the
+      original `Load` runs on the file through `DataFile`, with `CTexture` replaced to
+      capture the 32-bit images.
+    - **Result:** all 2,086 sprites at all four detail levels match: 8,344 loads,
+      103,536 8-bit images (record and every pixel, decoded by the original
+      `DecodeRle`), 368 32-bit images and every palette.
+    - **Cost:** one core takes 25 minutes, so `ctest` runs 20 sprites.
+  - **Fuzzing:** `sprite_fuzz` found a zero-width 32-bit image that indexed an empty
+    vector, now fixed and kept as a regression. Images that claim more pixels than
+    their run-length data can cover are now refused, which also took the fuzzer from
+    43 to 15,000 inputs a second. Then 9.3 million inputs ran with no further findings.
+
 ### Next actions (M3)
-1. The remaining loaders in dependency order (`CSprRes`, `CActRes`, `C3dAttr`, …),
+1. The remaining loaders in dependency order (`CActRes`, `C3dAttr`, `CGndRes`, …),
    each registered with the resource manager, compared with the original in the
-   emulation oracle, fuzzed, and with a `ragres` mode.
+   emulation oracle (its `Load`, through `serve_data_files`), fuzzed, and with a
+   `ragres` mode. The oracle scripts should run on several cores and report progress.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

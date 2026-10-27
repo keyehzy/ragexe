@@ -49,6 +49,9 @@ TEB = 0x7FFD0000
 STUBS = 0x7FF00000            # one 16-byte slot per import, then the return sentinel
 STACK_BASE, STACK_SIZE = 0x10000000, 0x00100000
 HEAP_BASE, HEAP_SIZE = 0x20000000, 0x04000000
+# The archive DataFile reads through (analysis/labels: globals, vtables, CGPak methods).
+G_CGPAK, G_PCGPAK, CGPAK_VFTABLE = 0x67CD00, 0x67CD84, 0x5E8E50
+CGPAK_LOAD_FILE, CGPAK_FREE_FILE, CGPAK_EXISTS = 0x4DD9A0, 0x4DD9F0, 0x4DDA10
 SCRATCH_BASE, SCRATCH_SIZE = 0x30000000, 0x01000000
 
 IOINIT = 0x5C9365                         # the start-up step before _cinit; builds __pioinfo
@@ -262,6 +265,42 @@ class Emulator:
             self.fault("return to the callback trampoline with no callback pending")
             return
         self._resume(uc.reg_read(UC_X86_REG_EAX))
+
+    def replace_thiscall(self, address, nargs, fn):
+        """Run fn(this, *args) in place of the __thiscall function at address: its result
+        goes to EAX and the callee pops nargs arguments, as the function would."""
+        def hook(uc, _address, _size, _):
+            esp = uc.reg_read(UC_X86_REG_ESP)
+            ret = self.read_u32(esp)
+            this = uc.reg_read(UC_X86_REG_ECX)
+            args = [self.read_u32(esp + 4 + 4 * k) for k in range(nargs)]
+            self.complete(fn(this, *args), ret, esp + 4 + 4 * nargs)
+        self.uc.hook_add(UC_HOOK_CODE, hook, begin=address, end=address)
+
+    def serve_data_files(self, files):
+        """Stand in for data.grf: DataFile reads go through g_pCGPak to CGPak::LoadFile,
+        answered here from files, a dict of lower-cased archive paths
+        ("data\\sprite\\x.spr") to bytes. Later calls replace the dict."""
+        first = not hasattr(self, "data_files")
+        self.data_files = {name.lower(): data for name, data in files.items()}
+        if not first:
+            return
+        self.write_u32(G_CGPAK, CGPAK_VFTABLE)
+        self.write_u32(G_PCGPAK, G_CGPAK)
+
+        def load_file(this, key, size_out):
+            data = self.data_files.get(self.read_cstr(key + 4, 256))
+            if data is None:
+                self.write_u32(size_out, 0)
+                return 0
+            buffer = self.alloc(len(data) + 8)
+            self.mem_write(buffer, data)
+            self.write_u32(size_out, len(data))
+            return buffer
+
+        self.replace_thiscall(CGPAK_LOAD_FILE, 2, load_file)
+        self.replace_thiscall(CGPAK_FREE_FILE, 1, lambda this, buffer: 0)
+        self.replace_thiscall(CGPAK_EXISTS, 1, lambda this, key: int(self.read_cstr(key + 4, 256) in self.data_files))
 
     def hook_code(self, begin, end, fn):
         self.uc.hook_add(UC_HOOK_CODE, fn, begin=begin, end=end)

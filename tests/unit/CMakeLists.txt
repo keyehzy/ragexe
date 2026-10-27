@@ -6,6 +6,7 @@ add_executable(ragexe_tests
   mode_switcher_test.cpp
   palette_test.cpp
   settings_test.cpp
+  sprite_test.cpp
   windows_no_dialogs.cpp)
 target_include_directories(ragexe_tests PRIVATE ${PROJECT_SOURCE_DIR}/tests)
 target_link_libraries(ragexe_tests PRIVATE ragexe_game ragexe_res ragexe_stb_image ZLIB::ZLIB Catch2::Catch2WithMain ragexe_options)
@@ -35,6 +36,11 @@ if(RAGEXE_ARCHIVES)
     add_test(NAME bitmap_oracle_sample
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/bitmap_oracle.py"
         --sample 30 --ragres $<TARGET_FILE:ragres>
+        --archive "${RAGEXE_INSTALL_DIR}/data.grf")
+    # 20 sprites at every detail level, against the original loader (tools/sprite_oracle.py).
+    add_test(NAME sprite_oracle_sample
+      COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/sprite_oracle.py"
+        --sample 20 --scales 00,11,10,01 --ragres $<TARGET_FILE:ragres>
         --archive "${RAGEXE_INSTALL_DIR}/data.grf")
     # Every palette, against the original conversion (tools/palette_oracle.py).
     add_test(NAME palette_oracle
