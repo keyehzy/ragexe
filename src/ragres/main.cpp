@@ -4,6 +4,7 @@
 //   ragres extract ARCHIVE DIR [NAME...]   writes the files (all, or the named ones) under DIR;
 //                                          a NAME of "*.bmp" selects every .bmp
 //   ragres decode-images DIR FILE...       decodes images as CBitmapRes does into DIR/<n>.argb
+//   ragres decode-palettes FILE...         decodes .pal files as CPaletteRes does
 //   ragres check ARCHIVE...                reads every compressed entry and checks its size;
 //                                          fails on an entry that cannot be read
 //
@@ -20,6 +21,7 @@
 
 #include "res/bitmap.h"
 #include "res/grf.h"
+#include "res/palette.h"
 #include "res/resource.h"
 
 namespace {
@@ -197,12 +199,34 @@ int DecodeImages(const std::filesystem::path& dir, const std::vector<std::string
   return failed == 0 ? 0 : 1;
 }
 
+// Decodes .pal files as CPaletteRes does; prints one line per file: n, ok or failed, then
+// the 256 values in hex.
+int DecodePalettes(const std::vector<std::string>& files) {
+  int failed = 0;
+  for (std::size_t n = 0; n < files.size(); ++n) {
+    std::ifstream in(files[n], std::ios::binary);
+    const std::vector<std::uint8_t> bytes((std::istreambuf_iterator<char>(in)),
+                                          std::istreambuf_iterator<char>());
+    ragexe::res::PaletteRes palette;
+    const bool ok = palette.LoadFromBytes(bytes);
+    std::printf("%zu\t%s", n, ok ? "ok" : "failed");
+    if (ok) {
+      for (std::uint32_t v : palette.palette()) std::printf("\t%x", v);
+    } else {
+      ++failed;
+    }
+    std::printf("\n");
+  }
+  return failed == 0 ? 0 : 1;
+}
+
 int Usage() {
   std::fprintf(stderr,
                "usage: ragres list ARCHIVE\n"
                "       ragres extract ARCHIVE DIR [NAME...]\n"
                "       ragres check ARCHIVE...\n"
-               "       ragres decode-images DIR FILE...\n");
+               "       ragres decode-images DIR FILE...\n"
+               "       ragres decode-palettes FILE...\n");
   return 2;
 }
 
@@ -216,6 +240,9 @@ int main(int argc, char** argv) {
     return Extract(argv[2], argv[3], std::vector<std::string>(argv + 4, argv + argc));
   if (command == "decode-images" && argc >= 4) {
     return DecodeImages(argv[2], std::vector<std::string>(argv + 3, argv + argc));
+  }
+  if (command == "decode-palettes") {
+    return DecodePalettes(std::vector<std::string>(argv + 2, argv + argc));
   }
   if (command == "check") {
     int status = 0;

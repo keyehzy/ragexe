@@ -1055,14 +1055,14 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00431f60	10	code	0	res		named	Global	static_init_054	
 00431f70	32	code	0	res		named	Global	static_init_054_body	
 00431f90	89	code	0	res		named	CPaletteRes	CPaletteRes	
-00431ff0	89	code	0	res		named	CPaletteRes	vf02	
+00431ff0	89	code	0	res		named	CPaletteRes	Clone	
 00432050	33	code	0	res		named	CPaletteRes	`scalar_deleting_destructor'	
 00432080	7	code	0	res		named	CPaletteRes	~CPaletteRes	
 00432090	12	code	0	res		named	Global	register_destroy_g_CPaletteRes	
 004320a0	10	code	0	res		named	Global	destroy_g_CPaletteRes	
 004320b0	18	code	0	res		named	CPaletteRes	CPaletteRes	
-004320d0	1	code	0	res		named	CPaletteRes	vf04	
-004320e0	565	code	0	res		named	CPaletteRes	vf03	
+004320d0	1	code	0	res		named	CPaletteRes	Reset	
+004320e0	565	code	0	res		named	CPaletteRes	Load	
 00432320	37	code	0	res		named	Global	static_init_055	
 00432350	5	thunk	0	res		-	Global	static_init_056	
 00432360	11	code	0	res		named	Global	static_init_056_body	

@@ -7,7 +7,7 @@ CDC	005e2608	0040302f	CDCSurface::CDCSurface
 CDC	005e2608	004035df	CDCBitmap::CDCBitmap
 CDC	005e2608	0040377a	CDCBitmap::~CDCBitmap
 CDC	005e2608	00402f5f	CDCSurface::CDCSurface
-CDC	005e2608	00402fbb	CDC::CDC
+CDC	005e2608	00402fbb	CDC::`scalar_deleting_destructor'
 CDC	005e2608	00402fa0	CDC::~CDC
 CDCBitmap	005e2630	00403611	CDCBitmap::CDCBitmap
 CDCBitmap	005e2630	004036a3	CDCBitmap::~CDCBitmap
@@ -21,7 +21,7 @@ CConnection	005e2740	0041824b	CRagConnection::~CRagConnection
 CConnection	005e2740	004182af	CConnection::~CConnection
 CConnection	005e2740	00418523	CConnection::CConnection
 CRagConnection	005e2750	00418ed0	CRagConnection::CRagConnection
-CController	005e2760	0041dacb	CController::CController
+CController	005e2760	0041dacb	CController::`scalar_deleting_destructor'
 CController	005e2760	0041da93	CController::CController
 CController	005e2760	0041dd60	CController::~CController
 CController	005e2760	0041deb3	CKeyPad::~CKeyPad
@@ -43,7 +43,7 @@ CRes	005e27f4	00421e25	CRmaRes::~CRmaRes
 CRes	005e27f4	00435410	CWave::~CWave
 CRes	005e27f4	00420870	CRes::~CRes
 CRes	005e27f4	00428920	CEZeffectRes::~CEZeffectRes
-CRes	005e27f4	004208ab	CRes::CRes
+CRes	005e27f4	004208ab	CRes::`scalar_deleting_destructor'
 CRes	005e27f4	00420a3a	CActRes::~CActRes
 CRes	005e27f4	0042903a	CGndRes::~CGndRes
 CRes	005e27f4	0043406e	CSprRes::~CSprRes
@@ -484,7 +484,7 @@ std::locale::facet	005e8e98	005b624b	std::num_put<char,std::ostreambuf_iterator<
 std::locale::facet	005e8e98	005b6292	std::numpunct<char>::~numpunct<char>
 std::locale::facet	005e8e98	005b6205	std::codecvt<char,char,int>::~codecvt<char,char,int>
 std::locale::facet	005e8e98	005b6228	std::num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>::~num_get<char,std::istreambuf_iterator<char,std::char_traits<char>_>_>
-std::locale::facet	005e8e98	004e5d3b	std::locale::facet::facet
+std::locale::facet	005e8e98	004e5d3b	std::locale::facet::`scalar_deleting_destructor'
 std::locale::facet	005e8e98	004e5d20	std::locale::facet::~facet
 std::locale::facet	005e8e98	004e5e7c	std::ctype<char>::~ctype<char>
 std::locale::facet	005e8e98	005b9e8a	std::time_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>::~time_put<unsigned_short,std::ostreambuf_iterator<unsigned_short,std::char_traits<unsigned_short>_>_>

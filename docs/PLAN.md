@@ -1596,8 +1596,22 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     functions that had been taken for constructors (`CRes`, `CDC`, `CController`,
     `std::locale::facet`).
 
+- [x] `CPaletteRes` (`docs/formats/palette.md`, `src/res/palette`):
+  - **Format:** 256 entries of r, g, b and an unused byte, converted by
+    `C3dDevice::ConvertColorsToArgb1555` into ARGB1555 with the alpha bit set. Magenta
+    becomes the constant key `0x0421`: transparent, the 16-bit form of the JPEG key.
+  - **Oracle** (`tools/palette_oracle.py`, also run by `ctest` when the data is
+    present): the original conversion run in the emulator agrees on every value of all
+    502 `.pal` files in `data.grf`, and of 24 synthetic palettes covering every colour
+    near the key.
+  - **Not fuzzed:** a palette is a fixed 1024 bytes with nothing to parse; `CSprRes`
+    will reuse the conversion.
+  - **Where the port differs:** a file under 1024 bytes, which the original would
+    convert from stack garbage, fails in the port.
+  - **Also:** `ragres decode-palettes`, and labels for the class's slots.
+
 ### Next actions (M3)
-1. The remaining loaders in dependency order (`CPaletteRes`, `CSprRes`, `CActRes`, …),
+1. The remaining loaders in dependency order (`CSprRes`, `CActRes`, `C3dAttr`, …),
    each registered with the resource manager, compared with the original in the
    emulation oracle, fuzzed, and with a `ragres` mode.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,

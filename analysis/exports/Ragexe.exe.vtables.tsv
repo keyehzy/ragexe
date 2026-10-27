@@ -8,7 +8,7 @@ CDCSurface	005e25e0	0	5	00403160	CDCSurface::vf05
 CDCSurface	005e25e0	0	6	004031a0	CDCSurface::vf06	
 CDCSurface	005e25e0	0	7	00403110	CDCSurface::vf07	
 CDCSurface	005e25e0	0	8	00403590	CDCSurface::vf08	
-CDC	005e2608	0	0	00402fb0	CDC::CDC	
+CDC	005e2608	0	0	00402fb0	CDC::`scalar_deleting_destructor'	
 CDC	005e2608	0	1	005c195a	_purecall	shared:7-unrelated-classes
 CDC	005e2608	0	2	005c195a	_purecall	shared:7-unrelated-classes
 CDC	005e2608	0	3	005c195a	_purecall	shared:7-unrelated-classes
@@ -47,7 +47,7 @@ CConnection	005e2740	0	2	004189f0	CConnection::vf02
 CRagConnection	005e2750	0	0	00418ef0	CRagConnection::`scalar_deleting_destructor'	
 CRagConnection	005e2750	0	1	00418f20	CRagConnection::vf01	
 CRagConnection	005e2750	0	2	00418f50	CRagConnection::vf02	
-CController	005e2760	0	0	0041dac0	CController::CController	
+CController	005e2760	0	0	0041dac0	CController::`scalar_deleting_destructor'	
 CController	005e2760	0	1	0041db10	CController::vf01	
 CController	005e2760	0	2	0041dab0	CController::vf02	
 CController	005e2760	0	3	0041db40	CController::vf03	
@@ -61,7 +61,7 @@ CActRes	005e27d8	0	2	004208d0	CActRes::vf02
 CActRes	005e27d8	0	3	00420f60	CActRes::vf03	
 CActRes	005e27d8	0	4	00420d60	CActRes::vf04	
 CActRes	005e27d8	0	5	004df9d0	CRes::OnLoadError	
-CRes	005e27f4	0	0	004208a0	CRes::CRes	
+CRes	005e27f4	0	0	004208a0	CRes::`scalar_deleting_destructor'	
 CRes	005e27f4	0	1	00420880	CRes::LoadFromMemory	
 CRes	005e27f4	0	2	005c195a	_purecall	shared:7-unrelated-classes
 CRes	005e27f4	0	3	005c195a	_purecall	shared:7-unrelated-classes
@@ -158,9 +158,9 @@ C3dGrannyModelRes	005e2a00	0	4	0042e9e0	C3dGrannyModelRes::vf04
 C3dGrannyModelRes	005e2a00	0	5	004df9d0	CRes::OnLoadError	
 CPaletteRes	005e2a24	0	0	00432050	CPaletteRes::`scalar_deleting_destructor'	
 CPaletteRes	005e2a24	0	1	00420880	CRes::LoadFromMemory	
-CPaletteRes	005e2a24	0	2	00431ff0	CPaletteRes::vf02	
-CPaletteRes	005e2a24	0	3	004320e0	CPaletteRes::vf03	
-CPaletteRes	005e2a24	0	4	004320d0	CPaletteRes::vf04	
+CPaletteRes	005e2a24	0	2	00431ff0	CPaletteRes::Clone	
+CPaletteRes	005e2a24	0	3	004320e0	CPaletteRes::Load	
+CPaletteRes	005e2a24	0	4	004320d0	CPaletteRes::Reset	
 CPaletteRes	005e2a24	0	5	004df9d0	CRes::OnLoadError	
 CSprRes	005e2a74	0	0	00433fe0	CSprRes::`scalar_deleting_destructor'	
 CSprRes	005e2a74	0	1	00420880	CRes::LoadFromMemory	
@@ -6031,7 +6031,7 @@ std::ctype<char>	005e8e80	0	1	004e5d90	std::ctype<char>::vf01
 std::ctype<char>	005e8e80	0	2	004e5d70	std::ctype<char>::vf02	
 std::ctype<char>	005e8e80	0	3	004e5df0	std::ctype<char>::vf03	
 std::ctype<char>	005e8e80	0	4	004e5dd0	std::ctype<char>::vf04	
-std::locale::facet	005e8e98	0	0	004e5d30	std::locale::facet::facet	
+std::locale::facet	005e8e98	0	0	004e5d30	std::locale::facet::`scalar_deleting_destructor'	
 mg::CMGPc	005e8eac	0	0	004eb0a0	mg::CMGPc::`scalar_deleting_destructor'	
 mg::CMGPc	005e8eac	0	1	00542e40	CPc::vf01	
 mg::CMGPc	005e8eac	0	2	00543540	CPc::vf02	
