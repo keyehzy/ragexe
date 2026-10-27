@@ -2,14 +2,14 @@
 // decode paths, directory entries and a stream that breaks off, their tables, and a
 // ResNameTable.txt, small images of each kind the bitmap decoders read, sprites and
 // actions, attribute maps, grounds, worlds, models, animated models, .imf
-// and .rma files, effects, emblems, waves, item tables, ClientState's tables, XML, and
-// clientinfo.xml.
+// and .rma files, effects, emblems, waves, item tables, ClientState's tables, XML,
+// clientinfo.xml, and the tips and manner files.
 //
 //   make_grf_seeds DIR    writes DIR/grf_archive, DIR/grf_table, DIR/res_name_table,
 //                         DIR/bitmap, DIR/sprite, DIR/act, DIR/gat, DIR/gnd,
 //                         DIR/rsw, DIR/rsm, DIR/rsx, DIR/imf, DIR/rma, DIR/str,
 //                         DIR/ebm, DIR/wav, DIR/item_tables, DIR/client_tables
-//                         DIR/xml and DIR/clientinfo
+//                         DIR/xml, DIR/clientinfo and DIR/tips_manner
 
 #include <zlib.h>
 
@@ -483,6 +483,7 @@ int main(int argc, char** argv) {
   std::filesystem::create_directories(dir / "client_tables");
   std::filesystem::create_directories(dir / "xml");
   std::filesystem::create_directories(dir / "clientinfo");
+  std::filesystem::create_directories(dir / "tips_manner");
 
   std::vector<std::uint8_t> text(300);
   for (std::size_t i = 0; i < text.size(); ++i) text[i] = static_cast<std::uint8_t>('a' + i % 26);
@@ -624,6 +625,11 @@ int main(int argc, char** argv) {
       "<connection><langtype>4</langtype></connection></clientinfo>";
   Write(dir / "clientinfo" / "small.bin",
         std::vector<std::uint8_t>(clientinfo.begin(), clientinfo.end()));
+  ++n;
+  const std::string tips_manner =
+      "Fuck\r\n  ass\r\nfirst tip\r\n#\r\nsecond\r\n#\r\n\x01you FUCK \xb0\xa1 ass";
+  Write(dir / "tips_manner" / "small.bin",
+        std::vector<std::uint8_t>(tips_manner.begin(), tips_manner.end()));
   ++n;
   std::printf("wrote %d seeds to %s\n", n, dir.string().c_str());
   return 0;

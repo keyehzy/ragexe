@@ -1931,11 +1931,23 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     - an `<aid>` with no `<admin>` faults in the client and fails in the port.
   - **Fuzzing:** `clientinfo_fuzz`, 17 million inputs with no findings.
 
+- [x] The tip of the day and `manner.txt` (`docs/formats/tips.md`,
+  `docs/formats/manner.md`, `src/res/tips`, `src/res/manner`):
+  - **Tips** are read with `fopen` in text mode from beside the client, by service. Each
+    `\n` ends a line and each `#` a tip.
+  - **The manner words** are each `\n`-ended line of `data\manner.txt`, lower-cased with
+    double-byte characters skipped. Leading blanks and trailing spaces are kept.
+  - **`IsClean`** looks for each word at each character, two bytes at a time over
+    double-byte characters.
+  - **Oracle** (`tools/tips_manner_oracle.py`, in `ctest` when the data is present):
+    - the client's own C library reads the tips, text mode and all;
+    - the words come back from the client's deque, and `IsClean` answers 20 probes;
+    - the real files and 15 synthetic ones match.
+    - **A finding:** `AssignLowercase` skips the byte after a lead byte, as `IsClean` does.
+  - **Fuzzing:** `tips_manner_fuzz`, 41 million inputs with no findings.
+
 ### Next actions (M3)
-1. The last text readers: the tip of the day (`TipOfTheDayList::Load`, `004db290`) and
-   `manner.txt` (`MannerFilter`, from `WinMain`). Each gets a `ragres` mode and is
-   compared with the client in the emulation oracle.
-2. The M3 exit check: every entry of `data.grf` and the patches through the loader its
+1. The M3 exit check: every entry of `data.grf` and the patches through the loader its
    extension selects, with the failures accounted for.
 
    `C3dGrannyModelRes` (`.gr2`, through `granny2.dll`) is the one registered type not in

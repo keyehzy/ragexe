@@ -20,6 +20,7 @@ add_executable(ragexe_tests
   settings_test.cpp
   sprite_test.cpp
   str_test.cpp
+  tips_manner_test.cpp
   wav_test.cpp
   windows_no_dialogs.cpp
   xml_test.cpp)
@@ -124,6 +125,11 @@ if(RAGEXE_ARCHIVES)
     # loaders (tools/clientinfo_oracle.py).
     add_test(NAME clientinfo_oracle
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/clientinfo_oracle.py"
+        --ragres $<TARGET_FILE:ragres> --install "${RAGEXE_INSTALL_DIR}")
+    # The tip of the day and manner.txt, real and synthetic, against their loaders and
+    # IsClean (tools/tips_manner_oracle.py).
+    add_test(NAME tips_manner_oracle
+      COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/tips_manner_oracle.py"
         --ragres $<TARGET_FILE:ragres> --install "${RAGEXE_INSTALL_DIR}")
     # Every palette, against the original conversion (tools/palette_oracle.py).
     add_test(NAME palette_oracle

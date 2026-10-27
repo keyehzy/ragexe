@@ -34,6 +34,9 @@
 //                                          reads clientinfo.xml files as LoadClientInfo
 //                                          does, then the Nth connection as the login
 //                                          screen would
+//   ragres decode-tips FILE...             reads tip-of-the-day files as TipOfTheDayList does
+//   ragres decode-manner FILE [PROBES]     reads manner.txt as MannerFilter does, then tests
+//                                          each line of PROBES with IsClean
 //   ragres decode-item-tables DIR [--korea] [--code-page N]
 //                                          loads the item and card tables from DIR's data
 //                                          folder as LoadItemTables does
@@ -65,6 +68,7 @@
 #include "res/grf.h"
 #include "res/imf.h"
 #include "res/item_tables.h"
+#include "res/manner.h"
 #include "res/palette.h"
 #include "res/resource.h"
 #include "res/rma.h"
@@ -73,6 +77,7 @@
 #include "res/rsx.h"
 #include "res/sprite.h"
 #include "res/str.h"
+#include "res/tips.h"
 #include "res/wav.h"
 #include "res/xml.h"
 
@@ -1078,6 +1083,40 @@ int DecodeClientInfo(std::vector<std::string> args) {
   return failed == 0 ? 0 : 1;
 }
 
+int DecodeTips(const std::vector<std::string>& files) {
+  for (std::size_t n = 0; n < files.size(); ++n) {
+    const auto tips = ragexe::res::ParseTips(ragexe::res::ReadAsText(ReadFile(files[n])));
+    std::printf("%zu ok %zu\n", n, tips.size());
+    for (const auto& tip : tips) {
+      std::printf("tip %zu\n", tip.size());
+      for (const std::string& line : tip) std::printf("line %s\n", Quoted(line).c_str());
+    }
+  }
+  return 0;
+}
+
+int DecodeManner(const std::vector<std::string>& args) {
+  if (args.empty() || args.size() > 2) return Usage();
+  ragexe::res::MannerFilter filter;
+  filter.Parse(ReadFile(args[0]));
+  std::printf("words %zu\n", filter.words().size());
+  for (const std::string& word : filter.words()) std::printf("word %s\n", Quoted(word).c_str());
+  if (args.size() == 2) {
+    const std::vector<std::uint8_t> probes = ReadFile(args[1]);
+    std::size_t start = 0;
+    for (std::size_t i = 0; i <= probes.size(); ++i) {
+      if (i < probes.size() && probes[i] != '\n') continue;
+      const std::string probe(reinterpret_cast<const char*>(probes.data()) + start, i - start);
+      if (i < probes.size() || !probe.empty()) {
+        std::printf("probe %s %s\n", Quoted(probe).c_str(),
+                    filter.IsClean(probe) ? "clean" : "banned");
+      }
+      start = i + 1;
+    }
+  }
+  return 0;
+}
+
 int DecodeItemTables(const std::vector<std::string>& args) {
   if (args.empty()) return Usage();
   ragexe::res::ItemTableSettings settings;
@@ -1133,6 +1172,8 @@ int Usage() {
                "       ragres decode-fog-parameters FILE...\n"
                "       ragres decode-xml FILE...\n"
                "       ragres decode-clientinfo [--connection N] FILE...\n"
+               "       ragres decode-tips FILE...\n"
+               "       ragres decode-manner FILE [PROBES]\n"
                "       ragres decode-item-tables DIR [--korea] [--code-page N]\n");
   return 2;
 }
@@ -1186,6 +1227,9 @@ int main(int argc, char** argv) {
   if (command == "decode-clientinfo") {
     return DecodeClientInfo(std::vector<std::string>(argv + 2, argv + argc));
   }
+  if (command == "decode-tips") return DecodeTips(std::vector<std::string>(argv + 2, argv + argc));
+  if (command == "decode-manner")
+    return DecodeManner(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-item-tables") {
     return DecodeItemTables(std::vector<std::string>(argv + 2, argv + argc));
   }

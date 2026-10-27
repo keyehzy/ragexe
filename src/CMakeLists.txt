@@ -37,6 +37,7 @@ add_library(ragexe_res STATIC
   res/gnd.cpp
   res/imf.cpp
   res/item_tables.cpp
+  res/manner.cpp
   res/rsm.cpp
   res/rsw.cpp
   res/rsx.cpp
@@ -48,6 +49,7 @@ add_library(ragexe_res STATIC
   res/rma.cpp
   res/sprite.cpp
   res/str.cpp
+  res/tips.cpp
   res/wav.cpp
   res/xml.cpp)
 target_include_directories(ragexe_res PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

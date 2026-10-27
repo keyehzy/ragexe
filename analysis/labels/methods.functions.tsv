@@ -419,7 +419,6 @@ address	namespace	name	calling_convention	evidence
 004d11b0	std::list	method_004d11b0	__thiscall	__thiscall; called with this from 2 functions of GuildInfo, e.g. 004d0130
 004d1330	std::Tree	method_004d1330	__thiscall	__thiscall; called with this from 1 functions of GuildInfo, e.g. 004d0360
 004d1350	std::Tree	method_004d1350	__thiscall	__thiscall; called with this from 3 functions of GuildInfo, mg::mgType1::CWorld, e.g. 004d0360
-004d2450	MannerFilter	method_004d2450	__thiscall	__thiscall; called with this from 1 functions of MannerFilter, e.g. 004d25e0
 004d2b40	MannerFilter	method_004d2b40	__thiscall	__thiscall; called with this from 1 functions of MannerFilter, e.g. 004d25e0
 004d2be0	MannerFilter	method_004d2be0	__thiscall	__thiscall; called with this from 1 functions of MannerFilter, e.g. 004d2450
 004d2d30	MannerFilter	method_004d2d30	__thiscall	__thiscall; called with this from 1 functions of MannerFilter, e.g. 004d25e0
@@ -434,7 +433,6 @@ address	namespace	name	calling_convention	evidence
 004d7ef0	std::Tree	method_004d7ef0	__thiscall	__thiscall; called with this from 1 functions of std::Tree, e.g. 004d48e0
 004d8710	std::Tree	method_004d8710	__thiscall	__thiscall; called with this from 1 functions of std::Tree, e.g. 004d5b00
 004d8800	std::Tree	method_004d8800	__thiscall	__thiscall; called with this from 1 functions of std::Tree, e.g. 004d5c60
-004db520	TipOfTheDayList	method_004db520	__thiscall	__thiscall; called with this from 1 functions of TipOfTheDayList, e.g. 004db290
 004dbbf0	MoviePlayer	method_004dbbf0	__thiscall	__thiscall; called with this from 1 functions of MoviePlayer, e.g. 004dbfc0
 004dbd30	MoviePlayer	method_004dbd30	__thiscall	__thiscall; called with this from 1 functions of MoviePlayer, e.g. 004dbfc0
 004dbe10	MoviePlayer	method_004dbe10	__thiscall	__thiscall; called with this from 1 functions of MoviePlayer, e.g. 004dbfc0

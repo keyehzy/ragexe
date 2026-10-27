@@ -3535,7 +3535,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004d2070	387	code	0	game		named	Global	AssignLowercase	
 004d2200	21	code	0	game		named	MannerFilter	ContainsBannedWord	
 004d2220	560	code	0	game		named	MannerFilter	IsClean	
-004d2450	321	code	0	game		named	MannerFilter	method_004d2450	
+004d2450	321	code	0	game		named	MannerFilter	AddWord	
 004d25a0	62	code	1	stl		named	std::string	~string	
 004d25e0	1043	code	0	game		named	MannerFilter	Load	
 004d2a00	50	code	0	game		named	MannerFilter	MannerFilter	
@@ -3706,7 +3706,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004db210	119	code	0	ui		named	TipOfTheDayList	~TipOfTheDayList	
 004db290	607	code	0	ui		named	TipOfTheDayList	Load	
 004db4f0	44	code	0	ui		named	TipOfTheDayList	GetTip	
-004db520	660	code	0	ui		named	TipOfTheDayList	method_004db520	
+004db520	660	code	0	ui		named	TipOfTheDayList	InsertTips	
 004db7c0	477	code	1	stl		named	std	ConstructAt	
 004db9a0	517	code	1	stl		named	std::vector	operator=	
 004dbbb0	37	code	0	render		named	Global	static_init_131	

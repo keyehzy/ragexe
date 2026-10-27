@@ -114,6 +114,7 @@ The parsers have libFuzzer targets in `fuzz/`:
 | `client_tables_fuzz` | `ClientState`'s tables: name pairs, number and line records, fields, fog records, with the VC6 sort |
 | `xml_fuzz` | the XML parser |
 | `clientinfo_fuzz` | `clientinfo.xml`'s settings and connections |
+| `tips_manner_fuzz` | the tip of the day, and the manner filter's words and test |
 
 Each target aborts when an invariant breaks, which the fuzzer reports as a crash.
 
@@ -126,7 +127,7 @@ CC=$(brew --prefix llvm)/bin/clang CXX=$(brew --prefix llvm)/bin/clang++ cmake -
 ```
 
 ```bash
-cmake --build --preset fuzz --target grf_table_fuzz grf_archive_fuzz res_name_table_fuzz bitmap_fuzz sprite_fuzz act_fuzz gat_fuzz gnd_fuzz rsw_fuzz rsm_fuzz rsx_fuzz imf_fuzz rma_fuzz str_fuzz ebm_fuzz wav_fuzz item_tables_fuzz client_tables_fuzz xml_fuzz clientinfo_fuzz make_grf_seeds
+cmake --build --preset fuzz --target grf_table_fuzz grf_archive_fuzz res_name_table_fuzz bitmap_fuzz sprite_fuzz act_fuzz gat_fuzz gnd_fuzz rsw_fuzz rsm_fuzz rsx_fuzz imf_fuzz rma_fuzz str_fuzz ebm_fuzz wav_fuzz item_tables_fuzz client_tables_fuzz xml_fuzz clientinfo_fuzz tips_manner_fuzz make_grf_seeds
 ```
 
 **Running one:** `make_grf_seeds` writes small valid archives and tables to start from,
