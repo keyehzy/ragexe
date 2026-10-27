@@ -218,8 +218,9 @@ directory on every system:
 - it drops `.` components and lets `..` climb one level, never above the install
   directory (`data\..\_tmpEmblem\x.ebm` is `_tmpEmblem/x.ebm` there);
 - it matches each component without regard to A–Z case, as the hashed name does;
-- when a directory holds several names that differ only in case, it takes the first in
-  sorted order.
+- when a directory holds several names that differ only in case, it tries the exact name
+  first, then the others in sorted order, and the first path that leads to the file
+  wins.
 
 Archive entries still win over loose files, as in the original.
 

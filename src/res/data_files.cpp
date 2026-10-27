@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iterator>
+#include <span>
 #include <string>
 #include <system_error>
 #include <utility>
@@ -23,21 +24,38 @@ bool SameIgnoringAsciiCase(std::string_view a, std::string_view b) {
   return true;
 }
 
-// The entry of dir named like component, ignoring A-Z case; the first in sorted order
-// when several match.
-std::optional<std::filesystem::path> FindEntry(const std::filesystem::path& dir,
+// The entries of dir named like component, ignoring A-Z case, the exact name first and the
+// others in sorted order.
+std::vector<std::filesystem::path> FindEntries(const std::filesystem::path& dir,
                                                std::string_view component) {
   std::error_code ec;
-  std::filesystem::path exact = dir / std::string(component);
-  if (std::filesystem::exists(exact, ec)) return exact;
   std::vector<std::filesystem::path> matches;
   for (const auto& entry : std::filesystem::directory_iterator(dir, ec)) {
     if (SameIgnoringAsciiCase(entry.path().filename().string(), component)) {
       matches.push_back(entry.path());
     }
   }
-  if (matches.empty()) return std::nullopt;
-  return *std::min_element(matches.begin(), matches.end());
+  std::sort(matches.begin(), matches.end());
+  const auto exact = std::find_if(matches.begin(), matches.end(), [&](const auto& p) {
+    return p.filename().string() == component;
+  });
+  if (exact != matches.end()) std::rotate(matches.begin(), exact, exact + 1);
+  return matches;
+}
+
+// Depth-first through every case-insensitive match, so that of "Texture/" and "texture/"
+// the one holding the file is found.
+std::optional<std::filesystem::path> Resolve(const std::filesystem::path& dir,
+                                             std::span<const std::string> parts) {
+  if (parts.empty()) {
+    std::error_code ec;
+    if (std::filesystem::is_regular_file(dir, ec)) return dir;
+    return std::nullopt;
+  }
+  for (const auto& entry : FindEntries(dir, parts.front())) {
+    if (auto found = Resolve(entry, parts.subspan(1))) return found;
+  }
+  return std::nullopt;
 }
 
 }  // namespace
@@ -62,15 +80,7 @@ std::optional<std::filesystem::path> DataFiles::ResolveLoose(std::string_view pa
     start = end + 1;
   }
   if (parts.empty()) return std::nullopt;
-  std::filesystem::path current = install_dir_;
-  for (const std::string& part : parts) {
-    auto next = FindEntry(current, part);
-    if (!next) return std::nullopt;
-    current = std::move(*next);
-  }
-  std::error_code ec;
-  if (!std::filesystem::is_regular_file(current, ec)) return std::nullopt;
-  return current;
+  return Resolve(install_dir_, parts);
 }
 
 std::optional<std::vector<std::uint8_t>> DataFiles::Load(std::string_view path) const {
