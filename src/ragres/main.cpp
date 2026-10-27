@@ -21,6 +21,9 @@
 //   ragres decode-ebms FILE...             decodes .ebm files as CEmblemRes does, with the
 //                                          bytes it inflates
 //   ragres decode-wavs FILE...             decodes .wav files as CWave does
+//   ragres decode-item-tables DIR [--korea] [--code-page N]
+//                                          loads the item and card tables from DIR's data
+//                                          folder as LoadItemTables does
 //   ragres check ARCHIVE...                reads every compressed entry and checks its size;
 //                                          fails on an entry that cannot be read
 //
@@ -35,15 +38,18 @@
 #include <optional>
 #include <span>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "res/act.h"
 #include "res/bitmap.h"
+#include "res/data_files.h"
 #include "res/ebm.h"
 #include "res/gat.h"
 #include "res/gnd.h"
 #include "res/grf.h"
 #include "res/imf.h"
+#include "res/item_tables.h"
 #include "res/palette.h"
 #include "res/resource.h"
 #include "res/rma.h"
@@ -872,6 +878,65 @@ int DecodeWavs(const std::vector<std::string>& files) {
   return failed == 0 ? 0 : 1;
 }
 
+int Usage();
+
+std::string TextHash(std::string_view text) {
+  char out[17];
+  std::snprintf(out, sizeof out, "%016llx",
+                static_cast<unsigned long long>(Fnv1a64(std::span<const std::uint8_t>(
+                    reinterpret_cast<const std::uint8_t*>(text.data()), text.size()))));
+  return out;
+}
+
+std::string LinesHash(const std::vector<std::string>& lines) {
+  std::string joined;
+  for (const std::string& line : lines) joined.append(line).push_back('\0');
+  return std::to_string(lines.size()) + ":" + TextHash(joined);
+}
+
+void PrintItem(const char* id, const ragexe::res::ItemInfo& item) {
+  std::vector<std::uint32_t> params(item.params.begin(), item.params.end());
+  std::printf("I %s %s %s %s %s %s %s %d %d %zu:%016llx\n", id,
+              TextHash(item.identified_name).c_str(), TextHash(item.identified_resource).c_str(),
+              LinesHash(item.identified_description).c_str(), TextHash(item.name).c_str(),
+              TextHash(item.resource).c_str(), LinesHash(item.description).c_str(), item.slot,
+              item.slot_count, params.size(), static_cast<unsigned long long>(Fnv1a64(params)));
+}
+
+void PrintCard(const char* id, const ragexe::res::CardInfo& card) {
+  std::printf("C %s %s %s %s\n", id, TextHash(card.illustration).c_str(),
+              TextHash(card.prefix).c_str(), TextHash(card.postfix).c_str());
+}
+
+int DecodeItemTables(const std::vector<std::string>& args) {
+  if (args.empty()) return Usage();
+  ragexe::res::ItemTableSettings settings;
+  for (std::size_t k = 1; k < args.size(); ++k) {
+    if (args[k] == "--korea") {
+      settings.korean_service = true;
+    } else if (args[k] == "--code-page" && k + 1 < args.size()) {
+      settings.code_page = static_cast<unsigned>(std::stoul(args[++k]));
+    } else {
+      return Usage();
+    }
+  }
+  const ragexe::res::DataFiles files(args[0]);
+  ragexe::res::ItemTables tables;
+  std::string error;
+  if (!ragexe::res::LoadItemTables(files, settings, tables, &error)) {
+    std::printf("failed %s\n", error.c_str());
+    return 1;
+  }
+  for (const auto& [id, item] : tables.items) PrintItem(std::to_string(id).c_str(), item);
+  PrintItem("fallback", tables.unknown_item);
+  for (const auto& [id, card] : tables.cards) PrintCard(std::to_string(id).c_str(), card);
+  PrintCard("fallback", tables.unknown_card);
+  for (const auto& [id, lines] : tables.metal_process) {
+    std::printf("M %d %s\n", id, LinesHash(lines).c_str());
+  }
+  return 0;
+}
+
 int Usage() {
   std::fprintf(stderr,
                "usage: ragres list ARCHIVE\n"
@@ -890,7 +955,8 @@ int Usage() {
                "       ragres decode-rmas FILE...\n"
                "       ragres decode-strs FILE...\n"
                "       ragres decode-ebms FILE...\n"
-               "       ragres decode-wavs FILE...\n");
+               "       ragres decode-wavs FILE...\n"
+               "       ragres decode-item-tables DIR [--korea] [--code-page N]\n");
   return 2;
 }
 
@@ -924,6 +990,9 @@ int main(int argc, char** argv) {
   if (command == "decode-strs") return DecodeStrs(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-ebms") return DecodeEbms(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-wavs") return DecodeWavs(std::vector<std::string>(argv + 2, argv + argc));
+  if (command == "decode-item-tables") {
+    return DecodeItemTables(std::vector<std::string>(argv + 2, argv + argc));
+  }
   if (command == "check") {
     int status = 0;
     for (int i = 2; i < argc; ++i) status |= Check(argv[i]);

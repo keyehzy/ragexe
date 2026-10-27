@@ -119,6 +119,7 @@ class WinApi:
             "SetRect": Stub(5, self.set_rect),
             "SetWindowLongA": Stub(3, self.set_window_long),
             "MessageBoxA": Stub(4, self.message_box),
+            "CharNextExA": Stub(3, self.char_next),
         }
         ddraw = {
             "DirectDrawCreateEx": Stub(4, self.direct_draw_create_ex),
@@ -175,6 +176,14 @@ class WinApi:
         """A STARTUPINFOA with only cb set: no inherited handles (cbReserved2 = 0)."""
         self.emu.mem_write(out, struct.pack("<I", STARTUPINFO_SIZE) + b"\0" * (STARTUPINFO_SIZE - 4))
         return 0
+
+    def char_next(self, code_page, p, flags):
+        """Single-byte code pages only: the next byte, or p itself at the end. Stepping
+        over double-byte characters would be this stub's guess, not the system's."""
+        if code_page not in (0, 874, 1252):
+            self.emu.fault(f"CharNextExA on code page {code_page}, which has double-byte characters")
+            return 0
+        return p if self.emu.mem_read(p, 1) == b"\0" else p + 1
 
     def lstrcmpi(self, a, b):
         """Case-insensitive, by code point: the word sort of the real call orders some

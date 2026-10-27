@@ -110,6 +110,7 @@ The parsers have libFuzzer targets in `fuzz/`:
 | `str_fuzz` | the effect decoder |
 | `ebm_fuzz` | the emblem decoder, with its inflate |
 | `wav_fuzz` | the wave decoder: Miles' file type and IMA ADPCM |
+| `item_tables_fuzz` | the item and card tables, and their field splitter |
 
 Each target aborts when an invariant breaks, which the fuzzer reports as a crash.
 
@@ -122,7 +123,7 @@ CC=$(brew --prefix llvm)/bin/clang CXX=$(brew --prefix llvm)/bin/clang++ cmake -
 ```
 
 ```bash
-cmake --build --preset fuzz --target grf_table_fuzz grf_archive_fuzz res_name_table_fuzz bitmap_fuzz sprite_fuzz act_fuzz gat_fuzz gnd_fuzz rsw_fuzz rsm_fuzz rsx_fuzz imf_fuzz rma_fuzz str_fuzz ebm_fuzz wav_fuzz make_grf_seeds
+cmake --build --preset fuzz --target grf_table_fuzz grf_archive_fuzz res_name_table_fuzz bitmap_fuzz sprite_fuzz act_fuzz gat_fuzz gnd_fuzz rsw_fuzz rsm_fuzz rsx_fuzz imf_fuzz rma_fuzz str_fuzz ebm_fuzz wav_fuzz item_tables_fuzz make_grf_seeds
 ```
 
 **Running one:** `make_grf_seeds` writes small valid archives and tables to start from,

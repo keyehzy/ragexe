@@ -7,6 +7,7 @@ add_executable(ragexe_tests
   gnd_test.cpp
   grf_test.cpp
   imf_test.cpp
+  item_tables_test.cpp
   resource_test.cpp
   rma_test.cpp
   rsm_test.cpp
@@ -101,6 +102,11 @@ if(RAGEXE_ARCHIVES)
     add_test(NAME wav_oracle
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/wav_oracle.py"
         --ragres $<TARGET_FILE:ragres> --archive "${RAGEXE_INSTALL_DIR}/data.grf")
+    # The item and card tables of data.grf and its patches, and synthetic ones, against
+    # the original loader (tools/item_tables_oracle.py).
+    add_test(NAME item_tables_oracle
+      COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/item_tables_oracle.py"
+        --ragres $<TARGET_FILE:ragres> --install "${RAGEXE_INSTALL_DIR}")
     # Every palette, against the original conversion (tools/palette_oracle.py).
     add_test(NAME palette_oracle
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/palette_oracle.py"

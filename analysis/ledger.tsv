@@ -5870,7 +5870,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00599470	114	code	0	game		named	Global	destroy_global_00686610	
 005994f0	48	code	0	game		named	ClientState	method_005994f0	
 00599520	51	code	0	game		named	ClientState	method_00599520	
-00599560	89	code	0	game		named	ClientState	method_00599560	
+00599560	89	code	0	game		named	ClientState	UnderscoresToSpaces	
 005995c0	37	code	0	game		named	ClientState	method_005995c0	
 005995f0	37	code	0	game		named	ClientState	method_005995f0	
 00599620	977	code	0	game		named	ClientState	method_00599620	

@@ -1839,9 +1839,35 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     - **Then** 1.2 million inputs with no findings. That is slow, since mutated sample
       counts ask for decoded waves of up to the port's 64 MB limit.
 
+- [x] The item and card tables (`docs/formats/item_tables.md`, `src/res/item_tables`):
+  - **Format:** 14 text tables, read by `LoadItemTables` through
+    `LoadHashSeparatedStrings`, which splits on `#` and, in line mode, on `\r`.
+    - Records are pairs, triples or single ids.
+    - The description tables and the metal list go line by line under the last id.
+  - **What it fills:** the item, card and metal-processing maps.
+    - **Display names** get spaces for underscores, stepping by `CharNextExA` on the
+      service's code page.
+    - **Descriptions** are stored alphabet-reversed for the Korean service.
+    - **Item 0 and card 0,** or the fallbacks, get "Unknown Item" and "sorry".
+  - **Oracle** (`tools/item_tables_oracle.py`, in `ctest` when the data is present):
+    - **The maps:** it builds them with their static initializers and reads them back
+      field by field.
+    - **What matches:** `data.grf`'s tables for both services, the three patch sets over
+      them, and 16 synthetic sets.
+    - **The port fails** where the client overruns its 256- and 1024-byte stack buffers,
+      or goes round a table whose last record is cut short. The oracle checks those
+      too.
+  - **Fuzzing:** `item_tables_fuzz`, 6.2 million inputs with no findings.
+
 ### Next actions (M3)
-1. The text tables and `clientinfo.xml`, each with a `ragres` mode and, where the client
-   parses them itself, compared with it in the emulation oracle. `C3dGrannyModelRes`
-   (`.gr2`, through `granny2.dll`) is the one registered type not in the M3 list.
+1. The other text tables, each with a `ragres` mode and compared with the client in the
+   emulation oracle:
+   - the skill tables, read through the same splitter (`FUN_004d95b0`);
+   - `ClientState`'s own tables (`mapNameTable`, `msgStringTable`, `fogParameterTable`
+     and others);
+   - then `clientinfo.xml`.
+
+   `C3dGrannyModelRes` (`.gr2`, through `granny2.dll`) is the one registered type not in
+   the M3 list.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

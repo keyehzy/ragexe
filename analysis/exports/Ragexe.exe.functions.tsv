@@ -5870,7 +5870,7 @@ entry	size	namespace	name	source	fid	thunk	calling_convention	signature
 00599470	114	Global	destroy_global_00686610	USER_DEFINED	0	0	__cdecl	undefined destroy_global_00686610()
 005994f0	48	ClientState	method_005994f0	USER_DEFINED	0	0	__thiscall	undefined method_005994f0(ClientState * this)
 00599520	51	ClientState	method_00599520	USER_DEFINED	0	0	__thiscall	undefined method_00599520(ClientState * this)
-00599560	89	ClientState	method_00599560	USER_DEFINED	0	0	__thiscall	undefined method_00599560(ClientState * this)
+00599560	89	ClientState	UnderscoresToSpaces	USER_DEFINED	0	0	__thiscall	undefined UnderscoresToSpaces(ClientState * this)
 005995c0	37	ClientState	method_005995c0	USER_DEFINED	0	0	__thiscall	undefined method_005995c0(ClientState * this)
 005995f0	37	ClientState	method_005995f0	USER_DEFINED	0	0	__thiscall	undefined method_005995f0(ClientState * this)
 00599620	977	ClientState	method_00599620	USER_DEFINED	0	0	__thiscall	undefined method_00599620(ClientState * this)
