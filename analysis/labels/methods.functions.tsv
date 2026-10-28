@@ -721,8 +721,6 @@ address	namespace	name	calling_convention	evidence
 005686c0	CRagEffect	method_005686c0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 00568ba0	CRagEffect	method_00568ba0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 00568e70	CRagEffect	method_00568e70	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
-00568ec0	CRagEffect	method_00568ec0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
-00569150	CRagEffect	method_00569150	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 00569330	CRagEffect	method_00569330	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 00569610	CRagEffect	method_00569610	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 005698b0	CRagEffect	method_005698b0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
@@ -737,8 +735,6 @@ address	namespace	name	calling_convention	evidence
 00572d90	CRagEffect	method_00572d90	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 005730c0	CRagEffect	method_005730c0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 00567740
 005734b0	CRagEffect	method_005734b0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
-00573840	CRagEffect	method_00573840	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
-005739f0	CRagEffect	method_005739f0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 00573bb0	CRagEffect	method_00573bb0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 00573d60	CRagEffect	method_00573d60	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 00573f80	CRagEffect	method_00573f80	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0

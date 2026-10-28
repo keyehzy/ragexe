@@ -74,6 +74,24 @@ struct PrimHistory {
 struct PrimTriangle {
   std::string texture;  // the primitive's texture of its current frame
   std::array<ScreenVertex, 3> vertices{};
+  std::uint32_t flags = 1;       // AddPrimitive's
+  std::uint32_t src_blend = 0;   // +0x14, read with flag 4
+  std::uint32_t dest_blend = 0;  // +0x18
+  std::uint32_t mode = 0;        // +0x1c
+};
+
+// One of the four 0xb8-byte ring records at +0x156b0 that the ring ids keep.
+struct PrimRing {
+  bool active = false;              // +0
+  std::int16_t span = 0;            // +2, the degrees of ring drawn
+  float height = 0.0f;              // +4, the walls' full height
+  std::int32_t age = 0;             // +8
+  std::int16_t angle = 0;           // +0xc, where the ring starts
+  std::int16_t alpha = 0;           // +0xe
+  std::int16_t kind = 0;            // +0x10, read by the updates
+  std::array<float, 21> heights{};  // +0x14, each wall's
+  std::int16_t tilt = 0;            // +0x68, the walls' lean out, degrees from flat
+  float radius = 0.0f;              // +0x6c
 };
 
 // CEffectPrim (0x15990 bytes): one particle or shape an effect adds to the world, stepped
@@ -193,6 +211,9 @@ struct EffectPrim {
   float top_radius_rate = 0.0f;      // +0x238
   float max_height = 100.0f;         // +0x29c
   float sweep = 36.0f;               // +0x1b8, degrees per side
+
+  // Ids 0x1d and 0x27 draw rings of walls; the scale (+0x248) picks their colour.
+  std::array<PrimRing, 4> rings{};
 };
 
 // What vf03 hands the renderer.
@@ -237,6 +258,20 @@ void ProcessRingBurst(RagEffect& effect, const EffectActor& actor, bool minimal,
 // effect\EF_hit3.wav, two cylinders of lens2.tga and eight particles flying out ahead.
 void ProcessHit3(RagEffect& effect, const EffectActor& actor, const PrimSprite& particle,
                  core::CrtRand& rand, std::vector<EffectPrim>& added);
+
+// The ring effects (CRagEffect 00573840, 005739f0, 00568ec0 and 00569150), on their
+// first frame: a primitive of four rings of walls of the texture given.
+//  - AddRingWaves, ids 0xe1, 0xec to 0xee, 0x105 (slow) and 0x107: id 0x1d, rings of
+//    radius 1 to 4 whose walls swell and turn, white;
+//  - AddRisingRings, ids 0xe7, 0xf7, 0x103 and 0x104: id 0x27, rings that rise a second
+//    apart, coloured by variant;
+//  - AddFadingRings, id 0xf8: id 0x27, rings already risen, fading after 250 frames.
+void AddRingWaves(RagEffect& effect, const EffectActor& actor, const char* texture,
+                  std::int16_t kind, bool slow, std::vector<EffectPrim>& added);
+void AddRisingRings(RagEffect& effect, const EffectActor& actor, const char* texture,
+                    std::int8_t variant, std::vector<EffectPrim>& added);
+void AddFadingRings(RagEffect& effect, const EffectActor& actor, const char* texture,
+                    std::vector<EffectPrim>& added);
 
 // The world's object list as effects use it (CWorld::UpdateGameObjects, 004c4a10): each
 // world step every object's vf01 in order, a primitive an effect adds joining the end and

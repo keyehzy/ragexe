@@ -2342,9 +2342,22 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     match (459,496 in `prim_test`).
   - **`ragview --effect-id 0`** and **`2`** draw them with the `particle1` sprite.
 
+- [x] Ring walls (`docs/render/effect-prim.md#ring-walls`):
+  - **`RenderRingWalls` and `DrawPresetColorQuad`:** four rings of 21 walls leaning out by
+    their tilt, coloured by eleven presets of the scale, blended by it, with the
+    original's mixed projection orders.
+  - **`CEffectPrim` ids 0x1d and 0x27:** swelling, turning ring waves and rings that rise
+    from age 200, fading after 250 or 800.
+  - **Eleven effect ids** (0xe1, 0xe7, 0xec to 0xee, 0xf7, 0xf8, 0x103 to 0x105, 0x107)
+    through `AddRingWaves`, `AddSlowRingWaves`, `AddRisingRings` and `AddFadingRings`;
+    id 0xf8 ends on its first step, as `AdvanceStr` finds no `.str`.
+  - **Primitive triangles carry their flags and blends**, which `ragview` now uses.
+  - **Checks:** 12 synthetic ring primitives and the eleven effects; 370,048 more values
+    (855,776 in `prim_test`).
+
 ### Next actions
-1. M4, the renderer: more of `CEffectPrim` and the effects that use it, starting with the
-   ones common in play: the ring walls (`RenderRingWalls`, twelve ids) and the effects
-   that add them.
+1. M4, the renderer: the other ten ring ids that share `RenderRingWalls` (0x17, 0x18,
+   0x19, 0x1c, 0x22, 0x30, 0x36, 0x39, 0x3c, 0x3e) and the effects that add them, then
+   the other shapes.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

@@ -78,7 +78,8 @@ class PrimOracle(Oracle):
         def add(this, prim, flags):
             vertices = emu.read_u32(prim)
             self.added.append((list(struct.unpack("<24I", emu.mem_read(vertices, 0x60))),
-                               emu.read_u32(prim + 0xC), flags))
+                               emu.read_u32(prim + 0xC), emu.read_u32(prim + 0x14),
+                               emu.read_u32(prim + 0x18), emu.read_u32(prim + 0x1C), flags))
             return 0
 
         def texture(this, name, flag):
@@ -176,7 +177,8 @@ def scene_cpp(view, yaw, slope):
 
 
 def triangles_cpp(added):
-    return "{" + ", ".join(f"{{{{{hexs(v)}}}, 0x{t:x}, 0x{fl:x}}}" for v, t, fl in added) + "}" if added else "{{}}"
+    return "{" + ", ".join(f"{{{{{hexs(v)}}}, 0x{t:x}, {sb}, {db}, {md}, 0x{fl:x}}}"
+                           for v, t, sb, db, md, fl in added) + "}" if added else "{{}}"
 
 
 def table(o, lines):
@@ -584,6 +586,154 @@ def bursts(o, rng, lines):
     lines.append("};")
 
 
+RING = 0x156B0
+RING_SIZE = 0xB8
+RING_STATE = [0x4, 0x8, 0xC, 0x140]
+
+
+def ring_state(o, prim):
+    emu = o.emu
+    out = [emu.read_u32(prim + f) for f in RING_STATE]
+    for k in range(4):
+        out += list(struct.unpack("<28I", emu.mem_read(prim + RING + RING_SIZE * k, 0x70)))
+    return out
+
+
+def ring_textures(o, prim, count=1):
+    emu = o.emu
+    textures = emu.alloc(4 * count)
+    for i in range(count):
+        emu.write_u32(textures + 4 * i, TEXTURE_BASE + 0x100 + i)
+    emu.write_u32(prim + 0xA8, textures)
+
+
+def synthetic_rings(o, rng, lines):
+    emu = o.emu
+    actor = emu.scratch(size=0x100)
+    rows = []
+    for n in range(12):
+        pid = (0x1D, 0x27)[n % 2]
+        mark = emu.heap_mark()
+        effect = o.rag_effect(actor)
+        pos = [f32(rng.uniform(-30, 30)), f32(rng.uniform(-8, 0)), f32(rng.uniform(-30, 30))]
+        emu.mem_write(effect + 4, struct.pack("<3f", *pos))
+        emu.write_u32(effect + 0xC0, 300)
+        prim = emu.alloc(PRIM_SIZE)
+        emu.call(PRIM_CTOR, this=prim)
+        emu.call(INIT_PRIMITIVE, effect, pid, 0, 0, 0, this=prim)
+        sets = {}
+
+        def w(f, v):
+            emu.write_u32(prim + f, v & 0xFFFFFFFF)
+            sets[f] = v & 0xFFFFFFFF
+
+        w(0x144, rng.randrange(10, 40))
+        w(0x128, rng.choice([5, 5, 1, 4, 0x105]))
+        w(0x248, bits(f32(rng.choice([0.0, 1.0, 2.5, 3.0, 4.0, 5.9, 7.0, 10.5, 11.0, 12.0, rng.uniform(0, 12)]))))
+        w(0x1F0, rng.choice([0x42C60000, 0, bits(f32(1.5))]))
+        ring_textures(o, prim)
+        for k in range(4):
+            base = RING + RING_SIZE * k
+            span = rng.choice([360, 360, 180, 90, 210, 21])
+            height = rng.choice([25.0, 120.0, 6.001, rng.uniform(2, 60)])
+            age = rng.choice([0, 5, 9, 10, 11, 30, 195, 240, 250, 251, 285, 300, 795, 799, 803])
+            rec = struct.pack("<BBhfIhhhH", rng.random() < 0.85, 0, span, f32(height), age,
+                              rng.randrange(0, 360), rng.randrange(-5, 255), rng.choice([-1, 0, 1, 1, 2]), 0)
+            rec += struct.pack("<21f", *(f32(rng.uniform(-5, 40)) for _ in range(21)))
+            rec += struct.pack("<hHf", rng.randrange(20, 90), 0, f32(rng.uniform(0.5, 15)))
+            emu.mem_write(prim + base, rec)
+            for i in range(0, 0x70, 4):
+                sets[base + i] = emu.read_u32(prim + base + i)
+        view, yaw, slope = o.scene(rng)
+        name = f"kRing{n}"
+        lines.append(f"static const FieldVector {name}Fields[] = {{" + ", ".join(
+            f"{{0x{f:x}, 0x{v:08x}, {{}}}}" for f, v in sorted(sets.items())) + "};")
+        frames = []
+        for frame in range(16):
+            more = emu.call(PRIM_VF01, this=prim).eax & 0xFF
+            state = ring_state(o, prim)
+            added = o.draw(prim) if more else []
+            lines.append(f"static const std::uint32_t {name}Frame{frame}State[] = {{{hexs(state)}}};")
+            if frame % 5 == 0:
+                lines.append(f"static const TriangleVector {name}Frame{frame}Triangles[] = {triangles_cpp(added)};")
+                triangles = f"{name}Frame{frame}Triangles, {len(added)}"
+            else:
+                triangles = "nullptr, kUnchecked"
+            frames.append(f"    {{{more}, {name}Frame{frame}State, {len(state)}, {triangles}, nullptr, 0}},")
+            emu.write_u32(effect + 0xBC, emu.read_u32(effect + 0xBC) + 1)
+            if not more:
+                break
+        lines.append(f"static const ShapeFrameVector {name}Frames[] = {{")
+        lines += frames
+        lines.append("};")
+        rows.append(f"    {{{pid}, {{{hexs(map(bits, pos))}}}, {{0, 0, 0}}, {{0, 0, 0}}, 300, "
+                    f"{scene_cpp(view, yaw, slope)}, {name}Fields, {len(sets)}, {name}Frames, {len(frames)}}},")
+        emu.heap_release(mark)
+    lines.append("static const ShapeVector kRings[] = {")
+    lines += rows
+    lines.append("};")
+
+
+RING_EFFECTS = [0xE1, 0xE7, 0xEC, 0xED, 0xEE, 0xF7, 0xF8, 0x103, 0x104, 0x105, 0x107]
+
+
+def ring_effects(o, rng, lines):
+    emu = o.emu
+    rows = []
+    for run, eid in enumerate(RING_EFFECTS):
+        o.reset_world()
+        actor = emu.scratch(size=0x100)
+        pos = (f32(rng.uniform(-30, 30)), f32(rng.uniform(-10, 0)), f32(rng.uniform(-30, 30)))
+        emu.mem_write(actor + 4, struct.pack("<3f", *pos))
+        effect = o.rag_effect(actor)
+        emu.call(INIT_EFFECT, actor, eid, 0, 0, 0, this=effect)
+        duration = emu.read_u32(effect + 0xC0)
+        alive, prims, frames, scenes = True, [], [], []
+        name = f"kRingEffect{run}"
+        for frame in range(24):
+            if frame % 8 == 0:
+                scenes.append((frame, *o.scene(rng)))
+            more = 0
+            if alive:
+                more = emu.call(RAG_EFFECT_VF01, this=effect).eax & 0xFF
+                if not more:
+                    alive = False
+                    for _, p in o.world_objects():
+                        emu.call(PRIM_VF02, 0, 0x18, 0, 0, 0, this=p)
+            for node, p in o.world_objects():
+                if p not in prims:
+                    prims.append(p)
+                if not emu.call(PRIM_VF01, this=p).eax & 0xFF:
+                    o.unlink(node)
+            states, added = [], []
+            for _, p in o.world_objects():
+                state = ring_state(o, p)
+                lines.append(f"static const std::uint32_t {name}Frame{frame}Prim{len(states)}[] = {{{hexs(state)}}};")
+                states.append(f"{{{prims.index(p)}, {emu.read_u32(p + 0x130)}, {name}Frame{frame}Prim{len(states)}, "
+                              f"{len(state)}}}")
+                added += o.draw(p)
+            lines.append(f"static const BurstPrimVector {name}Frame{frame}Prims[] = {{{', '.join(states) or '{}'}}};")
+            if frame in (0, 12, 23):
+                lines.append(f"static const TriangleVector {name}Frame{frame}Triangles[] = {triangles_cpp(added)};")
+                triangles = f"{name}Frame{frame}Triangles, {len(added)}"
+            else:
+                triangles = "nullptr, kUnchecked"
+            frames.append(f"    {{{more}, {name}Frame{frame}Prims, {len(states)}, {triangles}, nullptr, 0}},")
+            if not alive and not o.world_objects():
+                break
+        lines.append(f"static const BurstFrameVector {name}Frames[] = {{")
+        lines += frames
+        lines.append("};")
+        lines.append(f"static const SceneVector {name}Scenes[] = {{")
+        lines += [f"    {{{f}, {scene_cpp(v, y, sl)}}}," for f, v, y, sl in scenes]
+        lines.append("};")
+        rows.append(f"    {{{eid}, 0, 1, {{{hexs(map(bits, pos))}}}, 0, {duration}, "
+                    f"{name}Frames, {len(frames)}, {name}Scenes, {len(scenes)}}},")
+    lines.append("static const BurstVector kRingEffects[] = {")
+    lines += rows
+    lines.append("};")
+
+
 def main():
     rng = random.Random(91)
     o = PrimOracle()
@@ -594,6 +744,8 @@ def main():
     hit_sparks(o, rng, lines)
     synthetic3(o, rng, lines)
     bursts(o, rng, lines)
+    synthetic_rings(o, rng, lines)
+    ring_effects(o, rng, lines)
     names = sorted(o.textures.items(), key=lambda kv: kv[1])
     lines.append("static const TextureVector kTextures[] = {" +
                  ", ".join(f'{{0x{v:x}, "{k.replace(chr(92), chr(92) * 2)}"}}' for k, v in names) + "};")

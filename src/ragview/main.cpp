@@ -20,7 +20,7 @@
 // stands, a step each 16 ms world step and again when it ends; a screenshot shows it after
 // --effect-step steps (15 by default). --effect-id plays what the client plays for that
 // effect id: the .str its table names (the lighter one with --minimal-effects) and the
-// primitives the id adds, ported for ids 0 to 2.
+// primitives the id adds, ported for ids 0 to 2 and the rings of 0xe1 to 0x107.
 // --screenshot renders one frame offscreen to a PNG and exits; otherwise a window opens,
 // and Escape or --frames N closes it.
 
@@ -724,11 +724,14 @@ int main(int argc, char** argv) {
         render::ScenePrimitive s;
         s.id = static_cast<std::uint32_t>(spans.size());
         s.texture = prim_texture(t.texture);
+        s.src_blend = t.src_blend;
+        s.dest_blend = t.dest_blend;
+        s.mode = t.mode;
         s.type = 4;
         s.vertex_count = 3;
         s.rhw0 = t.vertices[0].rhw;
         s.rhw1 = t.vertices[1].rhw;
-        lists.Add(s, render::scene_flags::kTranslucent);
+        lists.Add(s, t.flags);
         spans.emplace_back(static_cast<std::uint32_t>(vertices.size()), 3);
         for (const render::ScreenVertex& sv : t.vertices)
           vertices.push_back({sv.x, sv.y, sv.z, sv.rhw, sv.diffuse, render::VertexFog(sv.rhw, fog),

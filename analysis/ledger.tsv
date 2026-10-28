@@ -5463,8 +5463,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005686c0	1238	code	0	world		named	CRagEffect	method_005686c0	
 00568ba0	718	code	0	world		named	CRagEffect	method_00568ba0	
 00568e70	70	code	0	world		named	CRagEffect	method_00568e70	
-00568ec0	596	code	0	world		named	CRagEffect	method_00568ec0	
-00569150	469	code	0	world		named	CRagEffect	method_00569150	
+00568ec0	596	code	0	world		named	CRagEffect	AddRisingRings	
+00569150	469	code	0	world		named	CRagEffect	AddFadingRings	
 00569330	734	code	0	world		named	CRagEffect	method_00569330	
 00569610	661	code	0	world		named	CRagEffect	method_00569610	
 005698b0	555	code	0	world		named	CRagEffect	method_005698b0	
@@ -5538,8 +5538,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00572d90	809	code	0	world		named	CRagEffect	method_00572d90	
 005730c0	994	code	0	world		named	CRagEffect	method_005730c0	
 005734b0	900	code	0	world		named	CRagEffect	method_005734b0	
-00573840	428	code	0	world		named	CRagEffect	method_00573840	
-005739f0	444	code	0	world		named	CRagEffect	method_005739f0	
+00573840	428	code	0	world		named	CRagEffect	AddRingWaves	
+005739f0	444	code	0	world		named	CRagEffect	AddSlowRingWaves	
 00573bb0	418	code	0	world		named	CRagEffect	method_00573bb0	
 00573d60	533	code	0	world		named	CRagEffect	method_00573d60	
 00573f80	457	code	0	world		named	CRagEffect	method_00573f80	

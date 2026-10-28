@@ -359,6 +359,119 @@ wrapped into 0 to 359.
 **The particle sprite** is `이펙트\particle1` (`00618b98`, `00618b80`; "이펙트" is
 "effect"). The particles show its frames one every four steps, looping (+0x148, +0x1b4).
 
+## Ring walls
+
+Twelve primitive ids draw rings of walls with `RenderRingWalls`; the port has two of them,
+0x1d and 0x27, and the four effects that add them.
+
+### The ring records
+
+Each primitive keeps four records of 0xb8 bytes at +0x156b0:
+
+| Offset | What |
+|-------:|------|
+| +0 | active (a byte) |
+| +2 | the span: the degrees of ring drawn (a short) |
+| +4 | the walls' height; 6.001 marks low walls |
+| +8 | the age |
+| +0xc, +0xe, +0x10 | the angle the ring starts at, its alpha and its kind (shorts) |
+| +0x14 | each of the 21 walls' height |
+| +0x68 | the tilt: how far the walls lean out, in degrees from flat (a short) |
+| +0x6c | the radius |
+| +0x88 | the last wall's corners, kept by the drawing |
+
+### The updates
+
+**Id 0x1d** (`UpdatePrim_29`, `00571a50`), waves. Each step, at the effect's position,
+each active ring:
+- turns 5 degrees (3 when +0x1f0 holds 99);
+- widens by 0.3 (0.1);
+- leans in by a degree, down to 40 (30);
+- fades in for ten steps, by 20, or by 10 for a kind above 0, then out by 2;
+- swells its walls: wall i is the height × sin 9i, plus 0.15 of that times the sine of the
+  age, a quarter turn later for each ring.
+
+**Id 0x27** (`UpdatePrim_39`, `0056bb30`), rising rings. Each step, each active ring:
+- turns a degree;
+- raises its walls from age 200 to 290 along a quarter sine of the height, then stands
+  them at full height. The sine is read as entry age + 161 of the negated cosine table at
+  `00624210`, which runs on into the sine table;
+- with kind 1, fades by 1 a step after 250;
+- fades by 2 a step from 800, its height growing by 10 a step until the alpha is gone.
+
+### Drawing
+
+`RenderRingWalls` (`0056c0d0`) walks each active ring's span from its angle in steps of a
+21st:
+1. **The wall's foot** is on the circle at the radius, 2 up for low walls.
+2. **Its top** leans out from the foot by the tilt (cosine out, sine up) to the wall's
+   height, 2 more for low walls.
+3. **The quad.** From the second step on, the foot and top join the last step's through
+   `DrawPresetColorQuad`.
+
+**Quirks:**
+- A full ring's 21st step goes back to the angle it started at. A 22nd step follows
+  (17 × 21 is 357, under 360) and draws a second, empty wall there.
+- The angles index `g_sinTable` and `g_cosTable` directly, so a negative angle would read
+  outside them.
+- A span under 21 makes a step of 0 and never ends.
+
+`DrawPresetColorQuad` (`00569fc0`) makes the quad two triangles:
+- **Corners and texture:** the four corners are relative to the primitive. The first
+  texture is used, its u the wall's 21st.
+- **The colour** is a preset picked by the scale (+0x248) truncated:
+
+| Preset | Red, green, blue |
+|------:|------------------|
+| 1 | 255, 175, 175 |
+| 2 | 195, 195, 255 |
+| 3 | 255, 255, 255, at alpha 80 |
+| 4 | 100, 100, 255 |
+| 6 | 255, 100, 100 |
+| 7 | 100, 255, 100 |
+| 8 | 255, 255, 170 |
+| 9 | 140, 210, 140 |
+| 10 | 255, 89, 182 |
+| 11 | 170, 170, 255 |
+| others | white |
+
+  The alpha is the ring's.
+- **Blends:** `SRCALPHA` onto `ONE` for a scale below 4 other than 1, onto `INVSRCALPHA`
+  otherwise, stage mode 0, with `AddPrimitive`'s flags +0x128 (5: translucent, by its
+  blends).
+- **Projection:** the view transform is written out with x's sum starting from x. Two
+  corners scale x before dividing by z; the port follows each.
+
+### The effects
+
+All four add one primitive on their first frame, lasting as long as the effect.
+`AddRisingRings` places the effect at the actor on that frame only; the other three every
+step.
+
+| Effect ids | Function | Primitive | Rings |
+|-----------|----------|----------:|-------|
+| 0xe1, 0xec, 0xed, 0xee | `AddRingWaves` (`00573840`) | 0x1d | radius 1 to 4, height 25, tilt 80, white |
+| 0x105 | `AddSlowRingWaves` (`005739f0`) | 0x1d | the same, slow |
+| 0x107 | `AddRingWaves`, kind 1 | 0x1d | the same, fading in by 10 |
+| 0xe7, 0xf7, 0x103, 0x104 | `AddRisingRings` (`00568ec0`) | 0x27 | aged 0, 30, 60, 90; height 120; tilt 89 |
+| 0xf8 | `AddFadingRings` (`00569150`) | 0x27 | aged 200, kind 1, radius 6 up, tilt 83 down, preset 5 |
+
+**The textures:**
+- 0xe1 and 0x104: `ring_red.tga`;
+- 0xe7, 0xec and 0xf7: `ring_blue.tga`;
+- 0xed and 0x103: `magic_green.tga`;
+- 0xee: `ring_white.tga`;
+- 0xf8, 0x105 and 0x107: `ring_yellow.tga`.
+
+**`AddRisingRings`' variants** (0, 1, 2, 3 for 0xe7, 0xf7, 0x103, 0x104):
+- The radius starts at 2, or 11 for variant 1, plus half a step each.
+- The alpha is 50, or 70 for variant 1.
+- The preset is 4 for variants below 2, then 7 and 6.
+
+**Id 0xf8 never shows.** After `AddFadingRings`, `vf01` calls `AdvanceStr`, which answers
+false without a `.str`, and `InitEffect` loads none for 0xf8. The effect ends on its first
+step, and its rings, losing their owner, end later in the same pass.
+
 ## In the port
 
 **`src/core/crt_rand`:** `CrtRand`, `srand` and `rand`.
@@ -369,10 +482,11 @@ wrapped into 0 to 359.
 
 **`src/render/effect_prim`:**
 - `EffectPrim` with `MakePrimitive`, `ResetHistory`, `UpdatePrimitive` (vf01) and
-  `DrawPrimitive` (vf03), for ids 0 to 2, 5, 6 and 0xd. `PrimScene` carries the camera's
+  `DrawPrimitive` (vf03), for ids 0 to 2, 5, 6, 0xd, 0x1d and 0x27. `PrimScene` carries the camera's
   yaw, the ground, the view, the projection and the sprite slope; `PrimDrawing` gets the
   triangles and the sprite quads;
-- `ProcessHitSpark`, `ProcessRingBurst` and `ProcessHit3`;
+- `ProcessHitSpark`, `ProcessRingBurst` and `ProcessHit3`; `AddRingWaves` (with `slow`
+  for `AddSlowRingWaves`), `AddRisingRings` and `AddFadingRings`;
 - `EffectWorld`, the world's list as effects use it:
   - `Launch` adds an effect;
   - `Step` runs a world step in the list's order;
@@ -416,10 +530,19 @@ files.
 - **Five runs of effect ids 0 and 2:** id 0 both ways of minimal effects, under changing
   views and facings, through the world's list as for the hit spark.
 
-`tests/unit/prim_test.cpp` matches all of it: 459,496 values, the CRT's first `rand` values
+- **12 synthetic ring primitives**, ids 0x1d and 0x27 in turn: four random records each
+  (spans of 21 to 360, low walls, ages around 10, 200, 250, 290 and 800, kinds −1 to 2,
+  any wall heights), random presets including 1.0, 3 and fractions, and flags.
+- **The eleven ring effects** through the world's list, 24 steps each.
+
+  The ring triangles (168 a frame for a full primitive) are recorded on some frames only:
+  every fifth for the synthetic rings, steps 0, 12 and 23 for the effects. The states are
+  recorded every frame.
+
+`tests/unit/prim_test.cpp` matches all of it: 855,776 values, the CRT's first `rand` values
 among them.
 
 **Not ported:**
-- the other 62 primitive ids;
+- the other 60 primitive ids;
 - the other effects' processing;
 - the sounds.

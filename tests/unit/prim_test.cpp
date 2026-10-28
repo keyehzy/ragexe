@@ -33,8 +33,11 @@ struct FieldVector {
 
 struct TriangleVector {
   std::uint32_t vertices[24];  // three of x, y, z, rhw, diffuse, specular, u, v
-  std::uint32_t texture, flags;
+  std::uint32_t texture, src_blend, dest_blend, mode, flags;
 };
+
+// The count of a frame whose triangles the script did not record.
+constexpr std::size_t kUnchecked = static_cast<std::size_t>(-1);
 
 constexpr std::size_t kStateSize = 31;
 
@@ -174,7 +177,6 @@ struct ItemVector {
 constexpr std::uint32_t kSyntheticTextures = 0x7100;  // the script's stand-in pointers
 constexpr std::uint32_t kSyntheticSeed = 500;         // srand before the n-th primitive's frames
 constexpr std::uint32_t kShapeSeed = 700;             // the same for the shapes
-constexpr std::uint32_t kTranslucent = 1;
 
 float F(std::uint32_t bits) { return std::bit_cast<float>(bits); }
 std::uint32_t B(float f) { return std::bit_cast<std::uint32_t>(f); }
@@ -218,6 +220,55 @@ std::vector<std::uint32_t> StateOf(const EffectPrim& p) {
 std::vector<float> Floats(const FieldVector& f) {
   std::vector<float> out(f.value);
   for (std::size_t i = 0; i < f.value; ++i) out[i] = F(f.values[i]);
+  return out;
+}
+
+constexpr std::uint32_t kRingBase = 0x156b0;  // the ring records, 0xb8 bytes each
+constexpr std::uint32_t kRingSize = 0xb8;
+
+std::int16_t Low(std::uint32_t v) { return static_cast<std::int16_t>(v & 0xffff); }
+std::int16_t High(std::uint32_t v) { return static_cast<std::int16_t>(v >> 16); }
+
+// A dword of a ring record, at its offset from the first record.
+void ApplyRing(std::uint32_t offset, std::uint32_t v, EffectPrim& p) {
+  PrimRing& r = p.rings[offset / kRingSize];
+  const std::uint32_t o = offset % kRingSize;
+  switch (o) {
+    case 0:
+      r.active = (v & 0xff) != 0;
+      r.span = High(v);
+      break;
+    case 4: r.height = F(v); break;
+    case 8: r.age = static_cast<std::int32_t>(v); break;
+    case 0xc:
+      r.angle = Low(v);
+      r.alpha = High(v);
+      break;
+    case 0x10: r.kind = Low(v); break;
+    case 0x68: r.tilt = Low(v); break;
+    case 0x6c: r.radius = F(v); break;
+    default: r.heights[(o - 0x14) / 4] = F(v); break;
+  }
+}
+
+// The position, the age and the first 0x70 bytes of each ring record, as the script reads
+// them.
+std::vector<std::uint32_t> RingStateOf(const EffectPrim& p) {
+  std::vector<std::uint32_t> out = {B(p.position[0]), B(p.position[1]), B(p.position[2]), U(p.age)};
+  const auto pair = [](std::int16_t lo, std::int16_t hi) {
+    return static_cast<std::uint32_t>(static_cast<std::uint16_t>(lo)) |
+           static_cast<std::uint32_t>(static_cast<std::uint16_t>(hi)) << 16;
+  };
+  for (const PrimRing& r : p.rings) {
+    out.push_back(pair(r.active ? 1 : 0, r.span));
+    out.push_back(B(r.height));
+    out.push_back(U(r.age));
+    out.push_back(pair(r.angle, r.alpha));
+    out.push_back(pair(r.kind, 0));
+    for (float h : r.heights) out.push_back(B(h));
+    out.push_back(pair(r.tilt, 0));
+    out.push_back(B(r.radius));
+  }
   return out;
 }
 
@@ -297,7 +348,9 @@ void Apply(const FieldVector& f, EffectPrim& p) {
     case 0x29c: p.max_height = v; break;
     case 0x1b8: p.sweep = v; break;
     default:
-      if (f.field >= 0xc4 && f.field < 0xf4) {
+      if (f.field >= kRingBase && f.field < kRingBase + 4 * kRingSize) {
+        ApplyRing(f.field - kRingBase, f.value, p);
+      } else if (f.field >= 0xc4 && f.field < 0xf4) {
         p.matrix[(f.field - 0xc4) / 4] = v;
       } else if (f.field >= 0x1d4 && f.field < 0x1ec) {
         p.step_changes[(f.field - 0x1d4) / 4] = f.value;
@@ -462,10 +515,14 @@ void CheckQuads(const std::vector<SpriteQuad>& got, const QuadVector* want, std:
 
 void CheckTriangles(const std::vector<PrimTriangle>& got, const TriangleVector* want,
                     std::size_t count, const std::map<std::string, std::uint32_t>& ids) {
+  if (count == kUnchecked) return;
   REQUIRE(got.size() == count);
   for (std::size_t t = 0; t < count; ++t) {
     INFO("triangle " << t);
-    CHECK(want[t].flags == kTranslucent);
+    CHECK(got[t].flags == want[t].flags);
+    CHECK(got[t].src_blend == want[t].src_blend);
+    CHECK(got[t].dest_blend == want[t].dest_blend);
+    CHECK(got[t].mode == want[t].mode);
     const auto id = ids.find(got[t].texture);
     REQUIRE(id != ids.end());
     CHECK(id->second == want[t].texture);
@@ -685,5 +742,73 @@ TEST_CASE("Effect ids 0 and 2 play as the original's", "[effect]") {
       CheckQuads(drawing.quads, fv.quads, fv.quad_count);
     }
     CHECK(world.empty());
+  }
+}
+
+TEST_CASE("Ring walls step and draw as the original's", "[effect]") {
+  std::map<std::string, std::uint32_t> ids;
+  for (std::uint32_t i = 0; i < 4; ++i) ids["t" + std::to_string(i)] = kSyntheticTextures + i;
+  std::size_t n = 0;
+  for (const ShapeVector& v : kRings) {
+    INFO("ring primitive " << n++ << ", id " << v.id);
+    RagEffect owner;
+    for (std::size_t i = 0; i < 3; ++i) owner.position[i] = F(v.position[i]);
+    owner.duration = v.duration;
+    EffectPrim p = MakePrimitive(&owner, v.id, {0.0f, 0.0f, 0.0f});
+    for (std::size_t f = 0; f < v.field_count; ++f) Apply(v.fields[f], p);
+    p.textures = {"t0"};
+    const PrimScene scene = SceneOf(v.scene, nullptr);
+    ragexe::core::CrtRand rand;
+    for (std::size_t f = 0; f < v.frame_count; ++f) {
+      INFO("frame " << f);
+      const ShapeFrameVector& fv = v.frames[f];
+      const bool more = UpdatePrimitive(p, rand, scene);
+      CHECK(more == (fv.more != 0));
+      CheckState(RingStateOf(p), fv.state, fv.state_count);
+      PrimDrawing drawing;
+      if (more) DrawPrimitive(p, scene, drawing);
+      CheckTriangles(drawing.triangles, fv.triangles, fv.count, ids);
+      ++owner.frame;
+    }
+  }
+}
+
+TEST_CASE("The ring effects play as the original's", "[effect]") {
+  std::map<std::string, std::uint32_t> ids;
+  for (const TextureVector& t : kTextures) ids[t.name] = t.id;
+  for (const BurstVector& v : kRingEffects) {
+    INFO("effect id " << v.id);
+    CHECK(EffectDuration(v.id) == v.duration);
+    EffectWorld world;
+    world.Launch(v.id, {{F(v.position[0]), F(v.position[1]), F(v.position[2])}, 0.0f});
+    std::map<const EffectPrim*, std::size_t> order;
+    PrimScene scene;
+    std::size_t next_scene = 0;
+    for (std::size_t f = 0; f < v.frame_count; ++f) {
+      INFO("frame " << f);
+      if (next_scene < v.scene_count && std::cmp_equal(v.scenes[next_scene].frame, f))
+        scene = SceneOf(v.scenes[next_scene++].scene, nullptr);
+      const BurstFrameVector& fv = v.frames[f];
+      world.Step(scene);
+      std::vector<const EffectPrim*> prims;
+      bool effect = false;
+      for (const EffectWorld::Object& o : world.objects()) {
+        if (o.effect) {
+          effect = true;
+        } else {
+          order.try_emplace(o.prim.get(), order.size());
+          prims.push_back(o.prim.get());
+        }
+      }
+      CHECK(effect == (fv.more != 0));
+      REQUIRE(prims.size() == fv.prim_count);
+      for (std::size_t i = 0; i < prims.size(); ++i) {
+        INFO("primitive " << i);
+        CHECK(order[prims[i]] == fv.prims[i].index);
+        CHECK(prims[i]->id == fv.prims[i].id);
+        CheckState(RingStateOf(*prims[i]), fv.prims[i].state, fv.prims[i].count);
+      }
+      CheckTriangles(world.Draw(scene).triangles, fv.triangles, fv.count, ids);
+    }
   }
 }
