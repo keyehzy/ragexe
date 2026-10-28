@@ -48,7 +48,7 @@ class EmblemRes : public Resource {
   void Reset() override;
 
   const Bitmap& bitmap() const { return bitmap_; }
-  const std::string& error() const { return error_; }
+  const std::string& error() const override { return error_; }
 
  private:
   Bitmap bitmap_;

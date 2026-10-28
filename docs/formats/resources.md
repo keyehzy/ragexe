@@ -206,9 +206,12 @@ callers.
 | File | Holds |
 |------|-------|
 | `data_path` | `MakeDataPath` |
-| `data_files` | the archive plus loose files: `Load`, `Exists` |
+| `data_files` | the archive, the archives under it, then loose files: `Load`, `Exists` |
 | `data_file` | `DataFile` |
 | `resource` | `Resource` (`CRes`) and `ResourceManager` |
+
+`ResourceManager::Create` makes the resource `GetResource` would clone for a name,
+without loading or keeping it.
 
 **Loose files on case-sensitive file systems.** The original passes `data\...` to
 `CreateFileA` relative to its current directory, the install directory, so Windows
@@ -226,3 +229,90 @@ Archive entries still win over loose files, as in the original.
 
 **Absolute paths.** A name with a `:` becomes an absolute Windows path, which a portable
 client cannot open. The port treats it as not found.
+
+## Every entry through its loader
+
+`ragres check-loaders` is the M3 exit check. It takes `data.grf`, then the patches in
+date order.
+
+**Each file entry** under `data\`:
+1. The type its extension selects makes a new resource (`ResourceManager::Create`, the
+   clone `GetResource` makes).
+2. That resource loads the entry's path without `data\`. This skips the type folder,
+   since entries such as `sprite\...\x.bmp` are not under it.
+3. **The client's tables,** the files it opens by name under `data\`, go through their
+   own loaders:
+   - the name pairs, number and line records, fields and fog records
+     ([client_tables.md](client_tables.md));
+   - `ResNameTable.txt`, `manner.txt`, `clientinfo.xml` and `PetTalkTable.xml`;
+   - the item tables ([item_tables.md](item_tables.md)).
+
+**The patches:** the patcher merges each patch into `data.grf` ([grf.md](grf.md)). So a
+patch's entries read the files they need, such as an action's sprite, from the patch,
+then the earlier patches, then `data.grf` (`DataFiles::set_layers`).
+
+`ctest` runs it as `loader_check_original`. Every failure must be listed in
+`tests/unit/loader_failures.txt`, and every listed entry must fail.
+
+| Archive | Files | Loaded | Failed | Not ported | No loader |
+|---------|------:|-------:|-------:|-----------:|----------:|
+| `data.grf` | 13,379 | 13,353 | 10 | 0 | 16 |
+| `2003-04-30gdata_turtle_e_1.gpf` | 1,084 | 1,062 | 0 | 21 | 1 |
+| `2003-04-30gdata_turtle_e_2.gpf` | 130 | 130 | 0 | 0 | 0 |
+| `2003-10-30gdata_yuno_new_1.gpf` | 1,705 | 1,685 | 1 | 0 | 19 |
+| `2003-10-30gdata_yuno_new_2.gpf` | 263 | 262 | 0 | 0 | 1 |
+| `2003-10-30gdata_yuno_update.gpf` | 144 | 141 | 0 | 1 | 2 |
+| `2003-11-05gdata_amatsu_new_1.gpf` | 1,249 | 1,247 | 0 | 0 | 2 |
+| `2003-11-05gdata_amatsu_new_2.gpf` | 1,858 | 1,858 | 0 | 0 | 0 |
+| `2003-11-05gdata_amatsu_update.gpf` | 67 | 65 | 0 | 0 | 2 |
+
+**By type,** across all of them:
+
+| Type | Loaded |
+|------|-------:|
+| bmp | 6,839 |
+| act | 4,125 |
+| spr | 4,091 |
+| rsm | 1,403 |
+| wav | 1,213 |
+| pal | 502 |
+| rsw | 331 |
+| gnd | 324 |
+| gat | 319 |
+| jpg | 208 |
+| str | 178 |
+| tga | 167 |
+| imf | 52 |
+| rsx | 1 |
+| tables | 50 |
+
+No archive holds an `.rma` or an `.ebm`. Their loaders are checked on synthetic files:
+- the client writes emblems from what the server sends ([ebm.md](ebm.md));
+- no `.rma` ships at all ([rma.md](rma.md)).
+
+**The failures** are the original's too:
+- **8 actions of version 0x204** with an item that needs the matching sprite, where no
+  archive has the sprite. The original reads through the null `GetResource` returns
+  ([act.md](act.md)).
+  - 7 are in `data.grf`.
+  - 1 is `인간족\로그\가드.act` in `2003-10-30gdata_yuno_new_1.gpf`, beside the
+    `로그_남_가드` and `로그_여_가드` pairs that have their sprites.
+- **3 4-bit bitmaps,** which the original also refuses: "Only 16M or 8bit color format
+  supported" ([bitmap.md](bitmap.md)).
+
+**Not ported:** the 22 `.gr2` models. They are `C3dGrannyModelRes`, through
+`granny2.dll`.
+
+**No loader:** the client never loads these 43 entries.
+- **No resource type, and no string in the binary names them:**
+  - `.ezv` (2), `.sfk` (4) and `.fna` (19);
+  - `metalprocessitemtable.txt` and `texture\effect\work.txt`;
+  - `monsterskillinfo.xml` (3 patches). The one string with the name is the message
+    "CPlayer :: GetMonsterSkillInfo".
+- **Tool leftovers:**
+  - `thumbs.db` (2), `vssver.scc` (2) and `memleaks.log` (5);
+  - two `mfc*.tmp` under `model\`.
+- **`wav\effect\track 55.mp3`:** `.mp3` has no resource type.
+- **`MapInfoTable.scp`:** its only reader is `005aaa90`, which reports "Load
+  MapInfoTable Failed!". Nothing calls it: no call, jump or stored address in the binary
+  reaches it.

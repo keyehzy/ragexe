@@ -50,7 +50,7 @@ class StrRes : public Resource {
   void Reset() override;
 
   const Str& str() const { return str_; }
-  const std::string& error() const { return error_; }
+  const std::string& error() const override { return error_; }
 
  private:
   Str str_;

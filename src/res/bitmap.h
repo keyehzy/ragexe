@@ -47,7 +47,7 @@ class BitmapRes : public Resource {
 
   const Bitmap& bitmap() const { return bitmap_; }
   // Why the last load failed, as the client's message box would have said.
-  const std::string& error() const { return error_; }
+  const std::string& error() const override { return error_; }
 
  private:
   Bitmap bitmap_;

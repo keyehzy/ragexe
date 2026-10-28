@@ -34,7 +34,7 @@ class PaletteRes : public Resource {
   bool LoadFromBytes(std::span<const std::uint8_t> data);
 
   const Palette& palette() const { return palette_; }
-  const std::string& error() const { return error_; }
+  const std::string& error() const override { return error_; }
 
  private:
   Palette palette_{};

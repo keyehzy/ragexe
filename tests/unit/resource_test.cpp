@@ -110,6 +110,31 @@ TEST_CASE("the archive comes first, then loose files in any case") {
   CHECK_FALSE(files.Exists("data\\texture\\missing.bmp"));
 }
 
+TEST_CASE("layers are read after the archive and before loose files") {
+  TempInstall install("ragexe_res_layers");
+  install.Write("data/loose.bmp", "loose");
+  install.Write("data/layered.bmp", "loose layered");
+  auto patch =
+      GrfArchive::FromBytes(BuildArchive({{"data\\both.bmp", Bytes("patch"), 1}}), nullptr);
+  auto earlier =
+      GrfArchive::FromBytes(BuildArchive({{"data\\both.bmp", Bytes("earlier"), 1},
+                                          {"data\\layered.bmp", Bytes("earlier layered"), 1}}),
+                            nullptr);
+  auto base = GrfArchive::FromBytes(BuildArchive({{"data\\layered.bmp", Bytes("base layered"), 1},
+                                                  {"data\\base.bmp", Bytes("base"), 1}}),
+                                    nullptr);
+  REQUIRE((patch && earlier && base));
+  DataFiles files(install.dir(), std::move(patch));
+  files.set_layers({earlier.get(), base.get()});
+
+  CHECK(files.Load("data\\both.bmp") == Bytes("patch"));
+  CHECK(files.Load("data\\layered.bmp") == Bytes("earlier layered"));
+  CHECK(files.Load("data\\base.bmp") == Bytes("base"));
+  CHECK(files.Load("data\\loose.bmp") == Bytes("loose"));
+  CHECK(files.Exists("data\\base.bmp"));
+  CHECK_FALSE(files.Exists("data\\missing.bmp"));
+}
+
 TEST_CASE("DataFile reads all or nothing and clamps seeks to the end") {
   TempInstall install("ragexe_res_datafile");
   install.Write("data/a.bin", "0123456789");
@@ -188,6 +213,19 @@ TEST_CASE("the resource manager loads once, by type folder, case-insensitively")
   CHECK(manager.Get("Missing.bmp") == nullptr);
   REQUIRE(errors.size() == 1);
   CHECK(errors[0] == "ResourceError : Can't find file missing.bmp");
+
+  SECTION("Create clones the type's prototype without keeping it") {
+    const std::size_t loaded = manager.loaded_count();
+    auto made = manager.Create("sprite\\X.BMP");
+    REQUIRE(made != nullptr);
+    CHECK(dynamic_cast<TextResource*>(made.get()) != nullptr);
+    CHECK(made->Load(files, "texture\\b.bmp"));
+    CHECK(static_cast<TextResource*>(made.get())->text == "texture b");
+    CHECK(made->error().empty());
+    CHECK(manager.Create("a.xyz") == nullptr);
+    CHECK(manager.Create("noextension") == nullptr);
+    CHECK(manager.loaded_count() == loaded);
+  }
 
   SECTION("ResNameTable names a stand-in, stored under its own path") {
     REQUIRE(manager.LoadNameTable());

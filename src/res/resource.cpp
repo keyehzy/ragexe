@@ -8,6 +8,11 @@
 
 namespace ragexe::res {
 
+const std::string& Resource::error() const {
+  static const std::string kNone;
+  return kNone;
+}
+
 std::string LowerCaseName(std::string_view name) {
   std::string out(name);
   for (char& c : out) {
@@ -50,6 +55,13 @@ int ResourceManager::RegisterType(std::string extension, std::string folder,
   extensions_.emplace(std::move(extension), index);
   types_.push_back(Type{std::move(folder), std::move(prototype), {}});
   return index;
+}
+
+std::unique_ptr<Resource> ResourceManager::Create(std::string_view name) const {
+  std::scoped_lock lock(mutex_);
+  const int index = TypeIndex(LowerCaseName(name));
+  if (index < 0) return nullptr;
+  return types_[static_cast<std::size_t>(index)].prototype->Clone();
 }
 
 int ResourceManager::TypeIndex(std::string_view lowered_name) const {

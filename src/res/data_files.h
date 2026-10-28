@@ -27,12 +27,18 @@ class DataFiles {
   // The loose file a path names, if it exists.
   std::optional<std::filesystem::path> ResolveLoose(std::string_view path) const;
 
+  // Archives read in order after the owned one and before loose files. The patcher
+  // merges each .gpf patch into data.grf, so a patch's files are read over the earlier
+  // patches and data.grf. Not owned: they must outlive this object.
+  void set_layers(std::vector<const GrfArchive*> layers) { layers_ = std::move(layers); }
+
   const GrfArchive* archive() const { return archive_.get(); }
   const std::filesystem::path& install_dir() const { return install_dir_; }
 
  private:
   std::filesystem::path install_dir_;
   std::unique_ptr<GrfArchive> archive_;
+  std::vector<const GrfArchive*> layers_;
 };
 
 }  // namespace ragexe::res

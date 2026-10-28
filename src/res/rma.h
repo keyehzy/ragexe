@@ -51,7 +51,7 @@ class RmaRes : public Resource {
   void Reset() override;
 
   const Rma& rma() const { return rma_; }
-  const std::string& error() const { return error_; }
+  const std::string& error() const override { return error_; }
 
  private:
   Rma rma_;

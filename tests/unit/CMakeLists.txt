@@ -45,6 +45,15 @@ set(RAGEXE_INSTALL_DIR "${PROJECT_SOURCE_DIR}/original/install")
 file(GLOB RAGEXE_ARCHIVES "${RAGEXE_INSTALL_DIR}/data.grf" "${RAGEXE_INSTALL_DIR}/*.gpf")
 if(RAGEXE_ARCHIVES)
   add_test(NAME grf_check_original COMMAND ragres check ${RAGEXE_ARCHIVES})
+  # Every entry through the loader its extension selects, and the client's tables through
+  # theirs, with the failures tests/unit/loader_failures.txt accounts for. The patches,
+  # named by date, go over data.grf in order, as the patcher merges them.
+  file(GLOB RAGEXE_PATCHES "${RAGEXE_INSTALL_DIR}/*.gpf")
+  if(EXISTS "${RAGEXE_INSTALL_DIR}/data.grf")
+    add_test(NAME loader_check_original
+      COMMAND ragres check-loaders --expected "${CMAKE_CURRENT_SOURCE_DIR}/loader_failures.txt"
+        "${RAGEXE_INSTALL_DIR}/data.grf" ${RAGEXE_PATCHES})
+  endif()
   # 30 images of each kind against the original decoders in the emulation oracle
   # (tools/bitmap_oracle.py, which needs the analysis virtual environment).
   set(RAGEXE_PYTHON "${PROJECT_SOURCE_DIR}/.venv/bin/python")

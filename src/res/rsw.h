@@ -80,7 +80,7 @@ class RswRes : public Resource {
   void Reset() override;
 
   const World& world() const { return world_; }
-  const std::string& error() const { return error_; }
+  const std::string& error() const override { return error_; }
 
  private:
   bool lightmaps_;

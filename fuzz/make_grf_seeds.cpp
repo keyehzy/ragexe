@@ -3,13 +3,13 @@
 // ResNameTable.txt, small images of each kind the bitmap decoders read, sprites and
 // actions, attribute maps, grounds, worlds, models, animated models, .imf
 // and .rma files, effects, emblems, waves, item tables, ClientState's tables, XML,
-// clientinfo.xml, and the tips and manner files.
+// clientinfo.xml, the tips and manner files, and a palette.
 //
 //   make_grf_seeds DIR    writes DIR/grf_archive, DIR/grf_table, DIR/res_name_table,
 //                         DIR/bitmap, DIR/sprite, DIR/act, DIR/gat, DIR/gnd,
 //                         DIR/rsw, DIR/rsm, DIR/rsx, DIR/imf, DIR/rma, DIR/str,
 //                         DIR/ebm, DIR/wav, DIR/item_tables, DIR/client_tables
-//                         DIR/xml, DIR/clientinfo and DIR/tips_manner
+//                         DIR/xml, DIR/clientinfo, DIR/tips_manner and DIR/palette
 
 #include <zlib.h>
 
@@ -467,6 +467,7 @@ int main(int argc, char** argv) {
   std::filesystem::create_directories(dir / "grf_table");
   std::filesystem::create_directories(dir / "res_name_table");
   std::filesystem::create_directories(dir / "bitmap");
+  std::filesystem::create_directories(dir / "palette");
   std::filesystem::create_directories(dir / "sprite");
   std::filesystem::create_directories(dir / "act");
   std::filesystem::create_directories(dir / "gat");
@@ -519,6 +520,13 @@ int main(int argc, char** argv) {
   const std::string table = "new_1-1.gnd#new_zone01.gnd#\r\nsplit#\r\nacross.gnd#\r\n##x#y# tail\n";
   Write(dir / "res_name_table" / "sample.txt",
         std::vector<std::uint8_t>(table.begin(), table.end()));
+  ++n;
+  std::vector<std::uint8_t> palette(1024);
+  for (std::size_t i = 0; i < palette.size(); ++i) palette[i] = static_cast<std::uint8_t>(i * 7);
+  palette[0] = 0xff;  // the first entry magenta, the transparent key
+  palette[1] = 0x00;
+  palette[2] = 0xff;
+  Write(dir / "palette" / "sample.pal", palette);
   ++n;
   Write(dir / "bitmap" / "bmp8.bin", BitmapInput(0, Bmp(8, 5, 3)));
   Write(dir / "bitmap" / "bmp24.bin", BitmapInput(0, Bmp(24, 5, 3)));

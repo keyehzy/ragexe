@@ -98,6 +98,7 @@ The parsers have libFuzzer targets in `fuzz/`:
 | `grf_archive_fuzz` | a whole archive from memory: header, table, lookups, reads |
 | `res_name_table_fuzz` | `ParseResNameTable` |
 | `bitmap_fuzz` | the BMP, TGA and JPEG decoders |
+| `palette_fuzz` | the palette conversion |
 | `sprite_fuzz` | the sprite decoder, at each detail level |
 | `act_fuzz` | the action decoder, with a stand-in sprite |
 | `gat_fuzz` | the attribute-map decoder |
@@ -127,7 +128,7 @@ CC=$(brew --prefix llvm)/bin/clang CXX=$(brew --prefix llvm)/bin/clang++ cmake -
 ```
 
 ```bash
-cmake --build --preset fuzz --target grf_table_fuzz grf_archive_fuzz res_name_table_fuzz bitmap_fuzz sprite_fuzz act_fuzz gat_fuzz gnd_fuzz rsw_fuzz rsm_fuzz rsx_fuzz imf_fuzz rma_fuzz str_fuzz ebm_fuzz wav_fuzz item_tables_fuzz client_tables_fuzz xml_fuzz clientinfo_fuzz tips_manner_fuzz make_grf_seeds
+cmake --build --preset fuzz --target grf_table_fuzz grf_archive_fuzz res_name_table_fuzz bitmap_fuzz sprite_fuzz act_fuzz gat_fuzz gnd_fuzz rsw_fuzz rsm_fuzz rsx_fuzz imf_fuzz rma_fuzz str_fuzz ebm_fuzz wav_fuzz item_tables_fuzz client_tables_fuzz xml_fuzz clientinfo_fuzz tips_manner_fuzz palette_fuzz make_grf_seeds
 ```
 
 **Running one:** `make_grf_seeds` writes small valid archives and tables to start from,
@@ -170,13 +171,21 @@ input as an artifact.
 ./build/dev/src/ragres check original/install/data.grf original/install/*.gpf
 ```
 
+```bash
+./build/dev/src/ragres check-loaders --expected tests/unit/loader_failures.txt original/install/data.grf original/install/*.gpf
+```
+
 - **`list`** prints size, stored size, flags, offset and name.
 - **`extract`** writes every file, or only the named ones, under the output directory.
 - **`check`** reads and inflates every entry.
+- **`check-loaders`** loads every entry through the loader its extension selects, and
+  the client's tables through theirs ([resources.md](formats/resources.md#every-entry-through-its-loader)).
+  Give `data.grf` first, then the patches in date order.
 
 Names are matched without regard to A–Z case, and inside the archive `\` is the
 separator. When `original/install` is present at configure time, `ctest` also runs
-`check` on all its archives (`grf_check_original`).
+`check` (`grf_check_original`) and `check-loaders` (`loader_check_original`) on all its
+archives.
 
 ## Layout
 

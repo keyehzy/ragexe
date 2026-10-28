@@ -74,7 +74,7 @@ class SprRes : public Resource {
   bool LoadFromBytes(std::span<const std::uint8_t> data);
 
   const Sprite& sprite() const { return sprite_; }
-  const std::string& error() const { return error_; }
+  const std::string& error() const override { return error_; }
 
  private:
   SpriteScale scale_;

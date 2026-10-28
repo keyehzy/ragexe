@@ -42,7 +42,7 @@ class ImfRes : public Resource {
   void Reset() override;
 
   const Imf& imf() const { return imf_; }
-  const std::string& error() const { return error_; }
+  const std::string& error() const override { return error_; }
 
  private:
   Imf imf_;

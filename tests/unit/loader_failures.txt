@@ -1,0 +1,18 @@
+# The entries of the original archives that their loaders fail on, for
+# `ragres check-loaders --expected` (docs/formats/README.md#the-m3-exit-check). One
+# "archive<TAB>entry" a line, names as ragres prints them.
+#
+# Actions of version 0x204 with an item that needs the matching sprite, where no archive
+# has it: the original reads through the null GetResource returns (docs/formats/act.md).
+data.grf	data\sprite\%BE%C6%C0%CC%C5%DB\bs_enchantedstone.act
+data.grf	data\sprite\%BE%C6%C0%CC%C5%DB\bs_skintempre.act
+data.grf	data\sprite\%BE%C6%C0%CC%C5%DB\bs_weaponprefect.act
+data.grf	data\sprite\%BE%C6%C0%CC%C5%DB\bs_weaponresearch.act
+data.grf	data\sprite\%BE%C6%C0%CC%C5%DB\ht_anklesnre.act
+data.grf	data\sprite\%BE%C6%C0%CC%C5%DB\h_falcon.act
+data.grf	data\sprite\%BE%C6%C0%CC%C5%DB\landmine.act
+2003-10-30gdata_yuno_new_1.gpf	data\sprite\%C0%CE%B0%A3%C1%B7\%B7%CE%B1%D7\%B0%A1%B5%E5.act
+# 4-bit bitmaps: "Only 16M or 8bit color format supported" (docs/formats/bitmap.md).
+data.grf	data\texture\%C0%AF%C0%FA%C0%CE%C5%CD%C6%E4%C0%CC%BD%BA\basic_interface\cutline_0.bmp
+data.grf	data\texture\%C0%AF%C0%FA%C0%CE%C5%CD%C6%E4%C0%CC%BD%BA\basic_interface\sprite_bg.bmp
+data.grf	data\texture\%C0%AF%C0%FA%C0%CE%C5%CD%C6%E4%C0%CC%BD%BA\sysbox_bg.bmp

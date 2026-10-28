@@ -1497,7 +1497,7 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   with a real window on the display. Linux and Windows have not shown a window on a
   real display yet; the first time someone runs it there is the remaining check.
 
-### M3: in progress
+### M3: done
 - [x] GRF archive reader. The format, from `CGPak` (`004dd820`–`004decd0`), `DesCipher`
   and `HashedFileName`, is in `docs/formats/grf.md`:
   - **Header:** `Master of Magic`, versions 0x100 to 0x103.
@@ -1946,11 +1946,37 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     - **A finding:** `AssignLowercase` skips the byte after a lead byte, as `IsClean` does.
   - **Fuzzing:** `tips_manner_fuzz`, 41 million inputs with no findings.
 
-### Next actions (M3)
-1. The M3 exit check: every entry of `data.grf` and the patches through the loader its
-   extension selects, with the failures accounted for.
+- [x] **M3 exit** (`docs/formats/resources.md#every-entry-through-its-loader`):
+  - **Every entry parses.** `ragres check-loaders` loads every file of `data.grf` and the
+    nine patches through the loader its extension selects, a fresh resource of the
+    registered type. The client's tables go through their own loaders.
+    - **The patches** go over `data.grf` in date order, as the patcher merges them, so
+      a patch's actions find their sprites in `data.grf`.
+    - **Results:** of 19,879 files, 19,803 load and 11 fail; 22 are `.gr2` and 43 are
+      never opened by the client.
+    - **The 11 failures** are listed in `tests/unit/loader_failures.txt`, and
+      `loader_check_original` in `ctest` requires exactly those:
+      - 8 version 0x204 actions with no sprite anywhere, where the original reads
+        through a null pointer;
+      - the 3 4-bit bitmaps, which the original refuses too.
+    - **Not ported:** `.gr2` models (`C3dGrannyModelRes`, through `granny2.dll`), the
+      one registered type outside the M3 list.
+    - **Never opened by the client:**
+      - extensions with no type, and names no string in the binary holds (`.ezv`,
+        `.sfk`, `.fna`, `monsterskillinfo.xml`);
+      - tool leftovers;
+      - `MapInfoTable.scp`, whose only reader (`005aaa90`) nothing calls.
+  - **A sample of each type matches the original** in the emulation oracle: every type
+    the archives hold, and `.ebm` and `.rma` on synthetic files, since none ships.
+  - **Every parser has run under the fuzzer.** The palette conversion was the last one
+    without a target. `palette_fuzz` ran 141 million inputs with no findings.
+  - **Port changes:**
+    - `ResourceManager::Create` makes the resource `GetResource` would clone;
+    - `Resource::error()` is virtual;
+    - `DataFiles::set_layers` reads archives under the main one.
 
-   `C3dGrannyModelRes` (`.gr2`, through `granny2.dll`) is the one registered type not in
-   the M3 list.
+### Next actions
+1. M4, the renderer: start by recovering how the original drives D3D7 and DirectDraw
+   (`C3dDevice`, `CTexture`, `CSurface`, the renderer), as §M4 lists.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

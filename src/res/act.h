@@ -79,7 +79,7 @@ class ActRes : public Resource {
   void Reset() override;
 
   const Act& act() const { return act_; }
-  const std::string& error() const { return error_; }
+  const std::string& error() const override { return error_; }
 
  private:
   ResourceManager* manager_;

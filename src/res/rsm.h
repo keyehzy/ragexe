@@ -107,7 +107,7 @@ class RsmRes : public Resource {
   void Reset() override;
 
   const Model& model() const { return model_; }
-  const std::string& error() const { return error_; }
+  const std::string& error() const override { return error_; }
 
  private:
   Model model_;

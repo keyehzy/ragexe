@@ -58,7 +58,7 @@ class GndRes : public Resource {
   void Reset() override;
 
   const Ground& ground() const { return ground_; }
-  const std::string& error() const { return error_; }
+  const std::string& error() const override { return error_; }
 
  private:
   Ground ground_;

@@ -53,7 +53,7 @@ class RsxRes : public Resource {
   void Reset() override;
 
   const AnimModel& model() const { return model_; }
-  const std::string& error() const { return error_; }
+  const std::string& error() const override { return error_; }
 
  private:
   AnimModel model_;

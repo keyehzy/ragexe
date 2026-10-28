@@ -144,8 +144,10 @@ Every file ends exactly after its last field.
 7. **Events and delays,** then succeed.
 
 **When the sprite is missing,** `GetResource` shows its errors and returns null. The
-loader then reads through the null pointer. Seven 0x204 actions in `data.grf`, item
-icons such as `아이템\landmine.act`, have no sprite and one item that needs it.
+loader then reads through the null pointer. Eight 0x204 actions have no sprite and one
+item that needs it ([resources.md](resources.md#every-entry-through-its-loader)):
+- seven in `data.grf`, item icons such as `아이템\landmine.act`;
+- `인간족\로그\가드.act` in the Juno patch.
 
 `Reset` (slot 4, `00420d60`) destroys the actions and the event names. It does not touch
 the largest item count or the delays.

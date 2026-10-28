@@ -31,6 +31,8 @@ class Resource {
   }
   // Slot 4: frees what Load allocated; the manager calls it before destroying a resource.
   virtual void Reset() {}
+  // Why the last Load failed, for the classes that keep a reason; not the client's.
+  virtual const std::string& error() const;
 
   void AddRef() { ++references_; }
   // Release (004df960) also marks the resource as used.
@@ -75,6 +77,9 @@ class ResourceManager {
 
   // GetResource (004dff60); nullptr for an unknown extension or a file that does not load.
   Resource* Get(std::string_view name);
+  // A new, empty resource of the type the name's extension selects, as GetResource clones
+  // it before loading; nullptr for an unknown extension. The manager does not keep it.
+  std::unique_ptr<Resource> Create(std::string_view name) const;
   // Exists (004e0190): loaded, or present in the archive or on disk.
   bool Exists(std::string_view name);
 

@@ -40,7 +40,7 @@ class AttrRes : public Resource {
   void Reset() override;
 
   const AttrMap& map() const { return map_; }
-  const std::string& error() const { return error_; }
+  const std::string& error() const override { return error_; }
 
  private:
   AttrMap map_;

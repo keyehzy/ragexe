@@ -66,7 +66,7 @@ class WaveRes : public Resource {
   void Reset() override;
 
   const Wave& wave() const { return wave_; }
-  const std::string& error() const { return error_; }
+  const std::string& error() const override { return error_; }
 
  private:
   Wave wave_;

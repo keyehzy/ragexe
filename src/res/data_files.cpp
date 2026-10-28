@@ -84,11 +84,16 @@ std::optional<std::filesystem::path> DataFiles::ResolveLoose(std::string_view pa
 }
 
 std::optional<std::vector<std::uint8_t>> DataFiles::Load(std::string_view path) const {
-  if (archive_ != nullptr) {
-    if (const GrfEntry* entry = archive_->Find(path)) {
-      std::string error;
-      if (auto data = archive_->Read(*entry, &error)) return data;
-    }
+  const auto read = [&](const GrfArchive* archive) -> std::optional<std::vector<std::uint8_t>> {
+    if (archive == nullptr) return std::nullopt;
+    const GrfEntry* entry = archive->Find(path);
+    if (entry == nullptr) return std::nullopt;
+    std::string error;
+    return archive->Read(*entry, &error);
+  };
+  if (auto data = read(archive_.get())) return data;
+  for (const GrfArchive* layer : layers_) {
+    if (auto data = read(layer)) return data;
   }
   const auto loose = ResolveLoose(path);
   if (!loose) return std::nullopt;
@@ -100,6 +105,9 @@ std::optional<std::vector<std::uint8_t>> DataFiles::Load(std::string_view path) 
 
 bool DataFiles::Exists(std::string_view path) const {
   if (archive_ != nullptr && archive_->Find(path) != nullptr) return true;
+  for (const GrfArchive* layer : layers_) {
+    if (layer->Find(path) != nullptr) return true;
+  }
   return ResolveLoose(path).has_value();
 }
 

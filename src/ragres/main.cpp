@@ -42,6 +42,13 @@
 //                                          folder as LoadItemTables does
 //   ragres check ARCHIVE...                reads every compressed entry and checks its size;
 //                                          fails on an entry that cannot be read
+//   ragres check-loaders [--expected FILE] ARCHIVE...
+//                                          loads every entry through the loader its
+//                                          extension selects, and the client's tables
+//                                          through theirs, each archive over the ones
+//                                          before it (data.grf, then the patches in
+//                                          order); with FILE, the failures must be
+//                                          exactly its lines
 //
 // Names are printed and written as stored (CP949) with bytes outside printable ASCII
 // written as %XX, until the CP949 conversion arrives.
@@ -50,8 +57,12 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <iterator>
+#include <map>
+#include <memory>
 #include <optional>
+#include <set>
 #include <span>
 #include <string>
 #include <string_view>
@@ -1146,11 +1157,242 @@ int DecodeItemTables(const std::vector<std::string>& args) {
   return 0;
 }
 
+// The resource types of docs/formats/resources.md, in the order the original registers
+// them. gr2 (C3dGrannyModelRes, through granny2.dll) is not ported.
+void RegisterResourceTypes(ragexe::res::ResourceManager& manager) {
+  namespace res = ragexe::res;
+  res::RegisterActTypes(manager);
+  res::RegisterRmaTypes(manager);
+  res::RegisterAttrTypes(manager);
+  res::RegisterBitmapTypes(manager);
+  res::RegisterEmblemTypes(manager);
+  res::RegisterStrTypes(manager);
+  res::RegisterGroundTypes(manager);
+  res::RegisterImfTypes(manager);
+  res::RegisterModelTypes(manager);
+  res::RegisterAnimModelTypes(manager);
+  res::RegisterPaletteTypes(manager);
+  res::RegisterSpriteTypes(manager);
+  res::RegisterWaveTypes(manager);
+  res::RegisterWorldTypes(manager);
+}
+
+// A table the client opens by name under data\, and its loader.
+struct TableLoader {
+  std::string name;
+  std::function<bool(const ragexe::res::DataFiles&, std::string*)> load;
+};
+
+std::vector<TableLoader> TableLoaders(ragexe::res::ResourceManager& manager) {
+  namespace res = ragexe::res;
+  std::vector<TableLoader> out;
+  for (std::string_view name : res::kNamePairTables) {
+    out.push_back({std::string(name), [name](const res::DataFiles& files, std::string*) {
+                     res::NamePairs pairs;
+                     return res::LoadNamePairs(files, name, pairs);
+                   }});
+  }
+  for (std::string_view name : res::kNumberRecordTables) {
+    out.push_back({std::string(name), [name](const res::DataFiles& files, std::string*) {
+                     res::NumberRecords records;
+                     return res::LoadNumberRecords(files, name, records);
+                   }});
+  }
+  out.push_back({std::string(res::kSkillDescTable), [](const res::DataFiles& files, std::string*) {
+                   res::LineRecords records;
+                   return res::LoadLineRecords(files, res::kSkillDescTable, records);
+                 }});
+  for (const bool sorted : {false, true}) {
+    const std::string_view name = sorted ? res::kIndoorRswTable : res::kMsgStringTable;
+    out.push_back({std::string(name), [name, sorted](const res::DataFiles& files, std::string*) {
+                     std::vector<std::string> fields;
+                     return res::LoadFields(files, name, sorted, fields);
+                   }});
+  }
+  out.push_back(
+      {std::string(res::kFogParameterTable), [](const res::DataFiles& files, std::string*) {
+         res::LineRecords records;
+         return res::LoadFogParameters(files, records);
+       }});
+  out.push_back({"ResNameTable.txt", [&manager](const res::DataFiles&, std::string*) {
+                   return manager.LoadNameTable();
+                 }});
+  out.push_back({"manner.txt", [](const res::DataFiles& files, std::string* error) {
+                   res::MannerFilter filter;
+                   return filter.Load(files, "manner.txt", error);
+                 }});
+  out.push_back(
+      {std::string(res::kClientInfoFile), [](const res::DataFiles& files, std::string* error) {
+         res::XmlElement document;
+         res::ClientInfo info;
+         return res::LoadClientInfo(files, res::kClientInfoFile, document, info, error);
+       }});
+  out.push_back(
+      {std::string(res::kPetTalkTable), [](const res::DataFiles& files, std::string* error) {
+         res::XmlElement document;
+         return res::LoadPetTalkTable(files, document, error);
+       }});
+  // LoadItemTables reads all its files at once, a missing one as empty.
+  for (std::string_view name : res::kItemTableFiles) {
+    out.push_back({std::string(name), [](const res::DataFiles& files, std::string* error) {
+                     res::ItemTables tables;
+                     return res::LoadItemTables(files, res::ItemTableSettings{}, tables, error);
+                   }});
+  }
+  return out;
+}
+
+struct LoaderCounts {
+  std::size_t loaded = 0;
+  std::size_t failed = 0;
+};
+
+// Loads every compressed entry of archives.back() under data\ through a fresh resource
+// of the type its extension selects, as GetResource would clone it, and each of the
+// client's tables it holds through that table's loader. Files are read from it, then from
+// the archives before it, nearest first, as from the data.grf the patcher merges them
+// into, then from the archive's directory. Adds "archive-name<TAB>entry-name" to failures
+// for each that fails.
+void CheckArchiveLoaders(const std::filesystem::path& path,
+                         const std::vector<std::unique_ptr<GrfArchive>>& archives,
+                         std::set<std::string>& failures) {
+  namespace res = ragexe::res;
+  const GrfArchive& archive = *archives.back();
+  const std::string archive_name = path.filename().string();
+  res::DataFiles files(path.parent_path());
+  std::vector<const GrfArchive*> layers;
+  for (const auto& a : archives) layers.insert(layers.begin(), a.get());
+  files.set_layers(std::move(layers));
+  res::ResourceManager manager(files, [] { return 0u; });
+  RegisterResourceTypes(manager);
+  const auto fail = [&](std::string_view name, const std::string& why) {
+    std::printf("%s: %s: %s\n", archive_name.c_str(), Escape(name).c_str(), why.c_str());
+    failures.insert(archive_name + "\t" + Escape(name));
+  };
+
+  std::map<std::string, LoaderCounts> by_type;
+  std::map<std::string, std::size_t> no_loader;
+  std::size_t not_ported = 0;
+  std::set<std::string> tables;
+  LoaderCounts table_counts;
+  for (const TableLoader& table : TableLoaders(manager)) {
+    const std::string entry = "data\\" + res::LowerCaseName(table.name);
+    if (archive.Find(entry) == nullptr) continue;
+    tables.insert(entry);
+    std::string why;
+    if (table.load(files, &why)) {
+      ++table_counts.loaded;
+    } else {
+      ++table_counts.failed;
+      fail(entry, why.empty() ? "does not load" : why);
+    }
+  }
+  for (const GrfEntry& e : archive.entries()) {
+    if (!e.compressed()) continue;
+    const std::string& lowered = e.key.name;
+    const std::size_t slash = lowered.rfind('\\');
+    const std::size_t dot = lowered.rfind('.');
+    const std::string extension =
+        dot == std::string::npos || (slash != std::string::npos && dot < slash)
+            ? std::string("(none)")
+            : lowered.substr(dot + 1);
+    if (tables.contains(lowered)) continue;
+    if (extension == "gr2") {
+      ++not_ported;
+      continue;
+    }
+    auto resource = manager.Create(lowered);
+    if (!resource || !lowered.starts_with("data\\")) {
+      ++no_loader[extension];
+      continue;
+    }
+    LoaderCounts& counts = by_type[extension];
+    if (resource->Load(files, std::string_view(lowered).substr(5))) {
+      ++counts.loaded;
+    } else {
+      ++counts.failed;
+      fail(e.name, resource->error().empty() ? "does not load" : resource->error());
+    }
+    manager.Clear();
+  }
+
+  std::size_t loaded = table_counts.loaded, failed = table_counts.failed, unloaded_count = 0;
+  for (const auto& [extension, counts] : by_type) {
+    loaded += counts.loaded;
+    failed += counts.failed;
+  }
+  for (const auto& [extension, count] : no_loader) unloaded_count += count;
+  std::printf("%s: %zu files: %zu loaded, %zu failed, %zu not ported, %zu with no loader\n",
+              archive_name.c_str(), loaded + failed + not_ported + unloaded_count, loaded, failed,
+              not_ported, unloaded_count);
+  std::printf("%s: %zu tables loaded, %zu failed\n", archive_name.c_str(), table_counts.loaded,
+              table_counts.failed);
+  for (const auto& [extension, counts] : by_type) {
+    std::printf("%s: %s %zu loaded, %zu failed\n", archive_name.c_str(), extension.c_str(),
+                counts.loaded, counts.failed);
+  }
+  if (not_ported != 0) {
+    std::printf("%s: gr2 %zu not ported (C3dGrannyModelRes, through granny2.dll)\n",
+                archive_name.c_str(), not_ported);
+  }
+  std::string unloaded;
+  for (const auto& [extension, count] : no_loader) {
+    unloaded += " " + extension + " " + std::to_string(count);
+  }
+  std::printf("%s: no loader:%s\n", archive_name.c_str(),
+              unloaded.empty() ? " none" : unloaded.c_str());
+}
+
+int CheckLoaders(std::vector<std::string> args) {
+  std::optional<std::set<std::string>> expected;
+  if (args.size() >= 2 && args[0] == "--expected") {
+    std::ifstream f(args[1]);
+    if (!f) {
+      std::fprintf(stderr, "cannot read %s\n", args[1].c_str());
+      return 1;
+    }
+    expected.emplace();
+    for (std::string line; std::getline(f, line);) {
+      if (!line.empty() && line.back() == '\r') line.pop_back();
+      if (!line.empty() && line[0] != '#') expected->insert(line);
+    }
+    args.erase(args.begin(), args.begin() + 2);
+  }
+  if (args.empty()) return Usage();
+  std::set<std::string> failures;
+  std::vector<std::unique_ptr<GrfArchive>> archives;
+  for (const std::string& a : args) {
+    archives.push_back(OpenOrReport(a.c_str()));
+    if (!archives.back()) return 1;
+    CheckArchiveLoaders(a, archives, failures);
+  }
+  if (!expected) {
+    std::printf("%zu failed\n", failures.size());
+    return failures.empty() ? 0 : 1;
+  }
+  std::size_t surprises = 0;
+  for (const std::string& f : failures) {
+    if (!expected->contains(f)) {
+      std::printf("unexpected failure: %s\n", f.c_str());
+      ++surprises;
+    }
+  }
+  for (const std::string& f : *expected) {
+    if (!failures.contains(f)) {
+      std::printf("expected to fail, but loads: %s\n", f.c_str());
+      ++surprises;
+    }
+  }
+  std::printf("%zu failed, all expected: %s\n", failures.size(), surprises == 0 ? "yes" : "no");
+  return surprises == 0 ? 0 : 1;
+}
+
 int Usage() {
   std::fprintf(stderr,
                "usage: ragres list ARCHIVE\n"
                "       ragres extract ARCHIVE DIR [NAME...]\n"
                "       ragres check ARCHIVE...\n"
+               "       ragres check-loaders [--expected FILE] ARCHIVE...\n"
                "       ragres decode-images DIR FILE...\n"
                "       ragres decode-palettes FILE...\n"
                "       ragres decode-sprites [--halve-x] [--halve-y] FILE...\n"
@@ -1232,6 +1474,9 @@ int main(int argc, char** argv) {
     return DecodeManner(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-item-tables") {
     return DecodeItemTables(std::vector<std::string>(argv + 2, argv + argc));
+  }
+  if (command == "check-loaders") {
+    return CheckLoaders(std::vector<std::string>(argv + 2, argv + argc));
   }
   if (command == "check") {
     int status = 0;
