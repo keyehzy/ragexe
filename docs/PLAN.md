@@ -2161,9 +2161,41 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Labels:** `CView`'s methods, the placing, saving and input functions, `IsIndoorMap`,
     and the view setting globals.
 
+- [x] The models (`docs/render/model.md`, `src/render/model`):
+  - **`ModelInstance`** places a model as `CWorld::LoadWorld` does:
+    - its nodes are set up from the model's first node in file order;
+    - it is centred on its box and stood on the box's top;
+    - it gets a world matrix, an oriented box and each node's world box.
+  - **`C3dNode`'s matrix** is scale · rotation · translation from its keys: the
+    translation interpolated linearly, the rotation by the client's slerp. Its `acos`
+    keeps the x87's single precision.
+  - **Lighting:** each face's colours come from its shade type (white, the face normal,
+    or the corner normals). A texture coordinate's colour field halves the light. A
+    ground tint adds the cell colour under each corner.
+  - **Drawing:** each node's vertices are projected as the ground's are; faces are culled
+    by facing (two-sided ones by their `field_10`) and, when clipping, by the screen.
+    Runs of one texture go to the opaque or translucent list.
+  - **Port:**
+    - `CreateModelInstance`, `LightModel`, `DrawModel`, `AdvanceAnimation`;
+    - `NodeMatrixAt` and `SlerpRotation`;
+    - `GroundCellColor`;
+    - the rest of `Matrix` (rotations about x and z, scale, translation, quaternions).
+  - **Checks:** `tools/model_vectors.py` records the original in the emulation oracle on
+    five synthetic and five real models: placement, boxes, lighting, tint, every drawn
+    vertex under four draw settings, three animation steps, and 200 slerps. 19,170
+    values match bit for bit.
+    - It turned up the loader's precision: the main thread bakes vertices in single
+      precision, the lazy thread in double, as the port does.
+  - **The device** now samples an unbound stage as opaque black, as Direct3D does. The
+    ground's lightmap stage stays set for the models and passes their colour through.
+  - **`ragview`** places, lights, animates and draws every model of the map.
+  - **Not ported:** the volumes, the scene graph's culling, the ray translucency, and the
+    clip rectangle under `00688a74`.
+  - **Labels:** `ModelInstance`'s and `C3dNode`'s set-up, lighting, tint, box and draw.
+
 ### Next actions
-1. M4, the renderer: the RSM models: `ModelInstance`'s world matrix and node
-   transforms, the scene graph's culling (`ViewFrustum`), and their draws through the
-   scene lists, so that `ragview` shows a map's models on its ground.
+1. M4, the renderer: the scene graph's culling (`ViewFrustum::CullSceneGraph` and
+   `ClassifyOrientedBox`), so that `ragview` draws the models and ground cells the client
+   draws; then the water and the sky.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

@@ -5931,11 +5931,11 @@ UINotifyJobLevelUpWnd	005e86e4	0	34	00439d20	UIWindow::vf34
 UINotifyJobLevelUpWnd	005e86e4	0	35	0043a920	UIWindow::vf35	
 UINotifyJobLevelUpWnd	005e86e4	0	36	00448880	UIFrameWnd::vf36	
 UINotifyJobLevelUpWnd	005e86e4	0	37	004754d0	UINotifyJobLevelUpWnd::vf37	
-C3dNode	005e88b8	0	0	004b6e50	C3dNode::vf00	
-C3dNode	005e88b8	0	1	004b7580	C3dNode::vf01	
-C3dNode	005e88b8	0	2	004b7e30	C3dNode::vf02	
+C3dNode	005e88b8	0	0	004b6e50	C3dNode::Draw	
+C3dNode	005e88b8	0	1	004b7580	C3dNode::Setup	
+C3dNode	005e88b8	0	2	004b7e30	C3dNode::Light	
 C3dNode	005e88b8	0	3	004b6a90	C3dNode::`scalar_deleting_destructor'	
-C3dNodeHAL	005e88d4	0	0	004b6e50	C3dNode::vf00	
+C3dNodeHAL	005e88d4	0	0	004b6e50	C3dNode::Draw	
 C3dNodeHAL	005e88d4	0	1	004b8b00	C3dNodeHAL::vf01	
 C3dNodeHAL	005e88d4	0	2	004b92a0	C3dNodeHAL::vf02	
 C3dNodeHAL	005e88d4	0	3	004b9230	C3dNodeHAL::`scalar_deleting_destructor'	

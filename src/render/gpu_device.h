@@ -46,7 +46,10 @@ class RenderDevice {
   RenderDevice(const RenderDevice&) = delete;
   RenderDevice& operator=(const RenderDevice&) = delete;
 
-  // A texture of width × height ARGB texels, top row first, under id (not 0).
+  // The id the device keeps its white texture under.
+  static constexpr std::uint32_t kWhiteId = 0xffffffff;
+
+  // A texture of width × height ARGB texels, top row first, under id (not 0 or kWhiteId).
   bool SetTexture(std::uint32_t id, std::uint32_t width, std::uint32_t height,
                   std::span<const std::uint32_t> argb);
 

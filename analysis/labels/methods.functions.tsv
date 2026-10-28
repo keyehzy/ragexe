@@ -298,14 +298,6 @@ address	namespace	name	calling_convention	evidence
 004b5ec0	std::Tree	method_004b5ec0	__thiscall	__thiscall; called with this from 1 functions of UIWindowMgr, e.g. 004a7300
 004b6140	std::Tree	method_004b6140	__thiscall	__thiscall; called with this from 1 functions of UIWindowMgr, e.g. 004a7420
 004b63f0	std::Tree	method_004b63f0	__thiscall	__thiscall; called with this from 2 functions of UIWindowMgr, e.g. 004b41a0
-004b6c70	C3dNode	method_004b6c70	__thiscall	__thiscall; called with this from 1 functions of C3dNode, e.g. 004b6ac0
-004b8510	C3dNode	method_004b8510	__thiscall	__thiscall; called with this from 1 functions of C3dNode, e.g. 004b7e30
-004b9510	ModelInstance	method_004b9510	__thiscall	__thiscall; called with this from 2 functions of ModelInstance, e.g. 004b96a0
-004b9550	ModelInstance	method_004b9550	__thiscall	__thiscall; called with this from 1 functions of ModelInstance, e.g. 004c33a0
-004b95f0	ModelInstance	method_004b95f0	__thiscall	__thiscall; called with this from 2 functions of ModelInstance, e.g. 004b9740
-004b9820	ModelInstance	method_004b9820	__thiscall	__thiscall; called with this from 1 functions of ModelInstance, e.g. 004c33a0
-004b98c0	ModelInstance	method_004b98c0	__thiscall	__thiscall; called with this from 1 functions of ModelInstance, e.g. 004b9820
-004ba270	ModelInstance	method_004ba270	__thiscall	__thiscall; called with this from 1 functions of ModelInstance, e.g. 004c33a0
 004bb6d0	std::list	method_004bb6d0	__thiscall	__thiscall; called with this from 1 functions of C3dNode, e.g. 004b6ac0
 004bb710	std::list	method_004bb710	__thiscall	__thiscall; called with this from 1 functions of C3dNode, e.g. 004b7580
 004bc450	C3dGround15	method_004bc450	__thiscall	__thiscall; called with this from 1 functions of C3dGround15, e.g. 004bc4e0

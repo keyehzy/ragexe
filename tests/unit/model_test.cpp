@@ -1,0 +1,227 @@
+#include "render/model.h"
+
+#include <bit>
+#include <catch2/catch_test_macros.hpp>
+#include <cstddef>
+#include <cstdint>
+#include <span>
+#include <string>
+#include <vector>
+
+#include "render/camera.h"
+#include "res/rsm.h"
+
+using namespace ragexe::render;
+
+namespace {
+
+struct NodeVector {
+  std::uint32_t alpha;
+  std::uint32_t matrix[12];
+  std::uint32_t box[6];
+  const std::uint32_t* shades;  // per face: 3 colours, then (u, v) at each corner
+  const std::int32_t* tint;     // per face: 9
+  std::size_t faces;
+};
+
+struct DrawnFace {
+  std::uint32_t flags;
+  std::uint32_t count;
+  std::int32_t texture;
+  const std::uint32_t* vertices;  // 8 dwords each
+};
+
+struct RenderVector {
+  std::uint32_t view[12];
+  int clip, alternate, tint, translucent;
+  const DrawnFace* faces;
+  std::size_t count;
+};
+
+struct ModelVector {
+  const char* const* file;
+  std::uint32_t placement[9];
+  std::uint32_t speed;
+  const std::uint32_t* instance;
+  const NodeVector* nodes;
+  std::size_t node_count;
+  RenderVector renders[4];
+  const std::uint32_t* steps;
+};
+
+struct SlerpVector {
+  std::uint32_t t;
+  std::uint32_t a[4], b[4];
+  std::uint32_t result[4];
+};
+
+// The stand-in for C3dGround15::GetCellColor (tools/model_vectors.py).
+std::array<std::int32_t, 3> CellColor(float x, float y, float z) {
+  return {static_cast<std::int32_t>(std::bit_cast<std::uint32_t>(x) >> 7 & 0x7f),
+          static_cast<std::int32_t>(std::bit_cast<std::uint32_t>(y) >> 9 & 0x7f),
+          static_cast<std::int32_t>(std::bit_cast<std::uint32_t>(z) >> 5 & 0x7f)};
+}
+
+#include "model_vectors.inc"
+
+float F(std::uint32_t bits) { return std::bit_cast<float>(bits); }
+std::uint32_t B(float f) { return std::bit_cast<std::uint32_t>(f); }
+
+std::vector<std::uint8_t> FromHex(const char* const* pieces) {
+  std::vector<std::uint8_t> out;
+  const auto nibble = [](char c) {
+    return static_cast<std::uint8_t>(c <= '9' ? c - '0' : c - 'a' + 10);
+  };
+  for (; *pieces != nullptr; ++pieces) {
+    const std::string piece = *pieces;
+    for (std::size_t i = 0; i + 1 < piece.size(); i += 2)
+      out.push_back(static_cast<std::uint8_t>(nibble(piece[i]) << 4 | nibble(piece[i + 1])));
+  }
+  return out;
+}
+
+// The instance's fields +0xc0 to +0x1e4.
+std::vector<std::uint32_t> InstanceFields(const ModelInstance& m) {
+  std::vector<std::uint32_t> out;
+  const auto put = [&](float f) { out.push_back(B(f)); };
+  for (const float f : m.world) put(f);
+  for (const float f : m.inverse) put(f);
+  for (const float f : m.centre) put(f);
+  out.push_back(static_cast<std::uint32_t>(m.field_12c));
+  for (const float f : m.half_extents) put(f);
+  for (const float f : m.box_centre) put(f);
+  for (const Vec3& a : m.axes)
+    for (const float f : a) put(f);
+  for (const Vec3& c : m.corners)
+    for (const float f : c) put(f);
+  for (const float f : m.bounds) put(f);
+  return out;
+}
+
+const char* const kInstanceFieldNames[] = {"world",  "inverse",      "centre",
+                                           "+0x12c", "half extents", "box centre",
+                                           "axes",   "corners",      "bounds"};
+const std::size_t kInstanceFieldStarts[] = {0, 12, 24, 27, 28, 31, 34, 43, 67, 73};
+
+std::string FieldName(std::size_t i) {
+  for (std::size_t k = 0; k + 1 < std::size(kInstanceFieldStarts); ++k)
+    if (i < kInstanceFieldStarts[k + 1]) return kInstanceFieldNames[k];
+  return "?";
+}
+
+}  // namespace
+
+TEST_CASE("SlerpRotation interpolates rotation keys as the original does", "[model]") {
+  for (const SlerpVector& v : kSlerpVectors) {
+    const std::array<float, 4> a = {F(v.a[0]), F(v.a[1]), F(v.a[2]), F(v.a[3])};
+    const std::array<float, 4> b = {F(v.b[0]), F(v.b[1]), F(v.b[2]), F(v.b[3])};
+    INFO("t " << F(v.t));
+    const std::array<float, 4> got = SlerpRotation(F(v.t), a, b);
+    for (std::size_t i = 0; i < 4; ++i) CHECK(B(got[i]) == v.result[i]);
+  }
+}
+
+TEST_CASE("Model instances are placed, lit and drawn as the original does", "[model]") {
+  const GroundLight light{{F(kModelLight[0]), F(kModelLight[1]), F(kModelLight[2])},
+                          {F(kModelLight[3]), F(kModelLight[4]), F(kModelLight[5])},
+                          {F(kModelLight[6]), F(kModelLight[7]), F(kModelLight[8])}};
+  GroundColorFade fade;
+  fade.water = {F(kModelFade[0]), F(kModelFade[1]), F(kModelFade[2])};
+  fade.ground = {F(kModelFade[3]), F(kModelFade[4]), F(kModelFade[5])};
+  std::size_t index = 0;
+  for (const ModelVector& v : kModelVectors) {
+    INFO("model " << index++);
+    ragexe::res::Model model;
+    std::string error;
+    const std::vector<std::uint8_t> file = FromHex(v.file);
+    REQUIRE(ragexe::res::DecodeModel(file, model, &error));
+    ModelInstance instance;
+    REQUIRE(CreateModelInstance(model, {F(v.placement[0]), F(v.placement[1]), F(v.placement[2])},
+                                {F(v.placement[3]), F(v.placement[4]), F(v.placement[5])},
+                                {F(v.placement[6]), F(v.placement[7]), F(v.placement[8])},
+                                F(v.speed), instance));
+    LightModel(instance, light, CellColor);
+
+    const std::vector<std::uint32_t> fields = InstanceFields(instance);
+    for (std::size_t i = 0; i < 73; ++i) {
+      INFO("instance value " << i << " (" << FieldName(i) << ")");
+      CHECK(fields[i] == v.instance[i]);
+    }
+    REQUIRE(instance.nodes.size() == v.node_count);
+    for (std::size_t n = 0; n < v.node_count; ++n) {
+      INFO("node " << n);
+      const ModelNodeInstance& node = instance.nodes[n];
+      const NodeVector& want = v.nodes[n];
+      CHECK(B(node.alpha) == want.alpha);
+      for (std::size_t i = 0; i < 12; ++i) {
+        INFO("matrix " << i);
+        CHECK(B(node.matrix[i]) == want.matrix[i]);
+      }
+      for (std::size_t i = 0; i < 6; ++i) {
+        INFO("box " << i);
+        CHECK(B(node.box[i]) == want.box[i]);
+      }
+      REQUIRE(node.faces.size() == want.faces);
+      for (std::size_t f = 0; f < want.faces; ++f) {
+        INFO("face " << f);
+        const std::uint32_t* shade = want.shades + f * 9;
+        for (std::size_t c = 0; c < 3; ++c) {
+          INFO("corner " << c);
+          CHECK(node.faces[f].colors[c] == shade[c]);
+          CHECK(B(node.faces[f].uv[c * 2]) == shade[3 + c * 2]);
+          CHECK(B(node.faces[f].uv[c * 2 + 1]) == shade[4 + c * 2]);
+        }
+        for (std::size_t k = 0; k < 9; ++k) CHECK(node.tint[f * 9 + k] == want.tint[f * 9 + k]);
+      }
+    }
+
+    ModelDrawSettings settings;
+    settings.viewport = GroundViewportOf(SetSize(800, 600));
+    settings.fade = fade;
+    for (const std::string& name : model.textures)
+      settings.texture_alpha.push_back(name.size() % 2 == 1);
+    for (std::size_t r = 0; r < 4; ++r) {
+      INFO("render " << r);
+      const RenderVector& want = v.renders[r];
+      Matrix view{};
+      for (std::size_t i = 0; i < 12; ++i) view[i] = F(want.view[i]);
+      settings.alternate_fade = want.alternate != 0;
+      settings.ground_tint = want.tint != 0;
+      if (want.translucent != 0)
+        for (ModelNodeInstance& node : instance.nodes) node.translucent = true;
+      std::vector<ModelPrimitive> drawn;
+      DrawModel(instance, view, want.clip != 0, settings, drawn);
+      REQUIRE(drawn.size() == want.count);
+      for (std::size_t p = 0; p < want.count; ++p) {
+        INFO("primitive " << p);
+        const DrawnFace& face = want.faces[p];
+        CHECK(drawn[p].flags == face.flags);
+        CHECK(model.textures[static_cast<std::size_t>(drawn[p].texture)] ==
+              model.textures[static_cast<std::size_t>(face.texture)]);
+        REQUIRE(drawn[p].vertices.size() == face.count);
+        for (std::size_t k = 0; k < face.count; ++k) {
+          INFO("vertex " << k);
+          const ScreenVertex& got = drawn[p].vertices[k];
+          const std::uint32_t* w = face.vertices + k * 8;
+          CHECK(B(got.x) == w[0]);
+          CHECK(B(got.y) == w[1]);
+          CHECK(B(got.z) == w[2]);
+          CHECK(B(got.rhw) == w[3]);
+          CHECK(got.diffuse == w[4]);
+          CHECK(got.specular == w[5]);
+          CHECK(B(got.u) == w[6]);
+          CHECK(B(got.v) == w[7]);
+        }
+      }
+    }
+
+    const std::uint32_t* step = v.steps;
+    for (int s = 0; s < 3; ++s) {
+      INFO("step " << s);
+      AdvanceAnimation(instance);
+      CHECK(static_cast<std::uint32_t>(instance.time) == *step++);
+      for (const ModelNodeInstance& node : instance.nodes)
+        for (std::size_t i = 0; i < 12; ++i) CHECK(B(node.matrix[i]) == *step++);
+    }
+  }
+}

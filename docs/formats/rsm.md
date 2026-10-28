@@ -253,6 +253,11 @@ and `RsmRes`, registered by `RegisterModelTypes`.
 **The FPU arithmetic** is done in double, with the x87's NaN rules: an invalid
 operation gives `ffc00000`, and a NaN operand comes out quiet. Every value in `data.grf`
 agrees (below).
+- **That is the CRT's default precision,** at which `LazyModelLoadThread` loads most of a
+  map's models.
+- **The main thread** runs at single precision after DirectDraw's `FPUSETUP`. The models
+  it loads (those near the player) can therefore differ in their last bits
+  ([model.md](../render/model.md#the-loaders-precision)).
 
 **Where the port differs:**
 - **Truncated files fail,** and so do names with no NUL inside their record.

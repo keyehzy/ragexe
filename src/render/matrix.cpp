@@ -32,6 +32,59 @@ Matrix MakeRotationY(float radians) {
   return m;
 }
 
+Matrix MakeRotationZ(float radians) {
+  Matrix m = kIdentity;
+  const float s = SinFloat(radians);
+  const float c = CosFloat(radians);
+  m[0] = c;
+  m[4] = c;
+  m[3] = -s;
+  m[1] = s;
+  return m;
+}
+
+Matrix MakeTranslation(const Vec3& t) {
+  Matrix m = kIdentity;
+  m[9] = t[0];
+  m[10] = t[1];
+  m[11] = t[2];
+  return m;
+}
+
+Matrix MakeScale(const Vec3& s) {
+  Matrix m = kIdentity;
+  m[0] = s[0];
+  m[4] = s[1];
+  m[8] = s[2];
+  return m;
+}
+
+Matrix MakeRotationFromKey(const std::array<float, 4>& q) {
+  const float x2 = q[0] + q[0];
+  const float y2 = q[1] + q[1];
+  const float z2 = q[2] + q[2];
+  const float wx = x2 * q[3];
+  const float wy = y2 * q[3];
+  const float wz = z2 * q[3];
+  const float xx = x2 * q[0];
+  const float xy = y2 * q[0];
+  const float xz = z2 * q[0];
+  const float yy = y2 * q[1];
+  const float yz = z2 * q[1];
+  const float zz = z2 * q[2];
+  Matrix m{};
+  m[0] = 1.0f - (zz + yy);
+  m[1] = xy + wz;
+  m[2] = xz - wy;
+  m[3] = xy - wz;
+  m[4] = 1.0f - (zz + xx);
+  m[5] = yz + wx;
+  m[6] = xz + wy;
+  m[7] = yz - wx;
+  m[8] = 1.0f - (yy + xx);
+  return m;
+}
+
 Matrix Multiply(const Matrix& a, const Matrix& b) {
   Matrix r{};
   r[0] = ((a[0] * b[0]) + (a[1] * b[3])) + (a[2] * b[6]);
@@ -49,7 +102,11 @@ Matrix Multiply(const Matrix& a, const Matrix& b) {
   return r;
 }
 
+Matrix RotateX(const Matrix& m, float radians) { return Multiply(m, MakeRotationX(radians)); }
 Matrix RotateY(const Matrix& m, float radians) { return Multiply(m, MakeRotationY(radians)); }
+Matrix RotateZ(const Matrix& m, float radians) { return Multiply(m, MakeRotationZ(radians)); }
+Matrix Translate(const Matrix& m, const Vec3& t) { return Multiply(m, MakeTranslation(t)); }
+Matrix Scale(const Matrix& m, const Vec3& s) { return Multiply(m, MakeScale(s)); }
 
 Matrix MakeLookAt(const Vec3& eye, const Vec3& target, const Vec3& up) {
   Matrix m = kIdentity;

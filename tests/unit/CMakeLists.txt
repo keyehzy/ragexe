@@ -22,6 +22,7 @@ add_executable(ragexe_tests
   rsx_test.cpp
   scene_test.cpp
   mode_switcher_test.cpp
+  model_test.cpp
   palette_test.cpp
   settings_test.cpp
   sprite_test.cpp

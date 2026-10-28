@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
+#include <map>
 #include <memory>
 #include <span>
 #include <string>
@@ -27,6 +28,7 @@
 #include "render/fixed_function.h"
 #include "render/gpu_device.h"
 #include "render/ground.h"
+#include "render/model.h"
 #include "render/scene.h"
 #include "render/texture.h"
 #include "res/bitmap.h"
@@ -35,6 +37,7 @@
 #include "res/gat.h"
 #include "res/gnd.h"
 #include "res/grf.h"
+#include "res/rsm.h"
 #include "res/rsw.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -45,6 +48,7 @@ namespace {
 using namespace ragexe;
 
 constexpr std::uint32_t kLightmapIdBase = 0x10000;
+constexpr std::uint32_t kModelTextureIdBase = 0x20000;
 
 struct Options {
   std::filesystem::path install = "original/install";
@@ -222,8 +226,64 @@ int main(int argc, char** argv) {
     camera.target_yaw = o.yaw;
   }
 
+  // The world's models, as CWorld::LoadWorld places them, lit by the map's light and the
+  // ground's colours. Each texture is uploaded once, by name.
+  std::map<std::string, std::unique_ptr<res::Model>> model_files;
+  std::map<std::string, std::pair<std::uint32_t, bool>> model_textures;  // id, ARGB 4444
+  std::vector<render::ModelInstance> models;
+  std::vector<std::vector<std::uint32_t>> model_texture_ids;  // per instance, by model texture
+  std::vector<render::ModelDrawSettings> model_settings;
+  const render::CellColorLookup cell_color = [&](float x, float, float z) {
+    return render::GroundCellColor(mesh, x, z);
+  };
+  for (const res::WorldModel& placed : world.models) {
+    auto& file = model_files[placed.file];
+    if (!file) {
+      auto model = std::make_unique<res::Model>();
+      std::string ignored;
+      if (Load(files, "data\\model\\" + placed.file, bytes) &&
+          res::DecodeModel(bytes, *model, &ignored))
+        file = std::move(model);
+    }
+    if (!file) continue;
+    render::ModelInstance instance;
+    if (!render::CreateModelInstance(*file, placed.position, placed.rotation, placed.scale,
+                                     placed.animation_speed, instance))
+      continue;
+    render::LightModel(instance, light, cell_color);
+    std::vector<std::uint32_t> ids;
+    render::ModelDrawSettings draw;
+    for (const std::string& name : file->textures) {
+      auto [it, added] = model_textures.try_emplace(
+          name, kModelTextureIdBase + static_cast<std::uint32_t>(model_textures.size()), false);
+      if (added) {
+        res::Bitmap image;
+        std::string ignored;
+        std::uint32_t w = 1, h = 1;
+        std::vector<std::uint32_t> texels{0};
+        if (Load(files, "data\\texture\\" + name, bytes) &&
+            res::DecodeBitmap(name, bytes, image, &ignored)) {
+          texels = ClientTexels(image, w, h);
+          it->second.second = image.has_alpha;
+        }
+        device->SetTexture(it->second.first, w, h, texels);
+      }
+      ids.push_back(it->second.first);
+      draw.texture_alpha.push_back(it->second.second);
+    }
+    models.push_back(std::move(instance));
+    model_texture_ids.push_back(std::move(ids));
+    model_settings.push_back(std::move(draw));
+  }
+  std::fprintf(stderr, "ragview: %zu of %zu models, %zu files, %zu textures\n", models.size(),
+               world.models.size(), model_files.size(), model_textures.size());
+
   render::GroundDrawSettings settings;
   settings.viewport = render::GroundViewportOf(render::SetSize(o.width, o.height));
+  for (render::ModelDrawSettings& m : model_settings) {
+    m.viewport = settings.viewport;
+    m.fade = settings.fade;
+  }
   settings.water.level = 1.0e30f;  // the water's textures are not loaded yet
   render::FixedFunctionState state;
   render::BoundTextures bound;
@@ -256,6 +316,26 @@ int main(int argc, char** argv) {
         const render::ScreenVertex& v = p.vertices[k];
         vertices.push_back({v.x, v.y, v.z, v.rhw, v.diffuse, v.specular, v.u, v.v,
                             p.lightmap_uv[k * 2], p.lightmap_uv[k * 2 + 1]});
+      }
+    }
+    // CView::vf03 steps and draws each visible model; every model here, clipped to the
+    // screen.
+    for (std::size_t m = 0; m < models.size(); ++m) {
+      render::AdvanceAnimation(models[m]);
+      std::vector<render::ModelPrimitive> faces;
+      render::DrawModel(models[m], camera.view, true, model_settings[m], faces);
+      for (const render::ModelPrimitive& p : faces) {
+        render::ScenePrimitive s;
+        s.id = static_cast<std::uint32_t>(spans.size());
+        s.texture = model_texture_ids[m][static_cast<std::size_t>(p.texture)];
+        s.type = 4;
+        s.vertex_count = static_cast<std::uint32_t>(p.vertices.size());
+        s.rhw0 = p.vertices[0].rhw;
+        s.rhw1 = p.vertices.size() > 1 ? p.vertices[1].rhw : 0.0f;
+        lists.Add(s, p.flags);
+        spans.emplace_back(static_cast<std::uint32_t>(vertices.size()), s.vertex_count);
+        for (const render::ScreenVertex& v : p.vertices)
+          vertices.push_back({v.x, v.y, v.z, v.rhw, v.diffuse, v.specular, v.u, v.v, 0.0f, 0.0f});
       }
     }
     const auto calls = render::DrawScene(lists, {false, true, true}, bound);

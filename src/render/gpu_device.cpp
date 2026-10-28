@@ -80,12 +80,17 @@ std::unique_ptr<RenderDevice> RenderDevice::Create(SDL_Window* window, std::stri
     if (error != nullptr) *error = out->error_;
     return nullptr;
   }
+  // No texture samples as opaque black, as Direct3D's stages read an unbound texture: the
+  // ground's lightmap stage, left set for the models, then passes their colour through.
+  // An id never uploaded stands for a texture that failed to load, and draws white.
+  const std::uint32_t black = 0xff000000;
   const std::uint32_t white = 0xffffffff;
-  if (!out->SetTexture(0, 1, 1, std::span(&white, 1))) {
+  if (!out->SetTexture(0, 1, 1, std::span(&black, 1)) ||
+      !out->SetTexture(kWhiteId, 1, 1, std::span(&white, 1))) {
     if (error != nullptr) *error = out->error_;
     return nullptr;
   }
-  out->white_ = out->textures_[0];
+  out->white_ = out->textures_[kWhiteId];
   return out;
 }
 

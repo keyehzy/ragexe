@@ -63,6 +63,7 @@ add_library(ragexe_render STATIC
   render/fixed_function.cpp
   render/ground.cpp
   render/matrix.cpp
+  render/model.cpp
   render/scene.cpp
   render/texture.cpp)
 target_include_directories(ragexe_render PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

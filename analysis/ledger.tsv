@@ -2991,17 +2991,17 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004b6a90	33	code	0	world		named	C3dNode	`scalar_deleting_destructor'	
 004b6ac0	381	code	0	world		named	C3dNode	~C3dNode	
 004b6c40	38	code	1	stl		named	std::vector	~vector	
-004b6c70	305	code	0	world		named	C3dNode	method_004b6c70	
+004b6c70	305	code	0	world		named	C3dNode	Clear	
 004b6db0	154	code	0	world		named	C3dNode	ComputeMatrixAtTime	
-004b6e50	1820	code	0	world		named	C3dNode	vf00	
+004b6e50	1820	code	0	world		named	C3dNode	Draw	
 004b7570	1	code	0	world		named	Global	atexit_no_op_004b7570	
-004b7580	956	code	0	world		named	C3dNode	vf01	
+004b7580	956	code	0	world		named	C3dNode	Setup	
 004b7940	305	code	0	world		named	C3dNode	ExpandBoundingBox	
 004b7a80	789	code	0	world		named	C3dNode	UpdateBoundingBox	
 004b7da0	49	code	0	world		named	C3dNode	SetTranslucentRecursive	
 004b7de0	71	code	0	world	dead	raw	Global	FUN_004b7de0	
-004b7e30	1746	code	0	world		named	C3dNode	vf02	
-004b8510	1199	code	0	world		named	C3dNode	method_004b8510	
+004b7e30	1746	code	0	world		named	C3dNode	Light	
+004b8510	1199	code	0	world		named	C3dNode	TintWithGround	
 004b89c0	1	code	0	world		named	Global	atexit_no_op_004b89c0	
 004b89d0	116	code	0	world	unreferenced	raw	Global	FUN_004b89d0	
 004b8a50	168	code	0	world	unreferenced	raw	Global	FUN_004b8a50	
@@ -3012,14 +3012,14 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004b9340	171	code	0	world		named	ModelInstance	ModelInstance	
 004b93f0	148	code	0	world		named	ModelInstance	~ModelInstance	
 004b9490	123	code	0	world		named	ModelInstance	Clear	
-004b9510	33	code	0	world		named	ModelInstance	method_004b9510	
-004b9550	157	code	0	world		named	ModelInstance	method_004b9550	
-004b95f0	168	code	0	world		named	ModelInstance	method_004b95f0	
+004b9510	33	code	0	world		named	ModelInstance	ComputeNodeMatrices	
+004b9550	157	code	0	world		named	ModelInstance	CopyVolumes	
+004b95f0	168	code	0	world		named	ModelInstance	UpdateWorldMatrix	
 004b96a0	159	code	0	world		named	ModelInstance	AdvanceAnimation	
 004b9740	211	code	0	world		named	ModelInstance	Render	
-004b9820	156	code	0	world		named	ModelInstance	method_004b9820	
-004b98c0	2469	code	0	world		named	ModelInstance	method_004b98c0	
-004ba270	57	code	0	world		named	ModelInstance	method_004ba270	
+004b9820	156	code	0	world		named	ModelInstance	Setup	
+004b98c0	2469	code	0	world		named	ModelInstance	ComputeBox	
+004ba270	57	code	0	world		named	ModelInstance	Light	
 004ba2b0	395	code	0	world	dead	raw	Global	FUN_004ba2b0	
 004ba440	835	code	0	world	dead	raw	Global	FUN_004ba440	
 004ba790	57	code	0	world	dead	raw	Global	FUN_004ba790	

@@ -39,3 +39,5 @@ address	namespace	name	evidence	type
 00614890	Global	g_indoorViewDistance	saved under that name (0061a248) by ClientState::SaveOptions	float
 00614894	Global	g_outdoorViewLatitude	saved under that name (0061a290) by ClientState::SaveOptions	float
 00614898	Global	g_outdoorViewDistance	saved under that name (0061a278) by ClientState::SaveOptions	float
+00662870	Global	g_modelScreenVertices	C3dNode::Draw projects a node's vertices here, 0x20 bytes each (x, y, z, rhw, diffuse, specular 0xff000000 from a one-time loop over 3000, u, v), before copying each face's three	dword
+00659bd0	Global	g_modelFaceColors	C3dNode::Light writes each face's three ARGB colours here before copying them to the node's records	dword

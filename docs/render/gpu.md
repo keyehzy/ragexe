@@ -27,7 +27,12 @@ Each draw becomes a `DrawRecord`:
 
 `RenderDevice` (`src/render/gpu_device`, library `ragexe_gpu`) holds:
 - textures by id, uploaded as `B8G8R8A8`, which is how an ARGB dword lies in memory;
-- a 1 × 1 white texture for id 0 and unknown ids;
+- **id 0, no texture:** a 1 × 1 opaque black texture. That is how Direct3D's stages read an
+  unbound texture: the ground's lightmap stage, `MODULATEALPHA_ADDCOLOR(TEXTURE,
+  CURRENT)`, stays set after the ground with stage 1 unbound, and then passes the
+  models' colour through;
+- **an id never uploaded,** such as a texture that failed to load: a 1 × 1 white texture
+  (`kWhiteId`);
 - pipelines and samplers made on first use;
 - one vertex buffer refilled each frame.
 
@@ -81,7 +86,7 @@ runs on Vulkan; D3D12 would need DXIL.
 
 ## ragview
 
-`ragview` draws a map's ground as the client draws it:
+`ragview` draws a map's ground and models as the client draws them:
 
 ```bash
 ./build/dev/src/ragview prontera
@@ -104,13 +109,19 @@ runs on Vulkan; D3D12 would need DXIL.
    the `.gat`'s ground at `--at X Z`, the map's centre by default. `--yaw` turns the
    camera.
 6. Size the projection with `SetSize`.
+7. **Models:** place each of the `.rsw`'s models as `CWorld::LoadWorld` does, and light it
+   with the `.rsw`'s light and the ground's lightmap colours ([model.md](model.md)).
+   - Each `.rsm` is loaded once.
+   - Each texture is uploaded once by name, as the ground's are.
 
 **Each frame:**
 1. `CView::Update`'s port follows the player.
 2. `DrawGroundCells` over every cell, with its view matrix.
-3. The primitives go into `SceneLists`.
-4. `DrawScene` with two-stage lightmaps.
-5. The calls become `DrawRecord`s for the device.
+3. Each model steps its animation and is drawn, clipped to the screen. Every model is
+   drawn, since the scene graph's culling is not ported yet.
+4. The ground's and the models' primitives go into `SceneLists`.
+5. `DrawScene` with two-stage lightmaps.
+6. The calls become `DrawRecord`s for the device.
 
 **Controls,** in a window:
 - **The mouse,** through `ProcessCameraInput`'s port: holding the right button is its
