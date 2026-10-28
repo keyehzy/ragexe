@@ -3466,7 +3466,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004cf2a0	428	code	0	world		named	CView	ApplyShake	
 004cf450	84	code	0	world		named	CView	StartShake	
 004cf4b0	25	code	0	world		named	CView	SetShakeAmplitudes	
-004cf4d0	754	code	0	world		named	CView	vf03	
+004cf4d0	754	code	0	world		named	CView	DrawWorld	
 004cf7d0	570	code	0	world		named	CView	Step	
 004cfa10	268	code	0	world		named	CView	BuildView	
 004cfb20	108	code	0	world		named	CView	GetViewDirection	

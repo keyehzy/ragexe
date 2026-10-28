@@ -3466,7 +3466,7 @@ entry	size	namespace	name	source	fid	thunk	calling_convention	signature
 004cf2a0	428	CView	ApplyShake	USER_DEFINED	0	0	__thiscall	undefined ApplyShake(CView * this)
 004cf450	84	CView	StartShake	USER_DEFINED	0	0	__thiscall	undefined StartShake(CView * this)
 004cf4b0	25	CView	SetShakeAmplitudes	USER_DEFINED	0	0	__thiscall	undefined SetShakeAmplitudes(CView * this)
-004cf4d0	754	CView	vf03	ANALYSIS	0	0	__thiscall	undefined vf03(CView * this)
+004cf4d0	754	CView	DrawWorld	USER_DEFINED	0	0	__thiscall	undefined DrawWorld(CView * this)
 004cf7d0	570	CView	Step	USER_DEFINED	0	0	__thiscall	undefined Step(CView * this)
 004cfa10	268	CView	BuildView	USER_DEFINED	0	0	__thiscall	undefined BuildView(CView * this)
 004cfb20	108	CView	GetViewDirection	USER_DEFINED	0	0	__thiscall	undefined GetViewDirection(CView * this)

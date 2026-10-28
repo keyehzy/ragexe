@@ -195,8 +195,7 @@ The port matches every value bit for bit (`tests/unit/model_test.cpp`).
 
 **Not ported yet:**
 - the volumes and their matrices;
-- the scene graph's culling (`ViewFrustum`), which picks the models drawn and whether
-  they are clipped;
 - `SetTranslucentIfRayHits`.
 
-ragview draws every model, clipped.
+Which models are drawn, and whether clipped, is the scene graph's
+([scene_graph.md](scene_graph.md)).

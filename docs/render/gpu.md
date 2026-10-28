@@ -113,15 +113,16 @@ runs on Vulkan; D3D12 would need DXIL.
    with the `.rsw`'s light and the ground's lightmap colours ([model.md](model.md)).
    - Each `.rsm` is loaded once.
    - Each texture is uploaded once by name, as the ground's are.
+8. **The scene graph** over the ground and the models, with the `.rsw`'s bounds when it
+   has them ([scene_graph.md](scene_graph.md)).
 
 **Each frame:**
 1. `CView::Update`'s port follows the player.
-2. `DrawGroundCells` over every cell, with its view matrix.
-3. Each model steps its animation and is drawn, clipped to the screen. Every model is
-   drawn, since the scene graph's culling is not ported yet.
-4. The ground's and the models' primitives go into `SceneLists`.
-5. `DrawScene` with two-stage lightmaps.
-6. The calls become `DrawRecord`s for the device.
+2. The frustum culls the scene graph, and the visible leaves' models and cells are drawn
+   in `CView::vf03`'s order.
+3. The ground's and the models' primitives go into `SceneLists`.
+4. `DrawScene` with two-stage lightmaps.
+5. The calls become `DrawRecord`s for the device.
 
 **Controls,** in a window:
 - **The mouse,** through `ProcessCameraInput`'s port: holding the right button is its

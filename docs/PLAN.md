@@ -2193,9 +2193,24 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     clip rectangle under `00688a74`.
   - **Labels:** `ModelInstance`'s and `C3dNode`'s set-up, lighting, tint, box and draw.
 
+- [x] The scene graph and the view frustum (`docs/render/scene_graph.md`,
+  `src/render/scene_graph`):
+  - **`BuildSceneGraph`** splits the map into a quadtree to depth 5 and puts each model
+    in the leaves its oriented box meets (a 15-axis separating axis test). Each node
+    gets the ground's and the attribute map's cells under it.
+  - **The bounds** come from a version 2.1 `.rsw` (202 of 208 maps), or from the heights
+    under each leaf. The ancestors keep their ±999,999 heights.
+  - **`ViewFrustum`** carries six view-space planes (the 7.5° sides, near 10, far 1500)
+    into the world, and lists the leaves inside and crossing.
+  - **`CView::vf03`'s order:** crossing leaves first, their models classified, stepped
+    and clipped; then inside leaves; each model and cell once a frame.
+  - **Checks:** `tools/scene_graph_vectors.py` records both ways of building, five views'
+    planes, leaves and model classes, and 300 box tests. 60,738 values match.
+  - **`ragview`** draws only what the frustum keeps.
+  - **Labels:** `CView::vf03` and its cell range globals.
+
 ### Next actions
-1. M4, the renderer: the scene graph's culling (`ViewFrustum::CullSceneGraph` and
-   `ClassifyOrientedBox`), so that `ragview` draws the models and ground cells the client
-   draws; then the water and the sky.
+1. M4, the renderer: the water (`C3dGround15`'s water quads and their textures) and the
+   sky box, so that `ragview` shows a map whole.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

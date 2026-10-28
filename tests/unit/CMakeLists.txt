@@ -20,6 +20,7 @@ add_executable(ragexe_tests
   rsm_test.cpp
   rsw_test.cpp
   rsx_test.cpp
+  scene_graph_test.cpp
   scene_test.cpp
   mode_switcher_test.cpp
   model_test.cpp

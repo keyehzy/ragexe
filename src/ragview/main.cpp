@@ -30,6 +30,7 @@
 #include "render/ground.h"
 #include "render/model.h"
 #include "render/scene.h"
+#include "render/scene_graph.h"
 #include "render/texture.h"
 #include "res/bitmap.h"
 #include "res/client_tables.h"
@@ -279,7 +280,11 @@ int main(int argc, char** argv) {
                world.models.size(), model_files.size(), model_textures.size());
 
   render::GroundDrawSettings settings;
-  settings.viewport = render::GroundViewportOf(render::SetSize(o.width, o.height));
+  const render::Projection projection = render::SetSize(o.width, o.height);
+  settings.viewport = render::GroundViewportOf(projection);
+  // CWorld::BuildSceneGraph, with the .rsw's bounds when it has them (version 2.1).
+  render::SceneGraph graph;
+  render::BuildSceneGraph(mesh, attr, models, world.bounds, graph);
   for (render::ModelDrawSettings& m : model_settings) {
     m.viewport = settings.viewport;
     m.fade = settings.fade;
@@ -293,50 +298,50 @@ int main(int argc, char** argv) {
   const auto frame = [&](std::uint32_t number, std::vector<render::DrawRecord>& draws) {
     settings.frame = number;
     render::UpdateCamera(camera, player, false, &attr);
-    std::vector<render::GroundPrimitive> primitives;
-    render::DrawGroundCells(mesh, camera.view, {0, 0, ground.width - 1, ground.height - 1}, true,
-                            settings, primitives);
+    // CView::vf03: the scene graph's nodes the frustum keeps, their models and cells.
+    const render::Frustum frustum =
+        render::MakeFrustum(projection.slope_x, projection.slope_y, camera.view);
+    const render::VisibleNodes visible = render::CollectVisibleNodes(frustum, graph);
+    std::vector<render::VisiblePrimitive> primitives;
+    render::DrawVisible(visible, graph, frustum, camera.view, mesh, settings, models,
+                        model_settings, primitives);
     render::SceneLists lists;
     vertices.clear();
     spans.clear();
-    for (std::size_t i = 0; i < primitives.size(); ++i) {
-      const render::GroundPrimitive& p = primitives[i];
+    for (const render::VisiblePrimitive& v : primitives) {
       render::ScenePrimitive s;
-      s.id = static_cast<std::uint32_t>(i);
-      s.texture = p.texture >= 0 ? static_cast<std::uint32_t>(p.texture + 1) : 0;
-      s.lightmap =
-          p.lightmap_page >= 0 ? kLightmapIdBase + static_cast<std::uint32_t>(p.lightmap_page) : 0;
-      s.type = 5;
-      s.vertex_count = 4;
-      s.rhw0 = p.vertices[0].rhw;
-      s.rhw1 = p.vertices[1].rhw;
-      lists.Add(s, p.flags);
-      spans.emplace_back(static_cast<std::uint32_t>(vertices.size()), 4);
-      for (std::size_t k = 0; k < 4; ++k) {
-        const render::ScreenVertex& v = p.vertices[k];
-        vertices.push_back({v.x, v.y, v.z, v.rhw, v.diffuse, v.specular, v.u, v.v,
-                            p.lightmap_uv[k * 2], p.lightmap_uv[k * 2 + 1]});
-      }
-    }
-    // CView::vf03 steps and draws each visible model; every model here, clipped to the
-    // screen.
-    for (std::size_t m = 0; m < models.size(); ++m) {
-      render::AdvanceAnimation(models[m]);
-      std::vector<render::ModelPrimitive> faces;
-      render::DrawModel(models[m], camera.view, true, model_settings[m], faces);
-      for (const render::ModelPrimitive& p : faces) {
-        render::ScenePrimitive s;
-        s.id = static_cast<std::uint32_t>(spans.size());
-        s.texture = model_texture_ids[m][static_cast<std::size_t>(p.texture)];
-        s.type = 4;
-        s.vertex_count = static_cast<std::uint32_t>(p.vertices.size());
+      s.id = static_cast<std::uint32_t>(spans.size());
+      if (v.model < 0) {
+        const render::GroundPrimitive& p = v.ground;
+        s.texture = p.texture >= 0 ? static_cast<std::uint32_t>(p.texture + 1) : 0;
+        s.lightmap = p.lightmap_page >= 0
+                         ? kLightmapIdBase + static_cast<std::uint32_t>(p.lightmap_page)
+                         : 0;
+        s.type = 5;
+        s.vertex_count = 4;
         s.rhw0 = p.vertices[0].rhw;
-        s.rhw1 = p.vertices.size() > 1 ? p.vertices[1].rhw : 0.0f;
+        s.rhw1 = p.vertices[1].rhw;
         lists.Add(s, p.flags);
-        spans.emplace_back(static_cast<std::uint32_t>(vertices.size()), s.vertex_count);
-        for (const render::ScreenVertex& v : p.vertices)
-          vertices.push_back({v.x, v.y, v.z, v.rhw, v.diffuse, v.specular, v.u, v.v, 0.0f, 0.0f});
+        spans.emplace_back(static_cast<std::uint32_t>(vertices.size()), 4);
+        for (std::size_t k = 0; k < 4; ++k) {
+          const render::ScreenVertex& sv = p.vertices[k];
+          vertices.push_back({sv.x, sv.y, sv.z, sv.rhw, sv.diffuse, sv.specular, sv.u, sv.v,
+                              p.lightmap_uv[k * 2], p.lightmap_uv[k * 2 + 1]});
+        }
+        continue;
       }
+      const render::ModelPrimitive& p = v.face;
+      const auto m = static_cast<std::size_t>(v.model);
+      s.texture = model_texture_ids[m][static_cast<std::size_t>(p.texture)];
+      s.type = 4;
+      s.vertex_count = static_cast<std::uint32_t>(p.vertices.size());
+      s.rhw0 = p.vertices[0].rhw;
+      s.rhw1 = p.vertices.size() > 1 ? p.vertices[1].rhw : 0.0f;
+      lists.Add(s, p.flags);
+      spans.emplace_back(static_cast<std::uint32_t>(vertices.size()), s.vertex_count);
+      for (const render::ScreenVertex& sv : p.vertices)
+        vertices.push_back(
+            {sv.x, sv.y, sv.z, sv.rhw, sv.diffuse, sv.specular, sv.u, sv.v, 0.0f, 0.0f});
     }
     const auto calls = render::DrawScene(lists, {false, true, true}, bound);
     draws = render::RecordDraws(state, calls);

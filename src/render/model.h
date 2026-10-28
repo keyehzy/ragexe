@@ -76,6 +76,7 @@ struct ModelInstance {
   std::array<Vec3, 3> axes{};            // +0x148, normalised
   std::array<Vec3, 8> corners{};         // +0x16c, the local box's corners in the world
   std::array<float, 6> bounds{};         // +0x1cc, their minimum and maximum
+  std::uint32_t drawn_frame = 0;         // +0x1e4, the frame CView::vf03 last drew it in
   bool fading = false;                   // +0x1ec, on the node's instance: fade out this frame
   std::uint8_t alpha = 0xff;             // +0x1ed
   std::vector<ModelNodeInstance> nodes;  // depth first from the model's first node
