@@ -1639,7 +1639,7 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     depend on the sprite's detail level. The port fetches the sprite through the
     resource manager as the original does.
   - **Field names** come from their consumers (`SceneRenderer::DrawActFrame`,
-    `CRenderObject::method_00500f70`, `CPc::RenderActFrameItems`).
+    `CRenderObject::DrawBody`, `CPc::RenderActFrameItems`).
   - **Oracle** (`tools/act_oracle.py`):
     - **Setup:** the original resource manager runs in the emulator with the sprite type
       registered, so `Load` fetches the real `.spr`.
@@ -2244,8 +2244,34 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Labels:** `SetFogEnabled`, `ApplyMapFog`, `FindFogParameters`, and the fog
     globals.
 
+- [x] The actors' sprites (`docs/render/actor.md`):
+  - **The scales:** `SetSize` and `CView::Step` leave five globals the sprites read: the
+    size, two depth slopes from the pitch, a layer step and a depth bias from the
+    distance.
+  - **Animation:** `CGameObject::vf04` turns a facing into one of eight directions against
+    the camera; `CRenderObject::vf08` picks the action and the frame from the time, looping
+    or once.
+  - **`DrawBody`** places each item of the current frame at the projected position, scaled
+    by depth, with its rhw from the slopes and the layer steps, tinted, and kept when on
+    screen. **`DrawShadow`** puts `shadow.spr` on the ground under the actor.
+  - **`AddSpriteQuad`** turns a quad into four vertices, turned by its angle, textured from
+    a 32-bit image's texture or the sprite texture cache.
+  - **The ground's tint is always white:** the table `C3dGround15::GetCellTint` reads is
+    never filled.
+  - **Checks:** `tools/actor_vectors.py` records the scales at 8 sizes and 10 cameras, 240
+    objects (458 body quads, 72 shadows), 200 quads, 120 directions and 200 frame steps;
+    13,744 values match.
+  - **`ragview`** shows an actor where the player stands (`--actor`, `npc\4_m_01` by
+    default).
+  - **Labels:** `DrawBody`, `DrawShadow`, `Render`, `UpdateFrame`, `SetAction`,
+    `GetDirection`, `AddSpriteQuad`, the cache's `FindCachedSprite` and
+    `CacheSpriteImage`, and the five scales.
+  - **Not ported:** `CPc`'s layered characters (body, head, headgear and palettes), the
+    texture cache's slots, and the screen bounds kept for picking.
+
 ### Next actions
-1. M4, the renderer: the actors' sprites (`CRenderObject`, with the scales `CView::Step`
-   and `SetSize` leave), so that `ragview` can show a character on the map.
+1. M4, the renderer: the player characters (`CPc::RenderActFrameItems`): the body and
+   head sprites by job and sex, their palettes and the headgear, matched by anchors, so
+   that `ragview` can show a player as the client does.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

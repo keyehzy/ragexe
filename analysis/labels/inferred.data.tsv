@@ -53,3 +53,8 @@ address	namespace	name	evidence	type
 00625eac	Global	g_fogDensity	CGameMode::ApplyMapFog: atof of the map's fourth fog value; SceneRenderer::SetupProjection sets FOGDENSITY from it	float
 00625eb0	Global	g_fogStart	CGameMode::ApplyMapFog: atof of the map's first fog value, a fraction of 10..1500; read by RenderPrimitive::ComputeVertexFog and SceneRenderer::SetupProjection	float
 00625eb4	Global	g_fogEnd	CGameMode::ApplyMapFog: atof of the map's second fog value, a fraction of 10..1500; read by RenderPrimitive::ComputeVertexFog and SceneRenderer::SetupProjection	float
+0061470c	Global	g_spriteSize	SceneRenderer::SetSize: the height times 0.0017447917 (005e26ac); CRenderObject::DrawBody divides the pixel scale by it	float
+0060564c	Global	g_spriteSlopeDown	SceneRenderer::SetSize (0.16 / height ratio) and CView::Step (0.16 tan(-pitch) / height ratio); CRenderObject::DrawBody's depth across a sprite	float
+00605650	Global	g_spriteSlopeUp	SceneRenderer::SetSize (0.16 / height ratio) and CView::Step (0.16 cot(-pitch) / height ratio); the depth across shadows and +0x80 bodies	float
+00614704	Global	g_spriteLayerStep	CView::Step: sin(-pitch) / sin 45 times 300 / distance times 9e-6; each sprite layer's depth step in CRenderObject::DrawBody	float
+00614708	Global	g_spriteDepthBias	CView::Step: 300 / distance times 3.6e-5; CRenderObject::DrawBody adds it, times the pixel scale, to every layer's rhw	float

@@ -116,12 +116,16 @@ runs on Vulkan; D3D12 would need DXIL.
    - Each texture is uploaded once by name, as the ground's are.
 8. **The scene graph** over the ground and the models, with the `.rsw`'s bounds when it
    has them ([scene_graph.md](scene_graph.md)).
+9. **The actor:** the sprite and actions `--actor` names (`npc\4_m_01` by default,
+   `none` for none) and `shadow.spr`, each image uploaded as the sprite texture cache
+   draws it ([actor.md](actor.md)).
 
 **Each frame:**
 1. `CView::Update`'s port follows the player.
 2. The frustum culls the scene graph, and the visible leaves' models and cells are drawn
    in `CView::vf03`'s order.
-3. The ground's and the models' primitives go into `SceneLists`.
+3. The ground's and the models' primitives go into `SceneLists`, then the actor's
+   shadow and body, standing where the player does, idle, its frame following the time.
 4. `DrawScene` with two-stage lightmaps, and with the fog when the map has a record in
    `fogParameterTable.txt` ([fog.md](fog.md)). Every vertex carries its fog factor, and
    the first frame starts with `SetupProjection`'s fog states.

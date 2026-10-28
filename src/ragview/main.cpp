@@ -1,13 +1,15 @@
 // ragview: a map's ground drawn as the client draws it (docs/render/gpu.md).
 //
 //   ragview [--install DIR] [--size W H] [--at X Z] [--yaw DEGREES] [--frames N]
-//           [--no-fog] [--screenshot FILE.png] MAP
+//           [--no-fog] [--actor SPRITE] [--screenshot FILE.png] MAP
 //
 // MAP is a .rsw name such as prontera. The ground is built and drawn by the ported
 // C3dGround15, through the scene lists and DrawScene, and the calls are replayed on
 // SDL_GPU. The camera is the client's: placed as on entering the map, following a player
 // standing at world (X, Z) (the map's centre by default), turned to YAW if given. The
-// map's fog is on, as the client's FOG setting is by default, unless --no-fog.
+// map's fog is on, as the client's FOG setting is by default, unless --no-fog. An actor
+// stands where the player does, drawn from data\sprite\SPRITE.spr and .act (npc\4_m_01
+// by default, none for no actor), idle and facing south.
 // --screenshot renders one frame offscreen to a PNG and exits; otherwise a window opens,
 // and Escape or --frames N closes it.
 
@@ -25,6 +27,7 @@
 #include <string>
 #include <vector>
 
+#include "render/actor.h"
 #include "render/camera.h"
 #include "render/fixed_function.h"
 #include "render/fog.h"
@@ -34,6 +37,7 @@
 #include "render/scene.h"
 #include "render/scene_graph.h"
 #include "render/texture.h"
+#include "res/act.h"
 #include "res/bitmap.h"
 #include "res/client_tables.h"
 #include "res/data_files.h"
@@ -42,6 +46,7 @@
 #include "res/grf.h"
 #include "res/rsm.h"
 #include "res/rsw.h"
+#include "res/sprite.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
@@ -53,6 +58,9 @@ using namespace ragexe;
 constexpr std::uint32_t kLightmapIdBase = 0x10000;
 constexpr std::uint32_t kModelTextureIdBase = 0x20000;
 constexpr std::uint32_t kWaterTextureIdBase = 0x30000;
+constexpr std::uint32_t kActorTextureIdBase = 0x40000;
+constexpr std::uint32_t kShadowTextureIdBase = 0x48000;
+constexpr std::uint32_t kSpritePage = 256;  // the sprite texture cache's pages (0040e130)
 
 struct Options {
   std::filesystem::path install = "original/install";
@@ -65,6 +73,7 @@ struct Options {
   float yaw = 0.0f;
   int frames = 0;
   bool fog = true;
+  std::string actor = "npc\\4_m_01";
   std::string screenshot;
 };
 
@@ -78,7 +87,8 @@ int ParseInt(const char* text, int fallback) {
 int Usage() {
   std::fprintf(stderr,
                "usage: ragview [--install DIR] [--size W H] [--at X Z] [--yaw DEGREES]\n"
-               "               [--frames N] [--no-fog] [--screenshot FILE.png] MAP\n");
+               "               [--frames N] [--no-fog] [--actor SPRITE] [--screenshot FILE.png]\n"
+               "               MAP\n");
   return 2;
 }
 
@@ -108,6 +118,70 @@ bool Load(const res::DataFiles& files, const std::string& path, std::vector<std:
   return true;
 }
 
+// A sprite and its actions, with each image uploaded as the texture cache would hold it:
+// an 8-bit image decoded through the palette into a slot at the corner of a 256 x 256
+// page (CTexture::DrawRleImage, index 0 clear), a 32-bit image in a texture of its own.
+struct ActorSprite {
+  res::Sprite sprite;
+  res::Act act;
+  std::vector<std::uint32_t> ids8, ids32;
+  std::vector<render::SpriteTextureRect> rects8, rects32;
+};
+
+bool LoadActorSprite(const res::DataFiles& files, const std::string& name,
+                     render::RenderDevice& device, std::uint32_t id_base, ActorSprite& out) {
+  std::vector<std::uint8_t> bytes;
+  std::string ignored;
+  if (!Load(files, "data\\sprite\\" + name + ".spr", bytes) ||
+      !res::DecodeSprite(bytes, {}, out.sprite, &ignored))
+    return false;
+  const res::ActImageLookup lookup = [&](std::int32_t type,
+                                         std::int32_t index) -> std::optional<res::ActImageSize> {
+    const auto i = static_cast<std::size_t>(index);
+    if (index >= 0 && type == 0 && i < out.sprite.images.size()) {
+      const auto& image = out.sprite.images[i];
+      return res::ActImageSize{image.width, image.height, image.halved_x, image.halved_y};
+    }
+    if (index >= 0 && type == 1 && i < out.sprite.images32.size()) {
+      const auto& image = out.sprite.images32[i];
+      return res::ActImageSize{image.width, image.height, image.halved_x, image.halved_y};
+    }
+    return std::nullopt;
+  };
+  if (!Load(files, "data\\sprite\\" + name + ".act", bytes) ||
+      !res::DecodeAct(bytes, lookup, out.act, &ignored))
+    return false;
+  std::uint32_t id = id_base;
+  for (const res::SpriteImage& image : out.sprite.images) {
+    const std::vector<std::uint8_t> indices = image.Decode();
+    std::vector<std::uint32_t> page(static_cast<std::size_t>(kSpritePage) * kSpritePage, 0);
+    const auto w = std::min<std::uint32_t>(static_cast<std::uint32_t>(image.width), kSpritePage);
+    const auto h = std::min<std::uint32_t>(static_cast<std::uint32_t>(image.height), kSpritePage);
+    for (std::uint32_t y = 0; y < h; ++y) {
+      for (std::uint32_t x = 0; x < w; ++x) {
+        const std::uint8_t index = indices[y * static_cast<std::uint32_t>(image.width) + x];
+        const std::uint32_t texel = index == 0 ? 0 : out.sprite.palette[index] & 0xffff;
+        page[y * kSpritePage + x] = render::ExpandTexel(render::TextureFormat::kArgb1555, texel);
+      }
+    }
+    device.SetTexture(id, kSpritePage, kSpritePage, page);
+    out.ids8.push_back(id++);
+    const auto page_size = static_cast<float>(kSpritePage);
+    out.rects8.push_back({0.0f, 0.0f, static_cast<float>(image.width) / page_size,
+                          static_cast<float>(image.height) / page_size});
+  }
+  for (const res::SpriteImage32& image : out.sprite.images32) {
+    const auto w = static_cast<std::uint32_t>(std::max<std::int16_t>(image.pixel_width, 1));
+    const auto h = static_cast<std::uint32_t>(std::max<std::int16_t>(image.pixel_height, 1));
+    std::vector<std::uint32_t> pixels = image.pixels;
+    pixels.resize(static_cast<std::size_t>(w) * h, 0);
+    device.SetTexture(id, w, h, pixels);
+    out.ids32.push_back(id++);
+    out.rects32.push_back({0.0f, 0.0f, 1.0f, 1.0f});
+  }
+  return true;
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -128,6 +202,8 @@ int main(int argc, char** argv) {
       o.yaw = std::strtof(argv[++i], nullptr);
     } else if (a == "--frames" && next(1)) {
       o.frames = ParseInt(argv[++i], -1);
+    } else if (a == "--actor" && next(1)) {
+      o.actor = argv[++i];
     } else if (a == "--no-fog") {
       o.fog = false;
     } else if (a == "--screenshot" && next(1)) {
@@ -291,8 +367,25 @@ int main(int argc, char** argv) {
   std::fprintf(stderr, "ragview: %zu of %zu models, %zu files, %zu textures\n", models.size(),
                world.models.size(), model_files.size(), model_textures.size());
 
+  // The actor, its shadow (shadow.spr and shadow.act), and the scales its sprites read.
+  ActorSprite actor;
+  ActorSprite shadow;
+  const bool has_actor = o.actor != "none" &&
+                         LoadActorSprite(files, o.actor, *device, kActorTextureIdBase, actor) &&
+                         LoadActorSprite(files, "shadow", *device, kShadowTextureIdBase, shadow);
+  if (o.actor != "none" && !has_actor)
+    std::fprintf(stderr, "ragview: no sprite %s\n", o.actor.c_str());
+  render::RenderObject actor_object;
+  actor_object.shadow = true;
+  // vf07 with action 0: the action's delay, at least 1.
+  actor_object.delay = actor.act.delays.empty() ? 4.0f : actor.act.delays[0];
+  if (actor_object.delay < 1.0f) actor_object.delay = 1.0f;
+  actor_object.start_time = static_cast<std::uint32_t>(SDL_GetTicks());
+
   render::GroundDrawSettings settings;
   const render::Projection projection = render::SetSize(o.width, o.height);
+  render::SpriteScales sprite_scales;
+  render::SetSpriteScalesForSize(projection, sprite_scales);
   settings.viewport = render::GroundViewportOf(projection);
   // CWorld::BuildSceneGraph, with the .rsw's bounds when it has them (version 2.1).
   render::SceneGraph graph;
@@ -315,7 +408,8 @@ int main(int argc, char** argv) {
   // SetFogEnabled leaves SceneRenderer+0x48 set, so the first DrawScene sets up the fog.
   bool setup_projection = true;
 
-  const auto frame = [&](std::uint32_t number, std::vector<render::DrawRecord>& draws) {
+  const auto frame = [&](std::uint32_t number, std::uint32_t now,
+                         std::vector<render::DrawRecord>& draws) {
     settings.frame = number;
     // CGameMode::OnFrame's step: the water's frame and phase, and its texture.
     const std::string water_name = render::StepWater(settings.water);
@@ -333,6 +427,7 @@ int main(int argc, char** argv) {
     }
     water_texture = water_it->second;
     render::UpdateCamera(camera, player, false, &attr);
+    render::StepSpriteScales(camera.pitch, camera.distance, projection, sprite_scales);
     // CView::vf03: the scene graph's nodes the frustum keeps, their models and cells.
     const render::Frustum frustum =
         render::MakeFrustum(projection.slope_x, projection.slope_y, camera.view);
@@ -378,6 +473,39 @@ int main(int argc, char** argv) {
         vertices.push_back({sv.x, sv.y, sv.z, sv.rhw, sv.diffuse, render::VertexFog(sv.rhw, fog),
                             sv.u, sv.v, 0.0f, 0.0f});
     }
+    // The actor's vf03: its shadow, then its body, each quad through SceneRenderer 0040e980.
+    if (has_actor) {
+      actor_object.position = player;
+      render::UpdateActorFrame(actor_object, actor.act, camera.yaw, now);
+      const auto add = [&](const render::SpriteQuad& q, const ActorSprite& from) {
+        const bool is32 = q.image_type != 0;
+        const auto i = static_cast<std::size_t>(q.image);
+        if (i >= (is32 ? from.ids32.size() : from.ids8.size())) return;
+        const auto v = render::SpriteQuadVertices(q, is32 ? from.rects32[i] : from.rects8[i]);
+        render::ScenePrimitive s;
+        s.id = static_cast<std::uint32_t>(spans.size());
+        s.texture = is32 ? from.ids32[i] : from.ids8[i];
+        s.type = 5;
+        s.vertex_count = 4;
+        s.rhw0 = v[0].rhw;
+        s.rhw1 = v[1].rhw;
+        lists.Add(s, q.flags);
+        spans.emplace_back(static_cast<std::uint32_t>(vertices.size()), 4);
+        for (const render::ScreenVertex& sv : v)
+          vertices.push_back({sv.x, sv.y, sv.z, sv.rhw, sv.diffuse, render::VertexFog(sv.rhw, fog),
+                              sv.u, sv.v, 0.0f, 0.0f});
+      };
+      const float ground_height = res::AttrHeight(attr, player[0], player[2]);
+      if (const auto q =
+              render::DrawActorShadow(actor_object, ground_height, actor_object.scale, shadow.act,
+                                      shadow.sprite, camera.view, projection, sprite_scales))
+        add(*q, shadow);
+      // C3dGround15::vf11's colour table is never filled in this client: always white.
+      const render::ActorBody body =
+          render::DrawActorBody(actor_object, actor.act, actor.sprite, camera.view, projection,
+                                sprite_scales, {1.0f, 1.0f, 1.0f});
+      for (const render::SpriteQuad& q : body.quads) add(q, actor);
+    }
     std::vector<render::SceneCall> calls;
     if (setup_projection) {
       calls = render::SetupFog(fog, fog_on, true).calls;
@@ -400,7 +528,7 @@ int main(int argc, char** argv) {
 
   if (!o.screenshot.empty()) {
     std::vector<render::DrawRecord> draws;
-    frame(1, draws);
+    frame(1, actor_object.start_time, draws);
     std::vector<std::uint32_t> argb;
     if (!device->RenderToImage(draws, lookup, width, height, clear, argb)) {
       std::fprintf(stderr, "ragview: %s\n", device->error().c_str());
@@ -464,7 +592,7 @@ int main(int argc, char** argv) {
     drag.last_x = drag.mouse_x;
     drag.last_y = drag.mouse_y;
     std::vector<render::DrawRecord> draws;
-    frame(static_cast<std::uint32_t>(n), draws);
+    frame(static_cast<std::uint32_t>(n), static_cast<std::uint32_t>(SDL_GetTicks()), draws);
     if (!device->DrawFrame(draws, lookup, width, height, clear)) {
       std::fprintf(stderr, "ragview: %s\n", device->error().c_str());
       return 1;

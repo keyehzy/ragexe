@@ -40,11 +40,8 @@ address	namespace	name	calling_convention	evidence
 0040d080	std::Tree	method_0040d080	__thiscall	__thiscall; called with this from 1 functions of TextureCache, e.g. 0040cc00
 0040ddc0	SceneRenderer	method_0040ddc0	__thiscall	__thiscall; called with this from 3 functions of SceneRenderer, e.g. 0040d830; through the pointer at 00625e98
 0040deb0	SceneRenderer	method_0040deb0	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 0040d1a0
-0040e130	SceneRenderer	method_0040e130	__thiscall	__thiscall; called with this from 10 functions of SceneRenderer, e.g. 0040e980; through the pointer at 00625e98
-0040e540	SceneRenderer	method_0040e540	__thiscall	__thiscall; called with this from 10 functions of SceneRenderer, e.g. 0040e980; through the pointer at 00625e98
 0040e610	SceneRenderer	method_0040e610	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 004163c0; through the pointer at 00625e98
 0040e6a0	SceneRenderer	method_0040e6a0	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 004163f0; through the pointer at 00625e98
-0040e980	SceneRenderer	method_0040e980	__thiscall	__thiscall; called with this from 6 functions of SceneRenderer, e.g. 00500f70; through the pointer at 00625e98
 0040ef30	SceneRenderer	method_0040ef30	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 004c3ab0; through the pointer at 00625e98
 00410ab0	SceneRenderer	method_00410ab0	__thiscall	__thiscall; called with this from 2 functions of SceneRenderer, e.g. 00416f10; through the pointer at 00625e98
 00410cd0	SceneRenderer	method_00410cd0	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 0040d1a0
@@ -54,7 +51,6 @@ address	namespace	name	calling_convention	evidence
 00411d40	SceneRenderer	method_00411d40	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 004cba20; through the pointer at 00625e98
 00412150	SceneRenderer	method_00412150	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 004cba20; through the pointer at 00625e98
 00412aa0	SceneRenderer	method_00412aa0	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 004b6e50; through the pointer at 00625e98
-00412b40	SceneRenderer	method_00412b40	__thiscall	__thiscall; called with this from 8 functions of SceneRenderer, e.g. 0040e980; through the pointer at 00625e98
 00412c80	SceneRenderer	method_00412c80	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 004b6e50
 00412e70	SceneRenderer	method_00412e70	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 0050d400; through the pointer at 00625e98
 00413650	std::Tree	method_00413650	__thiscall	__thiscall; called with this from 3 functions of TextureCache, e.g. 0040c9f0
@@ -411,14 +407,7 @@ address	namespace	name	calling_convention	evidence
 00500720	CRenderObject	method_00500720	__thiscall	__thiscall; called with this from 4 functions of CBlurPC, CCorpse, CNumEffect, CPlayer, e.g. 00506c80
 00500760	CArrowEffect	method_00500760	__thiscall	__thiscall; called with this from 1 functions of CArrowEffect, e.g. 005afbc0
 00500940	CRenderObject	method_00500940	__thiscall	__thiscall; called with this from 4 functions of CBlowEffect, CGrannyPc, CPc, CPlayer, e.g. 00540a60
-00500e60	CRenderObject	method_00500e60	__thiscall	__thiscall; called with this from 3 functions of CPc, CRenderObject, e.g. 00500f70
-00500f70	CRenderObject	method_00500f70	__thiscall	__thiscall; called with this from 2 functions of CItem, CRenderObject, e.g. 00501870
-00501550	CRenderObject	method_00501550	__thiscall	__thiscall; called with this from 4 functions of CBlurPC, CItem, CPc, CRenderObject, e.g. 00501870
-005018a0	CRenderObject	method_005018a0	__thiscall	__thiscall; called with this from 10 functions of CArrowEffect, CBlowEffect, CCorpse, CItem and more, e.g. 00500400
 005018e0	CGameActor	method_005018e0	__thiscall	__thiscall; called with this from 1 functions of CGameActor, e.g. 00503f30
-00501900	CRenderObject	method_00501900	__thiscall	__thiscall; called with this from 8 functions of CEffectPrim, CRenderObject, mg::CArrow, mg::mgType1::CItemObj and more, e.g. 004eb460
-00501910	CRenderObject	method_00501910	__thiscall	__thiscall; called with this from 11 functions of CArrowEffect, CBlowEffect, CBlurPC, CCorpse and more, e.g. 00500400
-00501950	CRenderObject	method_00501950	__thiscall	__thiscall; called with this from 20 functions of CBlowEffect, CCorpse, CEffectPrim, CGameActor and more, e.g. 004eb460
 00501960	CGameActor	method_00501960	__thiscall	__thiscall; called with this from 1 functions of CGameActor, e.g. 00503f30
 00501a50	CMousePointer	method_00501a50	__thiscall	__thiscall; called with this from 1 functions of CMousePointer, e.g. 00501980
 00501d40	CAbleToMakeEffect	method_00501d40	__thiscall	__thiscall; called with this from 1 functions of CAbleToMakeEffect, e.g. 00501be0
@@ -471,7 +460,6 @@ address	namespace	name	calling_convention	evidence
 0050fdf0	CGameMode	method_0050fdf0	__thiscall	__thiscall; called with this from 2 functions of CGameMode, e.g. 0050cfb0
 00511940	CGameMode	method_00511940	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0052a070
 00511c30	CGameMode	method_00511c30	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00511f40
-00511d50	CGameMode	method_00511d50	__thiscall	__thiscall; called with this from 3 functions of CGameMode, e.g. 0050f8e0
 00511de0	CGameMode	method_00511de0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00530f40
 00511f40	CGameMode	method_00511f40	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 005159d0
 005121d0	CGameMode	method_005121d0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 005159d0

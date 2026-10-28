@@ -308,13 +308,13 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0040df90	111	code	0	render		named	SceneRenderer	DeleteQueuedTextures	
 0040e000	48	code	0	render		named	Global	IsNameLess	
 0040e030	254	code	0	render		named	SceneRenderer	ReleaseExpiredPooledTextures	
-0040e130	986	code	0	render		named	SceneRenderer	method_0040e130	
+0040e130	986	code	0	render		named	SceneRenderer	CacheSpriteImage	
 0040e510	38	code	0	render		named	Global	DestroyTexturePoolEntry	
-0040e540	205	code	0	render		named	SceneRenderer	method_0040e540	
+0040e540	205	code	0	render		named	SceneRenderer	FindCachedSprite	
 0040e610	140	code	0	render		named	SceneRenderer	method_0040e610	
 0040e6a0	56	code	0	render		named	SceneRenderer	method_0040e6a0	
 0040e6e0	660	code	0	render		named	SceneRenderer	BuildScreenQuadTriangles	
-0040e980	875	code	0	render		named	SceneRenderer	method_0040e980	
+0040e980	875	code	0	render		named	SceneRenderer	AddSpriteQuad	
 0040ecf0	469	code	0	render		named	SceneRenderer	ClearLists	
 0040eed0	79	code	0	render	unreferenced	raw	Global	FUN_0040eed0	
 0040ef20	3	code	0	render		named	SceneRenderer	NoOp	
@@ -357,7 +357,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00412720	440	code	0	render		named	SceneRenderer	AddTriangleList	
 004128e0	443	code	0	render	dead	named	SceneRenderer	AddVertexBufferRange	
 00412aa0	159	code	0	render		named	SceneRenderer	method_00412aa0	
-00412b40	159	code	0	render		named	SceneRenderer	method_00412b40	
+00412b40	159	code	0	render		named	SceneRenderer	NewQuad	
 00412be0	159	code	0	render	unreferenced	raw	Global	FUN_00412be0	
 00412c80	490	code	0	render		named	SceneRenderer	method_00412c80	
 00412e70	136	code	0	render		named	SceneRenderer	method_00412e70	
@@ -3090,7 +3090,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004bf7a0	386	code	0	world		named	C3dGround15	vf08	
 004bf930	300	code	0	world		named	C3dGround15	vf07	
 004bfa60	548	code	0	world		named	C3dGround15	method_004bfa60	
-004bfc90	177	code	0	world		named	C3dGround15	vf11	
+004bfc90	177	code	0	world		named	C3dGround15	GetCellTint	
 004bfd50	91	code	0	world		named	C3dGround15	method_004bfd50	
 004bfdb0	574	code	0	world		named	C3dGround15	vf10	
 004bfff0	77	code	0	world		named	C3dGround15	vf14	
@@ -3177,7 +3177,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004c36e0	418	code	0	world		named	CWorld	~CWorld	
 004c3890	523	code	0	world		named	CWorld	CreateEffectAndSoundMakers	
 004c3ab0	1931	code	0	world		named	CWorld	LoadWorld	
-004c4240	3	code	0	world		named	C3dGround15	vf09	
+004c4240	3	code	0	world		named	C3dGround15	HasCellTint	
 004c4250	33	code	0	world		named	C3dGround15	`scalar_deleting_destructor'	
 004c4280	376	code	0	world		named	C3dGround15	~C3dGround15	
 004c4400	154	code	0	world		named	CWorld	UnloadWorld	
@@ -4316,7 +4316,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00500090	12	code	0	world		named	CGameObject	~CGameObject	
 005000a0	1	code	0	world		named	CGameObject	NoOp	
 005000c0	3	code	0	world		named	CGameObject	vf01	
-005000d0	118	code	0	world		named	CGameObject	vf04	
+005000d0	118	code	0	world		named	CGameObject	GetDirection	
 00500150	184	code	0	world		named	CRagEffect	method_00500150	
 00500210	137	code	0	world		named	CArrowEffect	method_00500210	
 005002a0	3	code	0	world		named	CGameObject	vf02	
@@ -4332,22 +4332,22 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00500660	177	code	0	world		named	CGameActor	method_00500660	
 00500720	51	code	0	world		named	CRenderObject	method_00500720	
 00500760	207	code	0	world		named	CArrowEffect	method_00500760	
-00500830	272	code	0	world		named	CRenderObject	vf08	
+00500830	272	code	0	world		named	CRenderObject	UpdateFrame	
 00500940	1182	code	0	world		named	CRenderObject	method_00500940	
-00500de0	91	code	0	world		named	CRenderObject	vf07	
+00500de0	91	code	0	world		named	CRenderObject	SetAction	
 00500e40	32	code	0	world		named	CRenderObject	vf02	
-00500e60	111	code	0	world		named	CRenderObject	method_00500e60	
+00500e60	111	code	0	world		named	CRenderObject	GetGroundColor	
 00500ed0	159	code	0	world		named	CRenderObject	ProjectToScreen	
-00500f70	1501	code	0	world		named	CRenderObject	method_00500f70	
-00501550	728	code	0	world		named	CRenderObject	method_00501550	
+00500f70	1501	code	0	world		named	CRenderObject	DrawBody	
+00501550	728	code	0	world		named	CRenderObject	DrawShadow	
 00501830	3	code	0	world		named	CRenderObject	vf05	
 00501840	39	code	0	world		named	CRenderObject	vf06	
-00501870	44	code	0	world		named	CRenderObject	vf03	
-005018a0	55	code	0	world		named	CRenderObject	method_005018a0	
+00501870	44	code	0	world		named	CRenderObject	Render	
+005018a0	55	code	0	world		named	CRenderObject	SetSprite	
 005018e0	18	code	0	world		named	CGameActor	method_005018e0	
-00501900	7	code	0	world		named	CRenderObject	method_00501900	
-00501910	55	code	0	world		named	CRenderObject	method_00501910	
-00501950	7	code	0	world		named	CRenderObject	method_00501950	
+00501900	7	code	0	world		named	CRenderObject	GetSprite	
+00501910	55	code	0	world		named	CRenderObject	SetAct	
+00501950	7	code	0	world		named	CRenderObject	GetAct	
 00501960	18	code	0	world		named	CGameActor	method_00501960	
 00501980	73	code	0	ui		named	CMousePointer	CMousePointer	
 005019d0	33	code	0	ui		named	CMousePointer	`scalar_deleting_destructor'	
@@ -4551,7 +4551,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00511a40	276	code	0	game		named	CGameMode	GetFreeCellToward	
 00511b60	203	code	0	game		named	CGameMode	StepCellToward	
 00511c30	281	code	0	game		named	CGameMode	method_00511c30	
-00511d50	135	code	0	game		named	CGameMode	method_00511d50	
+00511d50	135	code	0	game		named	CGameMode	GetAttrCell	
 00511de0	105	code	0	game		named	CGameMode	method_00511de0	
 00511e50	103	code	0	game		named	CGameMode	CellToWorld	
 00511ec0	126	code	0	game		named	CGameMode	IsPathFound	

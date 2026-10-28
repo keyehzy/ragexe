@@ -40,7 +40,7 @@ same.
 ### ActItem
 
 `ActItem` is 0x24 bytes. The drawing code is `SceneRenderer::method_00410620` and
-`CRenderObject::method_00500f70`.
+`CRenderObject::DrawBody` (`00500f70`; [actor.md](../render/actor.md#the-body)).
 
 | Offset | Field | Evidence |
 |-------:|-------|----------|

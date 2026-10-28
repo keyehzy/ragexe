@@ -35,7 +35,7 @@ renderer to the screen. It derives:
 - **Points** project to centre + scale · (x, y) / z ([ground.md](ground.md#drawing)).
 
 `SetSize` also sets globals the actors' sprites read (`0061470c`, `0060564c`,
-`00605650`); they are not ported yet.
+`00605650`; [actor.md](actor.md#the-scales)).
 
 ## The view
 
@@ -69,7 +69,7 @@ origin, and the same targets.
    - The pitch, the distance and the point move a tenth of the way to their targets.
    - With `g_isFixedCamera` (`00685ecc`, a saved option) the point jumps to its target.
    - It also sets four scales for the actors' sprites from the pitch and distance
-     (`0060564c`, `00605650`, `00614704`, `00614708`), not ported yet.
+     (`0060564c`, `00605650`, `00614704`, `00614708`; [actor.md](actor.md#the-scales)).
 3. **`ApplyShake`** (`004cf2a0`) jitters the view while a shake lasts. It uses `rand`,
    and is not ported.
 4. **`BuildView`** (`004cfa10`) builds the matrices:
@@ -175,4 +175,5 @@ x87 at single precision, to `tests/unit/camera_vectors.inc`:
 
 The port matches every field bit for bit (`tests/unit/camera_test.cpp`).
 
-**Not ported:** the shake, and the sprites' scales from `SetSize` and `Step`.
+**Not ported:** the shake. The sprites' scales from `SetSize` and `Step` are in
+`src/render/actor` ([actor.md](actor.md#the-scales)).
