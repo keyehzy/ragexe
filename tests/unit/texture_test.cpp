@@ -146,3 +146,13 @@ TEST_CASE("surface sides and mipmap counts") {
   CHECK(MipmapCount(256, 256) == 8);
   CHECK(MipmapCount(256, 64) == 6);
 }
+
+TEST_CASE("texels widen to 32-bit ARGB") {
+  CHECK(ExpandTexel(TextureFormat::kArgb1555, 0xfc1f) == 0xffff00ffu);
+  CHECK(ExpandTexel(TextureFormat::kArgb1555, 0x0000) == 0x00000000u);
+  CHECK(ExpandTexel(TextureFormat::kArgb1555, 0x8421) == 0xff080808u);
+  CHECK(ExpandTexel(TextureFormat::kArgb4444, 0xf0a5) == 0xff00aa55u);
+  CHECK(ExpandTexel(TextureFormat::kRgb565, 0xffff) == 0xffffffffu);
+  CHECK(ExpandTexel(TextureFormat::kRgb565, 0x07e0) == 0xff00ff00u);
+  CHECK(ExpandTexel(TextureFormat::kArgb8888, 0x12345678) == 0x12345678u);
+}

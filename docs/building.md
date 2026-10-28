@@ -5,7 +5,9 @@ The new client is C++20, built with CMake and Ninja. Third-party libraries are p
 package when it finds one (Homebrew's SDL3, for example), and otherwise downloads the
 pinned release and builds it with the project (`FetchContent`). A library is added
 there by the milestone that first uses it; so far SDL3 3.4.18, zlib 1.3.2 and, for the
-tests, Catch2 3.16.1.
+tests, Catch2 3.16.1. Two build tools are always built from their pinned releases,
+never taken from the system: glslang 16.6.0 and SPIRV-Cross (Vulkan SDK 1.4.363.0),
+which compile the renderer's shaders during the build ([render/gpu.md](render/gpu.md#shaders)).
 
 ## Prerequisites
 
@@ -14,6 +16,8 @@ tests, Catch2 3.16.1.
 - Network access on the first configure, unless every library is installed.
 - On Linux, SDL3 builds against the system's X11, Wayland, input and D-Bus headers;
   the package list is in `.github/workflows/ci.yml`.
+- Python 3 on the first configure: glslang's build runs a script that writes its
+  version header.
 
 ## Presets
 
@@ -193,10 +197,12 @@ archives.
 - `core` (no SDL);
 - `platform` (SDL);
 - `res` (archives and resources; zlib);
-- `render` (the original's Direct3D 7 state, and in time its SDL_GPU replacement);
+- `render` (the original's Direct3D 7 state and drawing, without SDL);
+- `gpu` (the SDL_GPU device that replays it, with shaders compiled during the build);
 - `game` (modes).
 
-The executables are in `app/` (the client) and `ragres/`. The remaining layers of
+The executables are in `app/` (the client), `ragres/` and `ragview/` (a map's ground
+on screen, [render/gpu.md](render/gpu.md)). The remaining layers of
 `docs/PLAN.md` §3 (`audio`, `net`, `ui`, `world`) arrive with the milestones that port
 them. Unit tests (Catch2) are in `tests/unit`; the Python tests of the analysis tools
 stay in `tests/` and run with `unittest`.

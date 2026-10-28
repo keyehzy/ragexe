@@ -5,7 +5,7 @@
 # as CI does.
 #
 # A library is added here by the milestone that first uses it (docs/PLAN.md section 5:
-# miniaudio and FreeType come later).
+# miniaudio and FreeType come later). glslang and SPIRV-Cross are build tools only.
 
 include(FetchContent)
 
@@ -48,6 +48,36 @@ FetchContent_Declare(stb
   URL_HASH SHA256=b01aa93e1a968aed55f43e072c98ee401d2f20e897aabdb1a166c7166886ed11
   DOWNLOAD_EXTRACT_TIMESTAMP ON)
 FetchContent_MakeAvailable(stb)
+
+# glslang and SPIRV-Cross: the renderer's shaders are written once in GLSL and compiled
+# during the build, to SPIR-V for SDL_GPU's Vulkan backend and on to MSL for its Metal
+# one (src/render/shaders). Only their command-line tools are used; both are always
+# built from the pinned releases, so every machine compiles the same shaders.
+set(ENABLE_OPT OFF CACHE BOOL "" FORCE)
+set(ENABLE_HLSL OFF CACHE BOOL "" FORCE)
+set(ENABLE_SPVREMAPPER OFF CACHE BOOL "" FORCE)
+set(ENABLE_GLSLANG_BINARIES ON CACHE BOOL "" FORCE)
+set(GLSLANG_TESTS OFF CACHE BOOL "" FORCE)
+set(GLSLANG_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+set(BUILD_EXTERNAL OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(glslang
+  URL https://github.com/KhronosGroup/glslang/archive/refs/tags/16.6.0.tar.gz
+  URL_HASH SHA256=9c09b901149c729df745057dafa815278aaa101b84d2b6e14f16a42de52f97f2
+  DOWNLOAD_EXTRACT_TIMESTAMP ON
+  EXCLUDE_FROM_ALL)
+FetchContent_MakeAvailable(glslang)
+
+set(SPIRV_CROSS_CLI ON CACHE BOOL "" FORCE)
+set(SPIRV_CROSS_SHARED OFF CACHE BOOL "" FORCE)
+set(SPIRV_CROSS_STATIC ON CACHE BOOL "" FORCE)
+set(SPIRV_CROSS_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
+set(SPIRV_CROSS_SKIP_INSTALL ON CACHE BOOL "" FORCE)
+FetchContent_Declare(spirv_cross
+  URL https://github.com/KhronosGroup/SPIRV-Cross/archive/refs/tags/vulkan-sdk-1.4.363.0.tar.gz
+  URL_HASH SHA256=f708982e88b763ef5b0394ed468fc2c3628f68cdab89f2e7a946cd628c04e721
+  DOWNLOAD_EXTRACT_TIMESTAMP ON
+  EXCLUDE_FROM_ALL)
+FetchContent_MakeAvailable(spirv_cross)
 
 if(RAGEXE_BUILD_TESTS)
   FetchContent_Declare(Catch2

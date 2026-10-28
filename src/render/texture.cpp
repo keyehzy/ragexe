@@ -167,6 +167,23 @@ std::uint32_t FillValue(const PixelChannels& screen, std::uint32_t colorref) {
          0xffff;
 }
 
+std::uint32_t ExpandTexel(TextureFormat format, std::uint32_t t) {
+  const auto five = [](std::uint32_t v) { return v << 3 | v >> 2; };
+  const auto six = [](std::uint32_t v) { return v << 2 | v >> 4; };
+  const auto four = [](std::uint32_t v) { return v << 4 | v; };
+  switch (format) {
+    case TextureFormat::kArgb1555:
+      return ((t & 0x8000) != 0 ? 0xff000000u : 0u) | five(t >> 10 & 0x1f) << 16 |
+             five(t >> 5 & 0x1f) << 8 | five(t & 0x1f);
+    case TextureFormat::kArgb4444:
+      return four(t >> 12 & 0xf) << 24 | four(t >> 8 & 0xf) << 16 | four(t >> 4 & 0xf) << 8 |
+             four(t & 0xf);
+    case TextureFormat::kRgb565:
+      return 0xff000000u | five(t >> 11 & 0x1f) << 16 | six(t >> 5 & 0x3f) << 8 | five(t & 0x1f);
+    default: return t;
+  }
+}
+
 std::uint32_t SurfaceSide(std::uint32_t side) { return side + ((0u - (side & 3)) & 3); }
 
 std::uint32_t MipmapCount(std::uint32_t width, std::uint32_t height) {

@@ -86,6 +86,10 @@ bool UpdateSurfacePixels(TexelImage& surface, const PixelChannels& screen, std::
 // screen's 16-bit packing, whatever the target's format, as the colour-fill Blt gets it.
 std::uint32_t FillValue(const PixelChannels& screen, std::uint32_t colorref);
 
+// A texel widened to 32-bit ARGB, each channel's bits repeated to fill 8 (an alpha bit
+// becomes 0 or 0xff), as a renderer with 8-bit channels samples it.
+std::uint32_t ExpandTexel(TextureFormat format, std::uint32_t texel);
+
 // CSurface's size (00416420): each side rounded up to a multiple of 4.
 std::uint32_t SurfaceSide(std::uint32_t side);
 

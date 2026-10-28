@@ -2104,9 +2104,32 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Labels:** `DrawCells`, `DrawSurface`, `GetWaterTexture`, and the fade, texture-scale
     and angle-table globals.
 
+- [x] The first frame on screen (`docs/render/gpu.md`, `src/render/fixed_function`,
+  `src/render/gpu_device`, `src/ragview`):
+  - **`FixedFunctionState`** replays `DrawScene`'s calls over `Init`'s states and Direct3D
+    7's defaults. Each draw becomes a pipeline key, the shader's stage and alpha-test
+    uniforms, and its textures and samplers.
+  - **`RenderDevice`** draws the records on SDL_GPU, to the window or to an image.
+    - The shaders are GLSL, compiled during the build by glslang and SPIRV-Cross (pinned
+      and built with the project) to SPIR-V and MSL.
+    - The fragment shader emulates the two texture stages, the alpha test and vertex fog.
+  - **`ragview MAP`** draws a map's ground through the whole ported chain: builder, cell
+    drawing, scene lists, `DrawScene`, the fixed-function records. Its textures go through
+    the client's own conversion. Prontera's ground shows textured and lightmapped, on
+    Metal.
+  - **Stand-ins:** an orbit camera in place of `CView`; a 90° projection in place of
+    `SetSize`'s; no water.
+  - **Not yet reproduced:**
+    - the texel offset and half-pixel centres;
+    - `BORDER` addressing;
+    - mipmaps and the texture divisor;
+    - the fog set-up.
+  - **Checks:** unit tests cover the records and texel widening. CI has no GPU, so it builds
+    `ragview` and the shaders; frames are checked by eye.
+
 ### Next actions
-1. M4, the renderer: the first frame on screen. `RenderDevice` on SDL_GPU, drawing the
-   scene lists' calls (the ground first) with the original's states, and a `ragview` that
-   opens a map, as §M4 lists.
+1. M4, the renderer: the camera and projection (`CView`'s view matrix and
+   `SceneRenderer::SetSize`), checked against the original, so that `ragview` shows a map
+   as the client frames it; then the RSM models.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.
