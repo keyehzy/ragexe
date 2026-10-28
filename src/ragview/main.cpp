@@ -1,17 +1,18 @@
 // ragview: a map's ground drawn as the client draws it (docs/render/gpu.md).
 //
-//   ragview [--install DIR] [--size W H] [--camera YAW PITCH DISTANCE] [--centre X Z]
-//           [--frames N] [--screenshot FILE.png] MAP
+//   ragview [--install DIR] [--size W H] [--at X Z] [--yaw DEGREES] [--frames N]
+//           [--screenshot FILE.png] MAP
 //
 // MAP is a .rsw name such as prontera. The ground is built and drawn by the ported
 // C3dGround15, through the scene lists and DrawScene, and the calls are replayed on
-// SDL_GPU. The camera is a plain orbit until CView is ported: YAW and PITCH in degrees
-// (pitch 90 looks straight down), DISTANCE in world units, around (X, Z). --screenshot
-// renders one frame offscreen to a PNG and exits; otherwise a window opens, and Escape or
-// --frames N closes it.
+// SDL_GPU. The camera is the client's: placed as on entering the map, following a player
+// standing at world (X, Z) (the map's centre by default), turned to YAW if given.
+// --screenshot renders one frame offscreen to a PNG and exits; otherwise a window opens,
+// and Escape or --frames N closes it.
 
 #include <SDL3/SDL.h>
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -22,13 +23,16 @@
 #include <string>
 #include <vector>
 
+#include "render/camera.h"
 #include "render/fixed_function.h"
 #include "render/gpu_device.h"
 #include "render/ground.h"
 #include "render/scene.h"
 #include "render/texture.h"
 #include "res/bitmap.h"
+#include "res/client_tables.h"
 #include "res/data_files.h"
+#include "res/gat.h"
 #include "res/gnd.h"
 #include "res/grf.h"
 #include "res/rsw.h"
@@ -47,11 +51,10 @@ struct Options {
   std::string map;
   int width = 800;
   int height = 600;
+  float at_x = 0.0f;
+  float at_z = 0.0f;
+  bool turned = false;
   float yaw = 0.0f;
-  float pitch = 50.0f;
-  float distance = 250.0f;
-  float centre_x = 0.0f;
-  float centre_z = 0.0f;
   int frames = 0;
   std::string screenshot;
 };
@@ -65,27 +68,9 @@ int ParseInt(const char* text, int fallback) {
 
 int Usage() {
   std::fprintf(stderr,
-               "usage: ragview [--install DIR] [--size W H] [--camera YAW PITCH DISTANCE]\n"
-               "               [--centre X Z] [--frames N] [--screenshot FILE.png] MAP\n");
+               "usage: ragview [--install DIR] [--size W H] [--at X Z] [--yaw DEGREES]\n"
+               "               [--frames N] [--screenshot FILE.png] MAP\n");
   return 2;
-}
-
-// A row-vector view matrix looking at (x, 0, z) from distance along yaw and pitch.
-render::ViewMatrix OrbitView(const Options& o) {
-  const float yaw = o.yaw * 3.14159265f / 180.0f;
-  const float pitch = o.pitch * 3.14159265f / 180.0f;
-  const float f[3] = {std::sin(yaw) * std::cos(pitch), std::sin(pitch),
-                      std::cos(yaw) * std::cos(pitch)};
-  // Screen right is the mirror of the right-handed one: the ground's faces wind
-  // counter-clockwise on screen, so the client's clockwise culling keeps them.
-  const float right[3] = {std::cos(yaw), 0.0f, -std::sin(yaw)};
-  const float d[3] = {f[1] * right[2] - f[2] * right[1], f[2] * right[0] - f[0] * right[2],
-                      f[0] * right[1] - f[1] * right[0]};
-  const float r[3] = {-right[0], -right[1], -right[2]};
-  const float c[3] = {o.centre_x, 0.0f, o.centre_z};
-  const auto dot = [&](const float* v) { return c[0] * v[0] + c[1] * v[1] + c[2] * v[2]; };
-  return {r[0], d[0], f[0], r[1],    d[1],    f[1],
-          r[2], d[2], f[2], -dot(r), -dot(d), -dot(f) + o.distance};
 }
 
 // A texture as TextureCache makes it: CreateTexture at the image's size in 1555, or 4444
@@ -126,13 +111,12 @@ int main(int argc, char** argv) {
     } else if (a == "--size" && next(2)) {
       o.width = ParseInt(argv[++i], 0);
       o.height = ParseInt(argv[++i], 0);
-    } else if (a == "--camera" && next(3)) {
+    } else if (a == "--at" && next(2)) {
+      o.at_x = std::strtof(argv[++i], nullptr);
+      o.at_z = std::strtof(argv[++i], nullptr);
+    } else if (a == "--yaw" && next(1)) {
+      o.turned = true;
       o.yaw = std::strtof(argv[++i], nullptr);
-      o.pitch = std::strtof(argv[++i], nullptr);
-      o.distance = std::strtof(argv[++i], nullptr);
-    } else if (a == "--centre" && next(2)) {
-      o.centre_x = std::strtof(argv[++i], nullptr);
-      o.centre_z = std::strtof(argv[++i], nullptr);
     } else if (a == "--frames" && next(1)) {
       o.frames = ParseInt(argv[++i], -1);
     } else if (a == "--screenshot" && next(1)) {
@@ -167,6 +151,16 @@ int main(int argc, char** argv) {
                  error.empty() ? "not found" : error.c_str());
     return 1;
   }
+  res::AttrMap attr;
+  if (!Load(files, "data\\" + world.attr, bytes) || !res::DecodeAttrMap(bytes, attr, &error)) {
+    std::fprintf(stderr, "ragview: %s: %s\n", world.attr.c_str(),
+                 error.empty() ? "not found" : error.c_str());
+    return 1;
+  }
+  // ClientState's indoor check (00598ba0): the map's name in the sorted indoorRswTable.txt.
+  std::vector<std::string> indoor_maps;
+  const bool indoor = res::LoadFields(files, res::kIndoorRswTable, true, indoor_maps) &&
+                      std::binary_search(indoor_maps.begin(), indoor_maps.end(), o.map + ".rsw");
   render::GroundMesh mesh;
   const render::GroundLight light{world.light_vector, world.diffuse, world.ambient};
   if (!render::BuildGround(ground, light, true, mesh, &error)) {
@@ -191,8 +185,9 @@ int main(int argc, char** argv) {
     std::fprintf(stderr, "ragview: %s\n", error.c_str());
     return 1;
   }
-  std::fprintf(stderr, "ragview: %s, %s (%d x %d cells), on %s\n", o.map.c_str(),
-               world.ground.c_str(), ground.width, ground.height, device->driver());
+  std::fprintf(stderr, "ragview: %s, %s (%d x %d cells, %s), on %s\n", o.map.c_str(),
+               world.ground.c_str(), ground.width, ground.height, indoor ? "indoor" : "outdoor",
+               device->driver());
 
   // The ground's textures (ids from 1, in the file's order) and the lightmap pages.
   for (std::size_t t = 0; t < ground.textures.size(); ++t) {
@@ -216,12 +211,19 @@ int main(int argc, char** argv) {
     device->SetTexture(kLightmapIdBase + static_cast<std::uint32_t>(p), 256, 256, page);
   }
 
+  // The player stands on the ground; the camera is placed as CGameMode places it.
+  render::Vec3 player = {o.at_x, res::AttrHeight(attr, o.at_x, o.at_z), o.at_z};
+  render::Camera camera;
+  render::ResetCamera(camera);
+  render::CameraControl control;
+  render::PlaceCamera(camera, control, player, indoor);
+  if (o.turned) {
+    camera.yaw = o.yaw;
+    camera.target_yaw = o.yaw;
+  }
+
   render::GroundDrawSettings settings;
-  settings.viewport = {0.0f,    0.0f,     o.width / 2, o.height / 2,
-                       o.width, o.height, o.width / 2, o.height / 2};
-  // SetSize's scales for a 90 degree field of view across the height.
-  settings.viewport.scale_y = static_cast<float>(o.height) / 2.0f;
-  settings.viewport.scale_x = settings.viewport.scale_y;
+  settings.viewport = render::GroundViewportOf(render::SetSize(o.width, o.height));
   settings.water.level = 1.0e30f;  // the water's textures are not loaded yet
   render::FixedFunctionState state;
   render::BoundTextures bound;
@@ -230,8 +232,9 @@ int main(int argc, char** argv) {
 
   const auto frame = [&](std::uint32_t number, std::vector<render::DrawRecord>& draws) {
     settings.frame = number;
+    render::UpdateCamera(camera, player, false, &attr);
     std::vector<render::GroundPrimitive> primitives;
-    render::DrawGroundCells(mesh, OrbitView(o), {0, 0, ground.width - 1, ground.height - 1}, true,
+    render::DrawGroundCells(mesh, camera.view, {0, 0, ground.width - 1, ground.height - 1}, true,
                             settings, primitives);
     render::SceneLists lists;
     vertices.clear();
@@ -288,19 +291,48 @@ int main(int argc, char** argv) {
     return 0;
   }
 
+  // The client's camera input, once a frame: holding the right button is its drag state,
+  // which turns, with Shift pitches and with Ctrl zooms; a right double-click is its reset
+  // state. The arrow keys walk the player a cell.
   bool running = true;
+  float mouse_x = 0.0f, mouse_y = 0.0f;
+  SDL_GetMouseState(&mouse_x, &mouse_y);
+  render::CameraDrag drag;
+  drag.last_x = static_cast<std::int32_t>(mouse_x);
+  drag.last_y = static_cast<std::int32_t>(mouse_y);
   for (int n = 1; running; ++n) {
     SDL_Event e;
+    bool reset = false;
     while (SDL_PollEvent(&e)) {
       if (e.type == SDL_EVENT_QUIT || (e.type == SDL_EVENT_KEY_DOWN && e.key.key == SDLK_ESCAPE))
         running = false;
+      if (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN && e.button.button == SDL_BUTTON_RIGHT &&
+          e.button.clicks == 2)
+        reset = true;
       if (e.type == SDL_EVENT_KEY_DOWN) {
-        if (e.key.key == SDLK_LEFT) o.yaw -= 5.0f;
-        if (e.key.key == SDLK_RIGHT) o.yaw += 5.0f;
-        if (e.key.key == SDLK_UP) o.distance *= 0.9f;
-        if (e.key.key == SDLK_DOWN) o.distance /= 0.9f;
+        const float step = static_cast<float>(attr.cell_size);
+        if (e.key.key == SDLK_LEFT) player[0] -= step;
+        if (e.key.key == SDLK_RIGHT) player[0] += step;
+        if (e.key.key == SDLK_UP) player[2] += step;
+        if (e.key.key == SDLK_DOWN) player[2] -= step;
+        player[1] = res::AttrHeight(attr, player[0], player[2]);
       }
     }
+    const SDL_MouseButtonFlags buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+    const SDL_Keymod mods = SDL_GetModState();
+    drag.mouse_x = static_cast<std::int32_t>(mouse_x);
+    drag.mouse_y = static_cast<std::int32_t>(mouse_y);
+    drag.shift = (mods & SDL_KMOD_SHIFT) != 0;
+    drag.ctrl = (mods & SDL_KMOD_CTRL) != 0;
+    if (reset) {
+      drag.kind = render::CameraDrag::Kind::kReset;
+      render::DragCamera(camera, control, drag);
+    } else if ((buttons & SDL_BUTTON_RMASK) != 0) {
+      drag.kind = render::CameraDrag::Kind::kDrag;
+      render::DragCamera(camera, control, drag);
+    }
+    drag.last_x = drag.mouse_x;
+    drag.last_y = drag.mouse_y;
     std::vector<render::DrawRecord> draws;
     frame(static_cast<std::uint32_t>(n), draws);
     if (!device->DrawFrame(draws, lookup, width, height, clear)) {

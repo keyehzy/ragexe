@@ -11,8 +11,6 @@ namespace {
 
 constexpr float kTexel = 1.0f / 256.0f;  // 005e2668
 
-using Vec3 = std::array<float, 3>;
-
 // The two triangle normals of a cell's top, then its two wall normals, as Build keeps
 // them while it works (0x30 bytes a cell). Cells without a top keep zeros.
 struct CellNormals {

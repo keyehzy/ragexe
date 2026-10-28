@@ -3457,19 +3457,19 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004cefb0	33	code	0	world		named	CView	`scalar_deleting_destructor'	
 004cefe0	281	code	0	world		named	CView	~CView	
 004cf100	207	code	0	world		named	ViewFrustum	~ViewFrustum	
-004cf1d0	71	code	0	world		named	CView	vf01	
+004cf1d0	71	code	0	world		named	CView	Reset	
 004cf220	1	code	0	world		named	CView	vf02	
 004cf230	16	code	0	world		named	CView	AddToAngle	
 004cf240	16	code	0	world	unreferenced	raw	Global	FUN_004cf240	
 004cf250	16	code	0	world	unreferenced	raw	Global	FUN_004cf250	
-004cf260	55	code	0	world		named	CView	vf04	
-004cf2a0	428	code	0	world		named	CView	method_004cf2a0	
+004cf260	55	code	0	world		named	CView	Update	
+004cf2a0	428	code	0	world		named	CView	ApplyShake	
 004cf450	84	code	0	world		named	CView	StartShake	
 004cf4b0	25	code	0	world		named	CView	SetShakeAmplitudes	
 004cf4d0	754	code	0	world		named	CView	vf03	
-004cf7d0	570	code	0	world		named	CView	method_004cf7d0	
-004cfa10	268	code	0	world		named	CView	method_004cfa10	
-004cfb20	108	code	0	world		named	CView	method_004cfb20	
+004cf7d0	570	code	0	world		named	CView	Step	
+004cfa10	268	code	0	world		named	CView	BuildView	
+004cfb20	108	code	0	world		named	CView	GetViewDirection	
 004cfb90	77	code	1	stl		named	std::list	~list	
 004cfbe0	54	code	1	stl		named	std::list	EraseNode	
 004cfc20	18	code	1	stl		named	std::list	IncrementIterator	
@@ -4502,8 +4502,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0050d730	297	code	0	game		named	CGameMode	method_0050d730	
 0050d860	361	code	0	game		named	CGameMode	method_0050d860	
 0050d9d0	11	code	0	game		named	CGameMode	method_0050d9d0	
-0050d9e0	400	code	0	game		named	CGameMode	method_0050d9e0	
-0050db70	56	code	0	game		named	CGameMode	method_0050db70	
+0050d9e0	400	code	0	game		named	CGameMode	PlaceCamera	
+0050db70	56	code	0	game		named	CGameMode	SaveViewSetting	
 0050dbb0	218	code	0	game		named	CGameMode	method_0050dbb0	
 0050dc90	1784	code	0	game		named	CGameMode	method_0050dc90	
 0050e390	90	code	0	game		named	CGameMode	method_0050e390	
@@ -4591,7 +4591,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00514900	182	code	0	game		named	CGameMode	method_00514900	
 005149c0	2939	code	0	game		named	CGameMode	method_005149c0	
 00515540	394	code	0	game		named	CGameMode	method_00515540	
-005156d0	755	code	0	game		named	CGameMode	method_005156d0	
+005156d0	755	code	0	game		named	CGameMode	ProcessCameraInput	
 005159d0	645	code	0	game		named	CGameMode	method_005159d0	
 00515c60	74	code	0	game		named	CGameMode	method_00515c60	
 00515cb0	49	code	0	game		named	CGameMode	method_00515cb0	
@@ -5860,7 +5860,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005986d0	414	code	0	game		named	ClientState	method_005986d0	
 00598870	69	code	0	game		named	Global	destroy_global_00686628	
 005988c0	730	code	0	game		named	ClientState	LoadIndoorRswTable	
-00598ba0	128	code	0	game		named	ClientState	method_00598ba0	
+00598ba0	128	code	0	game		named	ClientState	IsIndoorMap	
 00598c20	423	code	0	game		named	ClientState	LoadMsgStringTable	
 00598dd0	63	code	0	game		named	ClientState	method_00598dd0	
 00598e10	805	code	0	game		named	ClientState	LoadFogParameterTable	

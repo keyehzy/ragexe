@@ -32,6 +32,11 @@ struct AttrMap {
 bool DecodeAttrMap(std::span<const std::uint8_t> data, AttrMap& out, std::string* error,
                    std::string* warning = nullptr);
 
+// C3dAttr::GetHeight (00427150): the height at world (x, z), whose origin is the map's
+// centre, interpolated between the corners of the cell under it along z and then x; 0
+// outside the map.
+float AttrHeight(const AttrMap& map, float x, float z);
+
 // C3dAttr.
 class AttrRes : public Resource {
  public:

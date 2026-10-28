@@ -58,9 +58,11 @@ target_link_libraries(ragexe_res PRIVATE ZLIB::ZLIB ragexe_stb_image ragexe_opti
 
 # The renderer: the original's Direct3D 7 state, and in time its SDL_GPU replacement.
 add_library(ragexe_render STATIC
+  render/camera.cpp
   render/device.cpp
   render/fixed_function.cpp
   render/ground.cpp
+  render/matrix.cpp
   render/scene.cpp
   render/texture.cpp)
 target_include_directories(ragexe_render PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

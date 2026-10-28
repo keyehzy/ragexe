@@ -2118,7 +2118,7 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     the client's own conversion. Prontera's ground shows textured and lightmapped, on
     Metal.
   - **Stand-ins:** an orbit camera in place of `CView`; a 90° projection in place of
-    `SetSize`'s; no water.
+    `SetSize`'s; no water. The camera and the projection have since been ported.
   - **Not yet reproduced:**
     - the texel offset and half-pixel centres;
     - `BORDER` addressing;
@@ -2127,9 +2127,43 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Checks:** unit tests cover the records and texel widening. CI has no GPU, so it builds
     `ragview` and the shaders; frames are checked by eye.
 
+- [x] The camera and the projection (`docs/render/camera.md`, `src/render/camera`,
+  `src/render/matrix`):
+  - **`SetSize`** gives the client's projection: a 15° field of view.
+  - **`CView`** follows the player: each frame the yaw, pitch, distance and point move a
+    tenth of the way to their targets.
+    - The eye drops onto the `.gat`'s ground where it would sink below it.
+    - The view is a look-at matrix with its inverse.
+  - **`CGameMode`:**
+    - **Placing:** it places the camera on entering a map, from the registry's indoor or
+      outdoor latitude and distance, and saves them on leaving. Indoor maps
+      (`indoorRswTable.txt`) turn to 45°, with tighter limits.
+    - **The mouse:** it turns, pitches (Shift) and zooms (Ctrl) the camera, or resets it.
+  - **Port:**
+    - `Matrix`'s rotations, product, look-at and inverse;
+    - `SetSize`, `Camera` with its reset, step and view build;
+    - `PlaceCamera`, `LeaveMap` and `DragCamera`;
+    - `res::AttrHeight` (`C3dAttr::GetHeight`).
+  - **Checks:** `tools/camera_vectors.py` records the original in the emulation oracle:
+    - `SetSize` at ten sizes;
+    - `GetHeight` at 48 points;
+    - 80 frames following a player;
+    - eight map entries;
+    - 60 mouse inputs.
+
+    The port matches bit for bit.
+  - **`ragview`** now frames maps as the client does, indoor ones included, with the
+    client's mouse controls. It replaced the stand-ins, which had mirrored the view to
+    hide a reversed cull mapping in the device; the device now maps `CW` and `CCW`
+    straight.
+  - **Not ported:** the view's shake, and the actors' sprite scales that `SetSize` and
+    `Step` set.
+  - **Labels:** `CView`'s methods, the placing, saving and input functions, `IsIndoorMap`,
+    and the view setting globals.
+
 ### Next actions
-1. M4, the renderer: the camera and projection (`CView`'s view matrix and
-   `SceneRenderer::SetSize`), checked against the original, so that `ragview` shows a map
-   as the client frames it; then the RSM models.
+1. M4, the renderer: the RSM models: `ModelInstance`'s world matrix and node
+   transforms, the scene graph's culling (`ViewFrustum`), and their draws through the
+   scene lists, so that `ragview` shows a map's models on its ground.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

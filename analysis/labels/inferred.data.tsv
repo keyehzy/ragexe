@@ -29,3 +29,13 @@ address	namespace	name	evidence	type
 00679f9c	Global	g_groundWaterFade	set by CPlayer::method_00506c80 and CGameMode::method_0050dc90; when set, C3dGround15::DrawSurface scales the ground's colours by g_WorldColorFade's first multipliers (+0x2c) and DrawCells gives the water alpha 0x90 with them	dword
 006247b4	Global	g_sinTable	InitAngleTables 0040b2f0 fills 361 floats, the sine of 0 to 360 degrees; SinDegrees reads it	dword
 00623c6c	Global	g_cosTable	InitAngleTables 0040b2f0 fills 361 floats, the cosine of 0 to 360 degrees; CosDegrees reads it	dword
+00685ecc	Global	g_isFixedCamera	saved and loaded by ClientState under the name 'g_isFixedCamera' (0061a2a8); when set, CView::Step moves the view's point to its target at once	dword
+00614878	Global	g_minViewDistance	230.0; the least distance CGameMode::PlaceCamera and ProcessCameraInput allow	float
+0061487c	Global	g_maxOutdoorViewDistance	400.0; the most distance outdoors	float
+00614880	Global	g_defaultViewDistance	300.0; the most distance indoors, and the distance the reset input sets	float
+00614884	Global	g_viewLatitude	the current pitch: CGameMode::PlaceCamera sets it from the saved one for the map's kind, ProcessCameraInput from Shift dragging; SaveViewSetting saves it	float
+00614888	Global	g_viewDistance	the current distance, as g_viewLatitude	float
+0061488c	Global	g_indoorViewLatitude	saved under that name (0061a260) by ClientState::SaveOptions	float
+00614890	Global	g_indoorViewDistance	saved under that name (0061a248) by ClientState::SaveOptions	float
+00614894	Global	g_outdoorViewLatitude	saved under that name (0061a290) by ClientState::SaveOptions	float
+00614898	Global	g_outdoorViewDistance	saved under that name (0061a278) by ClientState::SaveOptions	float

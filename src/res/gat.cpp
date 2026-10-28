@@ -1,5 +1,6 @@
 #include "res/gat.h"
 
+#include <cmath>
 #include <cstring>
 
 #include "res/data_file.h"
@@ -76,6 +77,28 @@ void AttrRes::Reset() {
 
 void RegisterAttrTypes(ResourceManager& manager) {
   manager.RegisterType("gat", "", std::make_unique<AttrRes>());
+}
+
+float AttrHeight(const AttrMap& map, float x, float z) {
+  const auto cs = static_cast<float>(map.cell_size);
+  // __ftol (005c2084) truncates through 64 bits; what it cannot hold reads as 0 here.
+  const auto ftol = [](float v) {
+    if (std::isnan(v) || v <= -9.2233720368547758e18f || v >= 9.2233720368547758e18f) return 0;
+    return static_cast<std::int32_t>(static_cast<std::int64_t>(v));
+  };
+  const float gx = ((static_cast<float>(map.width) * cs) * 0.5f) + x;
+  const std::int32_t ix = ftol(gx / cs);
+  const float gz = ((static_cast<float>(map.height) * cs) * 0.5f) + z;
+  const std::int32_t iz = ftol(gz / cs);
+  if (ix < 0 || ix >= map.width || iz < 0 || iz >= map.height) return 0.0f;
+  const auto& h = map.cells[(static_cast<std::size_t>(map.width) * static_cast<std::size_t>(iz)) +
+                            static_cast<std::size_t>(ix)]
+                      .heights;
+  const float fz = gz - (static_cast<float>(iz) * cs);
+  const float a = (((h[2] - h[0]) * fz) / cs) + h[0];
+  const float fx = gx - (static_cast<float>(ix) * cs);
+  const float b = (((h[3] - h[1]) * fz) / cs) + h[1];
+  return (((b - a) * fx) / cs) + a;
 }
 
 }  // namespace ragexe::res

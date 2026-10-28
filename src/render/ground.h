@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "render/matrix.h"
 #include "res/gnd.h"
 
 namespace ragexe::render {
@@ -82,9 +83,8 @@ struct GroundMesh {
 bool BuildGround(const res::Ground& ground, const GroundLight& light, bool lightmaps,
                  GroundMesh& out, std::string* error);
 
-// The view's transform: rows of a 4 x 3 matrix for row vectors, the last row the
-// translation.
-using ViewMatrix = std::array<float, 12>;
+// The view's transform (render/matrix.h).
+using ViewMatrix = Matrix;
 
 // What the drawing reads of the SceneRenderer (SetSize 0040db70 and the projection).
 struct GroundViewport {

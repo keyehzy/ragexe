@@ -60,9 +60,11 @@ to 1, and `rhw`, with diffuse and specular ARGB and two coordinate sets.
 
 Stage 1 runs only when stage 0 is not `DISABLE`.
 
-**Culling.** Direct3D culls by the winding on screen, with `y` down. The shader flips `y`,
-so `CW` culls triangles counter-clockwise in normalized coordinates, and `CCW` the
-others.
+**Culling.** Direct3D culls by the winding a triangle shows on screen, and SDL_GPU's
+front face is the winding as shown too. So `CW` culls clockwise triangles with
+counter-clockwise ones as front faces, and `CCW` the reverse. The ground's pass sets `CW`
+([scene.md](scene.md)), and the client's camera leaves the ground's faces
+counter-clockwise.
 
 ## Shaders
 
@@ -86,36 +88,38 @@ runs on Vulkan; D3D12 would need DXIL.
 ```
 
 ```bash
-./build/dev/src/ragview --screenshot prontera.png prontera
+./build/dev/src/ragview --screenshot prt_in.png --at -300 -200 prt_in
 ```
 
 **Loading:**
-1. Read the map's `.rsw` and its `.gnd` from `data.grf`.
+1. Read the map's `.rsw`, its `.gnd` and its `.gat` from `data.grf`, and
+   `indoorRswTable.txt`.
 2. Build the ground with the `.rsw`'s light, ISLIGHTMAP on ([ground.md](ground.md)).
 3. Upload its textures the way `TextureCache` makes them:
    - `CreateTexture` at the image's size in ARGB 1555, or 4444 for an image with alpha;
    - `UpdatePixels` with black opaque;
    - widened back to 8 bits a channel ([texture.md](texture.md)).
 4. Upload the lightmap pages, in 4444.
+5. Place the camera as on entering the map ([camera.md](camera.md)). The player stands on
+   the `.gat`'s ground at `--at X Z`, the map's centre by default. `--yaw` turns the
+   camera.
+6. Size the projection with `SetSize`.
 
 **Each frame:**
-1. `DrawGroundCells` over every cell.
-2. The primitives go into `SceneLists`.
-3. `DrawScene` with two-stage lightmaps.
-4. The calls become `DrawRecord`s for the device.
+1. `CView::Update`'s port follows the player.
+2. `DrawGroundCells` over every cell, with its view matrix.
+3. The primitives go into `SceneLists`.
+4. `DrawScene` with two-stage lightmaps.
+5. The calls become `DrawRecord`s for the device.
 
-**Controls.** In a window, the arrow keys turn and zoom and Escape quits. `--frames N`
-quits after N frames.
+**Controls,** in a window:
+- **The mouse,** through `ProcessCameraInput`'s port: holding the right button is its
+  drag state and a right double-click its reset state (ragview's choice of buttons).
+  Dragging turns, with Shift pitches and with Ctrl zooms.
+- **The arrow keys** walk the player one `.gat` cell.
+- **Escape** quits; `--frames N` quits after N frames.
 
-**Stand-ins until the code they replace is ported:**
-- **The camera** is an orbit:
-  - yaw, pitch (90 is straight down) and distance around a point (`--camera`, `--centre`);
-  - screen right is mirrored from a right-handed basis, so that the ground's faces wind
-    counter-clockwise on screen and the client's `CW` culling keeps them, as the
-    original's `CView` must leave them.
-- **The projection scale** is half the height, a 90° field of view, where `SetSize`
-  (`0040db70`) derives it from the client's angles.
-- **The water** is left out: its textures are not loaded yet.
+**Left out:** the water, whose textures are not loaded yet.
 
 ## What is not reproduced yet
 

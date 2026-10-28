@@ -164,11 +164,11 @@ SDL_GPUGraphicsPipeline* RenderDevice::Pipeline(const PipelineKey& key) {
   info.vertex_input_state.num_vertex_attributes = 5;
   info.primitive_type = PrimitiveType(key.primitive);
   info.rasterizer_state.fill_mode = SDL_GPU_FILLMODE_FILL;
-  // Direct3D culls by the winding on screen, y down; the shader flips y, so a winding
-  // clockwise on screen is counter-clockwise in normalized coordinates.
+  // Direct3D culls by the winding as the triangle appears on screen, and so does SDL_GPU:
+  // CW culls the clockwise ones, keeping the counter-clockwise ones as front faces.
   info.rasterizer_state.cull_mode = key.cull == 1 ? SDL_GPU_CULLMODE_NONE : SDL_GPU_CULLMODE_BACK;
   info.rasterizer_state.front_face =
-      key.cull == 2 ? SDL_GPU_FRONTFACE_CLOCKWISE : SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE;
+      key.cull == 2 ? SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE : SDL_GPU_FRONTFACE_CLOCKWISE;
   info.depth_stencil_state.enable_depth_test = key.z_test;
   info.depth_stencil_state.enable_depth_write = key.z_test && key.z_write;
   info.depth_stencil_state.compare_op = CompareOp(key.z_func);

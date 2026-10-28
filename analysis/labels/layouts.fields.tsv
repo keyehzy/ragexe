@@ -3440,7 +3440,7 @@ CView	0x8	4	dword	field_0x8	own field; 3 uses (2 writes) in 3 functions, e.g. 00
 CView	0xc	4	dword	field_0xc	own field; 2 uses (2 writes) in 2 functions, e.g. 004cf46e in 004cf450
 CView	0x10	4	dword	field_0x10	own field; 2 uses (2 writes) in 2 functions, e.g. 004cf47c in 004cf450
 CView	0x14	4	dword	field_0x14	own field; 2 uses (2 writes) in 2 functions, e.g. 004cf474 in 004cf450
-CView	0x18	4	dword	field_0x18	own field; 2 uses (1 writes) in 2 functions, e.g. 004cf484 in 004cf450
+CView	0x18	4	dword	field_0x18	own field; 2 uses (1 writes) in 2 functions, e.g. 004cf2b9 in 004cf2a0
 CView	0x1c	4	float	field_0x1c	own field; 10 uses (3 writes) in 4 functions, e.g. 004cf8cf in 004cf7d0
 CView	0x20	4	float	field_0x20	own field; 11 uses (5 writes) in 4 functions, e.g. 004cf82e in 004cf7d0
 CView	0x24	4	float	field_0x24	own field; 8 uses (3 writes) in 4 functions, e.g. 004cf8e1 in 004cf7d0

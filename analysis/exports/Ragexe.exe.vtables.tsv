@@ -6013,10 +6013,10 @@ CMode	005e8a5c	0	5	004cb380	CMode::SendMsg
 CMode	005e8a5c	0	6	004cb300	CMode::OnChangeState	
 CActorPickNode	005e8a8c	0	0	004ce540	CActorPickNode::`scalar_deleting_destructor'	
 CView	005e8aa0	0	0	004cefb0	CView::`scalar_deleting_destructor'	
-CView	005e8aa0	0	1	004cf1d0	CView::vf01	
+CView	005e8aa0	0	1	004cf1d0	CView::Reset	
 CView	005e8aa0	0	2	004cf220	CView::vf02	
 CView	005e8aa0	0	3	004cf4d0	CView::vf03	
-CView	005e8aa0	0	4	004cf260	CView::vf04	
+CView	005e8aa0	0	4	004cf260	CView::Update	
 CGPak	005e8e50	0	0	004dd8d0	CGPak::`scalar_deleting_destructor'	
 CGPak	005e8e50	0	1	004dd9a0	CGPak::LoadFile	
 CGPak	005e8e50	0	2	004dda10	CGPak::Exists	
