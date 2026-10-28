@@ -22,3 +22,6 @@ address	namespace	name	evidence	type
 0061ec50	Global	g_textureDivisor	LoadVideoSettings sets 4, 2 or 1 from TEXTUREMODE 0, 1 or another value; C3dDevice::CreateTexture and UpdateTexture divide texture sizes by it	dword
 00688500	Global	g_textureModeSetting	LoadVideoSettings reads the TEXTUREMODE registry value into it, 2 when absent	dword
 00688504	Global	g_trilinearFilterSetting	LoadVideoSettings reads the TRILINEARFILTER registry value into it, 0 when absent; C3dDevice::SelectMipmapFlags tests it	dword
+0067bf80	Global	g_worldLightDirection	CWorld::LoadWorld copies the .rsw's light vector (+0x188) here and passes it to C3dGround15::Build as the light direction	dword
+0067bf70	Global	g_worldDiffuse	CWorld::LoadWorld copies the .rsw's diffuse colour (+0x194) here and passes it to C3dGround15::Build	dword
+0067bf60	Global	g_worldAmbient	CWorld::LoadWorld copies the .rsw's ambient colour (+0x1a0) here and passes it to C3dGround15::Build	dword

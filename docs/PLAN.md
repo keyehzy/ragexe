@@ -2064,8 +2064,28 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     in-place texture coordinate scaling.
   - **Labels:** the passes and adders.
 
+- [x] The ground (`docs/render/ground.md`, `src/render/ground`):
+  - **`C3dGround15::Build`** places each cell's top and walls from the `.gnd`, with their
+    textures and lightmap coordinates.
+  - **It lights every vertex from the `.rsw`'s light:**
+    - corner normals average the faces of neighbouring cells whose heights match exactly;
+    - the last corner starts from the wrong triangle's normal;
+    - colour bytes come from the top of the cell whose corner the point is.
+  - **`LightmapAtlas::Build`** packs the 8 × 8 lightmaps 1024 to a 256 × 256 ARGB 4444 page.
+    Its page buffer is never cleared, so a partial page keeps the previous one's texels.
+  - **Port:** `BuildGround` and `BuildLightmapAtlas`.
+    - The arithmetic follows the original's order in single precision.
+    - The build now sets `-ffp-contract=off`.
+  - **Checks:**
+    - **Synthetic grounds:** `tools/ground_vectors.py` records five of them from the
+      original builder, with ISLIGHTMAP off and on. The port matches every cell, surface,
+      vertex (lit colours included), block and page texel, bit for bit.
+    - **Real maps:** `tools/ground_oracle.py` compares hashes of real maps, 12 in `ctest`
+      (`ground_oracle_sample`). All 208 maps of `data.grf` match, both ways.
+  - **Labels:** `Build`, `Reset` and the world light globals.
+
 ### Next actions
-1. M4, the renderer: the ground (`C3dGround`, its cells, textures and lightmaps), the
-   first thing drawn through the scene lists, as §M4 lists.
+1. M4, the renderer: drawing the ground (`C3dGround15`'s slot 4 and `004bf070`: which
+   cells are visible, and the primitives they add to the scene lists), as §M4 lists.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

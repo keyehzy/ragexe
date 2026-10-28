@@ -3,7 +3,7 @@
 `CGndRes` (RTTI, 0x1e8 bytes) is a map's ground mesh: a grid of cells, each with four
 corner heights and up to three textured quads (surfaces): its top, and the walls toward
 the next row and the next column. It is registered for `gnd` with no folder
-([resources.md](resources.md#types)). `C3dGround15::vf03` (`004bcc30`) builds the
+([resources.md](resources.md#types)). `C3dGround15::Build` (`004bcc30`) builds the
 drawable ground from it.
 
 ## Members
@@ -13,7 +13,7 @@ life, and points into them.
 
 | Offset | Field |
 |-------:|-------|
-| +0x110 | 1 when the file starts with `GRGN`, else 0; `C3dGround15::vf03` copies it to the ground's `+0x64` |
+| +0x110 | 1 when the file starts with `GRGN`, else 0; `C3dGround15::Build` copies it to the ground's `+0x64` |
 | +0x114 | major version (byte) |
 | +0x115 | minor version (byte) |
 | +0x118 | width, in cells |
@@ -148,13 +148,13 @@ The destructor (`00428fe0`) closes the `DataFile` and frees the name vector.
 - **Minor 6:** `SetFromRecordV6` (`004290b0`), the same body.
 - **Any other minor version:** `out` is left alone.
 
-`C3dGround15::vf03` is its only caller. It calls `GetCell` with `row × width + column`,
+`C3dGround15::Build` is its only caller. It calls `GetCell` with `row × width + column`,
 and once more for the neighbours a wall joins.
 
 ## Building the ground
 
-The builder is `C3dGround15::vf03` (`004bcc30`). Its full port belongs to the map
-renderer (M4); this is what it shows about the fields:
+The builder is `C3dGround15::Build` (`004bcc30`), ported with the renderer
+([ground.md](../render/ground.md)). This is what it shows about the fields:
 - **Cell corners:** cell (x, z) spans `((x − width/2)·s, (z − height/2)·s)` to the next
   cell, with `s` the cell size. Corners 0 to 3 are (x, z), (x+1, z), (x, z+1),
   (x+1, z+1), at the heights in that order.

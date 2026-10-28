@@ -8,6 +8,7 @@ add_executable(ragexe_tests
   frame_timer_test.cpp
   gat_test.cpp
   gnd_test.cpp
+  ground_test.cpp
   grf_test.cpp
   imf_test.cpp
   item_tables_test.cpp
@@ -143,6 +144,11 @@ if(RAGEXE_ARCHIVES)
     add_test(NAME tips_manner_oracle
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/tips_manner_oracle.py"
         --ragres $<TARGET_FILE:ragres> --install "${RAGEXE_INSTALL_DIR}")
+    # 12 maps' grounds built with and without lightmaps, against the original
+    # C3dGround15::Build (tools/ground_oracle.py).
+    add_test(NAME ground_oracle_sample
+      COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/ground_oracle.py"
+        --sample 12 --ragres $<TARGET_FILE:ragres> --archive "${RAGEXE_INSTALL_DIR}/data.grf")
     # Every palette, against the original conversion (tools/palette_oracle.py).
     add_test(NAME palette_oracle
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/palette_oracle.py"

@@ -3079,8 +3079,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004bc500	104	code	0	world		named	C3dGround	vf16	
 004bc570	663	code	0	world		named	C3dGround15	method_004bc570	
 004bc810	420	code	0	world		named	C3dGround15	vf01	
-004bc9c0	610	code	0	world		named	C3dGround15	vf02	
-004bcc30	6187	code	0	world		named	C3dGround15	vf03	
+004bc9c0	610	code	0	world		named	C3dGround15	Reset	
+004bcc30	6187	code	0	world		named	C3dGround15	Build	
 004be500	1321	code	0	world		named	C3dGround15	vf04	
 004bea30	1380	code	0	world		named	C3dGround15	method_004bea30	
 004befa0	199	code	0	world		named	C3dGround15	vf05	

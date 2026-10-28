@@ -45,6 +45,9 @@ if(MSVC)
   endif()
 else()
   target_compile_options(ragexe_options INTERFACE -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wno-sign-conversion)
+  # The original's x87 rounds every operation to single precision (FPUSETUP), so the
+  # ports of its geometry must not fuse a multiply and an add.
+  target_compile_options(ragexe_options INTERFACE -ffp-contract=off)
   if(RAGEXE_SANITIZE)
     target_compile_options(ragexe_options INTERFACE -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=undefined)
     target_link_options(ragexe_options INTERFACE -fsanitize=address,undefined)

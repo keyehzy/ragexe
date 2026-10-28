@@ -11,6 +11,10 @@
 //                                          decodes .act files as CActRes does, every field
 //   ragres decode-gats FILE...             decodes .gat files as C3dAttr does, as hashes
 //   ragres decode-gnds FILE...             decodes .gnd files as CGndRes does, as hashes
+//   ragres build-grounds [--lightmaps] LIGHT FILE...
+//                                          builds .gnd files as C3dGround15::Build does,
+//                                          with LIGHT nine floats: direction, diffuse,
+//                                          ambient; prints hashes
 //   ragres decode-rsws [--no-lightmaps] FILE...
 //                                          decodes .rsw files as C3dWorldRes does
 //   ragres decode-rsms FILE...             decodes .rsm files as C3dModelRes does
@@ -68,6 +72,7 @@
 #include <string_view>
 #include <vector>
 
+#include "render/ground.h"
 #include "res/act.h"
 #include "res/bitmap.h"
 #include "res/client_info.h"
@@ -524,6 +529,94 @@ std::string Hex(std::string_view bytes) {
   return out.empty() ? "-" : out;
 }
 
+int Usage();
+
+// Builds .gnd files as C3dGround15::Build does and prints, per file, "n ok", then
+// count:hash (FNV-1a over little-endian values) for the cells (top, north and east surface
+// indices, the lightmap colour's three bytes), the surfaces (whether used; if so the
+// texture index, the lightmap block or -1, the colour and the four vertices' eight
+// values), the atlas blocks (page, colour bytes, eight uv bits) and each atlas page (its
+// texels; of a first page with room left, only its blocks' texels, block by block); or
+// "n failed error".
+int BuildGrounds(std::vector<std::string> args) {
+  bool lightmaps = false;
+  if (!args.empty() && args.front() == "--lightmaps") {
+    lightmaps = true;
+    args.erase(args.begin());
+  }
+  if (args.size() < 9) return Usage();
+  ragexe::render::GroundLight light;
+  for (std::size_t k = 0; k < 3; ++k) {
+    light.direction[k] = std::stof(args[k]);
+    light.diffuse[k] = std::stof(args[3 + k]);
+    light.ambient[k] = std::stof(args[6 + k]);
+  }
+  int failed = 0;
+  for (std::size_t n = 9; n < args.size(); ++n) {
+    ragexe::res::Ground ground;
+    ragexe::render::GroundMesh mesh;
+    std::string error;
+    if (!ragexe::res::DecodeGround(ReadFile(args[n]), ground, &error) ||
+        !ragexe::render::BuildGround(ground, light, lightmaps, mesh, &error)) {
+      std::printf("%zu failed %s\n", n - 9, error.c_str());
+      ++failed;
+      continue;
+    }
+    std::vector<std::uint8_t> bytes;
+    const auto u32 = [&](std::uint32_t v) {
+      for (int k = 0; k < 4; ++k) bytes.push_back(static_cast<std::uint8_t>(v >> (8 * k)));
+    };
+    const auto hash = [&](std::size_t count) {
+      char out[48];
+      std::snprintf(out, sizeof out, " %zu:%016llx", count,
+                    static_cast<unsigned long long>(Fnv1a64(bytes)));
+      bytes.clear();
+      return std::string(out);
+    };
+    std::string line = std::to_string(n - 9) + " ok";
+    for (const auto& c : mesh.cells) {
+      for (std::int32_t s : c.surfaces) u32(static_cast<std::uint32_t>(s));
+      bytes.insert(bytes.end(), c.lightmap_color.begin(), c.lightmap_color.end());
+    }
+    line += hash(mesh.cells.size());
+    for (const auto& s : mesh.surfaces) {
+      bytes.push_back(s.used ? 1 : 0);
+      if (!s.used) continue;
+      u32(static_cast<std::uint32_t>(s.texture));
+      u32(static_cast<std::uint32_t>(s.lightmap_block));
+      u32(s.color);
+      for (const auto& v : s.vertices) {
+        for (float f : {v.x, v.y, v.z}) u32(FloatBits(f));
+        u32(v.color);
+        for (float f : {v.u, v.v, v.lightmap_u, v.lightmap_v}) u32(FloatBits(f));
+      }
+    }
+    line += hash(mesh.surfaces.size());
+    for (const auto& b : mesh.atlas.blocks) {
+      u32(b.page);
+      bytes.insert(bytes.end(), b.color.begin(), b.color.end());
+      for (float f : b.uv) u32(FloatBits(f));
+    }
+    line += hash(mesh.atlas.blocks.size());
+    const std::size_t blocks = mesh.atlas.blocks.size();
+    for (std::size_t p = 0; p < mesh.atlas.pages.size(); ++p) {
+      const auto& page = mesh.atlas.pages[p];
+      if (p == 0 && blocks < ragexe::render::LightmapAtlas::kBlocksPerPage) {
+        for (std::size_t i = 0; i < blocks; ++i) {
+          for (std::size_t y = 0; y < 8; ++y) {
+            for (std::size_t x = 0; x < 8; ++x) u32(page[(i / 32 * 8 + y) * 256 + i % 32 * 8 + x]);
+          }
+        }
+      } else {
+        for (std::uint32_t v : page) u32(v);
+      }
+      line += hash(p);
+    }
+    std::printf("%s\n", line.c_str());
+  }
+  return failed == 0 ? 0 : 1;
+}
+
 // Decodes .rsw files as C3dWorldRes does and prints, per file, "n ok major minor", the
 // three names in hex, the water and light values (floats as bits), the four ints at
 // +0x1b0, then count:hash for the models (name, file and node each with a NUL, the nine
@@ -909,8 +1002,6 @@ int DecodeWavs(const std::vector<std::string>& files) {
   }
   return failed == 0 ? 0 : 1;
 }
-
-int Usage();
 
 std::string TextHash(std::string_view text) {
   char out[17];
@@ -1399,6 +1490,7 @@ int Usage() {
                "       ragres decode-acts [--halve-x] [--halve-y] FILE...\n"
                "       ragres decode-gats FILE...\n"
                "       ragres decode-gnds FILE...\n"
+               "       ragres build-grounds [--lightmaps] LIGHT FILE...\n"
                "       ragres decode-rsws [--no-lightmaps] FILE...\n"
                "       ragres decode-rsms FILE...\n"
                "       ragres decode-rsxs FILE...\n"
@@ -1443,6 +1535,9 @@ int main(int argc, char** argv) {
   if (command == "decode-gats") return DecodeGats(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-gnds") return DecodeGnds(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-rsws") return DecodeRsws(std::vector<std::string>(argv + 2, argv + argc));
+  if (command == "build-grounds") {
+    return BuildGrounds(std::vector<std::string>(argv + 2, argv + argc));
+  }
   if (command == "decode-rsms") return DecodeRsms(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-rsxs") return DecodeRsxs(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-imfs") return DecodeImfs(std::vector<std::string>(argv + 2, argv + argc));
