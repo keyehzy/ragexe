@@ -2392,8 +2392,19 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Checks:** 12 synthetic flat squares and the two effects; 1,521,275 values in
     `prim_test`.
 
+- [x] Motes (`docs/render/effect-prim.md#motes`):
+  - **`RenderRisingSquares`, `RenderPulsingSquares` and `RenderOrbitingSquares`:** up to
+    four small squares a record facing the camera, rising and drifting, circling in two
+    colours, or popping up in five images with the corner order turned by the camera.
+  - **`CEffectPrim` ids 0x1b, 0x1e and 0x21**, and effect ids 0xca, 0xe4, 0xcb and 0xfe
+    through `AddRisingMotes`, `AddPulsingMotes` and `AddPoppingMotes`.
+  - **Checks:** 12 synthetic mote primitives and the four effects; 1,591,869 values in
+    `prim_test`.
+
 ### Next actions
-1. M4, the renderer: the other 39 primitive ids, next the rising squares
-   (`RenderRisingSquares`, id 0x1b, `0056db60`) and the ids each one effect adds.
+1. M4, the renderer: the other 36 primitive ids, next the single squares and rectangles
+   (`RenderTiltedSquare` 0x29, `RenderRotatedRectangle` 0x2a, `RenderColoredFacingSquares`
+   0x32, `RenderFacingSquareLayers` 0x34, `RenderFacingRectangles` 0x35,
+   `RenderRotatedSquares` 0x41) and the effects that add them.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

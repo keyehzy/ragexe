@@ -806,6 +806,67 @@ The original also writes the corners into the record from +0x88.
 **0x40 has no effect.** Its setup (`00574c40`) is never called. It would make a square of
 radius 5 at alpha 150, heading by the target's x.
 
+## Motes
+
+Three primitive ids draw small squares facing the camera, each record holding up to four
+of them ("motes"). They are 0x1b (`RenderRisingSquares` `0056e920`), 0x1e
+(`RenderPulsingSquares` `0057ab90`) and 0x21 (`RenderOrbitingSquares` `005708f0`).
+
+**The records**, as these ids read them:
+
+| Offset | What |
+|-------:|------|
+| +0 | active (a byte) |
+| +4 | 0x1b: how fast the motes rise |
+| +8, +0xe | the age and the alpha |
+| +0x10 | the camera angles, as for [the facing squares](#facing-squares) |
+| +0x14 | 21 floats, each id's own, below |
+| +0x6c | the size, half the square's width |
+| +0x88, +0x94, +0xa0, +0xac | the four motes' positions |
+
+**The motes' order.** The updates and the drawing take the motes in the order +0xa0,
++0x88, +0xac, +0x94.
+
+**Rising motes** (0x1b, `UpdatePrim_27` `0056e0d0`):
+- **Walking angles.** Eight angles at +0x14 walk towards the goal after each, 3 degrees a
+  step up and 2 down.
+- **Drifting.** A mote above the ground drifts by 0.15 of the sines of two angles: for the
+  motes in order, x and z by angles 0 and 2 forward, 4 and 6 back, 8 forward and 10 back,
+  and 12 back and 14 forward.
+- **Rising.** Each mote rises by the speed. Past 30 up it starts again at the centre, up to
+  99 down.
+- **Drawing.** White squares from 0 degrees, each drawn twice, only while the first
+  corner is above the ground. Their alpha is 250, fading from 20 up to nothing at 30 up.
+
+**A pulsing mote** (0x1e, `UpdatePrim_30` `0057a900`), the first record:
+- **Brightening** by 1 a step for 200 steps.
+- **Position.** Three angles walk a degree a step. The mote sits at their sines (x, z
+  and y), plus 7 along the phase (+0x2c, a degree a step), plus the climb (+0x30).
+- **The swell phase** (+0x34) turns 5 to 9 degrees a step by `rand()`.
+- **Drawing.** A blue square of the size, swollen by a twentieth of the swell's sine, then
+  a yellow one of half the size plus the same swell.
+
+**Popping motes** (0x21, `UpdatePrim_33` `0056e4a0`):
+- **The values.** Each mote has 16 bytes from +0x14: a count, the alpha, the image and the
+  angle.
+- **Brightening.** The count runs to 10 while the alpha grows by 25 a step.
+- **Fading.** Then the alpha falls by 12 a step. Below 12 the mote starts again with a
+  random angle and image, 3 to 10 up.
+- **Drawing.** Each mote is a (100, 100, 255) square from 45 degrees, of its image, 4 out
+  along its angle. The drawing writes the motes' x and z back into the record.
+- **Corner order.** The corners go B, A, D, C instead of A, B, C, D when either of these
+  holds, but not both:
+  - the image is 0 or 2;
+  - the angle less the camera's is between −80 and 70, or beyond 270 either way.
+
+**The effects:**
+
+| Effect ids | Function | Id | What |
+|-----------|----------|---:|------|
+| 0xca | `AddRisingMotes` (`0056db60`) | 0x1b | four records of four motes of `freezing_circle.bmp`, size 0.8, rising 0.15 a step; starts again at frame 99999998 |
+| 0xe4 | `AddPulsingMotes` (`0057a6c0`) | 0x1e | as many primitives as the target's x rounds up to (none unless above 0), motes of `thunder_center.bmp` of size 2 circling 15 up, their phases 72 degrees apart |
+| 0xcb, 0xfe | `AddPoppingMotes` (`0056d5c0`) | 0x21 | one and four records of motes of `super1` to `super5.bmp`, size 3.5. 0xfe plays `effect\mon_금강불괴.wav` |
+
 ## In the port
 
 **`src/core/crt_rand`:** `CrtRand`, `srand` and `rand`.
@@ -817,13 +878,14 @@ radius 5 at alpha 150, heading by the target's x.
 **`src/render/effect_prim`:**
 - `EffectPrim` with `MakePrimitive`, `ResetHistory`, `UpdatePrimitive` (vf01) and
   `DrawPrimitive` (vf03), for ids 0 to 2, 5, 6, 0xd, the twelve ring ids, the eight
-  facing-square ids and the three flat-square ids. `PrimScene` carries the camera's yaw and pitch, the ground, the view,
+  facing-square ids, the three flat-square ids and the three mote ids. `PrimScene` carries the camera's yaw and pitch, the ground, the view,
   the projection and the sprite slope; `PrimDrawing` gets the triangles and the sprite
   quads;
 - `ProcessHitSpark`, `ProcessRingBurst` and `ProcessHit3`; `AddRingWaves` (with `slow`
   for `AddSlowRingWaves`), `AddRisingRings`, `AddFadingRings`, the eight setups of
   [More rings](#more-rings), the eleven of [the square effects](#the-square-effects) and
-  `AddTwinSquares` and `AddSwellingSquare`;
+  `AddTwinSquares`, `AddSwellingSquare`, `AddRisingMotes`, `AddPulsingMotes` and
+  `AddPoppingMotes`;
 - `EffectWorld`, the world's list as effects use it:
   - `Launch` adds an effect;
   - `Step` runs a world step in the list's order;
@@ -905,11 +967,15 @@ The melody notes, the item pictures and `alpha_down.tga` are there.
     dozens only the second and the last.
 - **12 synthetic flat squares**, four of each flat id, and the two flat-square effects,
   generated as for the rings.
+- **12 synthetic mote primitives**, four of each mote id, and the four mote effects as for
+  the squares. The motes are below, at and above their limits, and every image of 0x21 is
+  seen from both sides. 0x21's motes' x and z are checked through the triangles drawn from
+  them.
 
-`tests/unit/prim_test.cpp` matches all of it: 1,521,275 values, the CRT's first `rand` values
+`tests/unit/prim_test.cpp` matches all of it: 1,591,869 values, the CRT's first `rand` values
 among them.
 
 **Not ported:**
-- the other 39 primitive ids;
+- the other 36 primitive ids;
 - the other effects' processing;
 - the sounds.

@@ -863,14 +863,20 @@ float TableAt(std::int32_t table, std::int32_t index) {
                                                       : 0.0f;
 }
 
-// The angles every facing square's update starts with (the game mode's CView, +0xb8): 360
-// less the camera's yaw into the first record, 450 less its pitch into the second, within
-// 360; and the primitive at its owner.
-void FaceCamera(EffectPrim& p, const PrimScene& scene) {
-  p.squares[0].view_angle = static_cast<std::int16_t>(360 - Ftol(scene.view_yaw));
+// The angles every update of squares facing the camera starts with (the game mode's CView,
+// +0xb8), for the first and second records' +0x10: 360 less the camera's yaw, and 450 less
+// its pitch within 360.
+std::array<std::int16_t, 2> ViewAngles(const PrimScene& scene) {
   auto pitch = static_cast<std::int16_t>(450 - Ftol(scene.view_pitch));
   if (pitch >= 360) pitch = static_cast<std::int16_t>(pitch - 360);
-  p.squares[1].view_angle = pitch;
+  return {static_cast<std::int16_t>(360 - Ftol(scene.view_yaw)), pitch};
+}
+
+// The camera's angles into the facing squares' records, and the primitive at its owner.
+void FaceCamera(EffectPrim& p, const PrimScene& scene) {
+  const std::array<std::int16_t, 2> angles = ViewAngles(scene);
+  p.squares[0].view_angle = angles[0];
+  p.squares[1].view_angle = angles[1];
   p.position = p.owner->position;
 }
 
@@ -914,18 +920,18 @@ void LeaveTrail(EffectPrim& p) {
   if (q[0].age > 1) copy(q[1], q[0], 150);
 }
 
-// An angle of 0x1f's walking a degree towards its goal, within 0 and 359; past it, a new
-// goal is drawn on the far side: below it, or 359 less a draw below it.
-void Walk(float& value, float& goal, core::CrtRand& rand) {
+// An angle walking towards its goal, up by one step or down by the other, within 0 and
+// 359; past it, a new goal is drawn on the far side: below it, or 359 less a draw below it.
+void Walk(float& value, float& goal, core::CrtRand& rand, float up = 1.0f, float down = 1.0f) {
   if (!(goal <= value)) {
-    value = value + 1.0f;
+    value = value + up;
     if (value > 359.0f) value = 359.0f;
     if (value > goal) {
       const std::int32_t n = Ftol(value);
       goal = static_cast<float>(n == 0 ? 0 : rand.Next() % n);
     }
   } else {
-    value = value - 1.0f;
+    value = value - down;
     if (value < 0.0f) value = 0.0f;
     if (!(value > goal)) {
       const std::int32_t n = Ftol(value);
@@ -1220,6 +1226,95 @@ void UpdateFadingSquare(EffectPrim& p) {
   if (r.age <= 0) return;
   if (r.age % 2 > 0) r.alpha = static_cast<std::int16_t>(r.alpha - 1);
   if (r.alpha < 0) r.alpha = 0;
+}
+
+// The camera's angles into the motes' records, and the primitive at its owner.
+void FaceCameraMotes(EffectPrim& p, const PrimScene& scene) {
+  const std::array<std::int16_t, 2> angles = ViewAngles(scene);
+  p.motes[0].view_angle = angles[0];
+  p.motes[1].view_angle = angles[1];
+  p.position = p.owner->position;
+}
+
+// The order the motes' updates and drawings take them in (+0xa0, +0x88, +0xac, +0x94).
+constexpr std::array<std::size_t, 4> kMoteOrder = {2, 0, 3, 1};
+
+// CEffectPrim::UpdatePrim_27 (0056e0d0), id 0x1b, rising motes: each active record's eight
+// angles walk 3 up or 2 down towards their goals. Each mote above the ground drifts by
+// 0.15 of the sines of two of them (x and z by angles 0 and 2 forward, 4 and 6 back, 8
+// forward and 10 back, 12 back and 14 forward, in the motes' order); past 30 up it starts
+// again from the centre up to 99 down; and it rises by the speed.
+void UpdateRisingMotes(EffectPrim& p, core::CrtRand& rand, const PrimScene& scene) {
+  FaceCameraMotes(p, scene);
+  constexpr float kDrift = 0.15f;  // 005e9ed8
+  for (PrimMotes& r : p.motes) {
+    if (!r.active) continue;
+    for (std::size_t k = 0; k < 16; k += 2) Walk(r.values[k], r.values[k + 1], rand, 3.0f, 2.0f);
+    for (std::size_t n = 0; n < 4; ++n) {
+      Vec3& m = r.points[kMoteOrder[n]];
+      if (m[1] < 0.0f) {
+        const float dx = TableAt(kSines, Ftol(r.values[4 * n])) * kDrift;
+        const float dz = TableAt(kSines, Ftol(r.values[4 * n + 2])) * kDrift;
+        m[0] = n == 0 || n == 2 ? dx + m[0] : m[0] - dx;
+        m[2] = n == 0 || n == 3 ? dz + m[2] : m[2] - dz;
+        if (m[1] < -30.0f) m = {0.0f, static_cast<float>(rand.Next() % 100), 0.0f};
+      }
+      m[1] = m[1] - r.speed;
+    }
+  }
+}
+
+// CEffectPrim::UpdatePrim_30 (0057a900), id 0x1e, a pulsing mote: the first record
+// brightens by 1 a frame for 200 frames; three angles walk a degree towards their goals,
+// and the mote sits at their sines (x, z and y by the first, second and third) plus 7 along
+// the phase, which turns a degree a frame, and the climb; the swell phase turns 5 to 9
+// degrees a frame.
+void UpdatePulsingMote(EffectPrim& p, core::CrtRand& rand, const PrimScene& scene) {
+  FaceCameraMotes(p, scene);
+  PrimMotes& r = p.motes[0];
+  if (!r.active) return;
+  ++r.age;
+  if (r.age < 201) r.alpha = static_cast<std::int16_t>(r.alpha + 1);
+  for (std::size_t k = 0; k < 6; k += 2) Walk(r.values[k], r.values[k + 1], rand);
+  Vec3& m = r.points[0];
+  m[0] = TableAt(kSines, Ftol(r.values[0]));
+  m[2] = TableAt(kSines, Ftol(r.values[2]));
+  m[1] = TableAt(kSines, Ftol(r.values[4]));
+  float& phase = r.values[6];
+  phase = phase + 1.0f;
+  if (!(phase < 360.0f)) phase = phase - 360.0f;
+  m[0] = (TableAt(kSines, Ftol(phase)) * 7.0f) + m[0];
+  m[2] = (TableAt(kCosines, Ftol(phase)) * 7.0f) + m[2];
+  m[1] = r.values[7] + m[1];
+  float& swell = r.values[8];
+  swell = static_cast<float>(rand.Next() % 5 + 5) + swell;
+  if (!(swell < 360.0f)) swell = swell - 360.0f;
+}
+
+// CEffectPrim::UpdatePrim_33 (0056e4a0), id 0x21, popping motes: per active record and
+// mote, a count runs up a frame at a time to 10 while the alpha grows by 25; then the alpha
+// falls by 12, and below 12 the mote starts again at a random angle and image, 3 to 10 up.
+void UpdatePoppingMotes(EffectPrim& p, core::CrtRand& rand, const PrimScene& scene) {
+  FaceCameraMotes(p, scene);
+  for (PrimMotes& r : p.motes) {
+    if (!r.active) continue;
+    for (std::size_t n = 0; n < 4; ++n) {
+      float* v = &r.values[4 * n];
+      v[0] = v[0] + 1.0f;
+      if (v[0] >= 10.0f) {
+        v[1] = v[1] - 12.0f;
+        if (v[1] < 12.0f) {
+          v[0] = 0.0f;
+          v[1] = 0.0f;
+          v[3] = static_cast<float>(rand.Next() % 360);
+          v[2] = static_cast<float>(rand.Next() % 5);
+          r.points[kMoteOrder[n]][1] = static_cast<float>(-3 - rand.Next() % 8);
+        }
+      } else {
+        v[1] = v[1] + 25.0f;
+      }
+    }
+  }
 }
 
 ScreenVertex Vertex(float x, float y, std::uint32_t color, float u, float v) {
@@ -1691,6 +1786,91 @@ void DrawHorizontalSquares(const EffectPrim& p, const PrimScene& scene, PrimDraw
   }
 }
 
+// The four corners of a square of the half-width, 90 degrees apart from 0 (or from 45),
+// turned to face the camera by the first two records' angles.
+std::array<Vec3, 4> FacingCorners(const EffectPrim& p, float half, std::int32_t from) {
+  std::array<Vec3, 4> q{};
+  for (std::size_t k = 0; k < 4; ++k) {
+    const auto a = static_cast<std::int32_t>(from + 90 * static_cast<std::int32_t>(k));
+    q[k] = {TableAt(kCosines, a) * half, 0.0f, TableAt(kSines, a) * half};
+  }
+  RotateQuadPoints(q, p.motes[0].view_angle, p.motes[1].view_angle);
+  return q;
+}
+
+std::array<Vec3, 4> Moved(std::array<Vec3, 4> q, const Vec3& by) {
+  for (Vec3& v : q)
+    for (std::size_t i = 0; i < 3; ++i) v[i] = v[i] + by[i];
+  return q;
+}
+
+// CEffectPrim::RenderRisingSquares (0056e920), id 0x1b: each active record's motes, in
+// their order, as white squares of its size facing the camera, drawn twice, while above
+// the ground: alpha 250, fading from 20 up to gone at 30 by the first corner's height.
+void DrawRisingMotes(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
+  for (const PrimMotes& r : p.motes) {
+    if (!r.active) continue;
+    const std::array<Vec3, 4> corners = FacingCorners(p, r.size, 0);
+    for (const std::size_t n : kMoteOrder) {
+      const std::array<Vec3, 4> q = Moved(corners, r.points[n]);
+      const float y = q[0][1];
+      std::int16_t alpha = 250;
+      if (y < -20.0f)
+        alpha = static_cast<std::int16_t>(std::max(Ftol(((y + 20.0f) * 25.0f) + 250.0f), 0));
+      if (!(y <= 0.0f)) continue;
+      for (int twice = 0; twice < 2; ++twice)
+        DrawQuad(p, scene, q, {alpha, false, 0, false, 255, 255, 255}, out);
+    }
+  }
+}
+
+// CEffectPrim::RenderPulsingSquares (0057ab90), id 0x1e: with the first record active and
+// some alpha, its mote as a blue square of its size swollen by a twentieth of the swell
+// phase's sine, then a yellow one of half the size plus that, both facing the camera.
+void DrawPulsingMote(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
+  const PrimMotes& r = p.motes[0];
+  if (!r.active || r.alpha < 1) return;
+  const float swell = TableAt(kSines, Ftol(r.values[8])) * r.size;
+  const float outer = (swell * 0.05f) + r.size;
+  DrawQuad(p, scene, Moved(FacingCorners(p, outer, 0), r.points[0]),
+           {r.alpha, false, 0, false, 0, 0, 255}, out);
+  const float inner = (r.size * kHalf) + (swell * 0.05f);
+  DrawQuad(p, scene, Moved(FacingCorners(p, inner, 0), r.points[0]),
+           {r.alpha, false, 0, false, 255, 255, 0}, out);
+}
+
+// CEffectPrim::RenderOrbitingSquares (005708f0), id 0x21: each active record's motes at 4
+// out along their angles (the original writes x and z back into the record), as squares
+// of its size from 45 degrees facing the camera, of their image, coloured (100, 100, 255)
+// at their alpha. Whether the corners go A, B, C, D or B, A, D, C depends on the image (0
+// and 2 one way, the rest the other) and on whether the angle less the camera's (the first
+// record's +0x10) is within 70 to -80 or beyond 270 either way.
+void DrawPoppingMotes(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
+  for (const PrimMotes& r : p.motes) {
+    if (!r.active) continue;
+    std::array<Vec3, 4> points = r.points;
+    for (std::size_t k = 0; k < 4; ++k) {
+      const float angle = r.values[4 * k + 3];
+      points[kMoteOrder[k]][0] = TableAt(kCosines, Ftol(angle)) * 4.0f;
+      points[kMoteOrder[k]][2] = TableAt(kSines, Ftol(angle)) * 4.0f;
+    }
+    const std::array<Vec3, 4> corners = FacingCorners(p, r.size, 45);
+    for (std::size_t k = 0; k < 4; ++k) {
+      const float* v = &r.values[4 * k];
+      const Vec3& at = points[kMoteOrder[k]];
+      const std::int32_t d = Ftol(v[3] - static_cast<float>(p.motes[0].view_angle));
+      const bool front = (d < 70 && d > -80) || d < -270 || d > 270;
+      const bool plain = v[2] == 0.0f || std::bit_cast<std::uint32_t>(v[2]) == 0x40000000;
+      std::array<Vec3, 4> q = Moved(corners, at);
+      if (front != plain) q = {q[1], q[0], q[3], q[2]};
+      DrawQuad(p, scene, q,
+               {static_cast<std::int16_t>(Ftol(v[1])), false, static_cast<std::int8_t>(Ftol(v[2])),
+                false, 100, 100, 255},
+               out);
+    }
+  }
+}
+
 // The particles of ids 0 and 2: heading and pitch, then 4 to 7 out along the matrix's z,
 // 10 up.
 void AimParticle(EffectPrim& p, std::int32_t heading, core::CrtRand& rand) {
@@ -1781,6 +1961,9 @@ bool UpdatePrimitive(EffectPrim& p, core::CrtRand& rand, const PrimScene& scene)
     case 0x1a: UpdateSwellingSquares(p, true); break;
     case 0x25: UpdateSwellingSquares(p, false); break;
     case 0x40: UpdateFadingSquare(p); break;
+    case 0x1b: UpdateRisingMotes(p, rand, scene); break;
+    case 0x1e: UpdatePulsingMote(p, rand, scene); break;
+    case 0x21: UpdatePoppingMotes(p, rand, scene); break;
     case 0x1f:
     case 0x28:
     case 0x2b:
@@ -1839,6 +2022,9 @@ void DrawPrimitive(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out
     case 0x1a:
     case 0x25:
     case 0x40: DrawHorizontalSquares(p, scene, out); break;
+    case 0x1b: DrawRisingMotes(p, scene, out); break;
+    case 0x1e: DrawPulsingMote(p, scene, out); break;
+    case 0x21: DrawPoppingMotes(p, scene, out); break;
     default: break;
   }
 }
@@ -2632,6 +2818,72 @@ void AddSwellingSquare(RagEffect& effect, const EffectActor& actor, const char* 
   added.push_back(std::move(p));
 }
 
+void AddRisingMotes(RagEffect& effect, const EffectActor& actor, core::CrtRand& rand,
+                    std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame == 99999998) {
+    effect.frame = 0;
+    effect.duration = 99999999;
+  }
+  if (effect.frame != 0) return;
+  EffectPrim p = MakeSquares(effect, 0x1b, {"effect\\freezing_circle.bmp"});
+  p.scale = 4.0f;
+  for (PrimMotes& r : p.motes) {
+    r.active = true;
+    r.speed = Bits(0x3e19999a);  // 0.15
+    r.size = Bits(0x3f4ccccd);   // 0.8
+    for (std::size_t n = 0; n < 4; ++n) {
+      r.points[kMoteOrder[n]] = {0.0f, static_cast<float>(rand.Next() % 100), 0.0f};
+      for (std::size_t k = 0; k < 4; ++k)
+        r.values[4 * n + k] = static_cast<float>(rand.Next() % 360);
+    }
+  }
+  added.push_back(std::move(p));
+}
+
+void AddPulsingMotes(RagEffect& effect, const EffectActor& actor, core::CrtRand& rand,
+                     std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0 || !(effect.target[0] > 0.0f)) return;
+  std::int32_t n = 0;
+  do {
+    EffectPrim p = MakeSquares(effect, 0x1e, {"effect\\thunder_center.bmp"});
+    PrimMotes& r = p.motes[0];
+    r.active = true;
+    for (std::size_t k = 0; k < 6; ++k) r.values[k] = static_cast<float>(rand.Next() % 360);
+    r.values[6] = static_cast<float>(n * 72);
+    r.values[7] = -15.0f;
+    r.size = 2.0f;
+    r.values[8] = static_cast<float>(rand.Next() % 360);
+    added.push_back(std::move(p));
+    ++n;
+  } while (static_cast<float>(n) < effect.target[0]);
+}
+
+void AddPoppingMotes(RagEffect& effect, const EffectActor& actor, std::int8_t count,
+                     core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  EffectPrim p = MakeSquares(effect, 0x21,
+                             {"effect\\super1.bmp", "effect\\super2.bmp", "effect\\super3.bmp",
+                              "effect\\super4.bmp", "effect\\super5.bmp"});
+  constexpr std::array<float, 4> kStarts = {70.0f, 130.0f, 190.0f, 250.0f};
+  for (std::int32_t k = 0; k < count; ++k) {
+    PrimMotes& r = p.motes[static_cast<std::size_t>(k)];
+    r.active = true;
+    r.size = 3.5f;
+    for (std::size_t n = 0; n < 4; ++n) {
+      r.points[kMoteOrder[n]][1] = static_cast<float>(-(rand.Next() % 10));
+      float* v = &r.values[4 * n];
+      v[0] = 10.0f;
+      v[1] = kStarts[n];
+      v[2] = static_cast<float>(rand.Next() % 5);
+      v[3] = static_cast<float>(rand.Next() % 360);
+    }
+  }
+  added.push_back(std::move(p));
+}
+
 RagEffect& EffectWorld::Launch(std::int32_t id, const EffectActor& actor) {
   Object o;
   o.effect = std::make_unique<RagEffect>();
@@ -2726,6 +2978,13 @@ void EffectWorld::Step(const PrimScene& scene) {
         case 0x145: AddHealingRings(e, it->actor, "effect\\ring_white.tga", 1, rand_, added); break;
         case 0xfd: AddHealingRings(e, it->actor, "effect\\ring_blue.tga", 2, rand_, added); break;
         case 0xc9: AddTwinSquares(e, it->actor, added); break;
+        case 0xca: AddRisingMotes(e, it->actor, rand_, added); break;
+        case 0xe4: AddPulsingMotes(e, it->actor, rand_, added); break;
+        case 0xcb: AddPoppingMotes(e, it->actor, 1, rand_, added); break;
+        case 0xfe:
+          // effect\mon_금강불괴.wav (006182e8) plays on the first frame.
+          AddPoppingMotes(e, it->actor, 4, rand_, added);
+          break;
         case 0xf2: AddSwellingSquare(e, it->actor, "effect\\aaa copy.bmp", rand_, added); break;
         case 0xf8:
           AddFadingRings(e, it->actor, "effect\\ring_yellow.tga", added);

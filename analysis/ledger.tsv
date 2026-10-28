@@ -5496,9 +5496,9 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0056d0f0	274	code	0	world	unreferenced	raw	Global	FUN_0056d0f0	
 0056d210	161	code	0	world	unreferenced	raw	Global	FUN_0056d210	
 0056d2c0	760	code	0	world		named	CRagEffect	AddRingTrio	
-0056d5c0	970	code	0	world		named	CRagEffect	method_0056d5c0	
+0056d5c0	970	code	0	world		named	CRagEffect	AddPoppingMotes	
 0056d990	452	code	0	world		named	CRagEffect	AddTwinSquares	
-0056db60	1091	code	0	world		named	CRagEffect	method_0056db60	
+0056db60	1091	code	0	world		named	CRagEffect	AddRisingMotes	
 0056dfb0	83	code	0	world		named	CEffectPrim	UpdatePrim_26	
 0056e010	82	code	0	world		named	CEffectPrim	UpdatePrim_37	
 0056e070	89	code	0	world		named	CEffectPrim	UpdatePrim_64	
@@ -5572,7 +5572,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0057a190	612	code	0	world		named	CRagEffect	method_0057a190	
 0057a400	341	code	0	world		named	CRagEffect	method_0057a400	
 0057a560	341	code	0	world	unreferenced	raw	Global	FUN_0057a560	
-0057a6c0	565	code	0	world		named	CRagEffect	method_0057a6c0	
+0057a6c0	565	code	0	world		named	CRagEffect	AddPulsingMotes	
 0057a900	645	code	0	world		named	CEffectPrim	UpdatePrim_30	
 0057ab90	986	code	0	world		named	CEffectPrim	RenderPulsingSquares	
 0057af70	373	code	0	world		named	CEffectPrim	RenderVerticalPanels	

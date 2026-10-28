@@ -779,8 +779,27 @@ def square_state(o, prim):
     return out
 
 
+MOTE_IDS = [0x1B, 0x1E, 0x21]
+# 0x21's drawing writes its motes' x and z back into the record; the drawn triangles check
+# them, and the state leaves them out.
+MOTE_DRAWN = [0x88, 0x90, 0x94, 0x9C, 0xA0, 0xA8, 0xAC, 0xB4]
+
+
+def mote_state(o, prim):
+    emu = o.emu
+    out = [emu.read_u32(prim + f) for f in RING_STATE]
+    drawn = emu.read_u32(prim + 0x130) == 0x21
+    for k in range(4):
+        words = list(struct.unpack(f"<{RING_SIZE // 4}I", emu.mem_read(prim + RING + RING_SIZE * k, RING_SIZE)))
+        out += [0 if drawn and 4 * i in MOTE_DRAWN else w for i, w in enumerate(words)]
+    return out
+
+
 def prim_state(o, prim):
-    return square_state(o, prim) if o.emu.read_u32(prim + 0x130) in SQUARE_IDS else ring_state(o, prim)
+    pid = o.emu.read_u32(prim + 0x130)
+    if pid in SQUARE_IDS:
+        return square_state(o, prim)
+    return mote_state(o, prim) if pid in MOTE_IDS else ring_state(o, prim)
 
 
 def toward(rng, at, near, far):
@@ -813,6 +832,92 @@ def random_square(rng, pid, k):
     struct.pack_into("<3f", rec, 0x88, *(f32(rng.uniform(-40, 40)) for _ in range(3)))
     struct.pack_into("<f", rec, 0xA4, f32(rng.uniform(-20, 0)))
     return bytes(rec)
+
+
+def random_motes(rng, pid):
+    rec = bytearray(RING_SIZE)
+    struct.pack_into("<Bxxxfi", rec, 0, rng.random() < 0.85, f32(rng.uniform(0.05, 2)), rng.randrange(0, 250))
+    struct.pack_into("<h", rec, 0xE, rng.randrange(0, 256))
+    if pid == 0x1B:
+        values = [rng.uniform(0, 359) for _ in range(16)]
+    elif pid == 0x1E:
+        values = [rng.uniform(0, 359) for _ in range(6)] + [rng.uniform(0, 359.9), rng.uniform(-20, 0),
+                                                             rng.uniform(0, 359.9)]
+    else:
+        values = []
+        for _ in range(4):
+            values += [rng.choice([0, 3, 9, 10, 11, rng.uniform(0, 12)]), rng.uniform(0, 300),
+                       rng.choice([0, 1, 2, 3, 4]), rng.choice([rng.randrange(0, 360), rng.uniform(0, 359.9)])]
+    struct.pack_into(f"<{len(values)}f", rec, 0x14, *(f32(v) for v in values))
+    struct.pack_into("<f", rec, 0x6C, f32(rng.uniform(0.5, 10)))
+    for k in range(4):
+        struct.pack_into("<3f", rec, 0x88 + 0xC * k, f32(rng.uniform(-10, 10)), f32(rng.uniform(-40, 60)),
+                         f32(rng.uniform(-10, 10)))
+    return bytes(rec)
+
+
+def synthetic_motes(o, rng, lines):
+    emu = o.emu
+    actor = emu.scratch(size=0x100)
+    rows = []
+    for n in range(4 * len(MOTE_IDS)):
+        pid = MOTE_IDS[n % len(MOTE_IDS)]
+        mark = emu.heap_mark()
+        effect = o.rag_effect(actor)
+        pos = [f32(rng.uniform(-30, 30)), f32(rng.uniform(-8, 0)), f32(rng.uniform(-30, 30))]
+        emu.mem_write(effect + 4, struct.pack("<3f", *pos))
+        emu.write_u32(effect + 0xC0, 300)
+        prim = emu.alloc(PRIM_SIZE)
+        emu.call(PRIM_CTOR, this=prim)
+        emu.call(INIT_PRIMITIVE, effect, pid, 0, 0, 0, this=prim)
+        sets = {}
+
+        def w(f, v):
+            emu.write_u32(prim + f, v & 0xFFFFFFFF)
+            sets[f] = v & 0xFFFFFFFF
+
+        w(0x144, rng.randrange(10, 40))
+        w(0x128, rng.choice([5, 5, 1, 0x105]))
+        ring_textures(o, prim, 5)
+        for k in range(4):
+            base = RING + RING_SIZE * k
+            emu.mem_write(prim + base, random_motes(rng, pid))
+            for i in range(0, RING_SIZE, 4):
+                v = emu.read_u32(prim + base + i)
+                if v:
+                    sets[base + i] = v
+        view, yaw, slope, pitch = o.scene(rng)
+        name = f"kMote{n}"
+        lines.append(f"static const FieldVector {name}Fields[] = {{" + ", ".join(
+            f"{{0x{f:x}, 0x{v:08x}, {{}}}}" for f, v in sorted(sets.items())) + "};")
+        frames = []
+        emu.call(SRAND, 7000 + n)
+        for frame in range(12):
+            more = emu.call(PRIM_VF01, this=prim).eax & 0xFF
+            state = mote_state(o, prim)
+            added = o.draw(prim) if more else []
+            lines.append(f"static const std::uint32_t {name}Frame{frame}State[] = {{{hexs(state)}}};")
+            if frame in (0, 6, 11):
+                lines.append(f"static const TriangleVector {name}Frame{frame}Triangles[] = {triangles_cpp(added)};")
+                triangles = f"{name}Frame{frame}Triangles, {len(added)}"
+            else:
+                triangles = "nullptr, kUnchecked"
+            frames.append(f"    {{{more}, {name}Frame{frame}State, {len(state)}, {triangles}, nullptr, 0}},")
+            emu.write_u32(effect + 0xBC, emu.read_u32(effect + 0xBC) + 1)
+            if not more:
+                break
+        lines.append(f"static const ShapeFrameVector {name}Frames[] = {{")
+        lines += frames
+        lines.append("};")
+        rows.append(f"    {{{pid}, {{{hexs(map(bits, pos))}}}, {{0, 0, 0}}, {{0, 0, 0}}, 300, "
+                    f"{scene_cpp(view, yaw, slope, pitch)}, {name}Fields, {len(sets)}, {name}Frames, {len(frames)}}},")
+        emu.heap_release(mark)
+    lines.append("static const ShapeVector kMotes[] = {")
+    lines += rows
+    lines.append("};")
+
+
+MOTE_EFFECTS = [(0xCA, 32), (0xE4, 32), (0xCB, 32), (0xFE, 32)]
 
 
 def synthetic_squares(o, rng, lines):
@@ -886,11 +991,11 @@ SQUARE_EFFECTS = [(0xE5, 24), (0xE6, 24), (0xE9, 24), (0xF9, 48), (0x109, 48), (
                   (0x145, 32), (0xFD, 32)]
 
 
-def square_effects(o, rng, lines):
+def square_effects(o, rng, lines, effects=SQUARE_EFFECTS, prefix="kSquareEffect", seed=5000):
     emu = o.emu
     rows = []
     player = emu.read_u32(o.world + 0x3C)
-    for run, (eid, count) in enumerate(SQUARE_EFFECTS):
+    for run, (eid, count) in enumerate(effects):
         o.reset_world()
         actor = emu.scratch(size=0x100)
         pos = (f32(rng.uniform(-30, 30)), f32(rng.uniform(-10, 0)), f32(rng.uniform(-30, 30)))
@@ -900,15 +1005,18 @@ def square_effects(o, rng, lines):
               f32(rng.uniform(-30, 30)))
         emu.mem_write(player + 4, struct.pack("<3f", *at))
         target = toward(rng, pos, 30, 90)
+        if eid == 0xE4:
+            # As many motes as the target's x rounds up to.
+            target = (f32(rng.uniform(1.5, 4.5)), target[1], target[2])
         level = rng.randrange(1, 6)
-        emu.call(SRAND, 5000 + run)
+        emu.call(SRAND, seed + run)
         effect = o.rag_effect(actor)
         emu.call(INIT_EFFECT, actor, eid, 0, 0, 0, this=effect)
         emu.mem_write(effect + 0xE8, struct.pack("<3f", *target))
         emu.write_u32(effect + 0xB8, level)
         duration = emu.read_u32(effect + 0xC0)
         alive, prims, frames, scenes = True, [], [], []
-        name = f"kSquareEffect{run}"
+        name = f"{prefix}{run}"
         for frame in range(count):
             if frame % 8 == 0:
                 scenes.append((frame, *o.scene(rng)))
@@ -961,11 +1069,11 @@ def square_effects(o, rng, lines):
         lines.append(f"static const SceneVector {name}Scenes[] = {{")
         lines += [f"    {{{f}, {scene_cpp(v, y, sl, pi)}}}," for f, v, y, sl, pi in scenes]
         lines.append("};")
-        rows.append(f"    {{{eid}, {level}, {5000 + run}, {{{hexs(map(bits, pos))}}}, {{{hexs(map(bits, at))}}}, "
+        rows.append(f"    {{{eid}, {level}, {seed + run}, {{{hexs(map(bits, pos))}}}, {{{hexs(map(bits, at))}}}, "
                     f"{{{hexs(map(bits, target))}}}, {duration}, {name}Frames, {len(frames)}, {name}Scenes, "
                     f"{len(scenes)}}},")
     emu.mem_write(player + 4, bytes(12))
-    lines.append("static const SquareEffectVector kSquareEffects[] = {")
+    lines.append(f"static const SquareEffectVector {prefix}s[] = {{")
     lines += rows
     lines.append("};")
 
@@ -986,6 +1094,8 @@ def main():
     square_effects(o, rng, lines)
     synthetic_rings(o, rng, lines, FLAT_IDS, "kFlatSquare", 4)
     ring_effects(o, rng, lines, FLAT_EFFECTS, "kFlatEffect", 6000)
+    synthetic_motes(o, rng, lines)
+    square_effects(o, rng, lines, MOTE_EFFECTS, "kMoteEffect", 8000)
     names = sorted(o.textures.items(), key=lambda kv: kv[1])
     lines.append("static const TextureVector kTextures[] = {" +
                  ", ".join(f'{{0x{v:x}, "{c_literal(k)}"}}' for k, v in names) + "};")

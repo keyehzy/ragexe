@@ -129,6 +129,23 @@ struct PrimSquare {
   float base = 0.0f;         // +0xa4, the height it bobs about
 };
 
+// The same records as ids 0x1b, 0x1e and 0x21 read them: up to four small squares (motes)
+// at +0x88, +0x94, +0xa0 and +0xac, each turned to face the camera, and the values that
+// move them at +0x14.
+struct PrimMotes {
+  bool active = false;          // +0
+  float speed = 0.0f;           // +4, 0x1b: how fast its motes rise
+  std::int32_t age = 0;         // +8
+  std::int16_t alpha = 0;       // +0xe
+  std::int16_t view_angle = 0;  // +0x10, as PrimSquare's
+  // +0x14: 0x1b, eight angles (+0x14, +0x1c, ...) each walking to the goal after it; 0x1e,
+  // three, then the phase (+0x2c), the climb (+0x30) and the swell phase (+0x34); 0x21,
+  // per mote 16 bytes: a count, the alpha, the image and the angle round the centre.
+  std::array<float, 21> values{};
+  float size = 0.0f;             // +0x6c, the half-width
+  std::array<Vec3, 4> points{};  // +0x88
+};
+
 // CEffectPrim (0x15990 bytes): one particle or shape an effect adds to the world, stepped
 // by vf01 and drawn by vf03, both switching on the primitive id. The fields are those the
 // ported ids use, at their offsets; the defaults are the constructor's (0057cfa0).
@@ -251,6 +268,7 @@ struct EffectPrim {
   std::array<PrimRing, 4> rings{};
   // The facing squares read the same four records their own way.
   std::array<PrimSquare, 4> squares{};
+  std::array<PrimMotes, 4> motes{};
 };
 
 // What vf03 hands the renderer.
@@ -400,6 +418,21 @@ void AddHealingRings(RagEffect& effect, const EffectActor& actor, const char* te
 void AddTwinSquares(RagEffect& effect, const EffectActor& actor, std::vector<EffectPrim>& added);
 void AddSwellingSquare(RagEffect& effect, const EffectActor& actor, const char* texture,
                        core::CrtRand& rand, std::vector<EffectPrim>& added);
+
+// The mote effects (docs/render/effect-prim.md#motes), on their first frame:
+//  - AddRisingMotes (0056db60), id 0xca: id 0x1b, four records of four motes of
+//    freezing_circle.bmp rising from up to 99 below; starts again at frame 99999998;
+//  - AddPulsingMotes (0057a6c0), id 0xe4: as many primitives of id 0x1e as the target's x
+//    rounds up to (none unless above 0), each a mote of thunder_center.bmp circling 7 out,
+//    their phases 72 degrees apart;
+//  - AddPoppingMotes (0056d5c0), ids 0xcb (one record) and 0xfe (four): id 0x21, motes of
+//    super1 to super5.bmp popping up round the actor.
+void AddRisingMotes(RagEffect& effect, const EffectActor& actor, core::CrtRand& rand,
+                    std::vector<EffectPrim>& added);
+void AddPulsingMotes(RagEffect& effect, const EffectActor& actor, core::CrtRand& rand,
+                     std::vector<EffectPrim>& added);
+void AddPoppingMotes(RagEffect& effect, const EffectActor& actor, std::int8_t count,
+                     core::CrtRand& rand, std::vector<EffectPrim>& added);
 
 // The world's object list as effects use it (CWorld::UpdateGameObjects, 004c4a10): each
 // world step every object's vf01 in order, a primitive an effect adds joining the end and

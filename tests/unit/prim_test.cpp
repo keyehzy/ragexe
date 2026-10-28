@@ -192,6 +192,7 @@ constexpr std::uint32_t kSyntheticTextures = 0x7100;  // the script's stand-in p
 constexpr std::uint32_t kSyntheticSeed = 500;         // srand before the n-th primitive's frames
 constexpr std::uint32_t kShapeSeed = 700;             // the same for the shapes
 constexpr std::uint32_t kSquareSeed = 4000;           // and for the facing squares
+constexpr std::uint32_t kMoteSeed = 7000;             // and for the motes
 
 float F(std::uint32_t bits) { return std::bit_cast<float>(bits); }
 std::uint32_t B(float f) { return std::bit_cast<std::uint32_t>(f); }
@@ -390,6 +391,68 @@ std::vector<std::uint32_t> SquareStateOf(const EffectPrim& p) {
   return out;
 }
 
+bool IsMote(std::int32_t id) { return id == 0x1b || id == 0x1e || id == 0x21; }
+
+// A dword of a record as ids 0x1b, 0x1e and 0x21 read it.
+void ApplyMote(std::uint32_t offset, std::uint32_t v, EffectPrim& p) {
+  PrimMotes& r = p.motes[offset / kRingSize];
+  const std::uint32_t o = offset % kRingSize;
+  if (o == 0) {
+    r.active = (v & 0xff) != 0;
+  } else if (o == 4) {
+    r.speed = F(v);
+  } else if (o == 8) {
+    r.age = static_cast<std::int32_t>(v);
+  } else if (o == 0xc) {
+    r.alpha = High(v);
+  } else if (o == 0x10) {
+    r.view_angle = Low(v);
+  } else if (o >= 0x14 && o < 0x68) {
+    r.values[(o - 0x14) / 4] = F(v);
+  } else if (o == 0x6c) {
+    r.size = F(v);
+  } else if (o >= 0x88) {
+    r.points[(o - 0x88) / 0xc][(o - 0x88) % 0xc / 4] = F(v);
+  } else {
+    FAIL("unknown mote field " << offset);
+  }
+}
+
+// The position, the age and each whole record as the motes lay them out; 0x21's motes' x
+// and z, which its drawing writes, are left out as the script leaves them.
+std::vector<std::uint32_t> MotesStateOf(const EffectPrim& p) {
+  std::vector<std::uint32_t> out = {B(p.position[0]), B(p.position[1]), B(p.position[2]), U(p.age)};
+  for (const PrimMotes& r : p.motes) {
+    std::array<std::uint8_t, kRingSize> bytes{};
+    const auto put = [&bytes](std::size_t at, const auto& value) {
+      std::memcpy(bytes.data() + at, &value, sizeof(value));
+    };
+    put(0, static_cast<std::uint8_t>(r.active ? 1 : 0));
+    put(4, r.speed);
+    put(8, r.age);
+    put(0xe, r.alpha);
+    put(0x10, r.view_angle);
+    put(0x14, r.values);
+    put(0x6c, r.size);
+    for (std::size_t k = 0; k < 4; ++k) {
+      Vec3 m = r.points[k];
+      if (p.id == 0x21) m[0] = m[2] = 0.0f;
+      put(0x88 + 0xc * k, m);
+    }
+    for (std::size_t i = 0; i < bytes.size(); i += 4) {
+      std::uint32_t word = 0;
+      std::memcpy(&word, bytes.data() + i, 4);
+      out.push_back(word);
+    }
+  }
+  return out;
+}
+
+std::vector<std::uint32_t> StateFor(const EffectPrim& p) {
+  if (IsSquare(p.id)) return SquareStateOf(p);
+  return IsMote(p.id) ? MotesStateOf(p) : RingStateOf(p);
+}
+
 void Apply(const FieldVector& f, EffectPrim& p) {
   const auto i = static_cast<std::int32_t>(f.value);
   const float v = F(f.value);
@@ -469,6 +532,8 @@ void Apply(const FieldVector& f, EffectPrim& p) {
       if (f.field >= kRingBase && f.field < kRingBase + 4 * kRingSize) {
         if (IsSquare(p.id)) {
           ApplySquare(f.field - kRingBase, f.value, p);
+        } else if (IsMote(p.id)) {
+          ApplyMote(f.field - kRingBase, f.value, p);
         } else {
           ApplyRing(f.field - kRingBase, f.value, p);
         }
@@ -983,11 +1048,13 @@ TEST_CASE("Facing squares step and draw as the original's", "[effect]") {
   }
 }
 
-TEST_CASE("The square effects play as the original's", "[effect]") {
+namespace {
+
+void CheckTargetEffects(std::span<const SquareEffectVector> effects) {
   std::map<std::string, std::uint32_t> ids;
   for (const TextureVector& t : kTextures) ids[t.name] = t.id;
   const auto vec = [](const std::uint32_t* v) { return Vec3{F(v[0]), F(v[1]), F(v[2])}; };
-  for (const SquareEffectVector& v : kSquareEffects) {
+  for (const SquareEffectVector& v : effects) {
     INFO("effect id " << v.id);
     CHECK(EffectDuration(v.id) == v.duration);
     EffectWorld world(v.seed);
@@ -1021,10 +1088,48 @@ TEST_CASE("The square effects play as the original's", "[effect]") {
         CHECK(order[prims[i]] == fv.prims[i].index);
         CHECK(prims[i]->id == fv.prims[i].id);
         if (fv.prims[i].state == nullptr) continue;
-        CheckState(IsSquare(prims[i]->id) ? SquareStateOf(*prims[i]) : RingStateOf(*prims[i]),
-                   fv.prims[i].state, fv.prims[i].count);
+        CheckState(StateFor(*prims[i]), fv.prims[i].state, fv.prims[i].count);
       }
       CheckTriangles(world.Draw(scene).triangles, fv.triangles, fv.count, ids);
     }
   }
+}
+
+}  // namespace
+
+TEST_CASE("The square effects play as the original's", "[effect]") {
+  CheckTargetEffects(kSquareEffects);
+}
+
+TEST_CASE("Motes step and draw as the original's", "[effect]") {
+  std::map<std::string, std::uint32_t> ids;
+  for (std::uint32_t i = 0; i < 5; ++i) ids["t" + std::to_string(i)] = kSyntheticTextures + i;
+  std::size_t n = 0;
+  for (const ShapeVector& v : kMotes) {
+    INFO("mote primitive " << n << ", id " << v.id);
+    RagEffect owner;
+    for (std::size_t i = 0; i < 3; ++i) owner.position[i] = F(v.position[i]);
+    owner.duration = v.duration;
+    EffectPrim p = MakePrimitive(&owner, v.id, {0.0f, 0.0f, 0.0f});
+    for (std::size_t f = 0; f < v.field_count; ++f) Apply(v.fields[f], p);
+    p.textures = {"t0", "t1", "t2", "t3", "t4"};
+    const PrimScene scene = SceneOf(v.scene, nullptr);
+    ragexe::core::CrtRand rand(kMoteSeed + static_cast<std::uint32_t>(n));
+    for (std::size_t f = 0; f < v.frame_count; ++f) {
+      INFO("frame " << f);
+      const ShapeFrameVector& fv = v.frames[f];
+      const bool more = UpdatePrimitive(p, rand, scene);
+      CHECK(more == (fv.more != 0));
+      CheckState(MotesStateOf(p), fv.state, fv.state_count);
+      PrimDrawing drawing;
+      if (more) DrawPrimitive(p, scene, drawing);
+      CheckTriangles(drawing.triangles, fv.triangles, fv.count, ids);
+      ++owner.frame;
+    }
+    ++n;
+  }
+}
+
+TEST_CASE("The mote effects play as the original's", "[effect]") {
+  CheckTargetEffects(kMoteEffects);
 }
