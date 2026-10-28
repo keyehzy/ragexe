@@ -30,6 +30,7 @@ struct RagEffect {
   float screen_x = 0.0f;      // +0xdc, where its processing last put the actor on screen
   float screen_y = 0.0f;      // +0xe0
   Vec3 target{};              // +0xe8, InitEffect's last three arguments
+  std::int32_t level = 0;     // +0xb8, from a message (vf02, at most 50)
 };
 
 // The actor an effect plays on (+0xa0): where it stands and which way it faces (+0x38,
@@ -45,11 +46,12 @@ struct PrimSprite {
   const res::Sprite* sprite = nullptr;
 };
 
-// What primitives read of the world: the camera's yaw (CView+0x20) and the ground for
-// their steps, and for their drawing vf03's view, the projection and g_spriteSlopeDown
-// (0060564c).
+// What primitives read of the world: the camera's yaw and pitch (CView+0x20, +0x1c) and
+// the ground for their steps, and for their drawing vf03's view, the projection and
+// g_spriteSlopeDown (0060564c).
 struct PrimScene {
   float view_yaw = 0.0f;
+  float view_pitch = 0.0f;
   const res::AttrMap* attr = nullptr;
   Matrix view{};
   Projection projection{};
@@ -95,6 +97,36 @@ struct PrimRing {
   // +0x70, a byte per wall: settled, or how it moves (0x39); the first two also a mode and
   // a height (0x36).
   std::array<std::uint8_t, 21> flags{};
+};
+
+// The same records as the facing squares read them (ids 0x1f, 0x28, 0x2b, 0x2d, 0x2f, 0x33,
+// 0x37 and 0x38): a square of four corners 90 degrees apart about a centre, turned to face
+// the camera. The first record's colour and shade pick every square's colour.
+struct PrimSquare {
+  bool active = false;          // +0
+  std::int16_t turn = 0;        // +2, the square's own rotation, degrees
+  float range = 0.0f;           // +4, 0x28 and 0x33: how far out the target is
+  std::int32_t age = 0;         // +8
+  std::int16_t heading = 0;     // +0xc, of its motion; 0x1f: the age it starts fading
+  std::int16_t alpha = 0;       // +0xe
+  std::int16_t view_angle = 0;  // +0x10: the first record's 360 less the camera's yaw, the
+                                // second's 450 less its pitch, within 360
+  // +0x14 to +0x20: 0x1f walks two angles each a degree a frame towards a goal (+0x14 to
+  // +0x18 and +0x1c to +0x20) and drifts the centre by their sines.
+  float walk_x = 0.0f;       // +0x14
+  float speed = 0.0f;        // +0x18, along the heading; 0x1f: walk_x's goal
+  float climb = 0.0f;        // +0x1c, up or down each frame; 0x1f: the second angle
+  float walk_z_goal = 0.0f;  // +0x20
+  float floor = 0.0f;        // +0x2c, 0x1f: it brightens with the owner above (y less)
+  float mode = 0.0f;         // +0x30; 2 colours the square (200, 0, 60)
+  float phase = 0.0f;        // +0x34, degrees: the size swells by a twentieth on its sine
+  float size = 0.0f;         // +0x6c, the half-diagonal
+  std::uint8_t image = 0;    // +0x70, the index into textures
+  std::uint8_t state = 0;    // +0x71, the update's stage, or the steps to the target (0x33)
+  std::uint8_t color = 0;    // +0x72
+  std::uint8_t shade = 0;    // +0x73, colour 9's
+  Vec3 center{};             // +0x88
+  float base = 0.0f;         // +0xa4, the height it bobs about
 };
 
 // CEffectPrim (0x15990 bytes): one particle or shape an effect adds to the world, stepped
@@ -160,7 +192,7 @@ struct EffectPrim {
   // +0x200 height_rate, +0x1d0 acceleration: the order UpdatePrim_0 applies them in.
 
   Vec3 start{};   // +0x2ec, the owner's position; for id 1 its point on screen
-  Vec3 travel{};  // +0x2f8, the distance moved so far
+  Vec3 travel{};  // +0x2f8, the distance moved so far; for squares, the point they head for
   Vec3 offset{};  // +0x304, from the owner's point
 
   float alpha = 254.0f;           // +0x254
@@ -217,6 +249,8 @@ struct EffectPrim {
 
   // Ids 0x1d and 0x27 draw rings of walls; the scale (+0x248) picks their colour.
   std::array<PrimRing, 4> rings{};
+  // The facing squares read the same four records their own way.
+  std::array<PrimSquare, 4> squares{};
 };
 
 // What vf03 hands the renderer.
@@ -233,7 +267,7 @@ EffectPrim MakePrimitive(const RagEffect* owner, std::int32_t id, const Vec3& of
 void ResetHistory(EffectPrim& p);
 
 // vf01 (0057dce0): false once the owner is gone, when the id's update ends it, or once its
-// age passes its life. Ids other than 0 to 2, 5, 6 and 0xd are not ported and end at once.
+// age passes its life. Ids not ported end at once.
 bool UpdatePrimitive(EffectPrim& p, core::CrtRand& rand, const PrimScene& scene);
 
 // vf03 (00586070): what a visible primitive draws.
@@ -306,6 +340,57 @@ void AddReadyPortal(RagEffect& effect, const EffectActor& actor, std::vector<Eff
 void AddGlassWall(RagEffect& effect, const EffectActor& actor, const char* texture,
                   core::CrtRand& rand, std::vector<EffectPrim>& added);
 
+// The square effects (docs/render/effect-prim.md#facing-squares), on their first frame
+// unless said:
+//  - AddClouds (005686c0), ids 0xe5 (40 a step, variant 0), 0xe6 (60, 1) and 0xe9 (40, 2):
+//    id 0x1f, four clouds of cloud4, cloud1 or cloud2.tga about the player, low (0, 2) or
+//    high (1); like AddRingTrio it starts again at frame 99999998;
+//  - AddBoomerang (00569610 and 00579af0), ids 0xf9 (shield_boomerang.bmp) and 0x109
+//    (blue_ivy.bmp, ivy: its size by the level, flying off past the target): id 0x28, one
+//    square out to the target and back with a trail of three, playing a sound;
+//  - AddThrownSparks (00576090), ids 0x108 (5 a step) and 0x113 (20, effect\rog_back
+//    stap.wav at frame 20): id 0x2b, four sparks of thunder_center.bmp from the target on;
+//  - AddBobbingSquare (00574520), ids 0x116 (zz.bmp, 1), 0x117 (pocket.bmp, 3), 0x119
+//    (melody_a or b, 2), 0x11a (twirl.bmp, 7), 0x11c (one of three stones, 5), 0x11e
+//    (melody_b, 0), 0x120 (one of spell_01 to 08, 8), 0x121 (idun_apple.bmp, 6), 0x123
+//    (melody_a, 0) and 0x125 (kiss.bmp, 4): id 0x2d, one square over the actor;
+//  - AddSinkingSquares (00574890), id 0x11b (safeline.bmp, 0): id 0x2f, two squares;
+//  - AddArcingSquare (00569ae0), ids 0x12a (an empty bottle, 0), 299 (an empty potion
+//    bottle, 1, shaded by the level) and 0x134 (a stone, 2): id 0x33, thrown to the target;
+//  - AddPulsingSquare (005698b0), id 0x135: id 0x37 of pikapika2.bmp, _heal_effect.wav;
+//  - AddThunderSparks (00576310), id 0x136 (20 a step): id 0x38, four sparks of
+//    thunder_center.bmp;
+//  - AddHealingSparks (00576590), ids 0x14b (0) and 0x14c (1): id 0x38 every 4 frames to
+//    20, a sound on the first;
+//  - AddHealingWalls (005768c0), ids 0x138 (0) and 0x140 (1): id 0x39, two rings of
+//    alpha_down.tga, and id 0x38 every 6 frames to 50 (25 for 1), _heal_effect.wav;
+//  - AddHealingRings (00577480), ids 0x139 (ring_white, 0), 0x145 (ring_white, 1) and 0xfd
+//    (ring_blue, 2): id 0x39, four rings, and below variant 2 id 0x38 every 6 frames to 50
+//    and _heal_effect.wav; variant 1 adds four rings of alpha_down.tga on frame 1 and more
+//    sparks every 9 frames from 2.
+void AddClouds(RagEffect& effect, const Vec3& player, std::int8_t variant, core::CrtRand& rand,
+               std::vector<EffectPrim>& added);
+void AddBoomerang(RagEffect& effect, const EffectActor& actor, const char* texture, bool ivy,
+                  std::vector<EffectPrim>& added);
+void AddThrownSparks(RagEffect& effect, const EffectActor& actor, core::CrtRand& rand,
+                     std::vector<EffectPrim>& added);
+void AddBobbingSquare(RagEffect& effect, const EffectActor& actor, const char* texture,
+                      std::int8_t variant, core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddSinkingSquares(RagEffect& effect, const EffectActor& actor, const char* texture,
+                       std::int8_t variant, core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddArcingSquare(RagEffect& effect, const EffectActor& actor, const char* texture,
+                     std::int8_t variant, std::vector<EffectPrim>& added);
+void AddPulsingSquare(RagEffect& effect, const EffectActor& actor, core::CrtRand& rand,
+                      std::vector<EffectPrim>& added);
+void AddThunderSparks(RagEffect& effect, const EffectActor& actor, core::CrtRand& rand,
+                      std::vector<EffectPrim>& added);
+void AddHealingSparks(RagEffect& effect, const EffectActor& actor, std::int8_t variant,
+                      core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddHealingWalls(RagEffect& effect, const EffectActor& actor, const char* texture,
+                     std::int8_t variant, core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddHealingRings(RagEffect& effect, const EffectActor& actor, const char* texture,
+                     std::int8_t variant, core::CrtRand& rand, std::vector<EffectPrim>& added);
+
 // The world's object list as effects use it (CWorld::UpdateGameObjects, 004c4a10): each
 // world step every object's vf01 in order, a primitive an effect adds joining the end and
 // running the same step; an object whose vf01 answers false is deleted, and an effect's
@@ -317,6 +402,8 @@ class EffectWorld {
   // The particle sprite, and whether minimal effects are on (g_ClientState+0x1840).
   void SetParticle(const PrimSprite& particle) { particle_ = particle; }
   void SetMinimal(bool minimal) { minimal_ = minimal; }
+  // Where the player stands (the game mode's world, +0x3c), which the clouds follow.
+  void SetPlayer(const Vec3& player) { player_ = player; }
 
   // CAbleToMakeEffect::LaunchEffect (00501e10) and InitEffect: effect id at the actor, its
   // duration from the table, appended to the list.
@@ -340,6 +427,7 @@ class EffectWorld {
   core::CrtRand rand_;
   PrimSprite particle_;
   bool minimal_ = false;
+  Vec3 player_{};
 };
 
 }  // namespace ragexe::render

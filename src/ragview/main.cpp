@@ -710,12 +710,18 @@ int main(int argc, char** argv) {
     if (has_prims) {
       render::PrimScene scene;
       scene.view_yaw = camera.yaw;
+      scene.view_pitch = camera.pitch;
       scene.attr = &attr;
       scene.view = camera.view;
       scene.projection = projection;
       scene.slope_down = sprite_scales.slope_down;
       for (std::uint32_t i = 0; i < std::min<std::uint32_t>(steps, 8); ++i) {
-        if (prim_world.empty()) prim_world.Launch(o.effect_id, {player, actor_object.facing});
+        if (prim_world.empty()) {
+          // The effects thrown at a target aim at a point 50 out either way along the ground.
+          render::RagEffect& e = prim_world.Launch(o.effect_id, {player, actor_object.facing});
+          e.target = {player[0] + 50.0f, player[1], player[2] + 50.0f};
+        }
+        prim_world.SetPlayer(player);
         prim_world.Step(scene);
       }
       const render::PrimDrawing drawing = prim_world.Draw(scene);

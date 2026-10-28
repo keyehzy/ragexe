@@ -1,7 +1,9 @@
+#include <array>
 #include <bit>
 #include <catch2/catch_test_macros.hpp>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <map>
 #include <string>
 #include <utility>
@@ -101,7 +103,7 @@ struct QuadVector {
 
 struct SceneData {
   std::uint32_t view[12];
-  std::uint32_t yaw, slope_down;
+  std::uint32_t yaw, slope_down, pitch;
 };
 
 struct ShapeFrameVector {
@@ -159,6 +161,17 @@ struct BurstVector {
   std::size_t scene_count;
 };
 
+struct SquareEffectVector {
+  int id, level;
+  std::uint32_t seed;
+  std::uint32_t position[3], player[3], target[3];
+  int duration;
+  const BurstFrameVector* frames;
+  std::size_t frame_count;
+  const SceneVector* scenes;
+  std::size_t scene_count;
+};
+
 struct ImageVector {
   std::int16_t width, height;
   int halved_x, halved_y;
@@ -177,6 +190,7 @@ struct ItemVector {
 constexpr std::uint32_t kSyntheticTextures = 0x7100;  // the script's stand-in pointers
 constexpr std::uint32_t kSyntheticSeed = 500;         // srand before the n-th primitive's frames
 constexpr std::uint32_t kShapeSeed = 700;             // the same for the shapes
+constexpr std::uint32_t kSquareSeed = 4000;           // and for the facing squares
 
 float F(std::uint32_t bits) { return std::bit_cast<float>(bits); }
 std::uint32_t B(float f) { return std::bit_cast<std::uint32_t>(f); }
@@ -285,6 +299,96 @@ std::vector<std::uint32_t> RingStateOf(const EffectPrim& p) {
   return out;
 }
 
+bool IsSquare(std::int32_t id) {
+  switch (id) {
+    case 0x1f:
+    case 0x28:
+    case 0x2b:
+    case 0x2d:
+    case 0x2f:
+    case 0x33:
+    case 0x37:
+    case 0x38: return true;
+    default: return false;
+  }
+}
+
+// A dword of a record as the facing squares read it, at its offset from the first record.
+void ApplySquare(std::uint32_t offset, std::uint32_t v, EffectPrim& p) {
+  PrimSquare& s = p.squares[offset / kRingSize];
+  switch (offset % kRingSize) {
+    case 0:
+      s.active = (v & 0xff) != 0;
+      s.turn = High(v);
+      break;
+    case 4: s.range = F(v); break;
+    case 8: s.age = static_cast<std::int32_t>(v); break;
+    case 0xc:
+      s.heading = Low(v);
+      s.alpha = High(v);
+      break;
+    case 0x10: s.view_angle = Low(v); break;
+    case 0x14: s.walk_x = F(v); break;
+    case 0x18: s.speed = F(v); break;
+    case 0x1c: s.climb = F(v); break;
+    case 0x20: s.walk_z_goal = F(v); break;
+    case 0x2c: s.floor = F(v); break;
+    case 0x30: s.mode = F(v); break;
+    case 0x34: s.phase = F(v); break;
+    case 0x6c: s.size = F(v); break;
+    case 0x70:
+      s.image = static_cast<std::uint8_t>(v);
+      s.state = static_cast<std::uint8_t>(v >> 8);
+      s.color = static_cast<std::uint8_t>(v >> 16);
+      s.shade = static_cast<std::uint8_t>(v >> 24);
+      break;
+    case 0x88: s.center[0] = F(v); break;
+    case 0x8c: s.center[1] = F(v); break;
+    case 0x90: s.center[2] = F(v); break;
+    case 0xa4: s.base = F(v); break;
+    default: FAIL("unknown square field " << offset); break;
+  }
+}
+
+// The position, the age and the first 0xa8 bytes of each record as the facing squares
+// lay them out, as the script reads them.
+std::vector<std::uint32_t> SquareStateOf(const EffectPrim& p) {
+  std::vector<std::uint32_t> out = {B(p.position[0]), B(p.position[1]), B(p.position[2]), U(p.age)};
+  for (const PrimSquare& s : p.squares) {
+    std::array<std::uint8_t, 0xa8> bytes{};
+    const auto put = [&bytes](std::size_t at, const auto& value) {
+      std::memcpy(bytes.data() + at, &value, sizeof(value));
+    };
+    put(0, static_cast<std::uint8_t>(s.active ? 1 : 0));
+    put(2, s.turn);
+    put(4, s.range);
+    put(8, s.age);
+    put(0xc, s.heading);
+    put(0xe, s.alpha);
+    put(0x10, s.view_angle);
+    put(0x14, s.walk_x);
+    put(0x18, s.speed);
+    put(0x1c, s.climb);
+    put(0x20, s.walk_z_goal);
+    put(0x2c, s.floor);
+    put(0x30, s.mode);
+    put(0x34, s.phase);
+    put(0x6c, s.size);
+    put(0x70, s.image);
+    put(0x71, s.state);
+    put(0x72, s.color);
+    put(0x73, s.shade);
+    put(0x88, s.center);
+    put(0xa4, s.base);
+    for (std::size_t i = 0; i < bytes.size(); i += 4) {
+      std::uint32_t word = 0;
+      std::memcpy(&word, bytes.data() + i, 4);
+      out.push_back(word);
+    }
+  }
+  return out;
+}
+
 void Apply(const FieldVector& f, EffectPrim& p) {
   const auto i = static_cast<std::int32_t>(f.value);
   const float v = F(f.value);
@@ -362,7 +466,13 @@ void Apply(const FieldVector& f, EffectPrim& p) {
     case 0x1b8: p.sweep = v; break;
     default:
       if (f.field >= kRingBase && f.field < kRingBase + 4 * kRingSize) {
-        ApplyRing(f.field - kRingBase, f.value, p);
+        if (IsSquare(p.id)) {
+          ApplySquare(f.field - kRingBase, f.value, p);
+        } else {
+          ApplyRing(f.field - kRingBase, f.value, p);
+        }
+      } else if (f.field >= 0x2f8 && f.field < 0x304) {
+        p.travel[(f.field - 0x2f8) / 4] = F(f.value);
       } else if (f.field >= 0xc4 && f.field < 0xf4) {
         p.matrix[(f.field - 0xc4) / 4] = v;
       } else if (f.field >= 0x1d4 && f.field < 0x1ec) {
@@ -491,6 +601,7 @@ PrimScene SceneOf(const SceneData& d, const ragexe::res::AttrMap* attr) {
   PrimScene scene;
   for (std::size_t i = 0; i < 12; ++i) scene.view[i] = F(d.view[i]);
   scene.view_yaw = F(d.yaw);
+  scene.view_pitch = F(d.pitch);
   scene.slope_down = F(d.slope_down);
   scene.projection = SetSize(800, 600);
   scene.attr = attr;
@@ -820,6 +931,81 @@ TEST_CASE("The ring effects play as the original's", "[effect]") {
         CHECK(order[prims[i]] == fv.prims[i].index);
         CHECK(prims[i]->id == fv.prims[i].id);
         CheckState(RingStateOf(*prims[i]), fv.prims[i].state, fv.prims[i].count);
+      }
+      CheckTriangles(world.Draw(scene).triangles, fv.triangles, fv.count, ids);
+    }
+  }
+}
+
+TEST_CASE("Facing squares step and draw as the original's", "[effect]") {
+  std::map<std::string, std::uint32_t> ids;
+  for (std::uint32_t i = 0; i < 4; ++i) ids["t" + std::to_string(i)] = kSyntheticTextures + i;
+  std::size_t n = 0;
+  for (const ShapeVector& v : kSquares) {
+    INFO("square primitive " << n << ", id " << v.id);
+    RagEffect owner;
+    for (std::size_t i = 0; i < 3; ++i) owner.position[i] = F(v.position[i]);
+    owner.duration = v.duration;
+    EffectPrim p = MakePrimitive(&owner, v.id, {0.0f, 0.0f, 0.0f});
+    for (std::size_t f = 0; f < v.field_count; ++f) Apply(v.fields[f], p);
+    p.textures = {"t0", "t1"};
+    const PrimScene scene = SceneOf(v.scene, nullptr);
+    ragexe::core::CrtRand rand(kSquareSeed + static_cast<std::uint32_t>(n));
+    for (std::size_t f = 0; f < v.frame_count; ++f) {
+      INFO("frame " << f);
+      const ShapeFrameVector& fv = v.frames[f];
+      const bool more = UpdatePrimitive(p, rand, scene);
+      CHECK(more == (fv.more != 0));
+      CheckState(SquareStateOf(p), fv.state, fv.state_count);
+      PrimDrawing drawing;
+      if (more) DrawPrimitive(p, scene, drawing);
+      CheckTriangles(drawing.triangles, fv.triangles, fv.count, ids);
+      ++owner.frame;
+    }
+    ++n;
+  }
+}
+
+TEST_CASE("The square effects play as the original's", "[effect]") {
+  std::map<std::string, std::uint32_t> ids;
+  for (const TextureVector& t : kTextures) ids[t.name] = t.id;
+  const auto vec = [](const std::uint32_t* v) { return Vec3{F(v[0]), F(v[1]), F(v[2])}; };
+  for (const SquareEffectVector& v : kSquareEffects) {
+    INFO("effect id " << v.id);
+    CHECK(EffectDuration(v.id) == v.duration);
+    EffectWorld world(v.seed);
+    world.SetPlayer(vec(v.player));
+    RagEffect& e = world.Launch(v.id, {vec(v.position), 0.0f});
+    e.target = vec(v.target);
+    e.level = v.level;
+    std::map<const EffectPrim*, std::size_t> order;
+    PrimScene scene;
+    std::size_t next_scene = 0;
+    for (std::size_t f = 0; f < v.frame_count; ++f) {
+      INFO("frame " << f);
+      if (next_scene < v.scene_count && std::cmp_equal(v.scenes[next_scene].frame, f))
+        scene = SceneOf(v.scenes[next_scene++].scene, nullptr);
+      const BurstFrameVector& fv = v.frames[f];
+      world.Step(scene);
+      std::vector<const EffectPrim*> prims;
+      bool effect = false;
+      for (const EffectWorld::Object& o : world.objects()) {
+        if (o.effect) {
+          effect = true;
+        } else {
+          order.try_emplace(o.prim.get(), order.size());
+          prims.push_back(o.prim.get());
+        }
+      }
+      CHECK(effect == (fv.more != 0));
+      REQUIRE(prims.size() == fv.prim_count);
+      for (std::size_t i = 0; i < prims.size(); ++i) {
+        INFO("primitive " << i);
+        CHECK(order[prims[i]] == fv.prims[i].index);
+        CHECK(prims[i]->id == fv.prims[i].id);
+        if (fv.prims[i].state == nullptr) continue;
+        CheckState(IsSquare(prims[i]->id) ? SquareStateOf(*prims[i]) : RingStateOf(*prims[i]),
+                   fv.prims[i].state, fv.prims[i].count);
       }
       CheckTriangles(world.Draw(scene).triangles, fv.triangles, fv.count, ids);
     }

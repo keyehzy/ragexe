@@ -5,6 +5,8 @@
 #include <cmath>
 #include <cstddef>
 #include <limits>
+#include <string>
+#include <utility>
 
 #include "core/angles.h"
 #include "render/effect_table.h"
@@ -834,6 +836,366 @@ void UpdateClosingRings(EffectPrim& p) {
   }
 }
 
+// The angle tables as they lie in memory, the cosines (00623c6c), their negations, the
+// sines (006247b4), theirs, the radians and theirs, 361 each: the facing squares index them
+// without reduction, and an angle past 360 reads on into the next. An index before the
+// cosines reads the original's other globals; it reads 0 here.
+constexpr std::int32_t kCosines = 0;
+constexpr std::int32_t kSines = 722;
+
+float TableAt(std::int32_t table, std::int32_t index) {
+  static const std::array<float, 2166> kMemory = [] {
+    const core::AngleTables& t = core::GetAngleTables();
+    std::array<float, 2166> m{};
+    for (std::size_t k = 0; k < 361; ++k) {
+      m[k] = t.cos[k];
+      m[361 + k] = -t.cos[k];
+      m[722 + k] = t.sin[k];
+      m[1083 + k] = -t.sin[k];
+      m[1444 + k] = t.radians[k];
+      m[1805 + k] = -t.radians[k];
+    }
+    return m;
+  }();
+  const std::int32_t at = table + index;
+  return at >= 0 && std::cmp_less(at, kMemory.size()) ? kMemory[static_cast<std::size_t>(at)]
+                                                      : 0.0f;
+}
+
+// The angles every facing square's update starts with (the game mode's CView, +0xb8): 360
+// less the camera's yaw into the first record, 450 less its pitch into the second, within
+// 360; and the primitive at its owner.
+void FaceCamera(EffectPrim& p, const PrimScene& scene) {
+  p.squares[0].view_angle = static_cast<std::int16_t>(360 - Ftol(scene.view_yaw));
+  auto pitch = static_cast<std::int16_t>(450 - Ftol(scene.view_pitch));
+  if (pitch >= 360) pitch = static_cast<std::int16_t>(pitch - 360);
+  p.squares[1].view_angle = pitch;
+  p.position = p.owner->position;
+}
+
+// CEffectPrim::VectorToDegrees (0057ce90): the first whole degree from 0 whose cosine the
+// x over the length reaches, mirrored to 360 less it when z is negative; 180 if none does.
+std::int16_t VectorToDegrees(float x, float z) {
+  const float length = std::sqrt((x * x) + (z * z));
+  const float c = x / length;
+  const float s = z / length;
+  const core::AngleTables& t = core::GetAngleTables();
+  for (std::int16_t k = 0; k <= 180; ++k) {
+    if (c >= t.cos[static_cast<std::size_t>(k)])
+      return s >= 0.0f ? k : static_cast<std::int16_t>(360 - k);
+  }
+  return 180;
+}
+
+std::int16_t Add16(std::int16_t a, std::int32_t b) { return static_cast<std::int16_t>(a + b); }
+
+// A heading's step along the ground: x by its cosine, z by its sine, times the speed.
+void Advance(PrimSquare& s) {
+  s.center[0] = (TableAt(kCosines, s.heading) * s.speed) + s.center[0];
+  s.center[2] = (TableAt(kSines, s.heading) * s.speed) + s.center[2];
+}
+
+// The square that leads leaves a trail: the third record takes the second's turn, size,
+// phase, alpha less 25 (at least 0), centre and image once the age passes 3, the second the
+// first's once it passes 2, and the first the leader's, alpha less 150, once it passes 1.
+void LeaveTrail(EffectPrim& p) {
+  const auto copy = [](PrimSquare& to, const PrimSquare& from, std::int32_t fade) {
+    to.turn = from.turn;
+    to.size = from.size;
+    to.phase = from.phase;
+    to.alpha = std::max<std::int16_t>(Add16(from.alpha, -fade), 0);
+    to.center = from.center;
+    to.image = from.image;
+  };
+  std::array<PrimSquare, 4>& q = p.squares;
+  if (q[0].age > 3) copy(q[3], q[2], 25);
+  if (q[0].age > 2) copy(q[2], q[1], 25);
+  if (q[0].age > 1) copy(q[1], q[0], 150);
+}
+
+// An angle of 0x1f's walking a degree towards its goal, within 0 and 359; past it, a new
+// goal is drawn on the far side: below it, or 359 less a draw below it.
+void Walk(float& value, float& goal, core::CrtRand& rand) {
+  if (!(goal <= value)) {
+    value = value + 1.0f;
+    if (value > 359.0f) value = 359.0f;
+    if (value > goal) {
+      const std::int32_t n = Ftol(value);
+      goal = static_cast<float>(n == 0 ? 0 : rand.Next() % n);
+    }
+  } else {
+    value = value - 1.0f;
+    if (value < 0.0f) value = 0.0f;
+    if (!(value > goal)) {
+      const std::int32_t n = Ftol(value);
+      goal = static_cast<float>(359 - (n == 0 ? 0 : rand.Next() % n));
+    }
+  }
+}
+
+// CEffectPrim::UpdatePrim_31 (0057b0f0), id 0x1f, clouds about the player: below mode 99
+// each brightens by 3 a frame (mode 1) or 2 (otherwise; mode 0 only while the owner is
+// above the floor, its y less) for its first 80 frames, and fades by 1 once its age passes
+// +0xc; faded out it starts again at a new place, 25 to 225 out either way (mode 1) or
+// within 150 of the owner, at age 300 if mode 0 and the owner is below the floor. Its two
+// walking angles drift the centre by a twentieth of their sines; the phase turns a degree a
+// frame.
+void UpdateClouds(EffectPrim& p, core::CrtRand& rand) {
+  for (PrimSquare& s : p.squares) {
+    if (!s.active) continue;
+    if (s.mode < 99.0f) {
+      ++s.age;
+      const bool one = std::bit_cast<std::uint32_t>(s.mode) == 0x3f800000;
+      if (s.age < 80) {
+        if (one) {
+          s.alpha = Add16(s.alpha, 3);
+        } else if (s.mode != 0.0f || p.position[1] < s.floor) {
+          s.alpha = Add16(s.alpha, 2);
+        }
+      }
+      if (s.age > s.heading) {
+        s.alpha = Add16(s.alpha, -1);
+        if (s.alpha <= 0) {
+          s.age = 0;
+          s.alpha = 0;
+          if (s.mode == 0.0f && p.position[1] > s.floor) s.age = 300;
+          if (one) {
+            s.center[0] = static_cast<float>(rand.Next() % 200 + 25);
+            if (rand.Next() % 2 == 0) s.center[0] = s.center[0] * -1.0f;
+            s.center[2] = static_cast<float>(rand.Next() % 200 + 25);
+            if (rand.Next() % 2 == 0) s.center[2] = s.center[2] * -1.0f;
+          } else {
+            s.center[0] = static_cast<float>(rand.Next() % 300 - 150);
+            s.center[2] = static_cast<float>(rand.Next() % 300 - 150);
+          }
+          s.center[0] = s.center[0] + p.position[0];
+          s.center[2] = p.position[2] + s.center[2];
+        }
+      }
+      Walk(s.walk_x, s.speed, rand);
+      Walk(s.climb, s.walk_z_goal, rand);
+      s.center[0] = (TableAt(kSines, Ftol(s.walk_x)) * 0.05f) + s.center[0];
+      s.center[2] = (TableAt(kSines, Ftol(s.climb)) * 0.05f) + s.center[2];
+    }
+    s.phase = s.phase + 1.0f;
+    if (!(s.phase < 360.0f)) s.phase = s.phase - 360.0f;
+  }
+}
+
+// CEffectPrim::UpdatePrim_40 (00572350), id 0x28, a boomerang: the first record turns 15
+// degrees a frame and leaves a trail every frame (colour 1) or third. It heads for the
+// target, climbing to its height, until it has come its range; then colour 1 trebles its
+// speed, swerves up to 44 degrees and fades by 12 a frame, sinking, while colour 0 turns 5
+// degrees a frame back to the owner and, within 4 degrees of it, does the same.
+void UpdateBoomerang(EffectPrim& p, core::CrtRand& rand) {
+  PrimSquare& s = p.squares[0];
+  if (!s.active) return;
+  ++s.age;
+  if (s.age < 1) return;
+  if (s.age % (s.color == 1 ? 1 : 3) == 0) LeaveTrail(p);
+  s.turn = Add16(s.turn, -15);
+  if (s.turn < 0) s.turn = Add16(s.turn, 360);
+  if (s.age == 1) s.heading = VectorToDegrees(p.travel[0] - s.center[0], p.travel[2] - s.center[2]);
+  if (s.state == 0) {
+    if (static_cast<float>(s.age) * s.speed > s.range) {
+      if (s.color == 1) {
+        s.state = 2;
+        s.speed = s.speed * 3.0f;
+        if (rand.Next() % 2 == 0) {
+          s.heading = Add16(s.heading, rand.Next() % 45);
+          if (s.heading >= 360) s.heading = Add16(s.heading, -360);
+        } else {
+          s.heading = Add16(s.heading, -(rand.Next() % 45));
+          if (s.heading < 0) s.heading = Add16(s.heading, 360);
+        }
+      } else if (s.color == 0) {
+        s.state = 1;
+      }
+    }
+    s.center[1] = s.climb + s.center[1];
+  } else if (s.state == 1) {
+    const std::int16_t back =
+        VectorToDegrees(p.position[0] - s.center[0], p.position[2] - s.center[2]);
+    if (s.heading < back - 4 || s.heading > back + 4) {
+      s.heading = Add16(s.heading, 5);
+      if (s.heading >= 360) s.heading = Add16(s.heading, -360);
+    } else {
+      s.state = 2;
+    }
+  } else {
+    s.alpha = std::max<std::int16_t>(Add16(s.alpha, -12), 0);
+    s.center[1] = s.center[1] - s.climb;
+  }
+  Advance(s);
+}
+
+// CEffectPrim::UpdatePrim_43 (00571e90), id 0x2b, sparks thrown past the target: each
+// record waits out a negative age, then turns 5 degrees a frame back; on its first frame it
+// heads away from the owner through the target, give or take 30 degrees; it brightens by 15
+// for 10 frames, then fades by 3 and goes out, climbing all the while.
+void UpdateThrownSparks(EffectPrim& p, core::CrtRand& rand) {
+  for (PrimSquare& s : p.squares) {
+    if (!s.active) continue;
+    ++s.age;
+    if (s.age <= 0) continue;
+    const std::int16_t turn = s.turn;
+    s.turn = Add16(turn, -5);
+    if (s.turn < 0) s.turn = Add16(turn, 355);
+    if (s.age == 1) {
+      s.heading = VectorToDegrees(p.travel[0] - p.position[0], p.travel[2] - p.position[2]);
+      s.heading = static_cast<std::int16_t>(Add16(s.heading, rand.Next() % 60 - 30) % 360);
+    } else if (s.age < 11) {
+      s.alpha = Add16(s.alpha, 15);
+    } else {
+      s.alpha = Add16(s.alpha, -3);
+      if (s.alpha < 0) {
+        s.alpha = 0;
+        s.active = false;
+      }
+    }
+    s.center[1] = s.climb + s.center[1];
+    Advance(s);
+  }
+}
+
+// CEffectPrim::UpdatePrim_45 (0057b6f0), id 0x2d, a square bobbing over the owner: every 6
+// frames each active record behind takes the one before's turn, size plus a half, phase,
+// alpha less 50, centre and image, colour 2 and mode 0. The first swells (phase 5 a frame),
+// bobs 3 either way about 6 above the owner on the sine of its heading (a degree a frame)
+// and, colour 7, turns 10 degrees a frame.
+void UpdateBobbingSquare(EffectPrim& p) {
+  std::array<PrimSquare, 4>& q = p.squares;
+  PrimSquare& s = q[0];
+  if (!s.active) return;
+  ++s.age;
+  if (s.age % 6 == 0) {
+    for (std::size_t k = 3; k > 0; --k) {
+      PrimSquare& to = q[k];
+      const PrimSquare& from = q[k - 1];
+      if (!to.active) continue;
+      to.turn = from.turn;
+      to.size = from.size + kHalf;
+      to.phase = from.phase;
+      to.alpha = std::max<std::int16_t>(Add16(from.alpha, -50), 0);
+      to.center = from.center;
+      to.image = from.image;
+      to.color = 2;
+      to.mode = 0.0f;
+    }
+  }
+  s.phase = s.phase + 5.0f;
+  if (!(s.phase < 360.0f)) s.phase = s.phase - 360.0f;
+  s.heading = Add16(s.heading, 1);
+  if (s.heading > 359) s.heading = Add16(s.heading, -360);
+  s.center[0] = p.position[0];
+  s.center[2] = p.position[2];
+  s.base = p.position[1] - 6.0f;
+  s.center[1] = (TableAt(kSines, s.heading) * 3.0f) + s.base;
+  if (s.color == 7) {
+    s.turn = Add16(s.turn, 10);
+    if (s.turn > 359) s.turn = Add16(s.turn, -360);
+  }
+}
+
+// CEffectPrim::UpdatePrim_47 (0057b970), id 0x2f: each record brightens by 25 for 10
+// frames, then fades by 5, sinking a fifth a frame; faded out it starts again at the
+// owner's height (5 above, state 1). The phase turns 5 degrees a frame and, state 1, the
+// square too.
+void UpdateSinkingSquares(EffectPrim& p) {
+  for (PrimSquare& s : p.squares) {
+    if (!s.active) continue;
+    ++s.age;
+    if (s.age < 11) {
+      s.alpha = Add16(s.alpha, 25);
+    } else {
+      s.alpha = Add16(s.alpha, -5);
+      if (s.alpha < 1) {
+        s.alpha = 0;
+        s.age = 0;
+        s.center[1] = s.state == 0 ? p.position[1] : p.position[1] - 5.0f;
+      }
+      s.center[1] = s.center[1] - std::bit_cast<float>(0x3e4ccccdu);  // 0.2
+    }
+    s.phase = s.phase + 5.0f;
+    if (!(s.phase < 360.0f)) s.phase = s.phase - 360.0f;
+    if (s.state == 1) {
+      const std::int16_t turn = s.turn;
+      s.turn = Add16(turn, 5);
+      if (s.turn > 359) s.turn = Add16(turn, -355);
+    }
+  }
+}
+
+// CEffectPrim::UpdatePrim_51 (005728c0), id 0x33, a square thrown in an arc: the first
+// record leaves a trail every other frame and turns 10 degrees a frame (never reduced
+// past 360). It heads for the target over its steps (+0x71), climbing to the target's
+// height, lifted on half a sine 10 high (colour 0) or 30; 5% past the steps it fades by 20
+// a frame where it stands.
+void UpdateArcingSquare(EffectPrim& p) {
+  PrimSquare& s = p.squares[0];
+  if (!s.active) return;
+  ++s.age;
+  if (s.age % 2 == 1) LeaveTrail(p);
+  s.turn = Add16(s.turn, 10);
+  if (s.turn < 0) s.turn = Add16(s.turn, 360);
+  if (s.age == 1) s.heading = VectorToDegrees(p.travel[0] - s.center[0], p.travel[2] - s.center[2]);
+  float t = static_cast<float>(s.age) / static_cast<float>(static_cast<std::int8_t>(s.state));
+  if (!(t <= std::bit_cast<float>(0x3f866666u))) {  // 1.05
+    s.alpha = std::max<std::int16_t>(Add16(s.alpha, -20), 0);
+    return;
+  }
+  if (!(t <= 1.0f)) t = 1.0f;
+  const std::int32_t arc = Ftol(t * 180.0f);
+  s.base = s.climb + s.base;
+  s.center[1] = s.base - (TableAt(kSines, arc) * (s.color == 0 ? 10.0f : 30.0f));
+  Advance(s);
+}
+
+// CEffectPrim::UpdatePrim_55 (005727d0), id 0x37: the first record swells (phase 3 a
+// frame), brightens by 4 for 20 frames and fades by 1 after 100.
+void UpdatePulsingSquare(EffectPrim& p) {
+  PrimSquare& s = p.squares[0];
+  if (!s.active) return;
+  ++s.age;
+  s.phase = s.phase + 3.0f;
+  if (!(s.phase < 360.0f)) s.phase = s.phase - 360.0f;
+  if (s.age <= 20) s.alpha = Add16(s.alpha, 4);
+  if (s.age > 100) s.alpha = std::max<std::int16_t>(Add16(s.alpha, -1), 0);
+}
+
+// CEffectPrim::UpdatePrim_56 (00572020), id 0x38, rising sparks: each record waits out a
+// negative age, then turns 5 degrees a frame back, takes a random heading, brightens by 15
+// for 10 frames and fades by 3 and goes out, rising by its climb. State 1 flashes the
+// second image for two frames (the first record at 35 and 36, each next 7 sooner).
+void UpdateRisingSparks(EffectPrim& p, core::CrtRand& rand) {
+  for (std::size_t k = 0; k < p.squares.size(); ++k) {
+    PrimSquare& s = p.squares[k];
+    if (!s.active) continue;
+    ++s.age;
+    if (s.age <= 0) continue;
+    const std::int16_t turn = s.turn;
+    s.turn = Add16(turn, -5);
+    if (s.turn < 0) s.turn = Add16(turn, 355);
+    if (s.age == 1) {
+      s.heading = static_cast<std::int16_t>(rand.Next() % 360);
+    } else if (s.age < 11) {
+      s.alpha = Add16(s.alpha, 15);
+    } else {
+      if (s.state == 1) {
+        const auto flash = static_cast<std::int32_t>(35 - 7 * k);
+        s.image = s.age == flash || s.age == flash + 1 ? 1 : 0;
+      }
+      s.alpha = Add16(s.alpha, -3);
+      if (s.alpha < 0) {
+        s.alpha = 0;
+        s.active = false;
+      }
+    }
+    s.center[1] = s.center[1] - s.climb;
+    Advance(s);
+  }
+}
+
 ScreenVertex Vertex(float x, float y, std::uint32_t color, float u, float v) {
   ScreenVertex s;
   s.x = x;
@@ -1147,6 +1509,138 @@ void DrawRingWalls(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out
   }
 }
 
+// The view transform as DrawQuad writes it out for a quad's first corner: x's sum from z,
+// y's and z's from x, then z, then y.
+Vec3 TransformPointFromXZ(const Matrix& m, const Vec3& p) {
+  return {(((p[2] * m[6]) + (p[1] * m[3])) + (p[0] * m[0])) + m[9],
+          (((p[0] * m[1]) + (p[2] * m[7])) + (p[1] * m[4])) + m[10],
+          (((p[0] * m[2]) + (p[2] * m[8])) + (p[1] * m[5])) + m[11]};
+}
+
+// What a DrawQuad call is given besides its corners.
+struct QuadLook {
+  std::int16_t alpha;
+  bool add;           // blended SRCALPHA onto ONE, not INVSRCALPHA
+  std::int8_t image;  // the index into textures
+  bool absolute;      // the corners in the world, not relative to the primitive
+  std::int32_t red, green, blue;
+};
+
+// CEffectPrim::DrawQuad (0056a960): four corners (relative to the primitive unless
+// absolute) as two triangles of the texture, the first (A, B, C) and the second (D, C, A),
+// u and v 0 to 1 from A's (0, 1); coloured alpha, red, green, blue; SRCALPHA onto ONE or
+// INVSRCALPHA, with AddPrimitive's flags +0x128. The second C is projected inline, x scaled
+// before the 1/z.
+void DrawQuad(const EffectPrim& p, const PrimScene& scene, std::array<Vec3, 4> q,
+              const QuadLook& look, PrimDrawing& out) {
+  const auto u = [](std::int32_t v) { return static_cast<std::uint32_t>(v); };
+  const std::uint32_t color =
+      ((u(look.alpha) * 256 + (u(look.red) & 0xff)) * 256 + (u(look.green) & 0xff)) * 256 +
+      (u(look.blue) & 0xff);
+  if (!look.absolute) {
+    for (Vec3& v : q)
+      for (std::size_t i = 0; i < 3; ++i) v[i] = v[i] + p.position[i];
+  }
+  const auto vertex = [&](const Vec3& v, bool first, bool scale_first, float tu, float tv) {
+    const Vec3 t = first ? TransformPointFromXZ(scene.view, v) : TransformPointFromZ(scene.view, v);
+    ScreenVertex sv = ProjectPoint(ClampNear(t), scene.projection, scale_first);
+    sv.diffuse = color;
+    sv.u = tu;
+    sv.v = tv;
+    return sv;
+  };
+  PrimTriangle t;
+  if (look.image >= 0) {
+    const auto image = static_cast<std::size_t>(static_cast<std::uint8_t>(look.image));
+    if (image < p.textures.size()) t.texture = p.textures[image];
+  }
+  t.flags = p.quad_flags;
+  t.src_blend = 5;
+  t.dest_blend = look.add ? 6 : 2;
+  const ScreenVertex a = vertex(q[0], true, false, 0.0f, 1.0f);
+  t.vertices = {a, vertex(q[1], false, false, 1.0f, 1.0f), vertex(q[2], false, false, 1.0f, 0.0f)};
+  out.triangles.push_back(t);
+  t.vertices = {vertex(q[3], false, false, 0.0f, 0.0f), vertex(q[2], false, true, 1.0f, 0.0f), a};
+  out.triangles.push_back(t);
+}
+
+// CEffectPrim::RotateQuadPoints (0057caa0): each corner turned about x by the second
+// angle (y and z), then about y by the first (x and z).
+void RotateQuadPoints(std::array<Vec3, 4>& q, std::int16_t yaw, std::int16_t pitch) {
+  const float pc = TableAt(kCosines, pitch);
+  const float ps = TableAt(kSines, pitch);
+  for (Vec3& v : q) {
+    const float z = v[2];
+    v[2] = (z * pc) - (v[1] * ps);
+    v[1] = (v[1] * pc) + (z * ps);
+  }
+  const float yc = TableAt(kCosines, yaw);
+  const float ys = TableAt(kSines, yaw);
+  for (Vec3& v : q) {
+    const float x = v[0];
+    v[0] = (x * yc) - (v[2] * ys);
+    v[2] = (v[2] * yc) + (x * ys);
+  }
+}
+
+// CEffectPrim::RenderFacingSquares (0057bab0), ids 0x1f, 0x28, 0x2b, 0x2d, 0x2f, 0x33, 0x37
+// and 0x38: each active record with some alpha as a square of its image about its centre,
+// corners at its turn and every 90 degrees on (each step reduced once past 360), at its
+// size swollen by a twentieth of the phase's sine, turned to face the camera. Mode 2
+// colours it (200, 0, 60) onto ONE; otherwise the first record's colour picks (and colour
+// 9 its shade); colours 2 and up draw the corners in the order B, A, D, C; others draw
+// nothing.
+void DrawFacingSquares(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
+  const PrimSquare& lead = p.squares[0];
+  for (const PrimSquare& s : p.squares) {
+    if (!s.active || s.alpha < 1) continue;
+    const std::int32_t swell = Ftol(s.phase);
+    const float r = ((TableAt(kSines, swell) * s.size) * 0.05f) + s.size;
+    std::array<Vec3, 4> q{};
+    std::int32_t a = s.turn;
+    for (std::size_t k = 0; k < 4; ++k) {
+      q[k] = {TableAt(kCosines, a) * r, 0.0f, TableAt(kSines, a) * r};
+      a += 90;
+      if (a >= 360) a -= 360;
+    }
+    RotateQuadPoints(q, lead.view_angle, p.squares[1].view_angle);
+    for (Vec3& v : q)
+      for (std::size_t i = 0; i < 3; ++i) v[i] = v[i] + s.center[i];
+    const auto image = static_cast<std::int8_t>(s.image);
+    const std::array<Vec3, 4> swapped = {q[1], q[0], q[3], q[2]};
+    const auto draw = [&](bool swap, bool add, std::int32_t red, std::int32_t green,
+                          std::int32_t blue) {
+      DrawQuad(p, scene, swap ? swapped : q, {s.alpha, add, image, true, red, green, blue}, out);
+    };
+    if (std::bit_cast<std::uint32_t>(s.mode) == 0x40000000) {
+      draw(false, true, 200, 0, 60);
+      continue;
+    }
+    switch (lead.color) {
+      case 0: draw(false, true, 255, 255, 255); break;
+      case 1: draw(false, false, 150, 150, 250); break;
+      case 2: draw(true, false, 130, 130, 250); break;
+      case 3: draw(true, false, 200, 200, 100); break;
+      case 4: draw(true, true, 255, 255, 255); break;
+      case 7: draw(true, false, 255, 255, 255); break;
+      case 8: draw(true, true, 135, 255, 135); break;
+      case 9:
+        switch (lead.shade) {
+          case 1: draw(true, true, 255, 135, 135); break;
+          case 2: draw(true, true, 255, 205, 135); break;
+          case 3: draw(true, true, 255, 255, 135); break;
+          case 4: draw(true, true, 255, 255, 255); break;
+          case 5: draw(true, true, 135, 135, 255); break;
+          default: break;
+        }
+        break;
+      case 10: draw(true, false, 250, 250, 150); break;
+      case 11: draw(true, false, 220, 250, 220); break;
+      default: break;
+    }
+  }
+}
+
 // The particles of ids 0 and 2: heading and pitch, then 4 to 7 out along the matrix's z,
 // 10 up.
 void AimParticle(EffectPrim& p, std::int32_t heading, core::CrtRand& rand) {
@@ -1234,6 +1728,26 @@ bool UpdatePrimitive(EffectPrim& p, core::CrtRand& rand, const PrimScene& scene)
     case 0x39: UpdateWavingWalls(p); break;
     case 0x3c: UpdateSpreadingPortal(p); break;
     case 0x3e: UpdateClosingRings(p); break;
+    case 0x1f:
+    case 0x28:
+    case 0x2b:
+    case 0x2d:
+    case 0x2f:
+    case 0x33:
+    case 0x37:
+    case 0x38:
+      FaceCamera(p, scene);
+      switch (p.id) {
+        case 0x1f: UpdateClouds(p, rand); break;
+        case 0x28: UpdateBoomerang(p, rand); break;
+        case 0x2b: UpdateThrownSparks(p, rand); break;
+        case 0x2d: UpdateBobbingSquare(p); break;
+        case 0x2f: UpdateSinkingSquares(p); break;
+        case 0x33: UpdateArcingSquare(p); break;
+        case 0x37: UpdatePulsingSquare(p); break;
+        default: UpdateRisingSparks(p, rand); break;
+      }
+      break;
     default: return false;
   }
   ++p.age;
@@ -1261,6 +1775,14 @@ void DrawPrimitive(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out
     case 0x39:
     case 0x3c:
     case 0x3e: DrawRingWalls(p, scene, out); break;
+    case 0x1f:
+    case 0x28:
+    case 0x2b:
+    case 0x2d:
+    case 0x2f:
+    case 0x33:
+    case 0x37:
+    case 0x38: DrawFacingSquares(p, scene, out); break;
     default: break;
   }
 }
@@ -1601,6 +2123,423 @@ void AddGlassWall(RagEffect& effect, const EffectActor& actor, const char* textu
   added.push_back(std::move(p));
 }
 
+namespace {
+
+// The item pictures the arcing squares throw (유저인터페이스\item\빈병.bmp, 빈포션병.bmp
+// and 돌.bmp, 006181fc, 006181d8 and 006181bc).
+// clang-format off
+constexpr const char* kEmptyBottle = "\300\257\300\372\300\316\305\315\306\344\300\314\275\272\\item\\\272\363\272\264.bmp";
+constexpr const char* kEmptyPotionBottle = "\300\257\300\372\300\316\305\315\306\344\300\314\275\272\\item\\\272\363\306\367\274\307\272\264.bmp";
+constexpr const char* kStone = "\300\257\300\372\300\316\305\315\306\344\300\314\275\272\\item\\\265\271.bmp";
+// clang-format on
+
+// What the square effects share: CreatePrimitive of the id, flags 5, as long as the
+// effect, the textures given.
+EffectPrim MakeSquares(const RagEffect& effect, std::int32_t id,
+                       std::vector<std::string> textures) {
+  EffectPrim p = MakePrimitive(&effect, id, {0.0f, 0.0f, 0.0f});
+  p.quad_flags = 5;
+  p.life = effect.duration;
+  p.image_count = static_cast<std::int32_t>(textures.size());
+  p.textures = std::move(textures);
+  return p;
+}
+
+// (target − actor) along the ground, the distance 0x28 and 0x33 head out.
+float RangeTo(const RagEffect& effect) {
+  const float x = effect.target[0] - effect.position[0];
+  const float z = effect.target[2] - effect.position[2];
+  return std::sqrt((x * x) + (z * z));
+}
+
+// The four rising sparks of pok1.tga (and pok3.tga to flash) the healing effects add:
+// from back short of the actor to spread − 1 past that, either way along the ground, lift
+// above it, each of its size plus up to 0.9 and its climb plus up to a hundredth of
+// climb_range.
+struct SparkSetup {
+  bool flash;
+  float size;
+  std::int32_t spread;
+  float back;
+  float lift;
+  std::int32_t climb_range;
+  float climb;
+  std::uint8_t color;
+};
+
+EffectPrim MakeSparks(const RagEffect& effect, const SparkSetup& setup, core::CrtRand& rand) {
+  std::vector<std::string> textures = {"effect\\pok1.tga"};
+  if (setup.flash) textures.emplace_back("effect\\pok3.tga");
+  EffectPrim p = MakeSquares(effect, 0x38, std::move(textures));
+  p.scale = 0.0f;
+  p.position = effect.position;
+  for (PrimSquare& s : p.squares) {
+    s.active = true;
+    s.size = (static_cast<float>(rand.Next() % 10) * 0.1f) + setup.size;
+    s.center[0] =
+        (static_cast<float>(rand.Next() % setup.spread) + effect.position[0]) - setup.back;
+    s.center[2] =
+        (static_cast<float>(rand.Next() % setup.spread) + effect.position[2]) - setup.back;
+    s.center[1] = effect.position[1] - setup.lift;
+    s.climb = (static_cast<float>(rand.Next() % setup.climb_range) * 0.01f) + setup.climb;
+    s.state = setup.flash ? 1 : 0;
+    s.color = setup.color;
+  }
+  return p;
+}
+
+}  // namespace
+
+void AddClouds(RagEffect& effect, const Vec3& player, std::int8_t variant, core::CrtRand& rand,
+               std::vector<EffectPrim>& added) {
+  effect.position = player;
+  if (effect.frame == 99999998) {
+    effect.frame = 0;
+    effect.duration = 99999999;
+  }
+  if (effect.frame != 0) return;
+  EffectPrim p = MakePrimitive(&effect, 0x1f, {0.0f, 0.0f, 0.0f});
+  p.quad_flags = 5;
+  p.life = effect.duration;
+  p.image_count = 3;
+  const std::int32_t cloud = rand.Next() % 3;
+  p.textures = {cloud == 0   ? "effect\\cloud4.tga"
+                : cloud == 1 ? "effect\\cloud1.tga"
+                             : "effect\\cloud2.tga"};
+  const Vec3& at = effect.position;
+  for (PrimSquare& s : p.squares) {
+    s.active = true;
+    s.age = 0;
+    s.mode = static_cast<float>(variant);
+    s.turn = 45;
+    if (variant == 0) {
+      s.floor = -152.0f;
+      if (s.floor < at[1]) s.age = 300;
+    }
+    s.alpha = 0;
+    s.image = 0;
+    s.heading = static_cast<std::int16_t>(rand.Next() % 200 + 300);
+    if (variant == 1) {
+      s.center[1] = static_cast<float>(rand.Next() % 10) + 40.0f;
+      s.center[0] = static_cast<float>(rand.Next() % 200 + 25);
+      if (rand.Next() % 2 == 0) s.center[0] = s.center[0] * -1.0f;
+      s.center[2] = static_cast<float>(rand.Next() % 200 + 25);
+      if (rand.Next() % 2 == 0) s.center[2] = s.center[2] * -1.0f;
+    } else {
+      s.center[1] = static_cast<float>(rand.Next() % 10) - (variant == 0 ? 125.0f : 80.0f);
+      s.center[0] = static_cast<float>(rand.Next() % 300 - 150);
+      s.center[2] = static_cast<float>(rand.Next() % 300 - 150);
+    }
+    s.center[0] = at[0] + s.center[0];
+    s.center[2] = s.center[2] + at[2];
+    s.walk_x = static_cast<float>(rand.Next() % 360);
+    s.speed = static_cast<float>(rand.Next() % 360);
+    s.climb = static_cast<float>(rand.Next() % 360);
+    s.walk_z_goal = static_cast<float>(rand.Next() % 360);
+    s.size = static_cast<float>(rand.Next() % 20) + 30.0f;
+    s.phase = static_cast<float>(rand.Next() % 360);
+    s.color = 0;
+  }
+  added.push_back(std::move(p));
+}
+
+void AddBoomerang(RagEffect& effect, const EffectActor& actor, const char* texture, bool ivy,
+                  std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  EffectPrim p = MakeSquares(effect, 0x28, {texture});
+  p.scale = 0.0f;
+  p.travel = effect.target;
+  const Vec3& at = effect.position;
+  PrimSquare& s = p.squares[0];
+  s.active = true;
+  s.age = 0;
+  s.range = RangeTo(effect);
+  s.size = ivy ? (static_cast<float>(effect.level) * 0.4f) + 2.0f : 7.0f;
+  s.phase = 0.0f;
+  s.alpha = 255;
+  s.center = {at[0], at[1] - 8.0f, at[2]};
+  s.heading = 0;
+  s.speed = 2.0f;
+  s.climb = (effect.target[1] - at[1]) * (s.speed / s.range);
+  s.turn = 0;
+  s.color = ivy ? 1 : 0;
+  for (std::size_t k = 1; k < 4; ++k) {
+    p.squares[k].active = true;
+    p.squares[k].alpha = 0;
+  }
+  added.push_back(std::move(p));
+}
+
+void AddThrownSparks(RagEffect& effect, const EffectActor& actor, core::CrtRand& rand,
+                     std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  EffectPrim p = MakeSquares(effect, 0x2b, {"effect\\thunder_center.bmp"});
+  p.scale = 0.0f;
+  p.travel = effect.target;
+  p.position = effect.position;
+  for (PrimSquare& s : p.squares) {
+    s.active = true;
+    s.age = rand.Next() % 10 - 40;
+    s.size = (static_cast<float>(rand.Next() % 16) * 0.05f) + 0.1f;
+    s.phase = 0.0f;
+    s.alpha = 0;
+    s.center = {effect.target[0], effect.target[1] - 8.0f, effect.target[2]};
+    s.heading = 0;
+    s.speed = (static_cast<float>(rand.Next() % 50) * 0.01f) + 0.75f;
+    s.climb = (static_cast<float>(rand.Next() % 200) * 0.01f) - 1.0f;
+    s.turn = 0;
+    s.color = 2;
+  }
+  added.push_back(std::move(p));
+}
+
+void AddBobbingSquare(RagEffect& effect, const EffectActor& actor, const char* texture,
+                      std::int8_t variant, core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  std::string name = texture;
+  if (variant == 5) {
+    const std::int32_t n = rand.Next() % 3;
+    name = n == 0   ? "effect\\\267\271\265\345\301\252\275\272\305\346.bmp"
+           : n == 1 ? "effect\\\272\355\267\347\301\252\275\272\305\346.bmp"
+                    : "effect\\\277\273\267\316\277\354\301\252\275\272\305\346.bmp";
+  } else if (variant == 2) {
+    name = rand.Next() % 2 == 0 ? "effect\\melody_a.bmp" : "effect\\melody_b.bmp";
+  } else if (variant == 8) {
+    name = "effect\\spell_0" + std::to_string(rand.Next() % 8 + 1) + ".bmp";
+  }
+  EffectPrim p = MakeSquares(effect, 0x2d, {name});
+  p.scale = 0.0f;
+  PrimSquare& s = p.squares[0];
+  s.active = true;
+  s.age = 0;
+  s.size = variant == 1 ? 5.0f : variant == 4 ? 15.0f : variant == 6 ? 8.0f : 3.0f;
+  s.phase = 0.0f;
+  s.alpha = 200;
+  s.center[0] = effect.position[0];
+  s.center[2] = effect.position[2];
+  s.base = effect.position[1] - 6.0f;
+  s.heading = static_cast<std::int16_t>(rand.Next() % 360);
+  s.turn = 45;
+  s.color = variant == 3 ? 3 : variant == 5 || variant == 6 ? 4 : variant == 7 ? 7 : 2;
+  if (variant == 2) {
+    for (std::size_t k = 1; k < 4; ++k) {
+      p.squares[k].active = true;
+      p.squares[k].alpha = 0;
+    }
+  }
+  added.push_back(std::move(p));
+}
+
+void AddSinkingSquares(RagEffect& effect, const EffectActor& actor, const char* texture,
+                       std::int8_t variant, core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  EffectPrim p = MakeSquares(effect, 0x2f, {texture});
+  const std::size_t count = variant == 1 ? 1 : 2;
+  for (std::size_t k = 0; k < count; ++k) {
+    PrimSquare& s = p.squares[k];
+    s.active = true;
+    s.age = rand.Next() % 11;
+    if (variant == 0) {
+      s.size = static_cast<float>(rand.Next() % 6) + 5.0f;
+    } else if (variant == 1) {
+      s.size = (static_cast<float>(rand.Next() % 20) * 0.1f) + 3.0f;
+    }
+    s.phase = 0.0f;
+    s.alpha = 0;
+    s.center[0] = effect.position[0];
+    s.center[2] = effect.position[2];
+    if (variant == 0) {
+      s.base = effect.position[1];
+    } else if (variant == 1) {
+      s.base = effect.position[1] - 5.0f;
+    }
+    s.turn = 45;
+    s.color = 2;
+    s.state = static_cast<std::uint8_t>(variant);
+  }
+  added.push_back(std::move(p));
+}
+
+void AddArcingSquare(RagEffect& effect, const EffectActor& actor, const char* texture,
+                     std::int8_t variant, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  EffectPrim p = MakeSquares(effect, 0x33, {texture});
+  p.scale = 0.0f;
+  p.travel = effect.target;
+  const Vec3& at = effect.position;
+  PrimSquare& s = p.squares[0];
+  s.active = true;
+  s.age = 0;
+  s.range = RangeTo(effect);
+  s.size = variant == 2 ? 2.0f : 3.0f;
+  s.phase = 0.0f;
+  s.alpha = 255;
+  s.center = {at[0], 0.0f, at[2]};
+  s.base = at[1] - 8.0f;
+  s.heading = 0;
+  s.speed = variant == 2 ? 2.0f : 1.0f;
+  s.climb = (effect.target[1] - at[1]) * (s.speed / s.range);
+  s.turn = 0;
+  if (variant == 0) {
+    s.color = 8;
+  } else if (variant == 1) {
+    s.color = 9;
+    s.shade = static_cast<std::uint8_t>(effect.level);
+  } else if (variant == 2) {
+    s.color = 0;
+  }
+  for (std::int32_t n = 0; n < 100; ++n) {
+    if (s.range < static_cast<float>(n) * s.speed) {
+      s.state = static_cast<std::uint8_t>(n);
+      break;
+    }
+  }
+  for (std::size_t k = 1; k < 4; ++k) {
+    p.squares[k].active = true;
+    p.squares[k].alpha = 0;
+  }
+  added.push_back(std::move(p));
+}
+
+void AddPulsingSquare(RagEffect& effect, const EffectActor& actor, core::CrtRand& rand,
+                      std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  EffectPrim p = MakeSquares(effect, 0x37, {"effect\\pikapika2.bmp"});
+  p.scale = 0.0f;
+  PrimSquare& s = p.squares[0];
+  s.active = true;
+  s.age = 0;
+  s.size = 10.0f;
+  s.phase = 0.0f;
+  s.alpha = 0;
+  s.center = {effect.position[0], effect.position[1] - 12.0f, effect.position[2]};
+  s.floor = std::bit_cast<float>(0x3ca3d70au);  // 0.02
+  s.turn = static_cast<std::int16_t>(rand.Next() % 360);
+  s.color = 1;
+  s.phase = static_cast<float>(rand.Next() % 360);
+  added.push_back(std::move(p));
+}
+
+void AddThunderSparks(RagEffect& effect, const EffectActor& actor, core::CrtRand& rand,
+                      std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  EffectPrim p = MakeSquares(effect, 0x38, {"effect\\thunder_center.bmp"});
+  p.scale = 0.0f;
+  p.position = effect.position;
+  const Vec3& at = effect.position;
+  for (PrimSquare& s : p.squares) {
+    s.active = true;
+    s.age = rand.Next() % 10 - 10;
+    s.size = (static_cast<float>(rand.Next() % 16) * 0.03f) + 0.1f;
+    s.phase = 0.0f;
+    s.alpha = 0;
+    s.center[0] = (static_cast<float>(rand.Next() % 9) + at[0]) - 4.0f;
+    s.center[2] = (static_cast<float>(rand.Next() % 9) + at[2]) - 4.0f;
+    s.center[1] = at[1];
+    s.heading = 0;
+    s.speed = static_cast<float>(rand.Next() % 10) * 0.01f;
+    s.climb = (static_cast<float>(rand.Next() % 40) * 0.01f) + 0.2f;
+    s.turn = 0;
+    s.color = 10;
+  }
+  added.push_back(std::move(p));
+}
+
+void AddHealingSparks(RagEffect& effect, const EffectActor& actor, std::int8_t variant,
+                      core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame > 20 || effect.frame % 4 != 0) return;
+  added.push_back(MakeSparks(
+      effect,
+      {true, 1.5f, 7, 3.0f, 6.0f, 20, 0.2f, static_cast<std::uint8_t>(variant == 0 ? 11 : 1)},
+      rand));
+}
+
+void AddHealingWalls(RagEffect& effect, const EffectActor& actor, const char* texture,
+                     std::int8_t variant, core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame == 0) {
+    EffectPrim p = MakeRings(effect, 0x39, texture);
+    p.scale = variant == 0 ? 9.0f : 5.0f;
+    PrimRing& first = p.rings[0];
+    first.active = true;
+    first.span = 360;
+    first.angle = static_cast<std::int16_t>(rand.Next() % 360);
+    first.tilt = 90;
+    if (variant == 0) {
+      first.kind = 60;
+      first.height = 40.0f;
+      first.radius = Bits(0x40933333);  // 4.6
+    } else {
+      first.kind = 30;
+      first.height = static_cast<float>(rand.Next() % 20) + 40.0f;
+      first.radius = 4.5f;
+      first.radius = (static_cast<float>(rand.Next() % 100) * 0.005f) + first.radius;
+    }
+    PrimRing& second = p.rings[1];
+    second.active = true;
+    second.span = 360;
+    second.angle = static_cast<std::int16_t>(rand.Next() % 360);
+    second.tilt = 90;
+    if (variant == 0) {
+      second.kind = 60;
+      second.height = 40.0f;
+      second.radius = Bits(0x4099999a);  // 4.8
+    } else {
+      second.kind = 30;
+      second.height = first.height;
+      second.radius = first.radius + 0.2f;
+    }
+    added.push_back(std::move(p));
+    return;
+  }
+  if (effect.frame > (variant != 0 ? 25 : 50) || effect.frame % 6 != 0) return;
+  added.push_back(MakeSparks(
+      effect, {variant != 0, 2.0f, 13, 6.0f, 0.0f, 40, variant != 0 ? 0.4f : 0.3f, 11}, rand));
+}
+
+void AddHealingRings(RagEffect& effect, const EffectActor& actor, const char* texture,
+                     std::int8_t variant, core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  const std::int16_t kind = variant == 0 ? 60 : 40;
+  if (effect.frame == 0) {
+    EffectPrim p = MakeRings(effect, 0x39, texture);
+    p.scale = variant == 2 ? 4.0f : 9.0f;
+    const float low = variant == 0 ? 12.0f : 18.0f;
+    SetRing(p.rings[0], {360, 60.0f, 0, 0, 0, 90, Bits(0x40933333), kind});
+    SetRing(p.rings[1], {360, 60.0f, 0, 180, 0, 90, 5.0f, kind});
+    const auto third = static_cast<std::int16_t>(rand.Next() % 360);
+    SetRing(p.rings[2], {360, low, 0, third, 0, 50, 5.0f, kind});
+    const auto fourth = static_cast<std::int16_t>(rand.Next() % 360);
+    SetRing(p.rings[3], {360, low, 0, fourth, 0, 48, Bits(0x40a66666), kind});
+    added.push_back(std::move(p));
+  } else if (effect.frame < 51 && effect.frame % 6 == 0 && variant < 2) {
+    added.push_back(
+        MakeSparks(effect, {true, 2.0f, 13, 6.0f, 0.0f, 40, variant == 0 ? 0.4f : 0.6f, 11}, rand));
+  }
+  if (variant != 1) return;
+  if (effect.frame == 1) {
+    EffectPrim p = MakeRings(effect, 0x39, "effect\\alpha_down.tga");
+    p.scale = 9.0f;
+    SetRing(p.rings[0], {360, 90.0f, 0, 0, 0, 90, Bits(0x40866666), 40});
+    SetRing(p.rings[1], {360, 90.0f, 0, 90, 0, 90, Bits(0x4089999a), 40});
+    const auto third = static_cast<std::int16_t>(rand.Next() % 360);
+    SetRing(p.rings[2], {360, 10.0f, 0, third, 0, 46, Bits(0x40a9999a), 30});
+    const auto fourth = static_cast<std::int16_t>(rand.Next() % 360);
+    SetRing(p.rings[3], {360, 10.0f, 0, fourth, 0, 44, Bits(0x40accccd), 30});
+    added.push_back(std::move(p));
+  }
+  if (effect.frame < 51 && effect.frame % 9 == 2)
+    added.push_back(MakeSparks(effect, {true, 2.4f, 13, 6.0f, 0.0f, 40, 0.4f, 11}, rand));
+}
+
 RagEffect& EffectWorld::Launch(std::int32_t id, const EffectActor& actor) {
   Object o;
   o.effect = std::make_unique<RagEffect>();
@@ -1649,6 +2588,51 @@ void EffectWorld::Step(const PrimScene& scene) {
         case 0x13a: AddTeleportationWalls(e, it->actor, "effect\\ring_yellow.tga", added); break;
         case 0x13b: AddGlassWall(e, it->actor, "effect\\alpha_down.tga", rand_, added); break;
         case 0x13c: AddReadyPortal(e, it->actor, added); break;
+        case 0xe5:
+        case 0xe6:
+        case 0xe9: {
+          const std::int8_t variant = e.id == 0xe5 ? 0 : e.id == 0xe6 ? 1 : 2;
+          for (std::int32_t n = 0; n < (variant == 1 ? 60 : 40); ++n)
+            AddClouds(e, player_, variant, rand_, added);
+          break;
+        }
+        case 0xf9:
+          // effect\cru_shield boomerang.wav plays as it starts.
+          AddBoomerang(e, it->actor, "effect\\shield_boomerang.bmp", false, added);
+          break;
+        case 0x109: AddBoomerang(e, it->actor, "effect\\blue_ivy.bmp", true, added); break;
+        case 0x108:
+        case 0x113:
+          for (std::int32_t n = 0; n < (e.id == 0x108 ? 5 : 20); ++n)
+            AddThrownSparks(e, it->actor, rand_, added);
+          break;
+        case 0x116: AddBobbingSquare(e, it->actor, "effect\\zz.bmp", 1, rand_, added); break;
+        case 0x117: AddBobbingSquare(e, it->actor, "effect\\pocket.bmp", 3, rand_, added); break;
+        case 0x119: AddBobbingSquare(e, it->actor, "", 2, rand_, added); break;
+        case 0x11a: AddBobbingSquare(e, it->actor, "effect\\twirl.bmp", 7, rand_, added); break;
+        case 0x11c: AddBobbingSquare(e, it->actor, "", 5, rand_, added); break;
+        case 0x11e: AddBobbingSquare(e, it->actor, "effect\\melody_b.bmp", 0, rand_, added); break;
+        case 0x120: AddBobbingSquare(e, it->actor, "", 8, rand_, added); break;
+        case 0x121:
+          AddBobbingSquare(e, it->actor, "effect\\idun_apple.bmp", 6, rand_, added);
+          break;
+        case 0x123: AddBobbingSquare(e, it->actor, "effect\\melody_a.bmp", 0, rand_, added); break;
+        case 0x125: AddBobbingSquare(e, it->actor, "effect\\kiss.bmp", 4, rand_, added); break;
+        case 0x11b: AddSinkingSquares(e, it->actor, "effect\\safeline.bmp", 0, rand_, added); break;
+        case 0x12a: AddArcingSquare(e, it->actor, kEmptyBottle, 0, added); break;
+        case 299: AddArcingSquare(e, it->actor, kEmptyPotionBottle, 1, added); break;
+        case 0x134: AddArcingSquare(e, it->actor, kStone, 2, added); break;
+        case 0x135: AddPulsingSquare(e, it->actor, rand_, added); break;
+        case 0x136:
+          for (std::int32_t n = 0; n < 20; ++n) AddThunderSparks(e, it->actor, rand_, added);
+          break;
+        case 0x14b: AddHealingSparks(e, it->actor, 0, rand_, added); break;
+        case 0x14c: AddHealingSparks(e, it->actor, 1, rand_, added); break;
+        case 0x138: AddHealingWalls(e, it->actor, "effect\\alpha_down.tga", 0, rand_, added); break;
+        case 0x140: AddHealingWalls(e, it->actor, "effect\\alpha_down.tga", 1, rand_, added); break;
+        case 0x139: AddHealingRings(e, it->actor, "effect\\ring_white.tga", 0, rand_, added); break;
+        case 0x145: AddHealingRings(e, it->actor, "effect\\ring_white.tga", 1, rand_, added); break;
+        case 0xfd: AddHealingRings(e, it->actor, "effect\\ring_blue.tga", 2, rand_, added); break;
         case 0xf8:
           AddFadingRings(e, it->actor, "effect\\ring_yellow.tga", added);
           // AdvanceStr, which answers false without a .str (InitEffect loads none for

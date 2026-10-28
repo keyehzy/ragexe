@@ -571,6 +571,202 @@ and the radius is 3 plus its sine. The angle turns 3 degrees a step; the walls w
 false without a `.str`, and `InitEffect` loads none for 0xf8. The effect ends on its first
 step, and its rings, losing their owner, end later in the same pass.
 
+## Facing squares
+
+Eight primitive ids draw squares turned to face the camera with `RenderFacingSquares`
+(`0057bab0`): 0x1f, 0x28, 0x2b, 0x2d, 0x2f, 0x33, 0x37 and 0x38. All eight are ported,
+with the 30 effects that add them.
+
+### The square records
+
+The squares use the same four 0xb8-byte records at +0x156b0 as the rings, laid out their
+own way:
+
+| Offset | What |
+|-------:|------|
+| +0 | active (a byte) |
+| +2 | the turn: the square's own rotation in degrees (a short) |
+| +4 | 0x28 and 0x33: how far out the target is |
+| +8 | the age |
+| +0xc, +0xe | the heading it moves along, and its alpha (shorts); 0x1f keeps the age it starts fading at in +0xc |
+| +0x10 | the camera angles, below (a short) |
+| +0x18, +0x1c | the speed along the heading and the climb each step |
+| +0x14 to +0x20 | 0x1f: two angles each walking towards a goal, below |
+| +0x2c | 0x1f: the floor height |
+| +0x30 | the mode; 2.0 draws the square red |
+| +0x34 | the phase in degrees; the size swells by a twentieth of its sine |
+| +0x6c | the size: the distance from the centre to a corner |
+| +0x70 to +0x73 | bytes: the image index, a state, the colour and the shade |
+| +0x88 | the centre |
+| +0xa4 | the height it bobs or arcs about |
+
+**The camera angles.** Every update starts at the game mode's `CView` (+0xb8). It writes
+360 less the camera's yaw (+0x20) into the first record's +0x10, and 450 less its pitch
+(+0x1c), reduced below 360, into the second's. Then it puts the primitive at its owner.
+
+**Only the first record's colour and shade count.** They pick the colour of every
+square in the primitive.
+
+### Drawing
+
+`RenderFacingSquares` draws each active record with an alpha above 0:
+1. **The corners** sit at the turn and every 90 degrees on. Each step is reduced once
+   past 360, but the turn itself is not.
+2. **The size** is the size plus a twentieth of it times the sine of the phase.
+3. **Facing the camera.** `RotateQuadPoints` (`0057caa0`) turns the corners about x by
+   the second record's angle, then about y by the first's.
+4. **The quad.** The centre is added, and `DrawQuad` (`0056a960`) draws it.
+
+**The colours** (red, green, blue), and whether the quad blends onto ONE:
+
+| Mode or colour | Colour | Onto ONE | Corner order |
+|---|---|:-:|---|
+| mode 2.0 | (200, 0, 60) | yes | A, B, C, D |
+| 0 | white | yes | A, B, C, D |
+| 1 | (150, 150, 250) | no | A, B, C, D |
+| 2 | (130, 130, 250) | no | B, A, D, C |
+| 3 | (200, 200, 100) | no | B, A, D, C |
+| 4 | white | yes | B, A, D, C |
+| 7 | white | no | B, A, D, C |
+| 8 | (135, 255, 135) | yes | B, A, D, C |
+| 9, shade 1 to 5 | (255, 135, 135), (255, 205, 135), (255, 255, 135), white, (135, 135, 255) | yes | B, A, D, C |
+| 10 | (250, 250, 150) | no | B, A, D, C |
+| 11 | (220, 250, 220) | no | B, A, D, C |
+
+Any other colour or shade draws nothing.
+
+**`DrawQuad`** is shared by 38 of the primitive renderers. It takes four corners, an
+alpha, a blend, an image index, whether the corners are absolute, and a colour:
+- **The corners** are relative to the primitive unless absolute; the squares' are
+  absolute.
+- **The triangles** are (A, B, C) and (D, C, A), with u and v from 0 to 1, starting at
+  A's (0, 1).
+- **The blend** is SRCALPHA onto ONE or onto INVSRCALPHA, with `AddPrimitive`'s flags at
+  +0x128. The texture is the one at the image index.
+- **The view transform** is written out four ways:
+  - A's x is summed from z, and its y and z from x, then z, then y.
+  - B, C and D are summed from z.
+  - The second triangle's C is projected inline, with x scaled before the 1/z.
+
+**The tables, read directly.** The squares index the angle tables without reducing the
+angle. They are laid out in memory as:
+1. the cosines (`00623c6c`);
+2. their negations;
+3. the sines (`006247b4`);
+4. their negations;
+5. the radians;
+6. their negations.
+
+Each is 361 entries long, so an angle past 360 reads on into the next table. `TableAt`
+reads that layout. An index before the cosines would read the original's other globals,
+and reads 0 in the port.
+
+### The updates
+
+**Clouds** (0x1f, `UpdatePrim_31` `0057b0f0`). Each active record whose mode is below 99:
+- **Brightening.** For its first 80 steps it brightens by 3 a step in mode 1. In other
+  modes it brightens by 2, but in mode 0 only while the owner is above the floor.
+- **Fading.** Once the age passes +0xc, it fades by 1 a step.
+- **Starting again.** Faded out, it starts at a new place: 25 to 225 out either way in
+  mode 1, otherwise within 150 of the owner. In mode 0 with the owner below the floor, it
+  starts at age 300.
+- **Walking angles.** Two angles walk a degree a step towards their goals, between 0 and
+  359. Past a goal, a new goal is drawn on the far side of it with `rand()`. A twentieth of
+  each angle's sine drifts the centre in x and z.
+- **The phase** turns a degree a step, for every active record.
+
+**A boomerang** (0x28, `UpdatePrim_40` `00572350`), the first record:
+- **Spinning.** It turns 15 degrees a step.
+- **The trail.** Every step (colour 1) or every third step, the others take the record
+  before's turn, size, phase, centre and image, with its alpha less 25 (the second record
+  less 150). Each starts once the age passes 1, 2 or 3.
+- **Out.** On its first step it heads for the target and climbs to its height until it has
+  come its range.
+- **Back.** Then colour 1 trebles its speed and swerves up to 44 degrees by `rand()`.
+  Colour 0 instead turns 5 degrees a step until it heads within 4 degrees of the owner.
+- **The end.** After that it fades by 12 a step and sinks.
+
+**Thrown sparks** (0x2b, `UpdatePrim_43` `00571e90`). Each record:
+- **Waiting.** It waits out its negative age, then turns 5 degrees a step backwards.
+- **Heading.** On its first step it heads from the owner through the target, give or take
+  30 degrees by `rand()`, reduced with C's remainder. An owner heading below 30 degrees can
+  turn the heading negative, which reads before the cosine table.
+- **Fading** in by 15 for 10 steps, then out by 3, until it goes out.
+- **Moving.** It climbs by its climb and moves along its heading.
+
+**A bobbing square** (0x2d, `UpdatePrim_45` `0057b6f0`), the first record:
+- **The trail.** Every 6 steps each active record behind takes the one before's turn,
+  phase, centre and image, with its size plus a half and its alpha less 50. It also takes
+  colour 2 and mode 0.
+- **Swelling and bobbing.** The phase turns 5 degrees a step. The square bobs 3 either way
+  about 6 above the owner, on the sine of its heading, which turns a degree a step.
+- **Colour 7** also turns the square 10 degrees a step.
+
+**Sinking squares** (0x2f, `UpdatePrim_47` `0057b970`). Each record:
+- **Fading.** It fades in by 25 for 10 steps, then out by 5, sinking a fifth a step.
+- **Starting again.** Faded out, it starts again at the owner's height, or 5 above in
+  state 1. Its first height is never set by `AddSinkingSquares`, so it starts at 0.
+- **Turning.** The phase turns 5 degrees a step; in state 1 the square turns too.
+
+**An arcing square** (0x33, `UpdatePrim_51` `005728c0`), the first record:
+- **The trail**, as for 0x28, every other step.
+- **Turning.** It turns 10 degrees a step and is never reduced past 360, so the corners
+  read on into the negated cosines.
+- **The arc.** It heads for the target over its steps (+0x71), climbing to the target's
+  height. It is lifted on half a sine 10 high (colour 0) or 30.
+- **Landing.** 5% past its steps it stays where it is and fades by 20 a step.
+
+**A pulsing square** (0x37, `UpdatePrim_55` `005727d0`): the phase turns 3 degrees a step.
+It brightens by 4 for 20 steps and fades by 1 after 100.
+
+**Rising sparks** (0x38, `UpdatePrim_56` `00572020`). Each record:
+- **Waiting.** It waits out its negative age, then turns 5 degrees a step backwards.
+- **Moving.** It takes a random heading and rises by its climb.
+- **Fading** in by 15 for 10 steps, then out by 3, until it goes out.
+- **The flash.** In state 1 it shows the second image for two steps: at ages 35 and 36 for
+  the first record, each next record 7 steps sooner.
+
+### The square effects
+
+All but the clouds keep the effect at the actor each step, and add their primitive on
+the first frame unless noted. The primitives take flags 5, as long a life as the
+effect, and +0x2f8 set to the effect's target where they head for it.
+
+| Effect ids | Function | Id | What |
+|-----------|----------|---:|------|
+| 0xe5, 0xe6, 0xe9 | `AddClouds` (`005686c0`) | 0x1f | 40, 60 and 40 primitives of four clouds (`cloud4`, `cloud1` or `cloud2.tga`) about the player. 0xe5 is low, with a floor at −152; 0xe6 is high; 0xe9 is low and red. They start again at frame 99999998 |
+| 0xf9, 0x109 | `AddBoomerang` (`00569610`, `00579af0`) | 0x28 | `shield_boomerang.bmp`, size 7, colour 0 (back to the owner); `blue_ivy.bmp`, size 2 + 0.4 × the level, colour 1 (off past the target) |
+| 0x108, 0x113 | `AddThrownSparks` (`00576090`) | 0x2b | 5 and 20 primitives of four `thunder_center.bmp` sparks from the target on; 0x113 plays `effect\rog_back stap.wav` at frame 20 |
+| 0x116 to 0x125 | `AddBobbingSquare` (`00574520`) | 0x2d | ten pictures over the actor, below |
+| 0x11b | `AddSinkingSquares` (`00574890`) | 0x2f | two `safeline.bmp` squares |
+| 0x12a, 299, 0x134 | `AddArcingSquare` (`00569ae0`) | 0x33 | an empty bottle (colour 8), an empty potion bottle (colour 9, shaded by the level) and a stone (colour 0), thrown to the target |
+| 0x135 | `AddPulsingSquare` (`005698b0`) | 0x37 | `pikapika2.bmp` over the actor |
+| 0x136 | `AddThunderSparks` (`00576310`) | 0x38 | 20 primitives of four `thunder_center.bmp` sparks |
+| 0x14b, 0x14c | `AddHealingSparks` (`00576590`) | 0x38 | `pok1` and `pok3.tga` sparks every 4 frames to 20 |
+| 0x138, 0x140 | `AddHealingWalls` (`005768c0`) | 0x39, 0x38 | two rings of `alpha_down.tga`, then sparks every 6 frames to 50 (25 for 0x140) |
+| 0x139, 0x145, 0xfd | `AddHealingRings` (`00577480`) | 0x39, 0x38 | four rings of `ring_white` or `ring_blue`. Below 0xfd, sparks every 6 frames to 50; 0x145 adds four rings of `alpha_down.tga` on frame 1, and sparks every 9 frames from 2 |
+
+**The bobbing squares** (variant, picture, colour):
+- 0x116: variant 1, `zz.bmp`, size 5.
+- 0x117: variant 3, `pocket.bmp`, colour 3.
+- 0x119: variant 2, `melody_a` or `melody_b.bmp` by `rand()`, with a trail.
+- 0x11a: variant 7, `twirl.bmp`, turning.
+- 0x11c: variant 5, one of three stones (`레드젬스톤`, `블루젬스톤`, `옐로우젬스톤.bmp`),
+  colour 4.
+- 0x11e and 0x123: `melody_b` and `melody_a.bmp`.
+- 0x120: variant 8, one of `spell_01` to `spell_08.bmp`.
+- 0x121: variant 6, `idun_apple.bmp`, size 8, colour 4.
+- 0x125: variant 4, `kiss.bmp`, size 15.
+
+**The level** (+0xb8) is set through `CRagEffect::vf02` (`0054eba0`) from a message,
+at most 50.
+
+**Sounds** the effects play and the port leaves out:
+- `effect\cru_shield boomerang.wav` (0xf9);
+- `effect\mon_탄지신통.wav` (0x109);
+- `_heal_effect.wav`, 150 up for 0x135;
+- `effect\흡기.wav` (0x14c).
+
 ## In the port
 
 **`src/core/crt_rand`:** `CrtRand`, `srand` and `rand`.
@@ -581,23 +777,33 @@ step, and its rings, losing their owner, end later in the same pass.
 
 **`src/render/effect_prim`:**
 - `EffectPrim` with `MakePrimitive`, `ResetHistory`, `UpdatePrimitive` (vf01) and
-  `DrawPrimitive` (vf03), for ids 0 to 2, 5, 6, 0xd and the twelve ring ids. `PrimScene` carries the camera's
-  yaw, the ground, the view, the projection and the sprite slope; `PrimDrawing` gets the
-  triangles and the sprite quads;
+  `DrawPrimitive` (vf03), for ids 0 to 2, 5, 6, 0xd, the twelve ring ids and the eight
+  facing-square ids. `PrimScene` carries the camera's yaw and pitch, the ground, the view,
+  the projection and the sprite slope; `PrimDrawing` gets the triangles and the sprite
+  quads;
 - `ProcessHitSpark`, `ProcessRingBurst` and `ProcessHit3`; `AddRingWaves` (with `slow`
-  for `AddSlowRingWaves`), `AddRisingRings`, `AddFadingRings` and the eight setups of
-  [More rings](#more-rings);
+  for `AddSlowRingWaves`), `AddRisingRings`, `AddFadingRings`, the eight setups of
+  [More rings](#more-rings) and the eleven of [the square effects](#the-square-effects);
 - `EffectWorld`, the world's list as effects use it:
   - `Launch` adds an effect;
   - `Step` runs a world step in the list's order;
   - `Draw` gives the primitives' triangles and quads;
-  - `SetParticle` and `SetMinimal` give it the particle sprite and the minimal flag.
+  - `SetParticle`, `SetMinimal` and `SetPlayer` give it the particle sprite, the minimal
+    flag and where the player stands.
 
 **`src/core/angles`:** `DegreesToRadians`.
 
 **`ragview --effect-id ID`** plays the id's `.str` ([gpu.md](gpu.md)), and launches the id
 again when its effect and primitives are done. `--minimal-effects` picks the `_min`
-files.
+files. The effects thrown at a target aim 50 out either way along the ground. The
+installed 2003 data lacks many of the squares' textures, and ragview draws those blank:
+- the clouds;
+- the `pok` sparks;
+- `pikapika2.bmp`;
+- the two boomerangs;
+- `ring_white.tga`.
+
+The melody notes, the item pictures and `alpha_down.tga` are there.
 
 ## Checks
 
@@ -642,11 +848,23 @@ files.
   The ring triangles (168 a frame for a full primitive) are recorded on some frames only:
   steps 0 and 10 for the synthetic rings, steps 0, 12 and 23 for the effects. The states
   are recorded every frame.
+- **24 synthetic square primitives**, three of each square id, 12 steps each, each with
+  its own `srand` seed:
+  - four random records each: every colour and shade, mode 2, turns past 360 for 0x33,
+    ages around the thresholds (negative for 0x2b and 0x38), and both images;
+  - a target between 40 and 320 degrees round from the owner, so that 0x2b's spread stays
+    inside the tables.
+- **The 30 square effects** through the world's list, 24 to 56 steps each, with a target,
+  a level and the player's position:
+  - 0xe5 with the player above the clouds' floor;
+  - every state recorded while an effect has one or two primitives;
+  - otherwise every eighth step, the second and the last, and for the effects that add
+    dozens only the second and the last.
 
-`tests/unit/prim_test.cpp` matches all of it: 1,068,602 values, the CRT's first `rand` values
+`tests/unit/prim_test.cpp` matches all of it: 1,489,215 values, the CRT's first `rand` values
 among them.
 
 **Not ported:**
-- the other 50 primitive ids;
+- the other 42 primitive ids;
 - the other effects' processing;
 - the sounds.

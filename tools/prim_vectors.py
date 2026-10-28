@@ -19,6 +19,7 @@ usage: .venv/bin/python -I tools/prim_vectors.py > tests/unit/prim_vectors.inc
 AddPrimitive (00412550), TextureCache::GetTexture (0040cc00) and PlayWave (004352a0) are
 recorded in place. The x87 runs at single precision, as DirectDraw's FPUSETUP leaves it.
 """
+import math
 import os
 import random
 import struct
@@ -26,7 +27,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from actor_vectors import (ADD_SPRITE_QUAD, GET_FRAME_COUNT, GET_GAME_MODE, SCALES,  # noqa: E402
-                           Oracle, bits, f32, hexs)
+                           Oracle, bits, f32)
 
 RAG_EFFECT_CTOR, INIT_EFFECT, RAG_EFFECT_VF01 = 0x54D220, 0x54EEE0, 0x54D4C0
 LOAD_STR_FILE = 0x54FAE0
@@ -83,7 +84,8 @@ class PrimOracle(Oracle):
             return 0
 
         def texture(this, name, flag):
-            return self.textures.setdefault(emu.read_cstr(name, 64), TEXTURE_BASE + len(self.textures))
+            return self.textures.setdefault(emu.read_cstr(name, 64, encoding="latin-1"),
+                                            TEXTURE_BASE + len(self.textures))
 
         emu.replace_thiscall(ADD_PRIMITIVE, 2, add)
         emu.replace_thiscall(GET_TEXTURE, 2, texture)
@@ -165,15 +167,26 @@ class PrimOracle(Oracle):
                         f32(rng.choice([300.0, 250.0, 150.0])), at)
         emu = self.emu
         return (list(struct.unpack("<12I", emu.mem_read(self.view + 0x94, 48))),
-                emu.read_u32(self.view + 0x20), emu.read_u32(SLOPE_DOWN))
+                emu.read_u32(self.view + 0x20), emu.read_u32(SLOPE_DOWN), emu.read_u32(self.view + 0x1C))
+
+
+def hexs(values):
+    """Words as C initialisers, unpadded: most of the records are zeros."""
+    return ", ".join("0" if v == 0 else f"0x{v & 0xFFFFFFFF:x}" for v in values)
+
+
+def c_literal(name):
+    """A name read as latin-1 (its CP949 bytes) as a C string's contents, octal escapes past
+    ASCII and for quotes and backslashes."""
+    return "".join(f"\\{c:03o}" if c >= 0x80 or c in (0x22, 0x5C) else chr(c) for c in name.encode("latin-1"))
 
 
 def quads_cpp(quads):
     return "{" + ", ".join(f"{{{{{hexs(d)}}}, {t}, {i}, 0x{fl:x}}}" for d, t, i, fl in quads) + "}" if quads else "{{}}"
 
 
-def scene_cpp(view, yaw, slope):
-    return f"{{{{{hexs(view)}}}, 0x{yaw:08x}, 0x{slope:08x}}}"
+def scene_cpp(view, yaw, slope, pitch):
+    return f"{{{{{hexs(view)}}}, 0x{yaw:08x}, 0x{slope:08x}, 0x{pitch:08x}}}"
 
 
 def triangles_cpp(added):
@@ -196,9 +209,7 @@ def table(o, lines):
             emu.call(INIT_EFFECT, actor, t, 0, 0, 0, this=effect)
             name = o.loaded[0] if o.loaded else ""
             assert len(o.loaded) <= 1
-            data = name.encode("latin-1")
-            literal = "".join(f"\\{c:03o}" if c >= 0x80 or c in (0x22, 0x5C) else chr(c) for c in data)
-            rows.append(f'    {{{t}, {minimal}, {seed}, {emu.read_u32(effect + 0xC0)}, "{literal}"}},')
+            rows.append(f'    {{{t}, {minimal}, {seed}, {emu.read_u32(effect + 0xC0)}, "{c_literal(name)}"}},')
             emu.heap_release(mark)
     emu.write_u32(MINIMAL_EFFECTS, 0)
     lines.append("static const TableVector kTable[] = {")
@@ -493,7 +504,7 @@ def synthetic3(o, rng, lines):
         emu.write_u32(effect + 0xBC, 0)
         prim, offset, sets = random_prim3(rng, o, effect, pid)
         emu.call(SRAND, 700 + n)
-        view, yaw, slope = o.scene(rng)
+        view, yaw, slope, pitch = o.scene(rng)
         name = f"kShape{n}"
         lines.append(f"static const FieldVector {name}Fields[] = {{" + ", ".join(
             f"{{0x{f:x}, 0x{v:08x}, {{}}}}" for f, v in sorted(sets.items())) + "};")
@@ -515,7 +526,7 @@ def synthetic3(o, rng, lines):
         lines += frames
         lines.append("};")
         rows.append(f"    {{{pid}, {{{hexs(map(bits, pos))}}}, {{{hexs(map(bits, target))}}}, "
-                    f"{{{hexs(map(bits, offset))}}}, {duration}, {scene_cpp(view, yaw, slope)}, {name}Fields, "
+                    f"{{{hexs(map(bits, offset))}}}, {duration}, {scene_cpp(view, yaw, slope, pitch)}, {name}Fields, "
                     f"{len(sets)}, {name}Frames, {len(frames)}}},")
         emu.heap_release(mark)
     lines.append("static const ShapeVector kShapes[] = {")
@@ -577,7 +588,7 @@ def bursts(o, rng, lines):
         lines += frames
         lines.append("};")
         lines.append(f"static const SceneVector {name}Scenes[] = {{")
-        lines += [f"    {{{f}, {scene_cpp(v, y, sl)}}}," for f, v, y, sl in scenes]
+        lines += [f"    {{{f}, {scene_cpp(v, y, sl, pi)}}}," for f, v, y, sl, pi in scenes]
         lines.append("};")
         rows.append(f"    {{{eid}, {minimal}, {seed}, {{{hexs(map(bits, pos))}}}, 0x{bits(facing):08x}, {duration}, "
                     f"{name}Frames, {len(frames)}, {name}Scenes, {len(scenes)}}},")
@@ -658,7 +669,7 @@ def synthetic_rings(o, rng, lines):
             emu.mem_write(prim + base, rec)
             for i in range(0, 0x88, 4):
                 sets[base + i] = emu.read_u32(prim + base + i)
-        view, yaw, slope = o.scene(rng)
+        view, yaw, slope, pitch = o.scene(rng)
         name = f"kRing{n}"
         lines.append(f"static const FieldVector {name}Fields[] = {{" + ", ".join(
             f"{{0x{f:x}, 0x{v:08x}, {{}}}}" for f, v in sorted(sets.items())) + "};")
@@ -681,7 +692,7 @@ def synthetic_rings(o, rng, lines):
         lines += frames
         lines.append("};")
         rows.append(f"    {{{pid}, {{{hexs(map(bits, pos))}}}, {{0, 0, 0}}, {{0, 0, 0}}, 300, "
-                    f"{scene_cpp(view, yaw, slope)}, {name}Fields, {len(sets)}, {name}Frames, {len(frames)}}},")
+                    f"{scene_cpp(view, yaw, slope, pitch)}, {name}Fields, {len(sets)}, {name}Frames, {len(frames)}}},")
         emu.heap_release(mark)
     lines.append("static const ShapeVector kRings[] = {")
     lines += rows
@@ -741,11 +752,214 @@ def ring_effects(o, rng, lines):
         lines += frames
         lines.append("};")
         lines.append(f"static const SceneVector {name}Scenes[] = {{")
-        lines += [f"    {{{f}, {scene_cpp(v, y, sl)}}}," for f, v, y, sl in scenes]
+        lines += [f"    {{{f}, {scene_cpp(v, y, sl, pi)}}}," for f, v, y, sl, pi in scenes]
         lines.append("};")
         rows.append(f"    {{{eid}, 0, {3000 + run}, {{{hexs(map(bits, pos))}}}, 0, {duration}, "
                     f"{name}Frames, {len(frames)}, {name}Scenes, {len(scenes)}}},")
     lines.append("static const BurstVector kRingEffects[] = {")
+    lines += rows
+    lines.append("};")
+
+
+SQUARE_IDS = [0x1F, 0x28, 0x2B, 0x2D, 0x2F, 0x33, 0x37, 0x38]
+SQUARE_STATE = 0xA8  # the bytes of each record the facing squares use
+
+
+def square_state(o, prim):
+    emu = o.emu
+    out = [emu.read_u32(prim + f) for f in RING_STATE]
+    for k in range(4):
+        out += list(struct.unpack(f"<{SQUARE_STATE // 4}I", emu.mem_read(prim + RING + RING_SIZE * k, SQUARE_STATE)))
+    return out
+
+
+def prim_state(o, prim):
+    return square_state(o, prim) if o.emu.read_u32(prim + 0x130) in SQUARE_IDS else ring_state(o, prim)
+
+
+def toward(rng, at, near, far):
+    """A point near to far out from at along the ground, between 40 and 320 degrees round
+    (0x2b's spread of 30 either way stays within the angle tables), up to 10 off in height."""
+    angle = math.radians(rng.uniform(40, 320))
+    r = rng.uniform(near, far)
+    return (f32(at[0] + r * math.cos(angle)), f32(at[1] + rng.uniform(-10, 10)), f32(at[2] + r * math.sin(angle)))
+
+
+def random_square(rng, pid, k):
+    rec = bytearray(RING_SIZE)
+    struct.pack_into("<Bxh", rec, 0, rng.random() < 0.9, rng.randrange(0, 600 if pid == 0x33 else 360))
+    struct.pack_into("<f", rec, 4, f32(rng.uniform(5, 80)))
+    age = {0x1F: rng.randrange(0, 120), 0x2B: rng.randrange(-5, 30), 0x38: rng.randrange(-5, 30)}.get(pid, rng.randrange(0, 40))
+    heading = rng.randrange(50, 300) if pid == 0x1F else rng.randrange(0, 360)
+    struct.pack_into("<ihhh", rec, 8, age, heading, rng.randrange(-5, 256), rng.randrange(0, 360))
+    if pid == 0x1F:
+        walk = [rng.uniform(0, 359) for _ in range(4)]
+    else:
+        walk = [rng.uniform(0, 359), rng.uniform(0, 3), rng.uniform(-1, 1), rng.uniform(0, 359)]
+    struct.pack_into("<4f", rec, 0x14, *(f32(w) for w in walk))
+    mode = rng.choice([0.0, 1.0, 2.0, 99.5]) if pid == 0x1F else rng.choice([0.0, 0.0, 0.0, 2.0])
+    struct.pack_into("<3f", rec, 0x2C, f32(rng.uniform(-200, 50)), f32(mode), f32(rng.uniform(0, 359.9)))
+    struct.pack_into("<f", rec, 0x6C, f32(rng.uniform(1, 40)))
+    state = {0x28: rng.choice([0, 1, 2]), 0x33: rng.choice([0, 3, 10, 30, 60]), 0x2F: rng.choice([0, 1]),
+             0x38: rng.choice([0, 1])}.get(pid, 0)
+    color = rng.choice([0, 1, 2, 3, 4, 7, 8, 9, 9, 10, 11, 5]) if k == 0 else rng.randrange(0, 12)
+    struct.pack_into("<4B", rec, 0x70, rng.choice([0, 0, 1]), state, color, rng.randrange(0, 7))
+    struct.pack_into("<3f", rec, 0x88, *(f32(rng.uniform(-40, 40)) for _ in range(3)))
+    struct.pack_into("<f", rec, 0xA4, f32(rng.uniform(-20, 0)))
+    return bytes(rec)
+
+
+def synthetic_squares(o, rng, lines):
+    emu = o.emu
+    actor = emu.scratch(size=0x100)
+    rows = []
+    for n in range(3 * len(SQUARE_IDS)):
+        pid = SQUARE_IDS[n % len(SQUARE_IDS)]
+        mark = emu.heap_mark()
+        effect = o.rag_effect(actor)
+        pos = [f32(rng.uniform(-30, 30)), f32(rng.uniform(-8, 0)), f32(rng.uniform(-30, 30))]
+        emu.mem_write(effect + 4, struct.pack("<3f", *pos))
+        emu.write_u32(effect + 0xC0, 300)
+        prim = emu.alloc(PRIM_SIZE)
+        emu.call(PRIM_CTOR, this=prim)
+        emu.call(INIT_PRIMITIVE, effect, pid, 0, 0, 0, this=prim)
+        sets = {}
+
+        def w(f, v):
+            emu.write_u32(prim + f, v & 0xFFFFFFFF)
+            sets[f] = v & 0xFFFFFFFF
+
+        w(0x144, rng.randrange(10, 40))
+        w(0x128, rng.choice([5, 5, 1, 0x105]))
+        for i, v in enumerate(toward(rng, pos, 20, 90)):
+            w(0x2F8 + 4 * i, bits(v))
+        ring_textures(o, prim, 2)
+        for k in range(4):
+            base = RING + RING_SIZE * k
+            emu.mem_write(prim + base, random_square(rng, pid, k))
+            for i in range(0, SQUARE_STATE, 4):
+                v = emu.read_u32(prim + base + i)
+                if v:
+                    sets[base + i] = v
+        view, yaw, slope, pitch = o.scene(rng)
+        name = f"kSquare{n}"
+        lines.append(f"static const FieldVector {name}Fields[] = {{" + ", ".join(
+            f"{{0x{f:x}, 0x{v:08x}, {{}}}}" for f, v in sorted(sets.items())) + "};")
+        frames = []
+        emu.call(SRAND, 4000 + n)
+        for frame in range(12):
+            more = emu.call(PRIM_VF01, this=prim).eax & 0xFF
+            state = square_state(o, prim)
+            added = o.draw(prim) if more else []
+            lines.append(f"static const std::uint32_t {name}Frame{frame}State[] = {{{hexs(state)}}};")
+            if frame in (0, 6, 11):
+                lines.append(f"static const TriangleVector {name}Frame{frame}Triangles[] = {triangles_cpp(added)};")
+                triangles = f"{name}Frame{frame}Triangles, {len(added)}"
+            else:
+                triangles = "nullptr, kUnchecked"
+            frames.append(f"    {{{more}, {name}Frame{frame}State, {len(state)}, {triangles}, nullptr, 0}},")
+            emu.write_u32(effect + 0xBC, emu.read_u32(effect + 0xBC) + 1)
+            if not more:
+                break
+        lines.append(f"static const ShapeFrameVector {name}Frames[] = {{")
+        lines += frames
+        lines.append("};")
+        rows.append(f"    {{{pid}, {{{hexs(map(bits, pos))}}}, {{0, 0, 0}}, {{0, 0, 0}}, 300, "
+                    f"{scene_cpp(view, yaw, slope, pitch)}, {name}Fields, {len(sets)}, {name}Frames, {len(frames)}}},")
+        emu.heap_release(mark)
+    lines.append("static const ShapeVector kSquares[] = {")
+    lines += rows
+    lines.append("};")
+
+
+# The effects that add facing squares, with how many frames each runs.
+SQUARE_EFFECTS = [(0xE5, 24), (0xE6, 24), (0xE9, 24), (0xF9, 48), (0x109, 48), (0x108, 56), (0x113, 56),
+                  (0x116, 32), (0x117, 32), (0x119, 32), (0x11A, 32), (0x11C, 32), (0x11E, 32), (0x120, 32),
+                  (0x121, 32), (0x123, 32), (0x125, 32), (0x11B, 32), (0x12A, 48), (299, 48), (0x134, 48),
+                  (0x135, 32), (0x136, 32), (0x14B, 32), (0x14C, 32), (0x138, 32), (0x140, 32), (0x139, 32),
+                  (0x145, 32), (0xFD, 32)]
+
+
+def square_effects(o, rng, lines):
+    emu = o.emu
+    rows = []
+    player = emu.read_u32(o.world + 0x3C)
+    for run, (eid, count) in enumerate(SQUARE_EFFECTS):
+        o.reset_world()
+        actor = emu.scratch(size=0x100)
+        pos = (f32(rng.uniform(-30, 30)), f32(rng.uniform(-10, 0)), f32(rng.uniform(-30, 30)))
+        emu.mem_write(actor + 4, struct.pack("<3f", *pos))
+        # 0xe5's clouds show only while the player is above their floor (y -152).
+        at = (f32(rng.uniform(-30, 30)), f32(rng.uniform(-200, -160) if eid == 0xE5 else rng.uniform(-200, 0)),
+              f32(rng.uniform(-30, 30)))
+        emu.mem_write(player + 4, struct.pack("<3f", *at))
+        target = toward(rng, pos, 30, 90)
+        level = rng.randrange(1, 6)
+        emu.call(SRAND, 5000 + run)
+        effect = o.rag_effect(actor)
+        emu.call(INIT_EFFECT, actor, eid, 0, 0, 0, this=effect)
+        emu.mem_write(effect + 0xE8, struct.pack("<3f", *target))
+        emu.write_u32(effect + 0xB8, level)
+        duration = emu.read_u32(effect + 0xC0)
+        alive, prims, frames, scenes = True, [], [], []
+        name = f"kSquareEffect{run}"
+        for frame in range(count):
+            if frame % 8 == 0:
+                scenes.append((frame, *o.scene(rng)))
+            more = 0
+            if alive:
+                more = emu.call(RAG_EFFECT_VF01, this=effect).eax & 0xFF
+                if not more:
+                    alive = False
+                    for _, p in o.world_objects():
+                        emu.call(PRIM_VF02, 0, 0x18, 0, 0, 0, this=p)
+            for node, p in o.world_objects():
+                if p not in prims:
+                    prims.append(p)
+                if not emu.call(PRIM_VF01, this=p).eax & 0xFF:
+                    o.unlink(node)
+            # Every primitive's state each frame while there are one or two; every eighth
+            # frame, the second and the last of the effects that add more, and of those that
+            # add many only the second and the last.
+            objects = o.world_objects()
+            if len(objects) <= 2:
+                sampled = True
+            elif len(objects) <= 8:
+                sampled = frame % 8 == 0 or frame in (1, count - 1)
+            else:
+                sampled = frame in (1, count - 1)
+            states, added = [], []
+            for _, p in objects:
+                index = len(states)
+                if sampled:
+                    state = prim_state(o, p)
+                    lines.append(f"static const std::uint32_t {name}Frame{frame}Prim{index}[] = {{{hexs(state)}}};")
+                    ref = f"{name}Frame{frame}Prim{index}, {len(state)}"
+                else:
+                    ref = "nullptr, 0"
+                states.append(f"{{{prims.index(p)}, {emu.read_u32(p + 0x130)}, {ref}}}")
+                added += o.draw(p)
+            lines.append(f"static const BurstPrimVector {name}Frame{frame}Prims[] = {{{', '.join(states) or '{}'}}};")
+            checked = (0, 12, count - 1) if len(objects) <= 8 else (count - 1,)
+            if frame in checked:
+                lines.append(f"static const TriangleVector {name}Frame{frame}Triangles[] = {triangles_cpp(added)};")
+                triangles = f"{name}Frame{frame}Triangles, {len(added)}"
+            else:
+                triangles = "nullptr, kUnchecked"
+            frames.append(f"    {{{more}, {name}Frame{frame}Prims, {len(states)}, {triangles}, nullptr, 0}},")
+            if not alive and not o.world_objects():
+                break
+        lines.append(f"static const BurstFrameVector {name}Frames[] = {{")
+        lines += frames
+        lines.append("};")
+        lines.append(f"static const SceneVector {name}Scenes[] = {{")
+        lines += [f"    {{{f}, {scene_cpp(v, y, sl, pi)}}}," for f, v, y, sl, pi in scenes]
+        lines.append("};")
+        rows.append(f"    {{{eid}, {level}, {5000 + run}, {{{hexs(map(bits, pos))}}}, {{{hexs(map(bits, at))}}}, "
+                    f"{{{hexs(map(bits, target))}}}, {duration}, {name}Frames, {len(frames)}, {name}Scenes, "
+                    f"{len(scenes)}}},")
+    emu.mem_write(player + 4, bytes(12))
+    lines.append("static const SquareEffectVector kSquareEffects[] = {")
     lines += rows
     lines.append("};")
 
@@ -762,9 +976,11 @@ def main():
     bursts(o, rng, lines)
     synthetic_rings(o, rng, lines)
     ring_effects(o, rng, lines)
+    synthetic_squares(o, rng, lines)
+    square_effects(o, rng, lines)
     names = sorted(o.textures.items(), key=lambda kv: kv[1])
     lines.append("static const TextureVector kTextures[] = {" +
-                 ", ".join(f'{{0x{v:x}, "{k.replace(chr(92), chr(92) * 2)}"}}' for k, v in names) + "};")
+                 ", ".join(f'{{0x{v:x}, "{c_literal(k)}"}}' for k, v in names) + "};")
     print("\n".join(lines))
 
 

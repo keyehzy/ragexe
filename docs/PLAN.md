@@ -2366,9 +2366,24 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Checks:** 24 synthetic ring primitives and 23 ring effects; 1,068,602 values in
     `prim_test`.
 
+- [x] Facing squares (`docs/render/effect-prim.md#facing-squares`):
+  - **`RenderFacingSquares`, `RotateQuadPoints` and `DrawQuad`:** squares of four corners
+    turned to face the camera by its yaw and pitch, in eleven colours, through the quad
+    drawer 38 renderers share, with its four transform orders. The angle tables are read
+    as they lie in memory, so a turn past 360 reads on into the next table.
+  - **`CEffectPrim` ids 0x1f, 0x28, 0x2b, 0x2d, 0x2f, 0x33, 0x37 and 0x38:** clouds, a
+    boomerang, thrown sparks, bobbing, sinking, arcing and pulsing squares, and rising
+    sparks, with trails and `VectorToDegrees`.
+  - **30 more effect ids** (0xe5, 0xe6, 0xe9, 0xf9, 0xfd, 0x108, 0x109, 0x113, 0x116,
+    0x117, 0x119 to 0x11c, 0x11e, 0x120, 0x121, 0x123, 0x125, 0x12a, 299, 0x134 to 0x136,
+    0x138, 0x139, 0x140, 0x145, 0x14b and 0x14c) through eleven setups; five of the ids
+    add waving walls too. The effect gains
+    its target and level, and the world the player's position.
+  - **Checks:** 24 synthetic square primitives and the 30 effects; 1,489,215 values in
+    `prim_test`.
+
 ### Next actions
-1. M4, the renderer: the other 50 primitive ids, starting with those the remaining
-   effects in play share: the facing squares (`RenderFacingSquares`, eight ids) and the
-   horizontal squares.
+1. M4, the renderer: the other 42 primitive ids, starting with the horizontal squares
+   (`RenderHorizontalSquares`, ids 0x1a, 0x25 and 0x40) and the effects that add them.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

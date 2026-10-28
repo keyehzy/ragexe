@@ -147,9 +147,10 @@ Textures are uploaded as triangles first ask for them.
 `tests/unit/effect_test.cpp` matches all 66,406 values.
 
 **Not ported:**
-- the effects' own processing (`CRagEffect::vf01`'s 200-odd cases), beyond the generic
-  offset and effect ids 0 to 2 ([effect-prim.md](effect-prim.md));
-- most of `CEffectPrim`, the particles and shapes effects add: ids 0 to 2, 5, 6 and 0xd
-  are ported ([effect-prim.md](effect-prim.md));
+- most of the effects' own processing (`CRagEffect::vf01`'s 200-odd cases), beyond the
+  generic offset and the 56 ids [effect-prim.md](effect-prim.md) ports;
+- much of `CEffectPrim`, the particles and shapes effects add: ids 0 to 2, 5, 6, 0xd, the
+  twelve ring ids and the eight facing-square ids are ported
+  ([effect-prim.md](effect-prim.md));
 - the sounds;
 - the texture cache's use counts.
