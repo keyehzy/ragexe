@@ -216,6 +216,31 @@ inclusive, row by row.
 
 ### The water
 
+**Its parameters.** `CWorld::LoadWorld` passes the `.rsw`'s water to
+`C3dGround::SetWaterParams` (`004bc410`):
+
+| Field | Value |
+|------:|-------|
+| +0x40 | the level |
+| +0x50 | the type |
+| +0x44 | the interval: steps each texture of the animation lasts |
+| +0x48 | the step, degrees per cell: `ftol` of the `.rsw`'s float |
+| +0x4c | the phase step: `ftol` of its float, then C's remainder by 360 |
+| +0x54 | the wave height |
+
+The constructor sets the defaults 3, 50, 2 and 1.0. `Reset` zeroes the frame (+0x5c)
+and the phase (+0x60).
+
+**Each frame step.** `CGameMode::OnFrame` calls `C3dGround15` `004bc450`, also called
+from `GetWaterTexture` (`004bc4e0`) while no texture is set. It runs in three steps:
+1. The frame moves on by one, back to 0 at interval × 32.
+2. **The texture:** `TextureCache::GetTexture` of `워터\water%d%02d.jpg` (`0060b0c0`,
+   CP949), with the type modulo 6 and (frame / interval) modulo 32. C's remainder leaves
+   a negative type negative.
+3. **The phase** moves by the phase step, less 360 once past 180.
+
+An interval of 0 would divide by zero; the port picks texture 0.
+
 **The wave heights.** With the wave height (`+0x54`) at 0.0, all four are the level
 (`+0x40`). Otherwise each height is
 

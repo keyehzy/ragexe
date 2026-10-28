@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <cstddef>
+#include <cstdio>
 
 #include "core/angles.h"
 
@@ -536,6 +537,33 @@ void DrawGroundCells(GroundMesh& mesh, const ViewMatrix& view, const CellRect& r
       }
     }
   }
+}
+
+GroundWater WaterOfWorld(const res::World& world) {
+  const auto truncate = [](float v) { return static_cast<std::int32_t>(Ftol(v)); };
+  GroundWater w;
+  w.level = world.water_level;
+  w.type = world.water_type;
+  w.interval = world.water_frame_interval;
+  w.step = truncate(world.water_param_178);
+  w.phase_step = truncate(world.water_phase_step) % 360;
+  w.wave_height = world.water_param_170;
+  return w;
+}
+
+std::string StepWater(GroundWater& water) {
+  water.frame = water.frame + 1;
+  if (water.frame >= water.interval * 32) water.frame = 0;
+  const std::int32_t index = water.interval != 0 ? (water.frame / water.interval) % 32 : 0;
+  water.phase = water.phase + water.phase_step;
+  if (water.phase > 180) water.phase = water.phase - 360;
+  return WaterTextureName(water.type, index);
+}
+
+std::string WaterTextureName(std::int32_t type, std::int32_t index) {
+  char name[32];
+  std::snprintf(name, sizeof name, "\xbf\xf6\xc5\xcd\\water%d%02d.jpg", type % 6, index);
+  return name;
 }
 
 }  // namespace ragexe::render

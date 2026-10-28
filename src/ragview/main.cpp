@@ -50,6 +50,7 @@ using namespace ragexe;
 
 constexpr std::uint32_t kLightmapIdBase = 0x10000;
 constexpr std::uint32_t kModelTextureIdBase = 0x20000;
+constexpr std::uint32_t kWaterTextureIdBase = 0x30000;
 
 struct Options {
   std::filesystem::path install = "original/install";
@@ -288,8 +289,14 @@ int main(int argc, char** argv) {
   for (render::ModelDrawSettings& m : model_settings) {
     m.viewport = settings.viewport;
     m.fade = settings.fade;
+    // CGameMode::OnInit sets g_WorldColorFade+0xd on every map: the models' colours plus
+    // the ground's.
+    m.ground_tint = true;
   }
-  settings.water.level = 1.0e30f;  // the water's textures are not loaded yet
+  settings.water = render::WaterOfWorld(world);
+  // The water's textures, uploaded as the steps first ask for them.
+  std::map<std::string, std::uint32_t> water_textures;
+  std::uint32_t water_texture = 0;
   render::FixedFunctionState state;
   render::BoundTextures bound;
   std::vector<render::GpuVertex> vertices;
@@ -297,6 +304,21 @@ int main(int argc, char** argv) {
 
   const auto frame = [&](std::uint32_t number, std::vector<render::DrawRecord>& draws) {
     settings.frame = number;
+    // CGameMode::OnFrame's step: the water's frame and phase, and its texture.
+    const std::string water_name = render::StepWater(settings.water);
+    auto [water_it, water_added] = water_textures.try_emplace(
+        water_name, kWaterTextureIdBase + static_cast<std::uint32_t>(water_textures.size()));
+    if (water_added) {
+      res::Bitmap image;
+      std::string ignored;
+      std::uint32_t w = 1, h = 1;
+      std::vector<std::uint32_t> texels{0};
+      if (Load(files, "data\\texture\\" + water_name, bytes) &&
+          res::DecodeBitmap(water_name, bytes, image, &ignored))
+        texels = ClientTexels(image, w, h);
+      device->SetTexture(water_it->second, w, h, texels);
+    }
+    water_texture = water_it->second;
     render::UpdateCamera(camera, player, false, &attr);
     // CView::vf03: the scene graph's nodes the frustum keeps, their models and cells.
     const render::Frustum frustum =
@@ -313,7 +335,7 @@ int main(int argc, char** argv) {
       s.id = static_cast<std::uint32_t>(spans.size());
       if (v.model < 0) {
         const render::GroundPrimitive& p = v.ground;
-        s.texture = p.texture >= 0 ? static_cast<std::uint32_t>(p.texture + 1) : 0;
+        s.texture = p.texture >= 0 ? static_cast<std::uint32_t>(p.texture + 1) : water_texture;
         s.lightmap = p.lightmap_page >= 0
                          ? kLightmapIdBase + static_cast<std::uint32_t>(p.lightmap_page)
                          : 0;
@@ -351,7 +373,11 @@ int main(int argc, char** argv) {
   };
   const auto width = static_cast<std::uint32_t>(o.width);
   const auto height = static_cast<std::uint32_t>(o.height);
-  const std::uint32_t clear = 0xff404060;
+  // CGameMode::OnInit's clear colour (00623c0c): two sky blues for three maps, black
+  // otherwise.
+  std::uint32_t clear = 0;
+  if (o.map == "yuno") clear = 0xff99ccff;
+  if (o.map == "gonryun" || o.map == "gon_dun02") clear = 0xff6699cc;
 
   if (!o.screenshot.empty()) {
     std::vector<render::DrawRecord> draws;

@@ -3074,7 +3074,7 @@ entry	size	namespace	name	source	fid	thunk	calling_convention	signature
 004bc3a0	14	C3dGround	~C3dGround	USER_DEFINED	0	0	__thiscall	undefined ~C3dGround(C3dGround * this)
 004bc3b0	89	C3dGround	GetCellCoords	USER_DEFINED	0	0	__thiscall	undefined GetCellCoords(C3dGround * this)
 004bc410	53	C3dGround	SetWaterParams	USER_DEFINED	0	0	__thiscall	undefined SetWaterParams(C3dGround * this)
-004bc450	135	C3dGround15	method_004bc450	USER_DEFINED	0	0	__thiscall	undefined method_004bc450(C3dGround15 * this)
+004bc450	135	C3dGround15	StepWater	USER_DEFINED	0	0	__thiscall	undefined StepWater(C3dGround15 * this)
 004bc4e0	20	C3dGround15	GetWaterTexture	USER_DEFINED	0	0	__thiscall	undefined GetWaterTexture(C3dGround15 * this)
 004bc500	104	C3dGround	vf16	ANALYSIS	0	0	__thiscall	undefined vf16(C3dGround * this)
 004bc570	663	C3dGround15	method_004bc570	USER_DEFINED	0	0	__thiscall	undefined method_004bc570(C3dGround15 * this)

@@ -3074,7 +3074,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004bc3a0	14	code	0	world		named	C3dGround	~C3dGround	
 004bc3b0	89	code	0	world		named	C3dGround	GetCellCoords	
 004bc410	53	code	0	world		named	C3dGround	SetWaterParams	
-004bc450	135	code	0	world		named	C3dGround15	method_004bc450	
+004bc450	135	code	0	world		named	C3dGround15	StepWater	
 004bc4e0	20	code	0	world		named	C3dGround15	GetWaterTexture	
 004bc500	104	code	0	world		named	C3dGround	vf16	
 004bc570	663	code	0	world		named	C3dGround15	method_004bc570	

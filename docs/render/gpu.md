@@ -131,7 +131,9 @@ runs on Vulkan; D3D12 would need DXIL.
 - **The arrow keys** walk the player one `.gat` cell.
 - **Escape** quits; `--frames N` quits after N frames.
 
-**Left out:** the water, whose textures are not loaded yet.
+**The water** steps once a frame, as `CGameMode::OnFrame` does, and each texture of its
+animation is uploaded the first time it is asked for. **The models** draw with the ground
+tint, and **the clear colour** is the map's, as `CGameMode::OnInit` sets them.
 
 ## What is not reproduced yet
 

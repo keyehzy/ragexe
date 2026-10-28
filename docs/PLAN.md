@@ -2209,8 +2209,27 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **`ragview`** draws only what the frustum keeps.
   - **Labels:** `CView::vf03` and its cell range globals.
 
+- [x] The water and the background (`docs/render/ground.md#the-water`):
+  - **`SetWaterParams`** takes the `.rsw`'s water as `LoadWorld` passes it, two values
+    truncated.
+  - **Each frame step** (`004bc450`): the frame picks one of 32 textures,
+    `워터\water<type><frame>.jpg`, and the waves' phase moves on.
+  - **Port:** `WaterOfWorld`, `StepWater` and `WaterTextureName`. Checks:
+    `tools/water_vectors.py` records six waters over 200 steps; 3,636 values match.
+  - **No sky:** the 2003 client's sky boxes (`InitModelSkyBox`, `DrawTexturedSkyBox`, a
+    lens flare) have no callers. The background is the clear colour `CGameMode::OnInit`
+    picks: 0xff99ccff for `yuno.rsw`, 0xff6699cc for `gonryun.rsw` and `gon_dun02.rsw`,
+    black otherwise.
+  - **Models are always tinted:** `OnInit` also sets `g_WorldColorFade`+0xd, so in game
+    the models draw with the ground's colour added.
+  - **`ragview`** steps the water and draws it textured, tints the models, and clears to
+    the map's colour.
+  - **Not ported:** the fog the map's `fogParameterTable.txt` entry sets
+    (`ClientState` `005981b0`, called from `OnInit` just before).
+
 ### Next actions
-1. M4, the renderer: the water (`C3dGround15`'s water quads and their textures) and the
-   sky box, so that `ragview` shows a map whole.
+1. M4, the renderer: the fog (`fogParameterTable.txt` and `SetupProjection`'s fog
+   states), then the actors' sprites (`CRenderObject`, with the scales `CView::Step` and
+   `SetSize` leave), so that `ragview` can show a character on the map.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

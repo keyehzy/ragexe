@@ -30,6 +30,7 @@ add_executable(ragexe_tests
   str_test.cpp
   texture_test.cpp
   tips_manner_test.cpp
+  water_test.cpp
   wav_test.cpp
   windows_no_dialogs.cpp
   xml_test.cpp)

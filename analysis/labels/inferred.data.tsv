@@ -46,3 +46,4 @@ address	namespace	name	evidence	type
 0067caa8	Global	g_visibleCellsMaxX	CView::DrawWorld: the largest cell x (+0x64) of the visible leaves, from 0	dword
 0067caac	Global	g_visibleCellsMaxZ	CView::DrawWorld: the largest cell z (+0x68) of the visible leaves, from 0	dword
 0067cab4	Global	g_viewShakeStepPending	set by CView::DrawWorld each frame and cleared by CView::ApplyShake, so the shake steps once a frame	dword
+00623c0c	Global	g_clearColor	CGameMode::OnInit sets 0xff99ccff for yuno.rsw, 0xff6699cc for gonryun.rsw and gon_dun02.rsw, 0 otherwise; CGameMode::OnFrame clears the screen with it	dword

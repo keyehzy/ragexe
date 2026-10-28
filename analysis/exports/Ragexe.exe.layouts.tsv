@@ -4,7 +4,7 @@ AnimFrameArrays	8	new	8	2	8	1.00
 AnimModelResNode	88	new	88	19	78	0.89		3 overlapping uses dropped
 C3dAnimModelRes	356	new	356	21	353	0.99		6 overlapping uses dropped
 C3dAttr	300	new	300	11	297	0.99		
-C3dDevice	572	estimated	616	58	221	0.39	0x134	the global at 006239d0 is followed by a variable at 00623c38 (another data label); 9 addresses before it, 00623c0c first, are used only by other code: fields or variables; probably a variable from 00623c18 (+0x248) on, which only source files naming nothing else of the object use; 2 of them named with an absolute address by the class's own methods, e.g. 00623c10 by 00405f20
+C3dDevice	572	estimated	572	58	221	0.39	0x134	the global at 006239d0 is followed by a variable at 00623c0c (another data label)
 C3dGrannyGameActor	3132	new	3132	151	604	0.19	0x4c8,0x304,0x288	1 overlapping uses dropped
 C3dGrannyModelRes	948	new	948	21	340	0.36		
 C3dGround	236	new	236	40	200	0.85		1 overlapping uses dropped
