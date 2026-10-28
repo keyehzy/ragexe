@@ -91,8 +91,8 @@ class Oracle:
         self.frames = {}     # (act, action, frame) -> ActFrame address
         self.items = {}      # (ActFrame address, index) -> ActItem address
         self.resources = {}  # name -> address
-        emu.replace_thiscall(GET_FRAME, 2, lambda this, action, frame: self.frames[(this, action, frame)])
-        emu.replace_thiscall(GET_ITEM, 1, lambda this, i: self.items[(this, i)])
+        emu.replace_thiscall(GET_FRAME, 2, lambda this, action, frame: self.get_frame(this, action, frame))
+        emu.replace_thiscall(GET_ITEM, 1, lambda this, i: self.get_item(this, i))
         # __cdecl, so a replacement that pops nothing; GetResource reads the name.
         emu.replace_thiscall(GET_RESOURCE_MANAGER, 0, lambda this: 0x1234)
         emu.replace_thiscall(GET_RESOURCE, 1, lambda this, name: self.resources[emu.read_cstr(name)])
@@ -112,6 +112,12 @@ class Oracle:
             return 0
 
         self.add_quad = add_quad
+
+    def get_frame(self, act, action, frame):
+        return self.frames[(act, action, frame)]
+
+    def get_item(self, frame, index):
+        return self.items[(frame, index)]
 
     def sprite(self, images8, images32):
         """A CSprRes stand-in: the image records of each type at +0x510 and +0x520."""

@@ -67,6 +67,7 @@ add_library(ragexe_render STATIC
   render/ground.cpp
   render/matrix.cpp
   render/model.cpp
+  render/player.cpp
   render/scene.cpp
   render/scene_graph.cpp
   render/texture.cpp)

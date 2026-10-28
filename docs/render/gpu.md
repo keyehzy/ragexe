@@ -117,8 +117,9 @@ runs on Vulkan; D3D12 would need DXIL.
 8. **The scene graph** over the ground and the models, with the `.rsw`'s bounds when it
    has them ([scene_graph.md](scene_graph.md)).
 9. **The actor:** the sprite and actions `--actor` names (`npc\4_m_01` by default,
-   `none` for none) and `shadow.spr`, each image uploaded as the sprite texture cache
-   draws it ([actor.md](actor.md)).
+   `none` for none), or with `--player JOB SEX HAIR` a player's body, head and `.imf`
+   ([player.md](player.md)), and `shadow.spr`; each image uploaded as the sprite texture
+   cache draws it ([actor.md](actor.md)).
 
 **Each frame:**
 1. `CView::Update`'s port follows the player.

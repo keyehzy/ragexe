@@ -58,3 +58,5 @@ address	namespace	name	evidence	type
 00605650	Global	g_spriteSlopeUp	SceneRenderer::SetSize (0.16 / height ratio) and CView::Step (0.16 cot(-pitch) / height ratio); the depth across shadows and +0x80 bodies	float
 00614704	Global	g_spriteLayerStep	CView::Step: sin(-pitch) / sin 45 times 300 / distance times 9e-6; each sprite layer's depth step in CRenderObject::DrawBody	float
 00614708	Global	g_spriteDepthBias	CView::Step: 300 / distance times 3.6e-5; CRenderObject::DrawBody adds it, times the pixel scale, to every layer's rhw	float
+006864f0	Global	g_playerHeadOffsetX	CPc::RenderActFrameItems: the body's first anchor x less the head's, when their kinds match; kept between frames and players, and added to the headgear's offsets	dword
+006864f4	Global	g_playerHeadOffsetY	the same for y	dword

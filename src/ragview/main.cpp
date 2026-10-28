@@ -1,7 +1,7 @@
 // ragview: a map's ground drawn as the client draws it (docs/render/gpu.md).
 //
 //   ragview [--install DIR] [--size W H] [--at X Z] [--yaw DEGREES] [--frames N]
-//           [--no-fog] [--actor SPRITE] [--screenshot FILE.png] MAP
+//           [--no-fog] [--actor SPRITE | --player JOB SEX HAIR] [--screenshot FILE.png] MAP
 //
 // MAP is a .rsw name such as prontera. The ground is built and drawn by the ported
 // C3dGround15, through the scene lists and DrawScene, and the calls are replayed on
@@ -9,7 +9,9 @@
 // standing at world (X, Z) (the map's centre by default), turned to YAW if given. The
 // map's fog is on, as the client's FOG setting is by default, unless --no-fog. An actor
 // stands where the player does, drawn from data\sprite\SPRITE.spr and .act (npc\4_m_01
-// by default, none for no actor), idle and facing south.
+// by default, none for no actor), idle and facing south. --player draws a player character
+// there instead: the body of job JOB (0 the novice) and sex SEX (0 female, 1 male), with
+// hair style HAIR, layered by the job's .imf.
 // --screenshot renders one frame offscreen to a PNG and exits; otherwise a window opens,
 // and Escape or --frames N closes it.
 
@@ -34,6 +36,7 @@
 #include "render/gpu_device.h"
 #include "render/ground.h"
 #include "render/model.h"
+#include "render/player.h"
 #include "render/scene.h"
 #include "render/scene_graph.h"
 #include "render/texture.h"
@@ -44,6 +47,7 @@
 #include "res/gat.h"
 #include "res/gnd.h"
 #include "res/grf.h"
+#include "res/imf.h"
 #include "res/rsm.h"
 #include "res/rsw.h"
 #include "res/sprite.h"
@@ -74,6 +78,10 @@ struct Options {
   int frames = 0;
   bool fog = true;
   std::string actor = "npc\\4_m_01";
+  bool player = false;
+  int job = 0;
+  int sex = 1;
+  int hair = 1;
   std::string screenshot;
 };
 
@@ -87,8 +95,8 @@ int ParseInt(const char* text, int fallback) {
 int Usage() {
   std::fprintf(stderr,
                "usage: ragview [--install DIR] [--size W H] [--at X Z] [--yaw DEGREES]\n"
-               "               [--frames N] [--no-fog] [--actor SPRITE] [--screenshot FILE.png]\n"
-               "               MAP\n");
+               "               [--frames N] [--no-fog] [--actor SPRITE | --player JOB SEX HAIR]\n"
+               "               [--screenshot FILE.png] MAP\n");
   return 2;
 }
 
@@ -204,6 +212,11 @@ int main(int argc, char** argv) {
       o.frames = ParseInt(argv[++i], -1);
     } else if (a == "--actor" && next(1)) {
       o.actor = argv[++i];
+    } else if (a == "--player" && next(3)) {
+      o.player = true;
+      o.job = ParseInt(argv[++i], -1);
+      o.sex = ParseInt(argv[++i], -1);
+      o.hair = ParseInt(argv[++i], 0);
     } else if (a == "--no-fog") {
       o.fog = false;
     } else if (a == "--screenshot" && next(1)) {
@@ -215,6 +228,7 @@ int main(int argc, char** argv) {
     }
   }
   if (o.map.empty() || o.width <= 0 || o.height <= 0 || o.frames < 0) return Usage();
+  if (o.player && (o.job < 0 || o.job > 44 || o.sex < 0 || o.sex > 1)) return Usage();
   if (o.map.ends_with(".rsw")) o.map.resize(o.map.size() - 4);
 
   std::string error;
@@ -367,14 +381,28 @@ int main(int argc, char** argv) {
   std::fprintf(stderr, "ragview: %zu of %zu models, %zu files, %zu textures\n", models.size(),
                world.models.size(), model_files.size(), model_textures.size());
 
-  // The actor, its shadow (shadow.spr and shadow.act), and the scales its sprites read.
-  ActorSprite actor;
+  // The actor, its shadow (shadow.spr and shadow.act), and the scales its sprites read. An
+  // actor has one layer; a player has a body and a head, ordered by the job's .imf.
+  std::array<ActorSprite, render::kPlayerLayerCount> layers;
+  ActorSprite& actor = layers[render::kPlayerBody];
   ActorSprite shadow;
-  const bool has_actor = o.actor != "none" &&
-                         LoadActorSprite(files, o.actor, *device, kActorTextureIdBase, actor) &&
-                         LoadActorSprite(files, "shadow", *device, kShadowTextureIdBase, shadow);
-  if (o.actor != "none" && !has_actor)
-    std::fprintf(stderr, "ragview: no sprite %s\n", o.actor.c_str());
+  res::Imf imf;
+  bool has_actor = false;
+  if (o.player) {
+    std::string ignored;
+    has_actor = LoadActorSprite(files, render::PlayerBodyName(o.job, o.sex), *device,
+                                kActorTextureIdBase, actor) &&
+                LoadActorSprite(files, render::PlayerHeadName(o.hair, o.sex), *device,
+                                kActorTextureIdBase + 0x1000, layers[render::kPlayerHead]) &&
+                Load(files, "data\\imf\\" + render::PlayerImfName(o.job, o.sex), bytes) &&
+                res::DecodeImf(bytes, imf, &ignored);
+    if (!has_actor) std::fprintf(stderr, "ragview: no player sprites for job %d\n", o.job);
+  } else if (o.actor != "none") {
+    has_actor = LoadActorSprite(files, o.actor, *device, kActorTextureIdBase, actor);
+    if (!has_actor) std::fprintf(stderr, "ragview: no sprite %s\n", o.actor.c_str());
+  }
+  has_actor = has_actor && LoadActorSprite(files, "shadow", *device, kShadowTextureIdBase, shadow);
+  render::PlayerHeadOffset head_offset;
   render::RenderObject actor_object;
   actor_object.shadow = true;
   // vf07 with action 0: the action's delay, at least 1.
@@ -501,10 +529,21 @@ int main(int argc, char** argv) {
                                       shadow.sprite, camera.view, projection, sprite_scales))
         add(*q, shadow);
       // C3dGround15::vf11's colour table is never filled in this client: always white.
-      const render::ActorBody body =
-          render::DrawActorBody(actor_object, actor.act, actor.sprite, camera.view, projection,
-                                sprite_scales, {1.0f, 1.0f, 1.0f});
-      for (const render::SpriteQuad& q : body.quads) add(q, actor);
+      const std::array<float, 3> white = {1.0f, 1.0f, 1.0f};
+      render::ActorBody body;
+      if (o.player) {
+        std::array<render::PlayerLayer, render::kPlayerLayerCount> player_layers;
+        for (std::size_t l = 0; l < layers.size(); ++l)
+          if (!layers[l].ids8.empty() || !layers[l].ids32.empty())
+            player_layers[l] = {&layers[l].act, &layers[l].sprite};
+        body = render::DrawPlayer(actor_object, player_layers, imf, camera.view, projection,
+                                  sprite_scales, white, head_offset);
+      } else {
+        body = render::DrawActorBody(actor_object, actor.act, actor.sprite, camera.view, projection,
+                                     sprite_scales, white);
+      }
+      for (const render::SpriteQuad& q : body.quads)
+        add(q, layers[static_cast<std::size_t>(q.layer)]);
     }
     std::vector<render::SceneCall> calls;
     if (setup_projection) {

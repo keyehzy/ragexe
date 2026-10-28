@@ -7,7 +7,7 @@ a screen-aligned quad in the scene lists ([scene.md](scene.md)). The port is
 `src/render/actor`.
 
 This page covers the base class's drawing, which NPCs and monsters use. Player
-characters layer several sprites (`CPc::RenderActFrameItems`) and are not ported yet.
+characters layer several sprites ([player.md](player.md)).
 
 ## The scales
 
@@ -177,5 +177,4 @@ precision, and writes `tests/unit/actor_vectors.inc`. It records:
 - `vf05` and `vf06`, the screen position it stores;
 - `vf08`'s play modes beyond 0 and 1, which it leaves alone too;
 - the texture cache's slots and pages, which change only where in a texture an image lies;
-- the palettes of other resources (+0x34);
-- `CPc`'s layered characters.
+- the palettes of other resources (+0x34).

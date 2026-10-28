@@ -79,6 +79,7 @@ struct SpriteQuad {
   float angle = 0.0f;
   std::int32_t image_type = 0;  // 0: the sprite's 8-bit images, 1: its 32-bit images
   std::int32_t image = 0;
+  std::int32_t layer = 0;   // a player's layer (docs/render/player.md), 0 for other actors
   std::uint32_t flags = 0;  // for AddPrimitive: 0x101 when opaque, 1 otherwise
 };
 

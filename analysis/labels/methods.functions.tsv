@@ -560,12 +560,6 @@ address	namespace	name	calling_convention	evidence
 00545540	CPc	method_00545540	__thiscall	__thiscall; called with this from 2 functions of CBlurPC, CPc, e.g. 00541140
 00545bf0	CBlurPC	method_00545bf0	__thiscall	__thiscall; called with this from 1 functions of CBlurPC, e.g. 00540d20
 00545e30	CBlurPC	method_00545e30	__thiscall	__thiscall; called with this from 1 functions of CBlurPC, e.g. 00540d20
-00546070	CPc	method_00546070	__thiscall	__thiscall; called with this from 10 functions of CBlurPC, CPc, e.g. 00542320
-00546240	CPc	method_00546240	__thiscall	__thiscall; called with this from 3 functions of CPc, e.g. 00542320
-00546270	CPc	method_00546270	__thiscall	__thiscall; called with this from 2 functions of CPc, e.g. 00544be0
-00546290	CPc	method_00546290	__thiscall	__thiscall; called with this from 10 functions of CBlurPC, CPc, e.g. 00542320
-00546460	CPc	method_00546460	__thiscall	__thiscall; called with this from 3 functions of CPc, e.g. 00542320
-00546490	CPc	method_00546490	__thiscall	__thiscall; called with this from 2 functions of CPc, e.g. 00544be0
 00546f40	CGrannyPc	method_00546f40	__thiscall	__thiscall; called with this from 1 functions of CGrannyPc, e.g. 00546b30
 00547250	CGrannyPc	method_00547250	__thiscall	__thiscall; called with this from 1 functions of CGrannyPc, e.g. 00546d50
 00548580	CGrannyPc	method_00548580	__thiscall	__thiscall; called with this from 1 functions of CGrannyPc, e.g. 00547ea0
@@ -799,7 +793,6 @@ address	namespace	name	calling_convention	evidence
 00588ae0	ClientState	method_00588ae0	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 0053b5a0
 00588b60	ClientState	method_00588b60	__thiscall	__thiscall; called with this from 9 functions of ClientState, e.g. 0046db50
 00588b80	ClientState	method_00588b80	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0048f950
-00588ba0	ClientState	method_00588ba0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588a00
 0058ac70	ClientState	method_0058ac70	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588a00
 0058dd20	ClientState	method_0058dd20	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588a00
 0058df90	ClientState	method_0058df90	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 004aaa00
@@ -938,13 +931,8 @@ address	namespace	name	calling_convention	evidence
 00593660	ClientState	method_00593660	__thiscall	__thiscall; called with this from 6 functions of ClientState, e.g. 00460040
 00593810	ClientState	method_00593810	__thiscall	__thiscall; called with this from 3 functions of ClientState, e.g. 00530b20
 00593830	ClientState	method_00593830	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 005928e0
-00593920	ClientState	method_00593920	__thiscall	__thiscall; called with this from 6 functions of ClientState, e.g. 0044dad0
-00593960	ClientState	method_00593960	__thiscall	__thiscall; called with this from 6 functions of ClientState, e.g. 0044dad0
-005939a0	ClientState	method_005939a0	__thiscall	__thiscall; called with this from 6 functions of ClientState, e.g. 0044dad0
-00593a20	ClientState	method_00593a20	__thiscall	__thiscall; called with this from 6 functions of ClientState, e.g. 0044dad0
 00593aa0	ClientState	method_00593aa0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00542480
 00593ae0	ClientState	method_00593ae0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00542480
-00593b70	ClientState	method_00593b70	__thiscall	__thiscall; called with this from 7 functions of ClientState, e.g. 0044dad0
 00593bb0	ClientState	method_00593bb0	__thiscall	__thiscall; called with this from 5 functions of ClientState, e.g. 0044dad0
 00594020	ClientState	method_00594020	__thiscall	__thiscall; called with this from 5 functions of ClientState, e.g. 0044dad0
 00594070	ClientState	method_00594070	__thiscall	__thiscall; called with this from 4 functions of ClientState, e.g. 00452500

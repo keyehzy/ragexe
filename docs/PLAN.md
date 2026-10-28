@@ -2269,9 +2269,27 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Not ported:** `CPc`'s layered characters (body, head, headgear and palettes), the
     texture cache's slots, and the screen bounds kept for picking.
 
+- [x] Player characters (`docs/render/player.md`):
+  - **Layers:** `CPc` keeps eight layers of actions and sprites: body, head, three
+    headgear, weapon, glow and shield.
+  - **Names:** `ClientState::InitNameTables` fills the jobs', sexes' and hair styles'
+    names; the body, head and `.imf` paths are built from them.
+  - **`RenderActFrameItems`:**
+    - eight slots; the `.imf` says whether the body or the head goes first, shifted when
+      the actor faces away;
+    - the head is seated on the body, and the headgear on the head, by the frames' first
+      anchors, the head's offset kept in two globals between frames and players;
+    - weapons only in the attack actions; headgear without depth writes; colour channels
+      combined without masking.
+  - **Checks:** `tools/player_vectors.py` records every name, 300 `.imf` lookups and 320
+    players (782 quads); 11,006 values match.
+  - **`ragview --player JOB SEX HAIR`** draws a player with its body and head.
+  - **Not ported:** the headgear's, weapon's and shield's names, other palettes, and the
+    Korean service's special drawing.
+
 ### Next actions
-1. M4, the renderer: the player characters (`CPc::RenderActFrameItems`): the body and
-   head sprites by job and sex, their palettes and the headgear, matched by anchors, so
-   that `ragview` can show a player as the client does.
+1. M4, the renderer: the characters' palettes (hair and clothes colours, `+0x29c` and
+   `+0x34`) and the headgear's and weapons' names (`CPc::vf21` to `vf24`, `SetWeapon`), so
+   that a player can be dressed as the client dresses one.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.
