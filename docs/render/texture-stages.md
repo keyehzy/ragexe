@@ -1,7 +1,7 @@
 # Texture stage modes
 
 Each primitive the renderer draws carries a mode at `+0x1c`. Before the draw,
-`SceneRenderer::method_004112d0` turns the mode into Direct3D 7 texture stage states.
+`SceneRenderer::SetStageMode` turns the mode into Direct3D 7 texture stage states.
 The table below comes from running that function in the emulation oracle for every
 mode, against the recording `IDirect3DDevice7` fake (`tools/emu/directx.py`).
 `tests/emu/test_oracle.py` checks the draw path that uses it.
@@ -36,7 +36,7 @@ is the vertex colour, `CURRENT` is stage 0's result, and `COMPLEMENT` means 1 âˆ
   argument that one of its operations reads is among them (the test checks this), so
   the result does not depend on the mode drawn before. The port can treat each mode
   as a fixed combiner.
-- **The draw.** Around the stage set-up, `SceneRenderer::method_00410560` flushes a
+- **The draw.** Around the stage set-up, `SceneRenderer::DrawStageModePrimitives` flushes a
   list of primitives. For each one it:
   1. sets the texture, only when it differs from the last one (`+0x50`);
   2. applies the mode;

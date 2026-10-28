@@ -1638,7 +1638,7 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     their top-left corner, using the matching sprite's image sizes. That makes them
     depend on the sprite's detail level. The port fetches the sprite through the
     resource manager as the original does.
-  - **Field names** come from their consumers (`SceneRenderer::method_00410620`,
+  - **Field names** come from their consumers (`SceneRenderer::DrawActFrame`,
     `CRenderObject::method_00500f70`, `CPc::RenderActFrameItems`).
   - **Oracle** (`tools/act_oracle.py`):
     - **Setup:** the original resource manager runs in the emulator with the sprite type
@@ -2033,8 +2033,39 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Left for the water:** the water's bump maps (format 5) are documented but not
     ported.
 
+- [x] The scene lists (`docs/render/scene.md`, `src/render/scene`):
+  - **`AddPrimitive`** sorts primitives into lists by flags:
+    - opaque, the ground, and two that are never drawn;
+    - translucent: alpha or additive, each with z writes, without, or without the
+      z-buffer;
+    - one list drawn in the order added, with per-primitive stage modes and blends.
+
+    Translucent primitives carry a depth key from the first two vertices' `rhw`.
+  - **`DrawScene`** draws them in a fixed order of passes, each with its render and stage
+    states.
+    - **Sorts:** opaque lists by texture address; translucent ones by key, then primitive
+      address, back to front.
+    - **The ground** is drawn one of three ways, by `ISLIGHTMAP` and two-stage blending.
+  - **The sort is VC6's unstable `std::sort`,** so equal keys follow the heap. The port
+    replays it with `Vc6Sort` on ids ordered as the original's pointers.
+  - **Port:**
+    - `SceneLists` and `SelectSceneList`;
+    - `SceneDepthKey`;
+    - `AppendStageModeCalls` (`SetStageMode`);
+    - `DrawScene`, as the sequence of device calls it makes.
+  - **Checks:** `tools/scene_vectors.py` records, in the emulation oracle with the x87 at
+    single precision:
+    - every stage mode's calls;
+    - six scenes of 40 to 200 primitives, added through the original's `AddPrimitive` with
+      mixed flags and drawn under each fog, lightmap and two-stage setting.
+
+    The port matches every call in order, including the sorts' quicksort path and ties.
+  - **Not ported yet:** the vertex-buffer lists, the projection and fog set-up, and the
+    in-place texture coordinate scaling.
+  - **Labels:** the passes and adders.
+
 ### Next actions
-1. M4, the renderer: the `SceneRenderer` draw lists (primitives, sorting, the alpha and
-   blend modes per draw), then the ground, as §M4 lists.
+1. M4, the renderer: the ground (`C3dGround`, its cells, textures and lightmaps), the
+   first thing drawn through the scene lists, as §M4 lists.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

@@ -75,7 +75,7 @@ entry	size	kind	library	reach	name	referenced_by
 0040fc60	322	code	0	unreferenced	Global::FUN_0040fc60	
 00410c80	51	code	0	unreferenced	Global::FUN_00410c80	
 00410cf0	251	code	0	unreferenced	Global::FUN_00410cf0	
-004128e0	443	code	0	dead	SceneRenderer::method_004128e0	004b8a50
+004128e0	443	code	0	dead	SceneRenderer::AddVertexBufferRange	004b8a50
 00412be0	159	code	0	unreferenced	Global::FUN_00412be0	
 00413e00	19	code	0	dead	Global::FUN_00413e00	004128e0
 00413e70	47	code	0	dead	Global::FUN_00413e70	004128e0

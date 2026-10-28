@@ -315,31 +315,31 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0040e6a0	56	code	0	render		named	SceneRenderer	method_0040e6a0	
 0040e6e0	660	code	0	render		named	SceneRenderer	BuildScreenQuadTriangles	
 0040e980	875	code	0	render		named	SceneRenderer	method_0040e980	
-0040ecf0	469	code	0	render		named	SceneRenderer	method_0040ecf0	
+0040ecf0	469	code	0	render		named	SceneRenderer	ClearLists	
 0040eed0	79	code	0	render	unreferenced	raw	Global	FUN_0040eed0	
 0040ef20	3	code	0	render		named	SceneRenderer	NoOp	
 0040ef30	148	code	0	render		named	SceneRenderer	method_0040ef30	
-0040efd0	805	code	0	render		named	SceneRenderer	method_0040efd0	
-0040f300	317	code	0	render		named	SceneRenderer	method_0040f300	
+0040efd0	805	code	0	render		named	SceneRenderer	DrawScene	
+0040f300	317	code	0	render		named	SceneRenderer	DrawOpaquePrimitives	
 0040f440	53	code	0	render		named	Global	IsPrimitiveLessByTexture	
-0040f480	245	code	0	render		named	SceneRenderer	method_0040f480	
-0040f580	350	code	0	render		named	SceneRenderer	method_0040f580	
+0040f480	245	code	0	render		named	SceneRenderer	DrawOpaqueRanges	
+0040f580	350	code	0	render		named	SceneRenderer	DrawTwoTextureRanges	
 0040f6e0	24	code	0	render		named	Global	IsVertexBufferRangeLessByTexture	
-0040f700	245	code	0	render		named	SceneRenderer	method_0040f700	
-0040f800	245	code	0	render		named	SceneRenderer	method_0040f800	
-0040f900	314	code	0	render		named	SceneRenderer	method_0040f900	
-0040fa40	287	code	0	render		named	SceneRenderer	method_0040fa40	
-0040fb60	245	code	0	render		named	SceneRenderer	method_0040fb60	
+0040f700	245	code	0	render		named	SceneRenderer	DrawTranslucentRanges	
+0040f800	245	code	0	render		named	SceneRenderer	DrawAdditiveRanges	
+0040f900	314	code	0	render		named	SceneRenderer	DrawGroundTwoStages	
+0040fa40	287	code	0	render		named	SceneRenderer	DrawGround	
+0040fb60	245	code	0	render		named	SceneRenderer	DrawGroundLightmaps	
 0040fc60	322	code	0	render	unreferenced	raw	Global	FUN_0040fc60	
-0040fdb0	267	code	0	render		named	SceneRenderer	method_0040fdb0	
-0040fec0	267	code	0	render		named	SceneRenderer	method_0040fec0	
-0040ffd0	267	code	0	render		named	SceneRenderer	method_0040ffd0	
-004100e0	267	code	0	render		named	SceneRenderer	method_004100e0	
-004101f0	329	code	0	render		named	SceneRenderer	method_004101f0	
-00410340	267	code	0	render		named	SceneRenderer	method_00410340	
-00410450	267	code	0	render		named	SceneRenderer	method_00410450	
-00410560	162	code	0	render		named	SceneRenderer	method_00410560	
-00410620	1159	code	0	render		named	SceneRenderer	method_00410620	
+0040fdb0	267	code	0	render		named	SceneRenderer	DrawAlphaNoDepth	
+0040fec0	267	code	0	render		named	SceneRenderer	DrawAlphaDepthWrite	
+0040ffd0	267	code	0	render		named	SceneRenderer	DrawAdditiveDepthWrite	
+004100e0	267	code	0	render		named	SceneRenderer	DrawAlpha	
+004101f0	329	code	0	render		named	SceneRenderer	DrawTriangleLists	
+00410340	267	code	0	render		named	SceneRenderer	DrawAdditive	
+00410450	267	code	0	render		named	SceneRenderer	DrawAdditiveNoDepth	
+00410560	162	code	0	render		named	SceneRenderer	DrawStageModePrimitives	
+00410620	1159	code	0	render		named	SceneRenderer	DrawActFrame	
 00410ab0	414	code	0	render		named	SceneRenderer	method_00410ab0	
 00410c50	35	code	0	render		named	SceneRenderer	Present	
 00410c80	51	code	0	render	unreferenced	raw	Global	FUN_00410c80	
@@ -348,14 +348,14 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00410df0	188	code	0	render		named	SceneRenderer	method_00410df0	
 00410eb0	340	code	0	render		named	SceneRenderer	method_00410eb0	
 00411010	125	code	0	render		named	SceneRenderer	method_00411010	
-00411090	561	code	0	render		named	SceneRenderer	method_00411090	
-004112d0	2361	code	0	render		named	SceneRenderer	method_004112d0	
+00411090	561	code	0	render		named	SceneRenderer	SetupProjection	
+004112d0	2361	code	0	render		named	SceneRenderer	SetStageMode	
 00411c50	225	code	0	render		named	SceneRenderer	method_00411c50	
 00411d40	1027	code	0	render		named	SceneRenderer	method_00411d40	
 00412150	1021	code	0	render		named	SceneRenderer	method_00412150	
-00412550	449	code	0	render		named	SceneRenderer	method_00412550	
-00412720	440	code	0	render		named	SceneRenderer	method_00412720	
-004128e0	443	code	0	render	dead	named	SceneRenderer	method_004128e0	
+00412550	449	code	0	render		named	SceneRenderer	AddPrimitive	
+00412720	440	code	0	render		named	SceneRenderer	AddTriangleList	
+004128e0	443	code	0	render	dead	named	SceneRenderer	AddVertexBufferRange	
 00412aa0	159	code	0	render		named	SceneRenderer	method_00412aa0	
 00412b40	159	code	0	render		named	SceneRenderer	method_00412b40	
 00412be0	159	code	0	render	unreferenced	raw	Global	FUN_00412be0	
