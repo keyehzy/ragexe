@@ -106,7 +106,7 @@ ModelInstance	512	new	512	51	294	0.57		15 overlapping uses dropped
 ModelResMesh	564	new	564	10	560	0.99		2 overlapping uses dropped
 ModelResNode	364	new	364	14	58	0.16		3 overlapping uses dropped
 MovePath	28	new	28	7	25	0.89		
-MoviePlayer	16	estimated	1544	4	13	0.81		the global at 00688480 is followed by a variable at 00688a88 (another data label); 29 addresses before it, 00688498 first, are used only by other code: fields or variables; probably a variable from 0068851c (+0x9c) on, which only source files naming nothing else of the object use; 1 of them named with an absolute address by the class's own methods, e.g. 00688a60 by 004dbfc0
+MoviePlayer	16	estimated	128	4	13	0.81		the global at 00688480 is followed by a variable at 00688500 (another data label); 11 addresses before it, 00688498 first, are used only by other code: fields or variables
 PacketCodeModules	28	estimated		5	20	0.71		
 PacketQueue	28	new	28	7	25	0.89		
 PathFinder	4248	estimated	4248	9	45	0.01	0x10	the global at 00684e30 is followed by a variable at 00685ec8 (written by the dynamic initializer 0050c1d0) | 5 overlapping uses dropped

@@ -193,9 +193,10 @@ archives.
 - `core` (no SDL);
 - `platform` (SDL);
 - `res` (archives and resources; zlib);
+- `render` (the original's Direct3D 7 state, and in time its SDL_GPU replacement);
 - `game` (modes).
 
 The executables are in `app/` (the client) and `ragres/`. The remaining layers of
-`docs/PLAN.md` §3 (`render`, `audio`, `net`, `ui`, `world`) arrive with the
-milestones that port them. Unit tests (Catch2) are in `tests/unit`; the Python tests of the analysis tools
+`docs/PLAN.md` §3 (`audio`, `net`, `ui`, `world`) arrive with the milestones that port
+them. Unit tests (Catch2) are in `tests/unit`; the Python tests of the analysis tools
 stay in `tests/` and run with `unittest`.

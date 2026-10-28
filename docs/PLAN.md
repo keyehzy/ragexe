@@ -1975,8 +1975,40 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     - `Resource::error()` is virtual;
     - `DataFiles::set_layers` reads archives under the main one.
 
+### M4: in progress
+- [x] The device (`docs/render/device.md`, `src/render/device`, a new `ragexe_render`
+  library):
+  - **`C3dDevice::Init`:**
+    - DirectDraw with `FPUSETUP`, so the x87 runs at single precision;
+    - a flip chain full screen, or an off-screen target blitted to the window;
+    - a 16-bit z-buffer where the driver has one;
+    - the render and texture stage states it sets once.
+  - **`CreateRenderer`:**
+    - the pixel mode from the primary's red mask;
+    - texture limits from the caps;
+    - two-stage blending, and mipmaps under `TRILINEARFILTER`;
+    - `CalibrateTexelOffset`, which draws a checker at 65,536 sub-texel offsets and keeps
+      the sharpest as the offset `CTexture` adds to texture coordinates.
+  - **Textures:** `FitTextureSize` rounds sizes to the device's limits, and `TEXTUREMODE`
+    divides them by 1, 2 or 4.
+  - **Port:**
+    - `DeviceState` and `InitialDeviceState`;
+    - the pixel channels;
+    - `FitTextureSize`, the mipmap flags and the pixel mode.
+  - **Checks:** `tools/device_vectors.py` writes the original's results in the emulation
+    oracle to `tests/unit/device_vectors.inc`:
+    - `Init` in 12 configurations;
+    - the channel expanders;
+    - `FitTextureSize` on 845 inputs;
+    - the mipmap flags.
+
+    The unit test replays `Init`'s calls through `DeviceState`.
+  - **Not checkable in the emulator:** the calibration's result, which depends on the
+    hardware's rasterizer.
+  - **Labels:** the device's methods and its globals.
+
 ### Next actions
-1. M4, the renderer: start by recovering how the original drives D3D7 and DirectDraw
-   (`C3dDevice`, `CTexture`, `CSurface`, the renderer), as §M4 lists.
+1. M4, the renderer: `CTexture` and `CSurface` (texture creation, pixel conversion,
+   the texel offset), then the `SceneRenderer` draw lists, as §M4 lists.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

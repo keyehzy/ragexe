@@ -368,8 +368,8 @@ constructed. Nothing uses the bytes between `UIWindowMgr`'s last field and its f
 
 Nine addresses after `C3dDevice` stay undecided:
 - `CGameMode::OnInit` sets `+0x23c` to a colour that depends on the map, and
-  `OnFrame` passes it to `C3dDevice::method_00405140` every frame.
-- `C3dDevice::method_00405f20` writes `+0x240` and `+0x244` by absolute address, which
+  `OnFrame` passes it to `C3dDevice::Clear` every frame.
+- `C3dDevice::SelectMipmapFlags` writes `+0x240` and `+0x244` by absolute address, which
   hints at variables rather than fields. `ClientState`'s own methods do the same with
   three of its fields, though, so that cannot be a bound.
 - From `+0x248` on, only the display-enumeration file (from `0x406100`) uses them, and

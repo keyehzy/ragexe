@@ -92,35 +92,35 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004042e0	303	code	0	render		named	C3dDevice	Release	
 00404410	737	code	0	render		named	C3dDevice	Init	
 00404700	96	code	0	render	unreferenced	raw	Global	FUN_00404700	
-00404760	176	code	0	render		named	C3dDevice	method_00404760	
-00404810	161	code	0	render		named	C3dDevice	method_00404810	
-004048c0	223	code	0	render		named	C3dDevice	method_004048c0	
+00404760	176	code	0	render		named	C3dDevice	CreateObjects	
+00404810	161	code	0	render		named	C3dDevice	CreateDirectDraw	
+004048c0	223	code	0	render		named	C3dDevice	CreateD3DDevice	
 004049a0	63	code	0	render		named	Global	EnumZBufferFormatCallback	
-004049e0	1168	code	0	render		named	C3dDevice	method_004049e0	
+004049e0	1168	code	0	render		named	C3dDevice	CreateSurfaces	
 00404e70	218	code	0	render		named	C3dDevice	CreateZBuffer	
 00404f50	32	code	0	render		named	C3dDevice	DestroyRenderer	
 00404f70	70	code	0	render	unreferenced	raw	Global	FUN_00404f70	
 00404fc0	127	code	0	render	unreferenced	raw	Global	FUN_00404fc0	
 00405040	245	code	0	render		named	C3dDevice	Present	
-00405140	59	code	0	render		named	C3dDevice	method_00405140	
-00405180	54	code	0	render		named	C3dDevice	method_00405180	
-004051c0	59	code	0	render	dead	named	C3dDevice	method_004051c0	
+00405140	59	code	0	render		named	C3dDevice	Clear	
+00405180	54	code	0	render		named	C3dDevice	ClearDepth	
+004051c0	59	code	0	render	dead	named	C3dDevice	ClearTarget	
 00405200	27	code	0	render		named	C3dDevice	RestoreSurfaces	
 00405220	111	code	0	render		named	C3dDevice	CreateDCBitmap	
-00405290	189	code	0	render		named	C3dDevice	method_00405290	
+00405290	189	code	0	render		named	C3dDevice	CreateBackgroundSurface	
 00405350	145	code	0	render		named	C3dDevice	CreateTexture	
 004053f0	76	code	0	render		named	C3dDevice	UpdateTexture	
 00405440	103	code	0	render		named	C3dDevice	ConvertColorsToArgb1555	
 004054b0	558	code	0	render		named	C3dDevice	CreateRenderer	
-004056e0	166	code	0	render		named	C3dDevice	method_004056e0	
-00405790	1601	code	0	render		named	C3dDevice	method_00405790	
+004056e0	166	code	0	render		named	C3dDevice	FitTextureSize	
+00405790	1601	code	0	render		named	C3dDevice	CalibrateTexelOffset	
 00405de0	5	thunk	0	render		-	CTexture	~CTexture	
-00405df0	42	code	0	render		named	C3dDevice	method_00405df0	
-00405e20	42	code	0	render		named	C3dDevice	method_00405e20	
-00405e50	42	code	0	render		named	C3dDevice	method_00405e50	
+00405df0	42	code	0	render		named	C3dDevice	ExpandRed	
+00405e20	42	code	0	render		named	C3dDevice	ExpandGreen	
+00405e50	42	code	0	render		named	C3dDevice	ExpandBlue	
 00405e80	71	code	0	render		named	C3dDevice	CopyRenderTargetToBackup	
 00405ed0	71	code	0	render		named	C3dDevice	CopyBackupToRenderTarget	
-00405f20	53	code	0	render		named	C3dDevice	method_00405f20	
+00405f20	53	code	0	render		named	C3dDevice	SelectMipmapFlags	
 00405f60	13	code	0	render		named	VertexBuffer	VertexBuffer	
 00405f70	5	thunk	0	render		-	VertexBuffer	Release	
 00405f80	30	code	0	render		named	VertexBuffer	Release	

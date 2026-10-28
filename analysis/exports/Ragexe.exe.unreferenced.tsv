@@ -24,7 +24,7 @@ entry	size	kind	library	reach	name	referenced_by
 00404700	96	code	0	unreferenced	Global::FUN_00404700	
 00404f70	70	code	0	unreferenced	Global::FUN_00404f70	
 00404fc0	127	code	0	unreferenced	Global::FUN_00404fc0	
-004051c0	59	code	0	dead	C3dDevice::method_004051c0	0040dcd0
+004051c0	59	code	0	dead	C3dDevice::ClearTarget	0040dcd0
 004060c0	38	code	0	unreferenced	Global::FUN_004060c0	
 004061b0	106	code	0	unreferenced	Global::FUN_004061b0	
 00406220	387	code	0	dead	Global::FUN_00406220	004061b0 00406740

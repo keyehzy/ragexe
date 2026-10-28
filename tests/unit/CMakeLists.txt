@@ -3,6 +3,7 @@ add_executable(ragexe_tests
   bitmap_test.cpp
   client_info_test.cpp
   client_tables_test.cpp
+  device_test.cpp
   ebm_test.cpp
   frame_timer_test.cpp
   gat_test.cpp
@@ -25,7 +26,7 @@ add_executable(ragexe_tests
   windows_no_dialogs.cpp
   xml_test.cpp)
 target_include_directories(ragexe_tests PRIVATE ${PROJECT_SOURCE_DIR}/tests)
-target_link_libraries(ragexe_tests PRIVATE ragexe_game ragexe_res ragexe_stb_image ZLIB::ZLIB Catch2::Catch2WithMain ragexe_options)
+target_link_libraries(ragexe_tests PRIVATE ragexe_game ragexe_render ragexe_res ragexe_stb_image ZLIB::ZLIB Catch2::Catch2WithMain ragexe_options)
 
 include(Catch)
 catch_discover_tests(ragexe_tests DISCOVERY_MODE PRE_TEST)
