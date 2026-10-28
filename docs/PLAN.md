@@ -2382,8 +2382,18 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Checks:** 24 synthetic square primitives and the 30 effects; 1,489,215 values in
     `prim_test`.
 
+- [x] Flat squares (`docs/render/effect-prim.md#flat-squares`):
+  - **`RenderHorizontalSquares`:** level squares swelling on the sine of their tilt, with
+    the original's double 0.8 rounded once (`core::RoundedProduct`, moved out of the
+    `.str` player).
+  - **`CEffectPrim` ids 0x1a, 0x25 and 0x40**, and effect ids 0xc9 and 0xf2 through
+    `AddTwinSquares` and `AddSwellingSquare`. The setup for 0x40 (`00574c40`) is never
+    called.
+  - **Checks:** 12 synthetic flat squares and the two effects; 1,521,275 values in
+    `prim_test`.
+
 ### Next actions
-1. M4, the renderer: the other 42 primitive ids, starting with the horizontal squares
-   (`RenderHorizontalSquares`, ids 0x1a, 0x25 and 0x40) and the effects that add them.
+1. M4, the renderer: the other 39 primitive ids, next the rising squares
+   (`RenderRisingSquares`, id 0x1b, `0056db60`) and the ids each one effect adds.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

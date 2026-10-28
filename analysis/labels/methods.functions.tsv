@@ -725,13 +725,11 @@ address	namespace	name	calling_convention	evidence
 0056cfb0	WorldColorFade	method_0056cfb0	__thiscall	__thiscall; called with this from 2 functions of WorldColorFade, e.g. 0050dc90
 0056d0b0	WorldColorFade	method_0056d0b0	__thiscall	__thiscall; called with this from 1 functions of WorldColorFade, e.g. 0050dc90
 0056d5c0	CRagEffect	method_0056d5c0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
-0056d990	CRagEffect	method_0056d990	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 0056db60	CRagEffect	method_0056db60	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 005730c0	CRagEffect	method_005730c0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 00567740
 005734b0	CRagEffect	method_005734b0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 00573d60	CRagEffect	method_00573d60	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 00574150	CRagEffect	method_00574150	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
-00574ae0	CRagEffect	method_00574ae0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 00574da0	CRagEffect	method_00574da0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 00575100	CRagEffect	method_00575100	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 005752b0	CRagEffect	method_005752b0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0

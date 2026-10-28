@@ -5,6 +5,8 @@
 #include <cstddef>
 #include <limits>
 
+#include "core/x87.h"
+
 namespace ragexe::render {
 
 namespace {
@@ -24,23 +26,6 @@ std::int32_t Ftol(float f) {
   if (std::isnan(f) || f <= -2147483904.0f || f >= 2147483648.0f)
     return std::numeric_limits<std::int32_t>::min();
   return static_cast<std::int32_t>(f);
-}
-
-// a × b rounded once to single precision, as the x87 rounds a product with a double
-// operand under the client's precision control.
-float RoundedProduct(float a, double b) {
-  const double hi = static_cast<double>(a) * b;
-  const double lo = std::fma(static_cast<double>(a), b, -hi);
-  float f = static_cast<float>(hi);
-  const double d = hi - static_cast<double>(f);
-  if (lo != 0.0 && d != 0.0) {
-    const float g = std::nextafter(f, d > 0.0 ? std::numeric_limits<float>::infinity()
-                                              : -std::numeric_limits<float>::infinity());
-    if (std::fabs(d) * 2.0 == std::fabs(static_cast<double>(g) - static_cast<double>(f)) &&
-        (lo > 0.0) == (d > 0.0))
-      f = g;
-  }
-  return f;
 }
 
 const res::StrKey* KeyAt(const res::StrLayer& layer, std::int64_t i) {
@@ -229,7 +214,7 @@ std::vector<EffectTriangle> StrPlayer::Draw() const {
       v[0].y = s.Get(kCornerY);
       v[0].v = v0;
     }
-    const float angle = (RoundedProduct(s.Get(kAngle), kTurnStep) * kPi) * kInverse180;
+    const float angle = (core::RoundedProduct(s.Get(kAngle), kTurnStep) * kPi) * kInverse180;
     const float sine = SinFloat(angle);
     const float cosine = CosFloat(angle);
     for (ScreenVertex& vertex : v) {

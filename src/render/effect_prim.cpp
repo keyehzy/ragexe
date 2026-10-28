@@ -9,6 +9,7 @@
 #include <utility>
 
 #include "core/angles.h"
+#include "core/x87.h"
 #include "render/effect_table.h"
 #include "res/act.h"
 #include "res/gat.h"
@@ -1196,6 +1197,31 @@ void UpdateRisingSparks(EffectPrim& p, core::CrtRand& rand) {
   }
 }
 
+// CEffectPrim::UpdatePrim_26 (0056dfb0) and UpdatePrim_37 (0056e010), ids 0x1a and 0x25:
+// the first two records' swell phases (their tilts) turn 3 degrees a frame, active or not;
+// 0x1a then steps its image.
+void UpdateSwellingSquares(EffectPrim& p, bool images) {
+  p.position = p.owner->position;
+  for (std::size_t k = 0; k < 2; ++k) {
+    PrimRing& r = p.rings[k];
+    const std::int16_t tilt = r.tilt;
+    r.tilt = static_cast<std::int16_t>(tilt + 3);
+    if (r.tilt > 359) r.tilt = static_cast<std::int16_t>(tilt - 357);
+  }
+  if (images) AdvanceImage(p);
+}
+
+// CEffectPrim::UpdatePrim_64 (0056e070), id 0x40: the first record's age counts on, and
+// from its first frame it fades by 1 every odd one.
+void UpdateFadingSquare(EffectPrim& p) {
+  p.position = p.owner->position;
+  PrimRing& r = p.rings[0];
+  ++r.age;
+  if (r.age <= 0) return;
+  if (r.age % 2 > 0) r.alpha = static_cast<std::int16_t>(r.alpha - 1);
+  if (r.alpha < 0) r.alpha = 0;
+}
+
 ScreenVertex Vertex(float x, float y, std::uint32_t color, float u, float v) {
   ScreenVertex s;
   s.x = x;
@@ -1641,6 +1667,30 @@ void DrawFacingSquares(const EffectPrim& p, const PrimScene& scene, PrimDrawing&
   }
 }
 
+// CEffectPrim::RenderHorizontalSquares (0056e6b0), ids 0x1a, 0x25 and 0x40: each active
+// record as a flat square of the first texture at the height of its first wall, corners
+// 90 degrees apart from its angle (from 23 degrees a record when the scale is not 0),
+// 0.8 of the radius (a double) out plus a tenth of the radius times 1 plus the sine of the
+// tilt; white, onto ONE when the scale is 0, relative to the primitive. The original keeps
+// the corners at +0x88 of the record.
+void DrawHorizontalSquares(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
+  const bool unscaled = p.scale == 0.0f;
+  for (std::size_t k = 0; k < p.rings.size(); ++k) {
+    const PrimRing& r = p.rings[k];
+    if (!r.active) continue;
+    std::int32_t a = unscaled ? r.angle : static_cast<std::int32_t>(k) * 23;
+    const float swell = ((TableAt(kSines, r.tilt) + 1.0f) * r.radius) * 0.1f;
+    const float reach = core::RoundedProduct(r.radius, 0.8) + swell;
+    std::array<Vec3, 4> q{};
+    for (Vec3& v : q) {
+      v = {reach * TableAt(kCosines, a), r.heights[0], TableAt(kSines, a) * reach};
+      a += 90;
+      if (a >= 360) a -= 360;
+    }
+    DrawQuad(p, scene, q, {r.alpha, unscaled, 0, false, 255, 255, 255}, out);
+  }
+}
+
 // The particles of ids 0 and 2: heading and pitch, then 4 to 7 out along the matrix's z,
 // 10 up.
 void AimParticle(EffectPrim& p, std::int32_t heading, core::CrtRand& rand) {
@@ -1728,6 +1778,9 @@ bool UpdatePrimitive(EffectPrim& p, core::CrtRand& rand, const PrimScene& scene)
     case 0x39: UpdateWavingWalls(p); break;
     case 0x3c: UpdateSpreadingPortal(p); break;
     case 0x3e: UpdateClosingRings(p); break;
+    case 0x1a: UpdateSwellingSquares(p, true); break;
+    case 0x25: UpdateSwellingSquares(p, false); break;
+    case 0x40: UpdateFadingSquare(p); break;
     case 0x1f:
     case 0x28:
     case 0x2b:
@@ -1783,6 +1836,9 @@ void DrawPrimitive(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out
     case 0x33:
     case 0x37:
     case 0x38: DrawFacingSquares(p, scene, out); break;
+    case 0x1a:
+    case 0x25:
+    case 0x40: DrawHorizontalSquares(p, scene, out); break;
     default: break;
   }
 }
@@ -2540,6 +2596,42 @@ void AddHealingRings(RagEffect& effect, const EffectActor& actor, const char* te
     added.push_back(MakeSparks(effect, {true, 2.4f, 13, 6.0f, 0.0f, 40, 0.4f, 11}, rand));
 }
 
+void AddTwinSquares(RagEffect& effect, const EffectActor& actor, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame == 99999998) {
+    effect.frame = 0;
+    effect.duration = 99999999;
+  }
+  if (effect.frame != 0) return;
+  EffectPrim p = MakeSquares(effect, 0x1a, {"effect\\pikapika2.bmp"});
+  p.scale = 4.0f;
+  for (std::size_t k = 0; k < 2; ++k) {
+    PrimRing& r = p.rings[k];
+    r.active = true;
+    r.radius = 15.0f;
+    r.tilt = static_cast<std::int16_t>(k * 180);
+    r.alpha = 200;
+    r.heights[0] = -1.0f;
+  }
+  added.push_back(std::move(p));
+}
+
+void AddSwellingSquare(RagEffect& effect, const EffectActor& actor, const char* texture,
+                       core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  EffectPrim p = MakeSquares(effect, 0x25, {texture});
+  p.scale = 5.0f;
+  PrimRing& r = p.rings[0];
+  r.active = true;
+  r.radius = 7.0f;
+  r.tilt = static_cast<std::int16_t>(rand.Next() % 360);
+  r.angle = 0;
+  r.alpha = 100;
+  r.heights[0] = -2.0f;
+  added.push_back(std::move(p));
+}
+
 RagEffect& EffectWorld::Launch(std::int32_t id, const EffectActor& actor) {
   Object o;
   o.effect = std::make_unique<RagEffect>();
@@ -2633,6 +2725,8 @@ void EffectWorld::Step(const PrimScene& scene) {
         case 0x139: AddHealingRings(e, it->actor, "effect\\ring_white.tga", 0, rand_, added); break;
         case 0x145: AddHealingRings(e, it->actor, "effect\\ring_white.tga", 1, rand_, added); break;
         case 0xfd: AddHealingRings(e, it->actor, "effect\\ring_blue.tga", 2, rand_, added); break;
+        case 0xc9: AddTwinSquares(e, it->actor, added); break;
+        case 0xf2: AddSwellingSquare(e, it->actor, "effect\\aaa copy.bmp", rand_, added); break;
         case 0xf8:
           AddFadingRings(e, it->actor, "effect\\ring_yellow.tga", added);
           // AdvanceStr, which answers false without a .str (InitEffect loads none for

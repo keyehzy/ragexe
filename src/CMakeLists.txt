@@ -3,7 +3,8 @@
 add_library(ragexe_core STATIC
   core/angles.cpp
   core/crt_rand.cpp
-  core/frame_timer.cpp)
+  core/frame_timer.cpp
+  core/x87.cpp)
 target_include_directories(ragexe_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(ragexe_core PRIVATE ragexe_options)
 

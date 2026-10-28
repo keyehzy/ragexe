@@ -391,6 +391,16 @@ void AddHealingWalls(RagEffect& effect, const EffectActor& actor, const char* te
 void AddHealingRings(RagEffect& effect, const EffectActor& actor, const char* texture,
                      std::int8_t variant, core::CrtRand& rand, std::vector<EffectPrim>& added);
 
+// The flat square effects (docs/render/effect-prim.md#flat-squares), on their first frame:
+//  - AddTwinSquares (0056d990), id 0xc9: id 0x1a, two squares of pikapika2.bmp of radius
+//    15 swelling half a turn apart, scale 4; like AddRingTrio it starts again at frame
+//    99999998;
+//  - AddSwellingSquare (00574ae0), id 0xf2 (aaa copy.bmp): id 0x25, one square of radius
+//    7 swelling from a random phase, scale 5.
+void AddTwinSquares(RagEffect& effect, const EffectActor& actor, std::vector<EffectPrim>& added);
+void AddSwellingSquare(RagEffect& effect, const EffectActor& actor, const char* texture,
+                       core::CrtRand& rand, std::vector<EffectPrim>& added);
+
 // The world's object list as effects use it (CWorld::UpdateGameObjects, 004c4a10): each
 // world step every object's vf01 in order, a primitive an effect adds joining the end and
 // running the same step; an object whose vf01 answers false is deleted, and an effect's

@@ -618,12 +618,15 @@ def ring_textures(o, prim, count=1):
     emu.write_u32(prim + 0xA8, textures)
 
 
-def synthetic_rings(o, rng, lines):
+RING_IDS = [0x17, 0x18, 0x19, 0x1C, 0x1D, 0x22, 0x27, 0x30, 0x36, 0x39, 0x3C, 0x3E]
+FLAT_IDS = [0x1A, 0x25, 0x40]
+
+
+def synthetic_rings(o, rng, lines, ids=RING_IDS, prefix="kRing", per_id=2):
     emu = o.emu
     actor = emu.scratch(size=0x100)
     rows = []
-    ids = [0x17, 0x18, 0x19, 0x1C, 0x1D, 0x22, 0x27, 0x30, 0x36, 0x39, 0x3C, 0x3E]
-    for n in range(2 * len(ids)):
+    for n in range(per_id * len(ids)):
         pid = ids[n % len(ids)]
         mark = emu.heap_mark()
         effect = o.rag_effect(actor)
@@ -670,7 +673,7 @@ def synthetic_rings(o, rng, lines):
             for i in range(0, 0x88, 4):
                 sets[base + i] = emu.read_u32(prim + base + i)
         view, yaw, slope, pitch = o.scene(rng)
-        name = f"kRing{n}"
+        name = f"{prefix}{n}"
         lines.append(f"static const FieldVector {name}Fields[] = {{" + ", ".join(
             f"{{0x{f:x}, 0x{v:08x}, {{}}}}" for f, v in sorted(sets.items())) + "};")
         frames = []
@@ -694,7 +697,7 @@ def synthetic_rings(o, rng, lines):
         rows.append(f"    {{{pid}, {{{hexs(map(bits, pos))}}}, {{0, 0, 0}}, {{0, 0, 0}}, 300, "
                     f"{scene_cpp(view, yaw, slope, pitch)}, {name}Fields, {len(sets)}, {name}Frames, {len(frames)}}},")
         emu.heap_release(mark)
-    lines.append("static const ShapeVector kRings[] = {")
+    lines.append(f"static const ShapeVector {prefix}s[] = {{")
     lines += rows
     lines.append("};")
 
@@ -703,20 +706,23 @@ RING_EFFECTS = [0xE1, 0xE7, 0xEC, 0xED, 0xEE, 0xF7, 0xF8, 0x103, 0x104, 0x105, 0
                 0xC8, 0xDE, 0xFC, 0xEF, 0xF0, 0xF1, 0x118, 0x11D, 0x130, 0x13A, 0x13B, 0x13C]
 
 
-def ring_effects(o, rng, lines):
+FLAT_EFFECTS = [0xC9, 0xF2]
+
+
+def ring_effects(o, rng, lines, effects=RING_EFFECTS, prefix="kRingEffect", seed=3000):
     emu = o.emu
     rows = []
-    for run, eid in enumerate(RING_EFFECTS):
+    for run, eid in enumerate(effects):
         o.reset_world()
         actor = emu.scratch(size=0x100)
         pos = (f32(rng.uniform(-30, 30)), f32(rng.uniform(-10, 0)), f32(rng.uniform(-30, 30)))
         emu.mem_write(actor + 4, struct.pack("<3f", *pos))
-        emu.call(SRAND, 3000 + run)
+        emu.call(SRAND, seed + run)
         effect = o.rag_effect(actor)
         emu.call(INIT_EFFECT, actor, eid, 0, 0, 0, this=effect)
         duration = emu.read_u32(effect + 0xC0)
         alive, prims, frames, scenes = True, [], [], []
-        name = f"kRingEffect{run}"
+        name = f"{prefix}{run}"
         for frame in range(24):
             if frame % 8 == 0:
                 scenes.append((frame, *o.scene(rng)))
@@ -754,9 +760,9 @@ def ring_effects(o, rng, lines):
         lines.append(f"static const SceneVector {name}Scenes[] = {{")
         lines += [f"    {{{f}, {scene_cpp(v, y, sl, pi)}}}," for f, v, y, sl, pi in scenes]
         lines.append("};")
-        rows.append(f"    {{{eid}, 0, {3000 + run}, {{{hexs(map(bits, pos))}}}, 0, {duration}, "
+        rows.append(f"    {{{eid}, 0, {seed + run}, {{{hexs(map(bits, pos))}}}, 0, {duration}, "
                     f"{name}Frames, {len(frames)}, {name}Scenes, {len(scenes)}}},")
-    lines.append("static const BurstVector kRingEffects[] = {")
+    lines.append(f"static const BurstVector {prefix}s[] = {{")
     lines += rows
     lines.append("};")
 
@@ -978,6 +984,8 @@ def main():
     ring_effects(o, rng, lines)
     synthetic_squares(o, rng, lines)
     square_effects(o, rng, lines)
+    synthetic_rings(o, rng, lines, FLAT_IDS, "kFlatSquare", 4)
+    ring_effects(o, rng, lines, FLAT_EFFECTS, "kFlatEffect", 6000)
     names = sorted(o.textures.items(), key=lambda kv: kv[1])
     lines.append("static const TextureVector kTextures[] = {" +
                  ", ".join(f'{{0x{v:x}, "{c_literal(k)}"}}' for k, v in names) + "};")

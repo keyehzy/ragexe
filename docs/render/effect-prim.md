@@ -767,6 +767,45 @@ at most 50.
 - `_heal_effect.wav`, 150 up for 0x135;
 - `effect\흡기.wav` (0x14c).
 
+## Flat squares
+
+Three primitive ids draw flat squares, lying level, with `RenderHorizontalSquares`
+(`0056e6b0`): 0x1a, 0x25 and 0x40. They keep the ring records' layout and read:
+- the angle (+0xc);
+- the alpha (+0xe);
+- the first wall's height (+0x14);
+- the tilt (+0x68) as a swell phase;
+- the radius (+0x6c).
+
+**Drawing.** Each active record is one square of the first texture, white, relative to
+the primitive:
+- **The corners** sit 90 degrees apart, from the record's angle when the scale is 0, or
+  otherwise from 23 degrees times the record's index.
+- **Their distance out** is 0.8 of the radius plus a tenth of the radius times 1 plus the
+  sine of the tilt. The 0.8 is a double (`005e9f10`), so the product is rounded once to
+  single precision (`core::RoundedProduct`).
+- **The height** is the first wall's.
+- **The blend** is onto ONE when the scale is 0.
+
+The original also writes the corners into the record from +0x88.
+
+**The updates:**
+- **0x1a and 0x25** (`UpdatePrim_26` `0056dfb0`, `UpdatePrim_37` `0056e010`) turn the
+  first two records' tilts 3 degrees a step, active or not. 0x1a then steps its image
+  (`AdvanceFrameByCount`).
+- **0x40** (`UpdatePrim_64` `0056e070`) counts the first record's age. From its first step
+  it fades by 1 every odd step.
+
+**The effects:**
+
+| Effect id | Function | Id | What |
+|---:|----------|---:|------|
+| 0xc9 | `AddTwinSquares` (`0056d990`) | 0x1a | two squares of `pikapika2.bmp`, radius 15, swelling half a turn apart, alpha 200, scale 4; starts again at frame 99999998 |
+| 0xf2 | `AddSwellingSquare` (`00574ae0`) | 0x25 | one square of `effect\aaa copy.bmp`, radius 7, from a random swell phase, alpha 100, scale 5 |
+
+**0x40 has no effect.** Its setup (`00574c40`) is never called. It would make a square of
+radius 5 at alpha 150, heading by the target's x.
+
 ## In the port
 
 **`src/core/crt_rand`:** `CrtRand`, `srand` and `rand`.
@@ -777,13 +816,14 @@ at most 50.
 
 **`src/render/effect_prim`:**
 - `EffectPrim` with `MakePrimitive`, `ResetHistory`, `UpdatePrimitive` (vf01) and
-  `DrawPrimitive` (vf03), for ids 0 to 2, 5, 6, 0xd, the twelve ring ids and the eight
-  facing-square ids. `PrimScene` carries the camera's yaw and pitch, the ground, the view,
+  `DrawPrimitive` (vf03), for ids 0 to 2, 5, 6, 0xd, the twelve ring ids, the eight
+  facing-square ids and the three flat-square ids. `PrimScene` carries the camera's yaw and pitch, the ground, the view,
   the projection and the sprite slope; `PrimDrawing` gets the triangles and the sprite
   quads;
 - `ProcessHitSpark`, `ProcessRingBurst` and `ProcessHit3`; `AddRingWaves` (with `slow`
   for `AddSlowRingWaves`), `AddRisingRings`, `AddFadingRings`, the eight setups of
-  [More rings](#more-rings) and the eleven of [the square effects](#the-square-effects);
+  [More rings](#more-rings), the eleven of [the square effects](#the-square-effects) and
+  `AddTwinSquares` and `AddSwellingSquare`;
 - `EffectWorld`, the world's list as effects use it:
   - `Launch` adds an effect;
   - `Step` runs a world step in the list's order;
@@ -792,6 +832,9 @@ at most 50.
     flag and where the player stands.
 
 **`src/core/angles`:** `DegreesToRadians`.
+
+**`src/core/x87`:** `RoundedProduct`, a float times a double rounded once to single
+precision, shared with the `.str` player.
 
 **`ragview --effect-id ID`** plays the id's `.str` ([gpu.md](gpu.md)), and launches the id
 again when its effect and primitives are done. `--minimal-effects` picks the `_min`
@@ -860,11 +903,13 @@ The melody notes, the item pictures and `alpha_down.tga` are there.
   - every state recorded while an effect has one or two primitives;
   - otherwise every eighth step, the second and the last, and for the effects that add
     dozens only the second and the last.
+- **12 synthetic flat squares**, four of each flat id, and the two flat-square effects,
+  generated as for the rings.
 
-`tests/unit/prim_test.cpp` matches all of it: 1,489,215 values, the CRT's first `rand` values
+`tests/unit/prim_test.cpp` matches all of it: 1,521,275 values, the CRT's first `rand` values
 among them.
 
 **Not ported:**
-- the other 42 primitive ids;
+- the other 39 primitive ids;
 - the other effects' processing;
 - the sounds.

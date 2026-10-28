@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cstring>
 #include <map>
+#include <span>
 #include <string>
 #include <utility>
 #include <vector>
@@ -869,11 +870,13 @@ TEST_CASE("Effect ids 0 and 2 play as the original's", "[effect]") {
   }
 }
 
-TEST_CASE("Ring walls step and draw as the original's", "[effect]") {
+namespace {
+
+void CheckRingShapes(std::span<const ShapeVector> shapes) {
   std::map<std::string, std::uint32_t> ids;
   for (std::uint32_t i = 0; i < 4; ++i) ids["t" + std::to_string(i)] = kSyntheticTextures + i;
   std::size_t n = 0;
-  for (const ShapeVector& v : kRings) {
+  for (const ShapeVector& v : shapes) {
     INFO("ring primitive " << n++ << ", id " << v.id);
     RagEffect owner;
     for (std::size_t i = 0; i < 3; ++i) owner.position[i] = F(v.position[i]);
@@ -897,10 +900,10 @@ TEST_CASE("Ring walls step and draw as the original's", "[effect]") {
   }
 }
 
-TEST_CASE("The ring effects play as the original's", "[effect]") {
+void CheckRingEffects(std::span<const BurstVector> effects) {
   std::map<std::string, std::uint32_t> ids;
   for (const TextureVector& t : kTextures) ids[t.name] = t.id;
-  for (const BurstVector& v : kRingEffects) {
+  for (const BurstVector& v : effects) {
     INFO("effect id " << v.id);
     CHECK(EffectDuration(v.id) == v.duration);
     EffectWorld world(v.seed);
@@ -935,6 +938,20 @@ TEST_CASE("The ring effects play as the original's", "[effect]") {
       CheckTriangles(world.Draw(scene).triangles, fv.triangles, fv.count, ids);
     }
   }
+}
+
+}  // namespace
+
+TEST_CASE("Ring walls step and draw as the original's", "[effect]") { CheckRingShapes(kRings); }
+
+TEST_CASE("The ring effects play as the original's", "[effect]") { CheckRingEffects(kRingEffects); }
+
+TEST_CASE("Flat squares step and draw as the original's", "[effect]") {
+  CheckRingShapes(kFlatSquares);
+}
+
+TEST_CASE("The flat square effects play as the original's", "[effect]") {
+  CheckRingEffects(kFlatEffects);
 }
 
 TEST_CASE("Facing squares step and draw as the original's", "[effect]") {
