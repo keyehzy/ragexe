@@ -4361,7 +4361,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00501c90	168	code	0	world		named	CAbleToMakeEffect	~CAbleToMakeEffect	
 00501d40	37	code	0	world		named	CAbleToMakeEffect	method_00501d40	
 00501d70	150	code	0	world		named	CAbleToMakeEffect	method_00501d70	
-00501e10	492	code	0	world		named	CAbleToMakeEffect	method_00501e10	
+00501e10	492	code	0	world		named	CAbleToMakeEffect	LaunchEffect	
 00502090	51	code	0	world		named	CAbleToMakeEffect	ContainsEffect	
 005020d0	928	code	0	world		named	CAbleToMakeEffect	vf02	
 00502500	110	code	0	world		named	CAbleToMakeEffect	HasEffectWithId	
@@ -5276,16 +5276,16 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0054eba0	580	code	0	world		named	CRagEffect	vf02	
 0054ee50	130	code	0	world		named	CRagEffect	Render	
 0054eee0	1965	code	0	world		named	CRagEffect	InitEffect	
-0054f9a0	312	code	0	world		named	CRagEffect	method_0054f9a0	
+0054f9a0	312	code	0	world		named	CRagEffect	CreatePrimitive	
 0054fae0	87	code	0	world		named	CRagEffect	LoadStrFile	
 0054fb40	91	code	0	world		named	CRagEffect	ResetStr	
 0054fba0	1200	code	0	world		named	CRagEffect	AdvanceStr	
 00550070	1301	code	0	world		named	CRagEffect	DrawStrLayer	
 00550590	1	code	0	world		named	Global	atexit_no_op_00550590	
 005505a0	1713	code	0	world		named	CRagEffect	method_005505a0	
-00550c60	907	code	0	world		named	CRagEffect	method_00550c60	
+00550c60	907	code	0	world		named	CRagEffect	ProcessHitSpark	
 00550ff0	92	code	0	world		named	Global	TransformPoint	
-00551050	90	code	0	render		named	SceneRenderer	method_00551050	
+00551050	90	code	0	render		named	SceneRenderer	ProjectPoint	
 005510b0	1573	code	0	world		named	CRagEffect	method_005510b0	
 005516e0	1293	code	0	world		named	CRagEffect	method_005516e0	
 00551bf0	660	code	0	world		named	CRagEffect	method_00551bf0	
@@ -5628,7 +5628,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005811f0	155	code	0	world		named	CEffectPrim	UpdatePrim_14	
 00581290	13	code	0	world		named	CEffectPrim	UpdatePrim_20	
 005812a0	635	code	0	world		named	CEffectPrim	RenderRotatedScreenQuad	
-00581520	766	code	0	world		named	CEffectPrim	method_00581520	
+00581520	766	code	0	world		named	CEffectPrim	RenderScreenRay	
 00581820	360	code	0	world		named	CEffectPrim	RenderScreenWedge	
 00581990	362	code	0	world		named	CEffectPrim	RenderScreenWedge2	
 00581b00	511	code	0	world		named	CEffectPrim	RenderScreenLine	

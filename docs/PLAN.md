@@ -2314,9 +2314,24 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Not ported:** the effects' own processing cases, `CEffectPrim`'s particles, the
     sounds.
 
+- [x] Effect ids and the first primitives (`docs/render/effect-prim.md`):
+  - **The table:** `InitEffect`'s `.str` for each effect id, the `_min` files of minimal
+    effects, the seven ids that pick a numbered variant with `rand`, and the durations at
+    `00617148`. The CRT's `rand` is ported (`core::CrtRand`).
+  - **`CEffectPrim`, ids 0 to 2:** the screen-space rays and diamonds: flying, turning,
+    growing, colour speeds, alpha keys, bounce and fades, including the fade to the
+    owner's end.
+  - **The hit spark (effect id 1):** eight lens rays from the actor's screen point.
+  - **`EffectWorld`:** the world's object list in its order, primitives running the step
+    they are made, and an ended effect clearing its primitives' owner.
+  - **Checks:** `tools/prim_vectors.py`: every id both ways, 36 synthetic primitives and
+    four hit sparks; 98,957 values match.
+  - **`ragview --effect-id ID [--minimal-effects]`.**
+  - **Not ported:** the other 65 primitive ids and the other effects' processing.
+
 ### Next actions
-1. M4, the renderer: `CEffectPrim`, the particles and shapes effects add beside their
-   `.str` (rings, lens flares, sprites flying out), and which effect id plays what
-   (`CRagEffect::InitEffect`'s table).
+1. M4, the renderer: more of `CEffectPrim`, starting with what effect id 0 adds (the ring
+   cylinder, id 0xd, `effect\ring_blue.tga`, and the `particle1` sprites of ids 5 and 6
+   drawn through their history), then the effects common in play.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

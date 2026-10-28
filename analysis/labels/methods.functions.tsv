@@ -412,7 +412,6 @@ address	namespace	name	calling_convention	evidence
 00501a50	CMousePointer	method_00501a50	__thiscall	__thiscall; called with this from 1 functions of CMousePointer, e.g. 00501980
 00501d40	CAbleToMakeEffect	method_00501d40	__thiscall	__thiscall; called with this from 1 functions of CAbleToMakeEffect, e.g. 00501be0
 00501d70	CAbleToMakeEffect	method_00501d70	__thiscall	__thiscall; called with this from 1 functions of CAbleToMakeEffect, e.g. 00501c90
-00501e10	CAbleToMakeEffect	method_00501e10	__thiscall	__thiscall; called with this from 13 functions of C3dGrannyGameActor, CAbleToMakeEffect, CEffectMaker, CGameActor and more, e.g. 005020d0
 00502850	CGameActor	method_00502850	__thiscall	__thiscall; called with this from 1 functions of CGameActor, e.g. 00502570
 00502a20	CGameActor	method_00502a20	__thiscall	__thiscall; called with this from 1 functions of CGameActor, e.g. 00502700
 00503020	CGameActor	method_00503020	__thiscall	__thiscall; called with this from 7 functions of C3dGrannyGameActor, CBlurPC, CGrannyPc, CNpc and more, e.g. 00508000
@@ -571,10 +570,7 @@ address	namespace	name	calling_convention	evidence
 0054b880	CPlayer	method_0054b880	__thiscall	__thiscall; called with this from 1 functions of CPlayer, e.g. 0054c550
 0054b8e0	CPlayer	method_0054b8e0	__thiscall	__thiscall; called with this from 1 functions of CPlayer, e.g. 0054b770
 0054cf80	CPlayer	method_0054cf80	__thiscall	__thiscall; called with this from 1 functions of CPlayer, e.g. 0054b4a0
-0054f9a0	CRagEffect	method_0054f9a0	__thiscall	__thiscall; called with this from 153 functions of CRagEffect, e.g. 005505a0
 005505a0	CRagEffect	method_005505a0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
-00550c60	CRagEffect	method_00550c60	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
-00551050	SceneRenderer	method_00551050	__thiscall	__thiscall; called with this from 22 functions of SceneRenderer, e.g. 00550c60; through the pointer at 00625e98
 005510b0	CRagEffect	method_005510b0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 005516e0	CRagEffect	method_005516e0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 00551bf0	CRagEffect	method_00551bf0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
@@ -775,7 +771,6 @@ address	namespace	name	calling_convention	evidence
 0057a400	CRagEffect	method_0057a400	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 0057a6c0	CRagEffect	method_0057a6c0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 0057ccb0	CRagEffect	method_0057ccb0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
-00581520	CEffectPrim	method_00581520	__thiscall	__thiscall; called with this from 1 functions of CEffectPrim, e.g. 00586070
 00586650	WorldColorFade	method_00586650	__thiscall	__thiscall; called with this from 1 functions of WorldColorFade, e.g. 00435dd0
 005866f0	WorldColorFade	method_005866f0	__thiscall	__thiscall; called with this from 2 functions of WorldColorFade, e.g. 0050dc90
 005867a0	WorldColorFade	method_005867a0	__thiscall	__thiscall; called with this from 1 functions of WorldColorFade, e.g. 0050dc90

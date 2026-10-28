@@ -2,6 +2,7 @@
 
 add_library(ragexe_core STATIC
   core/angles.cpp
+  core/crt_rand.cpp
   core/frame_timer.cpp)
 target_include_directories(ragexe_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(ragexe_core PRIVATE ragexe_options)
@@ -63,6 +64,8 @@ add_library(ragexe_render STATIC
   render/camera.cpp
   render/device.cpp
   render/effect.cpp
+  render/effect_prim.cpp
+  render/effect_table.cpp
   render/fixed_function.cpp
   render/fog.cpp
   render/ground.cpp

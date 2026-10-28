@@ -122,7 +122,9 @@ runs on Vulkan; D3D12 would need DXIL.
    ([player.md](player.md)), and `shadow.spr`; each image uploaded as the sprite texture
    cache draws it ([actor.md](actor.md)).
 10. **The effect:** with `--effect NAME`, `texture\effect\NAME.str`, played where the
-    actor stands ([effect.md](effect.md)).
+    actor stands ([effect.md](effect.md)). With `--effect-id ID`, the `.str` that effect
+    id plays and the primitives it adds ([effect-prim.md](effect-prim.md));
+    `--minimal-effects` picks the lighter `_min` effects.
 
 **Each frame:**
 1. `CView::Update`'s port follows the player.

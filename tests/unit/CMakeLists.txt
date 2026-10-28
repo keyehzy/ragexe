@@ -29,6 +29,7 @@ add_executable(ragexe_tests
   model_test.cpp
   palette_test.cpp
   player_test.cpp
+  prim_test.cpp
   settings_test.cpp
   sprite_test.cpp
   str_test.cpp

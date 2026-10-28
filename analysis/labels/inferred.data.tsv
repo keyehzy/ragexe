@@ -61,3 +61,5 @@ address	namespace	name	evidence	type
 006864f0	Global	g_playerHeadOffsetX	CPc::RenderActFrameItems: the body's first anchor x less the head's, when their kinds match; kept between frames and players, and added to the headgear's offsets	dword
 006864f4	Global	g_playerHeadOffsetY	the same for y	dword
 00686500	Global	g_strQuadVertices	CRagEffect::DrawStrLayer's four 32-byte vertices, a function-local static: z 1e-5 and rhw 0.99999 (at the near plane), specular 0xffffffff, the rest written each call	dword
+00617148	Global	g_effectDurations	CRagEffect::InitEffect copies entry [id] to +0xc0, the frame CRagEffect::vf01 ends the effect at; 0x152 dwords, one per effect id (render/effect_table.cpp)	dword
+00686584	Global	g_lastEffectPrim	the primitive CRagEffect's processing last created with CreatePrimitive, which it then fills in	dword
