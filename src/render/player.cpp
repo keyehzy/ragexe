@@ -19,63 +19,6 @@ constexpr std::uint32_t kUnkeyed = 0xffff0000;
 constexpr std::uint32_t kOpaque = 0x101;
 constexpr std::uint32_t kTranslucent = 1;
 constexpr std::int32_t kSlots = 8;
-constexpr std::int32_t kDefaultHair = 13;
-
-// The names ClientState 00588ba0 puts in its tables, in CP949.
-constexpr std::array<const char*, 45> kJobs = {
-    "\xc3\xca\xba\xb8\xc0\xda",
-    "\xb0\xcb\xbb\xe7",
-    "\xb8\xb6\xb9\xfd\xbb\xe7",
-    "\xb1\xc3\xbc\xf6",
-    "\xbc\xba\xc1\xf7\xc0\xda",
-    "\xbb\xf3\xc0\xce",
-    "\xb5\xb5\xb5\xcf",
-    "\xb1\xe2\xbb\xe7",
-    "\xc7\xc1\xb8\xae\xbd\xba\xc6\xae",
-    "\xc0\xa7\xc0\xfa\xb5\xe5",
-    "\xc1\xa6\xc3\xb6\xb0\xf8",
-    "\xc7\xe5\xc5\xcd",
-    "\xbe\xee\xbc\xbc\xbd\xc5",
-    "\xc6\xe4\xc4\xda\xc6\xe4\xc4\xda_\xb1\xe2\xbb\xe7",
-    "\xc5\xa9\xb7\xe7\xbc\xbc\xc0\xcc\xb4\xf5",
-    "\xb8\xf9\xc5\xa9",
-    "\xbc\xbc\xc0\xcc\xc1\xf6",
-    "\xb7\xce\xb1\xd7",
-    "\xbf\xac\xb1\xdd\xbc\xfa\xbb\xe7",
-    "\xb9\xd9\xb5\xe5",
-    "\xb9\xab\xc8\xf1",
-    "\xbd\xc5\xc6\xe4\xc4\xda\xc5\xa9\xb7\xe7\xbc\xbc\xc0\xcc\xb4\xf5",
-    "\xc3\xca\xba\xb8\xc0\xda",
-    "\xc3\xca\xba\xb8\xc0\xda",
-    "\xc3\xca\xba\xb8\xc0\xda",
-    "\xc3\xca\xba\xb8\xc0\xda",
-    "\xc3\xca\xba\xb8\xc0\xda",
-    "\xc3\xca\xba\xb8\xc0\xda",
-    "\xc3\xca\xba\xb8\xc0\xda",
-    "\xc3\xca\xba\xb8\xc0\xda",
-    "\xc3\xca\xba\xb8\xc0\xda",
-    "\xc3\xca\xba\xb8\xc0\xda",
-    "\xc3\xca\xba\xb8\xc0\xda",
-    "\xc3\xca\xba\xb8\xc0\xda",
-    "\xc3\xca\xba\xb8\xc0\xda",
-    "\xc3\xca\xba\xb8\xc0\xda",
-    "\xc3\xca\xba\xb8\xc0\xda",
-    "\xc3\xca\xba\xb8\xc0\xda",
-    "\xc3\xca\xba\xb8\xc0\xda",
-    "\xc3\xca\xba\xb8\xc0\xda",
-    "\xc3\xca\xba\xb8\xc0\xda",
-    "\xc3\xca\xba\xb8\xc0\xda",
-    "\xc3\xca\xba\xb8\xc0\xda",
-    "\xc3\xca\xba\xb8\xc0\xda",
-    "\xc3\xca\xba\xb8\xc0\xda"};
-constexpr std::array<const char*, 2> kSexFolders = {"\xbf\xa9", "\xb3\xb2"};
-constexpr std::array<const char*, 20> kMaleHair = {"2",  "2",  "1",  "7",  "5",  "4",  "3",
-                                                   "6",  "8",  "9",  "10", "12", "11", "13",
-                                                   "14", "15", "16", "17", "18", "19"};
-constexpr std::array<const char*, 20> kFemaleHair = {"2",  "2",  "4",  "7",  "1",  "5", "3",
-                                                     "6",  "12", "10", "9",  "11", "8", "13",
-                                                     "14", "15", "16", "17", "18", "19"};
-constexpr std::array<const char*, 2> kSexSuffixes = {"_\xbf\xa9", "_\xb3\xb2"};
 
 // ActFrame::GetItem (00420520): out of range, the static item at 00605b70, which shows
 // image 0 at the origin.
@@ -316,26 +259,6 @@ ActorBody DrawPlayer(const RenderObject& object,
     out.quads.push_back(q);
   }
   return out;
-}
-
-std::string PlayerBodyName(std::int32_t job, std::int32_t sex) {
-  const auto s = static_cast<std::size_t>(sex);
-  return std::string("\xc0\xce\xb0\xa3\xc1\xb7\\\xb8\xf6\xc5\xeb\\") + kSexFolders.at(s) + "\\" +
-         kJobs.at(static_cast<std::size_t>(job)) + kSexSuffixes.at(s);
-}
-
-std::string PlayerHeadName(std::int32_t hair, std::int32_t sex) {
-  if (hair < 0 || hair > 19) hair = kDefaultHair;
-  const auto h = static_cast<std::size_t>(hair);
-  const auto s = static_cast<std::size_t>(sex == 1 ? 1 : sex);
-  const char* style = sex == 1 ? kMaleHair.at(h) : kFemaleHair.at(h);
-  return std::string("\xc0\xce\xb0\xa3\xc1\xb7\\\xb8\xd3\xb8\xae\xc5\xeb\\") + kSexFolders.at(s) +
-         "\\" + style + kSexSuffixes.at(s);
-}
-
-std::string PlayerImfName(std::int32_t job, std::int32_t sex) {
-  return std::string(kJobs.at(static_cast<std::size_t>(job))) +
-         kSexSuffixes.at(static_cast<std::size_t>(sex)) + ".imf";
 }
 
 }  // namespace ragexe::render

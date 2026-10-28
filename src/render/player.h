@@ -2,8 +2,6 @@
 
 #include <array>
 #include <cstdint>
-#include <string>
-#include <vector>
 
 #include "render/actor.h"
 #include "res/act.h"
@@ -54,15 +52,5 @@ ActorBody DrawPlayer(const RenderObject& object,
 // frame is value, or -1; the action and frame are checked against layer value's counts.
 std::int32_t FindImfLayer(const res::Imf& imf, std::int32_t value, std::int32_t action,
                           std::int32_t frame);
-
-// The paths ClientState 00593920 to 00593a20 and 00593b70 build, in CP949, from the tables
-// ClientState 00588ba0 fills: the 45 jobs' names (+0x674, and the same at +0x6b4 for the
-// .imf files), the sexes' folders (+0x684) and suffixes (+0x6e4), 0 female and 1 male, and
-// 20 hair styles for each sex (+0x6a4 female, +0x694 male). Sprite names come without
-// their extension: 인간족\몸통\<sex>\<job>_<sex> for the body, 인간족\머리통\<sex>\<hair>_<sex>
-// for the head (a hair style outside 0 to 19 is 13), and <job>_<sex>.imf for the order.
-std::string PlayerBodyName(std::int32_t job, std::int32_t sex);
-std::string PlayerHeadName(std::int32_t hair, std::int32_t sex);
-std::string PlayerImfName(std::int32_t job, std::int32_t sex);
 
 }  // namespace ragexe::render

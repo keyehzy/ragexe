@@ -9,6 +9,7 @@
 
 #include "render/actor.h"
 #include "render/camera.h"
+#include "render/player_names.h"
 #include "res/act.h"
 #include "res/imf.h"
 #include "res/sprite.h"
@@ -29,6 +30,32 @@ struct HeadNameVector {
   const char* act;
   const char* spr;
   int hair_after;
+};
+
+struct HeadgearVector {
+  int sex, headgear;
+  const char* act;
+  const char* spr;
+};
+
+struct WeaponVector {
+  int job, sex, kind;
+  const char* act;
+  const char* spr;
+  const char* glow_act;
+  const char* glow_spr;
+};
+
+struct ShieldVector {
+  int job, sex, shield;
+  const char* act;
+  const char* spr;
+};
+
+struct PaletteVector {
+  int hair, job, sex, palette;
+  const char* head;
+  const char* body;
 };
 
 struct ItemVector {
@@ -158,6 +185,39 @@ TEST_CASE("Player sprite names are the original's", "[player]") {
     INFO("hair " << v.hair << ", sex " << v.sex);
     CHECK(PlayerHeadName(v.hair, v.sex) + ".act" == v.act);
     CHECK(PlayerHeadName(v.hair, v.sex) + ".spr" == v.spr);
+  }
+}
+
+// A name as CPc hands it on: the extension added, or nothing for none.
+std::string WithExtension(const std::string& name, const char* extension) {
+  return name.empty() ? name : name + extension;
+}
+
+TEST_CASE("Players are dressed with the original's names", "[player]") {
+  for (const HeadgearVector& v : kHeadgear) {
+    INFO("sex " << v.sex << ", headgear " << v.headgear);
+    const PlayerSpriteNames names = PlayerHeadgearNames(v.sex, v.headgear);
+    CHECK(WithExtension(names.act, ".act") == v.act);
+    CHECK(WithExtension(names.sprite, ".spr") == v.spr);
+  }
+  for (const WeaponVector& v : kWeapons) {
+    INFO("job " << v.job << ", sex " << v.sex << ", kind " << v.kind);
+    const auto names = PlayerWeaponNames(v.job, v.sex, v.kind);
+    CHECK(WithExtension(names[0].act, ".act") == v.act);
+    CHECK(WithExtension(names[0].sprite, ".spr") == v.spr);
+    CHECK(WithExtension(names[1].act, ".act") == v.glow_act);
+    CHECK(WithExtension(names[1].sprite, ".spr") == v.glow_spr);
+  }
+  for (const ShieldVector& v : kShields) {
+    INFO("job " << v.job << ", sex " << v.sex << ", shield " << v.shield);
+    const PlayerSpriteNames names = PlayerShieldNames(v.job, v.sex, v.shield);
+    CHECK(WithExtension(names.act, ".act") == v.act);
+    CHECK(WithExtension(names.sprite, ".spr") == v.spr);
+  }
+  for (const PaletteVector& v : kPalettes) {
+    INFO("hair " << v.hair << ", job " << v.job << ", sex " << v.sex << ", palette " << v.palette);
+    CHECK(PlayerHeadPaletteName(v.hair, v.job, v.sex, v.palette) == v.head);
+    CHECK(PlayerBodyPaletteName(v.job, v.sex, v.palette) == v.body);
   }
 }
 

@@ -16,9 +16,17 @@ through `GetLayerAct` and `GetLayerSprite` (`00546490`, `00546270`).
 |------:|------|--------|
 | 0 | body | `UpdateBody` (`vf16`, `00542320`) |
 | 1 | head | `SetHair` (`vf17`, `00542400`) |
-| 2, 3, 4 | headgear | `vf21`, `vf22`, `vf23` |
-| 5, 6 | weapon and its glow | `SetWeapon` (`vf20`, `005464b0`) |
-| 7 | shield | `vf24` |
+| 2, 3, 4 | headgear | `SetHeadgearTop`, `Mid`, `Bottom` (`vf21` to `vf23`, `005424f0`, `00542580`, `00542610`) |
+| 5, 6 | weapon and its glow | `SetWeaponKind` (`vf19`, `005426a0`), or by item id `SetWeapon` (`vf20`, `005464b0`) |
+| 7 | shield | `SetShield` (`vf24`, `005428d0`) |
+
+**The palettes:**
+- **The hair colour** (+0x29c) recolours the head. `UpdateHeadPalette` (`vf27`, `00542a40`)
+  keeps its palette's name in +0x2cc.
+- **The clothes colour** (+0x34) recolours the body. `UpdateBodyPalette` (`vf28`,
+  `00542b30`) keeps its palette's name in +0x10.
+- `RenderActFrameItems` draws those two layers with these palettes in place of their
+  sprites' own.
 
 A layer is drawn only when both its actions and its sprite have a name (`GetLayerActName`,
 `GetLayerSpriteName`).
@@ -32,17 +40,41 @@ A layer is drawn only when both its actions and its sprite have a name (`GetLaye
   _여 and _남 (+0x6e4).
 - **The hair styles:** 20 for each sex (+0x694 male, +0x6a4 female). Each maps a style to
   the number of a head sprite: the male style 2 is head 1.
+- **The rest:**
+  - the jobs' folders (+0x6d4, `검사\검사` and so on);
+  - 140 headgear (+0x6c4, from `_고글`, the goggles);
+  - 23 weapon kinds (+0x704, from `_단검`, the dagger);
+  - 5 shield kinds (+0x784);
+  - the jobs' names again for the body palettes (+0x7a0).
 
-The paths are relative to `sprite\` (`imf\` for the `.imf`):
+The sprites' paths are relative to `sprite\`, the `.imf`'s to `imf\` and the palettes' to
+`palette\`:
 
 | Function | Path |
 |----------|------|
 | `GetBodyActName`, `GetBodySpriteName` (`00593920`, `00593960`) | `인간족\몸통\<sex>\<job><suffix>.act` and `.spr` |
 | `GetHeadActName`, `GetHeadSpriteName` (`005939a0`, `00593a20`) | `인간족\머리통\<sex>\<style><suffix>.act` and `.spr` |
 | `GetImfName` (`00593b70`) | `<job><suffix>.imf` |
+| `GetHeadgearActName`, `GetHeadgearSpriteName` (`00593bb0`, `00594020`) | `악세사리\<sex>\<sex><headgear>.act` and `.spr` |
+| `SetWeaponKind` | `인간족\<job folder><suffix><weapon>.act` and `.spr`; the glow adds `_검광` |
+| `GetShieldActName`, `GetShieldSpriteName` (`0059ba10`, `0059ba80`) | `방패\<job folder><suffix><shield>.act` and `.spr` |
+| `GetHeadPaletteName` (`0059b890`) | `머리\머리<style><suffix>_<colour>.pal` |
+| `GetBodyPaletteName` (`0059b900`) | `몸\<job><suffix>_<colour>.pal` |
 
-A hair style outside 0 to 19 becomes 13, and the head functions write that back to the
-character (+0x298).
+**The special cases:**
+- **A hair style** outside 0 to 19 becomes 13, and the head functions write that back to
+  the character (+0x298).
+- **Headgear 0** has no names. Headgear 0x12 and 0x13 on a male have a sprite name but no
+  actions' name, so they are not drawn.
+- **A weapon kind** is shown only if the job can show it (`CanShowWeapon`, `005932a0`, a
+  switch per job). The glow layer exists for kinds 1 to 7 and 0x10 to 0x16.
+- **A shield id** above 2000 is first turned into its kind (`MapHighIdToKind`,
+  `005aae70`: 0x835 to 0x83f into 1 to 4). The job must be able to show the kind
+  (`IsValueInRangeForKind`, `0059b940`).
+- **Colour 0** means no palette. In a palette's name, hair style 0 stands for the job's own
+  (`ResolveZeroIndex`, `00593560`): 2 to 7 for jobs 1 to 6, 1 otherwise.
+- **The job** throughout is `CGameActor::GetJob`'s (`00503490`): a riding knight is 0xd and
+  a riding crusader 0x15.
 
 ## Drawing
 
@@ -124,13 +156,20 @@ body.
 - **Layers:** `PlayerLayer`, the layers, and `PlayerHeadOffset`, the two globals.
 - **Drawing:** `DrawPlayer` and `FindImfLayer`. Each quad carries its layer, so the
   caller knows which sprite's texture it needs.
-- **Names:** `PlayerBodyName`, `PlayerHeadName` and `PlayerImfName`, with the tables as
-  the original fills them, in CP949.
+
+`src/render/player_names.{h,cpp}`, the names, with the tables as the original fills them,
+in CP949:
+- **The sprites:** `PlayerBodyName`, `PlayerHeadName` and `PlayerImfName`;
+  `PlayerHeadgearNames`, `PlayerWeaponNames` and `PlayerShieldNames`.
+- **The palettes:** `PlayerHeadPaletteName` and `PlayerBodyPaletteName`.
+- **The tests:** `CanShowWeapon`, `CanShowShield` and `ShieldKindOf`.
 
 **ragview:** `--player JOB SEX HAIR` draws a player where the player stands:
-- the body and the head of the job, sex and hair style given;
-- ordered by the job's `.imf`;
-- with the shadow, idle, animated.
+- the body and the head of the job, sex and hair style given, ordered by the job's `.imf`;
+- `--hair-color` and `--clothes-color` load the palettes;
+- `--headgear TOP MID BOTTOM`, `--weapon KIND` and `--shield ID` dress it;
+- `--action BASE` picks the action, 80 to attack, which shows the weapon and shield;
+- with the shadow, animated.
 
 ## Checks
 
@@ -138,6 +177,11 @@ body.
 `tests/unit/player_vectors.inc`. It records:
 - **Every name:** the 45 jobs and both sexes for the body and the `.imf`, and hair styles
   −1 to 21 for the head, with the style they leave.
+- **Dressing:** `CPc`'s own setters, with the names they hand on recorded:
+  - all 140 headgear for both sexes;
+  - every weapon kind for every job;
+  - shield kinds and item ids for every job;
+  - 639 hair and clothes palettes.
 - **300 `.imf` lookups** on a synthetic `.imf` of 104 actions.
 - **320 players:**
   - **layers:** 6 sets of synthetic layers, some missing, with heads of one to three
@@ -147,11 +191,11 @@ body.
 
   That is 782 quads in all layers, with the head offset each player leaves.
 
-`tests/unit/player_test.cpp` matches all 11,006 values.
+`tests/unit/player_test.cpp` matches all 18,874 values.
 
 **Not ported:**
-- the headgear's, the weapon's and the shield's names (`vf21` to `vf24`, `SetWeapon`);
-- the palettes of other resources (+0x34, +0x29c);
+- `SetWeapon` (`vf20`), the weapon by item id, with its ranges of ids and the sprites
+  named after the id;
 - the message `vf02` sends;
 - `00545540`, the special drawing for a few ids on the Korean service;
 - the jobs' shadow scales (`ClientState` `0059b750`). ragview uses 1.

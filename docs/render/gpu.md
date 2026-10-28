@@ -117,7 +117,8 @@ runs on Vulkan; D3D12 would need DXIL.
 8. **The scene graph** over the ground and the models, with the `.rsw`'s bounds when it
    has them ([scene_graph.md](scene_graph.md)).
 9. **The actor:** the sprite and actions `--actor` names (`npc\4_m_01` by default,
-   `none` for none), or with `--player JOB SEX HAIR` a player's body, head and `.imf`
+   `none` for none), or with `--player JOB SEX HAIR` a player's body, head and `.imf`,
+   dressed by `--hair-color`, `--clothes-color`, `--headgear`, `--weapon` and `--shield`
    ([player.md](player.md)), and `shadow.spr`; each image uploaded as the sprite texture
    cache draws it ([actor.md](actor.md)).
 

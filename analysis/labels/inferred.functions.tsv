@@ -2552,3 +2552,19 @@ address	namespace	name	calling_convention	evidence
 00542320	CPc	UpdateBody	__thiscall	vf16: the job's shadow scale +0x40 (ClientState 0059b750), then layer 0's actions and sprite (GetBodyActName, GetBodySpriteName for +0x1bc's sex), and the same as the object's own (SetAct, SetSprite)
 00542400	CPc	SetHair	__thiscall	vf17 (hair): stores it at +0x298 and sets layer 1 (GetHeadActName, GetHeadSpriteName)
 005464b0	CPc	SetWeapon	__thiscall	vf20 (id): stores it at +0x2a0 and names layers 5 and 6 from the weapon tables (+0x6d4, +0x6e4, +0x704) by the kind ClientState::MapRangedIdToKind gives, or empties them
+005426a0	CPc	SetWeaponKind	__thiscall	vf19 (kind): stores it at +0x2a0; when ClientState::CanShowWeapon allows the job the kind, layer 5 from 인간족\%s%s%s (006157fc, 006157e8) with the job's folder, the sex's suffix and the weapon's (+0x704), and layer 6 the same with _검광 (006157d0, 006157b8) for kinds 1..7 and 0x10..0x16; otherwise the layers are emptied (docs/render/player.md)
+005424f0	CPc	SetHeadgearTop	__thiscall	vf21 (headgear): stores it at +0x2a4 and names layer 2 through ClientState::GetHeadgearActName and GetHeadgearSpriteName
+00542580	CPc	SetHeadgearMid	__thiscall	vf22 (headgear): the same for +0x2a8 and layer 3
+00542610	CPc	SetHeadgearBottom	__thiscall	vf23 (headgear): the same for +0x2ac and layer 4
+005428d0	CPc	SetShield	__thiscall	vf24 (shield): an id above 2000 becomes its kind (ClientState::MapHighIdToKind), stored at +0x2b0; layer 7 through GetShieldActName and GetShieldSpriteName
+00542a40	CPc	UpdateHeadPalette	__thiscall	vf27: with a hair colour +0x29c, the std::string +0x2cc becomes ClientState::GetHeadPaletteName of the hair +0x298, the job, the sex and the colour; RenderActFrameItems draws the head with that palette
+00542b30	CPc	UpdateBodyPalette	__thiscall	vf28: with a clothes colour +0x34, the std::string +0x10 becomes ClientState::GetBodyPaletteName of the job, the sex and the colour; RenderActFrameItems draws the body with that palette
+00542960	CPc	UpdateImfName	__thiscall	vf26: the std::string +0x27c becomes ClientState::GetImfName of the job and sex
+00593bb0	ClientState	GetHeadgearActName	__thiscall	(job, hair*, sex, headgear, out*): sprintf of 악세사리\%s\%s%s.act (0061cfec) with the sex's folder twice and the headgear's name (+0x6c4); empty for headgear 0, and for 0x12 and 0x13 on a male
+00594020	ClientState	GetHeadgearSpriteName	__thiscall	(job, hair*, sex, headgear, out*): the same with .spr (0061d018); empty only for headgear 0
+0059ba10	ClientState	GetShieldActName	__thiscall	(job, sex, kind, out*): with a non-zero kind IsValueInRangeForKind allows the job, sprintf of 방패\%s%s%s.act (0061d91c) with the job's folder, the sex's suffix and the shield's name (+0x784); empty otherwise
+0059ba80	ClientState	GetShieldSpriteName	__thiscall	(job, sex, kind, out*): the same with .spr (0061d92c)
+005932a0	ClientState	CanShowWeapon	__thiscall	(job, kind): whether the job shows a weapon of that kind (a switch per job; the novice 1, 2, 6, 8 and 10, the swordsman 1 to 9, …; others only 1)
+0059b890	ClientState	GetHeadPaletteName	__thiscall	(hair, job, sex, colour, out*): ResolveZeroIndex of the hair by the job, then sprintf of 머리\머리%s%s_%d.pal (0061d8f4) with the head the hair style names for the sex (+0x694 for sex 1, +0x6a4 otherwise), the suffix and the colour
+0059b900	ClientState	GetBodyPaletteName	__thiscall	(job, sex, colour, out*): sprintf of 몸\%s%s_%d.pal (0061d90c) with the job's palette name (+0x7a0), the sex's suffix and the colour
+00503490	CGameActor	GetJob	__thiscall	the job +0x1b8, but 0xd for a knight (7) and 0x15 for a crusader (0xe) riding (bit 5 of +0x21c, IsBit5Set)

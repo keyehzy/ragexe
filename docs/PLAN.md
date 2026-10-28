@@ -2287,9 +2287,21 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Not ported:** the headgear's, weapon's and shield's names, other palettes, and the
     Korean service's special drawing.
 
+- [x] Dressing a player (`docs/render/player.md#the-names`):
+  - **Names:** the headgear (`SetHeadgearTop` to `Bottom`), the weapon by its kind
+    (`SetWeaponKind`, with `CanShowWeapon`'s per-job switch and the glow layer), the shield
+    (`SetShield`, item ids mapped to kinds) and the hair and clothes palettes
+    (`GetHeadPaletteName`, `GetBodyPaletteName`), from five more of `InitNameTables`'
+    tables.
+  - **Port:** `src/render/player_names`, the names moved there from `player`.
+  - **Checks:** `CPc`'s own setters in the emulation oracle: 280 headgear, 1,035 weapons,
+    945 shields and 639 palettes; with the layers, 18,874 values match.
+  - **`ragview`:** `--hair-color`, `--clothes-color`, `--headgear`, `--weapon`, `--shield`
+    and `--action` dress and pose the player.
+  - **Not ported:** `SetWeapon` by item id.
+
 ### Next actions
-1. M4, the renderer: the characters' palettes (hair and clothes colours, `+0x29c` and
-   `+0x34`) and the headgear's and weapons' names (`CPc::vf21` to `vf24`, `SetWeapon`), so
-   that a player can be dressed as the client dresses one.
+1. M4, the renderer: the effects actors make (`CAbleToMakeEffect`, the `.str` effects
+   `CEZeffectRes` loads), so that `ragview` can show a skill's or an item's effect.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

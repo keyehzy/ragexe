@@ -1,7 +1,9 @@
 // ragview: a map's ground drawn as the client draws it (docs/render/gpu.md).
 //
 //   ragview [--install DIR] [--size W H] [--at X Z] [--yaw DEGREES] [--frames N]
-//           [--no-fog] [--actor SPRITE | --player JOB SEX HAIR] [--screenshot FILE.png] MAP
+//           [--no-fog] [--actor SPRITE | --player JOB SEX HAIR [--hair-color N]
+//           [--clothes-color N] [--headgear TOP MID BOTTOM] [--weapon KIND] [--shield ID]]
+//           [--action BASE] [--screenshot FILE.png] MAP
 //
 // MAP is a .rsw name such as prontera. The ground is built and drawn by the ported
 // C3dGround15, through the scene lists and DrawScene, and the calls are replayed on
@@ -11,7 +13,9 @@
 // stands where the player does, drawn from data\sprite\SPRITE.spr and .act (npc\4_m_01
 // by default, none for no actor), idle and facing south. --player draws a player character
 // there instead: the body of job JOB (0 the novice) and sex SEX (0 female, 1 male), with
-// hair style HAIR, layered by the job's .imf.
+// hair style HAIR, layered by the job's .imf, dressed in the palettes, headgear, weapon and
+// shield given. --action sets the base action (0 idle; 80 attacking, which shows the
+// weapon and shield).
 // --screenshot renders one frame offscreen to a PNG and exits; otherwise a window opens,
 // and Escape or --frames N closes it.
 
@@ -37,6 +41,7 @@
 #include "render/ground.h"
 #include "render/model.h"
 #include "render/player.h"
+#include "render/player_names.h"
 #include "render/scene.h"
 #include "render/scene_graph.h"
 #include "render/texture.h"
@@ -48,6 +53,7 @@
 #include "res/gnd.h"
 #include "res/grf.h"
 #include "res/imf.h"
+#include "res/palette.h"
 #include "res/rsm.h"
 #include "res/rsw.h"
 #include "res/sprite.h"
@@ -82,6 +88,12 @@ struct Options {
   int job = 0;
   int sex = 1;
   int hair = 1;
+  int hair_color = 0;
+  int clothes_color = 0;
+  std::array<int, 3> headgear{};
+  int weapon = 0;
+  int shield = 0;
+  int action = 0;
   std::string screenshot;
 };
 
@@ -95,7 +107,9 @@ int ParseInt(const char* text, int fallback) {
 int Usage() {
   std::fprintf(stderr,
                "usage: ragview [--install DIR] [--size W H] [--at X Z] [--yaw DEGREES]\n"
-               "               [--frames N] [--no-fog] [--actor SPRITE | --player JOB SEX HAIR]\n"
+               "               [--frames N] [--no-fog] [--actor SPRITE | --player JOB SEX HAIR\n"
+               "               [--hair-color N] [--clothes-color N] [--headgear TOP MID BOTTOM]\n"
+               "               [--weapon KIND] [--shield ID]] [--action BASE]\n"
                "               [--screenshot FILE.png] MAP\n");
   return 2;
 }
@@ -137,7 +151,8 @@ struct ActorSprite {
 };
 
 bool LoadActorSprite(const res::DataFiles& files, const std::string& name,
-                     render::RenderDevice& device, std::uint32_t id_base, ActorSprite& out) {
+                     render::RenderDevice& device, std::uint32_t id_base, ActorSprite& out,
+                     const res::Palette* palette = nullptr) {
   std::vector<std::uint8_t> bytes;
   std::string ignored;
   if (!Load(files, "data\\sprite\\" + name + ".spr", bytes) ||
@@ -168,7 +183,8 @@ bool LoadActorSprite(const res::DataFiles& files, const std::string& name,
     for (std::uint32_t y = 0; y < h; ++y) {
       for (std::uint32_t x = 0; x < w; ++x) {
         const std::uint8_t index = indices[y * static_cast<std::uint32_t>(image.width) + x];
-        const std::uint32_t texel = index == 0 ? 0 : out.sprite.palette[index] & 0xffff;
+        const std::uint32_t texel =
+            index == 0 ? 0 : (palette != nullptr ? *palette : out.sprite.palette)[index] & 0xffff;
         page[y * kSpritePage + x] = render::ExpandTexel(render::TextureFormat::kArgb1555, texel);
       }
     }
@@ -217,6 +233,18 @@ int main(int argc, char** argv) {
       o.job = ParseInt(argv[++i], -1);
       o.sex = ParseInt(argv[++i], -1);
       o.hair = ParseInt(argv[++i], 0);
+    } else if (a == "--hair-color" && next(1)) {
+      o.hair_color = ParseInt(argv[++i], 0);
+    } else if (a == "--clothes-color" && next(1)) {
+      o.clothes_color = ParseInt(argv[++i], 0);
+    } else if (a == "--headgear" && next(3)) {
+      for (int& h : o.headgear) h = ParseInt(argv[++i], 0);
+    } else if (a == "--weapon" && next(1)) {
+      o.weapon = ParseInt(argv[++i], 0);
+    } else if (a == "--shield" && next(1)) {
+      o.shield = ParseInt(argv[++i], 0);
+    } else if (a == "--action" && next(1)) {
+      o.action = ParseInt(argv[++i], 0);
     } else if (a == "--no-fog") {
       o.fog = false;
     } else if (a == "--screenshot" && next(1)) {
@@ -390,13 +418,43 @@ int main(int argc, char** argv) {
   bool has_actor = false;
   if (o.player) {
     std::string ignored;
-    has_actor = LoadActorSprite(files, render::PlayerBodyName(o.job, o.sex), *device,
-                                kActorTextureIdBase, actor) &&
-                LoadActorSprite(files, render::PlayerHeadName(o.hair, o.sex), *device,
-                                kActorTextureIdBase + 0x1000, layers[render::kPlayerHead]) &&
+    // CPc::vf27 and vf28: the hair's and the clothes' palettes, when chosen.
+    const auto palette = [&](const std::string& name, res::PaletteRes& out) {
+      return !name.empty() && Load(files, "data\\palette\\" + name, bytes) &&
+             out.LoadFromBytes(bytes);
+    };
+    res::PaletteRes hair_palette;
+    res::PaletteRes clothes_palette;
+    const bool hair_colored =
+        palette(render::PlayerHeadPaletteName(o.hair, o.job, o.sex, o.hair_color), hair_palette);
+    const bool clothes_colored =
+        palette(render::PlayerBodyPaletteName(o.job, o.sex, o.clothes_color), clothes_palette);
+    const auto layer_id = [](int layer) {
+      return kActorTextureIdBase + static_cast<std::uint32_t>(layer) * 0x1000;
+    };
+    has_actor = LoadActorSprite(files, render::PlayerBodyName(o.job, o.sex), *device, layer_id(0),
+                                actor, clothes_colored ? &clothes_palette.palette() : nullptr) &&
+                LoadActorSprite(files, render::PlayerHeadName(o.hair, o.sex), *device, layer_id(1),
+                                layers[render::kPlayerHead],
+                                hair_colored ? &hair_palette.palette() : nullptr) &&
                 Load(files, "data\\imf\\" + render::PlayerImfName(o.job, o.sex), bytes) &&
                 res::DecodeImf(bytes, imf, &ignored);
     if (!has_actor) std::fprintf(stderr, "ragview: no player sprites for job %d\n", o.job);
+    // The headgear, the weapon and its glow, and the shield; a layer whose names are missing
+    // stays empty and is not drawn.
+    const auto dress = [&](int layer, const render::PlayerSpriteNames& names) {
+      if (names.act.empty() || names.sprite.empty()) return;
+      if (!LoadActorSprite(files, names.sprite, *device, layer_id(layer),
+                           layers[static_cast<std::size_t>(layer)]))
+        layers[static_cast<std::size_t>(layer)] = {};
+    };
+    for (int i = 0; i < 3; ++i)
+      dress(render::kPlayerHeadgearTop + i,
+            render::PlayerHeadgearNames(o.sex, o.headgear[static_cast<std::size_t>(i)]));
+    const auto weapon = render::PlayerWeaponNames(o.job, o.sex, o.weapon);
+    dress(render::kPlayerWeapon, weapon[0]);
+    dress(render::kPlayerWeaponGlow, weapon[1]);
+    dress(render::kPlayerShield, render::PlayerShieldNames(o.job, o.sex, o.shield));
   } else if (o.actor != "none") {
     has_actor = LoadActorSprite(files, o.actor, *device, kActorTextureIdBase, actor);
     if (!has_actor) std::fprintf(stderr, "ragview: no sprite %s\n", o.actor.c_str());
@@ -405,8 +463,10 @@ int main(int argc, char** argv) {
   render::PlayerHeadOffset head_offset;
   render::RenderObject actor_object;
   actor_object.shadow = true;
-  // vf07 with action 0: the action's delay, at least 1.
-  actor_object.delay = actor.act.delays.empty() ? 4.0f : actor.act.delays[0];
+  // vf07 with the base action: the action's delay (4 beyond the .act's), at least 1.
+  actor_object.base_action = o.action;
+  const auto base = static_cast<std::size_t>(std::max(o.action, 0));
+  actor_object.delay = base < actor.act.delays.size() ? actor.act.delays[base] : 4.0f;
   if (actor_object.delay < 1.0f) actor_object.delay = 1.0f;
   actor_object.start_time = static_cast<std::uint32_t>(SDL_GetTicks());
 

@@ -4391,7 +4391,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005031d0	51	code	0	world		named	CGameActor	vf32	
 00503210	557	code	0	world		named	CGameActor	method_00503210	
 00503440	69	code	0	world		named	CGameActor	method_00503440	
-00503490	79	code	0	world		named	CGameActor	method_00503490	
+00503490	79	code	0	world		named	CGameActor	GetJob	
 005034e0	784	code	0	world		named	CGameActor	vf10	
 00503830	68	code	0	world		named	CGameActor	method_00503830	
 00503880	53	code	0	world		named	CGameActor	ResetIdAndStartDelay	
@@ -5170,14 +5170,14 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00542320	219	code	0	world		named	CPc	UpdateBody	
 00542400	118	code	0	world		named	CPc	SetHair	
 00542480	103	code	0	world		named	CPc	vf18	
-005424f0	130	code	0	world		named	CPc	vf21	
-00542580	130	code	0	world		named	CPc	vf22	
-00542610	130	code	0	world		named	CPc	vf23	
-005426a0	519	code	0	world		named	CPc	vf19	
-005428d0	133	code	0	world		named	CPc	vf24	
-00542960	221	code	0	world		named	CPc	vf26	
-00542a40	230	code	0	world		named	CPc	vf27	
-00542b30	217	code	0	world		named	CPc	vf28	
+005424f0	130	code	0	world		named	CPc	SetHeadgearTop	
+00542580	130	code	0	world		named	CPc	SetHeadgearMid	
+00542610	130	code	0	world		named	CPc	SetHeadgearBottom	
+005426a0	519	code	0	world		named	CPc	SetWeaponKind	
+005428d0	133	code	0	world		named	CPc	SetShield	
+00542960	221	code	0	world		named	CPc	UpdateImfName	
+00542a40	230	code	0	world		named	CPc	UpdateHeadPalette	
+00542b30	217	code	0	world		named	CPc	UpdateBodyPalette	
 00542c10	18	code	0	world		named	CPc	vf29	
 00542c30	21	code	0	world		named	CPc	vf30	
 00542c50	205	code	0	world		named	CPc	vf14	
@@ -5821,7 +5821,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00593220	20	code	0	game		named	ClientState	method_00593220	
 00593240	66	code	0	game		named	ClientState	method_00593240	
 00593290	10	code	0	game		named	ClientState	InvalidateAllWindows	
-005932a0	481	code	0	game		named	ClientState	method_005932a0	
+005932a0	481	code	0	game		named	ClientState	CanShowWeapon	
 00593560	96	code	0	game		named	ClientState	ResolveZeroIndex	
 005935e0	92	code	0	game	unreferenced	raw	Global	FUN_005935e0	
 00593660	424	code	0	game		named	ClientState	method_00593660	
@@ -5834,10 +5834,10 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00593aa0	64	code	0	game		named	ClientState	method_00593aa0	
 00593ae0	137	code	0	game		named	ClientState	method_00593ae0	
 00593b70	54	code	0	game		named	ClientState	GetImfName	
-00593bb0	93	code	0	game		named	ClientState	method_00593bb0	
+00593bb0	93	code	0	game		named	ClientState	GetHeadgearActName	
 00593c10	918	code	0	game		named	ClientState	LoadSkillNameTable	
 00593fb0	109	code	1	stl		named	std::pair	~pair	
-00594020	68	code	0	game		named	ClientState	method_00594020	
+00594020	68	code	0	game		named	ClientState	GetHeadgearSpriteName	
 00594070	8596	code	0	game		named	ClientState	method_00594070	
 00596210	4764	code	0	game		named	ClientState	method_00596210	
 005974b0	207	code	0	game		named	ClientState	method_005974b0	
@@ -5889,11 +5889,11 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0059b7f0	37	code	0	game		named	ClientState	method_0059b7f0	
 0059b820	32	code	0	game	unreferenced	raw	Global	FUN_0059b820	
 0059b840	35	code	0	game	unreferenced	raw	Global	FUN_0059b840	
-0059b890	105	code	0	game		named	ClientState	method_0059b890	
-0059b900	58	code	0	game		named	ClientState	method_0059b900	
+0059b890	105	code	0	game		named	ClientState	GetHeadPaletteName	
+0059b900	58	code	0	game		named	ClientState	GetBodyPaletteName	
 0059b940	115	code	0	game		named	ClientState	IsValueInRangeForKind	
-0059ba10	101	code	0	game		named	ClientState	method_0059ba10	
-0059ba80	101	code	0	game		named	ClientState	method_0059ba80	
+0059ba10	101	code	0	game		named	ClientState	GetShieldActName	
+0059ba80	101	code	0	game		named	ClientState	GetShieldSpriteName	
 0059baf0	5	code	0	game		named	ClientState	method_0059baf0	
 0059bb00	134	code	0	game		named	ClientState	method_0059bb00	
 0059bb90	268	code	0	game		named	ClientState	method_0059bb90	
