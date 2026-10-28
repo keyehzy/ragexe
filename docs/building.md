@@ -89,6 +89,13 @@ on macOS, also pass `--extra-arg=-isysroot$(xcrun --show-sdk-path)`:
 git ls-files 'src/*.cpp' 'tests/unit/*.cpp' 'fuzz/*.cpp' | xargs .venv/bin/clang-tidy -p build/dev --quiet
 ```
 
+The renderer includes a header the build generates from its shaders. In a fresh build
+directory, make it first:
+
+```bash
+cmake --build --preset dev --target src/shaders/scene_shaders.h
+```
+
 CI runs both: the format check as its own job, and clang-tidy in the Linux job after
 configuring.
 
