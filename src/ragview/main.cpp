@@ -20,7 +20,7 @@
 // stands, a step each 16 ms world step and again when it ends; a screenshot shows it after
 // --effect-step steps (15 by default). --effect-id plays what the client plays for that
 // effect id: the .str its table names (the lighter one with --minimal-effects) and the
-// primitives the id adds, of which the hit spark (id 1) is ported.
+// primitives the id adds, ported for ids 0 to 2.
 // --screenshot renders one frame offscreen to a PNG and exits; otherwise a window opens,
 // and Escape or --frames N closes it.
 
@@ -82,6 +82,7 @@ constexpr std::uint32_t kActorTextureIdBase = 0x40000;
 constexpr std::uint32_t kShadowTextureIdBase = 0x48000;
 constexpr std::uint32_t kEffectTextureIdBase = 0x50000;
 constexpr std::uint32_t kPrimTextureIdBase = 0x58000;
+constexpr std::uint32_t kParticleTextureIdBase = 0x5c000;
 constexpr std::uint32_t kSpritePage = 256;  // the sprite texture cache's pages (0040e130)
 
 struct Options {
@@ -529,6 +530,11 @@ int main(int argc, char** argv) {
   // --effect-id: the world's effect objects for the primitives, and the .str the id names.
   render::EffectWorld prim_world;
   const bool has_prims = o.effect_id >= 0;
+  ActorSprite particle;
+  if (has_prims &&
+      LoadActorSprite(files, render::kParticleSprite, *device, kParticleTextureIdBase, particle))
+    prim_world.SetParticle({&particle.act, &particle.sprite});
+  prim_world.SetMinimal(o.minimal_effects);
   if (has_prims && o.effect.empty()) {
     const std::string name =
         render::EffectStrName(o.effect_id, o.minimal_effects, prim_world.rand());
@@ -649,28 +655,29 @@ int main(int argc, char** argv) {
         vertices.push_back({sv.x, sv.y, sv.z, sv.rhw, sv.diffuse, render::VertexFog(sv.rhw, fog),
                             sv.u, sv.v, 0.0f, 0.0f});
     }
-    // The actor's vf03: its shadow, then its body, each quad through SceneRenderer 0040e980.
+    // A sprite quad through SceneRenderer 0040e980.
+    const auto add = [&](const render::SpriteQuad& q, const ActorSprite& from) {
+      const bool is32 = q.image_type != 0;
+      const auto i = static_cast<std::size_t>(q.image);
+      if (i >= (is32 ? from.ids32.size() : from.ids8.size())) return;
+      const auto v = render::SpriteQuadVertices(q, is32 ? from.rects32[i] : from.rects8[i]);
+      render::ScenePrimitive s;
+      s.id = static_cast<std::uint32_t>(spans.size());
+      s.texture = is32 ? from.ids32[i] : from.ids8[i];
+      s.type = 5;
+      s.vertex_count = 4;
+      s.rhw0 = v[0].rhw;
+      s.rhw1 = v[1].rhw;
+      lists.Add(s, q.flags);
+      spans.emplace_back(static_cast<std::uint32_t>(vertices.size()), 4);
+      for (const render::ScreenVertex& sv : v)
+        vertices.push_back({sv.x, sv.y, sv.z, sv.rhw, sv.diffuse, render::VertexFog(sv.rhw, fog),
+                            sv.u, sv.v, 0.0f, 0.0f});
+    };
+    // The actor's vf03: its shadow, then its body.
     if (has_actor) {
       actor_object.position = player;
       render::UpdateActorFrame(actor_object, actor.act, camera.yaw, now);
-      const auto add = [&](const render::SpriteQuad& q, const ActorSprite& from) {
-        const bool is32 = q.image_type != 0;
-        const auto i = static_cast<std::size_t>(q.image);
-        if (i >= (is32 ? from.ids32.size() : from.ids8.size())) return;
-        const auto v = render::SpriteQuadVertices(q, is32 ? from.rects32[i] : from.rects8[i]);
-        render::ScenePrimitive s;
-        s.id = static_cast<std::uint32_t>(spans.size());
-        s.texture = is32 ? from.ids32[i] : from.ids8[i];
-        s.type = 5;
-        s.vertex_count = 4;
-        s.rhw0 = v[0].rhw;
-        s.rhw1 = v[1].rhw;
-        lists.Add(s, q.flags);
-        spans.emplace_back(static_cast<std::uint32_t>(vertices.size()), 4);
-        for (const render::ScreenVertex& sv : v)
-          vertices.push_back({sv.x, sv.y, sv.z, sv.rhw, sv.diffuse, render::VertexFog(sv.rhw, fog),
-                              sv.u, sv.v, 0.0f, 0.0f});
-      };
       const float ground_height = res::AttrHeight(attr, player[0], player[2]);
       if (const auto q =
               render::DrawActorShadow(actor_object, ground_height, actor_object.scale, shadow.act,
@@ -701,11 +708,19 @@ int main(int argc, char** argv) {
       effect_started = true;
     }
     if (has_prims) {
+      render::PrimScene scene;
+      scene.view_yaw = camera.yaw;
+      scene.attr = &attr;
+      scene.view = camera.view;
+      scene.projection = projection;
+      scene.slope_down = sprite_scales.slope_down;
       for (std::uint32_t i = 0; i < std::min<std::uint32_t>(steps, 8); ++i) {
-        if (prim_world.empty()) prim_world.Launch(o.effect_id, player);
-        prim_world.Step(camera.view, projection);
+        if (prim_world.empty()) prim_world.Launch(o.effect_id, {player, actor_object.facing});
+        prim_world.Step(scene);
       }
-      for (const render::PrimTriangle& t : prim_world.Draw()) {
+      const render::PrimDrawing drawing = prim_world.Draw(scene);
+      for (const render::SpriteQuad& q : drawing.quads) add(q, particle);
+      for (const render::PrimTriangle& t : drawing.triangles) {
         render::ScenePrimitive s;
         s.id = static_cast<std::uint32_t>(spans.size());
         s.texture = prim_texture(t.texture);

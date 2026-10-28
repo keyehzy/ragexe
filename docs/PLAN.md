@@ -2329,9 +2329,22 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **`ragview --effect-id ID [--minimal-effects]`.**
   - **Not ported:** the other 65 primitive ids and the other effects' processing.
 
+- [x] Particles and cylinders (`docs/render/effect-prim.md#particles-and-cylinders`):
+  - **`CEffectPrim` ids 5, 6 and 0xd:** particles flying along their matrix with every flag
+    of id 5 (drift, wander, straight steps, ending near a target, facing the camera), thrown
+    particles bouncing off the ground, and cylinders of two rings.
+  - **The history:** `ResetHistory`, `ShiftHistory` and `RenderActFrameHistory`, a sprite's
+    frame drawn at each of a particle's last places.
+  - **Effect ids 0 and 2:** `ProcessRingBurst` (`ring_blue.tga` and four particles) and
+    `ProcessHit3` (two lens cylinders and eight particles).
+  - **`DegreesToRadians`** and its table (`006252fc`).
+  - **Checks:** 30 synthetic shapes and five runs of the two effects; 360,539 more values
+    match (459,496 in `prim_test`).
+  - **`ragview --effect-id 0`** and **`2`** draw them with the `particle1` sprite.
+
 ### Next actions
-1. M4, the renderer: more of `CEffectPrim`, starting with what effect id 0 adds (the ring
-   cylinder, id 0xd, `effect\ring_blue.tga`, and the `particle1` sprites of ids 5 and 6
-   drawn through their history), then the effects common in play.
+1. M4, the renderer: more of `CEffectPrim` and the effects that use it, starting with the
+   ones common in play: the ring walls (`RenderRingWalls`, twelve ids) and the effects
+   that add them.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

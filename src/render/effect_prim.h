@@ -8,9 +8,16 @@
 #include <vector>
 
 #include "core/crt_rand.h"
+#include "render/actor.h"
 #include "render/camera.h"
 #include "render/ground.h"
 #include "render/matrix.h"
+
+namespace ragexe::res {
+struct Act;
+struct AttrMap;
+struct Sprite;
+}  // namespace ragexe::res
 
 namespace ragexe::render {
 
@@ -22,6 +29,44 @@ struct RagEffect {
   std::int32_t duration = 0;  // +0xc0, EffectDuration
   float screen_x = 0.0f;      // +0xdc, where its processing last put the actor on screen
   float screen_y = 0.0f;      // +0xe0
+  Vec3 target{};              // +0xe8, InitEffect's last three arguments
+};
+
+// The actor an effect plays on (+0xa0): where it stands and which way it faces (+0x38,
+// CRenderObject's, in degrees).
+struct EffectActor {
+  Vec3 position{};
+  float facing = 0.0f;
+};
+
+// A sprite and its actions, as SetSprite and SetAct load them.
+struct PrimSprite {
+  const res::Act* act = nullptr;
+  const res::Sprite* sprite = nullptr;
+};
+
+// What primitives read of the world: the camera's yaw (CView+0x20) and the ground for
+// their steps, and for their drawing vf03's view, the projection and g_spriteSlopeDown
+// (0060564c).
+struct PrimScene {
+  float view_yaw = 0.0f;
+  const res::AttrMap* attr = nullptr;
+  Matrix view{};
+  Projection projection{};
+  float slope_down = 0.0f;
+};
+
+// One of the fifty 0x8c-byte records from +0x358 a primitive keeps of where it has been.
+struct PrimHistory {
+  Vec3 position{};
+  std::array<float, 12> points{};             // +0x328
+  float distance = 0.0f;                      // +0x278
+  float scale = 0.0f;                         // +0x248
+  float heading = 0.0f;                       // +0x23c
+  Matrix matrix{};                            // +0xc4
+  std::int32_t red = 0, green = 0, blue = 0;  // set by ResetHistory only
+  float alpha = 0.0f;
+  std::uint32_t color = 0;  // the alpha, red, green and blue packed
 };
 
 // What AddPrimitive gets from a primitive: a screen-space triangle, flags 1 (translucent,
@@ -32,15 +77,23 @@ struct PrimTriangle {
 };
 
 // CEffectPrim (0x15990 bytes): one particle or shape an effect adds to the world, stepped
-// by vf01 and drawn by vf03, both switching on the primitive id. The fields are those ids 0
-// to 2 use, at their offsets; the defaults are the constructor's (0057cfa0).
+// by vf01 and drawn by vf03, both switching on the primitive id. The fields are those the
+// ported ids use, at their offsets; the defaults are the constructor's (0057cfa0).
 struct EffectPrim {
-  // +0x13c
-  static constexpr std::uint32_t kAnchored = 0x1;    // the ray grows up from its base
-  static constexpr std::uint32_t kStopGrowth = 0x2;  // sizes held after +0x134 frames
-  static constexpr std::uint32_t kAbsolute = 0x4;    // at its offset, not the owner's point
-  static constexpr std::uint32_t kWander = 0x8;      // heading jittered every +0x134 frames
-  static constexpr std::uint32_t kBounce = 0x80;     // alpha turns back at its limits
+  // +0x13c, whose bits mean different things to different ids.
+  static constexpr std::uint32_t kAnchored = 0x1;      // 0 to 2: the ray grows up from its base
+  static constexpr std::uint32_t kStopGrowth = 0x2;    // 0 to 2: sizes held after +0x134 frames
+  static constexpr std::uint32_t kAbsolute = 0x4;      // 0 to 2: at its offset, not the owner's
+  static constexpr std::uint32_t kWander = 0x8;        // 0 to 2 and 5: the heading jittered
+  static constexpr std::uint32_t kBounce = 0x80;       // all: alpha turns back at its limits
+  static constexpr std::uint32_t kAlwaysMove = 0x1;    // 5: moving before age +0x14c too
+  static constexpr std::uint32_t kDrift = 0x2;         // 5: a sideways drift, changed now and then
+  static constexpr std::uint32_t kWanderWide = 0x4;    // 5: new speed and heading now and then
+  static constexpr std::uint32_t kFaceCamera = 0x20;   // 5: the angle follows the camera
+  static constexpr std::uint32_t kEndNear = 0x100;     // 5: ends within 3 of the target
+  static constexpr std::uint32_t kItemColors = 0x200;  // 5 and 6: the frame's own colours
+  static constexpr std::uint32_t kStraight = 0x400;    // 5: its own step and step speed
+  static constexpr std::uint32_t kNarrowing = 0x1;     // 0xd: the top closes from fade_at
 
   const RagEffect* owner = nullptr;   // +0xa4, cleared when the effect ends (vf02 0x18)
   std::int32_t id = 0;                // +0x130
@@ -104,18 +157,63 @@ struct EffectPrim {
   std::int32_t red = 0xff, green = 0xff, blue = 0xff;           // +0x19c
   std::int32_t red_speed = 0, green_speed = 0, blue_speed = 0;  // +0x1a8
   std::uint32_t color = 0xffffffff;  // +0x124, from the alpha and the three
+
+  // Ids 5, 6 and 0xd move through space along their matrix (+0xc4, from the identity).
+  Matrix matrix = kIdentity;
+  float pitch = 0.0f;                           // +0x240, degrees
+  float pitch_speed = 0.0f;                     // +0x264
+  float pitch_rate = 0.0f;                      // +0x270
+  float facing = 0.0f;                          // +0x38, CRenderObject's
+  Vec3 step{};                                  // +0x2e0, the last frame's move
+  Vec3 step_speed{};                            // +0x31c, for kStraight
+  std::array<std::uint32_t, 6> step_changes{};  // +0x1d4: step and step_speed at change_at
+  Vec3 drift{};                                 // +0x310, for kDrift (only x moves)
+  std::int32_t move_after = -1;                 // +0x14c
+  float fall_speed = 0.0f;                      // +0x21c, id 6's along y (down)
+  float fall_rate = 0.0f;                       // +0x220
+  bool coin_sound = false;                      // +0x168: id 6 rings EF_Coin%d on bouncing
+
+  // Ids 5 and 6 draw a sprite's frame at each of their last positions.
+  PrimSprite sprite;               // +0x98, +0x9c
+  std::int32_t action = 0;         // +0x24
+  std::uint32_t quad_flags = 1;    // +0x128, for AddSpriteQuad
+  float scale = 1.0f;              // +0x248
+  float scale_speed = 0.0f;        // +0x24c
+  float scale_rate = 0.0f;         // +0x250
+  std::array<float, 12> points{};  // +0x328, kept in the history
+  std::int32_t history_count = 1;  // +0x154
+  std::array<PrimHistory, 50> history{};
+
+  // Id 0xd is a cylinder: a ring at the bottom and one height up.
+  float bottom_radius = 0.0f;        // +0x224
+  float top_radius = 0.0f;           // +0x228
+  float bottom_radius_speed = 0.0f;  // +0x22c
+  float top_radius_speed = 0.0f;     // +0x230
+  float bottom_radius_rate = 0.0f;   // +0x234
+  float top_radius_rate = 0.0f;      // +0x238
+  float max_height = 100.0f;         // +0x29c
+  float sweep = 36.0f;               // +0x1b8, degrees per side
+};
+
+// What vf03 hands the renderer.
+struct PrimDrawing {
+  std::vector<PrimTriangle> triangles;  // AddPrimitive, flags 1
+  std::vector<SpriteQuad> quads;        // AddSpriteQuad, the sprite's palette
 };
 
 // The constructor (0057cfa0) and InitPrimitive (00586380): owner, id, the start and the
 // position at the owner's position, the offset added to its travel.
 EffectPrim MakePrimitive(const RagEffect* owner, std::int32_t id, const Vec3& offset);
 
-// vf01 (0057dce0): false once the owner is gone, when the id's update ends it, or once its
-// age passes its life. Ids other than 0 to 2 are not ported and end at once.
-bool UpdatePrimitive(EffectPrim& p, core::CrtRand& rand);
+// ResetHistory (0057d4b0): every record of the history as the primitive is now.
+void ResetHistory(EffectPrim& p);
 
-// vf03 (00586070): the triangles of a visible primitive (ids 0 to 2).
-void DrawPrimitive(const EffectPrim& p, std::vector<PrimTriangle>& out);
+// vf01 (0057dce0): false once the owner is gone, when the id's update ends it, or once its
+// age passes its life. Ids other than 0 to 2, 5, 6 and 0xd are not ported and end at once.
+bool UpdatePrimitive(EffectPrim& p, core::CrtRand& rand, const PrimScene& scene);
+
+// vf03 (00586070): what a visible primitive draws.
+void DrawPrimitive(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out);
 
 // CRagEffect::ProcessHitSpark (00550c60), effect id 1, each world step: the actor's point
 // on screen, and on the first frame the hit sound and eight rays of lens1.tga and
@@ -125,6 +223,21 @@ void ProcessHitSpark(RagEffect& effect, const Vec3& actor, const Matrix& view,
                      const Projection& projection, core::CrtRand& rand, bool blue,
                      std::vector<EffectPrim>& added);
 
+// The particle sprite effect ids 0 and 2 load (이펙트\particle1, 00618b98 and 00618b80).
+inline constexpr const char* kParticleSprite = "\300\314\306\321\306\256\\particle1";
+
+// CRagEffect::ProcessRingBurst (005505a0), effect id 0, on its first frame: a cylinder of
+// ring_blue.tga rising from the actor, and unless minimal effects are on, two particles
+// flying out ahead of the way the actor faces and two thrown up behind it.
+void ProcessRingBurst(RagEffect& effect, const EffectActor& actor, bool minimal,
+                      const PrimSprite& particle, core::CrtRand& rand,
+                      std::vector<EffectPrim>& added);
+
+// CRagEffect::ProcessHit3 (005510b0), effect id 2, on its first frame: the sound
+// effect\EF_hit3.wav, two cylinders of lens2.tga and eight particles flying out ahead.
+void ProcessHit3(RagEffect& effect, const EffectActor& actor, const PrimSprite& particle,
+                 core::CrtRand& rand, std::vector<EffectPrim>& added);
+
 // The world's object list as effects use it (CWorld::UpdateGameObjects, 004c4a10): each
 // world step every object's vf01 in order, a primitive an effect adds joining the end and
 // running the same step; an object whose vf01 answers false is deleted, and an effect's
@@ -133,19 +246,23 @@ class EffectWorld {
  public:
   explicit EffectWorld(std::uint32_t seed = 1) : rand_(seed) {}
 
+  // The particle sprite, and whether minimal effects are on (g_ClientState+0x1840).
+  void SetParticle(const PrimSprite& particle) { particle_ = particle; }
+  void SetMinimal(bool minimal) { minimal_ = minimal; }
+
   // CAbleToMakeEffect::LaunchEffect (00501e10) and InitEffect: effect id at the actor, its
   // duration from the table, appended to the list.
-  RagEffect& Launch(std::int32_t id, const Vec3& actor);
+  RagEffect& Launch(std::int32_t id, const EffectActor& actor);
 
-  void Step(const Matrix& view, const Projection& projection);
-  std::vector<PrimTriangle> Draw() const;
+  void Step(const PrimScene& scene);
+  PrimDrawing Draw(const PrimScene& scene) const;
 
   bool empty() const { return objects_.empty(); }
   core::CrtRand& rand() { return rand_; }
 
   struct Object {
     std::unique_ptr<RagEffect> effect;
-    Vec3 actor{};
+    EffectActor actor;
     std::unique_ptr<EffectPrim> prim;
   };
   const std::list<Object>& objects() const { return objects_; }
@@ -153,6 +270,8 @@ class EffectWorld {
  private:
   std::list<Object> objects_;
   core::CrtRand rand_;
+  PrimSprite particle_;
+  bool minimal_ = false;
 };
 
 }  // namespace ragexe::render

@@ -25,13 +25,16 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from actor_vectors import GET_GAME_MODE, Oracle, bits, f32, hexs  # noqa: E402
+from actor_vectors import (ADD_SPRITE_QUAD, GET_FRAME_COUNT, GET_GAME_MODE, SCALES,  # noqa: E402
+                           Oracle, bits, f32, hexs)
 
 RAG_EFFECT_CTOR, INIT_EFFECT, RAG_EFFECT_VF01 = 0x54D220, 0x54EEE0, 0x54D4C0
 LOAD_STR_FILE = 0x54FAE0
 PRIM_CTOR, INIT_PRIMITIVE, PRIM_VF01, PRIM_VF02, PRIM_VF03 = 0x57CFA0, 0x586380, 0x57DCE0, 0x586050, 0x586070
 ADD_PRIMITIVE, GET_TEXTURE, PLAY_WAVE = 0x412550, 0x40CC00, 0x4352A0
 SET_SPRITE, SET_ACT, JOB_NAMES = 0x5018A0, 0x501910, 0x686DC8
+RESET_HISTORY = 0x57D4B0
+SLOPE_DOWN = SCALES["slope_down"]
 SRAND = 0x5C2546
 MINIMAL_EFFECTS = 0x687EB0
 RAG_EFFECT_SIZE, PRIM_SIZE = 0x17BE8, 0x15990
@@ -44,6 +47,21 @@ INT_FIELDS = [0x28, 0x124, 0x134, 0x138, 0x13C, 0x140, 0x19C, 0x1A0, 0x1A4, 0xC0
 FLOAT_FIELDS = [0x4, 0x8, 0x1EC, 0x1F0, 0x204, 0x23C, 0x244, 0x254, 0x258, 0x260, 0x268,
                 0x278, 0x27C, 0x284, 0x288, 0x290, 0x294, 0x2EC, 0x2F0, 0x2F8, 0x2FC]
 STATE = INT_FIELDS + FLOAT_FIELDS
+# Those of ids 5, 6 and 0xd, then the matrix +0xc4 and the history records (0x8c each).
+STATE3 = [0x4, 0x8, 0xC, 0x28, 0x124, 0x134, 0x13C, 0x140, 0x1EC, 0x21C, 0x224, 0x228, 0x22C,
+          0x230, 0x23C, 0x240, 0x244, 0x248, 0x24C, 0x254, 0x258, 0x260, 0x264, 0x290, 0x294,
+          0x2E0, 0x2E4, 0x2E8, 0x2EC, 0x2F0, 0x2F4, 0x2F8, 0x2FC, 0x300, 0x310, 0x318, 0xC0]
+# The particle stand-in: images {width, height, halved x, halved y}, 8-bit then 32-bit, and
+# two actions of frames of items {x, y, image, flags, r, g, b, a, scale x, scale y, angle, type}.
+IMAGES8 = [(12, 9, 0, 0), (7, 15, 1, 0), (20, 6, 0, 1)]
+IMAGES32 = [(5, 5, 0, 0), (9, 4, 1, 1)]
+ACTIONS = [
+    [[(-6, -5, 0, 0, 255, 255, 255, 255, 1.0, 1.0, 0, 0)],
+     [(-4, -9, 1, 1, 200, 100, 50, 180, 1.5, 0.75, 30, 0), (3, 2, 0, 0, 255, 0, 255, 255, 1.0, 1.0, 0, 1)],
+     [(-10, -3, 2, 0, 255, 255, 255, 128, 0.5, 2.0, -45, 0)]],
+    [[(-2, -2, 1, 1, 10, 20, 30, 40, 1.25, 1.25, 90, 1)],
+     [(-5, -5, 0, 0, 255, 255, 255, 255, 2.0, 2.0, 0, 0)]],
+]
 
 
 class PrimOracle(Oracle):
@@ -74,8 +92,24 @@ class PrimOracle(Oracle):
         for i in range(0x100):
             emu.write_u32(names + 4 * i, emu.scratch(b"x\0"))
         emu.write_u32(JOB_NAMES, names)
-        emu.replace_thiscall(SET_SPRITE, 1, lambda this, name: 0)
-        emu.replace_thiscall(SET_ACT, 1, lambda this, name: 0)
+        self.spr = self.sprite(IMAGES8, IMAGES32)
+        self.act_res = self.act(ACTIONS)
+        self.records = {}
+        for t, images in ((0, IMAGES8), (1, IMAGES32)):
+            table = emu.read_u32(self.spr + 0x514 + 0x10 * t)
+            for i in range(len(images)):
+                self.records[emu.read_u32(table + 4 * i)] = (t, i)
+        emu.replace_thiscall(SET_SPRITE, 1, lambda this, name: emu.write_u32(this + 0x98, self.spr) or 0)
+        emu.replace_thiscall(SET_ACT, 1, lambda this, name: emu.write_u32(this + 0x9C, self.act_res) or 0)
+        emu.replace_thiscall(GET_FRAME_COUNT, 1, lambda this, a: len(ACTIONS[a]) if len(ACTIONS[a]) >= 2 else 1)
+        self.quads = []
+
+        def quad(this, desc, palette, flags):
+            d = list(struct.unpack("<12I", emu.mem_read(desc, 48)))
+            self.quads.append((d[:8], *self.records[d[11]], flags))
+            return 0
+
+        emu.replace_thiscall(ADD_SPRITE_QUAD, 3, quad)
         emu.replace_thiscall(LOAD_STR_FILE, 1, lambda this, name: self.loaded.append(emu.read_cstr(name, 64, encoding="latin-1")) or 1)
 
     def reset_world(self):
@@ -114,8 +148,31 @@ class PrimOracle(Oracle):
 
     def draw(self, prim):
         self.added.clear()
-        self.emu.call(PRIM_VF03, 0, this=prim)
+        self.quads.clear()
+        self.emu.call(PRIM_VF03, self.view + 0x94, this=prim)
         return list(self.added)
+
+    def state3(self, prim):
+        emu = self.emu
+        n = emu.read_u32(prim + 0x154)
+        return ([emu.read_u32(prim + f) for f in STATE3] + list(struct.unpack("<12I", emu.mem_read(prim + 0xC4, 48))) +
+                list(struct.unpack(f"<{35 * n}I", emu.mem_read(prim + 0x358, 0x8C * n))))
+
+    def scene(self, rng):
+        at = (rng.uniform(-30, 30), rng.uniform(-10, 0), rng.uniform(-30, 30))
+        self.build_view(f32(rng.choice([-45.0, -35.0, -55.0])), f32(rng.uniform(0, 360)),
+                        f32(rng.choice([300.0, 250.0, 150.0])), at)
+        emu = self.emu
+        return (list(struct.unpack("<12I", emu.mem_read(self.view + 0x94, 48))),
+                emu.read_u32(self.view + 0x20), emu.read_u32(SLOPE_DOWN))
+
+
+def quads_cpp(quads):
+    return "{" + ", ".join(f"{{{{{hexs(d)}}}, {t}, {i}, 0x{fl:x}}}" for d, t, i, fl in quads) + "}" if quads else "{{}}"
+
+
+def scene_cpp(view, yaw, slope):
+    return f"{{{{{hexs(view)}}}, 0x{yaw:08x}, 0x{slope:08x}}}"
 
 
 def triangles_cpp(added):
@@ -318,9 +375,213 @@ def hit_sparks(o, rng, lines):
     lines.append("static const SparkVector kSparks[] = {")
     lines += rows
     lines.append("};")
-    names = sorted(o.textures.items(), key=lambda kv: kv[1])
-    lines.append("static const TextureVector kTextures[] = {" +
-                 ", ".join(f'{{0x{v:x}, "{k.replace(chr(92), chr(92) * 2)}"}}' for k, v in names) + "};")
+
+
+def random_prim3(rng, o, owner, pid):
+    """A primitive of id 5, 6 or 0xd with the fields its update and drawing read set at
+    random; returns it and the fields set {offset: dword, or (count, dwords)}."""
+    emu = o.emu
+    prim = emu.alloc(PRIM_SIZE)
+    emu.call(PRIM_CTOR, this=prim)
+    offset = [f32(rng.uniform(-20, 20)) for _ in range(3)]
+    emu.call(INIT_PRIMITIVE, owner, pid, *(bits(v) for v in offset), this=prim)
+    sets = {}
+
+    def w(f, v):
+        emu.write_u32(prim + f, v & 0xFFFFFFFF)
+        sets[f] = v & 0xFFFFFFFF
+
+    def wf(f, v):
+        w(f, bits(f32(v)))
+
+    life = rng.randrange(8, 40)
+    w(0x144, life)
+    w(0x148, rng.choice([1, 2, 3, 4]))
+    w(0x150, rng.choice([-1, 0, rng.randrange(0, life)]))
+    w(0x1B4, rng.choice([0, 1, 1]))
+    w(0x19C, rng.randrange(0, 256))
+    w(0x1A0, rng.randrange(0, 256))
+    w(0x1A4, rng.randrange(0, 256))
+    wf(0x254, rng.uniform(60, 254))
+    wf(0x258, rng.uniform(-15, 15))
+    for f in (0x1EC, 0x1F0, 0x23C, 0x240, 0x244, 0x268):
+        wf(f, rng.uniform(-3, 3) if f in (0x1EC, 0x1F0, 0x268) else rng.uniform(-200, 200))
+    matrix = [rng.uniform(-1, 1) for _ in range(9)] + [rng.uniform(-0.5, 0.5) for _ in range(3)]
+    for i, v in enumerate(matrix):
+        wf(0xC4 + 4 * i, v)
+    if pid in (5, 6):
+        flags = 0
+        bitset = (1, 2, 4, 8, 0x20, 0x100, 0x200, 0x400, 0x80) if pid == 5 else (0x200, 0x80)
+        for bit in bitset:
+            if rng.random() < 0.3:
+                flags |= bit
+        w(0x13C, flags)
+        w(0x134, rng.randrange(1, 9))
+        w(0x14C, rng.choice([-1, -1, rng.randrange(0, 6)]))
+        w(0x160, rng.choice([-1, rng.randrange(0, 6)]))
+        for f in range(0x1D4, 0x1EC, 4):
+            wf(f, rng.uniform(-1.5, 1.5))
+        wf(0x248, rng.uniform(0.3, 2.0))
+        wf(0x24C, rng.uniform(-0.05, 0.05))
+        wf(0x250, rng.uniform(-0.01, 0.01))
+        wf(0x38, rng.uniform(0, 360))
+        w(0x24, rng.randrange(0, len(ACTIONS)))
+        w(0x28, rng.randrange(0, len(ACTIONS[emu.read_u32(prim + 0x24)])))
+        w(0x128, rng.choice([1, 1, 0x101]))
+        w(0x168, rng.choice([0, 1]))
+        wf(0x21C, rng.uniform(-3, 1))
+        wf(0x220, rng.uniform(0.02, 0.4))
+        w(0x154, rng.randrange(1, 7))
+        emu.write_u32(prim + 0x98, o.spr)
+        emu.write_u32(prim + 0x9C, o.act_res)
+    else:
+        # vf01 ignores whether a cylinder's images ran out, so one that does not loop would
+        # read past its textures.
+        w(0x1B4, 1)
+        w(0x13C, rng.choice([0, 1, 1, 0x80]))
+        frames = rng.randrange(1, 4)
+        w(0x164, frames)
+        textures = emu.alloc(4 * frames)
+        for i in range(frames):
+            emu.write_u32(textures + 4 * i, TEXTURE_BASE + 0x100 + i)
+        emu.write_u32(prim + 0xA8, textures)
+        for f in (0x224, 0x228, 0x290):
+            wf(f, rng.uniform(1, 25))
+        for f in (0x22C, 0x230, 0x294, 0x260, 0x264):
+            wf(f, rng.uniform(-1.5, 1.5))
+        for f in (0x234, 0x238, 0x298, 0x26C, 0x270):
+            wf(f, rng.uniform(-0.1, 0.1))
+        wf(0x29C, rng.choice([100.0, 30.0, 12.0]))
+        wf(0x1B8, rng.choice([36.0, 30.0, 45.0, 90.0, 22.5]))
+    emu.call(RESET_HISTORY, this=prim)
+    return prim, offset, sets
+
+
+def particle_cpp(lines):
+    lines.append("// The particle stand-in's images {width, height, halved x, halved y} and items")
+    lines.append("// {action, frame, x, y, image, flags, r, g, b, a, scale x, scale y, angle, type}.")
+    for name, images in (("kImages8", IMAGES8), ("kImages32", IMAGES32)):
+        lines.append(f"static const ImageVector {name}[] = {{" + ", ".join(
+            f"{{{w}, {h}, {hx}, {hy}}}" for w, h, hx, hy in images) + "};")
+    items = []
+    for a, frames in enumerate(ACTIONS):
+        for f, its in enumerate(frames):
+            for x, y, image, fl, r, g, b, al, sx, sy, angle, t in its:
+                items.append(f"{{{a}, {f}, {x}, {y}, {image}, {fl}, {r}, {g}, {b}, {al}, 0x{bits(sx):08x}, "
+                             f"0x{bits(sy):08x}, {angle}, {t}}}")
+    lines.append("static const ItemVector kItems[] = {" + ", ".join(items) + "};")
+    lines.append(f"static const int kActionFrames[] = {{{', '.join(str(len(f)) for f in ACTIONS)}}};")
+
+
+def synthetic3(o, rng, lines):
+    emu = o.emu
+    particle_cpp(lines)
+    actor = emu.scratch(size=0x100)
+    rows = []
+    for n in range(30):
+        pid = (5, 6, 0xD)[n % 3]
+        mark = emu.heap_mark()
+        effect = o.rag_effect(actor)
+        pos = [f32(rng.uniform(-30, 30)), f32(rng.uniform(-8, 0)), f32(rng.uniform(-30, 30))]
+        emu.mem_write(effect + 4, struct.pack("<3f", *pos))
+        target = [f32(rng.uniform(-30, 30)), 0.0, f32(rng.uniform(-30, 30))]
+        emu.mem_write(effect + 0xE8, struct.pack("<3f", *target))
+        duration = rng.choice([12, 40, 300])
+        emu.write_u32(effect + 0xC0, duration)
+        emu.write_u32(effect + 0xBC, 0)
+        prim, offset, sets = random_prim3(rng, o, effect, pid)
+        emu.call(SRAND, 700 + n)
+        view, yaw, slope = o.scene(rng)
+        name = f"kShape{n}"
+        lines.append(f"static const FieldVector {name}Fields[] = {{" + ", ".join(
+            f"{{0x{f:x}, 0x{v:08x}, {{}}}}" for f, v in sorted(sets.items())) + "};")
+        frames = []
+        for frame in range(40):
+            more = emu.call(PRIM_VF01, this=prim).eax & 0xFF
+            state = o.state3(prim)
+            added = o.draw(prim) if more else []
+            quads = list(o.quads) if more else []
+            lines.append(f"static const std::uint32_t {name}Frame{frame}State[] = {{{hexs(state)}}};")
+            lines.append(f"static const TriangleVector {name}Frame{frame}Triangles[] = {triangles_cpp(added)};")
+            lines.append(f"static const QuadVector {name}Frame{frame}Quads[] = {quads_cpp(quads)};")
+            frames.append(f"    {{{more}, {name}Frame{frame}State, {len(state)}, {name}Frame{frame}Triangles, "
+                          f"{len(added)}, {name}Frame{frame}Quads, {len(quads)}}},")
+            emu.write_u32(effect + 0xBC, emu.read_u32(effect + 0xBC) + 1)
+            if not more:
+                break
+        lines.append(f"static const ShapeFrameVector {name}Frames[] = {{")
+        lines += frames
+        lines.append("};")
+        rows.append(f"    {{{pid}, {{{hexs(map(bits, pos))}}}, {{{hexs(map(bits, target))}}}, "
+                    f"{{{hexs(map(bits, offset))}}}, {duration}, {scene_cpp(view, yaw, slope)}, {name}Fields, "
+                    f"{len(sets)}, {name}Frames, {len(frames)}}},")
+        emu.heap_release(mark)
+    lines.append("static const ShapeVector kShapes[] = {")
+    lines += rows
+    lines.append("};")
+
+
+def bursts(o, rng, lines):
+    """Effect ids 0 (both ways of minimal effects) and 2 through the world list."""
+    emu = o.emu
+    rows = []
+    for run, (eid, minimal) in enumerate([(0, 0), (0, 1), (2, 0), (0, 0), (2, 0)]):
+        seed = 2000 + run
+        o.reset_world()
+        actor = emu.scratch(size=0x100)
+        pos = (f32(rng.uniform(-30, 30)), f32(rng.uniform(-10, 0)), f32(rng.uniform(-30, 30)))
+        facing = f32(rng.choice([0.0, 90.0, 200.0, 315.0, rng.uniform(0, 360)]))
+        emu.mem_write(actor + 4, struct.pack("<3f", *pos))
+        emu.mem_write(actor + 0x38, struct.pack("<f", facing))
+        emu.write_u32(MINIMAL_EFFECTS, minimal)
+        emu.call(SRAND, seed)
+        effect = o.rag_effect(actor)
+        emu.call(INIT_EFFECT, actor, eid, 0, 0, 0, this=effect)
+        duration = emu.read_u32(effect + 0xC0)
+        alive, prims, frames, scenes = True, [], [], []
+        name = f"kBurst{run}"
+        for frame in range(70):
+            if frame % 15 == 0:
+                scenes.append((frame, *o.scene(rng)))
+            more = 0
+            if alive:
+                more = emu.call(RAG_EFFECT_VF01, this=effect).eax & 0xFF
+                if not more:
+                    alive = False
+                    for _, p in o.world_objects():
+                        emu.call(PRIM_VF02, 0, 0x18, 0, 0, 0, this=p)
+            for node, p in o.world_objects():
+                if p not in prims:
+                    prims.append(p)
+                if not emu.call(PRIM_VF01, this=p).eax & 0xFF:
+                    o.unlink(node)
+            states, added, quads = [], [], []
+            for _, p in o.world_objects():
+                state = o.state3(p)
+                lines.append(f"static const std::uint32_t {name}Frame{frame}Prim{len(states)}[] = {{{hexs(state)}}};")
+                states.append(f"{{{prims.index(p)}, {emu.read_u32(p + 0x130)}, {name}Frame{frame}Prim{len(states)}, "
+                              f"{len(state)}}}")
+                added += o.draw(p)
+                quads += o.quads
+            lines.append(f"static const BurstPrimVector {name}Frame{frame}Prims[] = {{{', '.join(states) or '{}'}}};")
+            lines.append(f"static const TriangleVector {name}Frame{frame}Triangles[] = {triangles_cpp(added)};")
+            lines.append(f"static const QuadVector {name}Frame{frame}Quads[] = {quads_cpp(quads)};")
+            frames.append(f"    {{{more}, {name}Frame{frame}Prims, {len(states)}, {name}Frame{frame}Triangles, "
+                          f"{len(added)}, {name}Frame{frame}Quads, {len(quads)}}},")
+            if not alive and not o.world_objects():
+                break
+        emu.write_u32(MINIMAL_EFFECTS, 0)
+        lines.append(f"static const BurstFrameVector {name}Frames[] = {{")
+        lines += frames
+        lines.append("};")
+        lines.append(f"static const SceneVector {name}Scenes[] = {{")
+        lines += [f"    {{{f}, {scene_cpp(v, y, sl)}}}," for f, v, y, sl in scenes]
+        lines.append("};")
+        rows.append(f"    {{{eid}, {minimal}, {seed}, {{{hexs(map(bits, pos))}}}, 0x{bits(facing):08x}, {duration}, "
+                    f"{name}Frames, {len(frames)}, {name}Scenes, {len(scenes)}}},")
+    lines.append("static const BurstVector kBursts[] = {")
+    lines += rows
+    lines.append("};")
 
 
 def main():
@@ -331,6 +592,11 @@ def main():
     table(o, lines)
     synthetic(o, rng, lines)
     hit_sparks(o, rng, lines)
+    synthetic3(o, rng, lines)
+    bursts(o, rng, lines)
+    names = sorted(o.textures.items(), key=lambda kv: kv[1])
+    lines.append("static const TextureVector kTextures[] = {" +
+                 ", ".join(f'{{0x{v:x}, "{k.replace(chr(92), chr(92) * 2)}"}}' for k, v in names) + "};")
     print("\n".join(lines))
 
 

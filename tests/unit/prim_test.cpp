@@ -11,6 +11,9 @@
 #include "render/camera.h"
 #include "render/effect_prim.h"
 #include "render/effect_table.h"
+#include "res/act.h"
+#include "res/gat.h"
+#include "res/sprite.h"
 
 using namespace ragexe::render;
 
@@ -87,10 +90,90 @@ struct TextureVector {
   const char* name;
 };
 
+struct QuadVector {
+  std::uint32_t desc[8];  // top, left, bottom, right, rhw bottom, rhw top, colour, angle
+  int type, image;
+  std::uint32_t flags;
+};
+
+struct SceneData {
+  std::uint32_t view[12];
+  std::uint32_t yaw, slope_down;
+};
+
+struct ShapeFrameVector {
+  int more;
+  const std::uint32_t* state;
+  std::size_t state_count;
+  const TriangleVector* triangles;
+  std::size_t count;
+  const QuadVector* quads;
+  std::size_t quad_count;
+};
+
+struct ShapeVector {
+  int id;
+  std::uint32_t position[3], target[3], offset[3];
+  int duration;
+  SceneData scene;
+  const FieldVector* fields;
+  std::size_t field_count;
+  const ShapeFrameVector* frames;
+  std::size_t frame_count;
+};
+
+struct BurstPrimVector {
+  std::size_t index;
+  int id;
+  const std::uint32_t* state;
+  std::size_t count;
+};
+
+struct BurstFrameVector {
+  int more;
+  const BurstPrimVector* prims;
+  std::size_t prim_count;
+  const TriangleVector* triangles;
+  std::size_t count;
+  const QuadVector* quads;
+  std::size_t quad_count;
+};
+
+struct SceneVector {
+  int frame;
+  SceneData scene;
+};
+
+struct BurstVector {
+  int id, minimal;
+  std::uint32_t seed;
+  std::uint32_t position[3];
+  std::uint32_t facing;
+  int duration;
+  const BurstFrameVector* frames;
+  std::size_t frame_count;
+  const SceneVector* scenes;
+  std::size_t scene_count;
+};
+
+struct ImageVector {
+  std::int16_t width, height;
+  int halved_x, halved_y;
+};
+
+struct ItemVector {
+  int action, frame, x, y, image;
+  std::uint32_t flags;
+  int r, g, b, a;
+  std::uint32_t scale_x, scale_y;
+  int angle, type;
+};
+
 #include "prim_vectors.inc"
 
 constexpr std::uint32_t kSyntheticTextures = 0x7100;  // the script's stand-in pointers
 constexpr std::uint32_t kSyntheticSeed = 500;         // srand before the n-th primitive's frames
+constexpr std::uint32_t kShapeSeed = 700;             // the same for the shapes
 constexpr std::uint32_t kTranslucent = 1;
 
 float F(std::uint32_t bits) { return std::bit_cast<float>(bits); }
@@ -190,7 +273,190 @@ void Apply(const FieldVector& f, EffectPrim& p) {
     case 0xb4: p.speed_keys = i != 0; break;
     case 0xb8: p.alpha_keys = i != 0; break;
     case 0x138: p.key = i; break;
-    default: FAIL("unknown field " << f.field);
+    case 0x240: p.pitch = v; break;
+    case 0x14c: p.move_after = i; break;
+    case 0x248: p.scale = v; break;
+    case 0x24c: p.scale_speed = v; break;
+    case 0x250: p.scale_rate = v; break;
+    case 0x38: p.facing = v; break;
+    case 0x24: p.action = i; break;
+    case 0x28: p.image = i; break;
+    case 0x128: p.quad_flags = f.value; break;
+    case 0x168: p.coin_sound = i == 1; break;
+    case 0x21c: p.fall_speed = v; break;
+    case 0x220: p.fall_rate = v; break;
+    case 0x154: p.history_count = i; break;
+    case 0x224: p.bottom_radius = v; break;
+    case 0x228: p.top_radius = v; break;
+    case 0x22c: p.bottom_radius_speed = v; break;
+    case 0x230: p.top_radius_speed = v; break;
+    case 0x234: p.bottom_radius_rate = v; break;
+    case 0x238: p.top_radius_rate = v; break;
+    case 0x264: p.pitch_speed = v; break;
+    case 0x270: p.pitch_rate = v; break;
+    case 0x29c: p.max_height = v; break;
+    case 0x1b8: p.sweep = v; break;
+    default:
+      if (f.field >= 0xc4 && f.field < 0xf4) {
+        p.matrix[(f.field - 0xc4) / 4] = v;
+      } else if (f.field >= 0x1d4 && f.field < 0x1ec) {
+        p.step_changes[(f.field - 0x1d4) / 4] = f.value;
+      } else {
+        FAIL("unknown field " << f.field);
+      }
+  }
+}
+
+// The fields of ids 5, 6 and 0xd the script records, then the matrix and the history.
+std::vector<std::uint32_t> StateOf3(const EffectPrim& p) {
+  std::vector<std::uint32_t> out = {B(p.position[0]),
+                                    B(p.position[1]),
+                                    B(p.position[2]),
+                                    U(p.image),
+                                    p.color,
+                                    U(p.period),
+                                    p.flags,
+                                    U(p.age),
+                                    B(p.speed),
+                                    B(p.fall_speed),
+                                    B(p.bottom_radius),
+                                    B(p.top_radius),
+                                    B(p.bottom_radius_speed),
+                                    B(p.top_radius_speed),
+                                    B(p.heading),
+                                    B(p.pitch),
+                                    B(p.angle),
+                                    B(p.scale),
+                                    B(p.scale_speed),
+                                    B(p.alpha),
+                                    B(p.alpha_speed),
+                                    B(p.heading_speed),
+                                    B(p.pitch_speed),
+                                    B(p.height),
+                                    B(p.height_speed),
+                                    B(p.step[0]),
+                                    B(p.step[1]),
+                                    B(p.step[2]),
+                                    B(p.start[0]),
+                                    B(p.start[1]),
+                                    B(p.start[2]),
+                                    B(p.travel[0]),
+                                    B(p.travel[1]),
+                                    B(p.travel[2]),
+                                    B(p.drift[0]),
+                                    B(p.drift[2]),
+                                    p.fading ? 1u : 0u};
+  for (float m : p.matrix) out.push_back(B(m));
+  for (std::int32_t k = 0; k < p.history_count; ++k) {
+    const PrimHistory& h = p.history[static_cast<std::size_t>(k)];
+    for (float x : h.position) out.push_back(B(x));
+    for (float x : h.points) out.push_back(B(x));
+    out.push_back(B(h.distance));
+    out.push_back(B(h.scale));
+    out.push_back(B(h.heading));
+    for (float x : h.matrix) out.push_back(B(x));
+    out.push_back(U(h.red));
+    out.push_back(U(h.green));
+    out.push_back(U(h.blue));
+    out.push_back(B(h.alpha));
+    out.push_back(h.color);
+  }
+  return out;
+}
+
+// The synthetic attribute map of tools/actor_vectors.py.
+ragexe::res::AttrMap TestAttr() {
+  ragexe::res::AttrMap attr;
+  attr.width = 40;
+  attr.height = 40;
+  attr.cell_size = 5;
+  for (int c = 0; c < 40 * 40; ++c) {
+    ragexe::res::AttrCell cell;
+    for (int k = 0; k < 4; ++k)
+      cell.heights[static_cast<std::size_t>(k)] = static_cast<float>((c * 11 + k * 5) % 23 - 15);
+    attr.cells.push_back(cell);
+  }
+  return attr;
+}
+
+ragexe::res::Sprite TestSprite() {
+  ragexe::res::Sprite s;
+  for (const ImageVector& im : kImages8) {
+    ragexe::res::SpriteImage i;
+    i.width = im.width;
+    i.height = im.height;
+    i.halved_x = im.halved_x != 0;
+    i.halved_y = im.halved_y != 0;
+    s.images.push_back(i);
+  }
+  for (const ImageVector& im : kImages32) {
+    ragexe::res::SpriteImage32 i;
+    i.width = im.width;
+    i.height = im.height;
+    i.halved_x = im.halved_x != 0;
+    i.halved_y = im.halved_y != 0;
+    s.images32.push_back(i);
+  }
+  return s;
+}
+
+ragexe::res::Act TestAct() {
+  ragexe::res::Act act;
+  for (int frames : kActionFrames) act.actions.emplace_back(static_cast<std::size_t>(frames));
+  for (const ItemVector& v : kItems) {
+    ragexe::res::ActItem item;
+    item.x = v.x;
+    item.y = v.y;
+    item.image = v.image;
+    item.flags = v.flags;
+    item.color = {static_cast<std::uint8_t>(v.r), static_cast<std::uint8_t>(v.g),
+                  static_cast<std::uint8_t>(v.b), static_cast<std::uint8_t>(v.a)};
+    item.scale_x = F(v.scale_x);
+    item.scale_y = F(v.scale_y);
+    item.angle = v.angle;
+    item.image_type = v.type;
+    act.actions[static_cast<std::size_t>(v.action)][static_cast<std::size_t>(v.frame)]
+        .items.push_back(item);
+  }
+  return act;
+}
+
+PrimScene SceneOf(const SceneData& d, const ragexe::res::AttrMap* attr) {
+  PrimScene scene;
+  for (std::size_t i = 0; i < 12; ++i) scene.view[i] = F(d.view[i]);
+  scene.view_yaw = F(d.yaw);
+  scene.slope_down = F(d.slope_down);
+  scene.projection = SetSize(800, 600);
+  scene.attr = attr;
+  return scene;
+}
+
+void CheckState(const std::vector<std::uint32_t>& got, const std::uint32_t* want,
+                std::size_t count) {
+  REQUIRE(got.size() == count);
+  for (std::size_t i = 0; i < count; ++i) {
+    INFO("state " << i);
+    CHECK(got[i] == want[i]);
+  }
+}
+
+void CheckQuads(const std::vector<SpriteQuad>& got, const QuadVector* want, std::size_t count) {
+  REQUIRE(got.size() == count);
+  for (std::size_t q = 0; q < count; ++q) {
+    INFO("quad " << q);
+    const SpriteQuad& g = got[q];
+    const QuadVector& w = want[q];
+    CHECK(B(g.top) == w.desc[0]);
+    CHECK(B(g.left) == w.desc[1]);
+    CHECK(B(g.bottom) == w.desc[2]);
+    CHECK(B(g.right) == w.desc[3]);
+    CHECK(B(g.rhw_bottom) == w.desc[4]);
+    CHECK(B(g.rhw_top) == w.desc[5]);
+    CHECK(g.color == w.desc[6]);
+    CHECK(B(g.angle) == w.desc[7]);
+    CHECK(g.image_type == w.type);
+    CHECK(g.image == w.image);
+    CHECK(g.flags == w.flags);
   }
 }
 
@@ -261,16 +527,16 @@ TEST_CASE("Primitives 0 to 2 step and draw as the original's", "[effect]") {
       const PrimFrameVector& fv = v.frames[f];
       owner.screen_x = F(fv.screen[0]);
       owner.screen_y = F(fv.screen[1]);
-      const bool more = UpdatePrimitive(p, rand);
+      const bool more = UpdatePrimitive(p, rand, PrimScene{});
       CHECK(more == (fv.more != 0));
       const std::vector<std::uint32_t> state = StateOf(p);
       for (std::size_t i = 0; i < kStateSize; ++i) {
         INFO("state " << i);
         CHECK(state[i] == fv.state[i]);
       }
-      std::vector<PrimTriangle> triangles;
-      if (more) DrawPrimitive(p, triangles);
-      CheckTriangles(triangles, fv.triangles, fv.count, ids);
+      PrimDrawing drawing;
+      if (more) DrawPrimitive(p, PrimScene{}, drawing);
+      CheckTriangles(drawing.triangles, fv.triangles, fv.count, ids);
       ++owner.frame;
     }
   }
@@ -279,25 +545,26 @@ TEST_CASE("Primitives 0 to 2 step and draw as the original's", "[effect]") {
 TEST_CASE("The hit spark plays as the original's", "[effect]") {
   std::map<std::string, std::uint32_t> ids;
   for (const TextureVector& t : kTextures) ids[t.name] = t.id;
-  const Projection projection = SetSize(800, 600);
+  PrimScene scene;
+  scene.projection = SetSize(800, 600);
   std::size_t n = 0;
   for (const SparkVector& v : kSparks) {
     INFO("run " << n++);
     EffectWorld world(v.seed);
-    RagEffect& effect = world.Launch(1, {F(v.position[0]), F(v.position[1]), F(v.position[2])});
+    RagEffect& effect =
+        world.Launch(1, {{F(v.position[0]), F(v.position[1]), F(v.position[2])}, 0.0f});
     effect.duration = v.duration;
     const RagEffect* alive = &effect;
     std::map<const EffectPrim*, std::size_t> order;
-    Matrix view{};
     std::size_t next_view = 0;
     for (std::size_t f = 0; f < v.frame_count; ++f) {
       INFO("frame " << f);
       if (next_view < v.view_count && std::cmp_equal(v.views[next_view].frame, f)) {
-        for (std::size_t i = 0; i < 12; ++i) view[i] = F(v.views[next_view].view[i]);
+        for (std::size_t i = 0; i < 12; ++i) scene.view[i] = F(v.views[next_view].view[i]);
         ++next_view;
       }
       const SparkFrameVector& fv = v.frames[f];
-      world.Step(view, projection);
+      world.Step(scene);
       const EffectWorld::Object* effect_object = nullptr;
       std::vector<const EffectPrim*> prims;
       for (const EffectWorld::Object& o : world.objects()) {
@@ -327,7 +594,95 @@ TEST_CASE("The hit spark plays as the original's", "[effect]") {
           CHECK(state[k] == fv.prims[i].state[k]);
         }
       }
-      CheckTriangles(world.Draw(), fv.triangles, fv.count, ids);
+      CheckTriangles(world.Draw(scene).triangles, fv.triangles, fv.count, ids);
+    }
+    CHECK(world.empty());
+  }
+}
+
+TEST_CASE("Particles and cylinders step and draw as the original's", "[effect]") {
+  std::map<std::string, std::uint32_t> ids;
+  for (std::uint32_t i = 0; i < 4; ++i) ids["t" + std::to_string(i)] = kSyntheticTextures + i;
+  const ragexe::res::AttrMap attr = TestAttr();
+  const ragexe::res::Sprite sprite = TestSprite();
+  const ragexe::res::Act act = TestAct();
+  std::size_t n = 0;
+  for (const ShapeVector& v : kShapes) {
+    INFO("shape " << n << ", id " << v.id);
+    RagEffect owner;
+    for (std::size_t i = 0; i < 3; ++i) {
+      owner.position[i] = F(v.position[i]);
+      owner.target[i] = F(v.target[i]);
+    }
+    owner.duration = v.duration;
+    EffectPrim p = MakePrimitive(&owner, v.id, {F(v.offset[0]), F(v.offset[1]), F(v.offset[2])});
+    for (std::size_t f = 0; f < v.field_count; ++f) Apply(v.fields[f], p);
+    p.textures.clear();
+    for (std::int32_t i = 0; i < p.image_count; ++i) p.textures.push_back("t" + std::to_string(i));
+    p.sprite = {&act, &sprite};
+    ResetHistory(p);
+    const PrimScene scene = SceneOf(v.scene, &attr);
+    ragexe::core::CrtRand rand(kShapeSeed + static_cast<std::uint32_t>(n));
+    for (std::size_t f = 0; f < v.frame_count; ++f) {
+      INFO("frame " << f);
+      const ShapeFrameVector& fv = v.frames[f];
+      const bool more = UpdatePrimitive(p, rand, scene);
+      CHECK(more == (fv.more != 0));
+      CheckState(StateOf3(p), fv.state, fv.state_count);
+      PrimDrawing drawing;
+      if (more) DrawPrimitive(p, scene, drawing);
+      CheckTriangles(drawing.triangles, fv.triangles, fv.count, ids);
+      CheckQuads(drawing.quads, fv.quads, fv.quad_count);
+      ++owner.frame;
+    }
+    ++n;
+  }
+}
+
+TEST_CASE("Effect ids 0 and 2 play as the original's", "[effect]") {
+  std::map<std::string, std::uint32_t> ids;
+  for (const TextureVector& t : kTextures) ids[t.name] = t.id;
+  const ragexe::res::AttrMap attr = TestAttr();
+  const ragexe::res::Sprite sprite = TestSprite();
+  const ragexe::res::Act act = TestAct();
+  std::size_t n = 0;
+  for (const BurstVector& v : kBursts) {
+    INFO("run " << n++ << ", id " << v.id);
+    CHECK(EffectDuration(v.id) == v.duration);
+    EffectWorld world(v.seed);
+    world.SetMinimal(v.minimal != 0);
+    world.SetParticle({&act, &sprite});
+    world.Launch(v.id, {{F(v.position[0]), F(v.position[1]), F(v.position[2])}, F(v.facing)});
+    std::map<const EffectPrim*, std::size_t> order;
+    PrimScene scene;
+    std::size_t next_scene = 0;
+    for (std::size_t f = 0; f < v.frame_count; ++f) {
+      INFO("frame " << f);
+      if (next_scene < v.scene_count && std::cmp_equal(v.scenes[next_scene].frame, f))
+        scene = SceneOf(v.scenes[next_scene++].scene, &attr);
+      const BurstFrameVector& fv = v.frames[f];
+      world.Step(scene);
+      std::vector<const EffectPrim*> prims;
+      bool effect = false;
+      for (const EffectWorld::Object& o : world.objects()) {
+        if (o.effect) {
+          effect = true;
+        } else {
+          order.try_emplace(o.prim.get(), order.size());
+          prims.push_back(o.prim.get());
+        }
+      }
+      CHECK(effect == (fv.more != 0));
+      REQUIRE(prims.size() == fv.prim_count);
+      for (std::size_t i = 0; i < prims.size(); ++i) {
+        INFO("primitive " << i);
+        CHECK(order[prims[i]] == fv.prims[i].index);
+        CHECK(prims[i]->id == fv.prims[i].id);
+        CheckState(StateOf3(*prims[i]), fv.prims[i].state, fv.prims[i].count);
+      }
+      const PrimDrawing drawing = world.Draw(scene);
+      CheckTriangles(drawing.triangles, fv.triangles, fv.count, ids);
+      CheckQuads(drawing.quads, fv.quads, fv.quad_count);
     }
     CHECK(world.empty());
   }

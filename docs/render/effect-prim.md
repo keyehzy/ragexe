@@ -2,7 +2,7 @@
 
 The server asks for an effect by id. The client turns the id into a `CRagEffect`, which may
 play a `.str` ([effect.md](effect.md)) and may add primitives (`CEffectPrim`): rays,
-rings, sprites flying out. The port is `src/render/effect_table` (which id plays what)
+cylinders, sprites flying out. The port is `src/render/effect_table` (which id plays what)
 and `src/render/effect_prim` (the primitives and the effects that add them).
 
 ## Launching an effect
@@ -216,6 +216,149 @@ Effect id 1, `CRagEffect::ProcessHitSpark` (`00550c60`), each world step:
 `vf01` passes 0 for the argument that would tint the rays blue (red and green 120), so
 they are always white. The effect lasts 50 frames (`00617148`); its rays live 10 to 29.
 
+## Particles and cylinders
+
+Ids 5, 6 and 0xd move in the world, not on the screen. Each step they start from the
+owner's position plus their offset (+0x2ec), add their step to the distance travelled
+(+0x2f8) and stand at the sum.
+
+**The matrix** (+0xc4, the identity at first) carries their direction. Headings and
+pitches turn into it through `DegreesToRadians` (`0040b380`), which reads the radian
+table at `006252fc` the way `SinDegrees` reads the sines: a negative angle reads back
+from the table's end, 361 + k.
+
+### A particle, id 5
+
+`UpdatePrim_5` (`0057e8e0`):
+1. **The changes.** At age +0x160, the step takes the three values at +0x1d4 and its speed
+   the three at +0x1e0.
+2. **Speeds.** The speed takes the acceleration, the scale's speed its rate.
+3. **The step.** With flag 0x400, the step takes its own speed (+0x31c). Otherwise, with
+   flag 1 or past age +0x14c (−1 by default), it is the speed along the matrix's z row,
+   plus the matrix's translation. Without either, the particle stays put this step and
+   neither turns nor scales.
+4. **The travel** takes the step; the angle its spin, the scale its speed.
+5. **Drift** (flag 2): every period (+0x134), a new period of `(rand() & 7) + 12` and two
+   drifts of 0.05 to 0.09, each made negative on an even `rand()`. Only the first drift
+   moves the particle, along x, every step.
+6. **Wide wander** (flag 4): every period, a speed of 0.15 to 0.49, the heading and pitch
+   moved by −40 to +39, the matrix rebuilt (about y by the heading, then x by the pitch)
+   and a period of 5 to 14.
+7. **Wander** (flag 8): every period, the heading and pitch moved by −5 to +4, the matrix
+   rebuilt the other way (about x, then y) and a period of 5 to 19.
+8. **The end** (flag 0x100): false within 3 (on the ground, x and z) of the effect's target
+   (+0xe8, `InitEffect`'s last arguments; `CRenderObject` `00500530`).
+9. **Facing** (flag 0x20): the angle becomes +0x38 less the camera's yaw.
+10. **`UpdateAlphaAndColor`**, then the history, then **`AdvanceActionFrame`**
+    (`0057d620`): `AdvanceFrameByCount` against the frame count of the sprite's action.
+
+### A thrown particle, id 6
+
+`UpdatePrim_6` (`0057f270`):
+- **Along the ground.** The speed takes its acceleration and is held at 0 or more. The
+  step along the matrix's z moves x and z.
+- **Up and down.** y moves by a fall speed (+0x21c) that takes its rate (+0x220) first.
+- **Bounce.** While falling, on reaching the ground (`C3dAttr::GetHeight` below it), the
+  fall speed turns to −2/3 of itself. With +0x168 set, it also plays
+  `effect\EF_Coin%d.wav`, one of three by `rand()`.
+
+### The history
+
+Ids 5 and 6 keep their last +0x154 places in records of 0x8c bytes at +0x358:
+
+| Offset | What |
+|-------:|------|
+| +0 | the position |
+| +0xc | the twelve floats at +0x328 |
+| +0x3c, +0x40, +0x44 | the distance +0x278, the scale +0x248, the heading +0x23c |
+| +0x48 | the matrix |
+| +0x78 | red, green and blue |
+| +0x84 | the alpha |
+| +0x88 | the colour, packed |
+
+- **`ResetHistory`** (`0057d4b0`) fills every record from the primitive as it is.
+- **`ShiftHistory`** (`0057da50`), after each update, moves each record back one place.
+  Record k of n then has:
+  - alpha × (1 − k/n) and its colour;
+  - the current scale less (scale / n) × k × ½.
+  
+  The first record becomes the primitive as it is now. Red, green and blue are never moved
+  or rewritten: they stay as `ResetHistory` left them, and the ported ids never read them.
+
+### Drawing a particle
+
+`RenderActFrameHistory` (`00581ff0`) draws the sprite's current frame at each record, last
+place included:
+1. **The record's point.** Projected through the view, z at least 10, onto the screen centre
+   (+0x1c, +0x20). A pixel is (1/z) × scale_x × 1/7.
+2. **Each item of the frame**, as `CRenderObject` draws an actor's:
+   - sized by the record's scale;
+   - kept when it reaches the screen;
+   - the rhw of its top and bottom from `g_spriteSlopeDown`, plus 10⁻⁵;
+   - the record's colour, or the item's own with flag 0x200;
+   - its angle plus the primitive's;
+   - flags +0x128 (1, translucent).
+3. **`AddSpriteQuad`** with the sprite's palette.
+
+### A cylinder, id 0xd
+
+`UpdatePrim_13` (`00580df0`):
+1. **The speeds** take their rates: the speed, both radii's (+0x22c, +0x230), the
+   height's, the heading's (+0x260) and the pitch's (+0x264).
+2. **The matrix.** The heading and pitch take their speeds, and the matrix is rebuilt: about
+   x by the pitch, then y by the heading.
+3. **The step** is the speed back along the matrix's y row.
+4. **The heading** takes its speed a second time.
+5. **The sizes.** The radii (+0x224 bottom, +0x228 top) and the height take their speeds;
+   the height stops at +0x29c (100).
+6. **Narrowing** (flag 1): at age +0x150, the top radius closes to 0 over the life left
+   plus one.
+7. **The alpha and the image.** `vf01` ignores whether the images ran out, so a cylinder
+   whose images do not loop goes on past its last one.
+
+`RenderCylinder` (`00584a20`) draws the side between the two rings:
+- **The rings.** The bottom ring is at the point and the top ring the height up the
+  matrix's −y.
+- **The sides.** One every +0x1b8 degrees (36) from 0, while the angle is at most 360 less
+  that. The angles index `g_sinTable` and `g_cosTable` directly, without reduction.
+- **Two triangles a side**, bottom-left, top-left, bottom-right, then bottom-right,
+  top-left, top-right.
+- **The texture's u** steps a quarter a side, back to 0 at 1; v is 1 at the bottom.
+- **Projection.** The view transform and `ProjectPoint` are written out three ways in the
+  function: the first corner's sums start from z, and the second triangle's top-left
+  scales x before dividing by z. The port follows each.
+- **Flags 1** for each triangle; the colour is +0x124.
+
+## Effect ids 0 and 2
+
+Both act on their first frame only, aiming by 180 less the actor's facing (+0x38),
+wrapped into 0 to 359.
+
+**Id 0** (`ProcessRingBurst`, `005505a0`):
+- **A cylinder** of `effect\ring_blue.tga`:
+  - life 10, rising at 0.7, slowing to half;
+  - radii 5 and 10, height 3.5;
+  - fading out from age 5;
+  - 10 up from the actor, pitched −90 and headed by the facing.
+- **Particles**, unless minimal effects are on. Each is aimed with `rand()`: a heading in
+  a band of 80 degrees, a pitch of −50 to +49, then 4 to 7 out along its z and 10 up.
+  - Two particles (id 5) ahead of the facing: speed 0.6 to 1.49, life 6 to 29.
+  - Two (id 6) behind it, thrown up at 0.3 to 1.19 and pulled down at twice that over
+    their life.
+  - All four: scale 0.6 to 1.59, fading out over their life, `particle1`'s sprite, three
+    history records.
+
+**Id 2** (`ProcessHit3`, `005510b0`):
+- **Sound:** `effect\EF_hit3.wav`.
+- **Two cylinders** of `effect\lens2.tga`:
+  - life 15, bottom radius 1.5, top radius 1.5 and 4;
+  - growing in height by 0.5 and 0.25 a frame, plus 0.2 more each frame;
+  - fading from age 10.
+- **Eight particles** ahead, speed 0.8 to 1.99, shrinking to nothing over their life.
+
+**The particle sprite** is `이펙트\particle1` (`00618b98`, `00618b80`; "이펙트" is
+"effect"). The particles show its frames one every four steps, looping (+0x148, +0x1b4).
+
 ## In the port
 
 **`src/core/crt_rand`:** `CrtRand`, `srand` and `rand`.
@@ -225,13 +368,18 @@ they are always white. The effect lasts 50 frames (`00617148`); its rays live 10
 - `EffectDuration(id)`.
 
 **`src/render/effect_prim`:**
-- `EffectPrim` with `MakePrimitive`, `UpdatePrimitive` (vf01) and `DrawPrimitive` (vf03),
-  for ids 0 to 2;
-- `ProcessHitSpark`;
+- `EffectPrim` with `MakePrimitive`, `ResetHistory`, `UpdatePrimitive` (vf01) and
+  `DrawPrimitive` (vf03), for ids 0 to 2, 5, 6 and 0xd. `PrimScene` carries the camera's
+  yaw, the ground, the view, the projection and the sprite slope; `PrimDrawing` gets the
+  triangles and the sprite quads;
+- `ProcessHitSpark`, `ProcessRingBurst` and `ProcessHit3`;
 - `EffectWorld`, the world's list as effects use it:
   - `Launch` adds an effect;
   - `Step` runs a world step in the list's order;
-  - `Draw` gives the primitives' triangles.
+  - `Draw` gives the primitives' triangles and quads;
+  - `SetParticle` and `SetMinimal` give it the particle sprite and the minimal flag.
+
+**`src/core/angles`:** `DegreesToRadians`.
 
 **`ragview --effect-id ID`** plays the id's `.str` ([gpu.md](gpu.md)), and launches the id
 again when its effect and primitives are done. `--minimal-effects` picks the `_min`
@@ -256,10 +404,22 @@ files.
 
   Two of the runs shorten the effect, so that it ends before its rays and tells them.
 
-`tests/unit/prim_test.cpp` matches all of it: 98,957 values, the CRT's first `rand` values among
-them.
+- **30 synthetic shapes**, ids 5, 6 and 0xd in turn:
+  - every field their update and drawing read set at random, including every flag of id
+    5, an arbitrary matrix, one to six history records, and the coin sound;
+  - a stand-in sprite of 8-bit and 32-bit images, some halved, and two actions of
+    mirrored, scaled, turned and coloured items;
+  - views from the oracle's `CView`, with the ground of `tools/actor_vectors.py` to bounce
+    on.
+
+  The cylinders all loop their images, since one that does not reads past its textures.
+- **Five runs of effect ids 0 and 2:** id 0 both ways of minimal effects, under changing
+  views and facings, through the world's list as for the hit spark.
+
+`tests/unit/prim_test.cpp` matches all of it: 459,496 values, the CRT's first `rand` values
+among them.
 
 **Not ported:**
-- the other 65 primitive ids;
+- the other 62 primitive ids;
 - the other effects' processing;
 - the sounds.

@@ -148,8 +148,8 @@ Textures are uploaded as triangles first ask for them.
 
 **Not ported:**
 - the effects' own processing (`CRagEffect::vf01`'s 200-odd cases), beyond the generic
-  offset and the hit spark ([effect-prim.md](effect-prim.md));
-- most of `CEffectPrim`, the particles and shapes effects add: ids 0 to 2 are ported
-  ([effect-prim.md](effect-prim.md));
+  offset and effect ids 0 to 2 ([effect-prim.md](effect-prim.md));
+- most of `CEffectPrim`, the particles and shapes effects add: ids 0 to 2, 5, 6 and 0xd
+  are ported ([effect-prim.md](effect-prim.md));
 - the sounds;
 - the texture cache's use counts.

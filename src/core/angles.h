@@ -5,12 +5,13 @@
 
 namespace ragexe::core {
 
-// The sine and cosine tables InitAngleTables (0040b2f0) fills at start-up: whole degrees
-// from 0 to 360, each angle k · π · (1/180) in single precision (π as the float at
-// 005e2684), its sine and cosine rounded to float.
+// The tables InitAngleTables (0040b2f0) fills at start-up: whole degrees from 0 to 360,
+// each angle k · π · (1/180) in single precision (π as the float at 005e2684), and its
+// sine and cosine rounded to float.
 struct AngleTables {
   std::array<float, 361> sin{};
   std::array<float, 361> cos{};
+  std::array<float, 361> radians{};  // 006252fc
 };
 
 const AngleTables& GetAngleTables();
@@ -20,5 +21,9 @@ const AngleTables& GetAngleTables();
 // 360 − k, since the negative lookup starts just after the last entry.
 float SinDegrees(std::int32_t degrees);
 float CosDegrees(std::int32_t degrees);
+
+// DegreesToRadians (0040b380): the angle from the table InitAngleTables fills, with the
+// same reduction and the same reading of a negative angle as SinDegrees.
+float DegreesToRadians(std::int32_t degrees);
 
 }  // namespace ragexe::core

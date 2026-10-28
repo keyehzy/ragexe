@@ -5282,11 +5282,11 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0054fba0	1200	code	0	world		named	CRagEffect	AdvanceStr	
 00550070	1301	code	0	world		named	CRagEffect	DrawStrLayer	
 00550590	1	code	0	world		named	Global	atexit_no_op_00550590	
-005505a0	1713	code	0	world		named	CRagEffect	method_005505a0	
+005505a0	1713	code	0	world		named	CRagEffect	ProcessRingBurst	
 00550c60	907	code	0	world		named	CRagEffect	ProcessHitSpark	
 00550ff0	92	code	0	world		named	Global	TransformPoint	
 00551050	90	code	0	render		named	SceneRenderer	ProjectPoint	
-005510b0	1573	code	0	world		named	CRagEffect	method_005510b0	
+005510b0	1573	code	0	world		named	CRagEffect	ProcessHit3	
 005516e0	1293	code	0	world		named	CRagEffect	method_005516e0	
 00551bf0	660	code	0	world		named	CRagEffect	method_00551bf0	
 00551e90	660	code	0	world		named	CRagEffect	method_00551e90	

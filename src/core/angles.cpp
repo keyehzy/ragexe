@@ -14,6 +14,7 @@ AngleTables Build() {
   for (std::size_t k = 0; k < t.sin.size(); ++k) {
     const float angle = static_cast<float>(k) * kPi * kInverse180;
     // The x87's sine and cosine, rounded once to float.
+    t.radians[k] = angle;
     t.sin[k] = static_cast<float>(std::sin(static_cast<double>(angle)));
     t.cos[k] = static_cast<float>(std::cos(static_cast<double>(angle)));
   }
@@ -36,5 +37,6 @@ const AngleTables& GetAngleTables() {
 
 float SinDegrees(std::int32_t degrees) { return Lookup(GetAngleTables().sin, degrees); }
 float CosDegrees(std::int32_t degrees) { return Lookup(GetAngleTables().cos, degrees); }
+float DegreesToRadians(std::int32_t degrees) { return Lookup(GetAngleTables().radians, degrees); }
 
 }  // namespace ragexe::core
