@@ -20,7 +20,7 @@
 // stands, a step each 16 ms world step and again when it ends; a screenshot shows it after
 // --effect-step steps (15 by default). --effect-id plays what the client plays for that
 // effect id: the .str its table names (the lighter one with --minimal-effects) and the
-// primitives the id adds, ported for ids 0 to 2 and the rings of 0xe1 to 0x107.
+// primitives the id adds, ported for ids 0 to 2 and the ring effects.
 // --screenshot renders one frame offscreen to a PNG and exits; otherwise a window opens,
 // and Escape or --frames N closes it.
 

@@ -494,6 +494,346 @@ void UpdateRisingRings(EffectPrim& p) {
   }
 }
 
+std::int16_t Wrap360(std::int32_t angle) {
+  auto a = static_cast<std::int16_t>(angle);
+  if (a >= 360) a = static_cast<std::int16_t>(a - 360);
+  return a;
+}
+
+// A wall rising a quarter sine of the age to its share of the height (sin 9i), until it
+// would pass that share, which settles it.
+void RiseWall(PrimRing& r, std::size_t i, const core::AngleTables& t) {
+  if (r.age <= 90)
+    r.heights[i] = (t.sin[static_cast<std::size_t>(r.age)] * t.sin[i * 9]) * r.height;
+  const float full = t.sin[i * 9] * r.height;
+  if (full < r.heights[i]) {
+    r.heights[i] = full;
+    r.flags[i] = 1;
+  }
+  if (!(r.heights[i] >= 0.0f)) r.heights[i] = 0.0f;
+}
+
+// The ring's phase for its walls' wave: the age plus its quarter turn for the first two
+// rings, the age plus an eighth turn per ring times 2 (or 3) for the others.
+std::size_t WavePhase(const PrimRing& r, std::int32_t k, std::int32_t times) {
+  const std::int32_t quarter = k * 90;
+  const std::int32_t phase =
+      quarter < 180 ? quarter + r.age : (k * (times == 3 ? 30 : 45) + r.age) * times;
+  return static_cast<std::size_t>(phase % 360);
+}
+
+// CEffectPrim::UpdatePrim_23 (0056b130), id 0x17, and UpdatePrim_25 (0056bca0), id 0x19:
+// from ring 3 alone when the scale is 3, else every ring. Rings 0 to 2 turn by their index
+// plus 3; each fades in for 20 steps (ring 3 by 8 to 60, or 100 for 0x19; the others by
+// 10 to 180) and out over the last 40 of the life; their walls rise and settle. Ring 3 of
+// 0x19 waves once its walls have risen.
+void UpdateRisingWalls(EffectPrim& p, bool waving) {
+  p.position = p.owner->position;
+  const core::AngleTables& t = core::GetAngleTables();
+  const std::int32_t first = std::bit_cast<std::uint32_t>(p.scale) == 0x40400000 ? 3 : 0;
+  for (std::int32_t k = first; k < 4; ++k) {
+    PrimRing& r = p.rings[static_cast<std::size_t>(k)];
+    if (!r.active) continue;
+    ++r.age;
+    if (k < 3) r.angle = static_cast<std::int16_t>(r.angle + k + 3);
+    r.angle = Wrap360(r.angle);
+    if (r.age >= p.life - 40) {
+      r.alpha = static_cast<std::int16_t>(r.alpha - (k < 3 ? 5 : waving ? 3 : 2));
+      if (r.alpha < 0) r.alpha = 0;
+    } else if (r.age < 20) {
+      if (k == 3) {
+        r.alpha = static_cast<std::int16_t>(r.alpha + 8);
+        const std::int16_t most = waving ? 100 : 60;
+        if (r.alpha > most) r.alpha = most;
+      } else {
+        r.alpha = static_cast<std::int16_t>(r.alpha + 10);
+        if (r.alpha > 180) r.alpha = 180;
+      }
+    }
+    for (std::size_t i = 0; i < r.heights.size(); ++i) {
+      if (!waving || k < 3) {
+        if (r.flags[i] == 0) RiseWall(r, i, t);
+        continue;
+      }
+      if (r.flags[i] == 0) {
+        if (r.age <= 90) {
+          r.heights[i] = (t.sin[static_cast<std::size_t>(r.age)] * t.sin[i * 9]) * r.height;
+        } else {
+          r.flags[i] = 1;
+        }
+        if (t.sin[i * 9] * r.height < r.heights[i]) r.flags[i] = 1;
+        if (!(r.heights[i] >= 0.0f)) r.heights[i] = 0.0f;
+      } else {
+        const float base = (r.height * t.sin[i * 9]) * 0.55f;
+        const auto phase = static_cast<std::size_t>(r.age % 360);
+        r.heights[i] = (((t.sin[phase] * r.height) * t.sin[i * 9]) * 0.45f) + base;
+      }
+    }
+  }
+}
+
+// CEffectPrim::UpdatePrim_24 (0056bfa0), id 0x18: the rings at a quarter and three
+// quarters turn 2 degrees a step, the others 1; each fades in to 80 over 100 steps and out
+// over the last 20 of the life; the walls wave by 0.3 of their share.
+void UpdateTurningRings(EffectPrim& p) {
+  p.position = p.owner->position;
+  const core::AngleTables& t = core::GetAngleTables();
+  for (std::int32_t k = 0; k < 4; ++k) {
+    PrimRing& r = p.rings[static_cast<std::size_t>(k)];
+    if (!r.active) continue;
+    ++r.age;
+    const std::int32_t quarter = k * 90;
+    r.angle = Wrap360(r.angle + (quarter == 0 || quarter == 180 ? 1 : 2));
+    if (r.age >= p.life - 20) {
+      r.alpha = static_cast<std::int16_t>(r.alpha - 5);
+      if (r.alpha < 0) r.alpha = 0;
+    } else if (r.age < 100) {
+      r.alpha = static_cast<std::int16_t>(r.alpha + 1);
+      if (r.alpha > 80) r.alpha = 80;
+    }
+    const std::size_t phase = WavePhase(r, k, 2);
+    for (std::size_t i = 0; i < r.heights.size(); ++i) {
+      const float base = t.sin[i * 9] * r.height;
+      r.heights[i] = (((t.sin[phase] * t.sin[i * 9]) * r.height) * 0.3f) + base;
+    }
+  }
+}
+
+// The wave of ids 0x1c and 0x22: each wall the full height plus 0.3 of it on the ring's
+// phase.
+void WaveFull(PrimRing& r, std::size_t phase, const core::AngleTables& t) {
+  for (std::size_t i = 0; i < r.heights.size(); ++i) {
+    const float base = r.height;
+    r.heights[i] = (((t.sin[phase] * t.sin[i * 9]) * r.height) * 0.3f) + base;
+  }
+}
+
+// CEffectPrim::UpdatePrim_28 (005715b0), id 0x1c: from its first step each ring widens by
+// 0.07 and leans in to 10 degrees (its alpha cut to 0 there); it fades in by 10 while its
+// radius is under 4 and out by 3 after, starting again at radius 3.37 and tilt 74 while
+// the life has 30 steps left.
+void UpdateSpreadingRings(EffectPrim& p) {
+  p.position = p.owner->position;
+  const core::AngleTables& t = core::GetAngleTables();
+  for (std::int32_t k = 0; k < 4; ++k) {
+    PrimRing& r = p.rings[static_cast<std::size_t>(k)];
+    if (!r.active) continue;
+    ++r.age;
+    if (r.age <= 0) continue;
+    r.radius = r.radius + std::bit_cast<float>(0x3d8f5c29u);  // 0.07
+    r.tilt = static_cast<std::int16_t>(r.tilt - 1);
+    if (r.tilt < 10) {
+      r.tilt = 10;
+      r.alpha = 0;
+    }
+    if (r.radius < 4.0f) {
+      r.alpha = static_cast<std::int16_t>(r.alpha + 10);
+    } else {
+      r.alpha = static_cast<std::int16_t>(r.alpha - 3);
+      if (!(r.alpha > 0)) {
+        r.alpha = 0;
+        if (r.age < p.life - 30) {
+          r.radius = std::bit_cast<float>(0x4057ae14u);  // 3.37
+          r.tilt = 74;
+        }
+      }
+    }
+    WaveFull(r, WavePhase(r, k, 2), t);
+  }
+}
+
+// CEffectPrim::UpdatePrim_34 (00571820), id 0x22: like 0x1c without waiting for the first
+// step, widening by 0.04, fading in by 20 under radius 2.5 and out by 2, starting again
+// at radius 2.14 and tilt 74 each time it has faded.
+void UpdateGrowingRing(EffectPrim& p) {
+  p.position = p.owner->position;
+  const core::AngleTables& t = core::GetAngleTables();
+  for (std::int32_t k = 0; k < 4; ++k) {
+    PrimRing& r = p.rings[static_cast<std::size_t>(k)];
+    if (!r.active) continue;
+    ++r.age;
+    r.radius = r.radius + std::bit_cast<float>(0x3d23d70au);  // 0.04
+    r.tilt = static_cast<std::int16_t>(r.tilt - 1);
+    if (r.tilt < 10) {
+      r.tilt = 10;
+      r.alpha = 0;
+    }
+    if (r.radius < 2.5f) {
+      r.alpha = static_cast<std::int16_t>(r.alpha + 20);
+    } else {
+      r.alpha = static_cast<std::int16_t>(r.alpha - 2);
+      if (!(r.alpha > 0)) {
+        r.alpha = 0;
+        r.radius = std::bit_cast<float>(0x4008f5c2u);  // 2.14
+        r.tilt = 74;
+      }
+    }
+    WaveFull(r, WavePhase(r, k, 2), t);
+  }
+}
+
+// CEffectPrim::UpdatePrim_48 (00571940), id 0x30: the kind turns a degree a step and sets
+// the radius to 3 plus its sine, the angle turns 3; the walls wave by 0.3 of their share.
+void UpdateWobblingRing(EffectPrim& p) {
+  p.position = p.owner->position;
+  const core::AngleTables& t = core::GetAngleTables();
+  for (std::int32_t k = 0; k < 4; ++k) {
+    PrimRing& r = p.rings[static_cast<std::size_t>(k)];
+    if (!r.active) continue;
+    ++r.age;
+    r.kind = Wrap360(r.kind + 1);
+    r.radius = t.sin[static_cast<std::size_t>(r.kind)] + 3.0f;
+    r.angle = Wrap360(r.angle + 3);
+    const std::size_t phase = WavePhase(r, k, 2);
+    for (std::size_t i = 0; i < r.heights.size(); ++i) {
+      const float base = r.height * t.sin[i * 9];
+      r.heights[i] = (((t.sin[phase] * r.height) * t.sin[i * 9]) * 0.3f) + base;
+    }
+  }
+}
+
+// CEffectPrim::UpdatePrim_54 (005716f0), id 0x36, where the primitive stays: ring k turns
+// 5 − k degrees a step; from its first step its height is its second flag byte times the
+// sine of twice its age, fading by 1 from 135 degrees, until 180, when its first flag
+// byte is set and it fades by 10 a step; the walls wave by 0.3 of the height.
+void UpdateLiftingRings(EffectPrim& p) {
+  const core::AngleTables& t = core::GetAngleTables();
+  for (std::int32_t k = 0; k < 4; ++k) {
+    PrimRing& r = p.rings[static_cast<std::size_t>(k)];
+    if (!r.active) continue;
+    ++r.age;
+    r.angle = Wrap360((r.angle - k) + 5);
+    if (r.age <= 0) continue;
+    if (r.flags[0] == 0) {
+      const std::int32_t twice = r.age * 2;
+      if (twice >= 180) {
+        r.flags[0] = 1;
+      } else if (twice >= 135) {
+        r.alpha = static_cast<std::int16_t>(r.alpha - 1);
+        if (r.alpha < 0) r.alpha = 0;
+      }
+      r.height = static_cast<float>(static_cast<std::int8_t>(r.flags[1])) *
+                 t.sin[static_cast<std::size_t>(twice)];
+    } else {
+      r.alpha = static_cast<std::int16_t>(r.alpha - 10);
+      if (r.alpha < 0) r.alpha = 0;
+    }
+    const std::size_t phase = WavePhase(r, k, 3);
+    for (std::size_t i = 0; i < r.heights.size(); ++i) {
+      const float base = r.height;
+      r.heights[i] = (((t.sin[phase] * r.height) * t.sin[i * 9]) * 0.3f) + base;
+    }
+  }
+}
+
+// CEffectPrim::UpdatePrim_57 (0056b600), id 0x39: a ring whose first flag is 1 turns by its
+// index plus 8; each fades in for 16 steps by 5 to 180 and out by 2 from the age in its
+// kind; a wall of flag 0 waves at three quarters of the height plus a quarter on a sine
+// that runs 4, 3 or 2 times the age (ring 0, 1, the others) and 34 degrees a wall, one of
+// flag 1 stands at the height; both rise along the sine of the age for 90 steps.
+void UpdateWavingWalls(EffectPrim& p) {
+  p.position = p.owner->position;
+  const core::AngleTables& t = core::GetAngleTables();
+  for (std::int32_t k = 0; k < 4; ++k) {
+    PrimRing& r = p.rings[static_cast<std::size_t>(k)];
+    if (!r.active) continue;
+    ++r.age;
+    if (r.flags[0] == 1) r.angle = static_cast<std::int16_t>(r.angle + k + 8);
+    r.angle = Wrap360(r.angle);
+    if (r.age >= r.kind) {
+      r.alpha = static_cast<std::int16_t>(r.alpha - 2);
+      if (r.alpha < 0) r.alpha = 0;
+    } else if (r.age < 16) {
+      r.alpha = static_cast<std::int16_t>(r.alpha + 5);
+      if (r.alpha > 180) r.alpha = 180;
+    }
+    const std::int32_t times = k == 0 ? 4 : k == 1 ? 3 : 2;
+    for (std::size_t i = 0; i < r.heights.size(); ++i) {
+      float& h = r.heights[i];
+      if (r.flags[i] == 0) {
+        const auto phase =
+            static_cast<std::size_t>((static_cast<std::int32_t>(i) * 34 + r.age * times) % 360);
+        const float wave = ((t.sin[phase] * r.height) * 0.25f) + (r.height * 0.75f);
+        h = wave;
+        if (r.age <= 90) h = wave * t.sin[static_cast<std::size_t>(r.age)];
+        if (!(h >= 0.0f)) h = 0.0f;
+      } else if (r.flags[i] == 1) {
+        h = r.height;
+        if (r.age <= 90) h = r.height * t.sin[static_cast<std::size_t>(r.age)];
+      }
+    }
+  }
+}
+
+// CEffectPrim::UpdatePrim_60 (0056b930), id 0x3c: from its first step each ring widens by
+// 0.5, fading in by 24 to 240 for 10 steps and, past radius 7, out by 15; faded, it starts
+// again from radius 0, or stops once ring 3's age (which ring 0 also counts) passes 120
+// with ring 3's kind 1, or 1400 in any case. Its walls rise with the sine of 9 times the
+// age for 10 steps.
+void UpdateSpreadingPortal(EffectPrim& p) {
+  p.position = p.owner->position;
+  const core::AngleTables& t = core::GetAngleTables();
+  PrimRing& counter = p.rings[3];
+  for (std::int32_t k = 0; k < 4; ++k) {
+    PrimRing& r = p.rings[static_cast<std::size_t>(k)];
+    if (!r.active) continue;
+    ++r.age;
+    if (k == 0) ++counter.age;
+    if (r.age <= 0) continue;
+    r.radius = r.radius + kHalf;
+    if (r.radius > 7.0f) {
+      r.alpha = static_cast<std::int16_t>(r.alpha - 15);
+      if (r.alpha < 0) {
+        r.alpha = 0;
+        if ((counter.age > 120 && counter.kind == 1) || counter.age > 1400) {
+          r.active = false;
+        } else {
+          r.age = 0;
+          r.radius = 0.0f;
+        }
+      }
+    }
+    if (r.age < 10) {
+      r.alpha = static_cast<std::int16_t>(r.alpha + 24);
+      if (r.alpha > 240) r.alpha = 240;
+    }
+    for (float& h : r.heights) {
+      h = r.height;
+      if (r.age <= 10) h = r.height * t.sin[static_cast<std::size_t>(r.age) * 9];
+    }
+  }
+}
+
+// CEffectPrim::UpdatePrim_62 (0056b500), id 0x3e: each ring closes in by 0.05 a step, back
+// to radius 10 and alpha 0 at the centre; its height is its radius and its tilt 90 less 9
+// times it; it fades in by 1 to 70 and out by 3 over the last 40 of the life; its unflagged
+// walls stand at the height.
+void UpdateClosingRings(EffectPrim& p) {
+  p.position = p.owner->position;
+  for (PrimRing& r : p.rings) {
+    if (!r.active) continue;
+    ++r.age;
+    r.radius = r.radius - std::bit_cast<float>(0x3d4ccccdu);  // 0.05
+    if (!(r.radius > 0.0f)) {
+      r.radius = 10.0f;
+      r.alpha = 0;
+    }
+    r.height = r.radius;
+    r.tilt = static_cast<std::int16_t>(Ftol(90.0f - (r.radius * 9.0f)));
+    if (r.age >= p.life - 40) {
+      r.alpha = static_cast<std::int16_t>(r.alpha - 3);
+      if (r.alpha < 0) r.alpha = 0;
+    } else if (r.alpha < 70) {
+      r.alpha = static_cast<std::int16_t>(r.alpha + 1);
+    }
+    for (std::size_t i = 0; i < r.heights.size(); ++i) {
+      if (r.flags[i] != 0) continue;
+      r.heights[i] = r.height;
+      if (!(r.heights[i] >= 0.0f)) r.heights[i] = 0.0f;
+    }
+  }
+}
+
 ScreenVertex Vertex(float x, float y, std::uint32_t color, float u, float v) {
   ScreenVertex s;
   s.x = x;
@@ -882,8 +1222,18 @@ bool UpdatePrimitive(EffectPrim& p, core::CrtRand& rand, const PrimScene& scene)
       if (!UpdateBouncer(p, rand, scene)) return false;
       break;
     case 0xd: UpdateCylinder(p); break;
+    case 0x17: UpdateRisingWalls(p, false); break;
+    case 0x18: UpdateTurningRings(p); break;
+    case 0x19: UpdateRisingWalls(p, true); break;
+    case 0x1c: UpdateSpreadingRings(p); break;
     case 0x1d: UpdateRingWaves(p); break;
+    case 0x22: UpdateGrowingRing(p); break;
     case 0x27: UpdateRisingRings(p); break;
+    case 0x30: UpdateWobblingRing(p); break;
+    case 0x36: UpdateLiftingRings(p); break;
+    case 0x39: UpdateWavingWalls(p); break;
+    case 0x3c: UpdateSpreadingPortal(p); break;
+    case 0x3e: UpdateClosingRings(p); break;
     default: return false;
   }
   ++p.age;
@@ -899,8 +1249,18 @@ void DrawPrimitive(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out
     case 5:
     case 6: DrawHistory(p, scene, out); break;
     case 0xd: DrawCylinder(p, scene, out); break;
+    case 0x17:
+    case 0x18:
+    case 0x19:
+    case 0x1c:
     case 0x1d:
-    case 0x27: DrawRingWalls(p, scene, out); break;
+    case 0x22:
+    case 0x27:
+    case 0x30:
+    case 0x36:
+    case 0x39:
+    case 0x3c:
+    case 0x3e: DrawRingWalls(p, scene, out); break;
     default: break;
   }
 }
@@ -1094,6 +1454,153 @@ void AddFadingRings(RagEffect& effect, const EffectActor& actor, const char* tex
   added.push_back(std::move(p));
 }
 
+namespace {
+
+struct RingSetup {
+  std::int16_t span;
+  float height;
+  std::int32_t age;
+  std::int16_t angle;
+  std::int16_t alpha;
+  std::int16_t tilt;
+  float radius;
+  std::int16_t kind;
+};
+
+void SetRing(PrimRing& r, const RingSetup& s) {
+  r.active = true;
+  r.span = s.span;
+  r.height = s.height;
+  r.age = s.age;
+  r.angle = s.angle;
+  r.alpha = s.alpha;
+  r.tilt = s.tilt;
+  r.radius = s.radius;
+  r.kind = s.kind;
+}
+
+float Bits(std::uint32_t b) { return std::bit_cast<float>(b); }
+
+}  // namespace
+
+void AddRingTrio(RagEffect& effect, const EffectActor& actor, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame == 99999998) {
+    effect.frame = 0;
+    effect.duration = 99999999;
+  }
+  if (effect.frame != 0) return;
+  EffectPrim p = MakeRings(effect, 0x17, "effect\\ring_blue.tga");
+  p.scale = 4.0f;
+  SetRing(p.rings[0], {315, 15.0f, 0, 0, 120, 55, Bits(0x4079999a), 0});
+  SetRing(p.rings[1], {315, 13.0f, 0, 90, 120, 50, Bits(0x40833333), 0});
+  SetRing(p.rings[2], {315, 11.0f, 0, 180, 120, 45, Bits(0x4089999a), 0});
+  added.push_back(std::move(p));
+}
+
+void AddTurningRings(RagEffect& effect, const EffectActor& actor, const char* texture,
+                     std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  EffectPrim p = MakeRings(effect, 0x18, texture);
+  p.scale = 0.0f;
+  SetRing(p.rings[0], {360, 40.0f, 0, 180, 0, 90, 8.0f, 0});
+  SetRing(p.rings[1], {360, 39.0f, 0, 270, 0, 90, Bits(0x40fccccd), 0});
+  SetRing(p.rings[2], {360, 38.0f, 0, 0, 0, 90, Bits(0x40f9999a), 0});
+  SetRing(p.rings[3], {360, 37.0f, 0, 90, 0, 90, Bits(0x40f66666), 0});
+  added.push_back(std::move(p));
+}
+
+void AddRandomRing(RagEffect& effect, const EffectActor& actor, const char* texture,
+                   std::int8_t preset, core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  EffectPrim p = MakeRings(effect, 0x22, texture);
+  p.scale = static_cast<float>(preset);
+  const auto angle = static_cast<std::int16_t>(rand.Next() % 360);
+  const auto alpha = static_cast<std::int16_t>(rand.Next() % 100);
+  SetRing(p.rings[0], {360, 15.0f, 0, angle, alpha, 80, Bits(0x40266666), 0});
+  added.push_back(std::move(p));
+}
+
+void AddTwirlRing(RagEffect& effect, const EffectActor& actor, const char* texture,
+                  std::int8_t preset, core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  EffectPrim p = MakeRings(effect, 0x30, texture);
+  p.scale = static_cast<float>(preset);
+  const float height = static_cast<float>(rand.Next() % 10) + 25.0f;
+  const auto angle = static_cast<std::int16_t>(rand.Next() % 360);
+  const auto alpha = static_cast<std::int16_t>(50 - rand.Next() % 10);
+  const auto kind = static_cast<std::int16_t>(rand.Next() % 360);
+  SetRing(p.rings[0], {315, height, 0, angle, alpha, 90, 0.0f, kind});
+  added.push_back(std::move(p));
+}
+
+void AddTeleportationRings(RagEffect& effect, const EffectActor& actor, const char* texture,
+                           std::int16_t lift, std::vector<EffectPrim>& added) {
+  if (effect.frame != 0) return;
+  effect.position = actor.position;
+  EffectPrim p = MakeRings(effect, 0x36, texture);
+  p.scale = 4.0f;
+  const auto up = static_cast<float>(lift * 60);
+  const auto in = static_cast<float>(lift * 2);
+  SetRing(p.rings[0], {360, up + 100.0f, 0, 180, 100, 90, 1.5f - in, 0});
+  SetRing(p.rings[1], {360, up + 70.0f, 0, 270, 80, 89, 3.0f - in, 0});
+  SetRing(p.rings[2], {360, up + 40.0f, 0, 0, 60, 88, 4.0f - in, 0});
+  SetRing(p.rings[3], {360, up + 15.0f, 0, 90, 40, 87, 5.0f - in, 0});
+  for (PrimRing& r : p.rings) {
+    r.flags[0] = 0;
+    r.flags[1] = static_cast<std::uint8_t>(Ftol(r.height));
+  }
+  added.push_back(std::move(p));
+}
+
+void AddTeleportationWalls(RagEffect& effect, const EffectActor& actor, const char* texture,
+                           std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  EffectPrim p = MakeRings(effect, 0x39, texture);
+  p.scale = 8.0f;
+  SetRing(p.rings[3], {360, 15.0f, 0, 0, 0, 81, 3.5f, 60});
+  SetRing(p.rings[2], {360, 34.0f, 0, 90, 0, 84, 3.0f, 60});
+  SetRing(p.rings[1], {360, 48.0f, 0, 180, 0, 87, 2.5f, 60});
+  SetRing(p.rings[0], {360, 65.0f, 0, 270, 0, 90, 2.0f, 60});
+  added.push_back(std::move(p));
+}
+
+void AddReadyPortal(RagEffect& effect, const EffectActor& actor, std::vector<EffectPrim>& added) {
+  // effect\EF_ReadyPortal.wav plays when the place is taken.
+  if (effect.frame % 14 == 0) effect.position = actor.position;
+  if (effect.frame != 0) return;
+  EffectPrim p = MakeRings(effect, 0x3c, "effect\\ring_blue.tga");
+  p.scale = 5.0f;
+  const float low = Bits(kLowWalls);
+  SetRing(p.rings[0], {360, low, 0, 0, 0, 2, 0.0f, 100});
+  SetRing(p.rings[1], {360, low, -10, 25, 0, 3, 0.0f, 100});
+  SetRing(p.rings[2], {360, low, -20, 50, 0, 4, 0.0f, 100});
+  for (std::size_t k = 0; k < 3; ++k) p.rings[k].flags.fill(1);
+  p.rings[3].active = false;
+  p.rings[3].age = 0;
+  p.rings[3].kind = 1;
+  added.push_back(std::move(p));
+}
+
+void AddGlassWall(RagEffect& effect, const EffectActor& actor, const char* texture,
+                  core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  EffectPrim p = MakeRings(effect, 0x39, texture);
+  p.scale = 10.0f;
+  const auto first = static_cast<std::int16_t>(rand.Next() % 360);
+  SetRing(p.rings[0], {360, 34.0f, 0, first, 0, 90, Bits(0x40666666), 3080});
+  const auto second = static_cast<std::int16_t>(rand.Next() % 360);
+  SetRing(p.rings[1], {360, 37.0f, 0, second, 0, 90, Bits(0x40533333), 3080});
+  const auto third = static_cast<std::int16_t>(rand.Next() % 360);
+  SetRing(p.rings[2], {360, 40.0f, 0, third, 0, 90, 3.0f, 3080});
+  added.push_back(std::move(p));
+}
+
 RagEffect& EffectWorld::Launch(std::int32_t id, const EffectActor& actor) {
   Object o;
   o.effect = std::make_unique<RagEffect>();
@@ -1128,6 +1635,20 @@ void EffectWorld::Step(const PrimScene& scene) {
         case 0xf7: AddRisingRings(e, it->actor, "effect\\ring_blue.tga", 1, added); break;
         case 0x103: AddRisingRings(e, it->actor, "effect\\magic_green.tga", 2, added); break;
         case 0x104: AddRisingRings(e, it->actor, "effect\\ring_red.tga", 3, added); break;
+        case 0xc8: AddRingTrio(e, it->actor, added); break;
+        case 0xde: AddTurningRings(e, it->actor, "effect\\ring_black.tga", added); break;
+        case 0xfc: AddTurningRings(e, it->actor, "effect\\ring_yellow.tga", added); break;
+        case 0xef: AddRandomRing(e, it->actor, "effect\\ring_red.tga", 0, rand_, added); break;
+        case 0xf0: AddRandomRing(e, it->actor, "effect\\ring_blue.tga", 0, rand_, added); break;
+        case 0xf1: AddRandomRing(e, it->actor, "effect\\magic_green.tga", 0, rand_, added); break;
+        case 0x118: AddTwirlRing(e, it->actor, "effect\\twirl.bmp", 8, rand_, added); break;
+        case 0x11d: AddTwirlRing(e, it->actor, "effect\\twirl.bmp", 4, rand_, added); break;
+        case 0x130:
+          AddTeleportationRings(e, it->actor, "effect\\Magic_Violet.tga", 0, added);
+          break;
+        case 0x13a: AddTeleportationWalls(e, it->actor, "effect\\ring_yellow.tga", added); break;
+        case 0x13b: AddGlassWall(e, it->actor, "effect\\alpha_down.tga", rand_, added); break;
+        case 0x13c: AddReadyPortal(e, it->actor, added); break;
         case 0xf8:
           AddFadingRings(e, it->actor, "effect\\ring_yellow.tga", added);
           // AdvanceStr, which answers false without a .str (InitEffect loads none for

@@ -92,6 +92,9 @@ struct PrimRing {
   std::array<float, 21> heights{};  // +0x14, each wall's
   std::int16_t tilt = 0;            // +0x68, the walls' lean out, degrees from flat
   float radius = 0.0f;              // +0x6c
+  // +0x70, a byte per wall: settled, or how it moves (0x39); the first two also a mode and
+  // a height (0x36).
+  std::array<std::uint8_t, 21> flags{};
 };
 
 // CEffectPrim (0x15990 bytes): one particle or shape an effect adds to the world, stepped
@@ -272,6 +275,36 @@ void AddRisingRings(RagEffect& effect, const EffectActor& actor, const char* tex
                     std::int8_t variant, std::vector<EffectPrim>& added);
 void AddFadingRings(RagEffect& effect, const EffectActor& actor, const char* texture,
                     std::vector<EffectPrim>& added);
+
+// The other ring effects, on their first frame (docs/render/effect-prim.md#more-rings):
+//  - AddRingTrio (0056d2c0), id 200: id 0x17, three rising open rings of ring_blue;
+//  - AddTurningRings (00572d90), ids 0xde and 0xfc: id 0x18, four wide turning rings;
+//  - AddRandomRing (00573bb0), ids 0xef to 0xf1: id 0x22, one ring at a random angle and
+//    alpha that grows and starts again;
+//  - AddTwirlRing (00573f80), ids 0x118 and 0x11d: id 0x30, one open ring of random height
+//    and angles that wobbles in and out;
+//  - AddTeleportationRings (00575b60), id 0x130: id 0x36, four rings that rise and fall
+//    along a sine, playing effect\EF_Teleportation.wav;
+//  - AddTeleportationWalls (005770d0), id 0x13a: id 0x39, four rings of waving walls,
+//    playing the same;
+//  - AddReadyPortal (00578150), id 0x13c: id 0x3c, three low rings spreading one after the
+//    other, effect\EF_ReadyPortal.wav every 14 steps;
+//  - AddGlassWall (CRagEffect::UpdateGlassWall, 00579790), id 0x13b: id 0x39, three rings
+//    at random angles, effect\EF_GlassWall.wav, beside its SafetyWall.str.
+void AddRingTrio(RagEffect& effect, const EffectActor& actor, std::vector<EffectPrim>& added);
+void AddTurningRings(RagEffect& effect, const EffectActor& actor, const char* texture,
+                     std::vector<EffectPrim>& added);
+void AddRandomRing(RagEffect& effect, const EffectActor& actor, const char* texture,
+                   std::int8_t preset, core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddTwirlRing(RagEffect& effect, const EffectActor& actor, const char* texture,
+                  std::int8_t preset, core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddTeleportationRings(RagEffect& effect, const EffectActor& actor, const char* texture,
+                           std::int16_t lift, std::vector<EffectPrim>& added);
+void AddTeleportationWalls(RagEffect& effect, const EffectActor& actor, const char* texture,
+                           std::vector<EffectPrim>& added);
+void AddReadyPortal(RagEffect& effect, const EffectActor& actor, std::vector<EffectPrim>& added);
+void AddGlassWall(RagEffect& effect, const EffectActor& actor, const char* texture,
+                  core::CrtRand& rand, std::vector<EffectPrim>& added);
 
 // The world's object list as effects use it (CWorld::UpdateGameObjects, 004c4a10): each
 // world step every object's vf01 in order, a primitive an effect adds joining the end and

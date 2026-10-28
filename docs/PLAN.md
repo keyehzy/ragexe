@@ -2355,9 +2355,20 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Checks:** 12 synthetic ring primitives and the eleven effects; 370,048 more values
     (855,776 in `prim_test`).
 
+- [x] The other ring walls (`docs/render/effect-prim.md#more-rings`):
+  - **`CEffectPrim` ids 0x17, 0x18, 0x19, 0x1c, 0x22, 0x30, 0x36, 0x39, 0x3c and 0x3e:**
+    rising, turning, spreading, wobbling, lifting, waving and closing rings, with the ring
+    records' per-wall flag bytes.
+  - **Twelve more effect ids:** 200, 0xde, 0xfc, 0xef to 0xf1, 0x118, 0x11d, 0x130 and
+    0x13a to 0x13c, through `AddRingTrio`, `AddTurningRings`, `AddRandomRing`,
+    `AddTwirlRing`, `AddTeleportationRings`, `AddTeleportationWalls`, `UpdateGlassWall`
+    and `AddReadyPortal`.
+  - **Checks:** 24 synthetic ring primitives and 23 ring effects; 1,068,602 values in
+    `prim_test`.
+
 ### Next actions
-1. M4, the renderer: the other ten ring ids that share `RenderRingWalls` (0x17, 0x18,
-   0x19, 0x1c, 0x22, 0x30, 0x36, 0x39, 0x3c, 0x3e) and the effects that add them, then
-   the other shapes.
+1. M4, the renderer: the other 50 primitive ids, starting with those the remaining
+   effects in play share: the facing squares (`RenderFacingSquares`, eight ids) and the
+   horizontal squares.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

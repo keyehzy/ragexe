@@ -595,7 +595,7 @@ def ring_state(o, prim):
     emu = o.emu
     out = [emu.read_u32(prim + f) for f in RING_STATE]
     for k in range(4):
-        out += list(struct.unpack("<28I", emu.mem_read(prim + RING + RING_SIZE * k, 0x70)))
+        out += list(struct.unpack("<34I", emu.mem_read(prim + RING + RING_SIZE * k, 0x88)))
     return out
 
 
@@ -611,8 +611,9 @@ def synthetic_rings(o, rng, lines):
     emu = o.emu
     actor = emu.scratch(size=0x100)
     rows = []
-    for n in range(12):
-        pid = (0x1D, 0x27)[n % 2]
+    ids = [0x17, 0x18, 0x19, 0x1C, 0x1D, 0x22, 0x27, 0x30, 0x36, 0x39, 0x3C, 0x3E]
+    for n in range(2 * len(ids)):
+        pid = ids[n % len(ids)]
         mark = emu.heap_mark()
         effect = o.rag_effect(actor)
         pos = [f32(rng.uniform(-30, 30)), f32(rng.uniform(-8, 0)), f32(rng.uniform(-30, 30))]
@@ -629,32 +630,45 @@ def synthetic_rings(o, rng, lines):
 
         w(0x144, rng.randrange(10, 40))
         w(0x128, rng.choice([5, 5, 1, 4, 0x105]))
-        w(0x248, bits(f32(rng.choice([0.0, 1.0, 2.5, 3.0, 4.0, 5.9, 7.0, 10.5, 11.0, 12.0, rng.uniform(0, 12)]))))
+        w(0x248, bits(f32(rng.choice([0.0, 1.0, 2.5, 3.0, 3.0, 4.0, 5.9, 7.0, 10.5, 11.0, 12.0, rng.uniform(0, 12)]))))
         w(0x1F0, rng.choice([0x42C60000, 0, bits(f32(1.5))]))
         ring_textures(o, prim)
         for k in range(4):
             base = RING + RING_SIZE * k
             span = rng.choice([360, 360, 180, 90, 210, 21])
             height = rng.choice([25.0, 120.0, 6.001, rng.uniform(2, 60)])
-            age = rng.choice([0, 5, 9, 10, 11, 30, 195, 240, 250, 251, 285, 300, 795, 799, 803])
+            # Inputs inside the tables the updates index: no negative ages, the 0x36 ring's
+            # doubled age within 360, the 0x30 kind an angle, the 0x3e radius at most 10.
+            ages = [0, 5, 9, 10, 11, 30, 195, 240, 250, 251, 285, 300, 795, 799, 803, 1395, 125]
+            if pid == 0x36:
+                ages = [0, 5, 60, 66, 88, 89, 90, 120, 170]
+            age = rng.choice(ages)
+            kind = rng.choice([-1, 0, 1, 1, 2, 60, 3080])
+            if pid == 0x30:
+                kind = rng.randrange(0, 360)
+            radius = rng.uniform(0.5, 9.9 if pid == 0x3E else 15)
+            flags = [rng.choice([0, 0, 1, 1, 2]) for _ in range(21)]
+            if pid == 0x36:
+                flags[1] = rng.choice([100, 70, 40, 15, 0xF0])
             rec = struct.pack("<BBhfIhhhH", rng.random() < 0.85, 0, span, f32(height), age,
-                              rng.randrange(0, 360), rng.randrange(-5, 255), rng.choice([-1, 0, 1, 1, 2]), 0)
+                              rng.randrange(0, 360), rng.randrange(-5, 255), kind, 0)
             rec += struct.pack("<21f", *(f32(rng.uniform(-5, 40)) for _ in range(21)))
-            rec += struct.pack("<hHf", rng.randrange(20, 90), 0, f32(rng.uniform(0.5, 15)))
+            rec += struct.pack("<hHf", rng.randrange(20, 90), 0, f32(radius))
+            rec += bytes(flags) + bytes(3)
             emu.mem_write(prim + base, rec)
-            for i in range(0, 0x70, 4):
+            for i in range(0, 0x88, 4):
                 sets[base + i] = emu.read_u32(prim + base + i)
         view, yaw, slope = o.scene(rng)
         name = f"kRing{n}"
         lines.append(f"static const FieldVector {name}Fields[] = {{" + ", ".join(
             f"{{0x{f:x}, 0x{v:08x}, {{}}}}" for f, v in sorted(sets.items())) + "};")
         frames = []
-        for frame in range(16):
+        for frame in range(12):
             more = emu.call(PRIM_VF01, this=prim).eax & 0xFF
             state = ring_state(o, prim)
             added = o.draw(prim) if more else []
             lines.append(f"static const std::uint32_t {name}Frame{frame}State[] = {{{hexs(state)}}};")
-            if frame % 5 == 0:
+            if frame in (0, 10):
                 lines.append(f"static const TriangleVector {name}Frame{frame}Triangles[] = {triangles_cpp(added)};")
                 triangles = f"{name}Frame{frame}Triangles, {len(added)}"
             else:
@@ -674,7 +688,8 @@ def synthetic_rings(o, rng, lines):
     lines.append("};")
 
 
-RING_EFFECTS = [0xE1, 0xE7, 0xEC, 0xED, 0xEE, 0xF7, 0xF8, 0x103, 0x104, 0x105, 0x107]
+RING_EFFECTS = [0xE1, 0xE7, 0xEC, 0xED, 0xEE, 0xF7, 0xF8, 0x103, 0x104, 0x105, 0x107,
+                0xC8, 0xDE, 0xFC, 0xEF, 0xF0, 0xF1, 0x118, 0x11D, 0x130, 0x13A, 0x13B, 0x13C]
 
 
 def ring_effects(o, rng, lines):
@@ -685,6 +700,7 @@ def ring_effects(o, rng, lines):
         actor = emu.scratch(size=0x100)
         pos = (f32(rng.uniform(-30, 30)), f32(rng.uniform(-10, 0)), f32(rng.uniform(-30, 30)))
         emu.mem_write(actor + 4, struct.pack("<3f", *pos))
+        emu.call(SRAND, 3000 + run)
         effect = o.rag_effect(actor)
         emu.call(INIT_EFFECT, actor, eid, 0, 0, 0, this=effect)
         duration = emu.read_u32(effect + 0xC0)
@@ -727,7 +743,7 @@ def ring_effects(o, rng, lines):
         lines.append(f"static const SceneVector {name}Scenes[] = {{")
         lines += [f"    {{{f}, {scene_cpp(v, y, sl)}}}," for f, v, y, sl in scenes]
         lines.append("};")
-        rows.append(f"    {{{eid}, 0, 1, {{{hexs(map(bits, pos))}}}, 0, {duration}, "
+        rows.append(f"    {{{eid}, 0, {3000 + run}, {{{hexs(map(bits, pos))}}}, 0, {duration}, "
                     f"{name}Frames, {len(frames)}, {name}Scenes, {len(scenes)}}},")
     lines.append("static const BurstVector kRingEffects[] = {")
     lines += rows

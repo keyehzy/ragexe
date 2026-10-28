@@ -361,8 +361,8 @@ wrapped into 0 to 359.
 
 ## Ring walls
 
-Twelve primitive ids draw rings of walls with `RenderRingWalls`; the port has two of them,
-0x1d and 0x27, and the four effects that add them.
+Twelve primitive ids draw rings of walls with `RenderRingWalls`. All twelve are ported,
+with the twelve effects that add them.
 
 ### The ring records
 
@@ -378,6 +378,7 @@ Each primitive keeps four records of 0xb8 bytes at +0x156b0:
 | +0x14 | each of the 21 walls' height |
 | +0x68 | the tilt: how far the walls lean out, in degrees from flat (a short) |
 | +0x6c | the radius |
+| +0x70 | a byte per wall, below |
 | +0x88 | the last wall's corners, kept by the drawing |
 
 ### The updates
@@ -468,6 +469,104 @@ step.
 - The alpha is 50, or 70 for variant 1.
 - The preset is 4 for variants below 2, then 7 and 6.
 
+### More rings
+
+The other ten ids that draw ring walls each step their rings their own way. Each sets the
+primitive at the effect's position first, except 0x36.
+
+**The flag bytes.** Each record has a byte per wall at +0x70; the ids use them
+differently:
+- **0x17 and 0x19:** a wall settled at its full height.
+- **0x39:** a wall's mode, 0 waving and 1 standing.
+- **0x36:** the first byte marks the rise as done, and the second (signed) is the ring's
+  peak height.
+
+**Rising walls** (0x17, 0x19; `UpdatePrim_23` `0056b130`, `UpdatePrim_25` `0056bca0`):
+- **Which rings.** From ring 3 alone when the scale is 3, otherwise every ring.
+- **Turning.** Rings 0 to 2 turn by their index plus 3.
+- **Fading in** for 20 steps: ring 3 by 8 (to 60, or 100 for 0x19), the others by 10 to
+  180.
+- **Fading out** over the last 40 steps of the life: by 5, ring 3 by 2 (3).
+- **The walls** rise with the sine of the age to their share (sin 9i) of the height and
+  settle on reaching it.
+- **0x19's ring 3** settles its walls after age 90 without clamping them. From then on it
+  waves at 0.55 of each wall's share plus 0.45 of it on the sine of the age.
+
+**Turning rings** (0x18, `UpdatePrim_24` `0056bfa0`):
+- **Turning.** The rings at 0 and 180 degrees turn 1 degree a step, the others 2.
+- **Fading** in to 80 over 100 steps, then out by 5 over the last 20 of the life.
+- **The walls** wave at their share plus 0.3 of it.
+- **The wave's phase.** For the first two rings it is the age plus the ring's quarter
+  turn. For the others it is twice the sum of the age and an eighth turn per ring.
+
+**Spreading and growing rings** (0x1c, 0x22; `UpdatePrim_28` `005715b0`, `UpdatePrim_34`
+`00571820`): a ring widens (0.07, 0.04) and leans in to 10 degrees, its alpha cut to 0 at
+the limit. It fades in (by 10 under radius 4, by 20 under 2.5), then out (by 3, by 2).
+Once faded it starts again: at radius 3.37 while the life has 30 steps left, and at
+radius 2.14 every time; tilt 74. 0x1c waits for its first step. The walls wave at the full
+height plus 0.3 of it.
+
+**A wobbling ring** (0x30, `UpdatePrim_48` `00571940`): the kind turns a degree a step,
+and the radius is 3 plus its sine. The angle turns 3 degrees a step; the walls wave as for
+0x18.
+
+**Lifting rings** (0x36, `UpdatePrim_54` `005716f0`), where the primitive stays put:
+- **Turning.** Ring k turns 5 − k degrees a step.
+- **The height**, from the first step: the second flag byte times the sine of twice the
+  age.
+- **Fading.** By 1 a step once twice the age passes 135, until 180. Then the first flag
+  byte is set and the ring fades by 10.
+- **The walls** wave at the height plus 0.3 of it. The phase runs three times faster for
+  the last two rings.
+
+**Waving walls** (0x39, `UpdatePrim_57` `0056b600`):
+- **Turning.** A ring whose first wall is in mode 1 turns by its index plus 8.
+- **Fading** in by 5 to 180 for 16 steps, and out by 2 from the age in its kind.
+- **Mode 0 walls** wave at three quarters of the height plus a quarter on a sine. The sine
+  runs 4, 3 or 2 times the age for rings 0, 1 and the others, plus 34 degrees a wall.
+- **Mode 1 walls** stand at the height.
+- **Both** rise along the sine of the age for 90 steps.
+
+**A spreading portal** (0x3c, `UpdatePrim_60` `0056b930`), from the first step:
+- **Spreading.** A ring widens by 0.5 a step. Past radius 7 it fades by 15 a step; for its
+  first 10 steps it fades in by 24 to 240.
+- **Starting again.** Once faded, the ring starts again from radius 0. It stops instead
+  once ring 3's age passes 120 with ring 3's kind 1, or 1400 in any case. Ring 0 also
+  counts ring 3's age, so an inactive ring 3 serves as the counter.
+- **The walls** rise with the sine of 9 times the age for 10 steps.
+
+**Closing rings** (0x3e, `UpdatePrim_62` `0056b500`):
+- **Closing.** A ring closes in by 0.05 a step. At the centre it goes back to radius 10
+  and alpha 0.
+- **The height** is the radius, and the tilt is 90 less 9 times the radius.
+- **Fading** in by 1 to 70, then out by 3 over the last 40 steps of the life.
+- **The walls**, those without a flag, stand at the height.
+
+**The effects:**
+
+| Effect ids | Function | Id | Rings |
+|-----------|----------|---:|-------|
+| 200 | `AddRingTrio` (`0056d2c0`) | 0x17 | three open rings (span 315) of `ring_blue`, preset 4 |
+| 0xde, 0xfc | `AddTurningRings` (`00572d90`) | 0x18 | four rings, radius 8 to 7.7, of `ring_black`, `ring_yellow` |
+| 0xef to 0xf1 | `AddRandomRing` (`00573bb0`) | 0x22 | one ring, angle and alpha by `rand()` |
+| 0x118, 0x11d | `AddTwirlRing` (`00573f80`) | 0x30 | one open ring of `twirl.bmp`, preset 8 or 4, height, angles and alpha by `rand()` |
+| 0x130 | `AddTeleportationRings` (`00575b60`) | 0x36 | four rings of `Magic_Violet` peaking at 100, 70, 40 and 15 |
+| 0x13a | `AddTeleportationWalls` (`005770d0`) | 0x39 | four rings of `ring_yellow`, heights 65 to 15, fading from age 60 |
+| 0x13b | `UpdateGlassWall` (`00579790`) | 0x39 | three rings of `alpha_down`, angles by `rand()`, fading from 3080 |
+| 0x13c | `AddReadyPortal` (`00578150`) | 0x3c | three low rings starting 10 steps apart |
+
+**Notes on the effects:**
+- **Positioning.** All but `AddTeleportationRings` keep the effect at the actor each step.
+  `AddReadyPortal` does so every 14 steps, with `effect\EF_ReadyPortal.wav`.
+- **Restart.** `AddRingTrio` starts again at frame 99999998 with a duration of 99999999.
+- **The `.str`.** Id 0x13b also plays `SafetyWall.str` through `AdvanceStr`; the port's
+  effect world leaves that to the `.str` player.
+- **Quirks:**
+  - The angles, tilts and kinds the updates read index the sine and cosine tables
+    directly, without reduction; the check keeps them inside.
+  - 0x36's height reads the sine of twice the age, past the table once the age passes
+    180.
+
 **Id 0xf8 never shows.** After `AddFadingRings`, `vf01` calls `AdvanceStr`, which answers
 false without a `.str`, and `InitEffect` loads none for 0xf8. The effect ends on its first
 step, and its rings, losing their owner, end later in the same pass.
@@ -482,11 +581,12 @@ step, and its rings, losing their owner, end later in the same pass.
 
 **`src/render/effect_prim`:**
 - `EffectPrim` with `MakePrimitive`, `ResetHistory`, `UpdatePrimitive` (vf01) and
-  `DrawPrimitive` (vf03), for ids 0 to 2, 5, 6, 0xd, 0x1d and 0x27. `PrimScene` carries the camera's
+  `DrawPrimitive` (vf03), for ids 0 to 2, 5, 6, 0xd and the twelve ring ids. `PrimScene` carries the camera's
   yaw, the ground, the view, the projection and the sprite slope; `PrimDrawing` gets the
   triangles and the sprite quads;
 - `ProcessHitSpark`, `ProcessRingBurst` and `ProcessHit3`; `AddRingWaves` (with `slow`
-  for `AddSlowRingWaves`), `AddRisingRings` and `AddFadingRings`;
+  for `AddSlowRingWaves`), `AddRisingRings`, `AddFadingRings` and the eight setups of
+  [More rings](#more-rings);
 - `EffectWorld`, the world's list as effects use it:
   - `Launch` adds an effect;
   - `Step` runs a world step in the list's order;
@@ -530,19 +630,23 @@ files.
 - **Five runs of effect ids 0 and 2:** id 0 both ways of minimal effects, under changing
   views and facings, through the world's list as for the hit spark.
 
-- **12 synthetic ring primitives**, ids 0x1d and 0x27 in turn: four random records each
-  (spans of 21 to 360, low walls, ages around 10, 200, 250, 290 and 800, kinds −1 to 2,
-  any wall heights), random presets including 1.0, 3 and fractions, and flags.
-- **The eleven ring effects** through the world's list, 24 steps each.
+- **24 synthetic ring primitives**, two of each ring id:
+  - four random records each: spans of 21 to 360, low walls, ages around the updates'
+    thresholds, kinds, flag bytes and wall heights;
+  - random presets, including 1.0, 3 and fractions, and random flags.
+
+  The inputs stay where the original's direct table indexing stays inside its tables.
+- **The 23 ring effects** through the world's list, 24 steps each, each with its own
+  `srand` seed.
 
   The ring triangles (168 a frame for a full primitive) are recorded on some frames only:
-  every fifth for the synthetic rings, steps 0, 12 and 23 for the effects. The states are
-  recorded every frame.
+  steps 0 and 10 for the synthetic rings, steps 0, 12 and 23 for the effects. The states
+  are recorded every frame.
 
-`tests/unit/prim_test.cpp` matches all of it: 855,776 values, the CRT's first `rand` values
+`tests/unit/prim_test.cpp` matches all of it: 1,068,602 values, the CRT's first `rand` values
 among them.
 
 **Not ported:**
-- the other 60 primitive ids;
+- the other 50 primitive ids;
 - the other effects' processing;
 - the sounds.

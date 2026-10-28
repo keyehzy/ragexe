@@ -247,11 +247,18 @@ void ApplyRing(std::uint32_t offset, std::uint32_t v, EffectPrim& p) {
     case 0x10: r.kind = Low(v); break;
     case 0x68: r.tilt = Low(v); break;
     case 0x6c: r.radius = F(v); break;
-    default: r.heights[(o - 0x14) / 4] = F(v); break;
+    default:
+      if (o >= 0x70) {
+        for (std::uint32_t b = 0; b < 4 && o - 0x70 + b < r.flags.size(); ++b)
+          r.flags[o - 0x70 + b] = static_cast<std::uint8_t>(v >> (8 * b));
+      } else {
+        r.heights[(o - 0x14) / 4] = F(v);
+      }
+      break;
   }
 }
 
-// The position, the age and the first 0x70 bytes of each ring record, as the script reads
+// The position, the age and the first 0x88 bytes of each ring record, as the script reads
 // them.
 std::vector<std::uint32_t> RingStateOf(const EffectPrim& p) {
   std::vector<std::uint32_t> out = {B(p.position[0]), B(p.position[1]), B(p.position[2]), U(p.age)};
@@ -268,6 +275,12 @@ std::vector<std::uint32_t> RingStateOf(const EffectPrim& p) {
     for (float h : r.heights) out.push_back(B(h));
     out.push_back(pair(r.tilt, 0));
     out.push_back(B(r.radius));
+    for (std::size_t b = 0; b < 24; b += 4) {
+      std::uint32_t word = 0;
+      for (std::size_t i = 0; i < 4 && b + i < r.flags.size(); ++i)
+        word |= static_cast<std::uint32_t>(r.flags[b + i]) << (8 * i);
+      out.push_back(word);
+    }
   }
   return out;
 }
@@ -779,7 +792,7 @@ TEST_CASE("The ring effects play as the original's", "[effect]") {
   for (const BurstVector& v : kRingEffects) {
     INFO("effect id " << v.id);
     CHECK(EffectDuration(v.id) == v.duration);
-    EffectWorld world;
+    EffectWorld world(v.seed);
     world.Launch(v.id, {{F(v.position[0]), F(v.position[1]), F(v.position[2])}, 0.0f});
     std::map<const EffectPrim*, std::size_t> order;
     PrimScene scene;
