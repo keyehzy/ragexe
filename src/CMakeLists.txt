@@ -28,6 +28,7 @@ endif()
 add_library(ragexe_res STATIC
   res/act.cpp
   res/bitmap.cpp
+  res/c_runtime.cpp
   res/client_info.cpp
   res/client_tables.cpp
   res/data_file.cpp
@@ -61,6 +62,7 @@ add_library(ragexe_render STATIC
   render/camera.cpp
   render/device.cpp
   render/fixed_function.cpp
+  render/fog.cpp
   render/ground.cpp
   render/matrix.cpp
   render/model.cpp

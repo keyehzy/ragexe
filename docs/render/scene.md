@@ -36,7 +36,7 @@ scaled twice (`ScaleTexCoordsByTexture` `0040c280`).
 `SceneRenderer::AddPrimitive(primitive, flags)` (`00412550`) puts a primitive in one list.
 
 **Fog.** When the renderer's +0x4c is set, it first writes each vertex's fog factor into
-the specular colour's alpha (`ComputeVertexFog` `0040c2e0`).
+the specular colour's alpha (`ComputeVertexFog` `0040c2e0`; [fog.md](fog.md#each-vertex)).
 
 **Opaque**, without flag 1:
 
@@ -80,7 +80,7 @@ A larger `rhw` is nearer, so ascending keys draw back to front.
 ## DrawScene
 
 `0040efd0`. After setting up the projection and fog (`00411090`, when the renderer's
-+0x48 is set), it makes these calls:
++0x48 is set; [fog.md](fog.md#the-devices-states)), it makes these calls:
 
 1. **Stage states:** stage 0 `MIPFILTER` `LINEAR`, `COLOROP` and `ALPHAOP` `MODULATE`;
    stage 1 `ALPHAOP` `DISABLE`.
@@ -170,7 +170,8 @@ original leaves them.
 **Not ported yet:**
 - **The vertex-buffer lists and +0x174** are drawn empty; they come with the models and
   effects that fill them.
-- **The projection and fog set-up,** and **`ComputeVertexFog`**.
+- **The projection's transforms.** The fog's set-up and `ComputeVertexFog` are in
+  `src/render/fog` ([fog.md](fog.md)).
 - **The in-place texture coordinate scaling.**
 
 **Where the port differs:** a translucent key that is NaN orders where a plain

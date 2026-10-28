@@ -7,6 +7,7 @@ add_executable(ragexe_tests
   device_test.cpp
   ebm_test.cpp
   fixed_function_test.cpp
+  fog_test.cpp
   frame_timer_test.cpp
   gat_test.cpp
   gnd_test.cpp

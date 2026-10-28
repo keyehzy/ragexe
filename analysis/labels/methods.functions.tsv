@@ -50,7 +50,6 @@ address	namespace	name	calling_convention	evidence
 00410cd0	SceneRenderer	method_00410cd0	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 0040d1a0
 00410df0	SceneRenderer	method_00410df0	__thiscall	__thiscall; called with this from 2 functions of SceneRenderer, e.g. 004a2990; through the pointer at 00625e98
 00410eb0	SceneRenderer	method_00410eb0	__thiscall	__thiscall; called with this from 3 functions of SceneRenderer, e.g. 004a29f0; through the pointer at 00625e98
-00411010	SceneRenderer	method_00411010	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 00516570; through the pointer at 00625e98
 00411c50	SceneRenderer	method_00411c50	__thiscall	__thiscall; called with this from 2 functions of SceneRenderer, e.g. 00514540; through the pointer at 00625e98
 00411d40	SceneRenderer	method_00411d40	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 004cba20; through the pointer at 00625e98
 00412150	SceneRenderer	method_00412150	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 004cba20; through the pointer at 00625e98
@@ -502,7 +501,6 @@ address	namespace	name	calling_convention	evidence
 00515cf0	CGameMode	method_00515cf0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00515d10
 00515d10	CGameMode	method_00515d10	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050d400
 00515fc0	CGameMode	method_00515fc0	__thiscall	__thiscall; called with this from 6 functions of CGameMode, e.g. 00526300
-00516570	CGameMode	method_00516570	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050cfb0
 00516650	CGameMode	method_00516650	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00512eb0
 00516810	CGameMode	method_00516810	__thiscall	__thiscall; called with this from 2 functions of CGameMode, e.g. 00512eb0
 00516a80	CGameMode	method_00516a80	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050cfb0
@@ -976,7 +974,6 @@ address	namespace	name	calling_convention	evidence
 00598630	ClientState	method_00598630	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0050dbb0
 005986d0	ClientState	method_005986d0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0046a560
 00598dd0	ClientState	method_00598dd0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 004d8e40
-005991f0	ClientState	method_005991f0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00516570
 005994f0	ClientState	method_005994f0	__thiscall	__thiscall; called with this from 6 functions of ClientState, e.g. 0044ffb0
 00599520	ClientState	method_00599520	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0044ffb0
 005995c0	ClientState	method_005995c0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0050b2c0

@@ -148,7 +148,8 @@ What follows the last `#` is dropped.
   - the next three are values;
   - the fourth value closes the record, and the name and values are emptied.
 
-  A record cut short at the end is dropped.
+  A record cut short at the end is dropped. `CGameMode` `00516570` looks a map up in
+  them and reads its values ([fog.md](../render/fog.md)).
 - **Messages:** `InitMsgStringTable` (`004d8e40`, from `WinMain`) calls this loader
   unless the service is Korea, which uses 0x2cb built-in strings instead.
 

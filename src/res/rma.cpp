@@ -1,8 +1,8 @@
 #include "res/rma.h"
 
 #include <algorithm>
-#include <cstdlib>
 
+#include "res/c_runtime.h"
 #include "res/data_file.h"
 
 namespace ragexe::res {
@@ -10,49 +10,6 @@ namespace ragexe::res {
 namespace {
 
 constexpr std::size_t kLineBuffer = 0x400;  // CTokenizer::ReadLine's getline buffer
-
-// isspace in the C locale; bytes of 0x80 and above never count (the tokenizer checks).
-bool IsSpace(char c) { return c == ' ' || (c >= '\t' && c <= '\r'); }
-
-// atoi (atol in the C runtime): leading spaces, a sign, then digits, wrapping at 32 bits.
-std::int32_t AtoI(const std::string& s) {
-  std::size_t i = 0;
-  while (i < s.size() && IsSpace(s[i])) ++i;
-  bool negative = false;
-  if (i < s.size() && (s[i] == '-' || s[i] == '+')) negative = s[i++] == '-';
-  std::uint32_t total = 0;
-  for (; i < s.size() && s[i] >= '0' && s[i] <= '9'; ++i)
-    total = total * 10 + static_cast<std::uint32_t>(s[i] - '0');
-  return static_cast<std::int32_t>(negative ? 0u - total : total);
-}
-
-// atof: leading spaces, a sign, digits with a decimal point, and an exponent after e, E,
-// d or D. Nothing else, so no hexadecimal, inf or nan.
-double AtoF(const std::string& s) {
-  std::size_t i = 0;
-  while (i < s.size() && IsSpace(s[i])) ++i;
-  std::string number;
-  if (i < s.size() && (s[i] == '-' || s[i] == '+')) number += s[i++];
-  const auto digits = [&] {
-    while (i < s.size() && s[i] >= '0' && s[i] <= '9') number += s[i++];
-  };
-  digits();
-  if (i < s.size() && s[i] == '.') {
-    number += s[i++];
-    digits();
-  }
-  if (i < s.size() && (s[i] == 'e' || s[i] == 'E' || s[i] == 'd' || s[i] == 'D')) {
-    std::size_t j = i + 1;
-    std::string exponent = "e";
-    if (j < s.size() && (s[j] == '-' || s[j] == '+')) exponent += s[j++];
-    if (j < s.size() && s[j] >= '0' && s[j] <= '9') {
-      while (j < s.size() && s[j] >= '0' && s[j] <= '9') exponent += s[j++];
-      number += exponent;
-    }
-  }
-  if (number.find_first_of("0123456789") == std::string::npos) return 0.0;
-  return std::strtod(number.c_str(), nullptr);
-}
 
 bool Fail(std::string* error, const char* message) {
   if (error != nullptr) *error = message;
@@ -78,7 +35,7 @@ std::vector<std::string> TokenizeLine(std::string_view line) {
     } else if (state == kToken) {
       // "//" ends the line, and drops a token it cuts short.
       if (c == '/' && i + 1 < line.size() && line[i + 1] == '/') return tokens;
-      if (IsSpace(c)) {
+      if (IsCSpace(c)) {
         // The test is on the position in the line, not the token's length.
         if (i != 0) {
           tokens.push_back(token);
@@ -91,7 +48,7 @@ std::vector<std::string> TokenizeLine(std::string_view line) {
       } else {
         token += c;
       }
-    } else if (!IsSpace(c)) {
+    } else if (!IsCSpace(c)) {
       state = kToken;
       --i;  // read it again as part of a token
     }

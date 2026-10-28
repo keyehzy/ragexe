@@ -347,7 +347,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00410cf0	251	code	0	render	unreferenced	raw	Global	FUN_00410cf0	
 00410df0	188	code	0	render		named	SceneRenderer	method_00410df0	
 00410eb0	340	code	0	render		named	SceneRenderer	method_00410eb0	
-00411010	125	code	0	render		named	SceneRenderer	method_00411010	
+00411010	125	code	0	render		named	SceneRenderer	SetFogEnabled	
 00411090	561	code	0	render		named	SceneRenderer	SetupProjection	
 004112d0	2361	code	0	render		named	SceneRenderer	SetStageMode	
 00411c50	225	code	0	render		named	SceneRenderer	method_00411c50	
@@ -4605,7 +4605,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005162f0	354	code	0	game	unreferenced	raw	Global	FUN_005162f0	
 00516460	171	code	0	game		named	CGameMode	FindIdByFirstString	
 00516510	96	code	0	game		named	CGameMode	EraseTree1C0Entry	
-00516570	210	code	0	game		named	CGameMode	method_00516570	
+00516570	210	code	0	game		named	CGameMode	ApplyMapFog	
 00516650	353	code	0	game		named	CGameMode	method_00516650	
 005167d0	33	code	0	ui		named	UIVerticalNameBalloonText	`scalar_deleting_destructor'	
 00516800	5	thunk	0	ui		-	UIVerticalNameBalloonText	~UIVerticalNameBalloonText	
@@ -5865,7 +5865,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00598dd0	63	code	0	game		named	ClientState	method_00598dd0	
 00598e10	805	code	0	game		named	ClientState	LoadFogParameterTable	
 00599140	166	code	1	stl		named	std::pair	~pair	
-005991f0	518	code	0	game		named	ClientState	method_005991f0	
+005991f0	518	code	0	game		named	ClientState	FindFogParameters	
 00599400	110	code	0	game		named	Global	StringLess	
 00599470	114	code	0	game		named	Global	destroy_global_00686610	
 005994f0	48	code	0	game		named	ClientState	method_005994f0	

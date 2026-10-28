@@ -47,3 +47,9 @@ address	namespace	name	evidence	type
 0067caac	Global	g_visibleCellsMaxZ	CView::DrawWorld: the largest cell z (+0x68) of the visible leaves, from 0	dword
 0067cab4	Global	g_viewShakeStepPending	set by CView::DrawWorld each frame and cleared by CView::ApplyShake, so the shake steps once a frame	dword
 00623c0c	Global	g_clearColor	CGameMode::OnInit sets 0xff99ccff for yuno.rsw, 0xff6699cc for gonryun.rsw and gon_dun02.rsw, 0 otherwise; CGameMode::OnFrame clears the screen with it	dword
+00625ea0	Global	g_fogMode	SceneRenderer::SetFogEnabled sets 3 (D3DFOG_LINEAR); SceneRenderer::SetupProjection sets FOGVERTEXMODE from it (docs/render/fog.md)	dword
+00625ea4	Global	g_fogColor	CGameMode::ApplyMapFog: ParseHexDigits of the map's third fog value; SceneRenderer::SetupProjection sets FOGCOLOR from it	dword
+00625ea8	Global	g_rangeFogEnabled	SceneRenderer::SetFogEnabled sets 1; SceneRenderer::SetupProjection sets RANGEFOGENABLE when it and vertex fog are set	dword
+00625eac	Global	g_fogDensity	CGameMode::ApplyMapFog: atof of the map's fourth fog value; SceneRenderer::SetupProjection sets FOGDENSITY from it	float
+00625eb0	Global	g_fogStart	CGameMode::ApplyMapFog: atof of the map's first fog value, a fraction of 10..1500; read by RenderPrimitive::ComputeVertexFog and SceneRenderer::SetupProjection	float
+00625eb4	Global	g_fogEnd	CGameMode::ApplyMapFog: atof of the map's second fog value, a fraction of 10..1500; read by RenderPrimitive::ComputeVertexFog and SceneRenderer::SetupProjection	float

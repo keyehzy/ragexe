@@ -2224,12 +2224,28 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     the models draw with the ground's colour added.
   - **`ragview`** steps the water and draws it textured, tints the models, and clears to
     the map's colour.
-  - **Not ported:** the fog the map's `fogParameterTable.txt` entry sets
-    (`ClientState` `005981b0`, called from `OnInit` just before).
+
+- [x] The fog (`docs/render/fog.md`):
+  - **The switch:** `ClientState`+0x182c, from the registry's `FOG` (on when missing),
+    flipped by `/fog`.
+  - **The map's fog:** `CGameMode` `00516570` finds the `.rsw` name in the sorted
+    `fogParameterTable.txt` (`005991f0`). It reads start and end (fractions of 10 to
+    1500), a colour (`ParseHexDigits`) and a density into `00625ea4` to `00625eb4`, then
+    `SetFogEnabled`.
+  - **Each vertex:** `ComputeVertexFog` replaces the specular colour with the fog factor
+    in its alpha, on every primitive when the device has vertex fog.
+  - **`SetupProjection`'s states:** the colour, start and end as depths, density, linear
+    vertex fog and range fog. Without vertex fog, linear fog is turned off.
+  - **Port:** `FogState`, `ParseHexDigits`, `FindMapFog`, `VertexFog` and `SetupFog`.
+    The `atof` is shared with the `.rma` reader (`res/c_runtime`).
+  - **Checks:** `tools/fog_vectors.py` records 27 hex strings, a synthetic table looked
+    up 19 ways, 394 depths under 9 ranges and 16 set-ups; 3,719 values match.
+  - **`ragview`** fogs the maps that have a record, unless `--no-fog`.
+  - **Labels:** `SetFogEnabled`, `ApplyMapFog`, `FindFogParameters`, and the fog
+    globals.
 
 ### Next actions
-1. M4, the renderer: the fog (`fogParameterTable.txt` and `SetupProjection`'s fog
-   states), then the actors' sprites (`CRenderObject`, with the scales `CView::Step` and
-   `SetSize` leave), so that `ragview` can show a character on the map.
+1. M4, the renderer: the actors' sprites (`CRenderObject`, with the scales `CView::Step`
+   and `SetSize` leave), so that `ragview` can show a character on the map.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

@@ -1,12 +1,13 @@
 // ragview: a map's ground drawn as the client draws it (docs/render/gpu.md).
 //
 //   ragview [--install DIR] [--size W H] [--at X Z] [--yaw DEGREES] [--frames N]
-//           [--screenshot FILE.png] MAP
+//           [--no-fog] [--screenshot FILE.png] MAP
 //
 // MAP is a .rsw name such as prontera. The ground is built and drawn by the ported
 // C3dGround15, through the scene lists and DrawScene, and the calls are replayed on
 // SDL_GPU. The camera is the client's: placed as on entering the map, following a player
-// standing at world (X, Z) (the map's centre by default), turned to YAW if given.
+// standing at world (X, Z) (the map's centre by default), turned to YAW if given. The
+// map's fog is on, as the client's FOG setting is by default, unless --no-fog.
 // --screenshot renders one frame offscreen to a PNG and exits; otherwise a window opens,
 // and Escape or --frames N closes it.
 
@@ -26,6 +27,7 @@
 
 #include "render/camera.h"
 #include "render/fixed_function.h"
+#include "render/fog.h"
 #include "render/gpu_device.h"
 #include "render/ground.h"
 #include "render/model.h"
@@ -62,6 +64,7 @@ struct Options {
   bool turned = false;
   float yaw = 0.0f;
   int frames = 0;
+  bool fog = true;
   std::string screenshot;
 };
 
@@ -75,7 +78,7 @@ int ParseInt(const char* text, int fallback) {
 int Usage() {
   std::fprintf(stderr,
                "usage: ragview [--install DIR] [--size W H] [--at X Z] [--yaw DEGREES]\n"
-               "               [--frames N] [--screenshot FILE.png] MAP\n");
+               "               [--frames N] [--no-fog] [--screenshot FILE.png] MAP\n");
   return 2;
 }
 
@@ -125,6 +128,8 @@ int main(int argc, char** argv) {
       o.yaw = std::strtof(argv[++i], nullptr);
     } else if (a == "--frames" && next(1)) {
       o.frames = ParseInt(argv[++i], -1);
+    } else if (a == "--no-fog") {
+      o.fog = false;
     } else if (a == "--screenshot" && next(1)) {
       o.screenshot = argv[++i];
     } else if (!a.starts_with("--") && o.map.empty()) {
@@ -167,6 +172,12 @@ int main(int argc, char** argv) {
   std::vector<std::string> indoor_maps;
   const bool indoor = res::LoadFields(files, res::kIndoorRswTable, true, indoor_maps) &&
                       std::binary_search(indoor_maps.begin(), indoor_maps.end(), o.map + ".rsw");
+  // CGameMode::OnInit's fog (00516570): the map's fogParameterTable.txt record, when the
+  // fog flag is on. The device has vertex fog, so every primitive gets its fog factor.
+  res::LineRecords fog_table;
+  render::FogState fog;
+  const bool fog_on = o.fog && res::LoadFogParameters(files, fog_table) &&
+                      render::FindMapFog(fog_table, o.map + ".rsw", fog);
   render::GroundMesh mesh;
   const render::GroundLight light{world.light_vector, world.diffuse, world.ambient};
   if (!render::BuildGround(ground, light, true, mesh, &error)) {
@@ -191,9 +202,9 @@ int main(int argc, char** argv) {
     std::fprintf(stderr, "ragview: %s\n", error.c_str());
     return 1;
   }
-  std::fprintf(stderr, "ragview: %s, %s (%d x %d cells, %s), on %s\n", o.map.c_str(),
+  std::fprintf(stderr, "ragview: %s, %s (%d x %d cells, %s, %s), on %s\n", o.map.c_str(),
                world.ground.c_str(), ground.width, ground.height, indoor ? "indoor" : "outdoor",
-               device->driver());
+               fog_on ? "fog" : "no fog", device->driver());
 
   // The ground's textures (ids from 1, in the file's order) and the lightmap pages.
   for (std::size_t t = 0; t < ground.textures.size(); ++t) {
@@ -301,6 +312,8 @@ int main(int argc, char** argv) {
   render::BoundTextures bound;
   std::vector<render::GpuVertex> vertices;
   std::vector<std::pair<std::uint32_t, std::uint32_t>> spans;  // first vertex, count
+  // SetFogEnabled leaves SceneRenderer+0x48 set, so the first DrawScene sets up the fog.
+  bool setup_projection = true;
 
   const auto frame = [&](std::uint32_t number, std::vector<render::DrawRecord>& draws) {
     settings.frame = number;
@@ -347,8 +360,8 @@ int main(int argc, char** argv) {
         spans.emplace_back(static_cast<std::uint32_t>(vertices.size()), 4);
         for (std::size_t k = 0; k < 4; ++k) {
           const render::ScreenVertex& sv = p.vertices[k];
-          vertices.push_back({sv.x, sv.y, sv.z, sv.rhw, sv.diffuse, sv.specular, sv.u, sv.v,
-                              p.lightmap_uv[k * 2], p.lightmap_uv[k * 2 + 1]});
+          vertices.push_back({sv.x, sv.y, sv.z, sv.rhw, sv.diffuse, render::VertexFog(sv.rhw, fog),
+                              sv.u, sv.v, p.lightmap_uv[k * 2], p.lightmap_uv[k * 2 + 1]});
         }
         continue;
       }
@@ -362,10 +375,16 @@ int main(int argc, char** argv) {
       lists.Add(s, p.flags);
       spans.emplace_back(static_cast<std::uint32_t>(vertices.size()), s.vertex_count);
       for (const render::ScreenVertex& sv : p.vertices)
-        vertices.push_back(
-            {sv.x, sv.y, sv.z, sv.rhw, sv.diffuse, sv.specular, sv.u, sv.v, 0.0f, 0.0f});
+        vertices.push_back({sv.x, sv.y, sv.z, sv.rhw, sv.diffuse, render::VertexFog(sv.rhw, fog),
+                            sv.u, sv.v, 0.0f, 0.0f});
     }
-    const auto calls = render::DrawScene(lists, {false, true, true}, bound);
+    std::vector<render::SceneCall> calls;
+    if (setup_projection) {
+      calls = render::SetupFog(fog, fog_on, true).calls;
+      setup_projection = false;
+    }
+    const auto scene = render::DrawScene(lists, {fog_on, true, true}, bound);
+    calls.insert(calls.end(), scene.begin(), scene.end());
     draws = render::RecordDraws(state, calls);
   };
   const render::VertexLookup lookup = [&](std::uint32_t id) {

@@ -97,8 +97,9 @@ runs on Vulkan; D3D12 would need DXIL.
 ```
 
 **Loading:**
-1. Read the map's `.rsw`, its `.gnd` and its `.gat` from `data.grf`, and
-   `indoorRswTable.txt`.
+1. Read the map's `.rsw`, its `.gnd` and its `.gat` from `data.grf`,
+   `indoorRswTable.txt`, and the map's record in `fogParameterTable.txt` unless
+   `--no-fog` ([fog.md](fog.md)).
 2. Build the ground with the `.rsw`'s light, ISLIGHTMAP on ([ground.md](ground.md)).
 3. Upload its textures the way `TextureCache` makes them:
    - `CreateTexture` at the image's size in ARGB 1555, or 4444 for an image with alpha;
@@ -121,7 +122,9 @@ runs on Vulkan; D3D12 would need DXIL.
 2. The frustum culls the scene graph, and the visible leaves' models and cells are drawn
    in `CView::vf03`'s order.
 3. The ground's and the models' primitives go into `SceneLists`.
-4. `DrawScene` with two-stage lightmaps.
+4. `DrawScene` with two-stage lightmaps, and with the fog when the map has a record in
+   `fogParameterTable.txt` ([fog.md](fog.md)). Every vertex carries its fog factor, and
+   the first frame starts with `SetupProjection`'s fog states.
 5. The calls become `DrawRecord`s for the device.
 
 **Controls,** in a window:
@@ -140,7 +143,7 @@ tint, and **the clear colour** is the map's, as `CGameMode::OnInit` sets them.
 - **The texel offset** `CalibrateTexelOffset` measures ([device.md](device.md#calibratetexeloffset)),
   and the half-pixel difference between Direct3D 7's pixel centres and SDL_GPU's.
 - **`BORDER` addressing**, which SDL_GPU lacks; it clamps to the edge instead.
-- **Mipmaps,** **`TEXTUREMODE`'s divisor** and **the fog's set-up** (`SetupProjection`).
+- **Mipmaps** and **`TEXTUREMODE`'s divisor**.
 - **The in-place texture coordinate scaling** of the scene lists ([scene.md](scene.md)).
 
 ## Checks
