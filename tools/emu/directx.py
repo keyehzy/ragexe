@@ -319,9 +319,15 @@ class Surface(ComObject):
         return DD_OK
 
     def Lock(self, rect, desc, flags, event):
+        """The description's memory pointer is the rectangle's top-left texel, as in
+        DirectDraw."""
         self.locked = True
         self.write_desc(desc, with_memory=True)
         self.dx.current.detail["rect"] = self.dx.rect(rect)
+        if rect:
+            left, top = struct.unpack("<ii", self.dx.emu.mem_read(rect, 8))
+            bits = struct.unpack_from("<I", self.pf, 12)[0] or 16
+            self.dx.emu.write_u32(desc + DESC_SURFACE, self.memory + top * self.pitch + left * bits // 8)
         return DD_OK
 
     def Unlock(self, rect):

@@ -21,6 +21,7 @@ add_executable(ragexe_tests
   settings_test.cpp
   sprite_test.cpp
   str_test.cpp
+  texture_test.cpp
   tips_manner_test.cpp
   wav_test.cpp
   windows_no_dialogs.cpp

@@ -2007,8 +2007,34 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     hardware's rasterizer.
   - **Labels:** the device's methods and its globals.
 
+- [x] Textures and surfaces (`docs/render/texture.md`, `src/render/texture`):
+  - **`CTexture::UpdatePixels`** samples an image down by whole factors to fit the
+    texture, with no filtering, and converts to ARGB 1555, 4444, RGB 565 or 8888.
+    - Opaque magenta becomes the transparent texel. With the flag, black does too, and in
+      565 the magenta texel is kept as it was.
+    - It then blits each mipmap level from the top one.
+  - **`DrawRleImage`** draws a sprite's run-length image through its palette.
+    - A run carries across rows, and a zero-length run zeroes the rest of the image.
+  - **`CSurface::UpdatePixels`** packs pixels in the screen's format and leaves magenta
+    out. `FillColor` packs a `COLORREF` in the screen's 16-bit format, whatever the
+    target.
+  - **Port:**
+    - `ConvertTexel`, `UpdateTexturePixels` and `ImageUvScale`;
+    - `DrawRleImage`, `UpdateSurfacePixels` and `FillValue`;
+    - the surface and mipmap sizes.
+  - **Checks:** `tools/texture_vectors.py` writes the original's texels to
+    `tests/unit/texture_vectors.inc`:
+    - 40 uploads across formats, flags, sampling, offsets and strides;
+    - 8 run-length draws;
+    - surface uploads and fills on three screen formats.
+
+    The port matches every texel. The fake `Lock` now returns its rectangle's top-left,
+    as DirectDraw does.
+  - **Left for the water:** the water's bump maps (format 5) are documented but not
+    ported.
+
 ### Next actions
-1. M4, the renderer: `CTexture` and `CSurface` (texture creation, pixel conversion,
-   the texel offset), then the `SceneRenderer` draw lists, as §M4 lists.
+1. M4, the renderer: the `SceneRenderer` draw lists (primitives, sorting, the alpha and
+   blend modes per draw), then the ground, as §M4 lists.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

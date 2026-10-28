@@ -299,8 +299,8 @@ of (width, height):
 ### CalibrateTexelOffset
 
 `00405790` measures where the hardware samples a texel. Its result sets the global
-offsets `g_texelOffsetU` and `g_texelOffsetV` (`006053f4`, `006053f8`). `CTexture::vf03`
-and `vf04` add them to texture coordinates.
+offsets `g_texelOffsetU` and `g_texelOffsetV` (`006053f4`, `006053f8`). `CTexture::DrawRegion`
+and `DrawImage` add them to texture coordinates ([texture.md](texture.md#drawing)).
 
 **Setup:**
 - **The texture:** a 4 × 4 checker, black and white in 2 × 2 blocks.

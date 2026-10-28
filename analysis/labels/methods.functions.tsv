@@ -85,11 +85,6 @@ address	namespace	name	calling_convention	evidence
 00413650	std::Tree	method_00413650	__thiscall	__thiscall; called with this from 3 functions of TextureCache, e.g. 0040c9f0
 00414860	std::Tree	method_00414860	__thiscall	__thiscall; called with this from 2 functions of TextureCache, e.g. 0040c9f0
 004151e0	std::Tree	method_004151e0	__thiscall	__thiscall; called with this from 2 functions of TextureCache, e.g. 0040cca0
-00416420	CSurface	method_00416420	__thiscall	__thiscall; called with this from 1 functions of CSurface, e.g. 00416080
-00416810	CTexture	method_00416810	__thiscall	__thiscall; called with this from 1 functions of CTexture, e.g. 00416990
-004168a0	CTexture	method_004168a0	__thiscall	__thiscall; called with this from 3 functions of CTexture, e.g. 00416990
-004172f0	CTexture	method_004172f0	__thiscall	__thiscall; called with this from 1 functions of CTexture, e.g. 004165e0
-00417640	CTexture	method_00417640	__thiscall	__thiscall; called with this from 1 functions of CTexture, e.g. 004166b0
 00418670	CRagConnection	method_00418670	__thiscall	__thiscall; called with this from 17 functions of CRagConnection, e.g. 004b25f0
 00418710	CRagConnection	method_00418710	__thiscall	__thiscall; called with this from 2 functions of CRagConnection, e.g. 00524d80
 00418c30	CRagConnection	method_00418c30	__thiscall	__thiscall; called with this from 1 functions of CRagConnection, e.g. 005b2280

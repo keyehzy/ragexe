@@ -17,8 +17,8 @@ address	namespace	name	evidence	type
 00628b40	Global	g_intMapNilUsers	the number of live maps sharing g_intMapNil: incremented by the CRagConnection and CKeyPad constructors, decremented by their destructors, which free the nil node at 0	dword
 00641cb8	Global	g_basicSkinName	static_init_066_body 00436ce0 assigns "<Basic Skin>" (00606604) to this std::string; CSkinMgr::GetSkinName 00437df0 returns its text for index -1, and 00436dd0, registered by 00436dc0, frees it at exit	std_string
 00625e50	Global	g_twoTexCoordVertices	function-local static vector of 40-byte vertices (buffer +4, end +8, capacity +0xc): RenderPrimitive::DrawTwoTexCoords 0040c3e0 fills it from a primitive's vertices and texture pairs and registers 0040c570, which frees it at exit	
-006053f4	Global	g_texelOffsetU	C3dDevice::CalibrateTexelOffset 00405790 stores the u offset it finds (fstp at 00405d41); CTexture::vf03 and vf04 add it to texture coordinates	dword
-006053f8	Global	g_texelOffsetV	C3dDevice::CalibrateTexelOffset 00405790 stores the v offset it finds (fstp at 00405d53); CTexture::vf03 and vf04 add it to texture coordinates	dword
+006053f4	Global	g_texelOffsetU	C3dDevice::CalibrateTexelOffset 00405790 stores the u offset it finds (fstp at 00405d41); CTexture::DrawRegion and DrawImage add it to texture coordinates	dword
+006053f8	Global	g_texelOffsetV	C3dDevice::CalibrateTexelOffset 00405790 stores the v offset it finds (fstp at 00405d53); CTexture::DrawRegion and DrawImage add it to texture coordinates	dword
 0061ec50	Global	g_textureDivisor	LoadVideoSettings sets 4, 2 or 1 from TEXTUREMODE 0, 1 or another value; C3dDevice::CreateTexture and UpdateTexture divide texture sizes by it	dword
 00688500	Global	g_textureModeSetting	LoadVideoSettings reads the TEXTUREMODE registry value into it, 2 when absent	dword
 00688504	Global	g_trilinearFilterSetting	LoadVideoSettings reads the TRILINEARFILTER registry value into it, 0 when absent; C3dDevice::SelectMipmapFlags tests it	dword
