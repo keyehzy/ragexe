@@ -6806,7 +6806,7 @@ CPlayer	005e9cf4	0	40	004eb080	CGameActor::vf40
 CRagEffect	005e9dc8	0	0	0054d340	CRagEffect::`scalar_deleting_destructor'	
 CRagEffect	005e9dc8	0	1	0054d4c0	CRagEffect::vf01	
 CRagEffect	005e9dc8	0	2	0054eba0	CRagEffect::vf02	
-CRagEffect	005e9dc8	0	3	0054ee50	CRagEffect::vf03	
+CRagEffect	005e9dc8	0	3	0054ee50	CRagEffect::Render	
 CRagEffect	005e9dc8	0	4	005000d0	CGameObject::GetDirection	
 CRagEffect	005e9dc8	0	5	00501830	CRenderObject::vf05	
 CRagEffect	005e9dc8	0	6	00501840	CRenderObject::vf06	

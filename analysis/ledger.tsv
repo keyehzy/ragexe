@@ -5274,13 +5274,13 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0054d370	336	code	0	world		named	CRagEffect	~CRagEffect	
 0054d4c0	4501	code	0	world		named	CRagEffect	vf01	
 0054eba0	580	code	0	world		named	CRagEffect	vf02	
-0054ee50	130	code	0	world		named	CRagEffect	vf03	
+0054ee50	130	code	0	world		named	CRagEffect	Render	
 0054eee0	1965	code	0	world		named	CRagEffect	InitEffect	
 0054f9a0	312	code	0	world		named	CRagEffect	method_0054f9a0	
 0054fae0	87	code	0	world		named	CRagEffect	LoadStrFile	
-0054fb40	91	code	0	world		named	CRagEffect	method_0054fb40	
-0054fba0	1200	code	0	world		named	CRagEffect	method_0054fba0	
-00550070	1301	code	0	world		named	CRagEffect	method_00550070	
+0054fb40	91	code	0	world		named	CRagEffect	ResetStr	
+0054fba0	1200	code	0	world		named	CRagEffect	AdvanceStr	
+00550070	1301	code	0	world		named	CRagEffect	DrawStrLayer	
 00550590	1	code	0	world		named	Global	atexit_no_op_00550590	
 005505a0	1713	code	0	world		named	CRagEffect	method_005505a0	
 00550c60	907	code	0	world		named	CRagEffect	method_00550c60	

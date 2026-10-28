@@ -3,7 +3,7 @@
 //   ragview [--install DIR] [--size W H] [--at X Z] [--yaw DEGREES] [--frames N]
 //           [--no-fog] [--actor SPRITE | --player JOB SEX HAIR [--hair-color N]
 //           [--clothes-color N] [--headgear TOP MID BOTTOM] [--weapon KIND] [--shield ID]]
-//           [--action BASE] [--screenshot FILE.png] MAP
+//           [--action BASE] [--effect NAME [--effect-step N]] [--screenshot FILE.png] MAP
 //
 // MAP is a .rsw name such as prontera. The ground is built and drawn by the ported
 // C3dGround15, through the scene lists and DrawScene, and the calls are replayed on
@@ -15,7 +15,9 @@
 // there instead: the body of job JOB (0 the novice) and sex SEX (0 female, 1 male), with
 // hair style HAIR, layered by the job's .imf, dressed in the palettes, headgear, weapon and
 // shield given. --action sets the base action (0 idle; 80 attacking, which shows the
-// weapon and shield).
+// weapon and shield). --effect plays data\texture\effect\NAME.str where the actor
+// stands, a step each 16 ms world step and again when it ends; a screenshot shows it after
+// --effect-step steps (15 by default).
 // --screenshot renders one frame offscreen to a PNG and exits; otherwise a window opens,
 // and Escape or --frames N closes it.
 
@@ -33,8 +35,10 @@
 #include <string>
 #include <vector>
 
+#include "core/frame_timer.h"
 #include "render/actor.h"
 #include "render/camera.h"
+#include "render/effect.h"
 #include "render/fixed_function.h"
 #include "render/fog.h"
 #include "render/gpu_device.h"
@@ -57,6 +61,7 @@
 #include "res/rsm.h"
 #include "res/rsw.h"
 #include "res/sprite.h"
+#include "res/str.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
@@ -70,6 +75,7 @@ constexpr std::uint32_t kModelTextureIdBase = 0x20000;
 constexpr std::uint32_t kWaterTextureIdBase = 0x30000;
 constexpr std::uint32_t kActorTextureIdBase = 0x40000;
 constexpr std::uint32_t kShadowTextureIdBase = 0x48000;
+constexpr std::uint32_t kEffectTextureIdBase = 0x50000;
 constexpr std::uint32_t kSpritePage = 256;  // the sprite texture cache's pages (0040e130)
 
 struct Options {
@@ -94,6 +100,8 @@ struct Options {
   int weapon = 0;
   int shield = 0;
   int action = 0;
+  std::string effect;
+  int effect_step = 15;
   std::string screenshot;
 };
 
@@ -110,6 +118,7 @@ int Usage() {
                "               [--frames N] [--no-fog] [--actor SPRITE | --player JOB SEX HAIR\n"
                "               [--hair-color N] [--clothes-color N] [--headgear TOP MID BOTTOM]\n"
                "               [--weapon KIND] [--shield ID]] [--action BASE]\n"
+               "               [--effect NAME [--effect-step N]]\n"
                "               [--screenshot FILE.png] MAP\n");
   return 2;
 }
@@ -245,6 +254,10 @@ int main(int argc, char** argv) {
       o.shield = ParseInt(argv[++i], 0);
     } else if (a == "--action" && next(1)) {
       o.action = ParseInt(argv[++i], 0);
+    } else if (a == "--effect" && next(1)) {
+      o.effect = argv[++i];
+    } else if (a == "--effect-step" && next(1)) {
+      o.effect_step = ParseInt(argv[++i], 15);
     } else if (a == "--no-fog") {
       o.fog = false;
     } else if (a == "--screenshot" && next(1)) {
@@ -496,6 +509,44 @@ int main(int argc, char** argv) {
   // SetFogEnabled leaves SceneRenderer+0x48 set, so the first DrawScene sets up the fog.
   bool setup_projection = true;
 
+  // The effect: CRagEffect playing the .str, from the world steps the frame timer counts
+  // (ProcessGenericType's offset, 80 pixels up). Each texture is uploaded the first time a
+  // triangle asks for it: effect\ and its name, .bmp added when it has none, and "1.bmp"
+  // past a layer's names (GetEffectEntryTexture, 004289a0).
+  res::Str effect_str;
+  bool has_effect = false;
+  if (!o.effect.empty()) {
+    std::string ignored;
+    has_effect = Load(files, "data\\texture\\effect\\" + o.effect + ".str", bytes) &&
+                 res::DecodeStr(bytes, effect_str, &ignored);
+    if (!has_effect) std::fprintf(stderr, "ragview: no effect %s\n", o.effect.c_str());
+  }
+  render::StrPlayer effect_player(effect_str);
+  core::FrameTimer world_steps;
+  world_steps.SetFrameRate(60, static_cast<std::uint32_t>(SDL_GetTicks()));
+  std::map<std::pair<std::size_t, std::int32_t>, std::uint32_t> effect_textures;
+  const auto effect_texture = [&](std::size_t layer, std::int32_t index) {
+    auto [it, added] = effect_textures.try_emplace(
+        {layer, index}, kEffectTextureIdBase + static_cast<std::uint32_t>(effect_textures.size()));
+    if (added) {
+      const res::StrLayer& l = effect_str.layers[layer];
+      std::string name = static_cast<std::size_t>(index) < l.textures.size()
+                             ? l.textures[static_cast<std::size_t>(index)]
+                             : std::string("1.bmp");
+      if (name.find('.') == std::string::npos) name += ".bmp";
+      res::Bitmap image;
+      std::string ignored;
+      std::uint32_t w = 1, h = 1;
+      std::vector<std::uint32_t> texels{0};
+      if (Load(files, "data\\texture\\effect\\" + name, bytes) &&
+          res::DecodeBitmap(name, bytes, image, &ignored))
+        texels = ClientTexels(image, w, h);
+      device->SetTexture(it->second, w, h, texels);
+    }
+    return it->second;
+  };
+  bool effect_started = false;
+
   const auto frame = [&](std::uint32_t number, std::uint32_t now,
                          std::vector<render::DrawRecord>& draws) {
     settings.frame = number;
@@ -604,6 +655,39 @@ int main(int argc, char** argv) {
       }
       for (const render::SpriteQuad& q : body.quads)
         add(q, layers[static_cast<std::size_t>(q.layer)]);
+    }
+    // CRagEffect::vf01 for each world step due (all of --effect-step at the first), then
+    // vf03's triangles, each with its own blends and stage mode.
+    if (has_effect) {
+      std::uint32_t steps = world_steps.StepsDue(now);
+      if (!effect_started) {
+        steps = static_cast<std::uint32_t>(std::max(o.effect_step, 1));
+        effect_started = true;
+      }
+      for (std::uint32_t i = 0; i < std::min<std::uint32_t>(steps, 8); ++i) {
+        if (!effect_player.Advance(camera.view, player, projection, 0.0f, -80.0f, 0.0f)) {
+          effect_player.Reset();
+          effect_player.Advance(camera.view, player, projection, 0.0f, -80.0f, 0.0f);
+        }
+        effect_player.Step();
+      }
+      for (const render::EffectTriangle& t : effect_player.Draw()) {
+        render::ScenePrimitive s;
+        s.id = static_cast<std::uint32_t>(spans.size());
+        s.texture = effect_texture(static_cast<std::size_t>(t.layer), t.texture);
+        s.src_blend = t.src_blend;
+        s.dest_blend = t.dest_blend;
+        s.mode = t.mode;
+        s.type = 4;
+        s.vertex_count = 3;
+        s.rhw0 = t.vertices[0].rhw;
+        s.rhw1 = t.vertices[1].rhw;
+        lists.Add(s, render::scene_flags::kTranslucent | render::scene_flags::kStageMode);
+        spans.emplace_back(static_cast<std::uint32_t>(vertices.size()), 3);
+        for (const render::ScreenVertex& sv : t.vertices)
+          vertices.push_back({sv.x, sv.y, sv.z, sv.rhw, sv.diffuse, render::VertexFog(sv.rhw, fog),
+                              sv.u, sv.v, 0.0f, 0.0f});
+      }
     }
     std::vector<render::SceneCall> calls;
     if (setup_projection) {

@@ -60,3 +60,4 @@ address	namespace	name	evidence	type
 00614708	Global	g_spriteDepthBias	CView::Step: 300 / distance times 3.6e-5; CRenderObject::DrawBody adds it, times the pixel scale, to every layer's rhw	float
 006864f0	Global	g_playerHeadOffsetX	CPc::RenderActFrameItems: the body's first anchor x less the head's, when their kinds match; kept between frames and players, and added to the headgear's offsets	dword
 006864f4	Global	g_playerHeadOffsetY	the same for y	dword
+00686500	Global	g_strQuadVertices	CRagEffect::DrawStrLayer's four 32-byte vertices, a function-local static: z 1e-5 and rhw 0.99999 (at the near plane), specular 0xffffffff, the rest written each call	dword

@@ -3,7 +3,7 @@
 `CEZeffectRes` (RTTI, 0xd3b4 bytes) is an animated effect: layers of textured quads
 driven by keyframes. It is registered for `str` under `texture\effect\`
 ([resources.md](resources.md#types)). `CRagEffect::LoadStrFile` (`0054fae0`) fetches one,
-and `CRagEffect::method_0054fba0` plays it.
+and `CRagEffect::AdvanceStr` (`0054fba0`) plays it ([effect.md](../render/effect.md)).
 
 ## Members
 
@@ -40,7 +40,8 @@ As with grounds ([gnd.md](gnd.md)), the loader keeps the file's bytes in its own
 - **How the texture index moves:** one value chooses it, through a `switch` on cases 1
   to 5 that use the layer's texture count.
 
-The meanings of the values come with the effect player.
+The meanings of the values come with the effect player
+([effect.md](../render/effect.md#the-values)).
 
 ## File
 

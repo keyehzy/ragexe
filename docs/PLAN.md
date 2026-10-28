@@ -2300,8 +2300,23 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     and `--action` dress and pose the player.
   - **Not ported:** `SetWeapon` by item id.
 
+- [x] The `.str` effects (`docs/render/effect.md`):
+  - **`AdvanceStr`:** each world step, every layer's keys move on to the frame; type 0 keys
+    set the 29 values, others add to them, and the texture index moves by one of five
+    modes (one shares a stack slot with the z offset across layers).
+  - **`DrawStrLayer`:** two triangles per moved layer from layer 1 on, the corners turned
+    by the angle about the layer's position, centred on the actor's screen point 80 pixels
+    up, at the near plane, with the layer's own blends and stage mode.
+  - **The end:** when every layer has run out of keys; a layer without keys never does.
+  - **Checks:** `tools/effect_vectors.py` plays three synthetic effects for 240 frames;
+    66,406 values match.
+  - **`ragview --effect NAME`** plays an effect where the actor stands.
+  - **Not ported:** the effects' own processing cases, `CEffectPrim`'s particles, the
+    sounds.
+
 ### Next actions
-1. M4, the renderer: the effects actors make (`CAbleToMakeEffect`, the `.str` effects
-   `CEZeffectRes` loads), so that `ragview` can show a skill's or an item's effect.
+1. M4, the renderer: `CEffectPrim`, the particles and shapes effects add beside their
+   `.str` (rings, lens flares, sprites flying out), and which effect id plays what
+   (`CRagEffect::InitEffect`'s table).
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

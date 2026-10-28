@@ -62,6 +62,7 @@ add_library(ragexe_render STATIC
   render/actor.cpp
   render/camera.cpp
   render/device.cpp
+  render/effect.cpp
   render/fixed_function.cpp
   render/fog.cpp
   render/ground.cpp
