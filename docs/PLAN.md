@@ -2084,8 +2084,29 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
       (`ground_oracle_sample`). All 208 maps of `data.grf` match, both ways.
   - **Labels:** `Build`, `Reset` and the world light globals.
 
+- [x] Drawing the ground (`docs/render/ground.md#drawing`, `src/render/ground`,
+  `src/core/angles`):
+  - **`DrawCells`** draws each cell of a scene-graph node's rectangle once a frame.
+    - **Water:** a quad when the top dips below the waves, with heights from
+      `SinDegrees` written into the cell, back-face culled.
+    - **Surfaces:** `DrawSurface` for the top and walls. It projects them with the view
+      matrix, culls those off screen when asked, and scales their colours by
+      `g_WorldColorFade`.
+  - **The angle tables** carry a quirk: negative angles read one degree off.
+  - **Port:**
+    - `DrawGroundCells` with `GroundPrimitive` quads;
+    - the cells' corner records and frame stamps;
+    - `core::SinDegrees` and `CosDegrees`.
+  - **Checks:** `tools/ground_draw_vectors.py` records, from the original in the
+    emulation oracle, every primitive five draws add, under varied views, culling, fade,
+    lightmaps and water. The port matches bit for bit, with the cells and the angle
+    tables.
+  - **Labels:** `DrawCells`, `DrawSurface`, `GetWaterTexture`, and the fade, texture-scale
+    and angle-table globals.
+
 ### Next actions
-1. M4, the renderer: drawing the ground (`C3dGround15`'s slot 4 and `004bf070`: which
-   cells are visible, and the primitives they add to the scene lists), as §M4 lists.
+1. M4, the renderer: the first frame on screen. `RenderDevice` on SDL_GPU, drawing the
+   scene lists' calls (the ground first) with the original's states, and a `ragview` that
+   opens a map, as §M4 lists.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

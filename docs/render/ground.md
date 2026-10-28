@@ -58,7 +58,7 @@ from a file that starts with `GRGN`.
 | +0x40 | the top's surface record, or 0 |
 | +0x44 | the wall toward `x + 1` |
 | +0x48 | the wall toward `z + 1` |
-| +0x4c | `0xffffffff` once an east wall is placed, otherwise uninitialised |
+| +0x4c | the frame the cell was last drawn in (`DrawCells`); `Build` sets `0xffffffff` where it places an east wall, and leaves it uninitialised elsewhere |
 | +0x50 | the top's lightmap colour, doubled and clamped to 255, white without one |
 
 `Reset` (slot 2, `004bc9c0`) sizes the cells and the per-block lists, and leaves the
@@ -176,6 +176,126 @@ order the code takes them. `ftol` truncates.
   previous page's texels past its last lightmap, and the first page keeps whatever was
   on the stack.
 
+## Drawing
+
+**Who draws it.** Each frame, `CView`'s scene (`004cf4d0`) walks the scene-graph nodes
+the frustum left visible. For each, it calls the ground's `DrawCells` (slot 4,
+`004be500`) with the view matrix and the node's cell rectangle.
+- **Partly visible nodes** pass `cull` 1.
+- **Wholly visible nodes** pass `cull` 0.
+
+Slot 5 (`004befa0`) walks cells the same way through `004bf070`, but the view does not
+call it.
+
+**The view matrix** is 4 × 3, for row vectors: `x' = x·m0 + y·m3 + z·m6 + m9`, and
+likewise for `y'` and `z'`.
+
+**The renderer's fields:**
+
+| Field | Offset |
+|-------|--------|
+| scale x | +0 |
+| scale y | +4 |
+| centre | +0x1c, +0x20 |
+| size | +0x24, +0x28 |
+| a second centre | +0x2c, +0x30 |
+| frame count | +0x34 |
+
+`SetSize` sets both centres to half the size.
+
+### DrawCells
+
+`DrawCells(view, rect, cull)` takes the cells from `rect`'s `(x0, z0)` to `(x1, z1)`
+inclusive, row by row.
+- **Skip** a cell whose `+0x4c` already holds the frame count. Otherwise, store the
+  count there.
+- **With a top:**
+  - its water, below;
+  - then `DrawSurface` of the top.
+- **Then the walls:** `DrawSurface` of the wall toward `z + 1`, then toward `x + 1`.
+
+### The water
+
+**The wave heights.** With the wave height (`+0x54`) at 0.0, all four are the level
+(`+0x40`). Otherwise each height is
+
+```
+SinDegrees(n · step + phase) · height + level
+```
+
+with `step` at +0x48 and `phase` at +0x60. `n` is `x + z` for corners 1 and 2,
+`x − 1 + z` for corner 0, and `x + 1 + z` for corner 3. `n · step + phase` is an int,
+converted to float and back with `ftol`.
+
+**When it is drawn.** Only when some vertex of the top lies below the level at `x + z`:
+in the y-down world, its `y` is greater.
+
+**The corners.** The heights go into the cell's corner records (`+0x14`, `+0x20`,
+`+0x2c`, `+0x38`) and stay there.
+
+**The projection.** The four corners go through the view:
+- `x' = ((y·m3 + m6·z) + m0·x) + m9`, and likewise for `y'` and `z'`;
+- `rhw = 1 / max(z', 1)`, where NaN also becomes 1;
+- `sx = (rhw·scale_x)·x' + centre_x`;
+- `sy = (y'·rhw)·scale_y + centre_y`;
+- `sz = ((1/rhw − 10)·(1500/1490))·rhw`, with near 10 (`005e88f8`) and far 1500
+  (`005e88f4`).
+
+**Facing.** The quad is drawn only when it faces the view:
+`(v1.x − v0.x)·(v2.y − v0.y) < (v2.x − v0.x)·(v1.y − v0.y)`.
+
+**The quad.** It comes from the renderer's pool (`00412b40`). It keeps the pool quad's
+specular `0xff000000` and type `TRIANGLESTRIP`.
+- **Colour:**
+  - **With `g_groundWaterFade`** (`00679f9c`): `0x90` alpha and `ftol(255·f)` of
+    `g_WorldColorFade`'s multipliers at +0x2c.
+  - **Water type 4:** the same with alpha `0xff`.
+  - **Otherwise:** `0x90ffffff`.
+- **Texture coordinates:** from `(x % 4, z % 4)` and one more, times
+  `g_waterTextureScale` (0.25).
+- **Texture:** `GetWaterTexture` (`004bc4e0`).
+- **List:** `AddPrimitive` with flag 1, the alpha list.
+
+### DrawSurface
+
+`DrawSurface(view, surface, cull)` (`004bea30`).
+
+**The projection** of the surface's four vertices:
+- `x' = ((z·m6 + m0·x) + y·m3) + m9`, and likewise;
+- `sx = (rhw·scale_x)·x' + centre2_x`;
+- `sy = (rhw·scale_y)·y' + centre2_y`;
+- `sz` as for the water.
+
+**Culling.** With `cull`, the surface is left out when all its `x` are at or past the
+width, or all below 0, and likewise for `y`. The comparisons take each pair's smaller
+value as `b < a ? b : a`.
+
+**Colour.** Each vertex colour's red, green and blue are multiplied by
+`g_WorldColorFade`'s multipliers:
+- the set at +0x38 (`ftol(byte·f)`);
+- or, with `g_groundWaterFade`, the set at +0x2c.
+
+The record's +0x18 would choose an alpha of `0x80` instead, but `Build` leaves it 0.
+
+**The quad:**
+- the specular of `-2¹²⁷` written as the vertex template's initial value, bits
+  `0xff000000`;
+- the texture coordinates;
+- the lightmap coordinates as the second set;
+- the surface's texture and lightmap page;
+- `AddPrimitive` with flag `0x400`, the ground list.
+
+### SinDegrees
+
+`SinDegrees` and `CosDegrees` (`0040b3c0`, `0040b400`) read the tables `InitAngleTables`
+(`0040b2f0`) fills in `WinMain`.
+- **The tables** (`g_sinTable` `006247b4`, `g_cosTable` `00623c6c`) hold 0 to 360
+  degrees. Each entry is `k · π · (1/180)` in single precision, the sine or cosine
+  rounded to float.
+- **Reduction:** angles past ±360 are reduced with C's remainder.
+- **Negative angles:** the lookup starts just after entry 360, so `−k` reads entry
+  `361 − k`, one degree past `360 − k`.
+
 ## In the port
 
 `src/render/ground.{h,cpp}`:
@@ -184,7 +304,9 @@ order the code takes them. `ftol` truncates.
 |------|----------|
 | `BuildLightmapAtlas` | the atlas; the pages hold the ARGB texels |
 | `BuildGround` | `Build`: cells, surfaces with their vertices, and the atlas |
-| `GroundMesh` | the cells and surfaces |
+| `GroundMesh` | the cells and surfaces, with their corner records and frame stamps |
+| `DrawGroundCells` | `DrawCells` with `DrawSurface` and the water; `GroundPrimitive`s for `AddPrimitive` |
+| `core::SinDegrees`, `CosDegrees` | the angle tables, `src/core/angles` |
 
 - **Textures** are indices into the file's names, not loaded.
 - **The page textures** are the atlas pages' indices.
@@ -193,6 +315,8 @@ order the code takes them. `ftol` truncates.
   add.
 
 **Where the port differs:**
+- **Frame stamps** start at `0xffffffff`; the original's are uninitialised except where an
+  east wall is placed.
 - **Failures:** `BuildGround` fails on a texture index outside the names, or a lightmap
   index past the lightmaps, where the original reads outside its arrays.
 - **Fresh memory is zero:** a first page that is not full is zero past its last
@@ -211,6 +335,21 @@ order the code takes them. `ftol` truncates.
   - **What the port matches:** every cell, surface, vertex (bit for bit, colours
     included) and block. It also matches every page's texels, except outside the
     blocks of a first page with room left.
+- **Drawing** (`tests/unit/ground_draw_test.cpp`). `tools/ground_draw_vectors.py`
+  draws synthetic grounds with the original and writes
+  `tests/unit/ground_draw_vectors.inc`.
+  - **The set-up:**
+    - the original builder;
+    - `C3dDevice::Init` and a `SceneRenderer` sized 800 × 600;
+    - `InitAngleTables` and the water texture scale, which `WinMain` and a static
+      initializer set.
+  - **Five cases.** They vary the view, culling, the fade flag, ISLIGHTMAP, and water:
+    none, flat, waves, and type 4.
+  - **What the port matches,** bit for bit:
+    - every primitive added, in order: positions, rhw, colours, coordinates, lightmap
+      coordinates, texture and page;
+    - every cell's frame stamp and water heights;
+    - the angle tables.
 - **Real maps** (`ground_oracle_sample` in `ctest`, when the data is present).
   `tools/ground_oracle.py` builds maps of `data.grf` both ways in the original and
   through `ragres build-grounds`, and compares hashes of the same values.

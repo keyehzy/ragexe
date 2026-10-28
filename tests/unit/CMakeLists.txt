@@ -8,6 +8,7 @@ add_executable(ragexe_tests
   frame_timer_test.cpp
   gat_test.cpp
   gnd_test.cpp
+  ground_draw_test.cpp
   ground_test.cpp
   grf_test.cpp
   imf_test.cpp

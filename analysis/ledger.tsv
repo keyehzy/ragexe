@@ -3075,14 +3075,14 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004bc3b0	89	code	0	world		named	C3dGround	GetCellCoords	
 004bc410	53	code	0	world		named	C3dGround	SetWaterParams	
 004bc450	135	code	0	world		named	C3dGround15	method_004bc450	
-004bc4e0	20	code	0	world		named	C3dGround15	method_004bc4e0	
+004bc4e0	20	code	0	world		named	C3dGround15	GetWaterTexture	
 004bc500	104	code	0	world		named	C3dGround	vf16	
 004bc570	663	code	0	world		named	C3dGround15	method_004bc570	
 004bc810	420	code	0	world		named	C3dGround15	vf01	
 004bc9c0	610	code	0	world		named	C3dGround15	Reset	
 004bcc30	6187	code	0	world		named	C3dGround15	Build	
-004be500	1321	code	0	world		named	C3dGround15	vf04	
-004bea30	1380	code	0	world		named	C3dGround15	method_004bea30	
+004be500	1321	code	0	world		named	C3dGround15	DrawCells	
+004bea30	1380	code	0	world		named	C3dGround15	DrawSurface	
 004befa0	199	code	0	world		named	C3dGround15	vf05	
 004bf070	860	code	0	world		named	C3dGround15	method_004bf070	
 004bf3d0	752	code	0	world		named	C3dGround15	vf06	

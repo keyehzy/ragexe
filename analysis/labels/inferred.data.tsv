@@ -25,3 +25,7 @@ address	namespace	name	evidence	type
 0067bf80	Global	g_worldLightDirection	CWorld::LoadWorld copies the .rsw's light vector (+0x188) here and passes it to C3dGround15::Build as the light direction	dword
 0067bf70	Global	g_worldDiffuse	CWorld::LoadWorld copies the .rsw's diffuse colour (+0x194) here and passes it to C3dGround15::Build	dword
 0067bf60	Global	g_worldAmbient	CWorld::LoadWorld copies the .rsw's ambient colour (+0x1a0) here and passes it to C3dGround15::Build	dword
+00679f98	Global	g_waterTextureScale	static_init_092_body 004bbb10 sets 0.25; C3dGround15::DrawCells multiplies each water quad's cell position modulo 4 by it for the texture coordinates	dword
+00679f9c	Global	g_groundWaterFade	set by CPlayer::method_00506c80 and CGameMode::method_0050dc90; when set, C3dGround15::DrawSurface scales the ground's colours by g_WorldColorFade's first multipliers (+0x2c) and DrawCells gives the water alpha 0x90 with them	dword
+006247b4	Global	g_sinTable	InitAngleTables 0040b2f0 fills 361 floats, the sine of 0 to 360 degrees; SinDegrees reads it	dword
+00623c6c	Global	g_cosTable	InitAngleTables 0040b2f0 fills 361 floats, the cosine of 0 to 360 degrees; CosDegrees reads it	dword

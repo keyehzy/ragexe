@@ -5961,7 +5961,7 @@ C3dGround15	005e897c	0	0	004c4250	C3dGround15::`scalar_deleting_destructor'
 C3dGround15	005e897c	0	1	004bc810	C3dGround15::vf01	
 C3dGround15	005e897c	0	2	004bc9c0	C3dGround15::Reset	
 C3dGround15	005e897c	0	3	004bcc30	C3dGround15::Build	
-C3dGround15	005e897c	0	4	004be500	C3dGround15::vf04	
+C3dGround15	005e897c	0	4	004be500	C3dGround15::DrawCells	
 C3dGround15	005e897c	0	5	004befa0	C3dGround15::vf05	
 C3dGround15	005e897c	0	6	004bf3d0	C3dGround15::vf06	
 C3dGround15	005e897c	0	7	004bf930	C3dGround15::vf07	

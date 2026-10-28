@@ -3,6 +3,8 @@
 #include <cmath>
 #include <cstddef>
 
+#include "core/angles.h"
+
 namespace ragexe::render {
 
 namespace {
@@ -173,6 +175,7 @@ bool BuildGround(const res::Ground& ground, const GroundLight& light, bool light
       const float z0 = static_cast<float>(z - half_h) * s;
       const float z1 = static_cast<float>((z - half_h) + 1) * s;
       const auto& hh = c.heights;
+      mesh.corners = {x0, 0.0f, z0, x1, 0.0f, z0, x0, 0.0f, z1, x1, 0.0f, z1};
       if (const std::int32_t top = c.surfaces[0]; top > -1 && top < count) {
         mesh.surfaces[0] = top;
         if (!place(top, {Vec3{x0, hh[0], z0}, Vec3{x1, hh[1], z0}, Vec3{x0, hh[2], z1},
@@ -342,6 +345,199 @@ bool BuildGround(const res::Ground& ground, const GroundLight& light, bool light
     }
   }
   return true;
+}
+
+namespace {
+
+constexpr float kNear = 10.0f;     // 005e88f8
+constexpr float kFar = 1500.0f;    // 005e88f4
+constexpr float kWaterUv = 0.25f;  // 00679f98
+
+// far / (far − near), rounded once.
+float DepthScale() {
+  const float range = kFar - kNear;
+  return kFar / range;
+}
+
+// The z the transforms keep: at least 1, which a NaN also becomes.
+float NearClamped(float z) { return z < 1.0f || std::isnan(z) ? 1.0f : z; }
+
+std::uint32_t ScaleColor(std::uint32_t color, const std::array<float, 3>& f) {
+  const auto channel = [](std::uint32_t byte, float factor) {
+    return Ftol(static_cast<float>(byte) * factor) & 0xff;
+  };
+  return (color & 0xff000000u) | channel(color >> 16 & 0xff, f[0]) << 16 |
+         channel(color >> 8 & 0xff, f[1]) << 8 | channel(color & 0xff, f[2]);
+}
+
+// The smallest and largest of four values as the original picks them, NaN included.
+float Smallest(float a, float b, float c, float d) {
+  const float ab = b < a ? b : a;
+  const float cd = c < d ? c : d;
+  return cd <= ab ? cd : ab;
+}
+float Largest(float a, float b, float c, float d) {
+  const float ab = b < a ? a : b;
+  const float cd = d < c ? c : d;
+  return ab <= cd ? cd : ab;
+}
+
+// 004bea30: a surface's four vertices through the view onto the screen, coloured, as a
+// primitive for the ground list.
+void DrawSurface(const GroundMesh& mesh, const GroundSurfaceMesh& surface, const ViewMatrix& m,
+                 bool cull, const GroundDrawSettings& settings, std::vector<GroundPrimitive>& out) {
+  const GroundViewport& vp = settings.viewport;
+  const float scale = DepthScale();
+  const float origin_x = static_cast<float>(vp.origin_x);
+  const float origin_y = static_cast<float>(vp.origin_y);
+  GroundPrimitive p;
+  p.flags = 0x400;
+  for (std::size_t k = 0; k < 4; ++k) {
+    const GroundVertex& v = surface.vertices[k];
+    const float tx = ((v.z * m[6] + m[0] * v.x) + v.y * m[3]) + m[9];
+    const float ty = ((v.z * m[7] + m[1] * v.x) + v.y * m[4]) + m[10];
+    const float tz = ((v.z * m[8] + m[2] * v.x) + v.y * m[5]) + m[11];
+    const float rhw = 1.0f / NearClamped(tz);
+    ScreenVertex& s = p.vertices[k];
+    s.rhw = rhw;
+    const float rx = rhw * vp.scale_x;
+    s.x = rx * tx + origin_x;
+    const float ry = rhw * vp.scale_y;
+    s.y = ry * ty + origin_y;
+    const float w = 1.0f / rhw;
+    const float d = w - kNear;
+    const float ds = d * scale;
+    s.z = ds * rhw;
+  }
+  if (cull) {
+    const auto& q = p.vertices;
+    if (static_cast<float>(vp.width) <= Smallest(q[0].x, q[1].x, q[2].x, q[3].x)) return;
+    if (Largest(q[0].x, q[1].x, q[2].x, q[3].x) < 0.0f) return;
+    if (static_cast<float>(vp.height) <= Smallest(q[0].y, q[1].y, q[2].y, q[3].y)) return;
+    if (Largest(q[0].y, q[1].y, q[2].y, q[3].y) < 0.0f) return;
+  }
+  const auto& fade = settings.alternate_fade ? settings.fade.water : settings.fade.ground;
+  for (std::size_t k = 0; k < 4; ++k) {
+    const GroundVertex& v = surface.vertices[k];
+    p.vertices[k].diffuse = ScaleColor(v.color, fade);
+    p.vertices[k].u = v.u;
+    p.vertices[k].v = v.v;
+    p.lightmap_uv[k * 2] = v.lightmap_u;
+    p.lightmap_uv[k * 2 + 1] = v.lightmap_v;
+  }
+  p.texture = surface.texture;
+  if (mesh.lightmaps && surface.lightmap_block >= 0) {
+    p.lightmap_page = static_cast<std::int32_t>(
+        mesh.atlas.blocks[static_cast<std::size_t>(surface.lightmap_block)].page);
+  }
+  out.push_back(p);
+}
+
+// The water over a cell whose top dips below it (in the y-down world, a top vertex above
+// the level's y), when its quad faces the view.
+void DrawWater(GroundMesh& mesh, GroundCellMesh& cell, std::int32_t x, std::int32_t z,
+               const ViewMatrix& m, const GroundDrawSettings& settings,
+               std::vector<GroundPrimitive>& out) {
+  const GroundWater& water = settings.water;
+  float middle = water.level;
+  float before = water.level;
+  float after = water.level;
+  if (water.wave_height != 0.0f) {
+    const auto wave = [&](std::int32_t at) {
+      const float angle = static_cast<float>(at * water.step + water.phase);
+      const float sine = core::SinDegrees(static_cast<std::int32_t>(Ftol(angle)));
+      const float scaled = sine * water.wave_height;
+      return scaled + water.level;
+    };
+    middle = wave(x + z);
+    before = wave((x - 1) + z);
+    after = wave(x + 1 + z);
+  }
+  const auto& top = mesh.surfaces[static_cast<std::size_t>(cell.surfaces[0])].vertices;
+  const bool below =
+      middle < top[0].y || middle < top[1].y || middle < top[2].y || middle < top[3].y;
+  if (!below) return;
+  cell.corners[1] = before;
+  cell.corners[10] = after;
+  cell.corners[4] = middle;
+  cell.corners[7] = middle;
+  const GroundViewport& vp = settings.viewport;
+  const float scale = DepthScale();
+  std::array<ScreenVertex, 4> q{};
+  for (std::size_t k = 0; k < 4; ++k) {
+    const float vx = cell.corners[k * 3];
+    const float vy = cell.corners[k * 3 + 1];
+    const float vz = cell.corners[k * 3 + 2];
+    const float tx = ((vy * m[3] + m[6] * vz) + m[0] * vx) + m[9];
+    const float ty = ((m[4] * vy + m[7] * vz) + vx * m[1]) + m[10];
+    const float tz = ((m[5] * vy + m[8] * vz) + vx * m[2]) + m[11];
+    const float rhw = 1.0f / NearClamped(tz);
+    q[k].rhw = rhw;
+    const float rx = rhw * vp.scale_x;
+    q[k].x = rx * tx + static_cast<float>(vp.center_x);
+    const float yr = ty * rhw;
+    q[k].y = yr * vp.scale_y + static_cast<float>(vp.center_y);
+    const float w = 1.0f / rhw;
+    const float d = w - kNear;
+    const float ds = d * scale;
+    q[k].z = ds * rhw;
+  }
+  const float a = (q[2].y - q[0].y) * (q[1].x - q[0].x);
+  const float b = (q[1].y - q[0].y) * (q[2].x - q[0].x);
+  if (!(b > a)) return;
+  GroundPrimitive p;
+  p.flags = 1;
+  p.vertices = q;
+  std::uint32_t color = 0x90ffffff;
+  const auto byte = [](float f) {
+    const float scaled = f * 255.0f;
+    return Ftol(scaled) & 0xff;
+  };
+  const auto& f = settings.fade.water;
+  if (settings.alternate_fade) {
+    color = 0x90000000u | byte(f[0]) << 16 | byte(f[1]) << 8 | byte(f[2]);
+  } else if (water.type == 4) {
+    color = 0xff000000u | byte(f[0]) << 16 | byte(f[1]) << 8 | byte(f[2]);
+  }
+  const float u0 = static_cast<float>(x % 4);
+  const float v0 = static_cast<float>(z % 4);
+  const float u1 = u0 + 1.0f;
+  const float v1 = v0 + 1.0f;
+  const std::array<float, 8> uv{u0 * kWaterUv, v0 * kWaterUv, u1 * kWaterUv, v0 * kWaterUv,
+                                u0 * kWaterUv, v1 * kWaterUv, u1 * kWaterUv, v1 * kWaterUv};
+  for (std::size_t k = 0; k < 4; ++k) {
+    p.vertices[k].diffuse = color;
+    p.vertices[k].specular = 0xff000000;
+    p.vertices[k].u = uv[k * 2];
+    p.vertices[k].v = uv[k * 2 + 1];
+  }
+  out.push_back(p);
+}
+
+}  // namespace
+
+void DrawGroundCells(GroundMesh& mesh, const ViewMatrix& view, const CellRect& rect, bool cull,
+                     const GroundDrawSettings& settings, std::vector<GroundPrimitive>& out) {
+  for (std::int32_t z = rect[1]; z <= rect[3]; ++z) {
+    for (std::int32_t x = rect[0]; x <= rect[2]; ++x) {
+      GroundCellMesh& cell = mesh.cells[static_cast<std::size_t>(z) * mesh.width + x];
+      if (cell.drawn_frame == settings.frame) continue;
+      cell.drawn_frame = settings.frame;
+      if (cell.surfaces[0] >= 0) {
+        DrawWater(mesh, cell, x, z, view, settings, out);
+        DrawSurface(mesh, mesh.surfaces[static_cast<std::size_t>(cell.surfaces[0])], view, cull,
+                    settings, out);
+      }
+      if (cell.surfaces[1] >= 0) {
+        DrawSurface(mesh, mesh.surfaces[static_cast<std::size_t>(cell.surfaces[1])], view, cull,
+                    settings, out);
+      }
+      if (cell.surfaces[2] >= 0) {
+        DrawSurface(mesh, mesh.surfaces[static_cast<std::size_t>(cell.surfaces[2])], view, cull,
+                    settings, out);
+      }
+    }
+  }
 }
 
 }  // namespace ragexe::render

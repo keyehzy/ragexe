@@ -7,6 +7,6 @@ thunks             95
 non-default names  9942
 FID matches        55 (4069 bytes, 0.2% of function bytes)
 class namespaces   365
-source ANALYSIS    4851
+source ANALYSIS    4850
 source DEFAULT     871
-source USER_DEFINED 5091
+source USER_DEFINED 5092
