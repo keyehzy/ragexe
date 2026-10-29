@@ -25,27 +25,36 @@ constexpr float kHalf = 0.5f;                                  // 005e25b8
 constexpr float kQuadTip = std::bit_cast<float>(0x3f555555u);  // 005e9f90, 5/6
 constexpr std::uint32_t kVertexZ = 0x358637bd;                 // 1e-6, at the near plane
 constexpr std::uint32_t kVertexRhw = 0x3f7fffef;
-constexpr float kFar = 1500.0f;                                     // 005e9f60
-constexpr float kHundredth = std::bit_cast<float>(0x3c23d70au);     // 005e39dc, 0.01
-constexpr float kBounceBack = std::bit_cast<float>(0xbf2aaaabu);    // 005e9e04, -2/3
-constexpr float kPixel = std::bit_cast<float>(0x3e124925u);         // 005e9564, 1/7
-constexpr float kRhwBias = std::bit_cast<float>(0x3727c5acu);       // 005e9568, 1e-5
-constexpr float kEndDistance = 3.0f;                                // 005e29d8
-constexpr float kCylinderU = 0.25f;                                 // 005e653c
-constexpr float kRingCell = std::bit_cast<float>(0x3d430c31u);      // 005e9ef4, 1/21
-constexpr float kRingWave = std::bit_cast<float>(0x3e19999au);      // 005e9ed8, 0.15
-constexpr std::uint32_t kSlowWaves = 0x42c60000;                    // 99.0 at +0x1f0
-constexpr std::uint32_t kLowWalls = 0x40c00831;                     // 6.001, a ring's height
-constexpr float kWallsClose = std::bit_cast<float>(0x3c23d70au);    // 005e9f24, 0.01
-constexpr float kBoxGrowth = std::bit_cast<float>(0x3ba3d70au);     // 005e9f28, 0.005
-constexpr float kBoxPulse = std::bit_cast<float>(0x3eb33333u);      // 005e9f30, 0.35
-constexpr float kBoxBase = std::bit_cast<float>(0x3f266666u);       // 005e9f2c, 0.65
-constexpr float kBounceShrink = std::bit_cast<float>(0x3f333333u);  // 005e89c4, 0.7
-constexpr float kPerHalfTurn = std::bit_cast<float>(0x3bb60b61u);   // 005e2690, 1/180
-constexpr float kBandSpread = std::bit_cast<float>(0x3d75c28fu);    // 005e9f4c, 0.06
-constexpr float kBandBack = std::bit_cast<float>(0x3e19999au);      // 005e9ed8, 0.15
-constexpr float kBandLift = std::bit_cast<float>(0x3d23d70au);      // 005e9f20, 0.04
-constexpr float kBandLength = std::bit_cast<float>(0x3e4ccccdu);    // 005e9f40, 0.2
+constexpr float kFar = 1500.0f;                                       // 005e9f60
+constexpr float kHundredth = std::bit_cast<float>(0x3c23d70au);       // 005e39dc, 0.01
+constexpr float kBounceBack = std::bit_cast<float>(0xbf2aaaabu);      // 005e9e04, -2/3
+constexpr float kPixel = std::bit_cast<float>(0x3e124925u);           // 005e9564, 1/7
+constexpr float kRhwBias = std::bit_cast<float>(0x3727c5acu);         // 005e9568, 1e-5
+constexpr float kEndDistance = 3.0f;                                  // 005e29d8
+constexpr float kCylinderU = 0.25f;                                   // 005e653c
+constexpr float kRingCell = std::bit_cast<float>(0x3d430c31u);        // 005e9ef4, 1/21
+constexpr float kRingWave = std::bit_cast<float>(0x3e19999au);        // 005e9ed8, 0.15
+constexpr std::uint32_t kSlowWaves = 0x42c60000;                      // 99.0 at +0x1f0
+constexpr std::uint32_t kLowWalls = 0x40c00831;                       // 6.001, a ring's height
+constexpr float kWallsClose = std::bit_cast<float>(0x3c23d70au);      // 005e9f24, 0.01
+constexpr float kBoxGrowth = std::bit_cast<float>(0x3ba3d70au);       // 005e9f28, 0.005
+constexpr float kBoxPulse = std::bit_cast<float>(0x3eb33333u);        // 005e9f30, 0.35
+constexpr float kBoxBase = std::bit_cast<float>(0x3f266666u);         // 005e9f2c, 0.65
+constexpr float kBounceShrink = std::bit_cast<float>(0x3f333333u);    // 005e89c4, 0.7
+constexpr float kPerHalfTurn = std::bit_cast<float>(0x3bb60b61u);     // 005e2690, 1/180
+constexpr float kBandSpread = std::bit_cast<float>(0x3d75c28fu);      // 005e9f4c, 0.06
+constexpr float kBandBack = std::bit_cast<float>(0x3e19999au);        // 005e9ed8, 0.15
+constexpr float kBandLift = std::bit_cast<float>(0x3d23d70au);        // 005e9f20, 0.04
+constexpr float kBandLength = std::bit_cast<float>(0x3e4ccccdu);      // 005e9f40, 0.2
+constexpr float kLeafDriftX = std::bit_cast<float>(0x3e75c28fu);      // 005e9b10, 0.24
+constexpr float kLeafDriftZ = std::bit_cast<float>(0x3e99999au);      // 005e2a1c, 0.3
+constexpr float kLeafDriftSlowX = std::bit_cast<float>(0x3df5c28fu);  // 005e9edc, 0.12
+constexpr float kThirtieth = std::bit_cast<float>(0x3d088889u);       // 005e9e0c, 1/30
+constexpr float kEaseOut = std::bit_cast<float>(0xbf2aaaabu);         // 005e9e04, -2/3
+constexpr float kThousandth = std::bit_cast<float>(0x3a83126fu);      // 005e9898, 0.001
+constexpr float kTrapFall = std::bit_cast<float>(0x3da3d70au);        // 005e9eb0, 0.08
+constexpr float kFiftieth = std::bit_cast<float>(0x3ca3d70au);        // 005e9e2c, 0.02
+constexpr float kLeafFallSlow = std::bit_cast<float>(0x3cf5c28fu);    // 005e9ed4, 0.03
 
 std::int32_t Ftol(float f) {
   if (std::isnan(f) || f <= -2147483904.0f || f >= 2147483648.0f)
@@ -133,12 +142,13 @@ void UpdateAlpha(EffectPrim& p) {
     if (p.life - age > left + 1) {
       p.fading = true;
       p.flags &= ~EffectPrim::kBounce;
-      p.alpha_speed = -(p.alpha / static_cast<float>(left));
+      p.alpha_speed = -core::RoundedQuotient(p.alpha, static_cast<double>(left));
     }
   }
   if (age == p.fade_at) {
     p.flags &= ~EffectPrim::kBounce;
-    p.alpha_speed = -((p.alpha / static_cast<float>(p.life - age)) * p.fade_scale);
+    p.alpha_speed =
+        -(core::RoundedQuotient(p.alpha, static_cast<double>(p.life - age)) * p.fade_scale);
   }
   float a = p.alpha_speed + p.alpha;
   if (!(a >= p.alpha_min)) a = p.alpha_min;
@@ -319,9 +329,16 @@ bool UpdateOrbiter(EffectPrim& p) {
 }
 
 // CEffectPrim::UpdatePrim_5 (0057e8e0): a particle flying along its matrix's z, or its own
-// step with kStraight, drifting and wandering by its flags.
-bool UpdateParticle(EffectPrim& p, core::CrtRand& rand, const PrimScene& scene) {
-  FollowOwner(p);
+// step with kStraight, drifting and wandering by its flags. UpdatePrim_21 (0057edd0), id
+// 0x15, is the same left where it started: from its start and offset, not the owner's, and
+// without kEndNear.
+bool UpdateParticle(EffectPrim& p, core::CrtRand& rand, const PrimScene& scene, bool left = false) {
+  Vec3 base{};
+  if (left) {
+    for (std::size_t i = 0; i < 3; ++i) base[i] = p.start[i] + p.offset[i];
+  } else {
+    FollowOwner(p);
+  }
   if (p.age == p.change_at) {
     for (std::size_t i = 0; i < 3; ++i) {
       p.step[i] = std::bit_cast<float>(p.step_changes[i]);
@@ -367,9 +384,13 @@ bool UpdateParticle(EffectPrim& p, core::CrtRand& rand, const PrimScene& scene) 
     p.matrix = RotateY(MakeRotationX(Radians(p.pitch)), Radians(p.heading));
     p.period = rand.Next() % 15 + 5;
   }
-  PlaceAtTravel(p);
-  if ((p.flags & EffectPrim::kEndNear) != 0) {
-    // CRenderObject 00500530: the distance on the ground to (x, z).
+  if (left) {
+    for (std::size_t i = 0; i < 3; ++i) p.position[i] = base[i] + p.travel[i];
+  } else {
+    PlaceAtTravel(p);
+  }
+  if (!left && (p.flags & EffectPrim::kEndNear) != 0) {
+    // CRenderObject::GroundDistanceTo (00500530).
     const float dx = p.owner->target[0] - p.position[0];
     const float dz = p.owner->target[2] - p.position[2];
     if (!(SqrtFloat((dz * dz) + (dx * dx)) > kEndDistance)) return false;
@@ -1655,6 +1676,136 @@ void UpdateBouncingBands(EffectPrim& p) {
   }
 }
 
+// Matrix::MakeAxisRotation (004099d0): a turn about the axis by the angle in radians, the
+// quaternion of half the angle's sine along the axis and its cosine, with no translation.
+Matrix MakeAxisRotation(const Vec3& axis, float radians) {
+  const float half = radians * 0.5f;
+  const float s = SinFloat(half);
+  return MakeRotationFromKey({s * axis[0], s * axis[1], s * axis[2], CosFloat(half)});
+}
+
+// CRenderObject::TurnTowards (005005b0): the facing that looks at (x, z) from where it
+// stands: fpatan of the x and the negated z apart, over π (005e94f4, as a float) and times
+// 180, within 0 to 360.
+float TurnTowards(const Vec3& from, float x, float z) {
+  const float dx = x - from[0];
+  const float dz = -(z - from[2]);
+  const double turns = std::atan2(static_cast<double>(dx), static_cast<double>(dz)) /
+                       static_cast<double>(std::bit_cast<float>(0x40490fd8u));
+  const float facing = static_cast<float>(turns) * 180.0f;
+  float out = facing < 360.0f ? facing : facing - 360.0f;
+  if (out < 0.0f) out = out + 360.0f;
+  return out;
+}
+
+// The end every sprite trail's update shares: the angle with the camera under
+// kFaceCamera, then the alpha, the history and the sprite's frame.
+bool EndTrailStep(EffectPrim& p, const PrimScene& scene) {
+  if ((p.flags & EffectPrim::kFaceCamera) != 0) p.angle = p.facing - scene.view_yaw;
+  UpdateAlpha(p);
+  ShiftHistory(p);
+  return AdvanceAction(p);
+}
+
+// CEffectPrim::UpdatePrim_7 (0057f4a0): a particle circling its owner (its offset added) at
+// the distance along the heading, both changing by speeds that change by rates, the
+// offset's y by the fall; at change_at the fall and its rate take +0x1cc and +0x1d0; with
+// distance_keys, at each key frame the distance's speed and rate take the next of the key
+// values and limits. The matrix turns about z by the pitch, its value taken as radians.
+bool UpdateCirclingParticle(EffectPrim& p) {
+  p.start = p.owner->position;
+  p.distance_speed = p.distance_speed + p.distance_rate;
+  p.fall_speed = p.fall_speed + p.fall_rate;
+  p.heading_speed = p.heading_rate + p.heading_speed;
+  p.distance = p.distance_speed + p.distance;
+  p.heading = p.heading_speed + p.heading;
+  p.offset[1] = p.fall_speed + p.offset[1];
+  for (std::size_t i = 0; i < 3; ++i) p.start[i] = p.offset[i] + p.start[i];
+  p.angle = p.spin + p.angle;
+  if (p.age == p.change_at) {
+    p.fall_speed = std::bit_cast<float>(p.changes[2]);
+    p.fall_rate = std::bit_cast<float>(p.changes[5]);
+  }
+  const auto key = static_cast<std::size_t>(p.key);
+  if (p.distance_keys && key < p.key_frames.size() &&
+      static_cast<float>(p.age) == p.key_frames[key]) {
+    ++p.key;
+    p.distance_speed = key < p.key_values.size() ? p.key_values[key] : 0.0f;
+    p.distance_rate = key < p.key_limits.size() ? p.key_limits[key] : 0.0f;
+  }
+  p.matrix = MakeRotationY(Radians(p.heading));
+  p.travel = AlongZ(p, p.distance);
+  for (std::size_t i = 0; i < 3; ++i) p.position[i] = p.travel[i] + p.start[i];
+  p.scale = p.scale_speed + p.scale;
+  p.pitch = p.pitch_speed + p.pitch;
+  p.matrix = RotateZ(p.matrix, p.pitch);
+  UpdateAlpha(p);
+  ShiftHistory(p);
+  return AdvanceAction(p);
+}
+
+// CEffectPrim::UpdatePrim_8 (0057f6d0): a shot from its owner (its offset added) flying
+// along its matrix's z at its speed less its fall, each changing by its rate, while it
+// circles its axis at the pitch's distance by the angle (the drift).
+bool UpdateCirclingShot(EffectPrim& p) {
+  for (std::size_t i = 0; i < 3; ++i) p.start[i] = p.owner->position[i] + p.offset[i];
+  p.speed = p.acceleration + p.speed;
+  p.pitch_speed = p.pitch_rate + p.pitch_speed;
+  p.fall_speed = p.fall_rate + p.fall_speed;
+  p.pitch = p.pitch_speed + p.pitch;
+  p.step = AlongZ(p, p.speed - p.fall_speed);
+  p.orbit = MakeAxisRotation(p.axis, Radians(p.angle));
+  const Matrix& o = p.orbit;
+  p.drift = {(p.pitch * o[3]) + o[9], (p.pitch * o[4]) + o[10], (p.pitch * o[5]) + o[11]};
+  p.scale = p.scale_speed + p.scale;
+  for (std::size_t i = 0; i < 3; ++i) p.travel[i] = p.travel[i] - p.step[i];
+  for (std::size_t i = 0; i < 3; ++i) p.position[i] = (p.start[i] + p.travel[i]) + p.drift[i];
+  UpdateAlpha(p);
+  ShiftHistory(p);
+  return AdvanceAction(p);
+}
+
+// CEffectPrim::UpdatePrim_38 (00568300), id 0x26, a falling leaf: with its first record
+// active, two angles walk 3 up or 2 down towards their goals, the leaf falls by the record's
+// speed and drifts by their sines (0.24 along x and 0.3 along z, or half that in mode 1);
+// below its owner it starts again within 150 of it, 200 above. The primitive stands at the
+// leaf.
+bool UpdateFallingLeaf(EffectPrim& p, core::CrtRand& rand, const PrimScene& scene) {
+  p.position = p.owner->position;
+  PrimMotes& r = p.motes[0];
+  if (r.active) {
+    Walk(r.values[0], r.values[1], rand, 3.0f, 2.0f);
+    Walk(r.values[2], r.values[3], rand, 3.0f, 2.0f);
+    Vec3& at = r.points[2];
+    at[1] = r.speed + at[1];
+    const bool slow = r.mode != 0;
+    at[0] = (TableAt(kSines, Ftol(r.values[0])) * (slow ? kLeafDriftSlowX : kLeafDriftX)) + at[0];
+    at[2] = (TableAt(kSines, Ftol(r.values[2])) * (slow ? kRingWave : kLeafDriftZ)) + at[2];
+    if (at[1] > p.position[1]) {
+      at[0] = (static_cast<float>(rand.Next() % 300) + p.position[0]) - 150.0f;
+      at[1] = p.position[1] - 200.0f;
+      at[2] = (static_cast<float>(rand.Next() % 300) + p.position[2]) - 150.0f;
+    }
+    p.travel = at;
+  }
+  p.position = p.travel;
+  return EndTrailStep(p, scene);
+}
+
+// CEffectPrim::UpdatePrim_44 (00568580), id 0x2c, and UpdatePrim_49 (00568630), id 0x31: at
+// the owner, or with the first record active at its point; 0x2c moves its travel there too.
+bool UpdateStandingSprite(EffectPrim& p, const PrimScene& scene, bool travels) {
+  p.position = p.owner->position;
+  const PrimMotes& r = p.motes[0];
+  if (travels) {
+    if (r.active) p.travel = r.points[2];
+    p.position = p.travel;
+  } else if (r.active) {
+    p.position = r.points[2];
+  }
+  return EndTrailStep(p, scene);
+}
+
 ScreenVertex Vertex(float x, float y, std::uint32_t color, float u, float v) {
   ScreenVertex s;
   s.x = x;
@@ -1737,8 +1888,9 @@ void DrawDiamond(const EffectPrim& p, std::vector<PrimTriangle>& out) {
   out.push_back({TextureOf(p), {turn(Vertex(hw, hh - tip, p.color, 1.0f, kHalf)), bottom, top}});
 }
 
-// CEffectPrim::RenderActFrameHistory (00581ff0), ids 5 and 6: the sprite's current frame
-// at each history record, scaled by its scale and coloured by its colour.
+// CEffectPrim::RenderActFrameHistory (00581ff0), ids 5 to 8, 0x15, 0x26, 0x2c and 0x31: the
+// sprite's current frame at each history record, scaled by its scale and coloured by its
+// colour.
 void DrawHistory(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
   const res::Act* act = p.sprite.act;
   const res::Sprite* sprite = p.sprite.sprite;
@@ -1808,6 +1960,7 @@ void DrawHistory(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) 
       q.image = item.image;
       q.flags = p.quad_flags;
       out.quads.push_back(q);
+      out.quad_sprites.push_back(sprite);
     }
   }
 }
@@ -2760,6 +2913,16 @@ bool UpdatePrimitive(EffectPrim& p, core::CrtRand& rand, const PrimScene& scene)
     case 6:
       if (!UpdateBouncer(p, rand, scene)) return false;
       break;
+    case 7:
+      if (!UpdateCirclingParticle(p)) return false;
+      break;
+    case 8: UpdateCirclingShot(p); break;
+    case 0x15:
+      if (!UpdateParticle(p, rand, scene, true)) return false;
+      break;
+    case 0x26: UpdateFallingLeaf(p, rand, scene); break;
+    case 0x2c: UpdateStandingSprite(p, scene, true); break;
+    case 0x31: UpdateStandingSprite(p, scene, false); break;
     case 0xd: UpdateCylinder(p); break;
     case 0x17: UpdateRisingWalls(p, false); break;
     case 0x18: UpdateTurningRings(p); break;
@@ -2826,7 +2989,13 @@ void DrawPrimitive(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out
     case 1: DrawRay(p, out.triangles); break;
     case 2: DrawDiamond(p, out.triangles); break;
     case 5:
-    case 6: DrawHistory(p, scene, out); break;
+    case 6:
+    case 7:
+    case 8:
+    case 0x15:
+    case 0x26:
+    case 0x2c:
+    case 0x31: DrawHistory(p, scene, out); break;
     case 0xd: DrawCylinder(p, scene, out); break;
     case 0x17:
     case 0x18:
@@ -4097,6 +4266,391 @@ void AddBouncingBands(RagEffect& effect, const EffectActor& actor, core::CrtRand
   added.push_back(std::move(p));
 }
 
+namespace {
+
+// CRenderObject::SetAction (00500de0), as primitives feel it: the action, from its first
+// frame.
+void SetAction(EffectPrim& p, std::int32_t action) {
+  p.action = action;
+  p.image = 0;
+}
+
+// The cylinders of alpha_down.tga effects 7 and 0xe stand round the actor: as long as the
+// effect, fading in to their limit over 30 frames and out over the last 20.
+EffectPrim MakeColumn(const RagEffect& effect, float radius, float height, float limit) {
+  EffectPrim c = MakePrimitive(&effect, 0xd, {0.0f, 0.0f, 0.0f});
+  c.life = effect.duration;
+  c.top_radius = radius;
+  c.bottom_radius = radius;
+  c.height = height;
+  c.alpha = 0.0f;
+  c.alpha_max = limit;
+  c.alpha_speed = c.alpha_max * kThirtieth;
+  c.fade_at = c.life - 20;
+  c.textures = {"effect\\alpha_down.tga"};
+  return c;
+}
+
+// The sparks effects 7 and 0xe raise: id 7 at a random heading 3 out, rising by 1.2 a
+// frame, slowing by two thirds of that over its life, fading from a third of it from the
+// end.
+EffectPrim MakeRisingSpark(const RagEffect& effect, std::int32_t life, const PrimSprite& sprite,
+                           core::CrtRand& rand) {
+  EffectPrim p = MakePrimitive(&effect, 7, {0.0f, 0.0f, 0.0f});
+  rand.Next();
+  p.distance = 3.0f;
+  p.life = life;
+  p.heading = static_cast<float>(rand.Next() % 360);
+  p.fall_speed = std::bit_cast<float>(0xbf99999au);  // -1.2
+  p.fall_rate = (p.fall_speed / static_cast<float>(p.life)) * kEaseOut;
+  p.matrix = MakeRotationY(Radians(p.heading));
+  p.offset = AlongZ(p, p.distance);
+  p.scale = std::bit_cast<float>(0x3f0ccccdu);  // 0.55
+  p.fade_at = p.life - p.life / 3;
+  p.sprite = sprite;
+  ResetHistory(p);
+  return p;
+}
+
+// The offset of the spiralling sparks (0x47, 0x48 and 0x56): along the matrix's z by the
+// distance, 30 down its y.
+Vec3 SpiralOffset(const EffectPrim& p) {
+  const Matrix& m = p.matrix;
+  return {((p.distance * m[6]) - (m[3] * 30.0f)) + m[9],
+          ((p.distance * m[7]) - (m[4] * 30.0f)) + m[10],
+          ((p.distance * m[8]) - (m[5] * 30.0f)) + m[11]};
+}
+
+// A shot of id 8 at the effect towards its target (effects 0xf, 0x75, 0xd8 and 0xd9): 10
+// up, facing the target (TurnTowards, the heading its negation), covering the ground
+// distance (CRenderObject::GroundDistanceTo, 00500530) over its life (twice over when
+// fast), falling at the fall less twice that over its life and circling the matrix's z at
+// a pitch from −2 shrinking the same way.
+EffectPrim MakeShot(const RagEffect& effect, std::int32_t life, float fall, bool fast) {
+  EffectPrim p = MakePrimitive(&effect, 8, {0.0f, 0.0f, 0.0f});
+  p.life = life;
+  p.offset = {0.0f, -10.0f, 0.0f};
+  const float dx = effect.target[0] - p.position[0];
+  const float dz = effect.target[2] - p.position[2];
+  p.distance = SqrtFloat((dx * dx) + (dz * dz));
+  p.facing = TurnTowards(p.position, effect.target[0], effect.target[2]);
+  p.heading = -p.facing;
+  const float speed = p.distance / static_cast<float>(p.life);
+  p.speed = fast ? speed + speed : speed;
+  p.fall_speed = fall;
+  p.fall_rate = (p.fall_speed / static_cast<float>(p.life)) * -2.0f;
+  p.pitch_speed = -2.0f;
+  p.pitch_rate = (p.pitch_speed / static_cast<float>(p.life)) * -2.0f;
+  return p;
+}
+
+// The rest of a shot once its angle is set: its matrix along the heading, and its axis the
+// matrix's z plus its translation.
+void AimShot(EffectPrim& p, const PrimSprite& sprite, std::int32_t history) {
+  p.matrix = MakeRotationY(Radians(p.heading));
+  const Matrix& m = p.matrix;
+  p.drift = {m[9] + m[6], m[10] + m[7], m[11] + m[8]};
+  p.axis = p.drift;
+  p.sprite = sprite;
+  p.history_count = history;
+  ResetHistory(p);
+}
+
+// The action 0x10b's sprite takes by the way the actor lies from the target on screen: 0
+// from 180 degrees, 1 from 90, 2 from 0 and 3 from 270.
+std::int32_t QuarterAction(std::int16_t seen) {
+  if (seen >= 180 && seen < 270) return 0;
+  if (seen >= 90 && seen < 180) return 1;
+  if (seen >= 0 && seen < 90) return 2;
+  return 3;
+}
+
+// The first record of the standing and falling sprites, the others cleared.
+PrimMotes& OnlyRecord(EffectPrim& p) {
+  for (PrimMotes& r : p.motes) r.active = false;
+  p.motes[0].active = true;
+  return p.motes[0];
+}
+
+}  // namespace
+
+void AddHealingColumn(RagEffect& effect, const EffectActor& actor, bool minimal,
+                      const PrimSprite& particle, core::CrtRand& rand,
+                      std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame == 0) {
+    effect.duration = 100;
+    added.push_back(MakeColumn(effect, 4.5f, 35.0f, 90.0f));
+    // _heal_effect.wav plays here.
+  }
+  if (!minimal && effect.frame % 9 == 0)
+    added.push_back(MakeRisingSpark(effect, 50, particle, rand));
+}
+
+void AddBlueColumns(RagEffect& effect, const EffectActor& actor, const PrimSprite& sparks,
+                    core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame == 0) {
+    effect.duration = 100;
+    for (const auto& [radius, height, limit] :
+         {std::array<float, 3>{2.5f, 15.0f, 16.0f}, std::array<float, 3>{3.5f, 25.0f, 32.0f},
+          std::array<float, 3>{4.5f, 35.0f, 64.0f}}) {
+      EffectPrim c = MakeColumn(effect, radius, height, limit);
+      c.heading_speed = 5.0f;
+      c.red = 32;
+      c.green = 176;
+      c.blue = 232;
+      added.push_back(std::move(c));
+    }
+    // _heal_effect.wav plays here.
+  }
+  if (effect.frame % 2 == 0) added.push_back(MakeRisingSpark(effect, 30, sparks, rand));
+}
+
+void AddSoulStrike(RagEffect& effect, const PrimSprite& particle, std::vector<EffectPrim>& added) {
+  std::int32_t base = 0, count = 0, step = 0;
+  switch (effect.level) {
+    case 1: base = 0, count = 1, step = 1; break;
+    case 2: base = -90, count = 2, step = 180; break;
+    case 3: base = -90, count = 3, step = 90; break;
+    case 4: base = -90, count = 4, step = 60; break;
+    case 5: base = -90, count = 5, step = 45; break;
+    default: break;
+  }
+  const std::int32_t at = effect.frame + 5;
+  const std::int32_t shot = at / 11;
+  if (at % 11 != 0 || shot > count) return;
+  // effect\EF_SoulStrike.wav plays with each shot.
+  EffectPrim p = MakeShot(effect, 40, 3.5f, false);
+  const std::int32_t angle = shot * step + base;
+  p.angle = static_cast<float>(angle);
+  p.scale = 2.75f;
+  AimShot(p, particle, 12);
+  added.push_back(std::move(p));
+}
+
+void AddSpiralSpark(RagEffect& effect, const PrimSprite& particle, std::vector<EffectPrim>& added) {
+  if (effect.frame % 130 != 0) return;
+  EffectPrim p = MakePrimitive(&effect, 7, {0.0f, 0.0f, 0.0f});
+  effect.duration = 200;
+  p.life = 300;
+  p.distance = std::bit_cast<float>(0x3dcccccdu);        // 0.1
+  p.distance_speed = std::bit_cast<float>(0x3e4ccccdu);  // 0.2
+  p.fall_speed = std::bit_cast<float>(0x3dcccccdu);      // 0.1
+  p.fall_rate = std::bit_cast<float>(0x3ba3d70au);       // 0.005
+  p.heading = 2.0f;
+  p.heading_speed = 15.0f;
+  p.heading_rate = std::bit_cast<float>(0xbc23d70au);  // -0.01
+  p.scale = std::bit_cast<float>(0x3f99999au);         // 1.2
+  p.matrix = MakeRotationY(Radians(p.heading));
+  p.offset = SpiralOffset(p);
+  p.sprite = particle;
+  ResetHistory(p);
+  added.push_back(std::move(p));
+}
+
+void AddWideningSpirals(RagEffect& effect, const EffectActor& actor, const PrimSprite& particle,
+                        std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame % 10 != 0) return;
+  EffectPrim p = MakePrimitive(&effect, 7, {0.0f, 0.0f, 0.0f});
+  effect.duration = 500 - effect.frame;
+  p.life = 300;
+  p.distance = std::bit_cast<float>(0x3dcccccdu);        // 0.1
+  p.distance_speed = std::bit_cast<float>(0x3e19999au);  // 0.15
+  p.fall_speed = std::bit_cast<float>(0x3e19999au);      // 0.15
+  p.heading = 2.0f;
+  p.heading_speed = 8.0f;
+  p.heading_rate = std::bit_cast<float>(0xbc23d70au);  // -0.01
+  p.scale = std::bit_cast<float>(0x3f99999au);         // 1.2
+  p.matrix = MakeRotationY(Radians(p.heading));
+  p.offset = SpiralOffset(p);
+  p.distance_keys = true;
+  p.key = 0;
+  p.key_frames.push_back(95.0f);
+  p.key_values.push_back(std::bit_cast<float>(0xbe19999au));  // -0.15
+  p.key_limits.push_back(p.distance_rate);
+  p.sprite = particle;
+  ResetHistory(p);
+  added.push_back(std::move(p));
+}
+
+void AddRemoveTrap(RagEffect& effect, const PrimSprite& particle, core::CrtRand& rand,
+                   std::vector<EffectPrim>& added) {
+  // effect\hunter_removetrap.wav plays on the first frame.
+  if (effect.frame != 0 && effect.frame != 7) return;
+  for (std::int32_t n = 0; n < 12; ++n) {
+    EffectPrim p = MakePrimitive(&effect, 7, {0.0f, 0.0f, 0.0f});
+    p.life = 50;
+    p.distance_speed = std::bit_cast<float>(0x3e4ccccdu);  // 0.2
+    rand.Next();
+    p.fall_speed = -2.0f;
+    p.fall_rate = (static_cast<float>(rand.Next() % 10) * kThousandth) + kTrapFall;
+    p.heading = static_cast<float>(rand.Next() % 360);
+    p.scale = std::bit_cast<float>(0x3f4ccccdu);  // 0.8
+    p.matrix = MakeRotationY(Radians(p.heading));
+    p.offset = AlongZ(p, p.distance);
+    p.fade_at = 35;
+    p.sprite = particle;
+    ResetHistory(p);
+    added.push_back(std::move(p));
+  }
+}
+
+bool AddAspersio(RagEffect& effect, const PrimSprite& particle, core::CrtRand& rand,
+                 std::vector<EffectPrim>& added) {
+  // effect\priest_aspersio.wav plays at frame 70.
+  const std::int32_t f = effect.frame;
+  if (f % 5 == 0 && f > 60 && f < 140) {
+    EffectPrim p = MakePrimitive(&effect, 7, {0.0f, 0.0f, 0.0f});
+    effect.duration = 400;
+    p.life = 40;
+    p.distance = 1.5f;
+    p.fall_speed = std::bit_cast<float>(0x3e428f5cu);  // 0.19
+    p.fall_rate = std::bit_cast<float>(0x3c23d70au);   // 0.01
+    p.heading = static_cast<float>(rand.Next() % 360);
+    p.scale = std::bit_cast<float>(0x3f99999au);  // 1.2
+    p.matrix = MakeRotationY(Radians(p.heading));
+    p.offset = SpiralOffset(p);
+    p.fade_at = 30;
+    p.sprite = particle;
+    ResetHistory(p);
+    added.push_back(std::move(p));
+  }
+  // The .str plays on, 80 up (AdvanceStr), until the frame meets the duration.
+  return effect.frame != effect.duration;
+}
+
+void AddWaterBall(RagEffect& effect, const PrimSprite& ball, std::vector<EffectPrim>& added) {
+  if (effect.frame != 0) return;
+  // effect\wizard_waterball_chulung.wav plays here.
+  EffectPrim p = MakeShot(effect, 40, 3.5f, false);
+  p.angle = 0.0f;
+  p.scale = 0.75f;
+  AimShot(p, ball, 12);
+  added.push_back(std::move(p));
+}
+
+void AddTripleShot(RagEffect& effect, const PrimSprite& particle, bool blue,
+                   std::vector<EffectPrim>& added) {
+  if (effect.frame != 0) return;
+  for (std::int32_t angle = -90; angle < 180; angle += 90) {
+    EffectPrim p = MakeShot(effect, 60, 2.0f, true);
+    p.angle = static_cast<float>(angle);
+    p.red = blue ? 100 : 250;
+    p.green = 100;
+    p.blue = blue ? 250 : 100;
+    p.scale = std::bit_cast<float>(0x3fd9999au);  // 1.7
+    AimShot(p, particle, 7);
+    added.push_back(std::move(p));
+  }
+}
+
+void AddSnowfall(RagEffect& effect, const Vec3& player, const res::AttrMap* attr,
+                 const PrimSprite& snow, core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  effect.position = player;
+  if (effect.duration - effect.frame <= 160) return;
+  for (std::int32_t n = 0; n < 2; ++n) {
+    EffectPrim p = MakePrimitive(&effect, 0x15, {0.0f, 0.0f, 0.0f});
+    p.start = effect.position;
+    p.life = 320;
+    p.matrix = MakeRotationY(core::DegreesToRadians(static_cast<std::int32_t>(rand.Next() % 360)));
+    const auto out = static_cast<float>(static_cast<std::int32_t>(rand.Next() % 300) - 300);
+    const float ground =
+        attr != nullptr ? res::AttrHeight(*attr, effect.position[0], effect.position[2]) : 0.0f;
+    const float up = ground - 100.0f;
+    const Matrix& m = p.matrix;
+    p.offset = {((out * m[6]) + (up * m[3])) + m[9], ((out * m[7]) + (up * m[4])) + m[10],
+                ((out * m[8]) + (up * m[5])) + m[11]};
+    p.matrix = MakeRotationX(core::DegreesToRadians(90));
+    p.speed = -0.5f;
+    p.acceleration = 0.0f;
+    p.scale = static_cast<float>(rand.Next() % 15 + 25) * kFiftieth;
+    p.spin = 0.0f;
+    p.alpha = 0.0f;
+    p.alpha_speed = p.alpha_max * std::bit_cast<float>(0x3dcccccdu);  // 0.1
+    p.fade_at = p.life - p.life / 5;
+    p.sprite = snow;
+    ResetHistory(p);
+    added.push_back(std::move(p));
+  }
+}
+
+void AddFallingLeaves(RagEffect& effect, const EffectActor& actor, const PrimSprite& leaf,
+                      bool maple, core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame == 99999998) {
+    effect.frame = 0;
+    effect.duration = 99999999;
+  }
+  if (effect.frame % 2 != 0 || effect.frame >= (maple ? 200 : 300)) return;
+  EffectPrim p = MakePrimitive(&effect, 0x26, {0.0f, 0.0f, 0.0f});
+  p.life = effect.duration;
+  PrimMotes& r = OnlyRecord(p);
+  r.speed = maple ? static_cast<float>(rand.Next() % 4 + 2) * kLeafFallSlow
+                  : static_cast<float>(rand.Next() % 2 + 2) * std::bit_cast<float>(0x3dcccccdu);
+  p.scale = static_cast<float>(rand.Next() % 6 + (maple ? 35 : 22)) * kHundredth;
+  const Vec3& at = effect.position;
+  r.points[2][0] = (static_cast<float>(rand.Next() % 300) + at[0]) - 150.0f;
+  r.points[2][1] = at[1] - 200.0f;
+  r.points[2][2] = (static_cast<float>(rand.Next() % 300) + at[2]) - 150.0f;
+  for (std::size_t k = 0; k < 4; ++k) r.values[k] = static_cast<float>(rand.Next() % 360);
+  r.mode = maple ? 1 : 0;
+  p.alpha = 200.0f;
+  p.sprite = leaf;
+  SetAction(p, maple ? 0 : static_cast<std::int32_t>(rand.Next() % 3));
+  ResetHistory(p);
+  added.push_back(std::move(p));
+}
+
+void AddTargetSprite(RagEffect& effect, const EffectActor& actor, const PrimSprite& sprite,
+                     float view_yaw, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  // effect\mon_침투경.wav plays here.
+  EffectPrim p = MakePrimitive(&effect, 0x2c, {0.0f, 0.0f, 0.0f});
+  p.life = effect.duration;
+  PrimMotes& r = OnlyRecord(p);
+  r.speed = 0.0f;
+  p.scale = 2.5f;
+  r.points[2] = effect.target;
+  p.alpha = 200.0f;
+  p.sprite = sprite;
+  const std::int16_t back =
+      VectorToDegrees(effect.position[0] - effect.target[0], effect.position[2] - effect.target[2]);
+  auto seen = static_cast<std::int16_t>(static_cast<std::int16_t>(Ftol(view_yaw) + back) % 360);
+  if (seen < 0) seen = static_cast<std::int16_t>(seen + 360);
+  p.image_delay = 2;
+  p.quad_flags |= 0x200;
+  SetAction(p, QuarterAction(seen));
+  ResetHistory(p);
+  added.push_back(std::move(p));
+}
+
+void AddDemonstration(RagEffect& effect, const EffectActor& actor, const PrimSprite& sprite,
+                      std::vector<EffectPrim>& added) {
+  if (effect.frame != 0) return;
+  effect.position = actor.position;
+  EffectPrim p = MakePrimitive(&effect, 0x31, {0.0f, 0.0f, 0.0f});
+  p.life = effect.duration;
+  PrimMotes& r = OnlyRecord(p);
+  r.speed = 0.0f;
+  p.scale = std::bit_cast<float>(0x3f99999au);  // 1.2
+  r.points[2] = effect.position;
+  r.points[2][1] = r.points[2][1] - 1.0f;
+  p.alpha = 200.0f;
+  p.sprite = sprite;
+  p.image_delay = 4;
+  SetAction(p, 0);
+  ResetHistory(p);
+  added.push_back(std::move(p));
+}
+
+PrimSprite EffectWorld::Sprite(const std::string& name) const {
+  const auto it = sprites_.find(name);
+  return it == sprites_.end() ? PrimSprite{} : it->second;
+}
+
 RagEffect& EffectWorld::Launch(std::int32_t id, const EffectActor& actor) {
   Object o;
   o.effect = std::make_unique<RagEffect>();
@@ -4116,11 +4670,13 @@ void EffectWorld::Step(const PrimScene& scene) {
       std::vector<EffectPrim> added;
       bool ended = false;
       switch (e.id) {
-        case 0: ProcessRingBurst(e, it->actor, minimal_, particle_, rand_, added); break;
+        case 0:
+          ProcessRingBurst(e, it->actor, minimal_, Sprite(kParticleSprite), rand_, added);
+          break;
         case 1:
           ProcessHitSpark(e, it->actor.position, scene.view, scene.projection, rand_, false, added);
           break;
-        case 2: ProcessHit3(e, it->actor, particle_, rand_, added); break;
+        case 2: ProcessHit3(e, it->actor, Sprite(kParticleSprite), rand_, added); break;
         case 0xe1: AddRingWaves(e, it->actor, "effect\\ring_red.tga", 0, false, added); break;
         case 0xec: AddRingWaves(e, it->actor, "effect\\ring_blue.tga", 0, false, added); break;
         case 0xed: AddRingWaves(e, it->actor, "effect\\magic_green.tga", 0, false, added); break;
@@ -4222,6 +4778,32 @@ void EffectWorld::Step(const PrimScene& scene) {
           AddSlashLines(e, it->actor, true, added);
           break;
         case 0x148: AddAsuraStrike(e, it->actor, added); break;
+        case 7:
+          AddHealingColumn(e, it->actor, minimal_, Sprite(kParticleSprite), rand_, added);
+          break;
+        case 0xe: AddBlueColumns(e, it->actor, Sprite(kEffectSprites[0]), rand_, added); break;
+        case 0xf: AddSoulStrike(e, Sprite(kParticleSprite), added); break;
+        case 0x47: AddSpiralSpark(e, Sprite(kParticleSprite), added); break;
+        case 0x48: AddWideningSpirals(e, it->actor, Sprite(kParticleSprite), added); break;
+        case 100: AddRemoveTrap(e, Sprite(kParticleSprite), rand_, added); break;
+        case 0x56: ended = !AddAspersio(e, Sprite(kParticleSprite), rand_, added); break;
+        case 0x75: AddWaterBall(e, Sprite(kEffectSprites[6]), added); break;
+        case 0xd8:
+        case 0xd9: AddTripleShot(e, Sprite(kParticleSprite), e.id == 0xd9, added); break;
+        case 0xa2:
+          AddSnowfall(e, player_, scene.attr, Sprite(kEffectSprites[1]), rand_, added);
+          break;
+        case 0xa3:
+        case 0x14d: {
+          const bool maple = e.id == 0x14d;
+          AddFallingLeaves(e, it->actor, Sprite(kEffectSprites[maple ? 3 : 2]), maple, rand_,
+                           added);
+          break;
+        }
+        case 0x10b:
+          AddTargetSprite(e, it->actor, Sprite(kEffectSprites[4]), scene.view_yaw, added);
+          break;
+        case 0x12e: AddDemonstration(e, it->actor, Sprite(kEffectSprites[5]), added); break;
         case 0xe2:
           AddGrandCross(e, it->actor, added);
           AddBox(e, it->actor, added);

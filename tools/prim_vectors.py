@@ -103,8 +103,12 @@ class PrimOracle(Oracle):
             for i in range(len(images)):
                 self.records[emu.read_u32(table + 4 * i)] = (t, i)
         emu.replace_thiscall(SET_SPRITE, 1, lambda this, name: emu.write_u32(this + 0x98, self.spr) or 0)
-        emu.replace_thiscall(SET_ACT, 1, lambda this, name: emu.write_u32(this + 0x9C, self.act_res) or 0)
-        emu.replace_thiscall(GET_FRAME_COUNT, 1, lambda this, a: len(ACTIONS[a]) if len(ACTIONS[a]) >= 2 else 1)
+        # SetAct hands out set_act; each stand-in act counts its own frames.
+        self.set_act = self.act_res
+        self.actions_of = {self.act_res: ACTIONS}
+        emu.replace_thiscall(SET_ACT, 1, lambda this, name: emu.write_u32(this + 0x9C, self.set_act) or 0)
+        emu.replace_thiscall(GET_FRAME_COUNT, 1, lambda this, a: len(self.actions_of[this][a])
+                             if len(self.actions_of[this][a]) >= 2 else 1)
         self.quads = []
 
         def quad(this, desc, palette, flags):
@@ -161,8 +165,10 @@ class PrimOracle(Oracle):
         return ([emu.read_u32(prim + f) for f in STATE3] + list(struct.unpack("<12I", emu.mem_read(prim + 0xC4, 48))) +
                 list(struct.unpack(f"<{35 * n}I", emu.mem_read(prim + 0x358, 0x8C * n))))
 
-    def scene(self, rng):
+    def scene(self, rng, look_at=None):
         at = (rng.uniform(-30, 30), rng.uniform(-10, 0), rng.uniform(-30, 30))
+        if look_at is not None:
+            at = look_at
         self.build_view(f32(rng.choice([-45.0, -35.0, -55.0])), f32(rng.uniform(0, 360)),
                         f32(rng.choice([300.0, 250.0, 150.0])), at)
         emu = self.emu
@@ -468,6 +474,181 @@ def random_prim3(rng, o, owner, pid):
         wf(0x1B8, rng.choice([36.0, 30.0, 45.0, 90.0, 22.5]))
     emu.call(RESET_HISTORY, this=prim)
     return prim, offset, sets
+
+
+TRAIL_IDS = [7, 8, 0x15, 0x26, 0x2C, 0x31]
+# What the trails' updates change beyond STATE3: the key, the fall's rate, the pitch's, the
+# distance, its speed and rate, the offset and the drift's y.
+TRAIL_EXTRA = [0x138, 0x220, 0x270, 0x278, 0x27C, 0x280, 0x304, 0x308, 0x30C, 0x314]
+
+
+def state_trail(o, prim):
+    """STATE3 and TRAIL_EXTRA, the matrices +0xc4 and +0xf4, the first record and the
+    history records."""
+    emu = o.emu
+    n = emu.read_u32(prim + 0x154)
+    return ([emu.read_u32(prim + f) for f in STATE3 + TRAIL_EXTRA] +
+            list(struct.unpack("<24I", emu.mem_read(prim + 0xC4, 96))) +
+            list(struct.unpack(f"<{RING_SIZE // 4}I", emu.mem_read(prim + RING, RING_SIZE))) +
+            list(struct.unpack(f"<{35 * n}I", emu.mem_read(prim + 0x358, 0x8C * n))))
+
+
+def random_trail(rng, o, owner, pid):
+    """A primitive of a trail id with the fields its update and drawing read set at random;
+    returns it, its offset and the fields set, as random_prim3."""
+    emu = o.emu
+    prim = emu.alloc(PRIM_SIZE)
+    emu.call(PRIM_CTOR, this=prim)
+    offset = [f32(rng.uniform(-20, 20)) for _ in range(3)]
+    emu.call(INIT_PRIMITIVE, owner, pid, *(bits(v) for v in offset), this=prim)
+    sets = {}
+
+    def w(f, v):
+        emu.write_u32(prim + f, v & 0xFFFFFFFF)
+        sets[f] = v & 0xFFFFFFFF
+
+    def wf(f, v):
+        w(f, bits(f32(v)))
+
+    life = rng.randrange(8, 40)
+    w(0x144, life)
+    w(0x148, rng.choice([1, 2, 3, 4]))
+    w(0x150, rng.choice([-1, 0, rng.randrange(0, life)]))
+    w(0x1B4, rng.choice([0, 1, 1]))
+    w(0x19C, rng.randrange(0, 256))
+    w(0x1A0, rng.randrange(0, 256))
+    w(0x1A4, rng.randrange(0, 256))
+    wf(0x254, rng.uniform(60, 254))
+    wf(0x258, rng.uniform(-15, 15))
+    for f in (0x1EC, 0x1F0, 0x23C, 0x240, 0x244, 0x268):
+        wf(f, rng.uniform(-3, 3) if f in (0x1EC, 0x1F0, 0x268) else rng.uniform(-200, 200))
+    matrix = [rng.uniform(-1, 1) for _ in range(9)] + [rng.uniform(-0.5, 0.5) for _ in range(3)]
+    for i, v in enumerate(matrix):
+        wf(0xC4 + 4 * i, v)
+    for i in range(3):
+        wf(0x304 + 4 * i, rng.uniform(-15, 15))
+    if pid == 0x15:
+        flags = 0
+        for bit in (1, 2, 4, 8, 0x20, 0x400, 0x80):
+            if rng.random() < 0.3:
+                flags |= bit
+        w(0x13C, flags)
+        w(0x134, rng.randrange(1, 9))
+        w(0x14C, rng.choice([-1, -1, rng.randrange(0, 6)]))
+        w(0x160, rng.choice([-1, rng.randrange(0, 6)]))
+        for f in range(0x1D4, 0x1EC, 4):
+            wf(f, rng.uniform(-1.5, 1.5))
+    else:
+        w(0x13C, rng.choice([0, 0x20, 0x80, 0xA0]))
+    if pid == 7:
+        for f, lo, hi in ((0x278, 0, 20), (0x27C, -2, 2), (0x280, -0.3, 0.3), (0x21C, -3, 1), (0x220, -0.2, 0.2),
+                          (0x260, -20, 20), (0x26C, -0.5, 0.5), (0x264, -0.2, 0.2)):
+            wf(f, rng.uniform(lo, hi))
+        w(0x160, rng.choice([-1, rng.randrange(0, 6)]))
+        for f in (0x1CC, 0x1D0):
+            if rng.random() < 0.5:
+                wf(f, rng.uniform(-2, 2))
+        if rng.random() < 0.6:
+            n = rng.randrange(1, 4)
+            at = sorted(rng.sample(range(0, life), min(n, life)))
+            n = len(at)
+            for base, values in ((0x2A4, [float(a) for a in at]), (0x2B4, [rng.uniform(-1, 1) for _ in at]),
+                                 (0x2C4, [rng.uniform(-0.1, 0.1) for _ in at])):
+                buf = emu.alloc(4 * (n + 1))
+                emu.mem_write(buf, struct.pack(f"<{n + 1}f", *values, 1e9))
+                for k, at_k in enumerate((buf, buf + 4 * n, buf + 4 * n)):
+                    emu.write_u32(prim + base + 4 * k, at_k)
+                sets[base] = (n, [bits(f32(v)) for v in values])
+            w(0xBC, 1)
+            w(0x138, 0)
+    elif pid == 8:
+        for f, lo, hi in ((0x21C, -3, 3), (0x220, -0.2, 0.2), (0x264, -3, 3), (0x270, -0.2, 0.2),
+                          (0x240, -10, 10)):
+            wf(f, rng.uniform(lo, hi))
+        axis = [rng.uniform(-1, 1) for _ in range(3)]
+        for i, v in enumerate(axis):
+            wf(0x1C0 + 4 * i, v)
+    elif pid in (0x26, 0x2C, 0x31):
+        rec = bytearray(RING_SIZE)
+        struct.pack_into("<Bxxxf", rec, 0, rng.random() < 0.85, f32(rng.uniform(0.05, 3)))
+        struct.pack_into("<4f", rec, 0x14, *(f32(rng.choice([float(rng.randrange(0, 360)), rng.uniform(0, 359)]))
+                                             for _ in range(4)))
+        struct.pack_into("<B", rec, 0x70, rng.choice([0, 1]))
+        at = emu.read_u32(owner + 8)
+        struct.pack_into("<3f", rec, 0xA0, f32(rng.uniform(-40, 40)),
+                         f32(struct.unpack("<f", struct.pack("<I", at))[0] - rng.uniform(-2, 40)),
+                         f32(rng.uniform(-40, 40)))
+        emu.mem_write(prim + RING, bytes(rec))
+        for i in range(0, RING_SIZE, 4):
+            v = emu.read_u32(prim + RING + i)
+            if v:
+                sets[RING + i] = v
+    wf(0x248, rng.uniform(0.3, 2.0))
+    wf(0x24C, rng.uniform(-0.05, 0.05))
+    wf(0x250, rng.uniform(-0.01, 0.01))
+    wf(0x38, rng.uniform(0, 360))
+    w(0x24, rng.randrange(0, len(ACTIONS)))
+    w(0x28, rng.randrange(0, len(ACTIONS[emu.read_u32(prim + 0x24)])))
+    w(0x128, rng.choice([1, 1, 0x101, 0x201]))
+    w(0x154, rng.randrange(1, 13))
+    if pid in (8, 0x26, 0x2C, 0x31):
+        # Their updates' answers are ignored, so an action that does not loop would run on
+        # past its frames.
+        w(0x1B4, 1)
+    emu.write_u32(prim + 0x98, o.spr)
+    emu.write_u32(prim + 0x9C, o.act_res)
+    emu.call(RESET_HISTORY, this=prim)
+    return prim, offset, sets
+
+
+def synthetic_trails(o, rng, lines):
+    """Four primitives of each trail id, stepped and drawn on their own after srand(13000 +
+    n), as synthetic3."""
+    emu = o.emu
+    actor = emu.scratch(size=0x100)
+    rows = []
+    for n in range(4 * len(TRAIL_IDS)):
+        pid = TRAIL_IDS[n % len(TRAIL_IDS)]
+        mark = emu.heap_mark()
+        effect = o.rag_effect(actor)
+        pos = [f32(rng.uniform(-30, 30)), f32(rng.uniform(-8, 0)), f32(rng.uniform(-30, 30))]
+        emu.mem_write(effect + 4, struct.pack("<3f", *pos))
+        target = [f32(rng.uniform(-30, 30)), 0.0, f32(rng.uniform(-30, 30))]
+        emu.mem_write(effect + 0xE8, struct.pack("<3f", *target))
+        duration = rng.choice([12, 40, 300])
+        emu.write_u32(effect + 0xC0, duration)
+        emu.write_u32(effect + 0xBC, 0)
+        prim, offset, sets = random_trail(rng, o, effect, pid)
+        emu.call(SRAND, 13000 + n)
+        view, yaw, slope, pitch = o.scene(rng)
+        name = f"kTrail{n}"
+        lines.append(f"static const FieldVector {name}Fields[] = {{" + ", ".join(
+            f"{{0x{f:x}, 0x{v:08x}, {{}}}}" if isinstance(v, int) else
+            f"{{0x{f:x}, {v[0]}, {{{hexs(v[1] + [0] * (4 - len(v[1])))}}}}}" for f, v in sorted(sets.items())) + "};")
+        frames = []
+        for frame in range(40):
+            more = emu.call(PRIM_VF01, this=prim).eax & 0xFF
+            state = state_trail(o, prim)
+            added = o.draw(prim) if more else []
+            quads = list(o.quads) if more else []
+            lines.append(f"static const std::uint32_t {name}Frame{frame}State[] = {{{hexs(state)}}};")
+            lines.append(f"static const TriangleVector {name}Frame{frame}Triangles[] = {triangles_cpp(added)};")
+            lines.append(f"static const QuadVector {name}Frame{frame}Quads[] = {quads_cpp(quads)};")
+            frames.append(f"    {{{more}, {name}Frame{frame}State, {len(state)}, {name}Frame{frame}Triangles, "
+                          f"{len(added)}, {name}Frame{frame}Quads, {len(quads)}}},")
+            emu.write_u32(effect + 0xBC, emu.read_u32(effect + 0xBC) + 1)
+            if not more:
+                break
+        lines.append(f"static const ShapeFrameVector {name}Frames[] = {{")
+        lines += frames
+        lines.append("};")
+        rows.append(f"    {{{pid}, {{{hexs(map(bits, pos))}}}, {{{hexs(map(bits, target))}}}, "
+                    f"{{{hexs(map(bits, offset))}}}, {duration}, {scene_cpp(view, yaw, slope, pitch)}, {name}Fields, "
+                    f"{len(sets)}, {name}Frames, {len(frames)}}},")
+        emu.heap_release(mark)
+    lines.append("static const ShapeVector kTrails[] = {")
+    lines += rows
+    lines.append("};")
 
 
 def particle_cpp(lines):
@@ -1050,6 +1231,15 @@ def synthetic_records(o, rng, lines, ids, prefix, seed, make, state_of, frame_co
 
 
 MOTE_EFFECTS = [(0xCA, 32), (0xE4, 32), (0xCB, 32), (0xFE, 32)]
+TRAIL_EFFECTS = [(7, 48), (0xE, 40), (0xF, 64), (0x47, 40), (0x48, 48), (100, 40), (0x56, 100), (0x75, 48),
+                 (0xD8, 64), (0xD9, 64), (0xA2, 32), (0xA3, 40), (0x14D, 40), (0x10B, 40), (0x12E, 40),
+                 (0x10B, 16), (0x10B, 16), (0x10B, 16), (0x10B, 16), (0x10B, 16), (0x10B, 16), (0x10B, 16)]
+# The snow about the player, the leaves 200 above the actor and 0x10b's sprite at the target
+# are out of the usual views.
+TRAIL_LOOKS = {0xA2: lambda pos, player, target: (player[0], player[1] - 60, player[2]),
+               0xA3: lambda pos, player, target: (pos[0], pos[1] - 190, pos[2]),
+               0x14D: lambda pos, player, target: (pos[0], pos[1] - 190, pos[2]),
+               0x10B: lambda pos, player, target: target}
 WALL_EFFECTS = [(0xE2, 112), (0xE0, 56), (0x13D, 56), (0x13E, 40), (0x13F, 40), (0x133, 32), (0x142, 32),
                 (0x143, 32), (0x144, 32), (0x149, 48), (0x14A, 80)]
 PIECE_EFFECTS = [(0xE3, 104), (0x106, 40), (0x10A, 40), (0x114, 40), (0x129, 40), (300, 32), (0x12F, 112),
@@ -1127,11 +1317,16 @@ SQUARE_EFFECTS = [(0xE5, 24), (0xE6, 24), (0xE9, 24), (0xF9, 48), (0x109, 48), (
                   (0x145, 32), (0xFD, 32)]
 
 
-def square_effects(o, rng, lines, effects=SQUARE_EFFECTS, prefix="kSquareEffect", seed=5000):
+def square_effects(o, rng, lines, effects=SQUARE_EFFECTS, prefix="kSquareEffect", seed=5000, state_of=None,
+                   with_quads=False, looks=None, release=False):
+    """The effects through the world's list with a target, a level and the player's
+    position; looks maps an effect id to where its views look, from the actor, the player
+    and the target; release gives the heap back after each run."""
     emu = o.emu
     rows = []
     player = emu.read_u32(o.world + 0x3C)
     for run, (eid, count) in enumerate(effects):
+        mark = emu.heap_mark()
         o.reset_world()
         actor = emu.scratch(size=0x100)
         pos = (f32(rng.uniform(-30, 30)), f32(rng.uniform(-10, 0)), f32(rng.uniform(-30, 30)))
@@ -1153,9 +1348,10 @@ def square_effects(o, rng, lines, effects=SQUARE_EFFECTS, prefix="kSquareEffect"
         duration = emu.read_u32(effect + 0xC0)
         alive, prims, frames, scenes = True, [], [], []
         name = f"{prefix}{run}"
+        look = (looks or {}).get(eid)
         for frame in range(count):
             if frame % 8 == 0:
-                scenes.append((frame, *o.scene(rng)))
+                scenes.append((frame, *o.scene(rng, look(pos, at, target) if look else None)))
             more = 0
             if alive:
                 more = emu.call(RAG_EFFECT_VF01, this=effect).eax & 0xFF
@@ -1178,25 +1374,30 @@ def square_effects(o, rng, lines, effects=SQUARE_EFFECTS, prefix="kSquareEffect"
                 sampled = frame % 8 == 0 or frame in (1, count - 1)
             else:
                 sampled = frame in (1, count - 1)
-            states, added = [], []
+            states, added, quads = [], [], []
             for _, p in objects:
                 index = len(states)
                 if sampled:
-                    state = prim_state(o, p)
+                    state = (state_of or prim_state)(o, p)
                     lines.append(f"static const std::uint32_t {name}Frame{frame}Prim{index}[] = {{{hexs(state)}}};")
                     ref = f"{name}Frame{frame}Prim{index}, {len(state)}"
                 else:
                     ref = "nullptr, 0"
                 states.append(f"{{{prims.index(p)}, {emu.read_u32(p + 0x130)}, {ref}}}")
                 added += o.draw(p)
+                quads += o.quads
             lines.append(f"static const BurstPrimVector {name}Frame{frame}Prims[] = {{{', '.join(states) or '{}'}}};")
             checked = (0, 12, count - 1) if len(objects) <= 8 else (count - 1,)
+            quad_ref = "nullptr, kUnchecked" if with_quads else "nullptr, 0"
             if frame in checked:
                 lines.append(f"static const TriangleVector {name}Frame{frame}Triangles[] = {triangles_cpp(added)};")
                 triangles = f"{name}Frame{frame}Triangles, {len(added)}"
+                if with_quads:
+                    lines.append(f"static const QuadVector {name}Frame{frame}Quads[] = {quads_cpp(quads)};")
+                    quad_ref = f"{name}Frame{frame}Quads, {len(quads)}"
             else:
                 triangles = "nullptr, kUnchecked"
-            frames.append(f"    {{{more}, {name}Frame{frame}Prims, {len(states)}, {triangles}, nullptr, 0}},")
+            frames.append(f"    {{{more}, {name}Frame{frame}Prims, {len(states)}, {triangles}, {quad_ref}}},")
             if not alive and not o.world_objects():
                 break
         lines.append(f"static const BurstFrameVector {name}Frames[] = {{")
@@ -1208,6 +1409,8 @@ def square_effects(o, rng, lines, effects=SQUARE_EFFECTS, prefix="kSquareEffect"
         rows.append(f"    {{{eid}, {level}, {seed + run}, {{{hexs(map(bits, pos))}}}, {{{hexs(map(bits, at))}}}, "
                     f"{{{hexs(map(bits, target))}}}, {duration}, {name}Frames, {len(frames)}, {name}Scenes, "
                     f"{len(scenes)}}},")
+        if release:
+            emu.heap_release(mark)
     emu.mem_write(player + 4, bytes(12))
     lines.append(f"static const SquareEffectVector {prefix}s[] = {{")
     lines += rows
@@ -1236,6 +1439,12 @@ def main():
     square_effects(o, rng, lines, PIECE_EFFECTS, "kPieceEffect", 10000)
     synthetic_records(o, rng, lines, WALL_IDS, "kWall", 11000, random_wall, wall_state, 24, (0, 8, 16, 23))
     square_effects(o, rng, lines, WALL_EFFECTS, "kWallEffect", 12000)
+    synthetic_trails(o, rng, lines)
+    # The trail effects pick actions up to 3: the stand-in's two actions twice over.
+    wide = o.act(ACTIONS + ACTIONS)
+    o.actions_of[wide] = ACTIONS + ACTIONS
+    o.set_act = wide
+    square_effects(o, rng, lines, TRAIL_EFFECTS, "kTrailEffect", 14000, state_trail, True, TRAIL_LOOKS, True)
     names = sorted(o.textures.items(), key=lambda kv: kv[1])
     lines.append("static const TextureVector kTextures[] = {" +
                  ", ".join(f'{{0x{v:x}, "{c_literal(k)}"}}' for k, v in names) + "};")

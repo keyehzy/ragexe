@@ -5,9 +5,11 @@
 
 namespace ragexe::core {
 
-float RoundedProduct(float a, double b) {
-  const double hi = static_cast<double>(a) * b;
-  const double lo = std::fma(static_cast<double>(a), b, -hi);
+namespace {
+
+// hi rounded to single precision as if the exact value were hi plus a little of lo's sign:
+// a tie between two floats goes the way lo leans.
+float RoundOnce(double hi, double lo) {
   float f = static_cast<float>(hi);
   const double d = hi - static_cast<double>(f);
   if (lo != 0.0 && d != 0.0) {
@@ -18,6 +20,19 @@ float RoundedProduct(float a, double b) {
       f = g;
   }
   return f;
+}
+
+}  // namespace
+
+float RoundedProduct(float a, double b) {
+  const double hi = static_cast<double>(a) * b;
+  return RoundOnce(hi, std::fma(static_cast<double>(a), b, -hi));
+}
+
+float RoundedQuotient(float a, double b) {
+  const double hi = static_cast<double>(a) / b;
+  const double rest = std::fma(-hi, b, static_cast<double>(a));
+  return RoundOnce(hi, b > 0.0 ? rest : -rest);
 }
 
 }  // namespace ragexe::core

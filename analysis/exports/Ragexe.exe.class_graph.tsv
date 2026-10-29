@@ -244,7 +244,7 @@ CSoundMaker	rtti	CRenderObject@0	204	new	1	00541680		00541730	00541700	8	8	audio
 CGndRiser	rtti	CAbleToMakeEffect@0	204	estimated	1	00541c90		00541d20	00541cf0	8	6	world		CRes@0x98 CRes@0x9c
 CGrannyPc	rtti	CGameActor@0	9220	estimated	1	00546b30		00546d50	00546d20	35	33	world	MovePath@0x170	CRes@0x98 CRes@0x9c C3dGrannyModelRes@0x2d8 C3dGrannyModelRes@0x2e0 C3dGrannyModelRes@0x2e4 C3dGrannyModelRes@0x2e8 C3dGrannyModelRes@0x2ec C3dGrannyModelRes@0x2f0 C3dGrannyModelRes@0x2f4 C3dGrannyModelRes@0x2f8 TriangleSet@0x308 TriangleSet@0x380
 CPlayer	rtti	CPc@0	988	new	1	0054b1d0		0054b420	0054b3f0	17	17	world	MovePath@0x170 XmlElement@0x360 XmlElement@0x388 XmlElement@0x3b0	CRes@0x98 CRes@0x9c
-CRagEffect	rtti	CRenderObject@0	17540	estimated	1	0054d220		0054d370	0054d340	226	224	world	RenderTriangle@0x43e8	CRes@0x98 CRes@0x9c CRenderObject@0xa0 CRes@0x758
+CRagEffect	rtti	CRenderObject@0	17540	estimated	1	0054d220		0054d370	0054d340	227	224	world	RenderTriangle@0x43e8	CRes@0x98 CRes@0x9c CRenderObject@0xa0 CRes@0x758
 CEffectPrim	rtti	CRenderObject@0	88464	new	1	0057cfa0		0057d3b0	0057d380	117	117	world	Matrix@0xc4 Matrix@0xf4 RenderTriangle@0x1eb0	CRes@0x98 CRes@0x9c
 CSkill	rtti	CGameActor@0	656	new	1	005ab960		005ab9e0	005ab9b0	12	12	world	MovePath@0x170	CRes@0x98 CRes@0x9c ModelInstance@0x284
 CGraffiSkill	rtti	CSkill@0	948	new	1	005ad310		005ad360	005ad330	9	9	world	MovePath@0x170	CRes@0x98 CRes@0x9c ModelInstance@0x284 CTexture@0x2a0

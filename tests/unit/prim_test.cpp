@@ -195,6 +195,7 @@ constexpr std::uint32_t kSquareSeed = 4000;           // and for the facing squa
 constexpr std::uint32_t kMoteSeed = 7000;             // and for the motes
 constexpr std::uint32_t kPieceSeed = 9000;            // and for the single squares
 constexpr std::uint32_t kWallSeed = 11000;            // and for the walls and bands
+constexpr std::uint32_t kTrailSeed = 13000;           // and for the sprite trails
 
 float F(std::uint32_t bits) { return std::bit_cast<float>(bits); }
 std::uint32_t B(float f) { return std::bit_cast<std::uint32_t>(f); }
@@ -398,6 +399,10 @@ std::vector<std::uint32_t> SquareStateOf(const EffectPrim& p) {
 
 bool IsMote(std::int32_t id) { return id == 0x1b || id == 0x1e || id == 0x21; }
 
+bool IsTrail(std::int32_t id) {
+  return id == 7 || id == 8 || id == 0x15 || id == 0x26 || id == 0x2c || id == 0x31;
+}
+
 // A dword of a record as ids 0x1b, 0x1e and 0x21 read it.
 void ApplyMote(std::uint32_t offset, std::uint32_t v, EffectPrim& p) {
   PrimMotes& r = p.motes[offset / kRingSize];
@@ -416,6 +421,8 @@ void ApplyMote(std::uint32_t offset, std::uint32_t v, EffectPrim& p) {
     r.values[(o - 0x14) / 4] = F(v);
   } else if (o == 0x6c) {
     r.size = F(v);
+  } else if (o == 0x70) {
+    r.mode = static_cast<std::uint8_t>(v);
   } else if (o >= 0x88) {
     r.points[(o - 0x88) / 0xc][(o - 0x88) % 0xc / 4] = F(v);
   } else {
@@ -675,6 +682,7 @@ void Apply(const FieldVector& f, EffectPrim& p) {
     case 0x2c4: p.key_limits = Floats(f); break;
     case 0xb4: p.speed_keys = i != 0; break;
     case 0xb8: p.alpha_keys = i != 0; break;
+    case 0xbc: p.distance_keys = i != 0; break;
     case 0x138: p.key = i; break;
     case 0x240: p.pitch = v; break;
     case 0x14c: p.move_after = i; break;
@@ -703,7 +711,7 @@ void Apply(const FieldVector& f, EffectPrim& p) {
       if (f.field >= kRingBase && f.field < kRingBase + 4 * kRingSize) {
         if (IsSquare(p.id)) {
           ApplySquare(f.field - kRingBase, f.value, p);
-        } else if (IsMote(p.id)) {
+        } else if (IsMote(p.id) || IsTrail(p.id)) {
           ApplyMote(f.field - kRingBase, f.value, p);
         } else if (IsPiece(p.id)) {
           ApplyPiece(f.field - kRingBase, f.value, p);
@@ -714,6 +722,10 @@ void Apply(const FieldVector& f, EffectPrim& p) {
         }
       } else if (f.field >= 0x2f8 && f.field < 0x304) {
         p.travel[(f.field - 0x2f8) / 4] = F(f.value);
+      } else if (f.field >= 0x304 && f.field < 0x310) {
+        p.offset[(f.field - 0x304) / 4] = F(f.value);
+      } else if (f.field >= 0x1c0 && f.field < 0x1cc) {
+        p.axis[(f.field - 0x1c0) / 4] = F(f.value);
       } else if (f.field >= 0xc4 && f.field < 0xf4) {
         p.matrix[(f.field - 0xc4) / 4] = v;
       } else if (f.field >= 0x1d4 && f.field < 0x1ec) {
@@ -781,6 +793,42 @@ std::vector<std::uint32_t> StateOf3(const EffectPrim& p) {
   return out;
 }
 
+// StateOf3's fields, then the trails' further ones (the key, the fall's and pitch's rates,
+// the distance with its speed and rate, the offset and the drift's y), both matrices, the
+// first record as the motes lay it out and the history, as the script reads them.
+std::vector<std::uint32_t> StateOfTrail(const EffectPrim& p) {
+  const std::vector<std::uint32_t> three = StateOf3(p);
+  constexpr std::size_t kFields = 37;
+  std::vector<std::uint32_t> out(three.begin(), three.begin() + kFields);
+  for (const float v : {p.fall_rate, p.pitch_rate, p.distance, p.distance_speed, p.distance_rate,
+                        p.offset[0], p.offset[1], p.offset[2], p.drift[1]})
+    out.push_back(B(v));
+  out.insert(out.begin() + kFields, U(p.key));
+  for (float m : p.matrix) out.push_back(B(m));
+  for (float m : p.orbit) out.push_back(B(m));
+  const PrimMotes& r = p.motes[0];
+  std::array<std::uint8_t, kRingSize> bytes{};
+  const auto put = [&bytes](std::size_t at, const auto& value) {
+    std::memcpy(bytes.data() + at, &value, sizeof(value));
+  };
+  put(0, static_cast<std::uint8_t>(r.active ? 1 : 0));
+  put(4, r.speed);
+  put(8, r.age);
+  put(0xe, r.alpha);
+  put(0x10, r.view_angle);
+  put(0x14, r.values);
+  put(0x6c, r.size);
+  put(0x70, r.mode);
+  put(0x88, r.points);
+  for (std::size_t i = 0; i < bytes.size(); i += 4) {
+    std::uint32_t word = 0;
+    std::memcpy(&word, bytes.data() + i, 4);
+    out.push_back(word);
+  }
+  out.insert(out.end(), three.begin() + kFields + 12, three.end());
+  return out;
+}
+
 // The synthetic attribute map of tools/actor_vectors.py.
 ragexe::res::AttrMap TestAttr() {
   ragexe::res::AttrMap attr;
@@ -817,23 +865,28 @@ ragexe::res::Sprite TestSprite() {
   return s;
 }
 
-ragexe::res::Act TestAct() {
+// The script's stand-in act; wide, its actions twice over, as the trail effects get it.
+ragexe::res::Act TestAct(bool wide = false) {
   ragexe::res::Act act;
-  for (int frames : kActionFrames) act.actions.emplace_back(static_cast<std::size_t>(frames));
-  for (const ItemVector& v : kItems) {
-    ragexe::res::ActItem item;
-    item.x = v.x;
-    item.y = v.y;
-    item.image = v.image;
-    item.flags = v.flags;
-    item.color = {static_cast<std::uint8_t>(v.r), static_cast<std::uint8_t>(v.g),
-                  static_cast<std::uint8_t>(v.b), static_cast<std::uint8_t>(v.a)};
-    item.scale_x = F(v.scale_x);
-    item.scale_y = F(v.scale_y);
-    item.angle = v.angle;
-    item.image_type = v.type;
-    act.actions[static_cast<std::size_t>(v.action)][static_cast<std::size_t>(v.frame)]
-        .items.push_back(item);
+  const std::size_t copies = wide ? 2 : 1;
+  for (std::size_t c = 0; c < copies; ++c)
+    for (int frames : kActionFrames) act.actions.emplace_back(static_cast<std::size_t>(frames));
+  for (std::size_t c = 0; c < copies; ++c) {
+    for (const ItemVector& v : kItems) {
+      ragexe::res::ActItem item;
+      item.x = v.x;
+      item.y = v.y;
+      item.image = v.image;
+      item.flags = v.flags;
+      item.color = {static_cast<std::uint8_t>(v.r), static_cast<std::uint8_t>(v.g),
+                    static_cast<std::uint8_t>(v.b), static_cast<std::uint8_t>(v.a)};
+      item.scale_x = F(v.scale_x);
+      item.scale_y = F(v.scale_y);
+      item.angle = v.angle;
+      item.image_type = v.type;
+      const std::size_t action = static_cast<std::size_t>(v.action) + c * std::size(kActionFrames);
+      act.actions[action][static_cast<std::size_t>(v.frame)].items.push_back(item);
+    }
   }
   return act;
 }
@@ -859,6 +912,7 @@ void CheckState(const std::vector<std::uint32_t>& got, const std::uint32_t* want
 }
 
 void CheckQuads(const std::vector<SpriteQuad>& got, const QuadVector* want, std::size_t count) {
+  if (count == kUnchecked) return;
   REQUIRE(got.size() == count);
   for (std::size_t q = 0; q < count; ++q) {
     INFO("quad " << q);
@@ -1225,7 +1279,15 @@ TEST_CASE("Facing squares step and draw as the original's", "[effect]") {
 
 namespace {
 
-void CheckTargetEffects(std::span<const SquareEffectVector> effects) {
+// The effects of target, level and player positions, their primitives' states as state
+// reads them; with sprites, every effect sprite the stand-in, the ground under the scene and
+// the quads checked too.
+void CheckTargetEffects(std::span<const SquareEffectVector> effects,
+                        std::vector<std::uint32_t> (*state)(const EffectPrim&) = StateFor,
+                        bool sprites = false) {
+  const ragexe::res::AttrMap attr = TestAttr();
+  const ragexe::res::Sprite sprite = TestSprite();
+  const ragexe::res::Act act = TestAct(true);
   std::map<std::string, std::uint32_t> ids;
   for (const TextureVector& t : kTextures) ids[t.name] = t.id;
   const auto vec = [](const std::uint32_t* v) { return Vec3{F(v[0]), F(v[1]), F(v[2])}; };
@@ -1234,6 +1296,10 @@ void CheckTargetEffects(std::span<const SquareEffectVector> effects) {
     CHECK(EffectDuration(v.id) == v.duration);
     EffectWorld world(v.seed);
     world.SetPlayer(vec(v.player));
+    if (sprites) {
+      world.SetParticle({&act, &sprite});
+      for (const char* name : kEffectSprites) world.SetSprite(name, {&act, &sprite});
+    }
     RagEffect& e = world.Launch(v.id, {vec(v.position), 0.0f});
     e.target = vec(v.target);
     e.level = v.level;
@@ -1243,7 +1309,7 @@ void CheckTargetEffects(std::span<const SquareEffectVector> effects) {
     for (std::size_t f = 0; f < v.frame_count; ++f) {
       INFO("frame " << f);
       if (next_scene < v.scene_count && std::cmp_equal(v.scenes[next_scene].frame, f))
-        scene = SceneOf(v.scenes[next_scene++].scene, nullptr);
+        scene = SceneOf(v.scenes[next_scene++].scene, sprites ? &attr : nullptr);
       const BurstFrameVector& fv = v.frames[f];
       world.Step(scene);
       std::vector<const EffectPrim*> prims;
@@ -1263,9 +1329,11 @@ void CheckTargetEffects(std::span<const SquareEffectVector> effects) {
         CHECK(order[prims[i]] == fv.prims[i].index);
         CHECK(prims[i]->id == fv.prims[i].id);
         if (fv.prims[i].state == nullptr) continue;
-        CheckState(StateFor(*prims[i]), fv.prims[i].state, fv.prims[i].count);
+        CheckState(state(*prims[i]), fv.prims[i].state, fv.prims[i].count);
       }
-      CheckTriangles(world.Draw(scene).triangles, fv.triangles, fv.count, ids);
+      const PrimDrawing drawing = world.Draw(scene);
+      CheckTriangles(drawing.triangles, fv.triangles, fv.count, ids);
+      if (sprites) CheckQuads(drawing.quads, fv.quads, fv.quad_count);
     }
   }
 }
@@ -1373,4 +1441,44 @@ TEST_CASE("Walls and bands step and draw as the original's", "[effect]") {
 
 TEST_CASE("The wall and band effects play as the original's", "[effect]") {
   CheckTargetEffects(kWallEffects);
+}
+
+TEST_CASE("Sprite trails step and draw as the original's", "[effect]") {
+  std::map<std::string, std::uint32_t> ids;
+  const ragexe::res::AttrMap attr = TestAttr();
+  const ragexe::res::Sprite sprite = TestSprite();
+  const ragexe::res::Act act = TestAct();
+  std::size_t n = 0;
+  for (const ShapeVector& v : kTrails) {
+    INFO("trail " << n << ", id " << v.id);
+    RagEffect owner;
+    for (std::size_t i = 0; i < 3; ++i) {
+      owner.position[i] = F(v.position[i]);
+      owner.target[i] = F(v.target[i]);
+    }
+    owner.duration = v.duration;
+    EffectPrim p = MakePrimitive(&owner, v.id, {F(v.offset[0]), F(v.offset[1]), F(v.offset[2])});
+    for (std::size_t f = 0; f < v.field_count; ++f) Apply(v.fields[f], p);
+    p.sprite = {&act, &sprite};
+    ResetHistory(p);
+    const PrimScene scene = SceneOf(v.scene, &attr);
+    ragexe::core::CrtRand rand(kTrailSeed + static_cast<std::uint32_t>(n));
+    for (std::size_t f = 0; f < v.frame_count; ++f) {
+      INFO("frame " << f);
+      const ShapeFrameVector& fv = v.frames[f];
+      const bool more = UpdatePrimitive(p, rand, scene);
+      CHECK(more == (fv.more != 0));
+      CheckState(StateOfTrail(p), fv.state, fv.state_count);
+      PrimDrawing drawing;
+      if (more) DrawPrimitive(p, scene, drawing);
+      CheckTriangles(drawing.triangles, fv.triangles, fv.count, ids);
+      CheckQuads(drawing.quads, fv.quads, fv.quad_count);
+      ++owner.frame;
+    }
+    ++n;
+  }
+}
+
+TEST_CASE("The sprite trail effects play as the original's", "[effect]") {
+  CheckTargetEffects(kTrailEffects, StateOfTrail, true);
 }

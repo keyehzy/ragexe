@@ -3,6 +3,7 @@
 #include <array>
 #include <cstdint>
 #include <list>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -133,7 +134,8 @@ struct PrimSquare {
 
 // The same records as ids 0x1b, 0x1e and 0x21 read them: up to four small squares (motes)
 // at +0x88, +0x94, +0xa0 and +0xac, each turned to face the camera, and the values that
-// move them at +0x14.
+// move them at +0x14. Ids 0x26, 0x2c and 0x31 keep the point they stand at in the first
+// record's third (+0xa0), 0x26 with its two walking angles and its fall (+4).
 struct PrimMotes {
   bool active = false;          // +0
   float speed = 0.0f;           // +4, 0x1b: how fast its motes rise
@@ -145,6 +147,7 @@ struct PrimMotes {
   // per mote 16 bytes: a count, the alpha, the image and the angle round the centre.
   std::array<float, 21> values{};
   float size = 0.0f;             // +0x6c, the half-width
+  std::uint8_t mode = 0;         // +0x70, 0x26: 1 drifts at half the pace
   std::array<Vec3, 4> points{};  // +0x88
 };
 
@@ -267,6 +270,8 @@ struct EffectPrim {
   bool fading = false;            // +0xc0, the fade to its owner's end begun
   bool speed_keys = false;        // +0xb4: at each key frame the alpha speed is set
   bool alpha_keys = false;        // +0xb8: at each key frame the alpha and its limit are set
+  bool distance_keys = false;     // +0xbc, id 7: at each key frame the distance's speed and
+                                  // rate are set from the same two lists
   std::int32_t key = 0;           // +0x138
   std::vector<float> key_frames;  // +0x2a4
   std::vector<float> key_values;  // +0x2b4
@@ -288,7 +293,11 @@ struct EffectPrim {
   std::int32_t move_after = -1;                 // +0x14c
   float fall_speed = 0.0f;                      // +0x21c, id 6's along y (down)
   float fall_rate = 0.0f;                       // +0x220
-  bool coin_sound = false;                      // +0x168: id 6 rings EF_Coin%d on bouncing
+  // Id 8 circles an axis (+0x1c0) at the pitch's distance, by the angle (+0x244), through
+  // its second matrix (+0xf4); the circle's point is the drift.
+  Vec3 axis{};
+  Matrix orbit = kIdentity;
+  bool coin_sound = false;  // +0x168: id 6 rings EF_Coin%d on bouncing
 
   // Ids 5 and 6 draw a sprite's frame at each of their last positions.
   PrimSprite sprite;               // +0x98, +0x9c
@@ -322,8 +331,9 @@ struct EffectPrim {
 
 // What vf03 hands the renderer.
 struct PrimDrawing {
-  std::vector<PrimTriangle> triangles;  // AddPrimitive, flags 1
-  std::vector<SpriteQuad> quads;        // AddSpriteQuad, the sprite's palette
+  std::vector<PrimTriangle> triangles;           // AddPrimitive, flags 1
+  std::vector<SpriteQuad> quads;                 // AddSpriteQuad, the sprite's palette
+  std::vector<const res::Sprite*> quad_sprites;  // the sprite each quad's image is of
 };
 
 // The constructor (0057cfa0) and InitPrimitive (00586380): owner, id, the start and the
@@ -348,8 +358,20 @@ void ProcessHitSpark(RagEffect& effect, const Vec3& actor, const Matrix& view,
                      const Projection& projection, core::CrtRand& rand, bool blue,
                      std::vector<EffectPrim>& added);
 
-// The particle sprite effect ids 0 and 2 load (이펙트\particle1, 00618b98 and 00618b80).
+// The particle sprite effect ids 0 and 2 load (이팩트\particle1, 00618b98 and 00618b80).
 inline constexpr const char* kParticleSprite = "\300\314\306\321\306\256\\particle1";
+
+// The other sprites effects load, each a .spr and an .act of the name: 이팩트\ and particle2,
+// ef_snow, sakura01, 단풍, 침투경_, 데몬스트레이션 and Waterball (00618d58, 00618f20, 00619df4,
+// 00619e18, 0061a10c, 0061a154 and 006195fc).
+inline constexpr std::array<const char*, 7> kEffectSprites = {
+    "\300\314\306\321\306\256\\particle2",
+    "\300\314\306\321\306\256\\ef_snow",
+    "\300\314\306\321\306\256\\sakura01",
+    "\300\314\306\321\306\256\\\264\334\307\263",
+    "\300\314\306\321\306\256\\\304\247\305\365\260\346_",
+    "\300\314\306\321\306\256\\\265\245\270\363\275\272\306\256\267\271\300\314\274\307",
+    "\300\314\306\321\306\256\\Waterball"};
 
 // CRagEffect::ProcessRingBurst (005505a0), effect id 0, on its first frame: a cylinder of
 // ring_blue.tga rising from the actor, and unless minimal effects are on, two particles
@@ -552,6 +574,62 @@ void AddArcBands(RagEffect& effect, const EffectActor& actor, core::CrtRand& ran
 void AddBouncingBands(RagEffect& effect, const EffectActor& actor, core::CrtRand& rand,
                       std::vector<EffectPrim>& added);
 
+// The effects of sprite trails (docs/render/effect-prim.md#sprite-trails), each a
+// primitive drawn as the sprite's frame at its last positions; on their first frame unless
+// said:
+//  - AddHealingColumn (00552420), id 7: a cylinder of alpha_down.tga (id 0xd), and unless
+//    effects are minimal every 9 frames id 7, a particle1 circling up 3 out; the effect
+//    lasts 100 frames; _heal_effect.wav;
+//  - AddBlueColumns (00554700), id 0xe: three blue cylinders of alpha_down.tga, and every
+//    other frame id 7, a particle2 circling up; _heal_effect.wav;
+//  - AddSoulStrike (00554cc0), id 0xf: by the level, one to five shots of id 8 at frames 6,
+//    17, ... towards the target, each circling its line; effect\EF_SoulStrike.wav;
+//  - AddSpiralSpark (0055c5d0), id 0x47: every 130 frames id 7, a particle1 spiralling out;
+//    the effect lasts 200 frames;
+//  - AddWideningSpirals (0055c770), id 0x48: every 10 frames the same, a distance key at
+//    age 95 turning its widening to −0.15, the effect ending at 500 less the frame;
+//  - AddRemoveTrap (0055f760), id 100: at frames 0 and 7, twelve particle1s thrown up and
+//    falling; effect\hunter_removetrap.wav;
+//  - AddAspersio (00565bd0), id 0x56: every 5 frames from 65 to 135 a particle1 circling
+//    up, the effect lasting 400 frames, false once its frame meets the duration;
+//    effect\priest_aspersio.wav at 70;
+//  - AddWaterBall (005607e0), id 0x75: a shot of id 8 of Waterball towards the target;
+//    effect\wizard_waterball_chulung.wav;
+//  - AddTripleShot (00564160 and 005643e0), ids 0xd8 (red) and 0xd9 (blue): three shots
+//    of id 8 towards the target circling 90 degrees apart;
+//  - AddSnowfall (00557600), id 0xa2: while 160 frames are left, two flakes of ef_snow
+//    (id 0x15) a frame, 100 above the ground about the player, falling;
+//  - AddFallingLeaves (00567e10 and 00568090), ids 0xa3 (sakura01, to frame 300) and 0x14d
+//    (단풍, to 200): every other frame id 0x26, a leaf drifting down from 200 above the
+//    actor; like AddRingTrio they start again at frame 99999998;
+//  - AddTargetSprite (0057a190), id 0x10b: id 0x2c, 침투경_ at the target, its action by
+//    the way the actor lies from it on screen; effect\mon_침투경.wav;
+//  - AddDemonstration (0057a400), id 0x12e: id 0x31, 데몬스트레이션 1 above the actor.
+void AddHealingColumn(RagEffect& effect, const EffectActor& actor, bool minimal,
+                      const PrimSprite& particle, core::CrtRand& rand,
+                      std::vector<EffectPrim>& added);
+void AddBlueColumns(RagEffect& effect, const EffectActor& actor, const PrimSprite& sparks,
+                    core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddSoulStrike(RagEffect& effect, const PrimSprite& particle, std::vector<EffectPrim>& added);
+void AddSpiralSpark(RagEffect& effect, const PrimSprite& particle, std::vector<EffectPrim>& added);
+void AddWideningSpirals(RagEffect& effect, const EffectActor& actor, const PrimSprite& particle,
+                        std::vector<EffectPrim>& added);
+void AddRemoveTrap(RagEffect& effect, const PrimSprite& particle, core::CrtRand& rand,
+                   std::vector<EffectPrim>& added);
+bool AddAspersio(RagEffect& effect, const PrimSprite& particle, core::CrtRand& rand,
+                 std::vector<EffectPrim>& added);
+void AddWaterBall(RagEffect& effect, const PrimSprite& ball, std::vector<EffectPrim>& added);
+void AddTripleShot(RagEffect& effect, const PrimSprite& particle, bool blue,
+                   std::vector<EffectPrim>& added);
+void AddSnowfall(RagEffect& effect, const Vec3& player, const res::AttrMap* attr,
+                 const PrimSprite& snow, core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddFallingLeaves(RagEffect& effect, const EffectActor& actor, const PrimSprite& leaf,
+                      bool maple, core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddTargetSprite(RagEffect& effect, const EffectActor& actor, const PrimSprite& sprite,
+                     float view_yaw, std::vector<EffectPrim>& added);
+void AddDemonstration(RagEffect& effect, const EffectActor& actor, const PrimSprite& sprite,
+                      std::vector<EffectPrim>& added);
+
 // The world's object list as effects use it (CWorld::UpdateGameObjects, 004c4a10): each
 // world step every object's vf01 in order, a primitive an effect adds joining the end and
 // running the same step; an object whose vf01 answers false is deleted, and an effect's
@@ -561,7 +639,10 @@ class EffectWorld {
   explicit EffectWorld(std::uint32_t seed = 1) : rand_(seed) {}
 
   // The particle sprite, and whether minimal effects are on (g_ClientState+0x1840).
-  void SetParticle(const PrimSprite& particle) { particle_ = particle; }
+  void SetParticle(const PrimSprite& particle) { SetSprite(kParticleSprite, particle); }
+  // A sprite effects load by name (SetSprite and SetAct); an unset one draws nothing.
+  void SetSprite(const std::string& name, const PrimSprite& sprite) { sprites_[name] = sprite; }
+  PrimSprite Sprite(const std::string& name) const;
   void SetMinimal(bool minimal) { minimal_ = minimal; }
   // Where the player stands (the game mode's world, +0x3c), which the clouds follow.
   void SetPlayer(const Vec3& player) { player_ = player; }
@@ -586,7 +667,7 @@ class EffectWorld {
  private:
   std::list<Object> objects_;
   core::CrtRand rand_;
-  PrimSprite particle_;
+  std::map<std::string, PrimSprite> sprites_;
   bool minimal_ = false;
   Vec3 player_{};
 };

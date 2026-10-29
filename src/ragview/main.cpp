@@ -32,6 +32,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
+#include <list>
 #include <map>
 #include <memory>
 #include <span>
@@ -82,7 +83,7 @@ constexpr std::uint32_t kActorTextureIdBase = 0x40000;
 constexpr std::uint32_t kShadowTextureIdBase = 0x48000;
 constexpr std::uint32_t kEffectTextureIdBase = 0x50000;
 constexpr std::uint32_t kPrimTextureIdBase = 0x58000;
-constexpr std::uint32_t kParticleTextureIdBase = 0x5c000;
+constexpr std::uint32_t kParticleTextureIdBase = 0x5c000;  // then 0x400 for each effect sprite
 constexpr std::uint32_t kSpritePage = 256;  // the sprite texture cache's pages (0040e130)
 
 struct Options {
@@ -530,10 +531,23 @@ int main(int argc, char** argv) {
   // --effect-id: the world's effect objects for the primitives, and the .str the id names.
   render::EffectWorld prim_world;
   const bool has_prims = o.effect_id >= 0;
-  ActorSprite particle;
-  if (has_prims &&
-      LoadActorSprite(files, render::kParticleSprite, *device, kParticleTextureIdBase, particle))
-    prim_world.SetParticle({&particle.act, &particle.sprite});
+  // The sprites effects load, the particle first; each drawn quad names the one it is of.
+  std::list<ActorSprite> effect_sprites;
+  std::map<const res::Sprite*, const ActorSprite*> sprite_of;
+  if (has_prims) {
+    std::vector<const char*> names = {render::kParticleSprite};
+    names.insert(names.end(), render::kEffectSprites.begin(), render::kEffectSprites.end());
+    for (std::size_t k = 0; k < names.size(); ++k) {
+      ActorSprite& loaded = effect_sprites.emplace_back();
+      const auto first_id = kParticleTextureIdBase + static_cast<std::uint32_t>(k) * 0x400;
+      if (!LoadActorSprite(files, names[k], *device, first_id, loaded)) {
+        effect_sprites.pop_back();
+        continue;
+      }
+      prim_world.SetSprite(names[k], {&loaded.act, &loaded.sprite});
+      sprite_of[&loaded.sprite] = &loaded;
+    }
+  }
   prim_world.SetMinimal(o.minimal_effects);
   if (has_prims && o.effect.empty()) {
     const std::string name =
@@ -725,7 +739,10 @@ int main(int argc, char** argv) {
         prim_world.Step(scene);
       }
       const render::PrimDrawing drawing = prim_world.Draw(scene);
-      for (const render::SpriteQuad& q : drawing.quads) add(q, particle);
+      for (std::size_t i = 0; i < drawing.quads.size(); ++i) {
+        const auto it = sprite_of.find(drawing.quad_sprites[i]);
+        if (it != sprite_of.end()) add(drawing.quads[i], *it->second);
+      }
       for (const render::PrimTriangle& t : drawing.triangles) {
         render::ScenePrimitive s;
         s.id = static_cast<std::uint32_t>(spans.size());

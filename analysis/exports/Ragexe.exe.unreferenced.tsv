@@ -312,7 +312,7 @@ entry	size	kind	library	reach	name	referenced_by
 0056d210	161	code	0	unreferenced	Global::FUN_0056d210	
 00574c40	346	code	0	unreferenced	CRagEffect::AddFadingSquare	
 005754a0	516	code	0	unreferenced	CRagEffect::AddCoinBurst	
-0057a560	341	code	0	unreferenced	Global::FUN_0057a560	
+0057a560	341	code	0	unreferenced	CRagEffect::AddRingSprite	
 0057cc40	109	code	0	unreferenced	Global::FUN_0057cc40	
 0057cce0	415	code	0	unreferenced	Global::FUN_0057cce0	
 0057fa50	307	code	0	unreferenced	Global::FUN_0057fa50	

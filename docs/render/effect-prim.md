@@ -1126,6 +1126,113 @@ tubes through `DrawQuad`:
   effect's target (+0xe8) as it goes.
 - **Unused.** Nothing adds id 0x3a; the port checks it on synthetic records only.
 
+## Sprite trails
+
+Six more primitive ids draw like [particles](#a-particle-id-5) through
+`RenderActFrameHistory`: the sprite's current frame at each record of their history.
+
+| Id | Update | What it does |
+|---:|--------|--------------|
+| 7 | `UpdatePrim_7` (`0057f4a0`) | circles its owner at a distance along a heading |
+| 8 | `UpdatePrim_8` (`0057f6d0`) | a shot along its matrix, circling an axis |
+| 0x15 | `UpdatePrim_21` (`0057edd0`) | a particle left where it started |
+| 0x26 | `UpdatePrim_38` (`00568300`) | a leaf drifting down |
+| 0x2c | `UpdatePrim_44` (`00568580`) | stands at a point, its travel there too |
+| 0x31 | `UpdatePrim_49` (`00568630`) | stands at a point |
+
+`vf01` ends 7 and 0x15 when `AdvanceActionFrame` answers false, as it does 5 and 6. It
+ignores the answer for 8, 0x26, 0x2c and 0x31, which then draw a frame past the action's
+last; the port draws nothing there.
+
+**Id 7, circling.** Each step:
+1. **The start** is the owner, plus the offset (+0x304).
+2. **Speeds and rates.** The distance's speed (+0x27c) grows by its rate (+0x280), the
+   fall (+0x21c) by its rate (+0x220), and the heading's speed (+0x260) by its rate
+   (+0x26c). The distance and the heading grow by their speeds, and the offset's y by the
+   fall.
+3. **The angle** turns by the spin.
+4. **Changes.** At `change_at` the fall and its rate take +0x1cc and +0x1d0.
+5. **Distance keys.** With +0xbc set, at each key frame the distance's speed and rate take
+   the next of the key values and limits. These are the same lists as
+   [the alpha keys](#vf01).
+6. **The point.** The matrix is the heading's turn about y, and the travel the distance
+   along its z. The primitive is the travel from the start.
+7. **The roll.** The scale grows by its speed, the pitch by its speed, and the matrix turns
+   about z by the pitch. The pitch's degrees are passed as radians.
+
+**Id 8, a circling shot.** Each step:
+1. **The start** is the owner plus the offset.
+2. **Speeds and rates.** The speed grows by the acceleration, the pitch's speed by its rate
+   (+0x270), and the fall by its rate; the pitch by its speed.
+3. **The flight.** The step is the speed less the fall along the matrix's z, and the travel
+   falls back by it.
+4. **The circle.** A second matrix (+0xf4) turns about the axis (+0x1c0) by the angle,
+   through `Matrix::MakeAxisRotation` (`004099d0`): the quaternion of half the angle's sine
+   along the axis and its cosine. The drift is the pitch along that matrix's y.
+5. **The point** is the start plus the travel, plus the drift.
+
+**Id 0x15** is id 5's update with one difference. It is left where it started: its point
+is the start and offset it was given, not its owner's, and it has no `kEndNear`.
+
+**Id 0x26, a leaf.** The first record holds the leaf, read as [the motes'](#motes): the
+fall at +4, two angles each walking to the goal after it at +0x14, a mode at +0x70 and the
+leaf at +0xa0. With the record active, each step:
+1. **Walking.** The angles walk 3 up or 2 down, as [the clouds'](#the-updates-1) do.
+2. **Falling.** The leaf falls by the fall.
+3. **Drifting.** It drifts by the angles' sines: 0.24 along x and 0.3 along z, or 0.12
+   and 0.15 in mode 1.
+4. **Starting again.** Once below its owner, the leaf starts again within 150 of it along
+   x and z (by `rand()`), 200 above.
+5. **The point.** The travel and the primitive stand at the leaf.
+
+**Ids 0x2c and 0x31** stand at the owner, or with the first record active at its point
+(+0xa0); 0x2c moves its travel there too.
+
+**After the move**, all four turn the angle to the camera under `kFaceCamera`, as id 5
+does.
+
+**The effects:**
+
+| Effect ids | Function | Ids | What |
+|-----------|----------|---:|------|
+| 7 | `AddHealingColumn` (`00552420`) | 0xd, 7 | a cylinder of `alpha_down.tga`, radius 4.5, 35 high, fading in to 90 over 30 steps and out over the last 20; unless effects are minimal, every 9 steps a `particle1` 3 out at a random heading, rising 1.2 a step and slowing; the effect lasts 100 steps; `_heal_effect.wav` |
+| 0xe | `AddBlueColumns` (`00554700`) | 0xd, 7 | three cylinders coloured (32, 176, 232), radius 2.5 to 4.5, 15 to 35 high, limits 16 to 64; every other step a `particle2` as above, life 30 |
+| 0xf | `AddSoulStrike` (`00554cc0`) | 8 | one to five shots by the level, at steps 6, 17, 28, ... and angles from −90 on by 180, 90, 60 or 45; `effect\EF_SoulStrike.wav` with each |
+| 0x47 | `AddSpiralSpark` (`0055c5d0`) | 7 | every 130 steps a `particle1` spiralling out, 30 down its matrix's y; the effect lasts 200 steps |
+| 0x48 | `AddWideningSpirals` (`0055c770`) | 7 | every 10 steps the same, a distance key at age 95 turning its widening to −0.15; the effect ends at 500 less the step |
+| 100 | `AddRemoveTrap` (`0055f760`) | 7 | at steps 0 and 7 twelve `particle1`s thrown up at 2 a step and falling back; `effect\hunter_removetrap.wav` |
+| 0x56 | `AddAspersio` (`00565bd0`) | 7 | every 5 steps from 65 to 135 a `particle1` 1.5 out, 30 down; the effect lasts 400 steps, its `.str` 80 up; `effect\priest_aspersio.wav` at 70 |
+| 0x75 | `AddWaterBall` (`005607e0`) | 8 | a shot of `Waterball`; `effect\wizard_waterball_chulung.wav` |
+| 0xd8, 0xd9 | `AddRedTripleShot` (`00564160`), `AddBlueTripleShot` (`005643e0`) | 8 | three shots at twice the speed, angles −90, 0 and 90, coloured (250, 100, 100) or (100, 100, 250) |
+| 0xa2 | `AddSnowfall` (`00557600`) | 0x15 | while more than 160 steps are left, two flakes of `ef_snow` a step, 100 above the ground up to 300 out about the player, falling 0.5 a step |
+| 0xa3, 0x14d | `AddCherryBlossoms` (`00567e10`), `AddMapleLeaves` (`00568090`) | 0x26 | every other step to 300 (200) a leaf of `sakura01` (`단풍`), falling 0.2 or 0.3 (0.06 to 0.15) a step; action `rand()` % 3 (0); start again at step 99999998 |
+| 0x10b | `AddTargetSprite` (`0057a190`) | 0x2c | `침투경_` at the target, scale 2.5; its action by the quarter the actor lies in from it, turned by the camera; `effect\mon_침투경.wav` |
+| 0x12e | `AddDemonstration` (`0057a400`) | 0x31 | `데몬스트레이션` 1 above the actor, scale 1.2 |
+
+**The shots** (8) start 10 up at the effect:
+- **Aim.** They face the target: `CRenderObject::TurnTowards` (`005005b0`), the heading
+  its negation.
+- **Speed.** They cover the ground distance (`CRenderObject::GroundDistanceTo`,
+  `00500530`) over their life. The fall starts at 3.5 (2 for the triple shots) and the
+  pitch at −2, each shrinking by twice itself over the life.
+- **The axis** is the matrix's z plus its translation.
+- **Life and size.** 40 steps, 12 history records (60 and 7 for the triple shots); scale
+  2.75 (0.75 for the water ball, 1.7 for the triple shots).
+
+**Notes on the effects:**
+- **Positioning.** `AddSoulStrike`, `AddSpiralSpark`, `AddRemoveTrap`, `AddAspersio`,
+  `AddWaterBall` and the triple shots never place their effect; `AddSnowfall` keeps it at
+  the player; `AddDemonstration` places it on the first step only; the others keep it at
+  the actor each step.
+- **The sprites** are 이팩트\ and the names given, a `.spr` and an `.act` each.
+  `SetAction` (`00500de0`, `vtable+0x1c`) starts the action given from its first frame.
+- **The fade.** A primitive's [fade to its owner's end](#vf01) divides by the steps left,
+  which the x87 loads exactly. The leaves' effects last 99999999 steps, past single
+  precision, so the port rounds that quotient once (`core::RoundedQuotient`).
+- **Not ported:** effects 8, 0x3d, 0x62 and 0x141 add id 7 beside ids 3 or 0xc, which wait
+  for their own drawings. `AddRingSprite` (`0057a560`), `AddDemonstration` with `ring` 5
+  above, is never called.
+
 ## In the port
 
 **`src/core/crt_rand`:** `CrtRand`, `srand` and `rand`.
@@ -1136,28 +1243,33 @@ tubes through `DrawQuad`:
 
 **`src/render/effect_prim`:**
 - `EffectPrim` with `MakePrimitive`, `ResetHistory`, `UpdatePrimitive` (vf01) and
-  `DrawPrimitive` (vf03), for ids 0 to 2, 5, 6, 0xd, the twelve ring ids, the eight
-  facing-square ids, the three flat-square ids, the three mote ids, the six ids of
-  single squares and rectangles and the eight of walls and bands. `PrimScene` carries the
-  camera's yaw and pitch, the ground, the view, the projection and the sprite slope;
-  `PrimDrawing` gets the triangles and the sprite quads;
+  `DrawPrimitive` (vf03), for ids 0 to 2, 5 to 8, 0xd, 0x15, the twelve ring ids, the
+  eight facing-square ids, the three flat-square ids, the three mote ids, the six ids of
+  single squares and rectangles, the eight of walls and bands and 0x26, 0x2c and 0x31.
+  `PrimScene` carries the camera's yaw and pitch, the ground, the view, the projection
+  and the sprite slope; `PrimDrawing` gets the triangles and the sprite quads, each with
+  the sprite it is of;
 - `ProcessHitSpark`, `ProcessRingBurst` and `ProcessHit3`; `AddRingWaves` (with `slow`
   for `AddSlowRingWaves`), `AddRisingRings`, `AddFadingRings`, the eight setups of
   [More rings](#more-rings), the eleven of [the square effects](#the-square-effects) and
   `AddTwinSquares`, `AddSwellingSquare`, `AddRisingMotes`, `AddPulsingMotes`,
   `AddPoppingMotes`, the seven setups of
   [single squares and rectangles](#single-squares-and-rectangles) (`AddRays` with
-  `short_rays` for `AddShortRays`) and the eight of [walls and bands](#walls-and-bands);
+  `short_rays` for `AddShortRays`), the eight of [walls and bands](#walls-and-bands) and
+  the thirteen of [sprite trails](#sprite-trails) (`AddTripleShot` for both triple shots,
+  `AddFallingLeaves` for both leaves);
 - `EffectWorld`, the world's list as effects use it:
   - `Launch` adds an effect;
   - `Step` runs a world step in the list's order;
   - `Draw` gives the primitives' triangles and quads;
-  - `SetParticle`, `SetMinimal` and `SetPlayer` give it the particle sprite, the minimal
-    flag and where the player stands.
+  - `SetParticle`, `SetSprite`, `SetMinimal` and `SetPlayer` give it the sprites effects
+    load by name (`kParticleSprite` and `kEffectSprites`), the minimal flag and where the
+    player stands.
 
 **`src/core/angles`:** `DegreesToRadians`.
 
-**`src/core/x87`:** `RoundedProduct`, a float times a double rounded once to single
+**`src/core/x87`:** `RoundedQuotient`, a float over a double rounded once, and
+`RoundedProduct`, a float times a double rounded once to single
 precision, shared with the `.str` player.
 
 **`ragview --effect-id ID`** plays the id's `.str` ([gpu.md](gpu.md)), and launches the id
@@ -1172,7 +1284,9 @@ installed 2003 data lacks many of the effects' textures, and ragview draws those
 - `white01.bmp`, `white02.bmp` and the `asura` squares.
 
 The melody notes, the item pictures, `alpha_down.tga`, `magic_violet.tga`, the `lens`
-rays and `shockwave_c.bmp` are there.
+rays and `shockwave_c.bmp` are there. Of the trails' sprites only `particle1` and
+`particle2` are; ragview draws nothing for `ef_snow`, `sakura01`, `단풍`, `침투경_`,
+`데몬스트레이션` and `Waterball`.
 
 ## Checks
 
@@ -1254,11 +1368,23 @@ rays and `shockwave_c.bmp` are there.
 
   The corners the drawings of 0x20, 0x23, 0x3b and 0x3d write are checked through the
   triangles drawn from them.
+- **24 synthetic sprite trails**, four of each id, 40 steps each, as for the shapes:
+  - every field their updates read at random: id 7's distance keys and changes, id 8's
+    axis, id 0x15's flags, and the leaves' angles, modes and restarts;
+  - ids 8, 0x26, 0x2c and 0x31 loop their actions, since one that runs out goes on past
+    its frames;
+  - the state adds the further fields, the second matrix and the first record.
+- **The 15 trail effects and six more runs of 0x10b**, as for the squares, with the
+  stand-in sprite for every name:
+  - a stand-in act of four actions (the two, twice), for the actions the leaves and 0x10b
+    pick;
+  - the views of the snow, the leaves and 0x10b looking where their sprites are;
+  - the quads checked with the triangles.
 
-`tests/unit/prim_test.cpp` matches all of it: 2,584,702 values, the CRT's first `rand` values
+`tests/unit/prim_test.cpp` matches all of it: 2,975,160 values, the CRT's first `rand` values
 among them.
 
 **Not ported:**
-- the other 22 primitive ids;
+- the other 16 primitive ids;
 - the other effects' processing;
 - the sounds.

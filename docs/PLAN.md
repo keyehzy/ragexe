@@ -2425,9 +2425,21 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Checks:** 32 synthetic primitives and the eleven effects; 2,584,702 values in
     `prim_test`.
 
+- [x] Sprite trails (`docs/render/effect-prim.md#sprite-trails`):
+  - **`CEffectPrim` ids 7, 8, 0x15, 0x26, 0x2c and 0x31**, drawn by
+    `RenderActFrameHistory`: particles circling their owner, shots circling an axis
+    (`Matrix::MakeAxisRotation`), snow left where it fell, drifting leaves, and sprites
+    standing at a point.
+  - **Effect ids 7, 0xe, 0xf, 0x47, 0x48, 100, 0x56, 0x75, 0xa2, 0xa3, 0xd8, 0xd9, 0x10b,
+    0x12e and 0x14d** through thirteen setups. The effect world loads its sprites by name,
+    and ragview draws each quad with its own sprite. The fade to an owner's end rounds its
+    quotient once (`core::RoundedQuotient`), as the x87 divides by an exact integer.
+  - **Checks:** 24 synthetic trails and 22 effect runs; 2,975,160 values in `prim_test`.
+
 ### Next actions
-1. M4, the renderer: the other 22 primitive ids, next the other ids drawn by
-   `RenderActFrameHistory` (3, 4, 7, 8, 0x15, 0x26, 0x2c and 0x31) and the effects that
-   add them.
+1. M4, the renderer: the other 16 primitive ids, next the screen-space ones
+   (`RenderScreenWedge` 3, `RenderScreenRing` 4, `RenderScreenWedge2` 0x13 and
+   `RenderScreenLine` 0x14) and `RenderHistoryRings` (0xc), with the effects that add
+   them; among those, 8, 0x3d, 0x62 and 0x141 add id 7 beside 3 or 0xc.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.
