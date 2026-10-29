@@ -3,8 +3,8 @@
 //   ragview [--install DIR] [--size W H] [--at X Z] [--yaw DEGREES] [--frames N]
 //           [--no-fog] [--actor SPRITE | --player JOB SEX HAIR [--hair-color N]
 //           [--clothes-color N] [--headgear TOP MID BOTTOM] [--weapon KIND] [--shield ID]]
-//           [--action BASE] [--effect NAME | --effect-id ID [--minimal-effects]]
-//           [--effect-step N] [--screenshot FILE.png] MAP
+//           [--action BASE] [--effect NAME | --effect-id ID [--minimal-effects]
+//           [--effect-level N]] [--effect-step N] [--screenshot FILE.png] MAP
 //
 // MAP is a .rsw name such as prontera. The ground is built and drawn by the ported
 // C3dGround15, through the scene lists and DrawScene, and the calls are replayed on
@@ -20,7 +20,9 @@
 // stands, a step each 16 ms world step and again when it ends; a screenshot shows it after
 // --effect-step steps (15 by default). --effect-id plays what the client plays for that
 // effect id: the .str its table names (the lighter one with --minimal-effects) and the
-// primitives the id adds, ported for ids 0 to 2 and the ring effects.
+// primitives the id adds, ported for ids 0 to 2 and the ring effects. --effect-level gives
+// the effect the level its message would (+0xb8, 0 by default), which the arrows and blitz
+// beat count by.
 // --screenshot renders one frame offscreen to a PNG and exits; otherwise a window opens,
 // and Escape or --frames N closes it.
 
@@ -111,6 +113,7 @@ struct Options {
   std::string effect;
   int effect_id = -1;
   bool minimal_effects = false;
+  int effect_level = 0;
   int effect_step = 15;
   std::string screenshot;
 };
@@ -128,8 +131,8 @@ int Usage() {
                "               [--frames N] [--no-fog] [--actor SPRITE | --player JOB SEX HAIR\n"
                "               [--hair-color N] [--clothes-color N] [--headgear TOP MID BOTTOM]\n"
                "               [--weapon KIND] [--shield ID]] [--action BASE]\n"
-               "               [--effect NAME | --effect-id ID [--minimal-effects]]\n"
-               "               [--effect-step N]\n"
+               "               [--effect NAME | --effect-id ID [--minimal-effects]\n"
+               "               [--effect-level N]] [--effect-step N]\n"
                "               [--screenshot FILE.png] MAP\n");
   return 2;
 }
@@ -271,6 +274,8 @@ int main(int argc, char** argv) {
       o.effect_id = ParseInt(argv[++i], -1);
     } else if (a == "--minimal-effects") {
       o.minimal_effects = true;
+    } else if (a == "--effect-level" && next(1)) {
+      o.effect_level = ParseInt(argv[++i], 0);
     } else if (a == "--effect-step" && next(1)) {
       o.effect_step = ParseInt(argv[++i], 15);
     } else if (a == "--no-fog") {
@@ -714,9 +719,9 @@ int main(int argc, char** argv) {
       for (const render::SpriteQuad& q : body.quads)
         add(q, layers[static_cast<std::size_t>(q.layer)]);
     }
-    // CRagEffect::vf01 for each world step due (all of --effect-step at the first), then
-    // vf03's triangles, each with its own blends and stage mode.
-    std::uint32_t steps = world_steps.StepsDue(now);
+    // CRagEffect::vf01 for each world step due, at most 8 a frame but all of --effect-step at
+    // the first, then vf03's triangles, each with its own blends and stage mode.
+    std::uint32_t steps = std::min<std::uint32_t>(world_steps.StepsDue(now), 8);
     if (!effect_started) {
       steps = static_cast<std::uint32_t>(std::max(o.effect_step, 1));
       effect_started = true;
@@ -729,11 +734,12 @@ int main(int argc, char** argv) {
       scene.view = camera.view;
       scene.projection = projection;
       scene.slope_down = sprite_scales.slope_down;
-      for (std::uint32_t i = 0; i < std::min<std::uint32_t>(steps, 8); ++i) {
+      for (std::uint32_t i = 0; i < steps; ++i) {
         if (prim_world.empty()) {
           // The effects thrown at a target aim at a point 50 out either way along the ground.
           render::RagEffect& e = prim_world.Launch(o.effect_id, {player, actor_object.facing});
           e.target = {player[0] + 50.0f, player[1], player[2] + 50.0f};
+          e.level = o.effect_level;
         }
         prim_world.SetPlayer(player);
         prim_world.Step(scene);
@@ -762,7 +768,7 @@ int main(int argc, char** argv) {
       }
     }
     if (has_effect) {
-      for (std::uint32_t i = 0; i < std::min<std::uint32_t>(steps, 8); ++i) {
+      for (std::uint32_t i = 0; i < steps; ++i) {
         if (!effect_player.Advance(camera.view, player, projection, 0.0f, -80.0f, 0.0f)) {
           effect_player.Reset();
           effect_player.Advance(camera.view, player, projection, 0.0f, -80.0f, 0.0f);

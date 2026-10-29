@@ -125,9 +125,9 @@ effects.
 - `EffectTriangle`, a triangle with its layer, texture index, blends and stage mode.
 
 **ragview:** `--effect NAME` plays `texture\effect\NAME.str` where the actor stands:
-- a step each world step, counted by `FrameTimer`;
+- a step each world step, counted by `FrameTimer`, at most 8 a frame;
 - again from the start when it ends;
-- a screenshot shows it after `--effect-step` steps.
+- a screenshot shows it after `--effect-step` steps, all taken on the first frame.
 
 Textures are uploaded as triangles first ask for them.
 
@@ -148,9 +148,9 @@ Textures are uploaded as triangles first ask for them.
 
 **Not ported:**
 - most of the effects' own processing (`CRagEffect::vf01`'s 200-odd cases), beyond the
-  generic offset and the 129 ids [effect-prim.md](effect-prim.md) ports;
+  generic offset and the 137 ids [effect-prim.md](effect-prim.md) ports;
 - much of `CEffectPrim`, the particles and shapes effects add: ids 0 to 8, 0xc, 0xd,
-  0xf, 0x13 to 0x16, the twelve ring ids, the eight facing-square ids, the three
+  0xf, 0x10, 0x13 to 0x16, the twelve ring ids, the eight facing-square ids, the three
   flat-square ids, the three mote ids, the six ids of single squares and rectangles, the
   eight of walls and bands and 0x26, 0x2c and 0x31 are ported
   ([effect-prim.md](effect-prim.md));

@@ -1351,7 +1351,7 @@ Three more primitive ids fly along their matrix, sharing one update:
 | Id | Update | Drawing | Shape |
 |---:|--------|---------|-------|
 | 0xf | `UpdatePrim_15` (`0057fb90`) | `RenderTransformedQuad` (`00582fd0`) | a quad in the plane of the second matrix |
-| 0x10 | `UpdatePrim_15` | `RenderCrossedQuads` (`00583910`) | two crossed quads (not ported yet) |
+| 0x10 | `UpdatePrim_15` | `RenderCrossedQuads` (`00583910`) | two crossed quads ([below](#crossed-quads)) |
 | 0x16 | `UpdatePrim_22` (`005802b0`) | `RenderBillboard` (`00583660`) | a quad on the screen at the point's depth |
 
 `vf01` ignores what `UpdatePrim_15` answers; it ends 0x16 when `UpdatePrim_22` answers
@@ -1437,6 +1437,79 @@ and z rows:
 - **The `.str`.** `ProcessGlassWall` plays its `.str` through `AdvanceStr` but ends the
   effect at its duration whatever that answers.
 
+## Crossed quads
+
+Id 0x10 flies by the flying quads' `UpdatePrim_15` (`vf01`'s jump table `0057e06c` sends
+0xf and 0x10 to the same call, `0057dd9b`); `RenderCrossedQuads` (`00583910`, `vf03`'s
+table `00586268`) draws it.
+
+**Its two quads** cross along the z row of the primitive's own matrix (+0xc4, not the
+second at +0xf4), about the position:
+- **Corners.** The first quad runs from −height to +height along the matrix's x row, the
+  second along its y row; both the width either side along z. A corner is the matrix's
+  rows times its three values plus the matrix's last row, plus the position.
+- **Sums.** The assembly sums each quad's first corner from y (y, z, then x), its next
+  two from z (z, y, x), and its last's x from z, x then y and its y and z from z. Every
+  corner has a 0 among its three values, so each order rounds as the others would.
+- **Two triangles** each: u 0 and v 1 at −height and +width, u 1 and v 1 at −height and
+  −width, u 0 and v 0 at +height and +width; then u 1 and v 0 at +height
+  and −width, and the second and third again. All take the colour +0x124 and the current
+  image, with AddPrimitive's flags 1, not +0x128.
+- **Projection.** Every corner goes through `TransformPoint` and the near clamp. Each
+  first triangle's first corner is projected inline, as `ProjectPoint` does; each second
+  triangle's first inline with x scaled before the 1/z; the rest through `ProjectPoint`.
+
+**The effects** (`CRagEffect::vf01`):
+
+| Effect ids | Function | Ids | What |
+|-----------|----------|---:|------|
+| 9 | `AddRisingLight` (`00556d10`) | 0xc, 0xd, 0x10 | at frame 0 a ring of `ring_yellow.tga` (sides of 22.5 degrees, flat, of radius 0: its width 7 is overwritten by its update) and a column of `alpha_down.tga` 6 across rising to 50, both for the whole effect at alpha 128; every 5 frames (15 with minimal effects) a fleck of `alpha_down.tga` 7 wide rising at 2 |
+| 0x2b, 0x25, 0x26 | `AddAgilityRays` (`00554310`, `0055a4a0`, `0055a890`) | 0, 0x10 | at frame 0 a ray of `dex_agi_up.bmp`, `agi_up.bmp` or `slow.bmp` (0x26's 80 lower, turned about and 10 high) for the whole effect; every other frame a fleck of `ac_center2.tga` 3 to 9 wide, rising (0x26: 20 lower and sinking); `effect\EF_IncAgiDex.wav`, `EF_IncAgility.wav`, `EF_DecAgility.wav` |
+| 0x1a, 0x1f | `AddArrows` (`00558520`, `00559180`) | 0x10, 0xc, 5 | from frame 12 an arrow every 10 frames, the level many, of `icearrow.tga` or the six `불화살` ("fire arrow") images, falling onto the actor; where each lands a ring of `ring_blue.tga` or `ring_yellow.tga`; for 0x1f every fourth frame a spark of `particle4` from the arrow's tip; `effect\EF_IceArrow%d.wav` or `EF_FireArrow%d.wav` (1 to 3) at frame 12 |
+| 0x73 | `AddBlitzBeat` (`0055f950`) | 0x10, 0xd | at frame 0 ten flecks of `ac_center2.tga` 15 ahead of the actor, sweeping on and widening; from frame 36 every third frame a beat of `magic_green.tga` (id 0xd) before it, the level many; `effect\hunter_blitzbeat_1st.wav` at 5 and `hunter_blitzbeat.wav` at 30 |
+| 0xdc | `ProcessConcentrationDC` (`00566ed0`) | 0xd, 0x10 | at frame 0 a column of `alpha_down.tga` (`method_005647c0`); from frame 13 to 109 every fourth frame a red fleck of `ac_center2.tga` rising; `effect\ac_concentration.wav` at 18; it ends once the frame passes 150 |
+
+**The flecks.** Each is a crossed quad turned a random heading (`rand() % 360`), 2 and up
+to 4, 6 or 8 more out along it (`rand() % 5` or `% 7`), then its matrix rebuilt as a turn
+about x alone, 90 degrees (−90 for 0x26), so that its speed along z carries it along y.
+They are thin (0.18 to 0.25 high); 0x2b's and 0x25's rise at 0.2 to 0.69 a step, 0x26's
+start still and gain 0.015 a step each step, and Concentration's rise at 1/3 to
+1.15.
+
+**The arrows.** An arrow starts 60 up, 25 to 34 out along x and 15 to 24 along z, aimed
+by `CRenderObject::GetAngleBetween` (`00500610`):
+- **Heading:** the negated angle from its x and z to a point within 2 of the actor
+  (`(rand() & 3) − 2` each way).
+- **Pitch:** the angle from (−60, its distance along the ground) to (0, 0).
+- **Its matrix** is a turn about x by the pitch, then y by the heading; it flies at −2.75
+  along z for 70 frames, fading over the last 20.
+- **Flags 4 and 0x10:** it leads the effect's target along with it, and on landing sets
+  the effect's +0xb4, which the setup clears when it adds the ring. The ring (id 0xc,
+  30 frames) widens from 1.2 a step, slowing by 1.2 × 2 / 70 a step.
+- **The level** is multiplied by 10 at frame 12, after which an arrow comes every 10
+  frames while the frames since 12 are below it.
+- **The aim** is kept at the effect's +0xd4 (heading) and +0xd8 (pitch); 0x1f's sparks
+  leave from the effect's target (the arrow's tip) along it, up to 20 degrees either way
+  in heading and 10 in pitch.
+
+**Blitz beat.**
+- **The flecks** face the actor's way, each 15 out along it at once (the step, added to
+  the travel), 7 up and 3.5 out round a random angle. They fly back along it at 1.2, 0.1
+  faster each step; at age 10 their speed becomes −0.3 and their acceleration 0.001 (the
+  changes at +0x1cc and +0x1d0).
+- **The beats** are cylinders (id 0xd) pointing down, at the matrix's last row less twice
+  its y row plus its z row, each 0 to 2 across and 2 to 12 up (`rand() % 10` and
+  `rand() % 20`, a third `rand` unused), 12 frames each.
+- **The count** of beats is a global (`DAT_0068658c`) that each 0x73 effect sets to 0 at
+  its frame 0; it stops them at the effect's level.
+
+**Concentration.** It also sends its actor's vf02 message 0x7e with 250, 120 and 120 at
+frame 0 and 0x7f when it ends, and at frame 18 the game mode's vf05 message 0x87 with 1.
+`AdvanceStr` plays its `.str` 80 up every frame; whatever that answers, the effect ends
+after frame 150, long before its duration of 9999. `method_005647c0` (`005647c0`) makes
+its column: id 0xd, 4.5 across and 10 high, rising by the speed it is given (1 here) and
+0.01 a step more each step, fading in to 90.
+
 ## In the port
 
 **`src/core/crt_rand`:** `CrtRand`, `srand` and `rand`.
@@ -1447,7 +1520,7 @@ and z rows:
 
 **`src/render/effect_prim`:**
 - `EffectPrim` with `MakePrimitive`, `ResetHistory`, `UpdatePrimitive` (vf01) and
-  `DrawPrimitive` (vf03), for ids 0 to 8, 0xc, 0xd, 0xf, 0x13 to 0x16, the twelve ring ids,
+  `DrawPrimitive` (vf03), for ids 0 to 8, 0xc, 0xd, 0xf, 0x10, 0x13 to 0x16, the twelve ring ids,
   the eight facing-square ids, the three flat-square ids, the three mote ids, the six ids
   of single squares and rectangles, the eight of walls and bands and 0x26, 0x2c and 0x31.
   `PrimScene` carries the camera's yaw and pitch, the ground, the view, the projection
@@ -1465,7 +1538,8 @@ and z rows:
   [screen wedges and rings](#screen-wedges-and-rings) (`AddBeginSpell` for four ids,
   `AddStoneCurse` with `overthrust` for 0x80) and the twelve of
   [flying quads](#flying-quads) (`AddWallsOfMagic`, `AddMarker` and `AddFallingSpell`
-  for two ids each);
+  for two ids each) and the five of [crossed quads](#crossed-quads) (`AddAgilityRays`
+  for three ids, `AddArrows` for two);
 - `EffectWorld`, the world's list as effects use it:
   - `Launch` adds an effect;
   - `Step` runs a world step in the list's order;
@@ -1481,8 +1555,9 @@ and z rows:
 precision, shared with the `.str` player.
 
 **`ragview --effect-id ID`** plays the id's `.str` ([gpu.md](gpu.md)), and launches the id
-again when its effect and primitives are done. `--minimal-effects` picks the `_min`
-files. The effects thrown at a target aim 50 out either way along the ground. The
+again when its effect and primitives are done. `--minimal-effects` picks the `_min` files,
+and `--effect-level N` gives the effect a level (0 by default), which the arrows and blitz
+beat count by. The effects thrown at a target aim 50 out either way along the ground. The
 installed 2003 data lacks many of the effects' textures, and ragview draws those blank:
 - the clouds, `cloud11.tga` among them;
 - the `pok` sparks;
@@ -1495,7 +1570,8 @@ The melody notes, the item pictures, `alpha_down.tga`, `magic_violet.tga`, the `
 rays and `shockwave_c.bmp` are there. Of the trails' sprites only `particle1` and
 `particle2` are; ragview draws nothing for `ef_snow`, `sakura01`, `단풍`, `침투경_`,
 `데몬스트레이션` and `Waterball`. The screen effects' sprites (`축복`, `particle6`, `Sight`
-and `Shadow`) and textures are all there.
+and `Shadow`) and textures are all there, as are the crossed-quad effects' (`particle4`,
+the six `불화살` images, `icearrow.tga`, `ac_center2.tga` and the rest).
 
 ## Checks
 
@@ -1612,11 +1688,18 @@ and `Shadow`) and textures are all there.
     the triangles are checked every frame.
 - **The 15 flying-quad effects and 0x9f again at level 11**, as for the trail effects, 0x30,
   0x52 and 99 sampled densely.
+- **Ten synthetic crossed quads** (id 0x10), as for the flying quads.
+- **The eight crossed-quad effects**, sampled densely, as for the screen effects:
+  - the arrows again at levels 5 and 10 (where ten times the level first differs from
+    nine times), and blitz beat at level 2;
+  - the game mode given a vtable whose vf05 is `C3dGround::vf03` (`004bc290`, an empty
+    function of four arguments), for Concentration's message;
+  - Concentration for 160 steps, past its end.
 
-`tests/unit/prim_test.cpp` matches all of it: 4,097,770 values, the CRT's first `rand` values
+`tests/unit/prim_test.cpp` matches all of it: 4,662,264 values, the CRT's first `rand` values
 among them.
 
 **Not ported:**
-- the other 9 primitive ids, 0x10 among them, whose update is ported;
+- the other 8 primitive ids;
 - the other effects' processing;
 - the sounds.

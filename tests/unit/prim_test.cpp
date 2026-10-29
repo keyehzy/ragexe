@@ -218,6 +218,7 @@ constexpr std::uint32_t kWallSeed = 11000;            // and for the walls and b
 constexpr std::uint32_t kTrailSeed = 13000;           // and for the sprite trails
 constexpr std::uint32_t kScreenSeed = 15000;          // and for the screen and history rings
 constexpr std::uint32_t kFlightSeed = 17000;          // and for the flying quads
+constexpr std::uint32_t kCrossedSeed = 19000;         // and for the crossed quads
 
 float F(std::uint32_t bits) { return std::bit_cast<float>(bits); }
 std::uint32_t B(float f) { return std::bit_cast<std::uint32_t>(f); }
@@ -946,7 +947,7 @@ std::vector<std::uint32_t> StateOfFlight(const EffectPrim& p) {
   return out;
 }
 
-bool IsFlight(std::int32_t id) { return id == 0xf || id == 0x16; }
+bool IsFlight(std::int32_t id) { return id == 0xf || id == 0x10 || id == 0x16; }
 
 // The flying effects' primitives as the script reads them.
 std::vector<std::uint32_t> StateOfFlightEffect(const EffectPrim& p) {
@@ -1647,12 +1648,14 @@ TEST_CASE("The screen and history ring effects play as the original's", "[effect
   CheckTargetEffects(kScreenEffects, StateOfScreenEffect, true);
 }
 
-TEST_CASE("Flying quads and billboards step and draw as the original's", "[effect]") {
+namespace {
+
+void CheckFlights(std::span<const ShapeVector> flights, std::uint32_t seed) {
   std::map<std::string, std::uint32_t> ids;
   for (std::uint32_t i = 0; i < 4; ++i) ids["t" + std::to_string(i)] = kSyntheticTextures + i;
   const ragexe::res::AttrMap attr = TestAttr();
   std::size_t n = 0;
-  for (const ShapeVector& v : kFlights) {
+  for (const ShapeVector& v : flights) {
     INFO("primitive " << n << ", id " << v.id);
     RagEffect owner;
     for (std::size_t i = 0; i < 3; ++i) {
@@ -1665,7 +1668,7 @@ TEST_CASE("Flying quads and billboards step and draw as the original's", "[effec
     p.textures.clear();
     for (std::int32_t i = 0; i < p.image_count; ++i) p.textures.push_back("t" + std::to_string(i));
     const PrimScene scene = SceneOf(v.scene, &attr);
-    ragexe::core::CrtRand rand(kFlightSeed + static_cast<std::uint32_t>(n));
+    ragexe::core::CrtRand rand(seed + static_cast<std::uint32_t>(n));
     for (std::size_t f = 0; f < v.frame_count; ++f) {
       INFO("frame " << f);
       const ShapeFrameVector& fv = v.frames[f];
@@ -1681,6 +1684,20 @@ TEST_CASE("Flying quads and billboards step and draw as the original's", "[effec
   }
 }
 
+}  // namespace
+
+TEST_CASE("Flying quads and billboards step and draw as the original's", "[effect]") {
+  CheckFlights(kFlights, kFlightSeed);
+}
+
 TEST_CASE("The flying quad effects play as the original's", "[effect]") {
   CheckTargetEffects(kFlightEffects, StateOfFlightEffect, true);
+}
+
+TEST_CASE("Crossed quads step and draw as the original's", "[effect]") {
+  CheckFlights(kCrossedQuads, kCrossedSeed);
+}
+
+TEST_CASE("The crossed quad effects play as the original's", "[effect]") {
+  CheckTargetEffects(kCrossedEffects, StateOfFlightEffect, true);
 }

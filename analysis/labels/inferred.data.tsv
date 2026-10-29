@@ -63,4 +63,5 @@ address	namespace	name	evidence	type
 00686500	Global	g_strQuadVertices	CRagEffect::DrawStrLayer's four 32-byte vertices, a function-local static: z 1e-5 and rhw 0.99999 (at the near plane), specular 0xffffffff, the rest written each call	dword
 00617148	Global	g_effectDurations	CRagEffect::InitEffect copies entry [id] to +0xc0, the frame CRagEffect::vf01 ends the effect at; 0x152 dwords, one per effect id (render/effect_table.cpp)	dword
 00686584	Global	g_lastEffectPrim	the primitive CRagEffect's processing last created with CreatePrimitive, which it then fills in	dword
+0068658c	Global	g_blitzBeatCount	the beats AddBlitzBeat 0055f950 has added, set to 0 on an effect id 0x73's frame 0 and counted against its level	dword
 006252fc	Global	g_radianTable	InitAngleTables 0040b2f0 fills 361 floats, 0 to 360 degrees in radians (k * pi * 1/180 in single precision); DegreesToRadians 0040b380 reads it, a negative angle reading back from its end (render/effect_prim.cpp)	dword

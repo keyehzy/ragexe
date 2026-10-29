@@ -2458,9 +2458,19 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     to, as kLeadsTarget and kLands do.
   - **Checks:** 20 synthetic primitives and 16 effect runs; 4,097,770 values in `prim_test`.
 
+- [x] Crossed quads (`docs/render/effect-prim.md#crossed-quads`):
+  - **`RenderCrossedQuads`:** id 0x10, two quads crossed along its own matrix's z row,
+    their corners summed three ways and two of them projected inline.
+  - **Effect ids 9, 0x1a, 0x1f, 0x25, 0x26, 0x2b, 0x73 and 0xdc** through five setups:
+    rising flecks, agility rays, arrows aimed with `GetAngleBetween` that leave rings
+    where they land, blitz beat with its count shared across effects, and Concentration,
+    which ends itself at frame 151.
+  - **Checks:** 10 synthetic primitives and 12 effect runs; 4,662,264 values in
+    `prim_test`. ragview takes `--effect-level`, and now plays all of `--effect-step` before
+    its first frame rather than 8.
+
 ### Next actions
-1. M4, the renderer: `RenderCrossedQuads` (id 0x10, whose update is ported) with effects
-   9, 0x1a, 0x1f, 0x25, 0x26, 0x2b, 0x73 and 0xdc; then ids 9, 0xa, 0xb, 0xe, 0x11, 0x12,
-   0x24 and 0x2e with theirs.
+1. M4, the renderer: the last primitive ids, 9, 0xa, 0xb, 0xe, 0x11, 0x12, 0x24 and
+   0x2e, with the effects that add them.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

@@ -33,6 +33,8 @@ struct RagEffect {
   Vec3 target{};              // +0xe8, InitEffect's last three arguments
   std::int32_t level = 0;     // +0xb8, from a message (vf02, at most 50)
   bool landed = false;        // +0xb4, set by a flying primitive with kLands on the ground
+  float aim_heading = 0.0f;   // +0xd4, the heading and pitch the arrow effects last aimed by
+  float aim_pitch = 0.0f;     // +0xd8
 };
 
 // The actor an effect plays on (+0xa0): where it stands and which way it faces (+0x38,
@@ -390,7 +392,7 @@ inline constexpr const char* kParticleSprite = "\300\314\306\321\306\256\\partic
 // ef_snow, sakura01, 단풍, 침투경_, 데몬스트레이션, Waterball, 축복, particle6 and Sight
 // (00618d58, 00618f20, 00619df4, 00619e18, 0061a10c, 0061a154, 006195fc, 00618cd0, 00618ca8
 // and 00618fac), and Shadow (00618f8c).
-inline constexpr std::array<const char*, 11> kEffectSprites = {
+inline constexpr std::array<const char*, 12> kEffectSprites = {
     "\300\314\306\321\306\256\\particle2",
     "\300\314\306\321\306\256\\ef_snow",
     "\300\314\306\321\306\256\\sakura01",
@@ -401,7 +403,8 @@ inline constexpr std::array<const char*, 11> kEffectSprites = {
     "\300\314\306\321\306\256\\\303\340\272\271",
     "\300\314\306\321\306\256\\particle6",
     "\300\314\306\321\306\256\\Sight",
-    "Shadow"};
+    "Shadow",
+    "\300\314\306\321\306\256\\particle4"};
 
 // CRagEffect::ProcessRingBurst (005505a0), effect id 0, on its first frame: a cylinder of
 // ring_blue.tga rising from the actor, and unless minimal effects are on, two particles
@@ -777,6 +780,38 @@ void AddDetecting(RagEffect& effect, std::vector<EffectPrim>& added);
 void AddRain(RagEffect& effect, const EffectActor& actor, const Vec3& player,
              const res::AttrMap* attr, core::CrtRand& rand, std::vector<EffectPrim>& added);
 
+// The effects that add crossed quads (id 0x10), each called once a frame:
+//  - AddRisingLight (00556d10), id 9: at frame 0 a ring of ring_yellow.tga (id 0xc) and a
+//    rising column of alpha_down.tga (id 0xd) for the whole effect, and every 5 frames (15
+//    with minimal effects) a fleck of alpha_down.tga rising from near the actor;
+//  - AddAgilityRays (00554310, 0055a4a0 and 0055a890), ids 0x2b (dex_agi_up.bmp,
+//    EF_IncAgiDex.wav), 0x25 (agi_up.bmp, EF_IncAgility.wav) and 0x26 (slow.bmp, lower and
+//    turned about, EF_DecAgility.wav): at frame 0 a ray (id 0) over the actor, and every
+//    other frame a fleck of ac_center2.tga rising, or for 0x26 sinking, from near it; the
+//    actor put on screen first;
+//  - AddArrows (00558520 and 00559180), ids 0x1a (icearrow.tga) and 0x1f (the six 불화살
+//    images): from frame 12 an arrow every 10 frames, the level many, falling from 60 up
+//    and 25 to 35 out onto the actor, leading the effect's target and telling it where it
+//    lands, where a widening ring (id 0xc) follows; for 0x1f every fourth frame a spark of
+//    particle4 (id 5) from the arrow's tip along its aim;
+//  - AddBlitzBeat (0055f950), id 0x73: at frame 0 ten flecks of ac_center2.tga swept
+//    forward, and from frame 36 every third frame a beat of magic_green.tga (id 0xd) before
+//    the actor, the level many; the count is kept across the 0x73 effects (DAT_0068658c);
+//  - ProcessConcentrationDC (00566ed0), id 0xdc: at frame 0 a column (method_005647c0),
+//    and from frame 13 to 109 every fourth a red fleck of ac_center2.tga rising; it ends
+//    once the frame passes 150 (false).
+void AddRisingLight(RagEffect& effect, bool minimal, core::CrtRand& rand,
+                    std::vector<EffectPrim>& added);
+void AddAgilityRays(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+                    const char* texture, bool decrease, core::CrtRand& rand,
+                    std::vector<EffectPrim>& added);
+void AddArrows(RagEffect& effect, const EffectActor& actor, bool fire, const PrimSprite& sparks,
+               core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddBlitzBeat(RagEffect& effect, const EffectActor& actor, std::int32_t& beats,
+                  core::CrtRand& rand, std::vector<EffectPrim>& added);
+bool ProcessConcentrationDC(RagEffect& effect, const EffectActor& actor, core::CrtRand& rand,
+                            std::vector<EffectPrim>& added);
+
 // The world's object list as effects use it (CWorld::UpdateGameObjects, 004c4a10): each
 // world step every object's vf01 in order, a primitive an effect adds joining the end and
 // running the same step; an object whose vf01 answers false is deleted, and an effect's
@@ -817,6 +852,7 @@ class EffectWorld {
   std::map<std::string, PrimSprite> sprites_;
   bool minimal_ = false;
   Vec3 player_{};
+  std::int32_t beats_ = 0;  // DAT_0068658c, AddBlitzBeat's
 };
 
 }  // namespace ragexe::render

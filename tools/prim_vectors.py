@@ -31,6 +31,7 @@ from actor_vectors import (ADD_SPRITE_QUAD, GET_FRAME_COUNT, GET_GAME_MODE, SCAL
 
 RAG_EFFECT_CTOR, INIT_EFFECT, RAG_EFFECT_VF01 = 0x54D220, 0x54EEE0, 0x54D4C0
 LOAD_STR_FILE, ADVANCE_STR = 0x54FAE0, 0x54FBA0
+EMPTY_VF4 = 0x4BC290
 PRIM_CTOR, INIT_PRIMITIVE, PRIM_VF01, PRIM_VF02, PRIM_VF03 = 0x57CFA0, 0x586380, 0x57DCE0, 0x586050, 0x586070
 ADD_PRIMITIVE, GET_TEXTURE, PLAY_WAVE = 0x412550, 0x40CC00, 0x4352A0
 SET_SPRITE, SET_ACT, JOB_NAMES = 0x5018A0, 0x501910, 0x686DC8
@@ -810,7 +811,7 @@ def flight_state(o, prim):
 
 
 def random_flight(rng, o, owner, pid):
-    """A primitive of id 0xf or 0x16 with the fields its update and drawing read set at
+    """A primitive of id 0xf, 0x10 or 0x16 with the fields its update and drawing read set at
     random; returns it, its offset and the fields set, as random_prim3."""
     emu = o.emu
     prim = emu.alloc(PRIM_SIZE)
@@ -864,9 +865,9 @@ def random_flight(rng, o, owner, pid):
     frames = rng.randrange(1, 4)
     w(0x164, frames)
     w(0x148, rng.choice([1, 2, 3]))
-    # vf01 ignores whether 0xf's images ran out, so one that does not loop would read past
-    # its textures.
-    w(0x1B4, 1 if pid == 0xF else rng.choice([0, 1, 1]))
+    # vf01 ignores whether 0xf's and 0x10's images ran out, so one that does not loop would
+    # read past its textures.
+    w(0x1B4, 1 if pid in (0xF, 0x10) else rng.choice([0, 1, 1]))
     textures = emu.alloc(4 * frames)
     for i in range(frames):
         emu.write_u32(textures + 4 * i, TEXTURE_BASE + 0x100 + i)
@@ -875,14 +876,14 @@ def random_flight(rng, o, owner, pid):
     return prim, offset, sets
 
 
-def synthetic_flights(o, rng, lines):
-    """Ten primitives of each of FLIGHT_IDS, stepped and drawn on their own after
-    srand(17000 + n), as synthetic3, with a target near the owner and the ground below."""
+def synthetic_flights(o, rng, lines, ids=FLIGHT_IDS, seed=17000, prefix="kFlight", table="kFlights"):
+    """Ten primitives of each of ids, stepped and drawn on their own after srand(seed + n),
+    as synthetic3, with a target near the owner and the ground below."""
     emu = o.emu
     actor = emu.scratch(size=0x100)
     rows = []
-    for n in range(10 * len(FLIGHT_IDS)):
-        pid = FLIGHT_IDS[n % len(FLIGHT_IDS)]
+    for n in range(10 * len(ids)):
+        pid = ids[n % len(ids)]
         mark = emu.heap_mark()
         effect = o.rag_effect(actor)
         pos = [f32(rng.uniform(-30, 30)), f32(rng.uniform(-8, 0)), f32(rng.uniform(-30, 30))]
@@ -895,9 +896,9 @@ def synthetic_flights(o, rng, lines):
         emu.write_u32(effect + 0xC0, duration)
         emu.write_u32(effect + 0xBC, 0)
         prim, offset, sets = random_flight(rng, o, effect, pid)
-        emu.call(SRAND, 17000 + n)
+        emu.call(SRAND, seed + n)
         view, yaw, slope, pitch = o.scene(rng)
-        name = f"kFlight{n}"
+        name = f"{prefix}{n}"
         lines.append(f"static const FieldVector {name}Fields[] = {{" + ", ".join(
             f"{{0x{f:x}, 0x{v:08x}, {{}}}}" for f, v in sorted(sets.items())) + "};")
         frames = []
@@ -919,7 +920,7 @@ def synthetic_flights(o, rng, lines):
                     f"{{{hexs(map(bits, offset))}}}, {duration}, {scene_cpp(view, yaw, slope, pitch)}, {name}Fields, "
                     f"{len(sets)}, {name}Frames, {len(frames)}}},")
         emu.heap_release(mark)
-    lines.append("static const ShapeVector kFlights[] = {")
+    lines.append(f"static const ShapeVector {table}[] = {{")
     lines += rows
     lines.append("};")
 
@@ -928,7 +929,7 @@ def flight_effect_state(o, prim):
     """What the flying effects' primitives are checked by: flight_state for FLIGHT_IDS,
     screen_state for the screen and history ids and state_trail for the rest."""
     pid = o.emu.read_u32(prim + 0x130)
-    if pid in FLIGHT_IDS:
+    if pid in FLIGHT_IDS or pid == 0x10:
         return flight_state(o, prim)
     return screen_state(o, prim) if pid in SCREEN_IDS else state_trail(o, prim)
 
@@ -1539,6 +1540,11 @@ SCREEN_EFFECTS = [(8, 48), (0xC, 40), (0x38, 32), (0x3A, 40), (0x3B, 32), (0x2A,
                   (0x28, 72), (0x141, 40)]
 # The effects with flying quads and billboards: 0x52 past its square at frame 50,
 # the flasher past its second key at 100, and 0x9f again at level 11, tinted green.
+# The effects that add crossed quads, the arrows once more at levels 5 and 10 (where ten
+# times the level first differs from nine times), blitz beat at 2, and Concentration past
+# its end at frame 151.
+CROSSED_EFFECTS = [(9, 100), (0x2B, 110), (0x25, 110), (0x26, 110), (0x1A, 170), (0x1F, 170), (0x1A, 170, 5),
+                   (0x1F, 170, 5), (0x73, 72), (0x73, 72, 2), (0xDC, 160), (0x1A, 170, 10)]
 FLIGHT_EFFECTS = [(0xD, 40), (0x72, 40), (0x89, 40), (0x30, 48), (0x3C, 40), (0x9F, 24), (0xA0, 24),
                   (0x52, 72), (0x5D, 30), (0x5E, 48), (99, 104), (0x74, 40), (0x76, 40), (0x77, 64),
                   (0xA1, 16), (0x9F, 12, 11)]
@@ -1768,6 +1774,12 @@ def main():
     synthetic_flights(o, rng, lines)
     square_effects(o, rng, lines, FLIGHT_EFFECTS, "kFlightEffect", 18000, flight_effect_state, False, None, True,
                    False, {0x30, 0x52, 99, 0xA1})
+    synthetic_flights(o, rng, lines, [0x10], 19000, "kCrossed", "kCrossedQuads")
+    # Concentration sends the game mode a message through its vf05; C3dGround::vf03 (004bc290)
+    # is an empty function of four arguments to stand in for it.
+    o.emu.write_u32(o.mode, o.emu.scratch(struct.pack("<6I", 0, 0, 0, 0, 0, EMPTY_VF4)))
+    square_effects(o, rng, lines, CROSSED_EFFECTS, "kCrossedEffect", 20000, flight_effect_state, True, None, True,
+                   True, True)
     names = sorted(o.textures.items(), key=lambda kv: kv[1])
     lines.append("static const TextureVector kTextures[] = {" +
                  ", ".join(f'{{0x{v:x}, "{c_literal(k)}"}}' for k, v in names) + "};")
