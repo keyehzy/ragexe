@@ -2436,10 +2436,20 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     quotient once (`core::RoundedQuotient`), as the x87 divides by an exact integer.
   - **Checks:** 24 synthetic trails and 22 effect runs; 2,975,160 values in `prim_test`.
 
+- [x] Screen wedges and rings (`docs/render/effect-prim.md#screen-wedges-and-rings`):
+  - **`RenderScreenWedge`, `RenderScreenWedge2`, `RenderScreenRing`, `RenderScreenLine` and
+    `RenderHistoryRings`:** wedges and rings on the screen at the owner's point, a hairline,
+    and rings in the world at each history record.
+  - **`CEffectPrim` ids 3, 4, 0xc, 0x13 and 0x14**, and effect ids 8, 0xc, 0x10, 0x23,
+    0x24, 0x28, 0x2a, 0x38, 0x3a, 0x3b, 0x3d, 0x3e, 0x49, 0x62, 0x79, 0x80, 0xd7 and 0x141
+    through fourteen setups, each putting its actor on screen its own way. Nothing adds
+    0x13; only 0xa1, beside the unported 0x16, adds 0x14. The ring walls read a tilt below 0
+    before the tables, as the original does for 0x141's widest closing rings.
+  - **Checks:** 20 synthetic primitives and the 18 effects; 3,847,129 values in `prim_test`.
+
 ### Next actions
-1. M4, the renderer: the other 16 primitive ids, next the screen-space ones
-   (`RenderScreenWedge` 3, `RenderScreenRing` 4, `RenderScreenWedge2` 0x13 and
-   `RenderScreenLine` 0x14) and `RenderHistoryRings` (0xc), with the effects that add
-   them; among those, 8, 0x3d, 0x62 and 0x141 add id 7 beside 3 or 0xc.
+1. M4, the renderer: the other 11 primitive ids (9, 0xa, 0xb, 0xe to 0x12, 0x16, 0x24 and
+   0x2e), with the effects that add them; among those, 9, 0x11, 0x1a, 0x1f, 0x30, 0x52, 99,
+   0xa1 and 0xaa add 3, 4, 0xc or 0x14 beside them.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

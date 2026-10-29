@@ -30,7 +30,7 @@ from actor_vectors import (ADD_SPRITE_QUAD, GET_FRAME_COUNT, GET_GAME_MODE, SCAL
                            Oracle, bits, f32)
 
 RAG_EFFECT_CTOR, INIT_EFFECT, RAG_EFFECT_VF01 = 0x54D220, 0x54EEE0, 0x54D4C0
-LOAD_STR_FILE = 0x54FAE0
+LOAD_STR_FILE, ADVANCE_STR = 0x54FAE0, 0x54FBA0
 PRIM_CTOR, INIT_PRIMITIVE, PRIM_VF01, PRIM_VF02, PRIM_VF03 = 0x57CFA0, 0x586380, 0x57DCE0, 0x586050, 0x586070
 ADD_PRIMITIVE, GET_TEXTURE, PLAY_WAVE = 0x412550, 0x40CC00, 0x4352A0
 SET_SPRITE, SET_ACT, JOB_NAMES = 0x5018A0, 0x501910, 0x686DC8
@@ -651,6 +651,150 @@ def synthetic_trails(o, rng, lines):
     lines.append("};")
 
 
+SCREEN_IDS = [3, 4, 0xC, 0x13, 0x14]
+# What ids 3, 4, 0xc, 0x13 and 0x14 change: the position, the colour, the key, the flags,
+# the age, the fade, the sweep, the alpha's limit, the heading, the width, the alpha and its
+# speed, the heading's speed and rate, the radius with its speed and rate, the height with
+# its speed and rate, the bottom radius and its speed, the speed, the pitch, the step, the
+# start and the travel.
+SCREEN_STATE = [0x4, 0x8, 0xC, 0x124, 0x138, 0x13C, 0x140, 0xC0, 0x1B8, 0x204, 0x23C, 0x248, 0x254, 0x258,
+                0x260, 0x26C, 0x278, 0x27C, 0x280, 0x290, 0x294, 0x298, 0x224, 0x22C, 0x1EC, 0x240,
+                0x2E0, 0x2E4, 0x2E8, 0x2EC, 0x2F0, 0x2F4, 0x2F8, 0x2FC, 0x300]
+
+
+def screen_state(o, prim):
+    """SCREEN_STATE, the matrix +0xc4 and the history records."""
+    emu = o.emu
+    n = emu.read_u32(prim + 0x154)
+    return ([emu.read_u32(prim + f) for f in SCREEN_STATE] +
+            list(struct.unpack("<12I", emu.mem_read(prim + 0xC4, 48))) +
+            list(struct.unpack(f"<{35 * n}I", emu.mem_read(prim + 0x358, 0x8C * n))))
+
+
+def random_screen(rng, o, owner, pid):
+    """A primitive of id 3, 4, 0xc, 0x13 or 0x14 with the fields its update and drawing
+    read set at random; returns it, its offset and the fields set, as random_prim3."""
+    emu = o.emu
+    prim = emu.alloc(PRIM_SIZE)
+    emu.call(PRIM_CTOR, this=prim)
+    offset = [f32(rng.uniform(-20, 20)) for _ in range(3)]
+    emu.call(INIT_PRIMITIVE, owner, pid, *(bits(v) for v in offset), this=prim)
+    sets = {}
+
+    def w(f, v):
+        emu.write_u32(prim + f, v & 0xFFFFFFFF)
+        sets[f] = v & 0xFFFFFFFF
+
+    def wf(f, v):
+        w(f, bits(f32(v)))
+
+    life = rng.randrange(8, 40)
+    w(0x144, life)
+    w(0x150, rng.choice([-1, 0, rng.randrange(0, life)]))
+    w(0x160, rng.choice([-1, rng.randrange(0, 6)]))
+    w(0x13C, rng.choice([0, 1, 0x80, 0x81]))
+    for f in (0x19C, 0x1A0, 0x1A4):
+        w(f, rng.randrange(0, 256))
+    wf(0x254, rng.uniform(0, 254))
+    wf(0x258, rng.uniform(-15, 15))
+    wf(0x204, rng.choice([254.0, 200.0]))
+    wf(0x208, rng.choice([0.0, 0.0, 30.0]))
+    for f in (0x1CC, 0x1D0, 0x1FC):
+        if rng.random() < 0.6:
+            wf(f, rng.uniform(-2, 2))
+    for i in range(3):
+        wf(0x304 + 4 * i, rng.uniform(-30, 30))
+    frames = rng.randrange(1, 4)
+    w(0x164, frames)
+    textures = emu.alloc(4 * frames)
+    for i in range(frames):
+        emu.write_u32(textures + 4 * i, TEXTURE_BASE + 0x100 + i)
+    emu.write_u32(prim + 0xA8, textures)
+    if pid in (3, 0x13):
+        for f, lo, hi in ((0x23C, -400, 400), (0x260, -8, 8), (0x26C, -0.5, 0.5), (0x1B8, 1, 40),
+                          (0x288, -1, 1), (0x294, -4, 4), (0x298, -0.4, 0.4)):
+            wf(f, rng.uniform(lo, hi))
+        wf(0x290, rng.choice([0.0, rng.uniform(-5, 60), rng.uniform(0, 60)]))
+    elif pid == 4:
+        for f, lo, hi in ((0x278, 0, 80), (0x27C, -3, 6), (0x280, -0.3, 0.3), (0x224, -10, 40)):
+            wf(f, rng.uniform(lo, hi))
+        wf(0x1B8, rng.choice([10.0, 22.5, 30.0, 36.0, 45.0, 90.0, 400.0]))
+    elif pid == 0xC:
+        for f, lo, hi in ((0x23C, -200, 200), (0x240, -200, 200), (0x260, -8, 8), (0x26C, -0.5, 0.5),
+                          (0x1EC, -3, 3), (0x1F0, -0.3, 0.3), (0x278, 0, 20), (0x27C, -2, 2), (0x280, -0.3, 0.3),
+                          (0x224, -10, 30), (0x22C, -1, 1), (0x234, -0.1, 0.1)):
+            wf(f, rng.uniform(lo, hi))
+        # 36 and 50 leave u partway round, to run on into the next record.
+        wf(0x1B8, rng.choice([36.0, 50.0, 22.5, 36.0, 90.0]))
+        matrix = [rng.uniform(-1, 1) for _ in range(9)] + [rng.uniform(-0.5, 0.5) for _ in range(3)]
+        for i, v in enumerate(matrix):
+            wf(0xC4 + 4 * i, v)
+        w(0x154, rng.randrange(2, 7))
+        w(0x128, rng.choice([1, 0x201, 5, 0x105]))
+    emu.call(RESET_HISTORY, this=prim)
+    return prim, offset, sets
+
+
+def synthetic_screens(o, rng, lines):
+    """Four primitives of each of SCREEN_IDS, stepped and drawn on their own after
+    srand(15000 + n) under a moving point on screen, as synthetic; the triangles every
+    frame, the rings' every third."""
+    emu = o.emu
+    actor = emu.scratch(size=0x100)
+    rows = []
+    for n in range(4 * len(SCREEN_IDS)):
+        pid = SCREEN_IDS[n % len(SCREEN_IDS)]
+        mark = emu.heap_mark()
+        effect = o.rag_effect(actor)
+        pos = [f32(rng.uniform(-30, 30)), f32(rng.uniform(-8, 0)), f32(rng.uniform(-30, 30))]
+        emu.mem_write(effect + 4, struct.pack("<3f", *pos))
+        duration = rng.choice([12, 40, 300])
+        emu.write_u32(effect + 0xC0, duration)
+        emu.write_u32(effect + 0xBC, 0)
+        prim, offset, sets = random_screen(rng, o, effect, pid)
+        emu.call(SRAND, 15000 + n)
+        view, yaw, slope, pitch = o.scene(rng)
+        name = f"kScreen{n}"
+        lines.append(f"static const FieldVector {name}Fields[] = {{" + ", ".join(
+            f"{{0x{f:x}, 0x{v:08x}, {{}}}}" for f, v in sorted(sets.items())) + "};")
+        frames = []
+        for frame in range(40):
+            sx, sy = f32(rng.uniform(100, 700)), f32(rng.uniform(100, 500))
+            emu.mem_write(effect + 0xDC, struct.pack("<2f", sx, sy))
+            more = emu.call(PRIM_VF01, this=prim).eax & 0xFF
+            state = screen_state(o, prim)
+            added = o.draw(prim) if more else []
+            lines.append(f"static const std::uint32_t {name}Frame{frame}State[] = {{{hexs(state)}}};")
+            if pid not in (4, 0xC) or frame < 3 or frame % 3 == 0 or not more:
+                lines.append(f"static const TriangleVector {name}Frame{frame}Triangles[] = {triangles_cpp(added)};")
+                triangles = f"{name}Frame{frame}Triangles, {len(added)}"
+            else:
+                triangles = "nullptr, kUnchecked"
+            frames.append(f"    {{{{{hexs([bits(sx), bits(sy)])}}}, {more}, {name}Frame{frame}State, {len(state)}, "
+                          f"{triangles}}},")
+            emu.write_u32(effect + 0xBC, emu.read_u32(effect + 0xBC) + 1)
+            if not more:
+                break
+        lines.append(f"static const ScreenFrameVector {name}Frames[] = {{")
+        lines += frames
+        lines.append("};")
+        rows.append(f"    {{{pid}, {{{hexs(map(bits, pos))}}}, {{{hexs(map(bits, offset))}}}, {duration}, "
+                    f"{scene_cpp(view, yaw, slope, pitch)}, {name}Fields, {len(sets)}, {name}Frames, {len(frames)}}},")
+        emu.heap_release(mark)
+    lines.append("static const ScreenPrimVector kScreens[] = {")
+    lines += rows
+    lines.append("};")
+
+
+def screen_effect_state(o, prim):
+    """What the screen effects' primitives are checked by: screen_state for SCREEN_IDS,
+    ring_state for the closing rings and state_trail for the rest."""
+    pid = o.emu.read_u32(prim + 0x130)
+    if pid in SCREEN_IDS:
+        return screen_state(o, prim)
+    return ring_state(o, prim) if pid == 0x3E else state_trail(o, prim)
+
+
 def particle_cpp(lines):
     lines.append("// The particle stand-in's images {width, height, halved x, halved y} and items")
     lines.append("// {action, frame, x, y, image, flags, r, g, b, a, scale x, scale y, angle, type}.")
@@ -1242,6 +1386,10 @@ TRAIL_LOOKS = {0xA2: lambda pos, player, target: (player[0], player[1] - 60, pla
                0x10B: lambda pos, player, target: target}
 WALL_EFFECTS = [(0xE2, 112), (0xE0, 56), (0x13D, 56), (0x13E, 40), (0x13F, 40), (0x133, 32), (0x142, 32),
                 (0x143, 32), (0x144, 32), (0x149, 48), (0x14A, 80)]
+# The effects with screen and history rings, 0x3d past its restart at 145.
+SCREEN_EFFECTS = [(8, 48), (0xC, 40), (0x38, 32), (0x3A, 40), (0x3B, 32), (0x2A, 40), (0x10, 48), (0x23, 40),
+                  (0x24, 40), (0x3D, 152), (0x3E, 48), (0x49, 56), (0x62, 48), (0x79, 40), (0x80, 48), (0xD7, 48),
+                  (0x28, 72), (0x141, 40)]
 PIECE_EFFECTS = [(0xE3, 104), (0x106, 40), (0x10A, 40), (0x114, 40), (0x129, 40), (300, 32), (0x12F, 112),
                  (0x148, 64)]
 
@@ -1318,10 +1466,13 @@ SQUARE_EFFECTS = [(0xE5, 24), (0xE6, 24), (0xE9, 24), (0xF9, 48), (0x109, 48), (
 
 
 def square_effects(o, rng, lines, effects=SQUARE_EFFECTS, prefix="kSquareEffect", seed=5000, state_of=None,
-                   with_quads=False, looks=None, release=False):
+                   with_quads=False, looks=None, release=False, messages=False, dense=False):
     """The effects through the world's list with a target, a level and the player's
     position; looks maps an effect id to where its views look, from the actor, the player
-    and the target; release gives the heap back after each run."""
+    and the target; release gives the heap back after each run; messages gives the actor a
+    vf02 that ignores them (CEffectPrim's), for effects that send it some; dense records
+    the first four frames, then every fourth state and every eighth drawing, however many
+    primitives there are."""
     emu = o.emu
     rows = []
     player = emu.read_u32(o.world + 0x3C)
@@ -1329,6 +1480,8 @@ def square_effects(o, rng, lines, effects=SQUARE_EFFECTS, prefix="kSquareEffect"
         mark = emu.heap_mark()
         o.reset_world()
         actor = emu.scratch(size=0x100)
+        if messages:
+            emu.write_u32(actor, emu.scratch(struct.pack("<3I", 0, 0, PRIM_VF02)))
         pos = (f32(rng.uniform(-30, 30)), f32(rng.uniform(-10, 0)), f32(rng.uniform(-30, 30)))
         emu.mem_write(actor + 4, struct.pack("<3f", *pos))
         # 0xe5's clouds show only while the player is above their floor (y -152).
@@ -1368,7 +1521,9 @@ def square_effects(o, rng, lines, effects=SQUARE_EFFECTS, prefix="kSquareEffect"
             # frame, the second and the last of the effects that add more, and of those that
             # add many only the second and the last.
             objects = o.world_objects()
-            if len(objects) <= 2:
+            if dense:
+                sampled = frame < 4 or frame % 4 == 0 or frame == count - 1
+            elif len(objects) <= 2:
                 sampled = True
             elif len(objects) <= 8:
                 sampled = frame % 8 == 0 or frame in (1, count - 1)
@@ -1387,7 +1542,10 @@ def square_effects(o, rng, lines, effects=SQUARE_EFFECTS, prefix="kSquareEffect"
                 added += o.draw(p)
                 quads += o.quads
             lines.append(f"static const BurstPrimVector {name}Frame{frame}Prims[] = {{{', '.join(states) or '{}'}}};")
-            checked = (0, 12, count - 1) if len(objects) <= 8 else (count - 1,)
+            if dense:
+                checked = (frame,) if frame < 4 or frame % 8 == 0 else (count - 1,)
+            else:
+                checked = (0, 12, count - 1) if len(objects) <= 8 else (count - 1,)
             quad_ref = "nullptr, kUnchecked" if with_quads else "nullptr, 0"
             if frame in checked:
                 lines.append(f"static const TriangleVector {name}Frame{frame}Triangles[] = {triangles_cpp(added)};")
@@ -1445,6 +1603,11 @@ def main():
     o.actions_of[wide] = ACTIONS + ACTIONS
     o.set_act = wide
     square_effects(o, rng, lines, TRAIL_EFFECTS, "kTrailEffect", 14000, state_trail, True, TRAIL_LOOKS, True)
+    synthetic_screens(o, rng, lines)
+    # Signum's Cross.str plays on; the port leaves its end to the .str player.
+    o.emu.replace_thiscall(ADVANCE_STR, 3, lambda this, x, y, z: 1)
+    square_effects(o, rng, lines, SCREEN_EFFECTS, "kScreenEffect", 16000, screen_effect_state, True, None, True,
+                   True, True)
     names = sorted(o.textures.items(), key=lambda kv: kv[1])
     lines.append("static const TextureVector kTextures[] = {" +
                  ", ".join(f'{{0x{v:x}, "{c_literal(k)}"}}' for k, v in names) + "};")

@@ -1229,9 +1229,120 @@ does.
 - **The fade.** A primitive's [fade to its owner's end](#vf01) divides by the steps left,
   which the x87 loads exactly. The leaves' effects last 99999999 steps, past single
   precision, so the port rounds that quotient once (`core::RoundedQuotient`).
-- **Not ported:** effects 8, 0x3d, 0x62 and 0x141 add id 7 beside ids 3 or 0xc, which wait
-  for their own drawings. `AddRingSprite` (`0057a560`), `AddDemonstration` with `ring` 5
-  above, is never called.
+- **Never called:** `AddRingSprite` (`0057a560`), `AddDemonstration` with `ring` 5 above.
+
+## Screen wedges and rings
+
+Five more primitive ids. Three stand on the screen like [ids 0 to 2](#primitives), at the
+owner's point on screen (+0xdc, +0xe0) plus the offset (+0x304); id 0xc rings the world
+about its history; id 0x14 is a hairline.
+
+| Id | Update | Drawing | Shape |
+|---:|--------|---------|-------|
+| 3 | `UpdatePrim_3` (`0057e660`) | `RenderScreenWedge` (`00581820`) | a wedge on screen |
+| 0x13 | `UpdatePrim_19` (`0057e7a0`) | `RenderScreenWedge2` (`00581990`) | the same, a copy of each |
+| 4 | `UpdatePrim_4` (`0057e5e0`) | `RenderScreenRing` (`00581d00`) | a ring on screen |
+| 0xc | `UpdatePrim_12` (`005809a0`) | `RenderHistoryRings` (`005841b0`) | a ring at each history record |
+| 0x14 | `UpdatePrim_20` (`00581290`) | `RenderScreenLine` (`00581b00`) | a line 10 up, falling |
+
+`vf01` ignores what these updates answer; none of them ends the primitive.
+
+**A wedge** (3 and 0x13). Each step:
+1. **The point** is the owner's on screen plus the offset.
+2. **Stopping.** With flag 1, once the height (+0x290) is at most 0, its speed and rate stop,
+   and `DebugLog` writes `m_heightSize  = %d`.
+3. **Changes.** At `change_at` the height's speed, the heading's speed and its rate take
+   +0x1fc, +0x1cc and +0x1d0, whatever they hold: no check for 0.0001.
+4. **Bouncing.** Below 0, the height goes back to 0 and its speed turns round.
+5. **Growing.** The heading's speed and the height's take their rates, the heading and the
+   height their speeds, and the sweep (+0x1b8) grows by +0x288, the width's speed.
+6. **`UpdateAlphaAndColor`.** The image never changes.
+
+It draws one triangle (flags 1, at z 10⁻⁶ and rhw 0.999999) from the point out to the
+height at the heading less and plus the sweep, up being −y. u is ½ at the point and 1 and 0
+at the ends; v is 0 at the point.
+
+**A ring on screen** (4). Each step the point follows the owner on screen; the radius
+(+0x278) takes its speed (+0x27c), which takes its rate (+0x280). The width (+0x248) is the
+radius, held to +0x224 unless flag 1. `RenderScreenRing` draws it like
+[a cylinder's side](#a-cylinder-id-0xd), flat on the screen:
+- **The ring** lies between the width short of the radius and the radius.
+- **The sides.** One every +0x1b8 degrees from 0, while the angle is at most 360 less
+  that, the tables indexed directly.
+- **Two triangles a side:** inner, outer at the next angle, outer; then inner, inner at the
+  next angle, outer at the next angle. Flags 1.
+- **The texture's u** steps a quarter a side, back to 0 at 1; v is 1 inside.
+
+**History rings** (0xc). Each step:
+1. **The start** is the owner plus the offset.
+2. **Changes.** At `change_at` the radius's rate and speed take +0x1d0 and +0x1cc, whatever
+   they hold.
+3. **Speeds.** The speed, the heading's speed, the radius's and the bottom radius's (+0x22c)
+   take their rates (+0x234 for the bottom radius); the heading, radius and bottom radius
+   take their speeds.
+4. **The matrix** is rebuilt as a cylinder's: about x by the pitch, then y by the heading.
+   The step is the speed along its z; the primitive stands at the start plus the travel.
+5. **The width** is the radius, held to the bottom radius unless flag 1.
+6. **`UpdateAlphaAndColor`**, then **`ShiftHistory`**.
+
+`RenderHistoryRings` draws a ring at each record:
+- **The ring** lies about the record's position, between the width short of the record's
+  radius and the radius, in the plane of the primitive's matrix's x and y rows.
+- **The sides** as `RenderScreenRing`'s, the u running on from one record to the next. Each
+  is coloured by its record and drawn with `AddPrimitive`'s flags +0x128.
+- **The first texture**, whatever the image.
+- **Projection.** The view transform and `ProjectPoint` are written out several ways: the
+  first triangle's corners sum from z, then from x and z, then from x, z and y; the second
+  triangle calls `TransformPoint` and scales its first corner's x before dividing by z. The
+  port follows each.
+
+**A line** (0x14). Each step it falls 5 (y + 5). `RenderScreenLine` projects the position
+and the point 10 above, and draws a triangle of the position, a pixel right of it and the
+point above:
+- untextured, flags 5;
+- rhw 0.999999 throughout;
+- colours 0x9cffffff then 0x9bffffff.
+
+Only effect 0xa1 adds it, beside id 0x16, which is not ported. Nothing adds 0x13.
+
+**The effects:**
+
+| Effect ids | Function | Ids | What |
+|-----------|----------|---:|------|
+| 8 | `AddSparkRipples` (`00552720`) | 0xc, 7 | every 20 steps a flat ring of `RING_YELLOW.TGA` spreading from radius 2, at most 10 wide, its first matrix built from π itself; every other step a `particle1` circling 1 or 1.7 out, rising or falling |
+| 0xc, 0x38, 0x3a, 0x3b | `AddBeginSpell` (`00552a80`, `00552fe0`, `00553360`, `005537c0`) | 0xc, 0xd | at the actor, a flat ring of `alpha_down.tga` of radius 15 fading in to 128; every 10 steps a cylinder of `ring_blue`, `Magic_Green`, `Magic_Sky` or `Magic_Violet.tga` widening and rising; for 0xc and 0x3a every 8 steps a lower one of `ring_yellow` or `ring_blue`; `effect\EF_BeginSpell.wav` |
+| 0x2a | `AddBlessing` (`00553e80`) | 0xc, 5 | a ring as above in (32, 176, 232), radius 10; at steps 0, 3, 6 and 9 the sprite `축복` 25 up; every 4 steps a `particle6` 2 to 8 out and 25 up, sinking; `effect\EF_Blessing.wav` |
+| 0x10 | `AddBash` (`00554ff0`) | 4, 3 | unless effects are minimal, 40 up from the actor on screen: a ring of `alpha_down.tga` of radius 100, and twenty wedges of `alpha_center.tga` at random headings, turning; `effect\EF_Bash.wav` |
+| 0x23 | `AddReadyPortalRipple` (`00559f60`) | 0xc | every 14 steps a ripple of `ring_blue.tga` 1 up, spreading flat, at most 8 wide; `effect\EF_ReadyPortal.wav` |
+| 0x24 | `AddPortalColumns` (`0055a100`) | 0xd, 0xc | two turning cylinders of `ring_blue.tga`, 40 and 50 high, and the same ripples |
+| 0x3d | `AddRipplingColumn` (`0055b940`) | 0xc, 7 | a ring of `alpha_down.tga`, ripples of `ring_blue` closing in every 28 steps to 116, and a `particle1` circling up every 10; starts again at step 145 |
+| 0x3e | `AddSightrasher` (`0055be40`) | 5, 0xc | every 5 steps to 15, eight `Sight`s and eight `Shadow`s flying out 45 degrees apart; at step 10 a ring of `ring_yellow.tga`; the actor gets message 0x6d; `effect\wizard_sightrasher.wav` |
+| 0x49 | `AddRingSwirl` (`0055cae0`) | 0xd, 0xc | at steps 0 and 5 a cylinder of `ring_blue.tga` turned the way the actor faces, 20 degrees on the second time; a ring of `ring_yellow.tga` whose spreading changes at step 20 |
+| 0x62 | `AddAdrenalineRush` (`0055ede0`) | 3, 7 | twenty wedges of `alpha_center.tga` growing from nothing, changing at age 40; four `particle1`s circling the actor; the effect lasts 300 steps; `effect\black_adrenalinerush_a.wav`, `_b.wav` at 30 |
+| 0x79, 0x80 | `AddStoneCurse` (`00560e40`, `00561c70`) | 4 | 20 up on screen, a ring of `alpha_center.tga` widening at 7 a step and slowing, fading from the start; for 0x80 the effect lasts 9999 steps and its ring 40, `effect\black_overthrust.wav` first; `effect\EF_StoneCurse.wav` |
+| 0xd7 | `AddWedgeBurst` (`00563eb0`) | 3 | Bash's twenty wedges; at step 35 the actor gets message 0x3f |
+| 0x28 | `AddSignum` (`00564b00`) | 4, 3 | at step 30 Bash's ring and twenty longer, faster wedges; `effect\EF_Signum.wav` and `effect\EF_Bash.wav`; its `Cross.str`, through `AdvanceStr`, decides its end |
+| 0x141 | `AddRingedColumn` (`00578d90`) | 0xc, 0x3e, 7 | a ring of `alpha_down.tga`; at steps 1 and 2 four closing rings (id 0x3e) of the texture `vf01` passes (`ring_blue.tga`); every 10 steps a `particle1` circling up; starts again at step 99999998 |
+
+**The point on screen.** The effects with ids 3 and 4, and 0x3e, put the actor on screen
+each step, as `ProcessHitSpark` does: the view transform, z at least 10, and `ProjectPoint`.
+Each writes it out its own way: the transform called (0x10, 0xd7, 0x28) or with its sums
+from z (0x3e, 0x62, 0x79, 0x80); the projection called, or written out with x scaled first
+(0x79, 0xd7) or last (0x80, 0x28).
+
+**Notes on the effects:**
+- **Positioning.** `AddBeginSpell` and `AddBlessing` keep the effect at the actor each
+  step, `AddRingedColumn` at steps 1 and 2; the others never place it.
+- **Messages.** 0x3e and 0xd7 send their actor a message through its vf02 (`0x6d` with
+  0x16, and `0x3f`); the port's effect world has no actor to send them to.
+- **The `.str`.** `AddSignum` answers what `AdvanceStr` does; the port's effect world
+  leaves `Cross.str` to the `.str` player, and keeps the effect to its duration.
+- **Keys.** 0x3d's ripples get a key frame (20) and value (0) without +0xb4 or +0xb8, so
+  `UpdateAlphaAndColor` never reads them.
+- **Out of the tables.** 0x141's second closing rings start at radius 10.2, so their
+  tilt falls to −1 and [the ring drawing](#drawing) reads just before `g_cosTable` (a
+  zero) and the last of the negated cosines; the port reads the tables as they lie in
+  memory there.
 
 ## In the port
 
@@ -1243,9 +1354,9 @@ does.
 
 **`src/render/effect_prim`:**
 - `EffectPrim` with `MakePrimitive`, `ResetHistory`, `UpdatePrimitive` (vf01) and
-  `DrawPrimitive` (vf03), for ids 0 to 2, 5 to 8, 0xd, 0x15, the twelve ring ids, the
-  eight facing-square ids, the three flat-square ids, the three mote ids, the six ids of
-  single squares and rectangles, the eight of walls and bands and 0x26, 0x2c and 0x31.
+  `DrawPrimitive` (vf03), for ids 0 to 8, 0xc, 0xd, 0x13 to 0x15, the twelve ring ids,
+  the eight facing-square ids, the three flat-square ids, the three mote ids, the six ids
+  of single squares and rectangles, the eight of walls and bands and 0x26, 0x2c and 0x31.
   `PrimScene` carries the camera's yaw and pitch, the ground, the view, the projection
   and the sprite slope; `PrimDrawing` gets the triangles and the sprite quads, each with
   the sprite it is of;
@@ -1257,7 +1368,9 @@ does.
   [single squares and rectangles](#single-squares-and-rectangles) (`AddRays` with
   `short_rays` for `AddShortRays`), the eight of [walls and bands](#walls-and-bands) and
   the thirteen of [sprite trails](#sprite-trails) (`AddTripleShot` for both triple shots,
-  `AddFallingLeaves` for both leaves);
+  `AddFallingLeaves` for both leaves) and the fourteen of
+  [screen wedges and rings](#screen-wedges-and-rings) (`AddBeginSpell` for four ids,
+  `AddStoneCurse` with `overthrust` for 0x80);
 - `EffectWorld`, the world's list as effects use it:
   - `Launch` adds an effect;
   - `Step` runs a world step in the list's order;
@@ -1286,7 +1399,8 @@ installed 2003 data lacks many of the effects' textures, and ragview draws those
 The melody notes, the item pictures, `alpha_down.tga`, `magic_violet.tga`, the `lens`
 rays and `shockwave_c.bmp` are there. Of the trails' sprites only `particle1` and
 `particle2` are; ragview draws nothing for `ef_snow`, `sakura01`, `단풍`, `침투경_`,
-`데몬스트레이션` and `Waterball`.
+`데몬스트레이션` and `Waterball`. The screen effects' sprites (`축복`, `particle6`, `Sight`
+and `Shadow`) and textures are all there.
 
 ## Checks
 
@@ -1380,11 +1494,24 @@ rays and `shockwave_c.bmp` are there. Of the trails' sprites only `particle1` an
     pick;
   - the views of the snow, the leaves and 0x10b looking where their sprites are;
   - the quads checked with the triangles.
+- **20 synthetic screen and history rings**, four of each of ids 3, 4, 0xc, 0x13 and 0x14,
+  up to 40 steps each under a moving point on screen, as for the first primitives:
+  - every field their updates and drawings read at random: changes holding 0.0001 or not,
+    heights below 0 with and without flag 1, the width held or not, sweeps whole and not
+    (400, drawing nothing), one to six history records of 0xc and its flags +0x128;
+  - the state adds the sweep, the radii, the step, start and travel, the matrix and the
+    history; the triangles are checked at steps 0, 3, 9, 20 and the last.
+- **The 18 screen effects**, as for the trail effects:
+  - the actor given a vf02 (`CEffectPrim`'s, which ignores 0x6d and 0x3f) for the messages
+    0x3e and 0xd7 send;
+  - `AdvanceStr` answering true, so that Signum plays past step 30 without its `.str`;
+  - 0x3d for 152 steps, past its restart; Bash, 0x3e, 0xd7 and Signum ending their runs
+    while their last primitives still draw.
 
-`tests/unit/prim_test.cpp` matches all of it: 2,975,160 values, the CRT's first `rand` values
+`tests/unit/prim_test.cpp` matches all of it: 3,847,129 values, the CRT's first `rand` values
 among them.
 
 **Not ported:**
-- the other 16 primitive ids;
+- the other 11 primitive ids;
 - the other effects' processing;
 - the sounds.

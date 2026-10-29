@@ -55,6 +55,9 @@ constexpr float kThousandth = std::bit_cast<float>(0x3a83126fu);      // 005e989
 constexpr float kTrapFall = std::bit_cast<float>(0x3da3d70au);        // 005e9eb0, 0.08
 constexpr float kFiftieth = std::bit_cast<float>(0x3ca3d70au);        // 005e9e2c, 0.02
 constexpr float kLeafFallSlow = std::bit_cast<float>(0x3cf5c28fu);    // 005e9ed4, 0.03
+constexpr float kPi = std::bit_cast<float>(0x40490fd8u);              // 005e9db8, 3.141592
+constexpr float kSixth = std::bit_cast<float>(0x3e2aaaabu);           // 005e9b44, 1/6
+constexpr float kThirteenth = std::bit_cast<float>(0x3d9d89d9u);      // 005e9eac, 1/13
 
 std::int32_t Ftol(float f) {
   if (std::isnan(f) || f <= -2147483904.0f || f >= 2147483648.0f)
@@ -1806,6 +1809,85 @@ bool UpdateStandingSprite(EffectPrim& p, const PrimScene& scene, bool travels) {
   return EndTrailStep(p, scene);
 }
 
+// Where ids 3, 4 and 0x13 stand each step: the owner's point on screen plus the offset.
+void FollowOwnerOnScreen(EffectPrim& p) {
+  p.position[0] = p.owner->screen_x + p.offset[0];
+  p.position[1] = p.owner->screen_y + p.offset[1];
+}
+
+// The width ids 4 and 0xc draw their rings at: the radius, held to the bottom radius unless
+// kUncapped.
+float CappedWidth(const EffectPrim& p) {
+  return (p.flags & EffectPrim::kUncapped) != 0 || !(p.distance >= p.bottom_radius)
+             ? p.distance
+             : p.bottom_radius;
+}
+
+// CEffectPrim::UpdatePrim_3 (0057e660) and UpdatePrim_19 (0057e7a0), ids 3 and 0x13: at the
+// owner's point on screen plus the offset, turning, its radius (the height) growing and,
+// below 0, back at 0 with its speed turned round; with kHeightStops it stops growing once
+// at 0 or below (logging "m_heightSize  = %d"). At change_at the height's speed and the
+// heading's speed and rate take +0x1fc, +0x1cc and +0x1d0, whatever they hold. The sweep
+// grows by the width's speed.
+void UpdateScreenWedge(EffectPrim& p) {
+  FollowOwnerOnScreen(p);
+  if ((p.flags & EffectPrim::kHeightStops) != 0 && !(p.height > 0.0f)) {
+    p.height_speed = 0.0f;
+    p.height_rate = 0.0f;
+  }
+  if (p.age == p.change_at) {
+    p.height_speed = std::bit_cast<float>(p.changes[1]);
+    p.heading_speed = std::bit_cast<float>(p.changes[2]);
+    p.heading_rate = std::bit_cast<float>(p.changes[5]);
+  }
+  if (!(p.height >= 0.0f)) {
+    p.height = 0.0f;
+    p.height_speed = p.height_speed * -1.0f;
+  }
+  p.heading_speed = p.heading_rate + p.heading_speed;
+  p.height_speed = p.height_rate + p.height_speed;
+  p.heading = p.heading_speed + p.heading;
+  p.height = p.height_speed + p.height;
+  p.sweep = p.width_speed + p.sweep;
+  UpdateAlpha(p);
+}
+
+// CEffectPrim::UpdatePrim_4 (0057e5e0), id 4: at the owner's point on screen plus the
+// offset, the radius growing, the width following it.
+void UpdateScreenRing(EffectPrim& p) {
+  FollowOwnerOnScreen(p);
+  p.distance_speed = p.distance_rate + p.distance_speed;
+  p.distance = p.distance_speed + p.distance;
+  p.scale = CappedWidth(p);
+  UpdateAlpha(p);
+}
+
+// CEffectPrim::UpdatePrim_12 (005809a0), id 0xc: from the owner's position plus the offset,
+// moving along its matrix (about x by the pitch, then y by the heading) by the speed, the
+// radius and the bottom radius growing and the width following, then the history shifted.
+// At change_at the radius's rate and speed take +0x1d0 and +0x1cc, whatever they hold.
+void UpdateHistoryRing(EffectPrim& p) {
+  FollowOwner(p);
+  if (p.change_at == p.age) {
+    p.distance_rate = std::bit_cast<float>(p.changes[5]);
+    p.distance_speed = std::bit_cast<float>(p.changes[2]);
+  }
+  p.speed = p.acceleration + p.speed;
+  p.heading_speed = p.heading_rate + p.heading_speed;
+  p.distance_speed = p.distance_rate + p.distance_speed;
+  p.bottom_radius_speed = p.bottom_radius_rate + p.bottom_radius_speed;
+  p.heading = p.heading_speed + p.heading;
+  p.distance = p.distance_speed + p.distance;
+  p.bottom_radius = p.bottom_radius_speed + p.bottom_radius;
+  p.matrix = RotateY(MakeRotationX(Radians(p.pitch)), Radians(p.heading));
+  p.step = AlongZ(p, p.speed);
+  for (std::size_t i = 0; i < 3; ++i) p.travel[i] = p.step[i] + p.travel[i];
+  PlaceAtTravel(p);
+  p.scale = CappedWidth(p);
+  UpdateAlpha(p);
+  ShiftHistory(p);
+}
+
 ScreenVertex Vertex(float x, float y, std::uint32_t color, float u, float v) {
   ScreenVertex s;
   s.x = x;
@@ -1886,6 +1968,62 @@ void DrawDiamond(const EffectPrim& p, std::vector<PrimTriangle>& out) {
   const ScreenVertex top = turn(Vertex(0.0f, -hh, p.color, kHalf, 0.0f));
   out.push_back({TextureOf(p), {turn(Vertex(-hw, tip - hh, p.color, 0.0f, kHalf)), bottom, top}});
   out.push_back({TextureOf(p), {turn(Vertex(hw, hh - tip, p.color, 1.0f, kHalf)), bottom, top}});
+}
+
+// The texture ids 3, 4 and 0xc draw with, whatever the image: the first.
+const std::string& FirstTexture(const EffectPrim& p) {
+  static const std::string kNone;
+  return p.textures.empty() ? kNone : p.textures.front();
+}
+
+// CEffectPrim::RenderScreenWedge (00581820) and RenderScreenWedge2 (00581990), ids 3 and
+// 0x13: one triangle from the point out to the radius (the height) at the heading less and
+// plus the sweep, up being −y; u ½ at the point and 1 and 0 at the ends.
+void DrawScreenWedge(const EffectPrim& p, std::vector<PrimTriangle>& out) {
+  const float c0 = Cos(p.heading - p.sweep);
+  const float s0 = Sin(p.heading - p.sweep);
+  const float c1 = Cos(p.sweep + p.heading);
+  const float s1 = Sin(p.sweep + p.heading);
+  const float x = p.position[0];
+  const float y = p.position[1];
+  const float r = p.height;
+  out.push_back(
+      {FirstTexture(p),
+       {Vertex(x, y, p.color, kHalf, 0.0f), Vertex((c0 * r) + x, y - (s0 * r), p.color, 1.0f, 1.0f),
+        Vertex((c1 * r) + x, y - (s1 * r), p.color, 0.0f, 1.0f)}});
+}
+
+// CEffectPrim::RenderScreenRing (00581d00), id 4: a ring about the point between the width
+// short of the radius and the radius, a side every sweep degrees from 0 while the angle is
+// at most 360 less the sweep, up being −y; u steps a quarter a side, v 1 inside. The angles
+// index the sine and cosine tables directly.
+void DrawScreenRing(const EffectPrim& p, std::vector<PrimTriangle>& out) {
+  const float end = 360.0f - p.sweep;
+  if (0.0f > end) return;
+  const core::AngleTables& t = core::GetAngleTables();
+  const float inner = p.distance - p.scale;
+  const float outer = p.distance;
+  const float x = p.position[0];
+  const float y = p.position[1];
+  const std::string& texture = FirstTexture(p);
+  float u0 = 0.0f;
+  float angle = 0.0f;
+  do {
+    const auto i0 = static_cast<std::size_t>(Ftol(angle));
+    const auto i1 = static_cast<std::size_t>(Ftol(angle + p.sweep));
+    const float c0 = t.cos[i0], s0 = t.sin[i0], c1 = t.cos[i1], s1 = t.sin[i1];
+    const float u1 = u0 + kCylinderU;
+    const ScreenVertex in0 = Vertex((c0 * inner) + x, y - (s0 * inner), p.color, u0, 1.0f);
+    out.push_back({texture,
+                   {in0, Vertex((c1 * outer) + x, y - (s1 * outer), p.color, u1, 0.0f),
+                    Vertex((c0 * outer) + x, y - (s0 * outer), p.color, u0, 0.0f)}});
+    out.push_back({texture,
+                   {in0, Vertex((c1 * inner) + x, y - (s1 * inner), p.color, u1, 1.0f),
+                    Vertex((c1 * outer) + x, y - (s1 * outer), p.color, u1, 0.0f)}});
+    u0 = u1;
+    if (!(u0 < 1.0f)) u0 = 0.0f;
+    angle = angle + p.sweep;
+  } while (!(angle > end));
 }
 
 // CEffectPrim::RenderActFrameHistory (00581ff0), ids 5 to 8, 0x15, 0x26, 0x2c and 0x31: the
@@ -2089,7 +2227,8 @@ void DrawPresetQuad(const EffectPrim& p, const PrimScene& scene, std::int32_t ce
 // CEffectPrim::RenderRingWalls (0056c0d0), ids 0x1d and 0x27: each active ring's span in
 // steps of a 21st from its angle (a full ring's 21st step back at its start), at its
 // radius; each wall leans out by the tilt to its height and joins the last step's. The
-// angles index the tables directly, without reduction.
+// angles index the tables directly, without reduction, the tilt too: below 0 (0x3e's rings
+// wider than 10) it reads before them as they lie in memory.
 void DrawRingWalls(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
   const core::AngleTables& t = core::GetAngleTables();
   for (const PrimRing& r : p.rings) {
@@ -2105,10 +2244,9 @@ void DrawRingWalls(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out
       const float c = t.cos[static_cast<std::size_t>(index)];
       const float s = t.sin[static_cast<std::size_t>(index)];
       const Vec3 bottom = {c * r.radius, low ? -2.0f : 0.0f, s * r.radius};
-      const auto tilt = static_cast<std::size_t>(r.tilt);
       const float wall = r.heights[static_cast<std::size_t>(cell)];
-      const float out_by = t.cos[tilt] * wall;
-      float up = t.sin[tilt] * wall;
+      const float out_by = TableAt(kCosines, r.tilt) * wall;
+      float up = TableAt(kSines, r.tilt) * wall;
       if (low) up = up + 2.0f;
       const Vec3 top = {(out_by * c) + bottom[0], -up, (out_by * s) + bottom[2]};
       if (cell > 0)
@@ -2127,6 +2265,105 @@ Vec3 TransformPointFromXZ(const Matrix& m, const Vec3& p) {
   return {(((p[2] * m[6]) + (p[1] * m[3])) + (p[0] * m[0])) + m[9],
           (((p[0] * m[1]) + (p[2] * m[7])) + (p[1] * m[4])) + m[10],
           (((p[0] * m[2]) + (p[2] * m[8])) + (p[1] * m[5])) + m[11]};
+}
+
+// The view transform with every sum from x, then z, then y.
+Vec3 TransformPointFromXThenZ(const Matrix& m, const Vec3& p) {
+  return {(((p[0] * m[0]) + (p[2] * m[6])) + (p[1] * m[3])) + m[9],
+          (((p[0] * m[1]) + (p[2] * m[7])) + (p[1] * m[4])) + m[10],
+          (((p[0] * m[2]) + (p[2] * m[8])) + (p[1] * m[5])) + m[11]};
+}
+
+// CEffectPrim::RenderScreenLine (00581b00), id 0x14: a hairline from the position up 10, a
+// triangle of the position, a pixel right of it and the point above, untextured, alpha 0x9c
+// then 0x9b (white), flags 5; every rhw 0.999999.
+void DrawScreenLine(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
+  const Matrix& m = scene.view;
+  const Vec3& q = p.position;
+  const float up = q[1] - 10.0f;
+  const Vec3 top = {(((up * m[3]) + (q[0] * m[0])) + (q[2] * m[6])) + m[9],
+                    (((q[0] * m[1]) + (q[2] * m[7])) + (up * m[4])) + m[10],
+                    (((q[0] * m[2]) + (q[2] * m[8])) + (up * m[5])) + m[11]};
+  const ScreenVertex base =
+      ProjectPoint(ClampNear(TransformPointFromXThenZ(m, q)), scene.projection);
+  const ScreenVertex tip = ProjectPoint(ClampNear(top), scene.projection);
+  const auto vertex = [](const ScreenVertex& at, float x, std::uint32_t color) {
+    ScreenVertex v;
+    v.x = x;
+    v.y = at.y;
+    v.z = at.z;
+    v.rhw = std::bit_cast<float>(kVertexRhw);
+    v.diffuse = color;
+    return v;
+  };
+  PrimTriangle t;
+  t.vertices = {vertex(base, base.x, 0x9cffffff), vertex(base, base.x + 1.0f, 0x9bffffff),
+                vertex(tip, tip.x, 0x9bffffff)};
+  t.flags = 5;
+  out.triangles.push_back(t);
+}
+
+// CEffectPrim::RenderHistoryRings (005841b0), id 0xc: at each history record, a ring between
+// the width short of the record's radius and the radius, in the plane of the primitive's
+// matrix's x and y rows about the record's position; a side every sweep degrees as
+// RenderScreenRing, each two triangles of the first texture coloured by the record, with
+// AddPrimitive's flags +0x128. u steps a quarter a side, on from one record to the next;
+// v is 1 inside. The view transforms and projections are written out a few ways.
+void DrawHistoryRings(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
+  const float end = 360.0f - p.sweep;
+  const core::AngleTables& t = core::GetAngleTables();
+  const Matrix& m = p.matrix;
+  const Matrix& v = scene.view;
+  const Projection& pr = scene.projection;
+  const std::string& texture = FirstTexture(p);
+  float u0 = 0.0f;
+  for (std::int32_t k = 0; k < p.history_count; ++k) {
+    const PrimHistory& h = p.history[static_cast<std::size_t>(k)];
+    const float inner = h.distance - p.scale;
+    const float outer = h.distance;
+    if (0.0f > end) continue;
+    const auto at = [&](float c, float s, float r) {
+      const float a = c * r;
+      const float b = s * r;
+      Vec3 q;
+      for (std::size_t i = 0; i < 3; ++i)
+        q[i] = (((b * m[3 + i]) + (a * m[i])) + m[9 + i]) + h.position[i];
+      return q;
+    };
+    const auto vertex = [&](ScreenVertex sv, float u, float tv) {
+      sv.diffuse = h.color;
+      sv.u = u;
+      sv.v = tv;
+      return sv;
+    };
+    float angle = 0.0f;
+    do {
+      const auto i0 = static_cast<std::size_t>(Ftol(angle));
+      const auto i1 = static_cast<std::size_t>(Ftol(angle + p.sweep));
+      const Vec3 a = at(t.cos[i0], t.sin[i0], inner);
+      const Vec3 b = at(t.cos[i1], t.sin[i1], inner);
+      const Vec3 c = at(t.cos[i0], t.sin[i0], outer);
+      const Vec3 d = at(t.cos[i1], t.sin[i1], outer);
+      const float u1 = u0 + kCylinderU;
+      PrimTriangle first{
+          texture,
+          {vertex(ProjectPoint(ClampNear(TransformPointFromZ(v, a)), pr), u0, 1.0f),
+           vertex(ProjectPoint(ClampNear(TransformPointFromXZ(v, b)), pr), u1, 1.0f),
+           vertex(ProjectPoint(ClampNear(TransformPointFromXThenZ(v, c)), pr), u0, 0.0f)}};
+      first.flags = p.quad_flags;
+      out.triangles.push_back(first);
+      PrimTriangle second{
+          texture,
+          {vertex(ProjectPoint(ClampNear(TransformPoint(v, d)), pr, true), u1, 0.0f),
+           vertex(ProjectPoint(ClampNear(TransformPoint(v, c)), pr), u0, 0.0f),
+           vertex(ProjectPoint(ClampNear(TransformPoint(v, b)), pr), u1, 1.0f)}};
+      second.flags = p.quad_flags;
+      out.triangles.push_back(second);
+      u0 = u1;
+      if (!(u0 < 1.0f)) u0 = 0.0f;
+      angle = angle + p.sweep;
+    } while (!(angle > end));
+  }
 }
 
 // What a DrawQuad call is given besides its corners.
@@ -2923,6 +3160,14 @@ bool UpdatePrimitive(EffectPrim& p, core::CrtRand& rand, const PrimScene& scene)
     case 0x26: UpdateFallingLeaf(p, rand, scene); break;
     case 0x2c: UpdateStandingSprite(p, scene, true); break;
     case 0x31: UpdateStandingSprite(p, scene, false); break;
+    case 3:
+    case 0x13: UpdateScreenWedge(p); break;
+    case 4: UpdateScreenRing(p); break;
+    case 0xc: UpdateHistoryRing(p); break;
+    case 0x14:
+      // CEffectPrim::UpdatePrim_20 (00581290): 5 down a step.
+      p.position[1] = p.position[1] + 5.0f;
+      break;
     case 0xd: UpdateCylinder(p); break;
     case 0x17: UpdateRisingWalls(p, false); break;
     case 0x18: UpdateTurningRings(p); break;
@@ -2988,6 +3233,11 @@ void DrawPrimitive(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out
     case 0:
     case 1: DrawRay(p, out.triangles); break;
     case 2: DrawDiamond(p, out.triangles); break;
+    case 3:
+    case 0x13: DrawScreenWedge(p, out.triangles); break;
+    case 4: DrawScreenRing(p, out.triangles); break;
+    case 0xc: DrawHistoryRings(p, scene, out); break;
+    case 0x14: DrawScreenLine(p, scene, out); break;
     case 5:
     case 6:
     case 7:
@@ -4646,6 +4896,550 @@ void AddDemonstration(RagEffect& effect, const EffectActor& actor, const PrimSpr
   added.push_back(std::move(p));
 }
 
+namespace {
+
+// The actor's point on screen (+0xdc and +0xe0), as the effects with screen primitives work
+// it out each step: the view transform called (TransformPoint) or written out with its sums
+// from z, then SceneRenderer::ProjectPoint, called or written out with x scaled first.
+void PlaceOnScreen(RagEffect& effect, const EffectActor& actor, const PrimScene& scene, bool from_z,
+                   bool scale_first = false) {
+  const Vec3 view = from_z ? TransformPointFromZ(scene.view, actor.position)
+                           : TransformPoint(scene.view, actor.position);
+  const ScreenVertex s = ProjectPoint(ClampNear(view), scene.projection, scale_first);
+  effect.screen_x = s.x;
+  effect.screen_y = s.y;
+}
+
+// The flat ring of alpha_down.tga (id 0xc) the spell effects stand in: radius 15, fading in
+// to 128 by a tenth of that a step, and out over the last 10 steps.
+EffectPrim MakeSpellRing(const RagEffect& effect, std::int32_t life) {
+  EffectPrim p = MakePrimitive(&effect, 0xc, {0.0f, 0.0f, 0.0f});
+  p.life = life;
+  p.flags |= EffectPrim::kUncapped;
+  p.distance = 15.0f;
+  p.pitch = 90.0f;
+  p.alpha = 0.0f;
+  p.alpha_max = 128.0f;
+  p.alpha_speed = p.alpha_max * 0.1f;
+  p.fade_at = p.life - 10;
+  p.textures = {"effect\\alpha_down.tga"};
+  return p;
+}
+
+// AddBeginSpell's cylinders (id 0xd), 25 steps each: turning, widening and rising, the
+// widening slowing to half by the end and the rising too (eased) or to nothing.
+EffectPrim MakeSpellColumn(const RagEffect& effect, float turn, float widen, float rise, bool eased,
+                           const char* texture) {
+  EffectPrim c = MakePrimitive(&effect, 0xd, {0.0f, 0.0f, 0.0f});
+  c.life = 25;
+  c.heading_speed = turn;
+  c.top_radius_speed = widen;
+  c.top_radius_rate = (c.top_radius_speed / static_cast<float>(c.life)) * -0.5f;
+  c.bottom_radius_speed = widen;
+  c.bottom_radius_rate = (c.bottom_radius_speed / static_cast<float>(c.life)) * -0.5f;
+  c.height_speed = rise;
+  c.height_rate = eased ? (c.height_speed / static_cast<float>(c.life)) * -0.5f
+                        : -(c.height_speed / static_cast<float>(c.life));
+  c.alpha = 0.0f;
+  c.alpha_speed = c.alpha_max * 0.1f;
+  c.fade_at = c.life - 10;
+  c.textures = {texture};
+  return c;
+}
+
+// A ripple of ring_blue.tga (id 0xc), 1 up and flat, spreading to 8 and slowing to half.
+EffectPrim MakeRipple(const RagEffect& effect) {
+  EffectPrim p = MakePrimitive(&effect, 0xc, {0.0f, 0.0f, 0.0f});
+  p.life = 30;
+  p.offset[1] = -1.0f;
+  p.bottom_radius = 8.0f;
+  p.pitch = 90.0f;
+  p.matrix = MakeRotationX(Radians(p.pitch));
+  p.distance_speed = 1.0f;
+  p.distance_rate = (p.distance_speed / static_cast<float>(p.life)) * -0.5f;
+  p.fade_at = p.life - p.life / 2;
+  ResetHistory(p);
+  p.textures = {"effect\\ring_blue.tga"};
+  return p;
+}
+
+// The wedges (id 3) Bash, Signum and 0xd7 throw on screen, 40 up from the actor: each at a
+// random heading turning at 1 to 6.9 degrees a step, slowing by two thirds over its life, of
+// a random sweep, radius and growth, fading in to 200 over ten steps.
+struct WedgeSetup {
+  std::int32_t life;
+  std::int32_t sweep_from;  // tenths of a degree, 25 values on
+  std::int32_t radius_range, radius_from;
+  std::int32_t growth_range, growth_from;  // tenths
+  bool fades;                              // out over the last third
+};
+constexpr WedgeSetup kBashWedge = {40, 5, 40, 20, 30, 20, true};
+constexpr WedgeSetup kSignumWedge = {35, 15, 60, 30, 35, 95, false};
+
+EffectPrim MakeWedge(const RagEffect& effect, const WedgeSetup& w, core::CrtRand& rand) {
+  EffectPrim p = MakePrimitive(&effect, 3, {0.0f, 0.0f, 0.0f});
+  p.life = w.life;
+  p.offset[1] = -40.0f;
+  p.heading = static_cast<float>(rand.Next() % 360);
+  p.heading_speed = static_cast<float>(rand.Next() % 60 + 10) * 0.1f;
+  p.heading_rate = (p.heading_speed / static_cast<float>(p.life)) * kEaseOut;
+  p.sweep = static_cast<float>(rand.Next() % 25 + w.sweep_from) * 0.1f;
+  p.height = static_cast<float>(rand.Next() % w.radius_range + w.radius_from);
+  p.height_speed = static_cast<float>(rand.Next() % w.growth_range + w.growth_from) * 0.1f;
+  p.alpha = 0.0f;
+  p.alpha_max = 200.0f;
+  p.alpha_speed = p.alpha_max * 0.1f;
+  if (w.fades) p.fade_at = p.life - p.life / 3;
+  p.textures = {"EFFECT\\alpha_center.tga"};
+  return p;
+}
+
+// The ring of alpha_down.tga (id 4) Bash and Signum put on screen 40 up from the actor:
+// radius 100, its whole width, fading in to 170 over six steps.
+EffectPrim MakeBashRing(const RagEffect& effect, std::int32_t fade_at) {
+  EffectPrim p = MakePrimitive(&effect, 4, {0.0f, 0.0f, 0.0f});
+  p.life = 40;
+  p.flags |= EffectPrim::kUncapped;
+  p.offset[1] = -40.0f;
+  p.distance = 100.0f;
+  p.alpha = 0.0f;
+  p.alpha_max = 170.0f;
+  p.alpha_speed = p.alpha_max * kSixth;
+  p.fade_at = fade_at;
+  p.textures = {"effect\\alpha_down.tga"};
+  return p;
+}
+
+// A particle1 (id 7) circling up from a random heading, a distance out and widening by
+// 0.0005 a step, at a scale of 0.7 (AddRipplingColumn and AddRingedColumn): the heading's
+// speed, the fall's and the life are the caller's.
+EffectPrim MakeWideningSpark(const RagEffect& effect, float distance, std::int32_t life) {
+  EffectPrim p = MakePrimitive(&effect, 7, {0.0f, 0.0f, 0.0f});
+  p.distance = distance;
+  p.distance_speed = std::bit_cast<float>(0x3a03126fu);  // 0.0005
+  p.life = life;
+  return p;
+}
+
+// The rest of a circling spark once its heading, distance and fall are set: its matrix
+// along the heading and its offset the distance out.
+void AimSpark(EffectPrim& p) {
+  p.matrix = MakeRotationY(Radians(p.heading));
+  p.offset = AlongZ(p, p.distance);
+}
+
+void FinishSpark(EffectPrim& p, const PrimSprite& particle) {
+  p.fade_at = p.life - p.life / 3;
+  p.sprite = particle;
+  ResetHistory(p);
+}
+
+}  // namespace
+
+void AddSparkRipples(RagEffect& effect, const PrimSprite& particle, core::CrtRand& rand,
+                     std::vector<EffectPrim>& added) {
+  if (effect.frame % 20 == 0) {
+    EffectPrim p = MakePrimitive(&effect, 0xc, {0.0f, 0.0f, 0.0f});
+    p.life = effect.duration;
+    p.quad_flags |= 0x200;
+    p.distance = 2.0f;
+    p.sweep = 22.5f;
+    p.bottom_radius = 10.0f;
+    p.pitch = 90.0f;
+    p.matrix = MakeRotationX((kPi * p.pitch) * kPerHalfTurn);
+    p.distance_speed = 1.25f;
+    p.distance_rate = (p.distance_speed / static_cast<float>(p.life)) * -0.5f;
+    p.alpha = 200.0f;
+    p.fade_at = p.life - p.life / 2;
+    ResetHistory(p);
+    p.textures = {"EFFECT\\RING_YELLOW.TGA"};
+    added.push_back(std::move(p));
+  }
+  if (effect.frame % 2 == 0) {
+    EffectPrim p = MakePrimitive(&effect, 7, {0.0f, 0.0f, 0.0f});
+    const std::int32_t wide = rand.Next() % 200 / 100;
+    p.distance = (static_cast<float>(wide) * 0.7f) + 1.0f;
+    p.life = 40;
+    p.heading = static_cast<float>(rand.Next() % 360);
+    p.heading_speed = (static_cast<float>(wide) * 3.0f) + 3.0f;
+    p.fall_speed = static_cast<float>(60 - rand.Next() % 240) * kHundredth;
+    p.fall_rate = (p.fall_speed / static_cast<float>(p.life)) * -0.5f;
+    AimSpark(p);
+    p.scale = 0.2f;
+    FinishSpark(p, particle);
+    added.push_back(std::move(p));
+  }
+}
+
+void AddBeginSpell(RagEffect& effect, const EffectActor& actor, const char* texture,
+                   const char* lower, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame == 0) {
+    // effect\EF_BeginSpell.wav plays here.
+    EffectPrim p = MakeSpellRing(effect, 25);
+    p.quad_flags |= 0x200;
+    ResetHistory(p);
+    added.push_back(std::move(p));
+  }
+  if (effect.frame % 10 == 0)
+    added.push_back(MakeSpellColumn(effect, 0.5f, 0.4f, 3.0f, true, texture));
+  if (lower != nullptr && effect.frame % 8 == 0)
+    added.push_back(MakeSpellColumn(effect, 1.0f, 0.35f, 2.5f, false, lower));
+}
+
+void AddBlessing(RagEffect& effect, const EffectActor& actor, const PrimSprite& blessing,
+                 const PrimSprite& sparks, core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame == 0) {
+    // effect\EF_Blessing.wav plays here.
+    EffectPrim p = MakeSpellRing(effect, effect.duration);
+    p.quad_flags |= 0x200;
+    p.distance = 10.0f;
+    p.red = 32;
+    p.green = 176;
+    p.blue = 232;
+    p.alpha_max = 100.0f;
+    p.alpha_speed = p.alpha_max * kThirtieth;
+    p.fade_at = p.life - 30;
+    ResetHistory(p);
+    added.push_back(std::move(p));
+  }
+  if (effect.frame % 3 == 0 && effect.frame < 10) {
+    EffectPrim p = MakePrimitive(&effect, 5, {0.0f, 0.0f, 0.0f});
+    p.life = effect.duration;
+    p.image_delay = 2;
+    p.alpha = static_cast<float>(effect.frame * -6 + 200);
+    p.offset = {0.0f, -25.0f, 0.0f};
+    p.sprite = blessing;
+    ResetHistory(p);
+    added.push_back(std::move(p));
+  }
+  if (effect.frame % 4 == 0) {
+    EffectPrim p = MakePrimitive(&effect, 5, {0.0f, 0.0f, 0.0f});
+    p.life = 80;
+    p.flags |= EffectPrim::kBounce;
+    p.matrix = MakeRotationY(core::DegreesToRadians(rand.Next() % 360));
+    const auto out = static_cast<float>(rand.Next() % 7 + 2);
+    const Matrix& m = p.matrix;
+    for (std::size_t i = 0; i < 3; ++i)
+      p.offset[i] = ((out * m[6 + i]) - (m[3 + i] * 25.0f)) + m[9 + i];
+    p.matrix = MakeRotationX(core::DegreesToRadians(-90));
+    p.speed = static_cast<float>(rand.Next() % 20 + 20) * kHundredth;
+    p.acceleration = (p.speed / static_cast<float>(p.life)) * -0.5f;
+    p.scale = 0.5f;
+    p.fade_at = p.life - p.life / 5;
+    p.alpha = 0.0f;
+    p.alpha_speed = p.alpha_max * 0.1f;
+    p.sprite = sparks;
+    ResetHistory(p);
+    added.push_back(std::move(p));
+  }
+}
+
+void AddBash(RagEffect& effect, const EffectActor& actor, const PrimScene& scene, bool minimal,
+             core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  if (minimal) return;
+  PlaceOnScreen(effect, actor, scene, false);
+  if (effect.frame != 0) return;
+  // effect\EF_Bash.wav plays here.
+  added.push_back(MakeBashRing(effect, 30));
+  for (std::int32_t n = 0; n < 20; ++n) added.push_back(MakeWedge(effect, kBashWedge, rand));
+}
+
+void AddReadyPortalRipple(RagEffect& effect, std::vector<EffectPrim>& added) {
+  if (effect.frame % 14 != 0) return;
+  // effect\EF_ReadyPortal.wav plays here.
+  added.push_back(MakeRipple(effect));
+}
+
+void AddPortalColumns(RagEffect& effect, std::vector<EffectPrim>& added) {
+  if (effect.frame == 0) {
+    for (const auto& [radius, turn, height] :
+         {std::array<float, 3>{3.5f, 4.0f, 40.0f}, std::array<float, 3>{4.0f, 5.0f, 50.0f}}) {
+      EffectPrim c = MakePrimitive(&effect, 0xd, {0.0f, 0.0f, 0.0f});
+      c.life = effect.duration;
+      c.sweep = 36.0f;
+      c.top_radius = radius;
+      c.bottom_radius = radius;
+      c.heading_speed = turn;
+      c.height = height;
+      c.alpha = 0.0f;
+      c.alpha_max = 128.0f;
+      c.alpha_speed = c.alpha_max * kSixth;
+      c.fade_at = c.life - 6;
+      c.textures = {"effect\\ring_blue.tga"};
+      added.push_back(std::move(c));
+    }
+  }
+  if (effect.frame % 14 == 0) added.push_back(MakeRipple(effect));
+}
+
+void AddRipplingColumn(RagEffect& effect, const PrimSprite& particle, core::CrtRand& rand,
+                       std::vector<EffectPrim>& added) {
+  if (effect.frame == 0x91) effect.frame = 0;
+  if (effect.frame == 0) {
+    EffectPrim p = MakeSpellRing(effect, 0x9e);
+    p.offset[1] = p.offset[1] - 1.0f;
+    ResetHistory(p);
+    added.push_back(std::move(p));
+  }
+  if (effect.frame % 28 == 0 && effect.frame < 117) {
+    EffectPrim p = MakePrimitive(&effect, 0xc, {0.0f, 0.0f, 0.0f});
+    p.life = 80;
+    p.bottom_radius = 4.0f;
+    p.pitch = 90.0f;
+    p.offset[1] = p.offset[1] - 1.0f;
+    p.matrix = MakeRotationX(Radians(p.pitch));
+    p.distance = 14.0f;
+    p.distance_speed = std::bit_cast<float>(0xbe19999au);  // -0.15
+    p.alpha = 5.0f;
+    p.alpha_max = 200.0f;
+    p.alpha_speed = 10.0f;
+    // Keys without +0xb4 or +0xb8, which UpdateAlphaAndColor never reads.
+    p.key_frames.push_back(20.0f);
+    p.key_values.push_back(0.0f);
+    p.fade_at = p.life - p.life / 5;
+    ResetHistory(p);
+    p.textures = {"effect\\ring_blue.tga"};
+    added.push_back(std::move(p));
+  }
+  if (effect.frame % 10 == 0) {
+    const std::int32_t wide = rand.Next() % 200 / 100;
+    EffectPrim p = MakeWideningSpark(effect, (static_cast<float>(wide) * 0.75f) + 5.0f, 130);
+    p.heading = static_cast<float>(rand.Next() % 360);
+    rand.Next();
+    p.heading_speed = 2.0f;
+    p.fall_speed = -0.2f;
+    p.fall_rate = (p.fall_speed / static_cast<float>(p.life)) * kEaseOut;
+    AimSpark(p);
+    const std::int32_t larger = rand.Next() % 10 / 10;  // always 0
+    p.scale = static_cast<float>(larger) + 0.7f;
+    FinishSpark(p, particle);
+    added.push_back(std::move(p));
+  }
+}
+
+void AddSightrasher(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+                    const PrimSprite& sight, const PrimSprite& shadow, core::CrtRand& rand,
+                    std::vector<EffectPrim>& added) {
+  PlaceOnScreen(effect, actor, scene, true);
+  // On the first frame the actor gets message 0x6d (0x16) through its vf02, and
+  // effect\wizard_sightrasher.wav plays.
+  const std::int32_t frame = effect.frame;
+  if (frame % 5 == 0 && frame < 20) {
+    for (bool shadows : {false, true}) {
+      for (std::int32_t k = 0; k < 8; ++k) {
+        const std::int32_t angle = Ftol(static_cast<float>(k) * -45.0f);
+        const float s = core::SinDegrees(angle);
+        const float c = core::CosDegrees(angle);
+        EffectPrim p = MakePrimitive(&effect, 5, {0.0f, 0.0f, 0.0f});
+        p.life = 0x55 - frame;
+        p.flags |= EffectPrim::kStraight;
+        const std::int32_t fifths = frame / 5;
+        const std::int32_t rise = frame / 3 - 20;
+        const float out = static_cast<float>(fifths) + 5.0f;
+        p.offset = {out * s, shadows ? 0.0f : static_cast<float>(rise), -(out * c)};
+        p.step = {s, 0.0f, -c};
+        if (shadows) {
+          p.image_delay = 3;
+          p.scale = 1.0f - (static_cast<float>(frame) * kThirtieth);
+        } else {
+          p.image_delay = (rand.Next() & 1) + 3;
+          p.scale = 2.5f - (static_cast<float>(frame) * 0.1f);
+        }
+        p.alpha = static_cast<float>((0x4b - frame) * 2);
+        p.step_changes[0] = std::bit_cast<std::uint32_t>(s * 0.5f);
+        p.step_changes[2] = std::bit_cast<std::uint32_t>(c * -0.5f);
+        p.change_at = 0x23 - frame;
+        p.step_changes[3] = 0xbb83126fu;  // -0.004
+        p.step_changes[5] = 0x3b83126fu;  // 0.004
+        p.fade_at = 0x41 - frame;
+        p.sprite = shadows ? shadow : sight;
+        ResetHistory(p);
+        added.push_back(std::move(p));
+      }
+    }
+  }
+  if (frame == 10) {
+    EffectPrim p = MakePrimitive(&effect, 0xc, {0.0f, 0.0f, 0.0f});
+    p.life = 30;
+    p.pitch = 90.0f;
+    p.distance_speed = 2.5f;
+    p.distance_rate = (p.distance_speed / static_cast<float>(p.life)) * kEaseOut;
+    p.bottom_radius = -10.0f;
+    p.alpha = 150.0f;
+    p.fade_at = p.life - 10;
+    ResetHistory(p);
+    p.textures = {"effect\\ring_yellow.tga"};
+    added.push_back(std::move(p));
+  }
+}
+
+void AddRingSwirl(RagEffect& effect, const EffectActor& actor, std::vector<EffectPrim>& added) {
+  const std::int32_t frame = effect.frame;
+  if (frame == 0 || frame == 5) {
+    const std::int32_t facing = EffectFacing(actor);
+    EffectPrim c = MakePrimitive(&effect, 0xd, {0.0f, 0.0f, 0.0f});
+    c.life = 20 - frame;
+    c.heading = static_cast<float>(facing + frame * 20);
+    c.matrix = RotateY(MakeRotationX(Radians(c.pitch)), Radians(c.heading));
+    c.top_radius = 8.0f;
+    c.top_radius_speed = 0.5f;
+    c.top_radius_rate = -0.03f;
+    c.bottom_radius = 3.0f;
+    c.bottom_radius_speed = 0.5f;
+    c.bottom_radius_rate = -0.03f;
+    c.height = 3.5f;
+    c.alpha = static_cast<float>(frame * -7 + 240);
+    c.fade_at = c.life - c.life / 2;
+    c.textures = {"effect\\ring_blue.tga"};
+    added.push_back(std::move(c));
+  }
+  if (frame == 0) {
+    EffectPrim p = MakePrimitive(&effect, 0xc, {0.0f, 0.0f, 0.0f});
+    p.life = 50;
+    p.quad_flags |= 0x200;
+    p.pitch = 90.0f;
+    p.distance = 8.0f;
+    p.distance_speed = 0.7f;
+    p.distance_rate = -(p.distance_speed * kThirtieth);
+    p.bottom_radius = 5.0f;
+    p.change_at = 20;
+    p.changes[5] = 0;            // the radius's rate, at change_at
+    p.changes[2] = 0x3da3d70au;  // and its speed, 0.08
+    p.alpha = 45.0f;
+    p.fade_at = 35;
+    ResetHistory(p);
+    p.textures = {"effect\\ring_yellow.tga"};
+    added.push_back(std::move(p));
+  }
+}
+
+void AddAdrenalineRush(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+                       const PrimSprite& particle, core::CrtRand& rand,
+                       std::vector<EffectPrim>& added) {
+  // effect\black_adrenalinerush_a.wav plays on the first frame, _b.wav at 30.
+  if (effect.frame == 0) effect.duration = 300;
+  PlaceOnScreen(effect, actor, scene, true);
+  if (effect.frame != 0) return;
+  for (std::int32_t n = 0; n < 20; ++n) {
+    EffectPrim p = MakePrimitive(&effect, 3, {0.0f, 0.0f, 0.0f});
+    p.life = 80;
+    p.offset[1] = -40.0f;
+    p.heading = static_cast<float>(rand.Next() % 360);
+    p.heading_speed = static_cast<float>(rand.Next() % 60 + 10) * 0.1f;
+    p.heading_rate = (p.heading_speed / static_cast<float>(p.life)) * kEaseOut;
+    p.sweep = static_cast<float>(rand.Next() % 25 + 5) * 0.1f;
+    p.height = 0.0f;
+    p.height_speed = static_cast<float>(rand.Next() % 20 + 50) * kThirteenth;
+    p.change_at = 40;
+    p.changes[2] = std::bit_cast<std::uint32_t>(static_cast<float>(rand.Next() % 10 + 15) * 0.1f);
+    p.changes[5] = 0;
+    p.changes[1] = 0;
+    p.textures = {"EFFECT\\alpha_center.tga"};
+    added.push_back(std::move(p));
+  }
+  for (std::int32_t heading = 0; heading < 360; heading += 90) {
+    EffectPrim p = MakePrimitive(&effect, 7, {0.0f, 0.0f, 0.0f});
+    p.life = 100;
+    p.distance = 7.0f;
+    p.fall_speed = -0.1f;
+    p.fall_rate = -0.002f;
+    p.heading = static_cast<float>(heading);
+    p.heading_rate = 0.2f;
+    p.heading_speed = (p.heading_rate * static_cast<float>(effect.frame)) + 0.3f;
+    p.scale = 1.2f;
+    p.matrix = MakeRotationY(Radians(p.heading));
+    p.fade_at = p.life - p.life / 10;
+    p.sprite = particle;
+    ResetHistory(p);
+    added.push_back(std::move(p));
+  }
+}
+
+void AddStoneCurse(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+                   bool overthrust, std::vector<EffectPrim>& added) {
+  // Over Thrust plays effect\black_overthrust.wav on its first frame, before the rest.
+  PlaceOnScreen(effect, actor, scene, true, !overthrust);
+  if (effect.frame != 0) return;
+  if (overthrust) effect.duration = 9999;
+  // effect\EF_StoneCurse.wav plays here.
+  EffectPrim p = MakePrimitive(&effect, 4, {0.0f, 0.0f, 0.0f});
+  p.life = overthrust ? 40 : effect.duration;
+  p.offset[1] = -20.0f;
+  p.sweep = 10.0f;
+  p.bottom_radius = 10.0f;
+  p.distance_speed = 7.0f;
+  p.distance_rate = (p.distance_speed / static_cast<float>(p.life + 40)) * -2.0f;
+  p.fade_at = 0;
+  p.textures = {"effect\\alpha_center.tga"};
+  added.push_back(std::move(p));
+}
+
+void AddWedgeBurst(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+                   core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  PlaceOnScreen(effect, actor, scene, false, true);
+  // At frame 35 the actor gets message 0x3f through its vf02.
+  if (effect.frame != 0) return;
+  for (std::int32_t n = 0; n < 20; ++n) added.push_back(MakeWedge(effect, kBashWedge, rand));
+}
+
+void AddSignum(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+               core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  PlaceOnScreen(effect, actor, scene, false);
+  if (effect.frame != 30) return;
+  // effect\EF_Signum.wav and effect\EF_Bash.wav play here.
+  added.push_back(MakeBashRing(effect, 40 - 40 / 3));
+  for (std::int32_t n = 0; n < 20; ++n) added.push_back(MakeWedge(effect, kSignumWedge, rand));
+}
+
+void AddRingedColumn(RagEffect& effect, const EffectActor& actor, const char* texture,
+                     const PrimSprite& particle, core::CrtRand& rand,
+                     std::vector<EffectPrim>& added) {
+  if (effect.frame == 99999998) effect.frame = 0;
+  if (effect.frame == 1 || effect.frame == 2) {
+    effect.position = actor.position;
+    const bool second = effect.frame == 2;
+    EffectPrim p = MakeRings(effect, 0x3e, texture);
+    p.scale = second ? 4.0f : 11.0f;
+    // Four rings a quarter turn apart, the second frame's a degree on and a little wider.
+    constexpr std::array<float, 4> kFirst = {2.5f, 5.0f, 7.5f, 10.0f};
+    constexpr std::array<std::uint32_t, 4> kSecond = {0x402ccccd, 0x40a66666, 0x40f66666,
+                                                      0x41233333};
+    constexpr std::array<std::int16_t, 4> kTilts = {53, 60, 55, 50};
+    for (std::size_t k = 0; k < 4; ++k) {
+      const float radius = second ? std::bit_cast<float>(kSecond[k]) : kFirst[k];
+      const auto angle = static_cast<std::int16_t>((270 + 90 * k) % 360 + (second ? 1 : 0));
+      const auto tilt = static_cast<std::int16_t>(kTilts[k] - (second ? 1 : 0));
+      SetRing(p.rings[k], {360, radius, 0, angle, 0, tilt, radius, 0});
+    }
+    added.push_back(std::move(p));
+  }
+  if (effect.frame == 0) {
+    EffectPrim p = MakeSpellRing(effect, 99999999);
+    p.offset[1] = p.offset[1] - 1.5f;
+    ResetHistory(p);
+    added.push_back(std::move(p));
+  }
+  if (effect.frame % 10 == 0) {
+    const std::int32_t wide = rand.Next() % 200 / 100;
+    EffectPrim p = MakeWideningSpark(effect, (static_cast<float>(wide) * 0.75f) + 4.5f, 70);
+    p.heading = static_cast<float>(rand.Next() % 360);
+    if (rand.Next() % 2 == 0) {
+      p.heading_speed = 2.5f - (static_cast<float>(rand.Next() % 11) * 0.1f);
+    } else {
+      p.heading_speed = (static_cast<float>(rand.Next() % 11) * 0.1f) - 2.5f;
+    }
+    p.fall_speed = std::bit_cast<float>(0xbe99999au);  // -0.3
+    p.fall_rate = (p.fall_speed / static_cast<float>(p.life)) * kEaseOut;
+    AimSpark(p);
+    const std::int32_t larger = rand.Next() % 10 / 10;  // always 0
+    p.scale = static_cast<float>(larger) + 0.7f;
+    FinishSpark(p, particle);
+    added.push_back(std::move(p));
+  }
+}
+
 PrimSprite EffectWorld::Sprite(const std::string& name) const {
   const auto it = sprites_.find(name);
   return it == sprites_.end() ? PrimSprite{} : it->second;
@@ -4823,6 +5617,39 @@ void EffectWorld::Step(const PrimScene& scene) {
           AddPentagonBand(e, it->actor, "effect\\cloud11.tga", variant, added);
           break;
         }
+        case 8: AddSparkRipples(e, Sprite(kParticleSprite), rand_, added); break;
+        case 0xc:
+          AddBeginSpell(e, it->actor, "effect\\ring_blue.tga", "effect\\ring_yellow.tga", added);
+          break;
+        case 0x38: AddBeginSpell(e, it->actor, "effect\\Magic_Green.tga", nullptr, added); break;
+        case 0x3a:
+          AddBeginSpell(e, it->actor, "effect\\Magic_Sky.tga", "effect\\ring_blue.tga", added);
+          break;
+        case 0x3b: AddBeginSpell(e, it->actor, "effect\\Magic_Violet.tga", nullptr, added); break;
+        case 0x2a:
+          AddBlessing(e, it->actor, Sprite(kEffectSprites[7]), Sprite(kEffectSprites[8]), rand_,
+                      added);
+          break;
+        case 0x10: AddBash(e, it->actor, scene, minimal_, rand_, added); break;
+        case 0x23: AddReadyPortalRipple(e, added); break;
+        case 0x24: AddPortalColumns(e, added); break;
+        case 0x3d: AddRipplingColumn(e, Sprite(kParticleSprite), rand_, added); break;
+        case 0x3e:
+          AddSightrasher(e, it->actor, scene, Sprite(kEffectSprites[9]), Sprite(kEffectSprites[10]),
+                         rand_, added);
+          break;
+        case 0x49: AddRingSwirl(e, it->actor, added); break;
+        case 0x62:
+          AddAdrenalineRush(e, it->actor, scene, Sprite(kParticleSprite), rand_, added);
+          break;
+        case 0x79:
+        case 0x80: AddStoneCurse(e, it->actor, scene, e.id == 0x80, added); break;
+        case 0xd7: AddWedgeBurst(e, it->actor, scene, rand_, added); break;
+        case 0x28: AddSignum(e, it->actor, scene, rand_, added); break;
+        case 0x141:
+          AddRingedColumn(e, it->actor, "effect\\ring_blue.tga", Sprite(kParticleSprite), rand_,
+                          added);
+          break;
         case 0x149: AddArcBands(e, it->actor, rand_, added); break;
         case 0x14a: AddBouncingBands(e, it->actor, rand_, added); break;
         case 0xf8:

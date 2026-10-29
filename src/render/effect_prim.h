@@ -214,6 +214,8 @@ struct EffectPrim {
   static constexpr std::uint32_t kItemColors = 0x200;  // 5 and 6: the frame's own colours
   static constexpr std::uint32_t kStraight = 0x400;    // 5: its own step and step speed
   static constexpr std::uint32_t kNarrowing = 0x1;     // 0xd: the top closes from fade_at
+  static constexpr std::uint32_t kHeightStops = 0x1;   // 3 and 0x13: the height stops at 0
+  static constexpr std::uint32_t kUncapped = 0x1;      // 4 and 0xc: the width the whole radius
 
   const RagEffect* owner = nullptr;   // +0xa4, cleared when the effect ends (vf02 0x18)
   std::int32_t id = 0;                // +0x130
@@ -245,7 +247,7 @@ struct EffectPrim {
   float height_speed = 0.0f;  // +0x294
   float height_rate = 0.0f;   // +0x298
 
-  // Id 1 orbits at a distance.
+  // Id 1 orbits at a distance; ids 4 and 0xc draw rings of that radius.
   float heading_speed = 0.0f;   // +0x260
   float heading_rate = 0.0f;    // +0x26c
   float distance = 0.0f;        // +0x278
@@ -362,16 +364,21 @@ void ProcessHitSpark(RagEffect& effect, const Vec3& actor, const Matrix& view,
 inline constexpr const char* kParticleSprite = "\300\314\306\321\306\256\\particle1";
 
 // The other sprites effects load, each a .spr and an .act of the name: 이팩트\ and particle2,
-// ef_snow, sakura01, 단풍, 침투경_, 데몬스트레이션 and Waterball (00618d58, 00618f20, 00619df4,
-// 00619e18, 0061a10c, 0061a154 and 006195fc).
-inline constexpr std::array<const char*, 7> kEffectSprites = {
+// ef_snow, sakura01, 단풍, 침투경_, 데몬스트레이션, Waterball, 축복, particle6 and Sight
+// (00618d58, 00618f20, 00619df4, 00619e18, 0061a10c, 0061a154, 006195fc, 00618cd0, 00618ca8
+// and 00618fac), and Shadow (00618f8c).
+inline constexpr std::array<const char*, 11> kEffectSprites = {
     "\300\314\306\321\306\256\\particle2",
     "\300\314\306\321\306\256\\ef_snow",
     "\300\314\306\321\306\256\\sakura01",
     "\300\314\306\321\306\256\\\264\334\307\263",
     "\300\314\306\321\306\256\\\304\247\305\365\260\346_",
     "\300\314\306\321\306\256\\\265\245\270\363\275\272\306\256\267\271\300\314\274\307",
-    "\300\314\306\321\306\256\\Waterball"};
+    "\300\314\306\321\306\256\\Waterball",
+    "\300\314\306\321\306\256\\\303\340\272\271",
+    "\300\314\306\321\306\256\\particle6",
+    "\300\314\306\321\306\256\\Sight",
+    "Shadow"};
 
 // CRagEffect::ProcessRingBurst (005505a0), effect id 0, on its first frame: a cylinder of
 // ring_blue.tga rising from the actor, and unless minimal effects are on, two particles
@@ -629,6 +636,74 @@ void AddTargetSprite(RagEffect& effect, const EffectActor& actor, const PrimSpri
                      float view_yaw, std::vector<EffectPrim>& added);
 void AddDemonstration(RagEffect& effect, const EffectActor& actor, const PrimSprite& sprite,
                       std::vector<EffectPrim>& added);
+
+// The effects of screen wedges, screen rings and history rings
+// (docs/render/effect-prim.md#screen-wedges-and-rings), each step:
+//  - AddSparkRipples (00552720), id 8: every 20 frames a ring of RING_YELLOW.TGA (id 0xc)
+//    spreading out flat, and every other frame id 7, a particle1 circling 1 or 1.7 out;
+//  - AddBeginSpell (00552a80, 00552fe0, 00553360 and 005537c0), ids 0xc (ring_blue.tga),
+//    0x38 (Magic_Green.tga), 0x3a (Magic_Sky.tga) and 0x3b (Magic_Violet.tga): at the actor,
+//    a flat ring of alpha_down.tga, every 10 frames a cylinder of the texture, and for 0xc
+//    and 0x3a every 8 frames a lower one of ring_yellow or ring_blue; EF_BeginSpell.wav;
+//  - AddBlessing (00553e80), id 0x2a: at the actor, a blue ring of alpha_down.tga, at
+//    frames 0, 3, 6 and 9 the sprite 축복 25 up, and every 4 frames a particle6 sinking;
+//    EF_Blessing.wav;
+//  - AddBash (00554ff0), id 0x10, unless effects are minimal: on screen over the actor, a
+//    ring of alpha_down.tga (id 4) and twenty wedges of alpha_center.tga (id 3); EF_Bash.wav;
+//  - AddReadyPortalRipple (00559f60), id 0x23: every 14 frames a ring of ring_blue.tga
+//    spreading flat; EF_ReadyPortal.wav;
+//  - AddPortalColumns (0055a100), id 0x24: two turning cylinders of ring_blue.tga, and the
+//    same ripples;
+//  - AddRipplingColumn (0055b940), id 0x3d: a ring of alpha_down.tga, ripples of ring_blue
+//    every 28 frames to 116 and a particle1 circling up every 10; starts again at 145;
+//  - AddSightrasher (0055be40), id 0x3e: every 5 frames to 15 eight Sights and eight
+//    Shadows flying out, and at frame 10 a ring of ring_yellow.tga; the actor's point on
+//    screen each step; wizard_sightrasher.wav;
+//  - AddRingSwirl (0055cae0), id 0x49: two cylinders of ring_blue.tga turning the way the
+//    actor faces, at frames 0 and 5, and a ring of ring_yellow.tga;
+//  - AddAdrenalineRush (0055ede0), id 0x62: twenty wedges of alpha_center.tga on screen and
+//    four particle1s circling the actor; the effect lasts 300 frames;
+//    black_adrenalinerush_a.wav, _b.wav at 30;
+//  - AddStoneCurse (00560e40 and 00561c70), ids 0x79 and 0x80 (Over Thrust: lasting 9999
+//    frames, its ring 40, black_overthrust.wav first): a ring of alpha_center.tga on screen
+//    widening as it fades; EF_StoneCurse.wav;
+//  - AddWedgeBurst (00563eb0), id 0xd7: twenty wedges on screen as Bash's;
+//  - AddSignum (00564b00), id 0x28: at frame 30 Bash's ring and twenty longer wedges;
+//    EF_Signum.wav and EF_Bash.wav; it ends with its Cross.str, which the port's effect world
+//    leaves to the .str player;
+//  - AddRingedColumn (00578d90), id 0x141: a ring of alpha_down.tga, closing rings (id 0x3e)
+//    of the texture at frames 1 and 2 and a particle1 circling up every 10 frames; like
+//    AddRingTrio it starts again at frame 99999998.
+// The effects with screen primitives set the actor's point on screen (+0xdc) from the view
+// and projection first.
+void AddSparkRipples(RagEffect& effect, const PrimSprite& particle, core::CrtRand& rand,
+                     std::vector<EffectPrim>& added);
+void AddBeginSpell(RagEffect& effect, const EffectActor& actor, const char* texture,
+                   const char* lower, std::vector<EffectPrim>& added);
+void AddBlessing(RagEffect& effect, const EffectActor& actor, const PrimSprite& blessing,
+                 const PrimSprite& sparks, core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddBash(RagEffect& effect, const EffectActor& actor, const PrimScene& scene, bool minimal,
+             core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddReadyPortalRipple(RagEffect& effect, std::vector<EffectPrim>& added);
+void AddPortalColumns(RagEffect& effect, std::vector<EffectPrim>& added);
+void AddRipplingColumn(RagEffect& effect, const PrimSprite& particle, core::CrtRand& rand,
+                       std::vector<EffectPrim>& added);
+void AddSightrasher(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+                    const PrimSprite& sight, const PrimSprite& shadow, core::CrtRand& rand,
+                    std::vector<EffectPrim>& added);
+void AddRingSwirl(RagEffect& effect, const EffectActor& actor, std::vector<EffectPrim>& added);
+void AddAdrenalineRush(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+                       const PrimSprite& particle, core::CrtRand& rand,
+                       std::vector<EffectPrim>& added);
+void AddStoneCurse(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+                   bool overthrust, std::vector<EffectPrim>& added);
+void AddWedgeBurst(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+                   core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddSignum(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+               core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddRingedColumn(RagEffect& effect, const EffectActor& actor, const char* texture,
+                     const PrimSprite& particle, core::CrtRand& rand,
+                     std::vector<EffectPrim>& added);
 
 // The world's object list as effects use it (CWorld::UpdateGameObjects, 004c4a10): each
 // world step every object's vf01 in order, a primitive an effect adds joining the end and

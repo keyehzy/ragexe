@@ -173,6 +173,26 @@ struct SquareEffectVector {
   std::size_t scene_count;
 };
 
+struct ScreenFrameVector {
+  std::uint32_t screen[2];  // the owner's point on screen, set before the step
+  int more;
+  const std::uint32_t* state;
+  std::size_t state_count;
+  const TriangleVector* triangles;
+  std::size_t count;
+};
+
+struct ScreenPrimVector {
+  int id;
+  std::uint32_t position[3], offset[3];
+  int duration;
+  SceneData scene;
+  const FieldVector* fields;
+  std::size_t field_count;
+  const ScreenFrameVector* frames;
+  std::size_t frame_count;
+};
+
 struct ImageVector {
   std::int16_t width, height;
   int halved_x, halved_y;
@@ -196,6 +216,7 @@ constexpr std::uint32_t kMoteSeed = 7000;             // and for the motes
 constexpr std::uint32_t kPieceSeed = 9000;            // and for the single squares
 constexpr std::uint32_t kWallSeed = 11000;            // and for the walls and bands
 constexpr std::uint32_t kTrailSeed = 13000;           // and for the sprite trails
+constexpr std::uint32_t kScreenSeed = 15000;          // and for the screen and history rings
 
 float F(std::uint32_t bits) { return std::bit_cast<float>(bits); }
 std::uint32_t B(float f) { return std::bit_cast<std::uint32_t>(f); }
@@ -827,6 +848,41 @@ std::vector<std::uint32_t> StateOfTrail(const EffectPrim& p) {
   }
   out.insert(out.end(), three.begin() + kFields + 12, three.end());
   return out;
+}
+
+bool IsScreen(std::int32_t id) {
+  return id == 3 || id == 4 || id == 0xc || id == 0x13 || id == 0x14;
+}
+
+// What the script records of ids 3, 4, 0xc, 0x13 and 0x14 (SCREEN_STATE), then the matrix
+// and the history.
+std::vector<std::uint32_t> StateOfScreen(const EffectPrim& p) {
+  std::vector<std::uint32_t> out = {B(p.position[0]),   B(p.position[1]),
+                                    B(p.position[2]),   p.color,
+                                    U(p.key),           p.flags,
+                                    U(p.age),           p.fading ? 1u : 0u,
+                                    B(p.sweep),         B(p.alpha_max),
+                                    B(p.heading),       B(p.scale),
+                                    B(p.alpha),         B(p.alpha_speed),
+                                    B(p.heading_speed), B(p.heading_rate),
+                                    B(p.distance),      B(p.distance_speed),
+                                    B(p.distance_rate), B(p.height),
+                                    B(p.height_speed),  B(p.height_rate),
+                                    B(p.bottom_radius), B(p.bottom_radius_speed),
+                                    B(p.speed),         B(p.pitch)};
+  for (const Vec3* v : {&p.step, &p.start, &p.travel})
+    for (float x : *v) out.push_back(B(x));
+  const std::vector<std::uint32_t> three = StateOf3(p);
+  constexpr std::size_t kFields = 37;
+  out.insert(out.end(), three.begin() + kFields, three.end());
+  return out;
+}
+
+// The screen effects' primitives as the script reads them: StateOfScreen for the screen and
+// history rings, the ring records for the closing rings and StateOfTrail for the rest.
+std::vector<std::uint32_t> StateOfScreenEffect(const EffectPrim& p) {
+  if (IsScreen(p.id)) return StateOfScreen(p);
+  return p.id == 0x3e ? StateFor(p) : StateOfTrail(p);
 }
 
 // The synthetic attribute map of tools/actor_vectors.py.
@@ -1481,4 +1537,43 @@ TEST_CASE("Sprite trails step and draw as the original's", "[effect]") {
 
 TEST_CASE("The sprite trail effects play as the original's", "[effect]") {
   CheckTargetEffects(kTrailEffects, StateOfTrail, true);
+}
+
+TEST_CASE("Screen wedges, screen rings and history rings step and draw as the original's",
+          "[effect]") {
+  std::map<std::string, std::uint32_t> ids;
+  for (std::uint32_t i = 0; i < 4; ++i) ids["t" + std::to_string(i)] = kSyntheticTextures + i;
+  ids[""] = 0;
+  std::size_t n = 0;
+  for (const ScreenPrimVector& v : kScreens) {
+    INFO("primitive " << n << ", id " << v.id);
+    RagEffect owner;
+    for (std::size_t i = 0; i < 3; ++i) owner.position[i] = F(v.position[i]);
+    owner.duration = v.duration;
+    EffectPrim p = MakePrimitive(&owner, v.id, {F(v.offset[0]), F(v.offset[1]), F(v.offset[2])});
+    for (std::size_t f = 0; f < v.field_count; ++f) Apply(v.fields[f], p);
+    p.textures.clear();
+    for (std::int32_t i = 0; i < p.image_count; ++i) p.textures.push_back("t" + std::to_string(i));
+    ResetHistory(p);
+    const PrimScene scene = SceneOf(v.scene, nullptr);
+    ragexe::core::CrtRand rand(kScreenSeed + static_cast<std::uint32_t>(n));
+    for (std::size_t f = 0; f < v.frame_count; ++f) {
+      INFO("frame " << f);
+      const ScreenFrameVector& fv = v.frames[f];
+      owner.screen_x = F(fv.screen[0]);
+      owner.screen_y = F(fv.screen[1]);
+      const bool more = UpdatePrimitive(p, rand, scene);
+      CHECK(more == (fv.more != 0));
+      CheckState(StateOfScreen(p), fv.state, fv.state_count);
+      PrimDrawing drawing;
+      if (more) DrawPrimitive(p, scene, drawing);
+      CheckTriangles(drawing.triangles, fv.triangles, fv.count, ids);
+      ++owner.frame;
+    }
+    ++n;
+  }
+}
+
+TEST_CASE("The screen and history ring effects play as the original's", "[effect]") {
+  CheckTargetEffects(kScreenEffects, StateOfScreenEffect, true);
 }
