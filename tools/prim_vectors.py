@@ -795,10 +795,26 @@ def mote_state(o, prim):
     return out
 
 
+PIECE_IDS = [0x29, 0x2A, 0x32, 0x34, 0x35, 0x41]
+
+
+def piece_state(o, prim):
+    """As mote_state, leaving out the corners 0x41's drawing writes at +0x88 to +0xb4."""
+    emu = o.emu
+    out = [emu.read_u32(prim + f) for f in RING_STATE]
+    drawn = emu.read_u32(prim + 0x130) == 0x41
+    for k in range(4):
+        words = list(struct.unpack(f"<{RING_SIZE // 4}I", emu.mem_read(prim + RING + RING_SIZE * k, RING_SIZE)))
+        out += [0 if drawn and 4 * i >= 0x88 else w for i, w in enumerate(words)]
+    return out
+
+
 def prim_state(o, prim):
     pid = o.emu.read_u32(prim + 0x130)
     if pid in SQUARE_IDS:
         return square_state(o, prim)
+    if pid in PIECE_IDS:
+        return piece_state(o, prim)
     return mote_state(o, prim) if pid in MOTE_IDS else ring_state(o, prim)
 
 
@@ -856,12 +872,51 @@ def random_motes(rng, pid):
     return bytes(rec)
 
 
-def synthetic_motes(o, rng, lines):
+def random_piece(rng, pid):
+    """A record as ids 0x29, 0x2a, 0x32, 0x34, 0x35 and 0x41 read it, the bytes they leave
+    alone zero."""
+    rec = bytearray(RING_SIZE)
+    age = {0x29: rng.randrange(-3, 40), 0x2A: rng.randrange(-3, 30), 0x34: rng.randrange(-2, 30),
+           0x35: rng.randrange(-2, 30),
+           0x32: rng.choice([rng.randrange(-3, 10), rng.randrange(150, 160), rng.randrange(155, 245),
+                             rng.randrange(1990, 2001)]),
+           0x41: rng.choice([rng.randrange(-3, 25), rng.randrange(40, 60), rng.randrange(130, 150)])}[pid]
+    turn = rng.randrange(0, 400 if pid == 0x29 else 360)
+    struct.pack_into("<Bxhfihhh", rec, 0, rng.random() < 0.9, rng.randrange(0, 360), f32(rng.uniform(0.5, 6)), age,
+                     turn, rng.randrange(0, 256), rng.randrange(0, 360))
+    growth = {0x35: rng.uniform(-25, 25), 0x41: rng.uniform(-30, 30)}.get(pid, rng.uniform(-1, 4))
+    if pid == 0x29:
+        values = [rng.uniform(1, 6), rng.uniform(0, 359.9)]
+    elif pid == 0x2A:
+        values = [rng.uniform(0.3, 2)]
+    elif pid == 0x41:
+        values = [rng.choice([0, rng.uniform(0, 260)]) for _ in range(10)]
+    else:
+        values = []
+    struct.pack_into(f"<{1 + len(values)}f", rec, 0x14, *(f32(v) for v in [growth] + values))
+    distance = {0x32: rng.uniform(0.3, 1), 0x41: rng.uniform(5, 25), 0x34: rng.uniform(20, 120),
+                0x35: rng.uniform(20, 120)}.get(pid, rng.uniform(-10, 60))
+    struct.pack_into("<hxxf", rec, 0x68, rng.randrange(0, 360), f32(distance))
+    color = {0x29: rng.choice([0, 1]), 0x2A: rng.choice([0, 1, 2]), 0x32: rng.randrange(0, 6),
+             0x41: rng.randrange(0, 3)}.get(pid, 0)
+    length = {0x2A: rng.choice([24, 16, -5, 0]), 0x32: rng.choice([0, 1, 1, 2])}.get(pid, 0)
+    delay = rng.choice([0, 20, 40, 60, -10]) if pid == 0x32 else 0
+    image = rng.randrange(0, 3) if pid == 0x32 else 0
+    struct.pack_into("<BbbB", rec, 0x70, color, length, delay, image)
+    for k in range(4):
+        struct.pack_into("<3f", rec, 0x88 + 0xC * k, f32(rng.uniform(-40, 40)), f32(rng.uniform(-60, 10)),
+                         f32(rng.uniform(-40, 40)))
+    return bytes(rec)
+
+
+def synthetic_records(o, rng, lines, ids, prefix, seed, make, state_of, frame_count=12, checked=(0, 6, 11)):
+    """Primitives of the ids with random records (make), each stepped and drawn on its own
+    after srand(seed + n); the states as state_of reads them."""
     emu = o.emu
     actor = emu.scratch(size=0x100)
     rows = []
-    for n in range(4 * len(MOTE_IDS)):
-        pid = MOTE_IDS[n % len(MOTE_IDS)]
+    for n in range(4 * len(ids)):
+        pid = ids[n % len(ids)]
         mark = emu.heap_mark()
         effect = o.rag_effect(actor)
         pos = [f32(rng.uniform(-30, 30)), f32(rng.uniform(-8, 0)), f32(rng.uniform(-30, 30))]
@@ -881,23 +936,23 @@ def synthetic_motes(o, rng, lines):
         ring_textures(o, prim, 5)
         for k in range(4):
             base = RING + RING_SIZE * k
-            emu.mem_write(prim + base, random_motes(rng, pid))
+            emu.mem_write(prim + base, make(rng, pid))
             for i in range(0, RING_SIZE, 4):
                 v = emu.read_u32(prim + base + i)
                 if v:
                     sets[base + i] = v
         view, yaw, slope, pitch = o.scene(rng)
-        name = f"kMote{n}"
+        name = f"{prefix}{n}"
         lines.append(f"static const FieldVector {name}Fields[] = {{" + ", ".join(
             f"{{0x{f:x}, 0x{v:08x}, {{}}}}" for f, v in sorted(sets.items())) + "};")
         frames = []
-        emu.call(SRAND, 7000 + n)
-        for frame in range(12):
+        emu.call(SRAND, seed + n)
+        for frame in range(frame_count):
             more = emu.call(PRIM_VF01, this=prim).eax & 0xFF
-            state = mote_state(o, prim)
+            state = state_of(o, prim)
             added = o.draw(prim) if more else []
             lines.append(f"static const std::uint32_t {name}Frame{frame}State[] = {{{hexs(state)}}};")
-            if frame in (0, 6, 11):
+            if frame in checked:
                 lines.append(f"static const TriangleVector {name}Frame{frame}Triangles[] = {triangles_cpp(added)};")
                 triangles = f"{name}Frame{frame}Triangles, {len(added)}"
             else:
@@ -912,12 +967,14 @@ def synthetic_motes(o, rng, lines):
         rows.append(f"    {{{pid}, {{{hexs(map(bits, pos))}}}, {{0, 0, 0}}, {{0, 0, 0}}, 300, "
                     f"{scene_cpp(view, yaw, slope, pitch)}, {name}Fields, {len(sets)}, {name}Frames, {len(frames)}}},")
         emu.heap_release(mark)
-    lines.append("static const ShapeVector kMotes[] = {")
+    lines.append(f"static const ShapeVector {prefix}s[] = {{")
     lines += rows
     lines.append("};")
 
 
 MOTE_EFFECTS = [(0xCA, 32), (0xE4, 32), (0xCB, 32), (0xFE, 32)]
+PIECE_EFFECTS = [(0xE3, 104), (0x106, 40), (0x10A, 40), (0x114, 40), (0x129, 40), (300, 32), (0x12F, 112),
+                 (0x148, 64)]
 
 
 def synthetic_squares(o, rng, lines):
@@ -1094,8 +1151,10 @@ def main():
     square_effects(o, rng, lines)
     synthetic_rings(o, rng, lines, FLAT_IDS, "kFlatSquare", 4)
     ring_effects(o, rng, lines, FLAT_EFFECTS, "kFlatEffect", 6000)
-    synthetic_motes(o, rng, lines)
+    synthetic_records(o, rng, lines, MOTE_IDS, "kMote", 7000, random_motes, mote_state)
     square_effects(o, rng, lines, MOTE_EFFECTS, "kMoteEffect", 8000)
+    synthetic_records(o, rng, lines, PIECE_IDS, "kPiece", 9000, random_piece, piece_state, 24, (0, 8, 16, 23))
+    square_effects(o, rng, lines, PIECE_EFFECTS, "kPieceEffect", 10000)
     names = sorted(o.textures.items(), key=lambda kv: kv[1])
     lines.append("static const TextureVector kTextures[] = {" +
                  ", ".join(f'{{0x{v:x}, "{c_literal(k)}"}}' for k, v in names) + "};")

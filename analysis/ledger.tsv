@@ -5453,7 +5453,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00567390	5	thunk	0	world		-	Global	static_init_185	
 005673a0	11	code	0	world		named	Global	static_init_185_body	
 005673b0	900	code	0	world		named	CRagEffect	method_005673b0	
-00567740	1161	code	0	world		named	CRagEffect	method_00567740	
+00567740	1161	code	0	world		named	CRagEffect	AddAsuraStrike	
 00567bd0	568	code	0	world		named	CRagEffect	method_00567bd0	
 00567e10	628	code	0	world		named	CRagEffect	method_00567e10	
 00568090	619	code	0	world		named	CRagEffect	method_00568090	
@@ -5461,7 +5461,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00568580	168	code	0	world		named	CEffectPrim	UpdatePrim_44	
 00568630	131	code	0	world		named	CEffectPrim	UpdatePrim_49	
 005686c0	1238	code	0	world		named	CRagEffect	AddClouds	
-00568ba0	718	code	0	world		named	CRagEffect	method_00568ba0	
+00568ba0	718	code	0	world		named	CRagEffect	AddFireworks	
 00568e70	70	code	0	world		named	CRagEffect	method_00568e70	
 00568ec0	596	code	0	world		named	CRagEffect	AddRisingRings	
 00569150	469	code	0	world		named	CRagEffect	AddFadingRings	
@@ -5536,7 +5536,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00572c40	150	code	0	world		named	CEffectPrim	UpdatePrim_52	
 00572ce0	172	code	0	world		named	CEffectPrim	UpdatePrim_53	
 00572d90	809	code	0	world		named	CRagEffect	AddTurningRings	
-005730c0	994	code	0	world		named	CRagEffect	method_005730c0	
+005730c0	994	code	0	world		named	CRagEffect	AddSpreadingRings	
 005734b0	900	code	0	world		named	CRagEffect	method_005734b0	
 00573840	428	code	0	world		named	CRagEffect	AddRingWaves	
 005739f0	444	code	0	world		named	CRagEffect	AddSlowRingWaves	
@@ -5550,13 +5550,13 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00574c40	346	code	0	world	unreferenced	named	CRagEffect	AddFadingSquare	
 00574da0	858	code	0	world		named	CRagEffect	method_00574da0	
 00575100	418	code	0	world		named	CRagEffect	method_00575100	
-005752b0	495	code	0	world		named	CRagEffect	method_005752b0	
-005754a0	516	code	0	world	unreferenced	raw	Global	FUN_005754a0	
-005756b0	434	code	0	world		named	CRagEffect	method_005756b0	
-00575870	309	code	0	world		named	CRagEffect	method_00575870	
-005759b0	429	code	0	world		named	CRagEffect	method_005759b0	
+005752b0	495	code	0	world		named	CRagEffect	AddBurstSquares	
+005754a0	516	code	0	world	unreferenced	named	CRagEffect	AddCoinBurst	
+005756b0	434	code	0	world		named	CRagEffect	AddRays	
+00575870	309	code	0	world		named	CRagEffect	AddBeams	
+005759b0	429	code	0	world		named	CRagEffect	AddSlashLines	
 00575b60	876	code	0	world		named	CRagEffect	AddTeleportationRings	
-00575ed0	434	code	0	world		named	CRagEffect	method_00575ed0	
+00575ed0	434	code	0	world		named	CRagEffect	AddShortRays	
 00576090	633	code	0	world		named	CRagEffect	AddThrownSparks	
 00576310	626	code	0	world		named	CRagEffect	AddThunderSparks	
 00576590	803	code	0	world		named	CRagEffect	AddHealingSparks	

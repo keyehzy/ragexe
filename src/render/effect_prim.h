@@ -146,6 +146,30 @@ struct PrimMotes {
   std::array<Vec3, 4> points{};  // +0x88
 };
 
+// The same records as ids 0x29, 0x2a, 0x32, 0x34, 0x35 and 0x41 read them: one shape each,
+// a square, a rectangle or a beam, most of them out along a direction (+2 up from the
+// ground, +0x68 round it) at a distance (+0x6c).
+struct PrimPiece {
+  bool active = false;          // +0
+  std::int16_t pitch = 0;       // +2, degrees
+  float width = 0.0f;           // +4, 0x32: the squares' half-diagonal; 0x35: the half-width
+  std::int32_t age = 0;         // +8
+  std::int16_t turn = 0;        // +0xc, the square's own rotation
+  std::int16_t alpha = 0;       // +0xe
+  std::int16_t view_angle = 0;  // +0x10, as PrimSquare's
+  float growth = 0.0f;          // +0x14, the distance's change a frame; 0x35 and 0x41: an offset
+  // +0x18: 0x29, the square's half-diagonal and its tilt in degrees; 0x2a, the half-width;
+  // 0x41, the alphas of its ten squares, the largest's first.
+  std::array<float, 10> values{};
+  std::int16_t yaw = 0;          // +0x68, degrees
+  float distance = 0.0f;         // +0x6c; 0x32: its speed once it bursts; 0x41: the size
+  std::uint8_t color = 0;        // +0x70; 0x41: the index into textures
+  std::int8_t length = 0;        // +0x71, 0x2a: the half-length in half-widths; 0x32: its stage
+  std::int8_t delay = 0;         // +0x72, 0x32: when it sparkles
+  std::uint8_t image = 0;        // +0x73, 0x32: the index into textures
+  std::array<Vec3, 4> points{};  // +0x88: 0x29 and 0x32, the centre; 0x32, its trail after it
+};
+
 // CEffectPrim (0x15990 bytes): one particle or shape an effect adds to the world, stepped
 // by vf01 and drawn by vf03, both switching on the primitive id. The fields are those the
 // ported ids use, at their offsets; the defaults are the constructor's (0057cfa0).
@@ -269,6 +293,7 @@ struct EffectPrim {
   // The facing squares read the same four records their own way.
   std::array<PrimSquare, 4> squares{};
   std::array<PrimMotes, 4> motes{};
+  std::array<PrimPiece, 4> pieces{};
 };
 
 // What vf03 hands the renderer.
@@ -433,6 +458,39 @@ void AddPulsingMotes(RagEffect& effect, const EffectActor& actor, core::CrtRand&
                      std::vector<EffectPrim>& added);
 void AddPoppingMotes(RagEffect& effect, const EffectActor& actor, std::int8_t count,
                      core::CrtRand& rand, std::vector<EffectPrim>& added);
+
+// The effects of single squares and rectangles
+// (docs/render/effect-prim.md#single-squares-and-rectangles), on their first frame unless said:
+//  - AddBurstSquares (005752b0), id 0xe3 (20 a step, effect\EF_Bash.wav, and at frame 35
+//    effect\rog_intimidate.wav): id 0x29, four squares of white01.bmp flying out from the
+//    target, each its own way;
+//  - AddRays (005756b0, and with short_rays AddShortRays, 00575ed0), ids 0x106 (lens1.tga,
+//    20 a step, colour 0), 0x10a (lens1, 24, 1) and 0x114 (lens2.tga, 20, 2, short): id
+//    0x2a, four rays out from the actor;
+//  - AddFireworks (00568ba0), id 0x129: id 0x32, four rockets of pok1, pok3 and pok2.tga
+//    rising from 15 short of the player and bursting;
+//  - AddBeams (00575870), id 300 (twice, at 30 and 60 degrees): id 0x34, four beams of
+//    shockwave_c.bmp a quarter turn apart;
+//  - AddSlashLines (005759b0), id 0x12f (twice, on either side), at frame 100: id 0x35,
+//    four parallel lines of blue_ivy.bmp;
+//  - AddSpreadingRings (005730c0): id 0x1c, four rings at its alpha and up, a quarter turn
+//    apart;
+//  - AddAsuraStrike (00567740), id 0x148: at least 280 frames; effect\EF_BeginSpell.wav and
+//    two AddSpreadingRings of ring_white (alphas 45 and 25, preset 2), and at frames 1 and
+//    21 id 0x41, three squares each of asura3 to 1 and then asura4 to 6.tga.
+void AddBurstSquares(RagEffect& effect, const EffectActor& actor, core::CrtRand& rand,
+                     std::vector<EffectPrim>& added);
+void AddRays(RagEffect& effect, const EffectActor& actor, const char* texture, std::uint8_t color,
+             bool short_rays, core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddFireworks(RagEffect& effect, const Vec3& player, core::CrtRand& rand,
+                  std::vector<EffectPrim>& added);
+void AddBeams(RagEffect& effect, const EffectActor& actor, std::int16_t angle,
+              std::vector<EffectPrim>& added);
+void AddSlashLines(RagEffect& effect, const EffectActor& actor, bool right,
+                   std::vector<EffectPrim>& added);
+void AddSpreadingRings(RagEffect& effect, const EffectActor& actor, std::int16_t alpha,
+                       const char* texture, std::int8_t preset, std::vector<EffectPrim>& added);
+void AddAsuraStrike(RagEffect& effect, const EffectActor& actor, std::vector<EffectPrim>& added);
 
 // The world's object list as effects use it (CWorld::UpdateGameObjects, 004c4a10): each
 // world step every object's vf01 in order, a primitive an effect adds joining the end and

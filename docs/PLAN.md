@@ -2401,10 +2401,22 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Checks:** 12 synthetic mote primitives and the four effects; 1,591,869 values in
     `prim_test`.
 
+- [x] Single squares and rectangles
+  (`docs/render/effect-prim.md#single-squares-and-rectangles`):
+  - **`RenderTiltedSquare`, `RenderRotatedRectangle`, `RenderColoredFacingSquares`,
+    `RenderFacingSquareLayers`, `RenderFacingRectangles` and `RenderRotatedSquares`:** one
+    shape a record: bursting squares, rays, fireworks with a trail and sparkles, beams,
+    lines, and ten nested squares.
+  - **`CEffectPrim` ids 0x29, 0x2a, 0x32, 0x34, 0x35 and 0x41**, and effect ids 0xe3,
+    0x106, 0x10a, 0x114, 0x129, 300, 0x12f and 0x148 through seven setups, with
+    `AddSpreadingRings` (id 0x1c) for 0x148. `AddCoinBurst` (`005754a0`) is never called.
+  - **Checks:** 24 synthetic primitives and the eight effects; 1,848,563 values in
+    `prim_test`.
+
 ### Next actions
-1. M4, the renderer: the other 36 primitive ids, next the single squares and rectangles
-   (`RenderTiltedSquare` 0x29, `RenderRotatedRectangle` 0x2a, `RenderColoredFacingSquares`
-   0x32, `RenderFacingSquareLayers` 0x34, `RenderFacingRectangles` 0x35,
-   `RenderRotatedSquares` 0x41) and the effects that add them.
+1. M4, the renderer: the other 30 primitive ids, next the other walls and bands
+   (`RenderSlantedRingWalls` 0x20, `RenderOffsetRingWalls` 0x3a, `RenderRaisedRingWalls`
+   0x3b, `RenderBoxWalls` 0x3d, `RenderPentagonBand` 0x3f, `RenderArcBands` 0x42,
+   `RenderBandSegments` 0x43) and the effects that add them.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

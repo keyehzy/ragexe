@@ -4442,7 +4442,7 @@ entry	subsystem	rule	evidence
 00574da0	world	class	class CGameObject, base of CRagEffect
 00575100	world	class	class CGameObject, base of CRagEffect
 005752b0	world	class	class CGameObject, base of CRagEffect
-005754a0	world	neighbours	between 005752b0 and 005756b0
+005754a0	world	class	class CGameObject, base of CRagEffect
 005756b0	world	class	class CGameObject, base of CRagEffect
 00575870	world	class	class CGameObject, base of CRagEffect
 005759b0	world	class	class CGameObject, base of CRagEffect

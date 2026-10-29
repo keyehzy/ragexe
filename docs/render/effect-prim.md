@@ -867,6 +867,127 @@ of them ("motes"). They are 0x1b (`RenderRisingSquares` `0056e920`), 0x1e
 | 0xe4 | `AddPulsingMotes` (`0057a6c0`) | 0x1e | as many primitives as the target's x rounds up to (none unless above 0), motes of `thunder_center.bmp` of size 2 circling 15 up, their phases 72 degrees apart |
 | 0xcb, 0xfe | `AddPoppingMotes` (`0056d5c0`) | 0x21 | one and four records of motes of `super1` to `super5.bmp`, size 3.5. 0xfe plays `effect\mon_금강불괴.wav` |
 
+## Single squares and rectangles
+
+Six primitive ids draw one shape per record, each through `DrawQuad`:
+
+| Id | Drawing | Shape |
+|---:|---------|-------|
+| 0x29 | `RenderTiltedSquare` (`0056fb50`) | an upright square flying out |
+| 0x2a | `RenderRotatedRectangle` (`0056fea0`) | a ray |
+| 0x32 | `RenderColoredFacingSquares` (`0057c620`) | a firework, facing the camera |
+| 0x34 | `RenderFacingSquareLayers` (`0057c0f0`) | a beam, facing the camera |
+| 0x35 | `RenderFacingRectangles` (`0057c3b0`) | a line, facing the camera |
+| 0x41 | `RenderRotatedSquares` (`0056c4a0`) | ten nested squares, facing the camera |
+
+**The records**, as these ids read them:
+
+| Offset | What |
+|-------:|------|
+| +0 | active (a byte) |
+| +2 | the pitch, degrees up from the ground of the direction out |
+| +4 | 0x32: the squares' half-diagonal; 0x35: the half-width |
+| +8, +0xe | the age and the alpha |
+| +0xc | the turn, a square's own rotation |
+| +0x10 | the camera angles of 0x32, 0x34, 0x35 and 0x41, as for [the facing squares](#facing-squares) |
+| +0x14 | the growth, the distance's change a step; 0x35 and 0x41: an offset |
+| +0x18 | 0x29: the square's half-diagonal, then its tilt (+0x1c); 0x2a: the half-width; 0x41: ten alphas |
+| +0x68 | the yaw, degrees round the ground |
+| +0x6c | the distance out; 0x32: the speed; 0x41: the size |
+| +0x70 | the colour; 0x41: the image |
+| +0x71 | 0x2a: the half-length, in half-widths; 0x32: the stage |
+| +0x72, +0x73 | 0x32: the sparkle's delay and image |
+| +0x88 | the centre of 0x29 and 0x32, then 0x32's trail at +0xa0, +0x94 and +0xac |
+
+**Bursting squares** (0x29, `UpdatePrim_41` `00571d80`):
+- **Flying out.** After a negative age, the distance grows by the growth each step.
+- **Fading.** In by 15 a step (colour 0) or 25 for 10 steps, out by 7 after 25.
+- **The tilt** turns 5 degrees a step.
+- **Drawing.** An upright square of the half-diagonal, corners a quarter turn apart from
+  the turn, turned round the vertical by the tilt. It sits the distance out from the
+  centre along the pitch and yaw, in the world. It is (100, 150, 255), or (250, 250, 155)
+  for colour 1.
+
+**Rays** (0x2a, `UpdatePrim_42` `00571e30`):
+- **Moving out.** After a negative age, the distance grows by the growth each step.
+- **Fading** in by 15 a step from step 11 to 20, and out by 5 otherwise.
+- **Drawing.** A rectangle twice the half-width across, from the half-length short of the
+  distance to as far past it, along the pitch and yaw, relative to the primitive. It is
+  white for colour 1, otherwise (200, 200, 255) onto ONE.
+
+**Fireworks** (0x32, `UpdatePrim_50` `0057b440`), following the owner, after a negative
+age:
+- **The trail.** Every third step the centre moves to +0xa0, that to +0x94 and that to
+  +0xac.
+- **Sparkling.** From the delay plus 160 to plus 180, image 1 on steps 15 and 19 of every
+  20 and image 2 on step 17; image 0 otherwise.
+- **Turning** 5 degrees a step.
+- **Stage 0** rises a quarter a step. Past age 154 it bursts: stage 1, alpha 250.
+- **Stage 1** moves along the pitch and yaw at the speed and falls 0.02 more each step.
+  The speed falls to 0.98 of itself; the alpha falls by 1, and by 1 more when `rand()` is
+  even.
+- **Starting again.** After 2000 steps it starts again at stage 0, 15 back along x from
+  the owner, with a new yaw and speed.
+- **Drawing.** Two squares facing the camera from the turn, in the world: one at the
+  centre, and one half a unit smaller at +0xa0 at half the alpha. Colours 0 to 3 are
+  blue, red, green and yellow, and the others magenta. Sparkling, they are white, of the
+  sparkle's image, at a quarter of the alpha.
+
+**Beams and lines** (0x34, `UpdatePrim_52` `00572c40`; 0x35, `UpdatePrim_53`
+`00572ce0`):
+- **Fading** in by 18 a step for 10 steps. 0x34 fades out by 15 after 20; 0x35 never
+  fades.
+- **0x35 follows its owner.** 0x34 stays where it started.
+- **0x34's drawing.** Two wedges from the primitive out to the distance along the yaw,
+  facing the camera: 3 degrees either way in white at half the alpha, then 5 either way
+  in (130, 130, 255).
+- **0x35's drawing.** A line twice the distance long and twice the half-width across,
+  along the yaw, moved the offset aside towards the yaw less 90 degrees, facing the
+  camera; white onto ONE.
+
+**Asura squares** (0x41, `UpdatePrim_65` `0056b300`), after a negative age:
+- **Brightening.** For the first 19 steps the ten alphas grow by 13 a step, to 70, 90, ...
+  250.
+- **Fading.** Then the first nine fall by 5 a step. After 140 steps the last does too,
+  and the size grows by a hundredth each step it stays above 0.
+- **Shrinking.** For the first 49 steps the size falls by a tenth.
+- **Drawing.** Ten squares facing the camera, relative to the primitive:
+  - the size plus 0, 3, ... 27 out to 45, 135, 225 and 315 degrees;
+  - moved the offset along x, and 30 up;
+  - each at its own alpha, the largest the first, and drawn only above 0;
+  - of the record's image, black onto ONE.
+
+  The drawing writes the corners into the record at +0x88.
+
+**The effects:**
+
+| Effect ids | Function | Id | What |
+|-----------|----------|---:|------|
+| 0xe3 | `AddBurstSquares` (`005752b0`) | 0x29 | 20 a step: four squares of `white01.bmp` from the target, half-diagonal 3.5, from 12 out by 1.5 a step, ages −70 to −99; directions, turns and tilts by `rand()`. `effect\EF_Bash.wav` on the first step, `effect\rog_intimidate.wav` at step 35 |
+| 0x106, 0x10a | `AddRays` (`005756b0`) | 0x2a | 20 and 24 a step: four rays of `lens1.tga`, colours 0 and 1; half-width 0.7, 24 half-widths long, from −10 by 3 a step, ages −10 to −34 |
+| 0x114 | `AddShortRays` (`00575ed0`) | 0x2a | 20 a step: four rays of `lens2.tga`, colour 2; half-width 1, 16 half-widths long, from −10 by 2 a step, ages −20 to −29 |
+| 0x129 | `AddFireworks` (`00568ba0`) | 0x32 | four fireworks of `pok1`, `pok3` and `pok2.tga` from 15 back along x from the player, ages −300 to −349; colours, delays (0 to 60), speeds (0.4 to 0.796) and directions by `rand()` |
+| 300 | `AddBeams` (`00575870`) | 0x34 | twice, from 30 and 60 degrees: four beams of `shockwave_c.bmp` 100 long, a quarter turn apart |
+| 0x12f | `AddSlashLines` (`005759b0`) | 0x35 | twice, at frame 100: four lines of `blue_ivy.bmp` at 30 degrees, 100 long, half-width 1, offsets −15 to −22.5 and then 15 to 22.5; flags 0x201 |
+| 0x148 | `AddAsuraStrike` (`00567740`) | 0x1c, 0x41 | at least 280 steps; `effect\EF_BeginSpell.wav` and two `AddSpreadingRings` of `ring_white` (alphas 45 and 25, preset 2) on the first step; at steps 1 and 21, three squares of size 18 each: `asura3` to `asura1` (ages −40, −20, 0; offsets −6, −18, −30), then `asura4` to `asura6` (ages −40, −60, −80; offsets 6, 18, 30) |
+
+**`AddSpreadingRings`** (`005730c0`, id 0x1c) makes its effect last at least 60 steps. It
+adds four rings of radius 4.1 and tilt 80 at 180, 270, 0 and 90 degrees:
+- **Alphas:** the alpha given plus 135, 90, 45 and 0.
+- **Heights:** 25 to 22 for preset 2, otherwise 20 to 17.
+- **Scale:** 8 for preset 1, otherwise 5.
+- **An effect of exactly 60 steps** starts them at alpha 0 and ages 0, −5, −10 and −15.
+
+**Notes on the effects:**
+- **Positioning.** The effects keep themselves at the actor each step, except:
+  - `AddBurstSquares` and `AddShortRays`, which do so on the first step only;
+  - `AddFireworks`, which keeps itself at the player.
+- **After adding**, the effect moves its own y up 9 (the fireworks: x back 15), which
+  nothing reads after.
+- **Late fireworks.** They burst 455 to 504 steps after the effect starts.
+- **Never called.** `AddCoinBurst` (`005754a0`) is `AddBurstSquares` with `coin_a.bmp`,
+  colour 1, ages −18 to −47 and 12 up instead of 9. The port leaves it out.
+
 ## In the port
 
 **`src/core/crt_rand`:** `CrtRand`, `srand` and `rand`.
@@ -878,14 +999,17 @@ of them ("motes"). They are 0x1b (`RenderRisingSquares` `0056e920`), 0x1e
 **`src/render/effect_prim`:**
 - `EffectPrim` with `MakePrimitive`, `ResetHistory`, `UpdatePrimitive` (vf01) and
   `DrawPrimitive` (vf03), for ids 0 to 2, 5, 6, 0xd, the twelve ring ids, the eight
-  facing-square ids, the three flat-square ids and the three mote ids. `PrimScene` carries the camera's yaw and pitch, the ground, the view,
+  facing-square ids, the three flat-square ids, the three mote ids and the six ids of
+  single squares and rectangles. `PrimScene` carries the camera's yaw and pitch, the ground, the view,
   the projection and the sprite slope; `PrimDrawing` gets the triangles and the sprite
   quads;
 - `ProcessHitSpark`, `ProcessRingBurst` and `ProcessHit3`; `AddRingWaves` (with `slow`
   for `AddSlowRingWaves`), `AddRisingRings`, `AddFadingRings`, the eight setups of
   [More rings](#more-rings), the eleven of [the square effects](#the-square-effects) and
-  `AddTwinSquares`, `AddSwellingSquare`, `AddRisingMotes`, `AddPulsingMotes` and
-  `AddPoppingMotes`;
+  `AddTwinSquares`, `AddSwellingSquare`, `AddRisingMotes`, `AddPulsingMotes`,
+  `AddPoppingMotes` and the seven setups of
+  [single squares and rectangles](#single-squares-and-rectangles) (`AddRays` with
+  `short_rays` for `AddShortRays`);
 - `EffectWorld`, the world's list as effects use it:
   - `Launch` adds an effect;
   - `Step` runs a world step in the list's order;
@@ -906,9 +1030,11 @@ installed 2003 data lacks many of the squares' textures, and ragview draws those
 - the `pok` sparks;
 - `pikapika2.bmp`;
 - the two boomerangs;
-- `ring_white.tga`.
+- `ring_white.tga`;
+- `white01.bmp` and the `asura` squares.
 
-The melody notes, the item pictures and `alpha_down.tga` are there.
+The melody notes, the item pictures, `alpha_down.tga`, the `lens` rays and
+`shockwave_c.bmp` are there.
 
 ## Checks
 
@@ -971,11 +1097,18 @@ The melody notes, the item pictures and `alpha_down.tga` are there.
   the squares. The motes are below, at and above their limits, and every image of 0x21 is
   seen from both sides. 0x21's motes' x and z are checked through the triangles drawn from
   them.
+- **24 synthetic single squares and rectangles**, four of each id, 24 steps each, and
+  the eight effects that add them, as for the squares:
+  - ages around the updates' thresholds: 0x32 rising, bursting, sparkling and starting
+    again, and 0x41 brightening, fading and growing;
+  - every colour, the rays' lengths (negative too) and 0x29's turns past 360;
+  - 0xe3 for 104 steps, until its squares fly, and 0x12f for 112, past frame 100.
+  0x41's corners are checked through the triangles drawn from them.
 
-`tests/unit/prim_test.cpp` matches all of it: 1,591,869 values, the CRT's first `rand` values
+`tests/unit/prim_test.cpp` matches all of it: 1,848,563 values, the CRT's first `rand` values
 among them.
 
 **Not ported:**
-- the other 36 primitive ids;
+- the other 30 primitive ids;
 - the other effects' processing;
 - the sounds.

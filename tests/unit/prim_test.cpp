@@ -193,6 +193,7 @@ constexpr std::uint32_t kSyntheticSeed = 500;         // srand before the n-th p
 constexpr std::uint32_t kShapeSeed = 700;             // the same for the shapes
 constexpr std::uint32_t kSquareSeed = 4000;           // and for the facing squares
 constexpr std::uint32_t kMoteSeed = 7000;             // and for the motes
+constexpr std::uint32_t kPieceSeed = 9000;            // and for the single squares
 
 float F(std::uint32_t bits) { return std::bit_cast<float>(bits); }
 std::uint32_t B(float f) { return std::bit_cast<std::uint32_t>(f); }
@@ -448,8 +449,83 @@ std::vector<std::uint32_t> MotesStateOf(const EffectPrim& p) {
   return out;
 }
 
+bool IsPiece(std::int32_t id) {
+  return id == 0x29 || id == 0x2a || id == 0x32 || id == 0x34 || id == 0x35 || id == 0x41;
+}
+
+// A dword of a record as ids 0x29, 0x2a, 0x32, 0x34, 0x35 and 0x41 read it.
+void ApplyPiece(std::uint32_t offset, std::uint32_t v, EffectPrim& p) {
+  PrimPiece& s = p.pieces[offset / kRingSize];
+  const std::uint32_t o = offset % kRingSize;
+  if (o == 0) {
+    s.active = (v & 0xff) != 0;
+    s.pitch = High(v);
+  } else if (o == 4) {
+    s.width = F(v);
+  } else if (o == 8) {
+    s.age = static_cast<std::int32_t>(v);
+  } else if (o == 0xc) {
+    s.turn = Low(v);
+    s.alpha = High(v);
+  } else if (o == 0x10) {
+    s.view_angle = Low(v);
+  } else if (o == 0x14) {
+    s.growth = F(v);
+  } else if (o >= 0x18 && o < 0x40) {
+    s.values[(o - 0x18) / 4] = F(v);
+  } else if (o == 0x68) {
+    s.yaw = Low(v);
+  } else if (o == 0x6c) {
+    s.distance = F(v);
+  } else if (o == 0x70) {
+    s.color = static_cast<std::uint8_t>(v);
+    s.length = static_cast<std::int8_t>(v >> 8);
+    s.delay = static_cast<std::int8_t>(v >> 16);
+    s.image = static_cast<std::uint8_t>(v >> 24);
+  } else if (o >= 0x88) {
+    s.points[(o - 0x88) / 0xc][(o - 0x88) % 0xc / 4] = F(v);
+  } else {
+    FAIL("unknown piece field " << offset);
+  }
+}
+
+// The position, the age and each whole record as the pieces lay them out; 0x41's corners,
+// which its drawing writes, are left out as the script leaves them.
+std::vector<std::uint32_t> PiecesStateOf(const EffectPrim& p) {
+  std::vector<std::uint32_t> out = {B(p.position[0]), B(p.position[1]), B(p.position[2]), U(p.age)};
+  for (const PrimPiece& s : p.pieces) {
+    std::array<std::uint8_t, kRingSize> bytes{};
+    const auto put = [&bytes](std::size_t at, const auto& value) {
+      std::memcpy(bytes.data() + at, &value, sizeof(value));
+    };
+    put(0, static_cast<std::uint8_t>(s.active ? 1 : 0));
+    put(2, s.pitch);
+    put(4, s.width);
+    put(8, s.age);
+    put(0xc, s.turn);
+    put(0xe, s.alpha);
+    put(0x10, s.view_angle);
+    put(0x14, s.growth);
+    put(0x18, s.values);
+    put(0x68, s.yaw);
+    put(0x6c, s.distance);
+    put(0x70, s.color);
+    put(0x71, s.length);
+    put(0x72, s.delay);
+    put(0x73, s.image);
+    if (p.id != 0x41) put(0x88, s.points);
+    for (std::size_t i = 0; i < bytes.size(); i += 4) {
+      std::uint32_t word = 0;
+      std::memcpy(&word, bytes.data() + i, 4);
+      out.push_back(word);
+    }
+  }
+  return out;
+}
+
 std::vector<std::uint32_t> StateFor(const EffectPrim& p) {
   if (IsSquare(p.id)) return SquareStateOf(p);
+  if (IsPiece(p.id)) return PiecesStateOf(p);
   return IsMote(p.id) ? MotesStateOf(p) : RingStateOf(p);
 }
 
@@ -534,6 +610,8 @@ void Apply(const FieldVector& f, EffectPrim& p) {
           ApplySquare(f.field - kRingBase, f.value, p);
         } else if (IsMote(p.id)) {
           ApplyMote(f.field - kRingBase, f.value, p);
+        } else if (IsPiece(p.id)) {
+          ApplyPiece(f.field - kRingBase, f.value, p);
         } else {
           ApplyRing(f.field - kRingBase, f.value, p);
         }
@@ -1132,4 +1210,37 @@ TEST_CASE("Motes step and draw as the original's", "[effect]") {
 
 TEST_CASE("The mote effects play as the original's", "[effect]") {
   CheckTargetEffects(kMoteEffects);
+}
+
+TEST_CASE("Single squares and rectangles step and draw as the original's", "[effect]") {
+  std::map<std::string, std::uint32_t> ids;
+  for (std::uint32_t i = 0; i < 5; ++i) ids["t" + std::to_string(i)] = kSyntheticTextures + i;
+  std::size_t n = 0;
+  for (const ShapeVector& v : kPieces) {
+    INFO("piece primitive " << n << ", id " << v.id);
+    RagEffect owner;
+    for (std::size_t i = 0; i < 3; ++i) owner.position[i] = F(v.position[i]);
+    owner.duration = v.duration;
+    EffectPrim p = MakePrimitive(&owner, v.id, {0.0f, 0.0f, 0.0f});
+    for (std::size_t f = 0; f < v.field_count; ++f) Apply(v.fields[f], p);
+    p.textures = {"t0", "t1", "t2", "t3", "t4"};
+    const PrimScene scene = SceneOf(v.scene, nullptr);
+    ragexe::core::CrtRand rand(kPieceSeed + static_cast<std::uint32_t>(n));
+    for (std::size_t f = 0; f < v.frame_count; ++f) {
+      INFO("frame " << f);
+      const ShapeFrameVector& fv = v.frames[f];
+      const bool more = UpdatePrimitive(p, rand, scene);
+      CHECK(more == (fv.more != 0));
+      CheckState(PiecesStateOf(p), fv.state, fv.state_count);
+      PrimDrawing drawing;
+      if (more) DrawPrimitive(p, scene, drawing);
+      CheckTriangles(drawing.triangles, fv.triangles, fv.count, ids);
+      ++owner.frame;
+    }
+    ++n;
+  }
+}
+
+TEST_CASE("The single square effects play as the original's", "[effect]") {
+  CheckTargetEffects(kPieceEffects);
 }

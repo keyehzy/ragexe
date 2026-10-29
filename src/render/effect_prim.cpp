@@ -1317,6 +1317,160 @@ void UpdatePoppingMotes(EffectPrim& p, core::CrtRand& rand, const PrimScene& sce
   }
 }
 
+// The camera's angles into the pieces' records, and with follow the primitive at its
+// owner.
+void FaceCameraPieces(EffectPrim& p, const PrimScene& scene, bool follow) {
+  const std::array<std::int16_t, 2> angles = ViewAngles(scene);
+  p.pieces[0].view_angle = angles[0];
+  p.pieces[1].view_angle = angles[1];
+  if (follow) p.position = p.owner->position;
+}
+
+// CEffectPrim::UpdatePrim_41 (00571d80), id 0x29: each record waits out a negative age,
+// then flies out by its growth a frame, brightens by 15 (colour 0) or 25 for 10 frames and
+// fades by 7 after 25; its tilt turns 5 degrees a frame.
+void UpdateBurstSquares(EffectPrim& p) {
+  for (PrimPiece& s : p.pieces) {
+    if (!s.active) continue;
+    ++s.age;
+    if (s.age > 0) s.distance = s.distance + s.growth;
+    if (s.age < 11 && s.age > 0) {
+      s.alpha = Add16(s.alpha, s.color == 0 ? 15 : 25);
+    } else if (s.age > 25) {
+      s.alpha = Add16(s.alpha, -7);
+      if (s.alpha < 1) s.alpha = 0;
+    }
+    if (s.turn > 359) s.turn = Add16(s.turn, -360);
+    const float tilt = s.values[1] + 5.0f;
+    s.values[1] = tilt >= 360.0f ? tilt - 360.0f : tilt;
+  }
+}
+
+// CEffectPrim::UpdatePrim_42 (00571e30), id 0x2a: each record waits out a negative age,
+// then moves out by its growth a frame, brightening by 15 from frame 11 to 20 and fading by
+// 5 otherwise.
+void UpdateRays(EffectPrim& p) {
+  for (PrimPiece& s : p.pieces) {
+    if (!s.active) continue;
+    ++s.age;
+    if (s.age > 0) s.distance = s.growth + s.distance;
+    if (s.age < 21 && s.age > 10) {
+      s.alpha = Add16(s.alpha, 15);
+    } else {
+      s.alpha = Add16(s.alpha, -5);
+      if (s.alpha < 1) s.alpha = 0;
+    }
+  }
+}
+
+// CEffectPrim::UpdatePrim_50 (0057b440), id 0x32, fireworks: each record waits out a
+// negative age; then every third frame its trail moves on (the centre to +0xa0, that to
+// +0x94, that to +0xac), it sparkles (image 1 at frames 15 and 19 of every 20, 2 at 17)
+// from its delay plus 160 to plus 180, and it turns 5 degrees a frame. Stage 0 rises a
+// quarter a frame until the age passes 154, then bursts at alpha 250; stage 1 flies out
+// along its direction at its speed, falling 0.02 more each frame, the speed 0.98 of itself,
+// fading by 1 or (half the time) 2. After 2000 frames it starts again 15 short of the
+// owner in a new direction and speed.
+void UpdateFireworks(EffectPrim& p, core::CrtRand& rand, const PrimScene& scene) {
+  FaceCameraPieces(p, scene, true);
+  for (PrimPiece& s : p.pieces) {
+    if (!s.active) continue;
+    ++s.age;
+    if (s.age <= 0) continue;
+    if (s.age % 3 == 0) {
+      s.points[3] = s.points[1];
+      s.points[1] = s.points[2];
+      s.points[2] = s.points[0];
+    }
+    s.image = 0;
+    if (s.age <= s.delay + 180 && s.age >= s.delay + 160) {
+      const auto m = static_cast<std::int8_t>(s.age % 20);
+      if (m == 15 || m == 19) {
+        s.image = 1;
+      } else if (m == 17) {
+        s.image = 2;
+      }
+    }
+    s.turn = Add16(s.turn, 5);
+    if (s.turn >= 360) s.turn = Add16(s.turn, -360);
+    Vec3& c = s.points[0];
+    if (s.length == 0) {
+      c[1] = c[1] - 0.25f;
+      if (s.age > 154) {
+        s.length = 1;
+        s.alpha = 250;
+      }
+    } else if (s.length == 1) {
+      const float out = TableAt(kCosines, s.pitch) * s.distance;
+      c[1] = ((TableAt(kSines, s.pitch) * s.distance) + c[1]) + std::bit_cast<float>(0x3ca3d70au);
+      c[0] = (out * TableAt(kCosines, s.yaw)) + c[0];
+      c[2] = (out * TableAt(kSines, s.yaw)) + c[2];
+      s.distance = s.distance * std::bit_cast<float>(0x3f7ae148u);  // 0.98
+      s.alpha = Add16(s.alpha, -1);
+      if (rand.Next() % 2 == 0) s.alpha = Add16(s.alpha, -1);
+      if (s.alpha < 0) s.alpha = 0;
+    }
+    if (s.age > 2000) {
+      s.age = 0;
+      s.length = 0;
+      s.yaw = static_cast<std::int16_t>(rand.Next() % 360);
+      c = p.position;
+      c[0] = c[0] - 15.0f;
+      s.distance = (static_cast<float>(rand.Next() % 100) * std::bit_cast<float>(0x3b83126fu)) +
+                   std::bit_cast<float>(0x3ecccccdu);  // 0.004, 0.4
+    }
+  }
+}
+
+// CEffectPrim::UpdatePrim_52 (00572c40) and UpdatePrim_53 (00572ce0), ids 0x34 and 0x35:
+// each record brightens by 18 for 10 frames; 0x34 fades by 15 after 20. 0x35 follows its
+// owner.
+void UpdateBeams(EffectPrim& p, const PrimScene& scene, bool fade) {
+  FaceCameraPieces(p, scene, !fade);
+  for (PrimPiece& s : p.pieces) {
+    if (!s.active) continue;
+    ++s.age;
+    if (s.age < 11) {
+      s.alpha = Add16(s.alpha, 18);
+    } else if (s.age > 20) {
+      if (fade) s.alpha = Add16(s.alpha, -15);
+      if (s.alpha < 0) s.alpha = 0;
+    }
+  }
+}
+
+// CEffectPrim::UpdatePrim_65 (0056b300), id 0x41: each record waits out a negative age;
+// for its first 19 frames its ten alphas grow by 13 to 70, 90, ... 250; then all but the
+// last fade by 5, and after 140 frames the last too, the size growing a hundredth a frame
+// while it does. For 49 frames the size shrinks by a tenth.
+void UpdateAsuraSquares(EffectPrim& p, const PrimScene& scene) {
+  FaceCameraPieces(p, scene, false);
+  for (PrimPiece& s : p.pieces) {
+    if (!s.active) continue;
+    ++s.age;
+    if (s.age <= 0) continue;
+    if (s.age < 20) {
+      for (std::size_t k = 0; k < s.values.size(); ++k) {
+        const auto limit = static_cast<float>(70 + 20 * static_cast<std::int32_t>(k));
+        s.values[k] = s.values[k] + 13.0f;
+        if (!(s.values[k] < limit)) s.values[k] = limit;
+      }
+    } else {
+      for (std::size_t k = 0; k + 1 < s.values.size(); ++k) {
+        s.values[k] = s.values[k] - 5.0f;
+        if (s.values[k] < 0.0f) s.values[k] = 0.0f;
+      }
+      if (s.age > 140) {
+        float& last = s.values.back();
+        last = last - 5.0f;
+        if (last > 0.0f) s.distance = s.distance * std::bit_cast<float>(0x3f8147aeu);  // 1.01
+        if (last < 0.0f) last = 0.0f;
+      }
+    }
+    if (s.age < 50) s.distance = s.distance - std::bit_cast<float>(0x3dcccccdu);  // 0.1
+  }
+}
+
 ScreenVertex Vertex(float x, float y, std::uint32_t color, float u, float v) {
   ScreenVertex s;
   s.x = x;
@@ -1871,6 +2025,192 @@ void DrawPoppingMotes(const EffectPrim& p, const PrimScene& scene, PrimDrawing& 
   }
 }
 
+// An angle a quarter turn on, reduced once past 359.
+std::int32_t QuarterOn(std::int32_t a) { return a + 90 > 359 ? a - 270 : a + 90; }
+
+// CEffectPrim::RenderTiltedSquare (0056fb50), id 0x29: each active record with some alpha
+// as a square of its half-diagonal, corners a quarter turn apart from its turn, tilted by
+// its tilt about z, at its distance out along its direction from its centre; (100, 150,
+// 255), or (250, 250, 155) for colour 1.
+void DrawBurstSquares(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
+  for (const PrimPiece& s : p.pieces) {
+    if (!s.active || s.alpha < 1) continue;
+    const float flat = TableAt(kCosines, s.pitch) * s.distance;
+    const float up = TableAt(kSines, s.pitch) * s.distance;
+    const float along_x = flat * TableAt(kCosines, s.yaw);
+    const float along_z = TableAt(kSines, s.yaw) * flat;
+    const std::int32_t tilt = Ftol(s.values[1]);
+    const float tc = TableAt(kCosines, tilt);
+    const float ts = TableAt(kSines, tilt);
+    const Vec3& at = s.points[0];
+    std::array<Vec3, 4> q{};
+    std::int32_t a = s.turn;
+    for (Vec3& v : q) {
+      const float c = TableAt(kCosines, a) * s.values[0];
+      const float n = TableAt(kSines, a) * s.values[0];
+      v = {((tc * c) + along_x) + at[0], (n + up) + at[1], ((c * ts) + along_z) + at[2]};
+      a = QuarterOn(a);
+    }
+    if (s.color == 0) {
+      DrawQuad(p, scene, q, {s.alpha, false, 0, true, 100, 150, 255}, out);
+    } else {
+      DrawQuad(p, scene, q, {s.alpha, false, 0, true, 250, 250, 155}, out);
+    }
+  }
+}
+
+// CEffectPrim::RenderRotatedRectangle (0056fea0), id 0x2a: each active record with some
+// alpha as a rectangle twice its half-width across, from its length in half-widths short
+// of its distance out to as far past it, turned up by its pitch and round by its yaw,
+// relative to the primitive: white for colour 1, otherwise (200, 200, 255) onto ONE.
+void DrawRays(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
+  for (const PrimPiece& s : p.pieces) {
+    if (!s.active || s.alpha < 1) continue;
+    const float w = s.values[0];
+    const float far = (static_cast<float>(s.length) * w) + s.distance;
+    const float near = (static_cast<float>(-s.length) * w) + s.distance;
+    const float back = w * -1.0f;
+    const float pc = TableAt(kCosines, s.pitch);
+    const float ps = TableAt(kSines, s.pitch);
+    const float yc = TableAt(kCosines, s.yaw);
+    const float ys = TableAt(kSines, s.yaw);
+    const auto corner = [&](float along, float across) {
+      const float flat = (pc * along) - (ps * across);
+      return Vec3{flat * yc, (ps * along) + (pc * across), ys * flat};
+    };
+    const std::array<Vec3, 4> q = {corner(far, back), corner(far, w), corner(near, w),
+                                   corner(near, back)};
+    if (s.color == 1) {
+      DrawQuad(p, scene, q, {s.alpha, false, 0, false, 255, 255, 255}, out);
+    } else {
+      DrawQuad(p, scene, q, {s.alpha, true, 0, false, 200, 200, 255}, out);
+    }
+  }
+}
+
+// Four corners a quarter turn apart from the angle, the half-diagonal out, turned to face
+// the camera by the first two records' angles.
+std::array<Vec3, 4> FacingPieceCorners(const EffectPrim& p, float half, std::int32_t from) {
+  std::array<Vec3, 4> q{};
+  std::int32_t a = from;
+  for (Vec3& v : q) {
+    v = {TableAt(kCosines, a) * half, 0.0f, TableAt(kSines, a) * half};
+    a = QuarterOn(a);
+  }
+  RotateQuadPoints(q, p.pieces[0].view_angle, p.pieces[1].view_angle);
+  return q;
+}
+
+// CEffectPrim::RenderColoredFacingSquares (0057c620), id 0x32: each active record with
+// some alpha as two squares facing the camera from its turn, at its centre and at the first
+// point of its trail, the second half a unit smaller and at half the alpha; coloured by its
+// colour, blue, red, green, yellow or (4) magenta, or, sparkling, white at a quarter of the
+// alpha and the sparkle's image.
+void DrawFireworks(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
+  struct Rgb {
+    std::int32_t r, g, b;
+  };
+  constexpr std::array<Rgb, 5> kColors = {
+      {{70, 70, 255}, {255, 70, 70}, {70, 255, 70}, {255, 255, 90}, {255, 70, 255}}};
+  for (const PrimPiece& s : p.pieces) {
+    if (!s.active || s.alpha < 1) continue;
+    const Rgb rgb = s.image != 0 ? Rgb{255, 255, 255} : kColors[std::min<std::size_t>(s.color, 4)];
+    float less = 0.0f;
+    for (std::int32_t i = 0; i < 2; ++i) {
+      const std::array<Vec3, 4> q =
+          Moved(FacingPieceCorners(p, s.width - less, s.turn), s.points[i == 0 ? 0 : 2]);
+      std::int32_t alpha = s.alpha / (i + 1);
+      if (s.image != 0) alpha /= 4;
+      DrawQuad(p, scene, q,
+               {static_cast<std::int16_t>(alpha), false, static_cast<std::int8_t>(s.image), true,
+                rgb.r, rgb.g, rgb.b},
+               out);
+      less = less + (i == 0 ? kHalf : 0.25f);
+    }
+  }
+}
+
+// CEffectPrim::RenderFacingSquareLayers (0057c0f0), id 0x34: each active record with some
+// alpha as two thin wedges from the primitive out to its distance along its angle, facing
+// the camera: 3 degrees either way, white at half the alpha, then 5 either way, (130, 130,
+// 255) at the alpha.
+void DrawBeams(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
+  for (const PrimPiece& s : p.pieces) {
+    if (!s.active || s.alpha < 1) continue;
+    const auto wedge = [&](std::int32_t spread) {
+      std::int32_t from = s.yaw - spread;
+      if (from < 0) from = s.yaw + 360 - spread;
+      std::int32_t to = s.yaw + spread;
+      if (to > 359) to = s.yaw - 360 + spread;
+      std::array<Vec3, 4> q = {
+          Vec3{},
+          {TableAt(kCosines, from) * s.distance, 0.0f, TableAt(kSines, from) * s.distance},
+          {TableAt(kCosines, to) * s.distance, 0.0f, TableAt(kSines, to) * s.distance},
+          Vec3{}};
+      RotateQuadPoints(q, p.pieces[0].view_angle, p.pieces[1].view_angle);
+      return q;
+    };
+    const auto half = static_cast<std::int16_t>(Ftol(static_cast<float>(s.alpha) * kHalf));
+    DrawQuad(p, scene, wedge(3), {half, false, 0, false, 255, 255, 255}, out);
+    DrawQuad(p, scene, wedge(5), {s.alpha, false, 0, false, 130, 130, 255}, out);
+  }
+}
+
+// CEffectPrim::RenderFacingRectangles (0057c3b0), id 0x35: each active record with some
+// alpha as a line twice its distance long and twice its half-width across, along its angle,
+// moved its offset aside, facing the camera; white onto ONE.
+void DrawSlashLines(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
+  for (const PrimPiece& s : p.pieces) {
+    if (!s.active || s.alpha < 1) continue;
+    const std::int32_t a = s.yaw;
+    const std::int32_t ahead = a < 0 ? a + 360 : a;
+    const std::int32_t left = a < 90 ? a + 270 : a - 90;
+    const std::int32_t right = QuarterOn(a);
+    const std::int32_t back = a < 180 ? a + 180 : a - 180;
+    const float aside_x = TableAt(kCosines, left) * s.growth;
+    const float aside_z = TableAt(kSines, left) * s.growth;
+    const float near_x = (TableAt(kCosines, left) * s.width) + aside_x;
+    const float near_z = (TableAt(kSines, left) * s.width) + aside_z;
+    const float far_x = (TableAt(kCosines, right) * s.width) + aside_x;
+    const float far_z = (TableAt(kSines, right) * s.width) + aside_z;
+    const auto end = [&](std::int32_t e, float x, float z) {
+      return Vec3{(TableAt(kCosines, e) * s.distance) + x, 0.0f,
+                  (TableAt(kSines, e) * s.distance) + z};
+    };
+    std::array<Vec3, 4> q = {end(ahead, far_x, far_z), end(back, far_x, far_z),
+                             end(back, near_x, near_z), end(ahead, near_x, near_z)};
+    RotateQuadPoints(q, p.pieces[0].view_angle, p.pieces[1].view_angle);
+    DrawQuad(p, scene, q, {s.alpha, true, 0, false, 255, 255, 255}, out);
+  }
+}
+
+// CEffectPrim::RenderRotatedSquares (0056c4a0), id 0x41: each active record as ten squares
+// facing the camera, of its size plus 0, 3, ... 27 out to 45, 135, 225 and 315 degrees,
+// moved its offset along x and 30 up, each at its own alpha (if above 0) and the record's
+// image, black onto ONE, relative to the primitive. The original keeps the corners at
+// +0x88 of the record.
+void DrawAsuraSquares(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
+  for (const PrimPiece& s : p.pieces) {
+    if (!s.active) continue;
+    for (std::size_t k = 0; k < s.values.size(); ++k) {
+      const float r = static_cast<float>(3 * static_cast<std::int32_t>(k)) + s.distance;
+      std::array<Vec3, 4> q{};
+      for (std::size_t c = 0; c < 4; ++c) {
+        const auto a = static_cast<std::int32_t>(45 + 90 * c);
+        q[c] = {(TableAt(kCosines, a) * r) + s.growth, 0.0f, TableAt(kSines, a) * r};
+      }
+      RotateQuadPoints(q, p.pieces[0].view_angle, p.pieces[1].view_angle);
+      for (Vec3& v : q) v[1] = v[1] - 30.0f;
+      const std::int32_t alpha = Ftol(s.values[s.values.size() - 1 - k]);
+      if (alpha <= 0) continue;
+      DrawQuad(p, scene, {q[1], q[0], q[3], q[2]},
+               {static_cast<std::int16_t>(alpha), true, static_cast<std::int8_t>(s.color), false, 0,
+                0, 0},
+               out);
+    }
+  }
+}
+
 // The particles of ids 0 and 2: heading and pitch, then 4 to 7 out along the matrix's z,
 // 10 up.
 void AimParticle(EffectPrim& p, std::int32_t heading, core::CrtRand& rand) {
@@ -1964,6 +2304,12 @@ bool UpdatePrimitive(EffectPrim& p, core::CrtRand& rand, const PrimScene& scene)
     case 0x1b: UpdateRisingMotes(p, rand, scene); break;
     case 0x1e: UpdatePulsingMote(p, rand, scene); break;
     case 0x21: UpdatePoppingMotes(p, rand, scene); break;
+    case 0x29: UpdateBurstSquares(p); break;
+    case 0x2a: UpdateRays(p); break;
+    case 0x32: UpdateFireworks(p, rand, scene); break;
+    case 0x34: UpdateBeams(p, scene, true); break;
+    case 0x35: UpdateBeams(p, scene, false); break;
+    case 0x41: UpdateAsuraSquares(p, scene); break;
     case 0x1f:
     case 0x28:
     case 0x2b:
@@ -2025,6 +2371,12 @@ void DrawPrimitive(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out
     case 0x1b: DrawRisingMotes(p, scene, out); break;
     case 0x1e: DrawPulsingMote(p, scene, out); break;
     case 0x21: DrawPoppingMotes(p, scene, out); break;
+    case 0x29: DrawBurstSquares(p, scene, out); break;
+    case 0x2a: DrawRays(p, scene, out); break;
+    case 0x32: DrawFireworks(p, scene, out); break;
+    case 0x34: DrawBeams(p, scene, out); break;
+    case 0x35: DrawSlashLines(p, scene, out); break;
+    case 0x41: DrawAsuraSquares(p, scene, out); break;
     default: break;
   }
 }
@@ -2884,6 +3236,167 @@ void AddPoppingMotes(RagEffect& effect, const EffectActor& actor, std::int8_t co
   added.push_back(std::move(p));
 }
 
+void AddBurstSquares(RagEffect& effect, const EffectActor& actor, core::CrtRand& rand,
+                     std::vector<EffectPrim>& added) {
+  if (effect.frame != 0) return;
+  effect.position = actor.position;
+  EffectPrim p = MakeSquares(effect, 0x29, {"effect\\white01.bmp"});
+  effect.position[1] = effect.position[1] - 9.0f;
+  for (PrimPiece& s : p.pieces) {
+    s.active = true;
+    s.points[0] = effect.target;
+    s.age = -70 - rand.Next() % 30;
+    s.distance = 12.0f;
+    s.growth = 1.5f;
+    s.yaw = static_cast<std::int16_t>(rand.Next() % 360);
+    s.pitch = static_cast<std::int16_t>(rand.Next() % 360);
+    s.turn = static_cast<std::int16_t>(rand.Next() % 360);
+    s.values[1] = static_cast<float>(rand.Next() % 360);
+    s.values[0] = 3.5f;
+    s.alpha = 0;
+    s.color = 0;
+  }
+  added.push_back(std::move(p));
+}
+
+void AddRays(RagEffect& effect, const EffectActor& actor, const char* texture, std::uint8_t color,
+             bool short_rays, core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  if (!short_rays) effect.position = actor.position;
+  if (effect.frame != 0) return;
+  effect.position = actor.position;
+  EffectPrim p = MakeSquares(effect, 0x2a, {texture});
+  effect.position[1] = effect.position[1] - 9.0f;
+  for (PrimPiece& s : p.pieces) {
+    s.active = true;
+    s.age = short_rays ? -20 - rand.Next() % 10 : -10 - rand.Next() % 25;
+    s.distance = -10.0f;
+    s.growth = short_rays ? 2.0f : 3.0f;
+    s.yaw = static_cast<std::int16_t>(rand.Next() % 360);
+    s.pitch = static_cast<std::int16_t>(rand.Next() % 360);
+    s.values[0] = short_rays ? 1.0f : Bits(0x3f333333);  // 0.7
+    s.alpha = 0;
+    s.color = color;
+    s.length = static_cast<std::int8_t>(short_rays ? 16 : 24);
+  }
+  added.push_back(std::move(p));
+}
+
+void AddFireworks(RagEffect& effect, const Vec3& player, core::CrtRand& rand,
+                  std::vector<EffectPrim>& added) {
+  effect.position = player;
+  if (effect.frame != 0) return;
+  EffectPrim p =
+      MakeSquares(effect, 0x32, {"effect\\pok1.tga", "effect\\pok3.tga", "effect\\pok2.tga"});
+  effect.position[0] = effect.position[0] - 15.0f;
+  for (PrimPiece& s : p.pieces) {
+    s.active = true;
+    s.age = -300 - rand.Next() % 50;
+    s.turn = static_cast<std::int16_t>(rand.Next() % 360);
+    s.points.fill(effect.position);
+    s.alpha = 0;
+    s.width = 2.0f;
+    s.color = static_cast<std::uint8_t>(rand.Next() % 5);
+    s.length = 0;
+    s.image = 0;
+    s.delay = static_cast<std::int8_t>(rand.Next() % 4 * 20);
+    s.distance = (static_cast<float>(rand.Next() % 100) * Bits(0x3b83126f)) + Bits(0x3ecccccd);
+    s.pitch = static_cast<std::int16_t>(rand.Next() % 360);
+    s.yaw = static_cast<std::int16_t>(rand.Next() % 360);
+  }
+  added.push_back(std::move(p));
+}
+
+void AddBeams(RagEffect& effect, const EffectActor& actor, std::int16_t angle,
+              std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  EffectPrim p = MakeSquares(effect, 0x34, {"effect\\shockwave_c.bmp"});
+  effect.position[1] = effect.position[1] - 9.0f;
+  for (std::size_t k = 0; k < p.pieces.size(); ++k) {
+    PrimPiece& s = p.pieces[k];
+    s.active = true;
+    s.age = 0;
+    s.distance = 100.0f;
+    s.yaw = static_cast<std::int16_t>(angle + 90 * static_cast<std::int32_t>(k));
+    s.alpha = 0;
+  }
+  added.push_back(std::move(p));
+}
+
+void AddSlashLines(RagEffect& effect, const EffectActor& actor, bool right,
+                   std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 100) return;
+  EffectPrim p = MakeSquares(effect, 0x35, {"effect\\blue_ivy.bmp"});
+  p.quad_flags = 0x201;  // the constructor's 1, and 0x200
+  effect.position[1] = effect.position[1] - 9.0f;
+  for (std::size_t k = 0; k < p.pieces.size(); ++k) {
+    PrimPiece& s = p.pieces[k];
+    s.active = true;
+    s.age = 0;
+    s.distance = 100.0f;
+    s.width = 1.0f;
+    const auto n = static_cast<float>(k);
+    s.growth = right ? (n * 2.5f) + 15.0f : (n * -2.5f) - 15.0f;
+    s.yaw = 30;
+    s.alpha = 0;
+  }
+  added.push_back(std::move(p));
+}
+
+void AddSpreadingRings(RagEffect& effect, const EffectActor& actor, std::int16_t alpha,
+                       const char* texture, std::int8_t preset, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  effect.duration = std::max(effect.duration, 60);
+  EffectPrim p = MakeRings(effect, 0x1c, texture);
+  p.scale = preset == 1 ? 8.0f : 5.0f;
+  constexpr std::array<std::int16_t, 4> kAngles = {180, 270, 0, 90};
+  constexpr std::array<std::int16_t, 4> kAlphas = {135, 90, 45, 0};
+  for (std::size_t k = 0; k < p.rings.size(); ++k) {
+    const auto n = static_cast<std::int32_t>(k);
+    const float height = static_cast<float>((preset == 2 ? 25 : 20) - n);
+    SetRing(p.rings[k], {360, height, 0, kAngles[k], static_cast<std::int16_t>(alpha + kAlphas[k]),
+                         80, Bits(0x40833333), preset});  // 4.1
+    if (effect.duration < 61) {
+      p.rings[k].alpha = 0;
+      p.rings[k].age = -5 * n;
+    }
+  }
+  added.push_back(std::move(p));
+}
+
+void AddAsuraStrike(RagEffect& effect, const EffectActor& actor, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame == 0) {
+    effect.duration = std::max(effect.duration, 280);
+    // effect\EF_BeginSpell.wav plays here.
+    AddSpreadingRings(effect, actor, 45, "effect\\ring_white.tga", 2, added);
+    AddSpreadingRings(effect, actor, 25, "effect\\ring_white.tga", 2, added);
+  }
+  if (effect.frame != 1 && effect.frame != 21) return;
+  const bool first = effect.frame == 1;
+  EffectPrim p =
+      MakeSquares(effect, 0x41,
+                  first ? std::vector<std::string>{"effect\\asura3.tga", "effect\\asura2.tga",
+                                                   "effect\\asura1.tga"}
+                        : std::vector<std::string>{"effect\\asura4.tga", "effect\\asura5.tga",
+                                                   "effect\\asura6.tga"});
+  p.scale = 0.0f;
+  for (std::size_t k = 0; k < 3; ++k) {
+    PrimPiece& s = p.pieces[k];
+    const auto n = static_cast<std::int32_t>(k);
+    s.active = true;
+    s.age = first ? -40 + 20 * n : -40 - 20 * n;
+    s.distance = 18.0f;
+    s.alpha = 0;
+    s.growth = static_cast<float>(first ? -6 - 12 * n : 6 + 12 * n);
+    s.color = static_cast<std::uint8_t>(k);
+    s.values.fill(0.0f);
+  }
+  added.push_back(std::move(p));
+}
+
 RagEffect& EffectWorld::Launch(std::int32_t id, const EffectActor& actor) {
   Object o;
   o.effect = std::make_unique<RagEffect>();
@@ -2986,6 +3499,29 @@ void EffectWorld::Step(const PrimScene& scene) {
           AddPoppingMotes(e, it->actor, 4, rand_, added);
           break;
         case 0xf2: AddSwellingSquare(e, it->actor, "effect\\aaa copy.bmp", rand_, added); break;
+        case 0xe3:
+          // effect\EF_Bash.wav plays on the first frame, effect\rog_intimidate.wav at 35.
+          for (std::int32_t n = 0; n < 20; ++n) AddBurstSquares(e, it->actor, rand_, added);
+          break;
+        case 0x106:
+        case 0x10a:
+          for (std::int32_t n = 0; n < (e.id == 0x106 ? 20 : 24); ++n)
+            AddRays(e, it->actor, "effect\\lens1.tga", e.id == 0x106 ? 0 : 1, false, rand_, added);
+          break;
+        case 0x114:
+          for (std::int32_t n = 0; n < 20; ++n)
+            AddRays(e, it->actor, "effect\\lens2.tga", 2, true, rand_, added);
+          break;
+        case 0x129: AddFireworks(e, player_, rand_, added); break;
+        case 300:
+          AddBeams(e, it->actor, 30, added);
+          AddBeams(e, it->actor, 60, added);
+          break;
+        case 0x12f:
+          AddSlashLines(e, it->actor, false, added);
+          AddSlashLines(e, it->actor, true, added);
+          break;
+        case 0x148: AddAsuraStrike(e, it->actor, added); break;
         case 0xf8:
           AddFadingRings(e, it->actor, "effect\\ring_yellow.tga", added);
           // AdvanceStr, which answers false without a .str (InitEffect loads none for
