@@ -32,6 +32,7 @@ struct RagEffect {
   float screen_y = 0.0f;      // +0xe0
   Vec3 target{};              // +0xe8, InitEffect's last three arguments
   std::int32_t level = 0;     // +0xb8, from a message (vf02, at most 50)
+  bool landed = false;        // +0xb4, set by a flying primitive with kLands on the ground
 };
 
 // The actor an effect plays on (+0xa0): where it stands and which way it faces (+0x38,
@@ -216,8 +217,20 @@ struct EffectPrim {
   static constexpr std::uint32_t kNarrowing = 0x1;     // 0xd: the top closes from fade_at
   static constexpr std::uint32_t kHeightStops = 0x1;   // 3 and 0x13: the height stops at 0
   static constexpr std::uint32_t kUncapped = 0x1;      // 4 and 0xc: the width the whole radius
+  // The flying ids 0xf, 0x10 and 0x16.
+  static constexpr std::uint32_t kScrollV = 0x2;       // the texture's v steps a tenth a frame
+  static constexpr std::uint32_t kLands = 0x4;         // stops on the ground, telling the owner
+  static constexpr std::uint32_t kStanding = 0x8;      // 0xf: its bottom at the point
+  static constexpr std::uint32_t kLeadsTarget = 0x10;  // the owner's target follows it
+  static constexpr std::uint32_t kFlipRise = 0x20;  // the height's speed turns round now and then
+  static constexpr std::uint32_t kFaceView = 0x40;  // turned to the camera
+  static constexpr std::uint32_t kRising = 0x80;    // 0xf: rising twice its height from the point
+  static constexpr std::uint32_t kStepped = 0x100;  // moved by its own step
+  static constexpr std::uint32_t kRollWithView = 0x200;  // rolled by the camera's pitch
+  static constexpr std::uint32_t kSeeksTarget = 0x400;   // ends within 3 of the owner's target
+  static constexpr std::uint32_t kCycleColor = 0x800;    // the colours step every color_period
 
-  const RagEffect* owner = nullptr;   // +0xa4, cleared when the effect ends (vf02 0x18)
+  RagEffect* owner = nullptr;         // +0xa4, cleared when the effect ends (vf02 0x18)
   std::int32_t id = 0;                // +0x130
   bool visible = true;                // +0x84, CRenderObject's
   Vec3 position{};                    // +4: x and y on screen for these ids
@@ -301,6 +314,16 @@ struct EffectPrim {
   Matrix orbit = kIdentity;
   bool coin_sound = false;  // +0x168: id 6 rings EF_Coin%d on bouncing
 
+  // The flying ids 0xf, 0x10 and 0x16 (UpdatePrim_15 and UpdatePrim_22). Ids 0xf and 0x16 draw
+  // through the second matrix (+0xf4), turned by the heading, pitch and angle.
+  bool changed = false;           // +0xa0, 0xf and 0x10: set at change_at
+  bool reached = false;           // +0xb0, kSeeksTarget: set on reaching the target
+  std::int32_t flip_period = 0;   // +0x12c, kFlipRise
+  std::int32_t color_period = 0;  // +0x194, kCycleColor: frames between colour steps
+  std::int32_t color_count = 0;   // +0x15c
+  float v_top = 0.0f;             // +0x214, the texture's v at the top
+  float v_bottom = 1.0f;          // +0x218
+
   // Ids 5 and 6 draw a sprite's frame at each of their last positions.
   PrimSprite sprite;               // +0x98, +0x9c
   std::int32_t action = 0;         // +0x24
@@ -340,7 +363,7 @@ struct PrimDrawing {
 
 // The constructor (0057cfa0) and InitPrimitive (00586380): owner, id, the start and the
 // position at the owner's position, the offset added to its travel.
-EffectPrim MakePrimitive(const RagEffect* owner, std::int32_t id, const Vec3& offset);
+EffectPrim MakePrimitive(RagEffect* owner, std::int32_t id, const Vec3& offset);
 
 // ResetHistory (0057d4b0): every record of the history as the primitive is now.
 void ResetHistory(EffectPrim& p);
@@ -704,6 +727,55 @@ void AddSignum(RagEffect& effect, const EffectActor& actor, const PrimScene& sce
 void AddRingedColumn(RagEffect& effect, const EffectActor& actor, const char* texture,
                      const PrimSprite& particle, core::CrtRand& rand,
                      std::vector<EffectPrim>& added);
+
+// The effects of flying quads and billboards (docs/render/effect-prim.md#flying-quads),
+// each step:
+//  - ProcessGlassWall (00553ac0), id 0xd: on the first frame four upright walls of
+//    ring_blue.tga (id 0xf) round the actor, two along its facing and two across, rocking;
+//    EF_GlassWall.wav; its .str is left to the .str player;
+//  - AddWallsOfMagic (0055ff60 and 005602d0), ids 0x72 (magic_violet, fading in) and 0x89
+//    (magic_green, smaller): the same four walls, lasting 9999 frames;
+//  - AddPondRing (00556710), id 0x30: eight panels of pond_water.bmp in a ring, their
+//    texture scrolling; every 10 frames eight flat panels of alpha_down.tga, and every 20 a
+//    ring of alpha_center.tga (id 0xc);
+//  - AddLockOn (0055b5d0), id 0x3c: two turning squares of LockOn128.tga under the actor,
+//    shrinking and changing colour; the effect 2 over the ground;
+//  - AddMarker (005627f0 and 005629c0), ids 0x9f (LockOn128.tga tinted by the level) and 0xa0
+//    (party.tga): a square under the actor; starts again at frame 9998;
+//  - AddCollapsingRing (0055d630), id 0x52: on screen a ring of radius 370 closing in and
+//    five long wedges, and at frame 50 a growing square of ring_liner.tga; EF_Bash.wav at 37;
+//  - AddShockwaveBall (0055e610), id 0x5d: a ball of thunder_center and the six thunder_ball
+//    images thrown at the target; hunter_shockwavetrap.wav;
+//  - AddThunderBlast (0055eaa0), id 0x5e: every 20 frames a burst of thunder_pang.bmp, and
+//    at frame 10 a plasma blast of five images, facing the camera;
+//  - AddFlasher (0055f290), id 99: a flash of thunder_center.bmp with alpha keys and twenty
+//    wedges on screen; hunter_flasher.wav;
+//  - AddFallingSpell (005605f0 and 00560a60), ids 0x74 (water_out a to c, wizard_waterball_
+//    chulung.wav) and 0x76 (fire_ivy.bmp, wizard_fire_ivy.wav): a square sinking 25 over the
+//    effect, facing the camera;
+//  - AddDetecting (00560be0), id 0x77: a flat square of fashasha.tga growing and sinking;
+//    hunter_detecting.wav;
+//  - AddRain (00557140), id 0xa1: while more than 40 frames are left a drop (id 0x14) falling
+//    from 200 above the ground near the actor and a splash of rain_gnd.tga (id 0x16) where
+//    it lands, and while more than 300 are left a second, sliding; the effect at the player.
+void ProcessGlassWall(RagEffect& effect, const EffectActor& actor, std::vector<EffectPrim>& added);
+void AddWallsOfMagic(RagEffect& effect, const EffectActor& actor, bool green,
+                     std::vector<EffectPrim>& added);
+void AddPondRing(RagEffect& effect, std::vector<EffectPrim>& added);
+void AddLockOn(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+               std::vector<EffectPrim>& added);
+void AddMarker(RagEffect& effect, const EffectActor& actor, const PrimScene& scene, bool party,
+               std::vector<EffectPrim>& added);
+void AddCollapsingRing(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+                       core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddShockwaveBall(RagEffect& effect, std::vector<EffectPrim>& added);
+void AddThunderBlast(RagEffect& effect, const EffectActor& actor, std::vector<EffectPrim>& added);
+void AddFlasher(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+                core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddFallingSpell(RagEffect& effect, bool water, std::vector<EffectPrim>& added);
+void AddDetecting(RagEffect& effect, std::vector<EffectPrim>& added);
+void AddRain(RagEffect& effect, const EffectActor& actor, const Vec3& player,
+             const res::AttrMap* attr, core::CrtRand& rand, std::vector<EffectPrim>& added);
 
 // The world's object list as effects use it (CWorld::UpdateGameObjects, 004c4a10): each
 // world step every object's vf01 in order, a primitive an effect adds joining the end and

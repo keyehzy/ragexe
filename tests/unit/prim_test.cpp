@@ -217,6 +217,7 @@ constexpr std::uint32_t kPieceSeed = 9000;            // and for the single squa
 constexpr std::uint32_t kWallSeed = 11000;            // and for the walls and bands
 constexpr std::uint32_t kTrailSeed = 13000;           // and for the sprite trails
 constexpr std::uint32_t kScreenSeed = 15000;          // and for the screen and history rings
+constexpr std::uint32_t kFlightSeed = 17000;          // and for the flying quads
 
 float F(std::uint32_t bits) { return std::bit_cast<float>(bits); }
 std::uint32_t B(float f) { return std::bit_cast<std::uint32_t>(f); }
@@ -728,6 +729,8 @@ void Apply(const FieldVector& f, EffectPrim& p) {
     case 0x270: p.pitch_rate = v; break;
     case 0x29c: p.max_height = v; break;
     case 0x1b8: p.sweep = v; break;
+    case 0x12c: p.flip_period = i; break;
+    case 0x194: p.color_period = i; break;
     default:
       if (f.field >= kRingBase && f.field < kRingBase + 4 * kRingSize) {
         if (IsSquare(p.id)) {
@@ -749,6 +752,10 @@ void Apply(const FieldVector& f, EffectPrim& p) {
         p.axis[(f.field - 0x1c0) / 4] = F(f.value);
       } else if (f.field >= 0xc4 && f.field < 0xf4) {
         p.matrix[(f.field - 0xc4) / 4] = v;
+      } else if (f.field >= 0x2e0 && f.field < 0x2ec) {
+        p.step[(f.field - 0x2e0) / 4] = F(f.value);
+      } else if (f.field >= 0x31c && f.field < 0x328) {
+        p.step_speed[(f.field - 0x31c) / 4] = F(f.value);
       } else if (f.field >= 0x1d4 && f.field < 0x1ec) {
         p.step_changes[(f.field - 0x1d4) / 4] = f.value;
       } else {
@@ -883,6 +890,68 @@ std::vector<std::uint32_t> StateOfScreen(const EffectPrim& p) {
 std::vector<std::uint32_t> StateOfScreenEffect(const EffectPrim& p) {
   if (IsScreen(p.id)) return StateOfScreen(p);
   return p.id == 0x3e ? StateFor(p) : StateOfTrail(p);
+}
+
+// What the script records of the flying ids (FLIGHT_STATE), then the second matrix and the
+// owner's target and landed flag.
+std::vector<std::uint32_t> StateOfFlight(const EffectPrim& p) {
+  std::vector<std::uint32_t> out = {B(p.position[0]),
+                                    B(p.position[1]),
+                                    B(p.position[2]),
+                                    U(p.image),
+                                    p.color,
+                                    U(p.period),
+                                    p.flags,
+                                    U(p.age),
+                                    p.fading ? 1u : 0u,
+                                    p.changed ? 1u : 0u,
+                                    p.reached ? 1u : 0u,
+                                    U(p.color_count),
+                                    U(p.red),
+                                    U(p.green),
+                                    U(p.blue),
+                                    B(p.speed),
+                                    B(p.acceleration),
+                                    B(p.heading),
+                                    B(p.pitch),
+                                    B(p.angle),
+                                    B(p.alpha),
+                                    B(p.alpha_speed),
+                                    B(p.heading_speed),
+                                    B(p.pitch_speed),
+                                    B(p.width),
+                                    B(p.width_speed),
+                                    B(p.height),
+                                    B(p.height_speed),
+                                    B(p.height_rate),
+                                    B(p.v_top),
+                                    B(p.v_bottom)};
+  for (const Vec3* v : {&p.step, &p.start, &p.travel})
+    for (float x : *v) out.push_back(B(x));
+  out.push_back(p.changes[2]);
+  out.push_back(p.changes[5]);
+  for (std::uint32_t c : p.step_changes) out.push_back(c);
+  out.push_back(p.changes[3]);
+  out.push_back(p.changes[0]);
+  out.push_back(p.changes[1]);
+  out.push_back(p.changes[4]);
+  for (float x : p.step_speed) out.push_back(B(x));
+  for (float m : p.orbit) out.push_back(B(m));
+  if (p.owner != nullptr) {
+    for (float x : p.owner->target) out.push_back(B(x));
+    out.push_back(p.owner->landed ? 1u : 0u);
+  } else {
+    out.insert(out.end(), 4, 0u);
+  }
+  return out;
+}
+
+bool IsFlight(std::int32_t id) { return id == 0xf || id == 0x16; }
+
+// The flying effects' primitives as the script reads them.
+std::vector<std::uint32_t> StateOfFlightEffect(const EffectPrim& p) {
+  if (IsFlight(p.id)) return StateOfFlight(p);
+  return IsScreen(p.id) ? StateOfScreen(p) : StateOfTrail(p);
 }
 
 // The synthetic attribute map of tools/actor_vectors.py.
@@ -1344,7 +1413,7 @@ void CheckTargetEffects(std::span<const SquareEffectVector> effects,
   const ragexe::res::AttrMap attr = TestAttr();
   const ragexe::res::Sprite sprite = TestSprite();
   const ragexe::res::Act act = TestAct(true);
-  std::map<std::string, std::uint32_t> ids;
+  std::map<std::string, std::uint32_t> ids = {{"", 0}};
   for (const TextureVector& t : kTextures) ids[t.name] = t.id;
   const auto vec = [](const std::uint32_t* v) { return Vec3{F(v[0]), F(v[1]), F(v[2])}; };
   for (const SquareEffectVector& v : effects) {
@@ -1576,4 +1645,42 @@ TEST_CASE("Screen wedges, screen rings and history rings step and draw as the or
 
 TEST_CASE("The screen and history ring effects play as the original's", "[effect]") {
   CheckTargetEffects(kScreenEffects, StateOfScreenEffect, true);
+}
+
+TEST_CASE("Flying quads and billboards step and draw as the original's", "[effect]") {
+  std::map<std::string, std::uint32_t> ids;
+  for (std::uint32_t i = 0; i < 4; ++i) ids["t" + std::to_string(i)] = kSyntheticTextures + i;
+  const ragexe::res::AttrMap attr = TestAttr();
+  std::size_t n = 0;
+  for (const ShapeVector& v : kFlights) {
+    INFO("primitive " << n << ", id " << v.id);
+    RagEffect owner;
+    for (std::size_t i = 0; i < 3; ++i) {
+      owner.position[i] = F(v.position[i]);
+      owner.target[i] = F(v.target[i]);
+    }
+    owner.duration = v.duration;
+    EffectPrim p = MakePrimitive(&owner, v.id, {F(v.offset[0]), F(v.offset[1]), F(v.offset[2])});
+    for (std::size_t f = 0; f < v.field_count; ++f) Apply(v.fields[f], p);
+    p.textures.clear();
+    for (std::int32_t i = 0; i < p.image_count; ++i) p.textures.push_back("t" + std::to_string(i));
+    const PrimScene scene = SceneOf(v.scene, &attr);
+    ragexe::core::CrtRand rand(kFlightSeed + static_cast<std::uint32_t>(n));
+    for (std::size_t f = 0; f < v.frame_count; ++f) {
+      INFO("frame " << f);
+      const ShapeFrameVector& fv = v.frames[f];
+      const bool more = UpdatePrimitive(p, rand, scene);
+      CHECK(more == (fv.more != 0));
+      CheckState(StateOfFlight(p), fv.state, fv.state_count);
+      PrimDrawing drawing;
+      if (more) DrawPrimitive(p, scene, drawing);
+      CheckTriangles(drawing.triangles, fv.triangles, fv.count, ids);
+      ++owner.frame;
+    }
+    ++n;
+  }
+}
+
+TEST_CASE("The flying quad effects play as the original's", "[effect]") {
+  CheckTargetEffects(kFlightEffects, StateOfFlightEffect, true);
 }

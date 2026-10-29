@@ -2447,9 +2447,20 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     before the tables, as the original does for 0x141's widest closing rings.
   - **Checks:** 20 synthetic primitives and the 18 effects; 3,847,129 values in `prim_test`.
 
+- [x] Flying quads (`docs/render/effect-prim.md#flying-quads`):
+  - **`UpdatePrim_15` and `UpdatePrim_22`**, the flight ids 0xf, 0x10 and 0x16 share:
+    changes, steps, seeking the target, the second matrix turned to the camera or not,
+    scrolling v, leading the target, landing, rocking and cycling colours.
+  - **`RenderTransformedQuad` and `RenderBillboard`:** ids 0xf and 0x16, a quad in the
+    second matrix's plane and one on the screen.
+  - **Effect ids 0xd, 0x30, 0x3c, 0x52, 0x5d, 0x5e, 99, 0x72, 0x74, 0x76, 0x77, 0x89,
+    0x9f, 0xa0 and 0xa1** through twelve setups. A primitive's owner can now be written
+    to, as kLeadsTarget and kLands do.
+  - **Checks:** 20 synthetic primitives and 16 effect runs; 4,097,770 values in `prim_test`.
+
 ### Next actions
-1. M4, the renderer: the other 11 primitive ids (9, 0xa, 0xb, 0xe to 0x12, 0x16, 0x24 and
-   0x2e), with the effects that add them; among those, 9, 0x11, 0x1a, 0x1f, 0x30, 0x52, 99,
-   0xa1 and 0xaa add 3, 4, 0xc or 0x14 beside them.
+1. M4, the renderer: `RenderCrossedQuads` (id 0x10, whose update is ported) with effects
+   9, 0x1a, 0x1f, 0x25, 0x26, 0x2b, 0x73 and 0xdc; then ids 9, 0xa, 0xb, 0xe, 0x11, 0x12,
+   0x24 and 0x2e with theirs.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

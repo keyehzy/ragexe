@@ -786,6 +786,153 @@ def synthetic_screens(o, rng, lines):
     lines.append("};")
 
 
+FLIGHT_IDS = [0xF, 0x16]
+# What the flying ids change: the position, image, colour, period (the v's tenths), flags,
+# age, fade, changed and reached, the colour count and colours, the speed and acceleration,
+# heading, pitch and angle, the alpha and its speed, the heading's and pitch's speeds, the
+# width with its speed, the height with its speed and rate, v at the top and bottom, the
+# step, start and travel, the twelve changes and max_height.
+FLIGHT_STATE = [0x4, 0x8, 0xC, 0x28, 0x124, 0x134, 0x13C, 0x140, 0xC0, 0xA0, 0xB0, 0x15C, 0x19C, 0x1A0,
+                0x1A4, 0x1EC, 0x1F0, 0x23C, 0x240, 0x244, 0x254, 0x258, 0x260, 0x264, 0x284, 0x288, 0x290,
+                0x294, 0x298, 0x214, 0x218, 0x2E0, 0x2E4, 0x2E8, 0x2EC, 0x2F0, 0x2F4, 0x2F8, 0x2FC, 0x300,
+                0x1CC, 0x1D0, 0x1D4, 0x1D8, 0x1DC, 0x1E0, 0x1E4, 0x1E8, 0x1F4, 0x1F8, 0x1FC, 0x200, 0x31C,
+                0x320, 0x324]
+
+
+def flight_state(o, prim):
+    """FLIGHT_STATE, the second matrix +0xf4, and the owner's target and landed flag."""
+    emu = o.emu
+    owner = emu.read_u32(prim + 0xA4)
+    tail = (list(struct.unpack("<3I", emu.mem_read(owner + 0xE8, 12))) + [emu.read_u32(owner + 0xB4)]
+            if owner else [0, 0, 0, 0])
+    return ([emu.read_u32(prim + f) for f in FLIGHT_STATE] +
+            list(struct.unpack("<12I", emu.mem_read(prim + 0xF4, 48))) + tail)
+
+
+def random_flight(rng, o, owner, pid):
+    """A primitive of id 0xf or 0x16 with the fields its update and drawing read set at
+    random; returns it, its offset and the fields set, as random_prim3."""
+    emu = o.emu
+    prim = emu.alloc(PRIM_SIZE)
+    emu.call(PRIM_CTOR, this=prim)
+    offset = [f32(rng.uniform(-20, 20)) for _ in range(3)]
+    emu.call(INIT_PRIMITIVE, owner, pid, *(bits(v) for v in offset), this=prim)
+    sets = {}
+
+    def w(f, v):
+        emu.write_u32(prim + f, v & 0xFFFFFFFF)
+        sets[f] = v & 0xFFFFFFFF
+
+    def wf(f, v):
+        w(f, bits(f32(v)))
+
+    life = rng.randrange(8, 40)
+    w(0x144, life)
+    w(0x150, rng.choice([-1, 0, rng.randrange(0, life)]))
+    w(0x160, rng.choice([-1, rng.randrange(0, 6)]))
+    flags = 0
+    for bit in (2, 4, 8, 0x10, 0x20, 0x40, 0x80, 0x100, 0x200, 0x400, 0x800):
+        if rng.random() < (0.15 if bit in (0x400, 0x200) else 0.3):
+            flags |= bit
+    w(0x13C, flags)
+    w(0x12C, rng.randrange(1, 9))
+    w(0x194, rng.choice([0, 0, rng.randrange(1, 5)]))
+    w(0x134, rng.randrange(0, 10))
+    cycle = flags & 0x800
+    for f in (0x19C, 0x1A0, 0x1A4):
+        w(f, rng.choice([0xFE, rng.randrange(-20, 280)] if cycle else [-3, 254, rng.randrange(-20, 280)]))
+    for f in (0x1A8, 0x1AC, 0x1B0):
+        w(f, rng.choice([0, 0, 9, -13, 40]))
+    wf(0x254, rng.uniform(0, 254))
+    wf(0x258, rng.uniform(-15, 15))
+    wf(0x204, rng.choice([254.0, 200.0]))
+    for f in (0x1CC, 0x1D0, 0x1D4, 0x1D8, 0x1DC, 0x1E0, 0x1E4, 0x1E8, 0x1F4, 0x1F8, 0x1FC, 0x200):
+        if rng.random() < 0.4:
+            wf(f, rng.uniform(-2, 2))
+    for f, lo, hi in ((0x1EC, -3, 3), (0x1F0, -0.3, 0.3), (0x23C, -200, 200), (0x240, -200, 200),
+                      (0x244, -200, 200), (0x260, -8, 8), (0x26C, -0.5, 0.5), (0x264, -8, 8), (0x270, -0.5, 0.5),
+                      (0x284, 0, 20), (0x288, -1, 1), (0x28C, -0.1, 0.1), (0x290, -5, 30), (0x294, -2, 2),
+                      (0x298, -0.2, 0.2), (0x38, 0, 360), (0x2E0, -2, 2), (0x2E4, -2, 2), (0x2E8, -2, 2),
+                      (0x31C, -0.3, 0.3), (0x320, -0.3, 0.3), (0x324, -0.3, 0.3)):
+        wf(f, rng.uniform(lo, hi))
+    wf(0x29C, rng.choice([100.0, 30.0, 12.0]))
+    for i in range(3):
+        wf(0x304 + 4 * i, rng.uniform(-15, 15))
+    matrix = [rng.uniform(-1, 1) for _ in range(9)] + [rng.uniform(-0.5, 0.5) for _ in range(3)]
+    for i, v in enumerate(matrix):
+        wf(0xC4 + 4 * i, v)
+    frames = rng.randrange(1, 4)
+    w(0x164, frames)
+    w(0x148, rng.choice([1, 2, 3]))
+    # vf01 ignores whether 0xf's images ran out, so one that does not loop would read past
+    # its textures.
+    w(0x1B4, 1 if pid == 0xF else rng.choice([0, 1, 1]))
+    textures = emu.alloc(4 * frames)
+    for i in range(frames):
+        emu.write_u32(textures + 4 * i, TEXTURE_BASE + 0x100 + i)
+    emu.write_u32(prim + 0xA8, textures)
+    w(0x128, rng.choice([1, 3, 0x201, 0x203]))
+    return prim, offset, sets
+
+
+def synthetic_flights(o, rng, lines):
+    """Ten primitives of each of FLIGHT_IDS, stepped and drawn on their own after
+    srand(17000 + n), as synthetic3, with a target near the owner and the ground below."""
+    emu = o.emu
+    actor = emu.scratch(size=0x100)
+    rows = []
+    for n in range(10 * len(FLIGHT_IDS)):
+        pid = FLIGHT_IDS[n % len(FLIGHT_IDS)]
+        mark = emu.heap_mark()
+        effect = o.rag_effect(actor)
+        pos = [f32(rng.uniform(-30, 30)), f32(rng.uniform(-8, 0)), f32(rng.uniform(-30, 30))]
+        emu.mem_write(effect + 4, struct.pack("<3f", *pos))
+        # Some targets within 2, which kSeeksTarget reaches at once.
+        near = rng.choice([12, 12, 2])
+        target = [f32(pos[0] + rng.uniform(-near, near)), 0.0, f32(pos[2] + rng.uniform(-near, near))]
+        emu.mem_write(effect + 0xE8, struct.pack("<3f", *target))
+        duration = rng.choice([12, 40, 300])
+        emu.write_u32(effect + 0xC0, duration)
+        emu.write_u32(effect + 0xBC, 0)
+        prim, offset, sets = random_flight(rng, o, effect, pid)
+        emu.call(SRAND, 17000 + n)
+        view, yaw, slope, pitch = o.scene(rng)
+        name = f"kFlight{n}"
+        lines.append(f"static const FieldVector {name}Fields[] = {{" + ", ".join(
+            f"{{0x{f:x}, 0x{v:08x}, {{}}}}" for f, v in sorted(sets.items())) + "};")
+        frames = []
+        for frame in range(40):
+            more = emu.call(PRIM_VF01, this=prim).eax & 0xFF
+            state = flight_state(o, prim)
+            added = o.draw(prim) if more else []
+            lines.append(f"static const std::uint32_t {name}Frame{frame}State[] = {{{hexs(state)}}};")
+            lines.append(f"static const TriangleVector {name}Frame{frame}Triangles[] = {triangles_cpp(added)};")
+            frames.append(f"    {{{more}, {name}Frame{frame}State, {len(state)}, {name}Frame{frame}Triangles, "
+                          f"{len(added)}, nullptr, 0}},")
+            emu.write_u32(effect + 0xBC, emu.read_u32(effect + 0xBC) + 1)
+            if not more:
+                break
+        lines.append(f"static const ShapeFrameVector {name}Frames[] = {{")
+        lines += frames
+        lines.append("};")
+        rows.append(f"    {{{pid}, {{{hexs(map(bits, pos))}}}, {{{hexs(map(bits, target))}}}, "
+                    f"{{{hexs(map(bits, offset))}}}, {duration}, {scene_cpp(view, yaw, slope, pitch)}, {name}Fields, "
+                    f"{len(sets)}, {name}Frames, {len(frames)}}},")
+        emu.heap_release(mark)
+    lines.append("static const ShapeVector kFlights[] = {")
+    lines += rows
+    lines.append("};")
+
+
+def flight_effect_state(o, prim):
+    """What the flying effects' primitives are checked by: flight_state for FLIGHT_IDS,
+    screen_state for the screen and history ids and state_trail for the rest."""
+    pid = o.emu.read_u32(prim + 0x130)
+    if pid in FLIGHT_IDS:
+        return flight_state(o, prim)
+    return screen_state(o, prim) if pid in SCREEN_IDS else state_trail(o, prim)
+
+
 def screen_effect_state(o, prim):
     """What the screen effects' primitives are checked by: screen_state for SCREEN_IDS,
     ring_state for the closing rings and state_trail for the rest."""
@@ -1390,6 +1537,11 @@ WALL_EFFECTS = [(0xE2, 112), (0xE0, 56), (0x13D, 56), (0x13E, 40), (0x13F, 40), 
 SCREEN_EFFECTS = [(8, 48), (0xC, 40), (0x38, 32), (0x3A, 40), (0x3B, 32), (0x2A, 40), (0x10, 48), (0x23, 40),
                   (0x24, 40), (0x3D, 152), (0x3E, 48), (0x49, 56), (0x62, 48), (0x79, 40), (0x80, 48), (0xD7, 48),
                   (0x28, 72), (0x141, 40)]
+# The effects with flying quads and billboards: 0x52 past its square at frame 50,
+# the flasher past its second key at 100, and 0x9f again at level 11, tinted green.
+FLIGHT_EFFECTS = [(0xD, 40), (0x72, 40), (0x89, 40), (0x30, 48), (0x3C, 40), (0x9F, 24), (0xA0, 24),
+                  (0x52, 72), (0x5D, 30), (0x5E, 48), (99, 104), (0x74, 40), (0x76, 40), (0x77, 64),
+                  (0xA1, 16), (0x9F, 12, 11)]
 PIECE_EFFECTS = [(0xE3, 104), (0x106, 40), (0x10A, 40), (0x114, 40), (0x129, 40), (300, 32), (0x12F, 112),
                  (0x148, 64)]
 
@@ -1470,13 +1622,15 @@ def square_effects(o, rng, lines, effects=SQUARE_EFFECTS, prefix="kSquareEffect"
     """The effects through the world's list with a target, a level and the player's
     position; looks maps an effect id to where its views look, from the actor, the player
     and the target; release gives the heap back after each run; messages gives the actor a
-    vf02 that ignores them (CEffectPrim's), for effects that send it some; dense records
-    the first four frames, then every fourth state and every eighth drawing, however many
-    primitives there are."""
+    vf02 that ignores them (CEffectPrim's), for effects that send it some; dense (True, or
+    the effect ids it applies to) records the first four frames, then every fourth state and
+    every eighth drawing, however many primitives there are. An entry of effects may fix the
+    level as a third value."""
     emu = o.emu
     rows = []
     player = emu.read_u32(o.world + 0x3C)
-    for run, (eid, count) in enumerate(effects):
+    for run, entry in enumerate(effects):
+        eid, count = entry[:2]
         mark = emu.heap_mark()
         o.reset_world()
         actor = emu.scratch(size=0x100)
@@ -1493,6 +1647,8 @@ def square_effects(o, rng, lines, effects=SQUARE_EFFECTS, prefix="kSquareEffect"
             # As many motes as the target's x rounds up to.
             target = (f32(rng.uniform(1.5, 4.5)), target[1], target[2])
         level = rng.randrange(1, 6)
+        if len(entry) > 2:
+            level = entry[2]
         emu.call(SRAND, seed + run)
         effect = o.rag_effect(actor)
         emu.call(INIT_EFFECT, actor, eid, 0, 0, 0, this=effect)
@@ -1521,7 +1677,8 @@ def square_effects(o, rng, lines, effects=SQUARE_EFFECTS, prefix="kSquareEffect"
             # frame, the second and the last of the effects that add more, and of those that
             # add many only the second and the last.
             objects = o.world_objects()
-            if dense:
+            is_dense = dense is True or (dense and eid in dense)
+            if is_dense:
                 sampled = frame < 4 or frame % 4 == 0 or frame == count - 1
             elif len(objects) <= 2:
                 sampled = True
@@ -1542,7 +1699,7 @@ def square_effects(o, rng, lines, effects=SQUARE_EFFECTS, prefix="kSquareEffect"
                 added += o.draw(p)
                 quads += o.quads
             lines.append(f"static const BurstPrimVector {name}Frame{frame}Prims[] = {{{', '.join(states) or '{}'}}};")
-            if dense:
+            if is_dense:
                 checked = (frame,) if frame < 4 or frame % 8 == 0 else (count - 1,)
             else:
                 checked = (0, 12, count - 1) if len(objects) <= 8 else (count - 1,)
@@ -1608,6 +1765,9 @@ def main():
     o.emu.replace_thiscall(ADVANCE_STR, 3, lambda this, x, y, z: 1)
     square_effects(o, rng, lines, SCREEN_EFFECTS, "kScreenEffect", 16000, screen_effect_state, True, None, True,
                    True, True)
+    synthetic_flights(o, rng, lines)
+    square_effects(o, rng, lines, FLIGHT_EFFECTS, "kFlightEffect", 18000, flight_effect_state, False, None, True,
+                   False, {0x30, 0x52, 99, 0xA1})
     names = sorted(o.textures.items(), key=lambda kv: kv[1])
     lines.append("static const TextureVector kTextures[] = {" +
                  ", ".join(f'{{0x{v:x}, "{c_literal(k)}"}}' for k, v in names) + "};")

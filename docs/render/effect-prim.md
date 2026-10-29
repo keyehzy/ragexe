@@ -1344,6 +1344,99 @@ from z (0x3e, 0x62, 0x79, 0x80); the projection called, or written out with x sc
   zero) and the last of the negated cosines; the port reads the tables as they lie in
   memory there.
 
+## Flying quads
+
+Three more primitive ids fly along their matrix, sharing one update:
+
+| Id | Update | Drawing | Shape |
+|---:|--------|---------|-------|
+| 0xf | `UpdatePrim_15` (`0057fb90`) | `RenderTransformedQuad` (`00582fd0`) | a quad in the plane of the second matrix |
+| 0x10 | `UpdatePrim_15` | `RenderCrossedQuads` (`00583910`) | two crossed quads (not ported yet) |
+| 0x16 | `UpdatePrim_22` (`005802b0`) | `RenderBillboard` (`00583660`) | a quad on the screen at the point's depth |
+
+`vf01` ignores what `UpdatePrim_15` answers; it ends 0x16 when `UpdatePrim_22` answers
+false.
+
+**The update.** Each step:
+1. **The start.** `UpdatePrim_15` puts it at the owner plus the offset; `UpdatePrim_22`
+   keeps the start it was given and stands at the start plus the offset plus the travel.
+2. **Changes.** At `change_at`, each of the width's speed (+0x1f8), the height's (+0x1fc),
+   the speed (+0x1cc), the width's rate (+0x1f4), the height's (+0x200), the acceleration
+   (+0x1d0) and the step (+0x1d4 to +0x1dc) that does not hold 0.0001 takes hold.
+   `UpdatePrim_22` takes the step's speed (+0x1e0 to +0x1e8) too; `UpdatePrim_15` instead
+   sets +0xa0 and puts 0.0001 back in all twelve.
+3. **Speeds.** The step takes its speed (+0x31c); the width's, height's, heading's and
+   pitch's speeds their rates; the speed the acceleration.
+4. **The step** is the speed along the matrix's z, unless flag 0x100 keeps it as it is
+   (but not with 0x400). The travel takes it.
+5. **Seeking** (0x400): within 3 of the owner's target along the ground (from the last
+   step's point), `DebugLog("Hit!!")`, +0xb0 set and false; otherwise the heading takes
+   the facing (+0x38).
+6. **Sizes.** The width, height, heading and pitch take their speeds. Past +0x29c the
+   height's speed and rate stop.
+7. **The second matrix** (+0xf4):
+   - flag 0x200: about z by the camera's pitch, its degrees passed as radians, then y by
+     the facing;
+   - flag 0x40: the heading becomes the camera's yaw plus 90 and the angle its pitch;
+     about x by the pitch, z by the angle, y by the heading;
+   - otherwise about z by the angle, x by the pitch, y by the heading.
+8. **The flags after:**
+   - 2: v runs from a tenth of a counter (+0x134, 0 to 9) to one more (+0x214, +0x218);
+   - 0x10: the owner's target becomes the offset plus the travel;
+   - 4: below the ground's height (`C3dAttr::GetHeight`), the speed stops, the age jumps
+     to 25 before the life, the flag clears and the owner's +0xb4 is set;
+   - 0x20: every +0x12c frames the height's speed turns round.
+9. **Colours.** The red, green and blue take their speeds (ints). With flag 0x800, once any
+   of them is 254 they step only every +0x194 frames (counting in +0x15c), and each
+   wraps: 255 or more to 0, below 0 to 254. Without it, red wraps 256 to 0 and below 0 to
+   255, and green and blue are held to 0 to 255.
+10. **`UpdateAlphaAndColor`**, then **`AdvanceFrameByCount`**.
+
+**A transformed quad** (0xf) lies about the point in the plane of the second matrix's y
+and z rows:
+- **Its corners** are the width either side along z, and −height to +height along y;
+  with flag 0x80 from 0 to −2 × height, and with flag 8 down to 0 only.
+- **Two triangles** of the current image: top-right, top-left, bottom-right, then
+  bottom-left, bottom-right, top-left. u is 0 on the right; v runs from +0x214 at the top
+  to +0x218 at the bottom.
+- **Projection.** Each corner through `TransformPoint` and `ProjectPoint`, the second
+  triangle's first written out. AddPrimitive's flags are +0x128.
+
+**A billboard** (0x16) stands on the screen:
+- **The point.** The position through the view (its sums from z), projected with
+  `SceneRenderer` +0x1c and +0x20 as the centre.
+- **Its size.** Up and right of the point, the width and height a seventh of a pixel per
+  unit at that depth.
+- **Two triangles** at z 0.8 and rhw 1: the point, right, up; then right, up, up-right.
+
+**The effects:**
+
+| Effect ids | Function | Ids | What |
+|-----------|----------|---:|------|
+| 0xd | `ProcessGlassWall` (`00553ac0`) | 0xf | on the first frame four upright walls of `ring_blue.tga` round the actor, two 2.6 out along its facing (3 wide) and two 3 out across it (2.6 wide), 40 high, rocking every 50 frames, fading in to 180; `effect\EF_GlassWall.wav`; it also plays its `.str` |
+| 0x72, 0x89 | `AddWallsOfMagic` (`0055ff60`, `005602d0`) | 0xf | the same four walls 15 high, 5 out and wide in `magic_violet.tga` fading in, or 2.5 in `magic_green.tga` at 180; the effect lasts 9999 frames |
+| 0x30 | `AddPondRing` (`00556710`) | 0xf, 0xc | eight panels of `pond_water.bmp` 12.2 out, 2 up, their texture scrolling; every 10 frames eight flat panels of `alpha_down.tga` 13.8 out; every 20 a ring of `alpha_center.tga` |
+| 0x3c | `AddLockOn` (`0055b5d0`) | 0xf | two squares of `LockOn128.tga` under the actor, 45 degrees apart, turning, shrinking for 20 frames and cycling their colours; the effect 2 over the ground |
+| 0x9f, 0xa0 | `AddMarker` (`005627f0`, `005629c0`) | 0xf | a square of `LockOn128.tga` turning, from white at level 0 to red at 10 (green at level 11), or of `party.tga` in blue; starts again at frame 9998 |
+| 0x52 | `AddCollapsingRing` (`0055d630`) | 4, 3, 0xf | on screen a ring of radius 370 closing in at 18.5 a frame and five wedges 350 long shrinking; at frame 50 a square of `ring_liner.tga` growing; `effect\EF_Bash.wav` at 37 |
+| 0x5d | `AddShockwaveBall` (`0055e610`) | 0xf | a ball of `thunder_center.bmp` and one of the six `thunder_ball` images thrown at the target, facing the camera; `effect\hunter_shockwavetrap.wav` |
+| 0x5e | `AddThunderBlast` (`0055eaa0`) | 0xf | at the actor, every 20 frames a burst of `thunder_pang.bmp` growing for 10 frames; at frame 10 a plasma blast of five images lasting 300 |
+| 99 | `AddFlasher` (`0055f290`) | 0xf, 3 | a flash of `thunder_center.bmp` 10 up with alpha keys at 40 and 100, and twenty wedges on screen; `effect\hunter_flasher.wav` |
+| 0x74, 0x76 | `AddFallingSpell` (`005605f0`, `00560a60`) | 0xf | a square of the three `water_out` images or of `fire_ivy.bmp` sinking 25 over the effect, facing the camera; `effect\wizard_waterball_chulung.wav` or `wizard_fire_ivy.wav` |
+| 0x77 | `AddDetecting` (`00560be0`) | 0xf | a flat square of `fashasha.tga` growing and sinking; `effect\hunter_detecting.wav` |
+| 0xa1 | `AddRain` (`00557140`) | 0x14, 0x16 | while more than 40 frames are left, a drop 200 above the ground within 100 of the actor and a splash of `rain_gnd.tga` where it lands; while more than 300 are left, a second whose splash slides; the effect at the player |
+
+**Notes on the effects:**
+- **Positioning.** `AddLockOn`, `AddMarker`, `AddThunderBlast` and `AddCollapsingRing`
+  (after its first frame's primitives) keep the effect at the actor; the lock-ons 2 above
+  the ground under it. `AddRain` keeps it at the player, moving it to each splash to make
+  it.
+- **The point on screen.** `AddCollapsingRing` writes the projection out with x scaled
+  first; `AddFlasher` calls it.
+- **Unread fields.** The walls of 0x72 and 0x89 set +0x198, which nothing ported reads.
+- **The `.str`.** `ProcessGlassWall` plays its `.str` through `AdvanceStr` but ends the
+  effect at its duration whatever that answers.
+
 ## In the port
 
 **`src/core/crt_rand`:** `CrtRand`, `srand` and `rand`.
@@ -1354,7 +1447,7 @@ from z (0x3e, 0x62, 0x79, 0x80); the projection called, or written out with x sc
 
 **`src/render/effect_prim`:**
 - `EffectPrim` with `MakePrimitive`, `ResetHistory`, `UpdatePrimitive` (vf01) and
-  `DrawPrimitive` (vf03), for ids 0 to 8, 0xc, 0xd, 0x13 to 0x15, the twelve ring ids,
+  `DrawPrimitive` (vf03), for ids 0 to 8, 0xc, 0xd, 0xf, 0x13 to 0x16, the twelve ring ids,
   the eight facing-square ids, the three flat-square ids, the three mote ids, the six ids
   of single squares and rectangles, the eight of walls and bands and 0x26, 0x2c and 0x31.
   `PrimScene` carries the camera's yaw and pitch, the ground, the view, the projection
@@ -1370,7 +1463,9 @@ from z (0x3e, 0x62, 0x79, 0x80); the projection called, or written out with x sc
   the thirteen of [sprite trails](#sprite-trails) (`AddTripleShot` for both triple shots,
   `AddFallingLeaves` for both leaves) and the fourteen of
   [screen wedges and rings](#screen-wedges-and-rings) (`AddBeginSpell` for four ids,
-  `AddStoneCurse` with `overthrust` for 0x80);
+  `AddStoneCurse` with `overthrust` for 0x80) and the twelve of
+  [flying quads](#flying-quads) (`AddWallsOfMagic`, `AddMarker` and `AddFallingSpell`
+  for two ids each);
 - `EffectWorld`, the world's list as effects use it:
   - `Launch` adds an effect;
   - `Step` runs a world step in the list's order;
@@ -1507,11 +1602,21 @@ and `Shadow`) and textures are all there.
   - `AdvanceStr` answering true, so that Signum plays past step 30 without its `.str`;
   - 0x3d for 152 steps, past its restart; Bash, 0x3e, 0xd7 and Signum ending their runs
     while their last primitives still draw.
+- **20 synthetic flying quads**, ten each of ids 0xf and 0x16, up to 40 steps each, as for
+  the shapes:
+  - every flag but 1 at random, with the target 12 or so away and the ground below, so
+    that some reach it and some land;
+  - changes holding 0.0001 or not, colours at 254 for 0x800, and the second matrix
+    rebuilt every way;
+  - the state adds the changes, the second matrix and the owner's target and landed flag;
+    the triangles are checked every frame.
+- **The 15 flying-quad effects and 0x9f again at level 11**, as for the trail effects, 0x30,
+  0x52 and 99 sampled densely.
 
-`tests/unit/prim_test.cpp` matches all of it: 3,847,129 values, the CRT's first `rand` values
+`tests/unit/prim_test.cpp` matches all of it: 4,097,770 values, the CRT's first `rand` values
 among them.
 
 **Not ported:**
-- the other 11 primitive ids;
+- the other 9 primitive ids, 0x10 among them, whose update is ported;
 - the other effects' processing;
 - the sounds.
