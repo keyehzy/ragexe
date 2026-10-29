@@ -31,6 +31,10 @@ from actor_vectors import (ADD_SPRITE_QUAD, GET_FRAME_COUNT, GET_GAME_MODE, SCAL
 
 RAG_EFFECT_CTOR, INIT_EFFECT, RAG_EFFECT_VF01 = 0x54D220, 0x54EEE0, 0x54D4C0
 LOAD_STR_FILE, ADVANCE_STR = 0x54FAE0, 0x54FBA0
+GET_ACTOR_BY_ID, PLAYER_ID = 0x4C4CF0, 0x68734C
+# The ids the tube's runs look up: the player's (g_ClientState+0xcdc) and one other actor's,
+# where LINK_ACTOR stands; tests/unit/prim_test.cpp uses the same.
+LINK_PLAYER_ID, LINK_ACTOR_ID, LINK_ACTOR, LINK_PLAYER = 31337, 4242, (-18.0, -6.5, 9.0), (12.5, -3.0, -20.0)
 EMPTY_VF4 = 0x4BC290
 PRIM_CTOR, INIT_PRIMITIVE, PRIM_VF01, PRIM_VF02, PRIM_VF03 = 0x57CFA0, 0x586380, 0x57DCE0, 0x586050, 0x586070
 ADD_PRIMITIVE, GET_TEXTURE, PLAY_WAVE = 0x412550, 0x40CC00, 0x4352A0
@@ -1012,6 +1016,12 @@ SOLID_EFFECTS = [(0x1B, 100), (0x1C, 60), (0x4A, 48), (0x4F, 250), (0x7B, 100), 
                  (0x8E, 300), (0x59, 230), (0x11, 40), (0x3F, 30), (0xAA, 305), (0x1B, 80), (0x1B, 40, 3, True)]
 
 
+# The tube and panel effects: 0xe8 to the player, to the other actor and to no one, and
+# AddPanels' five ids.
+SPAN_EFFECTS = [(0xE8, 40, 1, LINK_PLAYER_ID), (0xE8, 40, 1, LINK_ACTOR_ID), (0xE8, 12), (0x115, 40), (0x11F, 40),
+                (0x122, 40), (0x124, 40), (0x126, 40)]
+
+
 def solid_effect_state(o, prim):
     """What the pyramid and sphere effects' primitives are checked by: solid_state for
     SOLID_IDS, screen_state for the rings and state_trail for the rest."""
@@ -1019,6 +1029,86 @@ def solid_effect_state(o, prim):
     if pid in SOLID_IDS:
         return solid_state(o, prim)
     return screen_state(o, prim) if pid in SCREEN_IDS else state_trail(o, prim)
+
+
+RIBBON_IDS = [0xA, 0xB]
+
+
+def ribbon_state(o, prim):
+    """screen_state, the offset and the four points +0x328."""
+    emu = o.emu
+    return (screen_state(o, prim) + list(struct.unpack("<3I", emu.mem_read(prim + 0x304, 12))) +
+            list(struct.unpack("<12I", emu.mem_read(prim + 0x328, 48))))
+
+
+def random_ribbon(rng, o, owner, pid):
+    """A primitive of id 0xa or 0xb with the fields its update and drawing read set at
+    random and one to six history records; as random_flight."""
+    emu = o.emu
+    prim = emu.alloc(PRIM_SIZE)
+    emu.call(PRIM_CTOR, this=prim)
+    offset = [f32(rng.uniform(-20, 20)) for _ in range(3)]
+    emu.call(INIT_PRIMITIVE, owner, pid, *(bits(v) for v in offset), this=prim)
+    sets = {}
+
+    def w(f, v):
+        emu.write_u32(prim + f, v & 0xFFFFFFFF)
+        sets[f] = v & 0xFFFFFFFF
+
+    def wf(f, v):
+        w(f, bits(f32(v)))
+
+    life = rng.randrange(8, 40)
+    w(0x144, life)
+    w(0x150, rng.choice([-1, 0, rng.randrange(0, life)]))
+    for f in (0x19C, 0x1A0, 0x1A4):
+        w(f, rng.choice([-3, 254, rng.randrange(-20, 280)]))
+    for f in (0x1A8, 0x1AC, 0x1B0):
+        w(f, rng.choice([0, 0, 9, -13, 40]))
+    wf(0x254, rng.uniform(0, 254))
+    wf(0x258, rng.uniform(-15, 15))
+    wf(0x204, rng.choice([254.0, 200.0]))
+    for f, lo, hi in ((0x23C, -400, 800), (0x260, -40, 40), (0x278, 0, 20), (0x294, -3, 3), (0x248, -2, 8)):
+        wf(f, rng.uniform(lo, hi))
+    w(0x154, rng.randrange(1, 7))
+    textures = emu.alloc(4)
+    emu.write_u32(textures, TEXTURE_BASE + 0x100)
+    emu.write_u32(prim + 0xA8, textures)
+    emu.call(RESET_HISTORY, this=prim)
+    return prim, offset, sets
+
+
+SPAN_IDS = [0x24, 0x2E]
+
+
+def random_span(rng, pid):
+    """A record as ids 0x24 and 0x2e read it, the bytes they leave alone zero: the tube's
+    radius, age around its 15, alpha and the id of the player, the other actor, an unknown
+    one or none; the panels' sway, height, alpha, kind and edges."""
+    rec = bytearray(RING_SIZE)
+    active = rng.random() < 0.9
+    if pid == 0x24:
+        tag = rng.choice([LINK_PLAYER_ID, LINK_ACTOR_ID, LINK_ACTOR_ID + 0.25, 77, 0, -3])
+        struct.pack_into("<BxhfIhh", rec, 0, active, 0, f32(rng.uniform(0.1, 3)),
+                         rng.choice([rng.randrange(0, 20), 13, 14, 15]), 0, rng.randrange(-5, 256))
+        struct.pack_into("<f", rec, 0x14, f32(tag))
+    else:
+        struct.pack_into("<BxhfIhh", rec, 0, active, rng.randrange(0, 360), f32(rng.uniform(0, 40)),
+                         rng.randrange(0, 50), 0, rng.randrange(-5, 256))
+        struct.pack_into("<f", rec, 0x14, f32(rng.choice([0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 1.5])))
+    for k in range(4):
+        struct.pack_into("<3f", rec, 0x88 + 0xC * k, *random_point(rng))
+    return bytes(rec)
+
+
+def link_actors(o):
+    """The player's id and position and LINK_ACTOR_ID's actor, for the tube's runs."""
+    emu = o.emu
+    emu.write_u32(PLAYER_ID, LINK_PLAYER_ID)
+    emu.mem_write(emu.read_u32(o.world + 0x3C) + 4, struct.pack("<3f", *LINK_PLAYER))
+    actor = emu.scratch(size=0x40)
+    emu.mem_write(actor + 4, struct.pack("<3f", *LINK_ACTOR))
+    emu.replace_thiscall(GET_ACTOR_BY_ID, 1, lambda this, aid: actor if aid == LINK_ACTOR_ID else 0)
 
 
 def flight_effect_state(o, prim):
@@ -1727,7 +1817,8 @@ def square_effects(o, rng, lines, effects=SQUARE_EFFECTS, prefix="kSquareEffect"
     vf02 that ignores them (CEffectPrim's), for effects that send it some; dense (True, or
     the effect ids it applies to) records the first four frames, then every fourth state and
     every eighth drawing, however many primitives there are. An entry of effects may fix the
-    level as a third value, and put the target within 2.5 of the actor with a fourth."""
+    level as a third value, and with a fourth put the target within 2.5 of the actor (True)
+    or give its y (a number, the actor id 0xe8 runs to)."""
     emu = o.emu
     rows = []
     player = emu.read_u32(o.world + 0x3C)
@@ -1751,8 +1842,10 @@ def square_effects(o, rng, lines, effects=SQUARE_EFFECTS, prefix="kSquareEffect"
         level = rng.randrange(1, 6)
         if len(entry) > 2:
             level = entry[2]
-        if len(entry) > 3 and entry[3]:
+        if len(entry) > 3 and entry[3] is True:
             target = (f32(pos[0] + 1.5), target[1], f32(pos[2] - 1.0))
+        elif len(entry) > 3:
+            target = (target[0], f32(entry[3]), target[2])
         emu.call(SRAND, seed + run)
         effect = o.rag_effect(actor)
         emu.call(INIT_EFFECT, actor, eid, 0, 0, 0, this=effect)
@@ -1882,6 +1975,10 @@ def main():
                       (0, 3, 9, 20))
     square_effects(o, rng, lines, SOLID_EFFECTS, "kSolidEffect", 22000, solid_effect_state, True, None, True,
                    True, True)
+    synthetic_flights(o, rng, lines, RIBBON_IDS, 23000, "kRibbon", "kRibbons", random_ribbon, ribbon_state)
+    link_actors(o)
+    synthetic_records(o, rng, lines, SPAN_IDS, "kSpan", 24000, random_span, wall_state, 24, (0, 8, 16, 23))
+    square_effects(o, rng, lines, SPAN_EFFECTS, "kSpanEffect", 25000, wall_state, False, None, True, True, True)
     names = sorted(o.textures.items(), key=lambda kv: kv[1])
     lines.append("static const TextureVector kTextures[] = {" +
                  ", ".join(f'{{0x{v:x}, "{c_literal(k)}"}}' for k, v in names) + "};")

@@ -56,6 +56,14 @@ struct PrimSprite {
 // What primitives read of the world: the camera's yaw and pitch (CView+0x20, +0x1c) and
 // the ground for their steps, and for their drawing vf03's view, the projection and
 // g_spriteSlopeDown (0060564c).
+// The actors an id can name, as id 0x24 and effect 0xe8 look them up: the player (the game
+// mode's world +0x3c) by its id (g_ClientState+0xcdc), and the rest (CWorld::GetActorById).
+struct EffectActors {
+  std::uint32_t player_id = 0;
+  Vec3 player{};
+  std::map<std::int32_t, Vec3> others;
+};
+
 struct PrimScene {
   float view_yaw = 0.0f;
   float view_pitch = 0.0f;
@@ -63,6 +71,7 @@ struct PrimScene {
   Matrix view{};
   Projection projection{};
   float slope_down = 0.0f;
+  const EffectActors* actors = nullptr;
 };
 
 // One of the fifty 0x8c-byte records from +0x358 a primitive keeps of where it has been.
@@ -199,6 +208,10 @@ struct PrimBand {
   float length = 0.0f;                    // +0x6c, 0x42 and 0x43: the band's, the first bounce's
   std::array<std::int8_t, 21> bounces{};  // +0x70, 0x43: each segment's bounces made
   // +0x88: 0x42, its two ends; 0x3f, its ends at the second and fourth; 0x43, where it starts.
+  // 0x24 reads its record's size as the tube's radius, values[0] as the actor id it runs to
+  // and the second and fourth points as its ends; 0x2e the phase as a sway, the size as a
+  // panel's height, values[0] as its kind and the first and third points' x and z as its
+  // edges.
   std::array<Vec3, 4> points{};
 };
 
@@ -855,6 +868,19 @@ void AddBlast(RagEffect& effect, std::vector<EffectPrim>& added);
 void AddExplosionSphere(RagEffect& effect, std::vector<EffectPrim>& added);
 bool ProcessMagnumBreak(RagEffect& effect, std::vector<EffectPrim>& added);
 
+// The effects that add the tube (id 0x24) and the panels (id 0x2e):
+//  - AddActorLink (00569de0), id 0xe8: at frame 0 a tube of cloud11.tga from the actor to
+//    the actor whose id is the target's y, lit while there is one; the effect at the actor;
+//  - AddPanels (00574150), ids 0x115 (ring_blue.tga, kind 0), 0x11f (ring_red.tga, 1),
+//    0x122 (ring_red.tga, 0), 0x124 (magic_green.tga, 2) and 0x126 (safeline.bmp, 4): at
+//    frame 0 four swaying panels about the actor: kind 0 out to a random point up to 20
+//    away, 1 and 2 a square 3 either way, 3 and 4 two crossed 6 either way; the effect at
+//    the actor.
+void AddActorLink(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+                  std::vector<EffectPrim>& added);
+void AddPanels(RagEffect& effect, const EffectActor& actor, const char* texture, std::int32_t kind,
+               core::CrtRand& rand, std::vector<EffectPrim>& added);
+
 // The world's object list as effects use it (CWorld::UpdateGameObjects, 004c4a10): each
 // world step every object's vf01 in order, a primitive an effect adds joining the end and
 // running the same step; an object whose vf01 answers false is deleted, and an effect's
@@ -871,6 +897,9 @@ class EffectWorld {
   void SetMinimal(bool minimal) { minimal_ = minimal; }
   // Where the player stands (the game mode's world, +0x3c), which the clouds follow.
   void SetPlayer(const Vec3& player) { player_ = player; }
+  // The player's id (g_ClientState+0xcdc) and the other actors by id, for id 0x24.
+  void SetPlayerId(std::uint32_t id) { actors_.player_id = id; }
+  void SetActor(std::int32_t id, const Vec3& position) { actors_.others[id] = position; }
 
   // CAbleToMakeEffect::LaunchEffect (00501e10) and InitEffect: effect id at the actor, its
   // duration from the table, appended to the list.
@@ -896,6 +925,7 @@ class EffectWorld {
   bool minimal_ = false;
   Vec3 player_{};
   std::int32_t beats_ = 0;  // DAT_0068658c, AddBlitzBeat's
+  EffectActors actors_;
 };
 
 }  // namespace ragexe::render

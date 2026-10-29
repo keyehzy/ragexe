@@ -1609,6 +1609,81 @@ target with `TurnTowards`:
   tested by `vf01`; the other setups' results are not. In the port, 0x59 plays to its
   duration, as the oracle's `AdvanceStr` answers true.
 
+## Ribbons, the tube and panels
+
+The last ids:
+
+| Id | Update | Drawing | Shape |
+|---:|--------|---------|-------|
+| 0xa, 0xb | `UpdatePrim_10` (`00581050`) | `RenderHistoryRibbon` (`00585220`) | a ribbon of quads, one at each history record |
+| 0x24 | `UpdatePrim_36` (`00572190`) | `RenderTubeBetweenPoints` (`005701e0`) | two tubes between two actors |
+| 0x2e | `UpdatePrim_46` (`0057b8e0`) | `RenderVerticalPanels` (`0057af70`) | up to four swaying upright panels |
+
+`vf01` ignores what each update answers.
+
+**A ribbon** (0xa and 0xb, which nothing creates):
+- **The update** takes four points about the owner plus the offset:
+  - the distance out at the heading (x by its sine, z less its cosine);
+  - the same at the heading plus its speed, raised by +0x294;
+  - both of those again, the scale (+0x248) lower.
+
+  It then runs the alpha's update, shifts the history (whose records keep the points),
+  turns the heading by its speed and raises the offset by +0x294.
+- **The drawing** puts a quad at each record: (A, B, C) and (D, C, B), of the first
+  texture in the record's colour, with AddPrimitive's flags 1. u runs 0 to 1 from A to B;
+  v is 1 at the top. The view transform is written out, x's sum from x, then z, and y's
+  and z's from z, then y.
+
+**The tube** (0x24) uses the first of the four 0xb8-byte records at +0x156b0, laid out
+as the bands' (`PrimBand`):
+- **The record.** The radius is at +4, the age at +8 and the alpha at +0xe. +0x14 holds
+  the id of the actor it runs to, as a float. The start is at +0x94 and the end at +0xac.
+- **The update** keeps the start 8 above the owner and counts the age. The alpha rises 2
+  a frame for five frames, then falls 2 for five.
+- **The end.** While the id is above 0 and names an actor, the end is 8 above that actor.
+  The id names the player (the game mode's world +0x3c) when it equals
+  `g_ClientState+0xcdc` (`0068734c`); otherwise `CWorld::GetActorById` (`004c4cf0`) looks
+  it up, truncated. When no actor is named, the record goes out and its alpha falls to 0.
+- **The drawing** runs while the record is lit and its alpha is above 0. The line goes
+  from the start to the end, drawn in over the first 15 frames by the sine of six times
+  the age. Round it are two tubes:
+  - the radius, in yellow (255, 255, 0) at the alpha;
+  - twice the radius, in blue (0, 0, 255) at twice the alpha (a 16-bit shift).
+
+  Each tube is ten quads (`DrawQuad`, in the world). Its ring points are every 36
+  degrees, at right angles to the line (`VectorToDegrees` of the start less the end, a
+  quarter turn on).
+
+**The panels** (0x2e) read the same records their own way:
+- **The record.** A sway is at +2, the height at +4, the age at +8 and the alpha at +0xe.
+  The kind is at +0x14. The edges' x and z are at +0x88/+0x90 and +0xa0/+0xa8.
+- **The update** keeps the primitive at the owner. For each lit record it counts the age
+  and turns the sway 2 degrees a frame (4 for kind 1), wrapping past 359. The height
+  becomes 20 plus 10 times the sway's sine.
+- **The drawing** puts an upright quad (`DrawQuad`, relative to the primitive) at each lit
+  record with its alpha above 0. The quad runs from one edge to the other, from the ground
+  up the height. Its colour comes from the kind:
+  - kind 1 is red (255, 155, 155) and kind 2 green (155, 255, 155), both added;
+  - kind 3 is yellow (255, 255, 100) and kind 4 pale red (255, 150, 150), blended;
+  - any other kind is white, blended.
+
+**The effects:**
+
+| Effect ids | Function | Ids | What |
+|-----------|----------|---:|------|
+| 0xe8 | `AddActorLink` (`00569de0`) | 0x24 | at frame 0 a tube of `cloud11.tga`, radius 0.4, alpha 45, from the actor to the actor whose id is the target's y (+0xec); out if none; the effect at the actor |
+| 0x115, 0x122 | `AddPanels` (`00574150`), kind 0 | 0x2e | at frame 0 four panels of `ring_blue.tga` or `ring_red.tga` from the actor out to a random point up to 20 away each way, alpha 15 |
+| 0x11f, 0x124 | `AddPanels`, kinds 1 and 2 | 0x2e | four panels of `ring_red.tga` or `magic_green.tga` through the actor, 3 either way at random slants, two across x and two across z, alpha 50 |
+| 0x126 | `AddPanels`, kind 4 | 0x2e | two crossed panels of `safeline.bmp` 6 either way, alpha 100 |
+
+**Notes on the effects:**
+- **The tube's end.** `AddActorLink` puts the end at the actor itself; its update moves it
+  8 above.
+- **The kind.** `AddPanels` writes it only for kinds 1 to 4, so kind 0 keeps the record's
+  0 (white).
+- **Unread fields.** It also zeroes the scale (+0x248), and `AddActorLink` the record's
+  +0x6c; nothing ported reads either.
+
 ## In the port
 
 **`src/core/crt_rand`:** `CrtRand`, `srand` and `rand`.
@@ -1619,11 +1694,11 @@ target with `TurnTowards`:
 
 **`src/render/effect_prim`:**
 - `EffectPrim` with `MakePrimitive`, `ResetHistory`, `UpdatePrimitive` (vf01) and
-  `DrawPrimitive` (vf03), for ids 0 to 9, 0xc to 0x16, the twelve ring ids, the eight
-  facing-square ids, the three flat-square ids, the three mote ids, the six ids of single
+  `DrawPrimitive` (vf03), for every id: 0 to 0x16, 0x24, 0x2e, the twelve ring ids, the
+  eight facing-square ids, the three flat-square ids, the three mote ids, the six ids of single
   squares and rectangles, the eight of walls and bands and 0x26, 0x2c and 0x31.
   `PrimScene` carries the camera's yaw and pitch, the ground, the view, the projection
-  and the sprite slope; `PrimDrawing` gets the triangles and the sprite quads, each with
+  and the sprite slope, and the actors an id can name (`EffectActors`); `PrimDrawing` gets the triangles and the sprite quads, each with
   the sprite it is of;
 - `ProcessHitSpark`, `ProcessRingBurst` and `ProcessHit3`; `AddRingWaves` (with `slow`
   for `AddSlowRingWaves`), `AddRisingRings`, `AddFadingRings`, the eight setups of
@@ -1638,15 +1713,17 @@ target with `TurnTowards`:
   `AddStoneCurse` with `overthrust` for 0x80) and the twelve of
   [flying quads](#flying-quads) (`AddWallsOfMagic`, `AddMarker` and `AddFallingSpell`
   for two ids each) and the five of [crossed quads](#crossed-quads) (`AddAgilityRays`
-  for three ids, `AddArrows` for two) and the eleven of
-  [pyramids and spheres](#pyramids-and-spheres);
+  for three ids, `AddArrows` for two), the eleven of
+  [pyramids and spheres](#pyramids-and-spheres) and the two of
+  [ribbons, the tube and panels](#ribbons-the-tube-and-panels) (`AddPanels` for five
+  ids);
 - `EffectWorld`, the world's list as effects use it:
   - `Launch` adds an effect;
   - `Step` runs a world step in the list's order;
   - `Draw` gives the primitives' triangles and quads;
   - `SetParticle`, `SetSprite`, `SetMinimal` and `SetPlayer` give it the sprites effects
     load by name (`kParticleSprite` and `kEffectSprites`), the minimal flag and where the
-    player stands.
+    player stands; `SetPlayerId` and `SetActor` the actors an id names, for the tube.
 
 **`src/core/angles`:** `DegreesToRadians`.
 
@@ -1811,12 +1888,22 @@ the six `불화살` images, `icearrow.tga`, `ac_center2.tga` and the rest).
   - 0x7b a second time with the target within 2.5, where its stones stop;
   - 0x8e for all 300 of its frames, until its spikes sink; 0x59 for 230, until its last
     icicles are gone; Magnum Break for 305, past its end.
+- **Twenty synthetic ribbons**, ten each of ids 0xa and 0xb, as for the flying quads, with
+  one to six history records, headings far outside 0 to 360 and heights either way; the
+  state adds the offset and the four points.
+- **Eight synthetic tubes and panels**, four of each, as for the walls, with random
+  records:
+  - the tube's age about its 15;
+  - its id the player's, the other actor's (whole and not), an unknown one, 0 or below;
+  - every kind of panel, and kinds 1.5 and 5.
+- **The six tube and panel effects** (0xe8 three times), as for the screen effects:
+  - the player's id written at `g_ClientState+0xcdc`;
+  - `CWorld::GetActorById` answering one other actor;
+  - 0xe8 run to the player, to that actor and to no one.
 
-`tests/unit/prim_test.cpp` matches all of it: 5,468,837 values, the CRT's first `rand` values
+`tests/unit/prim_test.cpp` matches all of it: 5,745,547 values, the CRT's first `rand` values
 among them.
 
 **Not ported:**
-- ids 0xa and 0xb (`RenderHistoryRibbon`), which nothing creates, 0x24
-  (`RenderTubeBetweenPoints`) and 0x2e (`RenderVerticalPanels`);
 - the other effects' processing;
 - the sounds.

@@ -1751,6 +1751,73 @@ void UpdateSphere(EffectPrim& p) {
   UpdateAlpha(p);
 }
 
+// CEffectPrim::UpdatePrim_10 (00581050), ids 0xa and 0xb: four points of a ribbon about
+// the owner's point, the distance out at the heading and at the heading less its speed,
+// the far edge the height's speed (+0x294) higher and both the scale lower again; then the
+// alpha, the history (which the drawing reads), the heading turned on and the offset raised
+// by the height's speed.
+void UpdateRibbon(EffectPrim& p) {
+  FollowOwner(p);
+  const float y = p.start[1];
+  const float near_x = (core::SinDegrees(Ftol(p.heading)) * p.distance) + p.start[0];
+  const float near_z = p.start[2] - (core::CosDegrees(Ftol(p.heading)) * p.distance);
+  const float far_x =
+      (core::SinDegrees(Ftol(p.heading_speed + p.heading)) * p.distance) + p.start[0];
+  const float far_z =
+      p.start[2] - (core::CosDegrees(Ftol(p.heading_speed + p.heading)) * p.distance);
+  const float top = y + p.height_speed;
+  p.points = {near_x, y,           near_z, far_x, top,           far_z,
+              near_x, y - p.scale, near_z, far_x, top - p.scale, far_z};
+  UpdateAlpha(p);
+  ShiftHistory(p);
+  p.heading = p.heading_speed + p.heading;
+  p.offset[1] = p.offset[1] + p.height_speed;
+}
+
+// Who an actor id names: the player when it is the player's id (g_ClientState+0xcdc),
+// otherwise CWorld::GetActorById (004c4cf0) of the id truncated; nullptr if none.
+const Vec3* FindActor(const EffectActors* actors, float id) {
+  if (actors == nullptr) return nullptr;
+  if (static_cast<double>(actors->player_id) == static_cast<double>(id)) return &actors->player;
+  const auto it = actors->others.find(Ftol(id));
+  return it == actors->others.end() ? nullptr : &it->second;
+}
+
+// CEffectPrim::UpdatePrim_36 (00572190), id 0x24: the first record's tube from 8 above the
+// owner to 8 above the actor its id (values[0]) names, its alpha rising and falling by 2 a
+// frame five frames each way; without one the record goes out and its alpha to 0.
+void UpdateTube(EffectPrim& p, const PrimScene& scene) {
+  p.position = p.owner->position;
+  PrimBand& b = p.bands[0];
+  ++b.age;
+  b.points[1] = p.position;
+  b.points[1][1] = b.points[1][1] - 8.0f;
+  b.alpha = static_cast<std::int16_t>(b.alpha + (b.age % 10 < 5 ? 2 : -2));
+  if (b.values[0] > 0.0f) {
+    if (const Vec3* to = FindActor(scene.actors, b.values[0])) {
+      b.points[3] = *to;
+      b.points[3][1] = b.points[3][1] - 8.0f;
+      return;
+    }
+  }
+  b.active = false;
+  b.alpha = 0;
+}
+
+// CEffectPrim::UpdatePrim_46 (0057b8e0), id 0x2e: at the owner's point, each lit record
+// swaying 2 degrees a frame (4 for kind 1), its height 20 plus 10 times the sway's sine.
+void UpdatePanels(EffectPrim& p) {
+  p.position = p.owner->position;
+  for (PrimBand& b : p.bands) {
+    if (!b.active) continue;
+    ++b.age;
+    auto phase = static_cast<std::int16_t>(b.phase + (b.values[0] == 1.0f ? 4 : 2));
+    if (phase > 359) phase = static_cast<std::int16_t>(phase - 360);
+    b.phase = phase;
+    b.size = (TableAt(kSines, b.phase) * 10.0f) + 20.0f;
+  }
+}
+
 // The end every sprite trail's update shares: the angle with the camera under
 // kFaceCamera, then the alpha, the history and the sprite's frame.
 bool EndTrailStep(EffectPrim& p, const PrimScene& scene) {
@@ -2710,6 +2777,35 @@ void DrawSphere(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
   }
 }
 
+// CEffectPrim::RenderHistoryRibbon (00585220), ids 0xa and 0xb: at each history record a
+// quad of its four points, two triangles (A, B, C) and (D, C, B) of the first texture in the
+// record's colour with AddPrimitive's flags 1, u 0 to 1 from A to B and v 1 at the top. The
+// view transform is written out, x's sum from x, then z, and y's and z's from z, then y.
+void DrawHistoryRibbon(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
+  const Matrix& m = scene.view;
+  const auto vertex = [&](const PrimHistory& h, std::size_t k, float u, float v) {
+    const float x = h.points[3 * k];
+    const float y = h.points[(3 * k) + 1];
+    const float z = h.points[(3 * k) + 2];
+    const Vec3 q = {(((x * m[0]) + (z * m[6])) + (y * m[3])) + m[9],
+                    (((z * m[7]) + (y * m[4])) + (x * m[1])) + m[10],
+                    (((z * m[8]) + (y * m[5])) + (x * m[2])) + m[11]};
+    ScreenVertex sv = ProjectPoint(ClampNear(q), scene.projection);
+    sv.diffuse = h.color;
+    sv.u = u;
+    sv.v = v;
+    return sv;
+  };
+  const std::string& texture = FirstTexture(p);
+  for (std::int32_t k = 0; k < p.history_count; ++k) {
+    const PrimHistory& h = p.history[static_cast<std::size_t>(k)];
+    out.triangles.push_back(
+        {texture, {vertex(h, 0, 0.0f, 1.0f), vertex(h, 1, 1.0f, 1.0f), vertex(h, 2, 0.0f, 0.0f)}});
+    out.triangles.push_back(
+        {texture, {vertex(h, 3, 1.0f, 0.0f), vertex(h, 2, 0.0f, 0.0f), vertex(h, 1, 1.0f, 1.0f)}});
+  }
+}
+
 // CEffectPrim::RenderScreenLine (00581b00), id 0x14: a hairline from the position up 10, a
 // triangle of the position, a pixel right of it and the point above, untextured, alpha 0x9c
 // then 0x9b (white), flags 5; every rhw 0.999999.
@@ -2847,6 +2943,74 @@ void DrawQuad(const EffectPrim& p, const PrimScene& scene, std::array<Vec3, 4> q
   out.triangles.push_back(t);
   t.vertices = {vertex(q[3], false, false, 0.0f, 0.0f), vertex(q[2], false, true, 1.0f, 0.0f), a};
   out.triangles.push_back(t);
+}
+
+// CEffectPrim::RenderTubeBetweenPoints (005701e0), id 0x24: while the first record is lit
+// and its alpha above 0, two tubes of the first texture from its start (+0x94) to its end
+// (+0xac), drawn in from the start over the first 15 frames by the sine of six times the
+// age: one of the record's radius in yellow at its alpha, one twice as wide in blue at
+// twice the alpha. Each is ten quads (DrawQuad, in the world) round the line, a ring point
+// every 36 degrees across its direction (VectorToDegrees, a quarter turn on).
+void DrawTube(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
+  const PrimBand& b = p.bands[0];
+  if (!b.active || b.alpha <= 0) return;
+  const Vec3& start = b.points[1];
+  const Vec3& end = b.points[3];
+  std::int32_t across = VectorToDegrees(start[0] - end[0], start[2] - end[2]) + 90;
+  if (static_cast<std::int16_t>(across) >= 360) across -= 360;
+  const auto a = static_cast<std::int16_t>(across);
+  Vec3 to = end;
+  if (b.age < 15) {
+    const float t = TableAt(kSines, b.age * 6);
+    to = {((end[0] - start[0]) * t) + start[0], ((end[1] - start[1]) * t) + start[1],
+          (t * (end[2] - start[2])) + start[2]};
+  }
+  for (std::int32_t ring = 0; ring < 2; ++ring) {
+    const float radius = ring == 0 ? b.size : b.size + b.size;
+    const QuadLook look =
+        ring == 0 ? QuadLook{b.alpha, false, 0, true, 0xff, 0xff, 0}
+                  : QuadLook{static_cast<std::int16_t>(b.alpha << 1), false, 0, true, 0, 0, 0xff};
+    Vec3 last_near{};
+    Vec3 last_far{};
+    for (std::int32_t degrees = 0; degrees <= 360; degrees += 36) {
+      const float up = radius * TableAt(kSines, degrees);
+      const float out_by = radius * TableAt(kCosines, degrees);
+      const float dx = out_by * TableAt(kCosines, a);
+      const float dz = out_by * TableAt(kSines, a);
+      const Vec3 near = {start[0] + dx, start[1] + up, start[2] + dz};
+      const Vec3 far = {to[0] + dx, to[1] + up, to[2] + dz};
+      if (degrees > 0) DrawQuad(p, scene, {last_near, near, far, last_far}, look, out);
+      last_near = near;
+      last_far = far;
+    }
+  }
+}
+
+// CEffectPrim::RenderVerticalPanels (0057af70), id 0x2e: each lit record with alpha above 0
+// an upright panel (DrawQuad, from the primitive) from its near edge (+0x88's x and z) to
+// its far (+0xa0's), from the ground up its height. Kind (values[0]) 1 is red and 2 green,
+// both added; 3 yellow, 4 a pale red and any other white, blended.
+void DrawPanels(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
+  for (const PrimBand& b : p.bands) {
+    if (!b.active || b.alpha <= 0) continue;
+    const float kind = b.values[0];
+    QuadLook look{b.alpha, false, 0, false, 0xff, 0xff, 0xff};
+    if (kind == 1.0f) {
+      look = {b.alpha, true, 0, false, 0xff, 0x9b, 0x9b};
+    } else if (kind == 2.0f) {
+      look = {b.alpha, true, 0, false, 0x9b, 0xff, 0x9b};
+    } else if (kind == 3.0f) {
+      look = {b.alpha, false, 0, false, 0xff, 0xff, 100};
+    } else if (kind == 4.0f) {
+      look = {b.alpha, false, 0, false, 0xff, 0x96, 0x96};
+    }
+    const Vec3& near = b.points[0];
+    const Vec3& far = b.points[2];
+    DrawQuad(p, scene,
+             {Vec3{near[0], 0.0f, near[2]}, Vec3{far[0], 0.0f, far[2]},
+              Vec3{far[0], -b.size, far[2]}, Vec3{near[0], -b.size, near[2]}},
+             look, out);
+  }
 }
 
 // CEffectPrim::RotateQuadPoints (0057caa0): each corner turned about x by the second
@@ -3616,6 +3780,10 @@ bool UpdatePrimitive(EffectPrim& p, core::CrtRand& rand, const PrimScene& scene)
     case 0x11:
       // Nothing creates it, and vf01 only ages it.
       break;
+    case 0xa:
+    case 0xb: UpdateRibbon(p); break;
+    case 0x24: UpdateTube(p, scene); break;
+    case 0x2e: UpdatePanels(p); break;
     case 0x17: UpdateRisingWalls(p, false); break;
     case 0x18: UpdateTurningRings(p); break;
     case 0x19: UpdateRisingWalls(p, true); break;
@@ -3687,6 +3855,10 @@ void DrawPrimitive(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out
     case 0xf: DrawTransformedQuad(p, scene, out); break;
     case 0x10: DrawCrossedQuads(p, scene, out); break;
     case 9: DrawPyramid(p, scene, out); break;
+    case 0xa:
+    case 0xb: DrawHistoryRibbon(p, scene, out); break;
+    case 0x24: DrawTube(p, scene, out); break;
+    case 0x2e: DrawPanels(p, scene, out); break;
     case 0xe: DrawSphere(p, scene, out); break;
     case 0x16: DrawBillboard(p, scene, out); break;
     case 0x14: DrawScreenLine(p, scene, out); break;
@@ -6763,6 +6935,93 @@ void AddExplosionSphere(RagEffect& effect, std::vector<EffectPrim>& added) {
   added.push_back(std::move(p));
 }
 
+void AddActorLink(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+                  std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  EffectPrim p = MakePrimitive(&effect, 0x24, {0.0f, 0.0f, 0.0f});
+  p.quad_flags = 5;
+  p.life = effect.duration;
+  p.textures = {"effect\\cloud11.tga"};
+  PrimBand& b = p.bands[0];
+  b.active = true;
+  b.age = 0;
+  b.alpha = 45;
+  b.length = 0.0f;
+  b.size = 0.4f;
+  b.points[1] = effect.position;
+  b.values[0] = effect.target[1];
+  const Vec3* to = b.values[0] > 0.0f ? FindActor(scene.actors, b.values[0]) : nullptr;
+  if (to != nullptr) {
+    b.points[3] = *to;
+  } else {
+    b.active = false;
+  }
+  for (std::size_t k = 1; k < p.bands.size(); ++k) p.bands[k].active = false;
+  added.push_back(std::move(p));
+}
+
+void AddPanels(RagEffect& effect, const EffectActor& actor, const char* texture, std::int32_t kind,
+               core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  EffectPrim p = MakePrimitive(&effect, 0x2e, {0.0f, 0.0f, 0.0f});
+  p.quad_flags = 5;
+  p.life = effect.duration;
+  p.textures = {texture};
+  p.scale = 0.0f;
+  for (std::size_t k = 0; k < p.bands.size(); ++k) {
+    PrimBand& b = p.bands[k];
+    Vec3& near = b.points[0];
+    Vec3& far = b.points[2];
+    if (kind == 0) {
+      b.active = true;
+      b.age = 0;
+      b.phase = static_cast<std::int16_t>(rand.Next() % 360);
+      far[0] = static_cast<float>(rand.Next() % 40 - 20);
+      far[2] = static_cast<float>(rand.Next() % 40 - 20);
+      near[0] = 0.0f;
+      near[2] = 0.0f;
+      b.alpha = 15;
+    } else if (kind == 1 || kind == 2) {
+      b.active = true;
+      b.age = 0;
+      b.phase = static_cast<std::int16_t>(rand.Next() % 360);
+      if (k < 2) {
+        far[0] = static_cast<float>(rand.Next() % 7) - 3.0f;
+        far[2] = -3.0f;
+        near[0] = -far[0];
+        near[2] = 3.0f;
+      } else {
+        far[0] = -3.0f;
+        far[2] = static_cast<float>(rand.Next() % 7) - 3.0f;
+        near[0] = 3.0f;
+        near[2] = -far[2];
+      }
+      b.alpha = 50;
+      b.values[0] = static_cast<float>(kind);
+    } else if (kind == 3 || kind == 4) {
+      b.active = k < 2;
+      b.age = 0;
+      b.phase = static_cast<std::int16_t>(rand.Next() % 360);
+      if (k == 0) {
+        far[0] = 6.0f;
+        far[2] = 0.0f;
+        near[0] = -6.0f;
+        near[2] = 0.0f;
+      } else {
+        far[0] = 0.0f;
+        far[2] = -6.0f;
+        near[0] = 0.0f;
+        near[2] = 6.0f;
+      }
+      b.alpha = 100;
+      b.values[0] = static_cast<float>(kind);
+    }
+  }
+  added.push_back(std::move(p));
+}
+
 bool ProcessMagnumBreak(RagEffect& effect, std::vector<EffectPrim>& added) {
   if (effect.frame == 7 || effect.frame == 20) {
     // effect\EF_MagnumBreak.wav plays here.
@@ -7022,7 +7281,10 @@ RagEffect& EffectWorld::Launch(std::int32_t id, const EffectActor& actor) {
   return *objects_.back().effect;
 }
 
-void EffectWorld::Step(const PrimScene& scene) {
+void EffectWorld::Step(const PrimScene& world_scene) {
+  PrimScene scene = world_scene;
+  actors_.player = player_;
+  scene.actors = &actors_;
   for (auto it = objects_.begin(); it != objects_.end();) {
     bool more = false;
     if (it->effect) {
@@ -7225,6 +7487,12 @@ void EffectWorld::Step(const PrimScene& scene) {
         case 0x11: AddBlast(e, added); break;
         case 0x3f: AddExplosionSphere(e, added); break;
         case 0xaa: ended = !ProcessMagnumBreak(e, added); break;
+        case 0xe8: AddActorLink(e, it->actor, scene, added); break;
+        case 0x115: AddPanels(e, it->actor, "effect\\ring_blue.tga", 0, rand_, added); break;
+        case 0x11f: AddPanels(e, it->actor, "effect\\ring_red.tga", 1, rand_, added); break;
+        case 0x122: AddPanels(e, it->actor, "effect\\ring_red.tga", 0, rand_, added); break;
+        case 0x124: AddPanels(e, it->actor, "effect\\magic_green.tga", 2, rand_, added); break;
+        case 0x126: AddPanels(e, it->actor, "effect\\safeline.bmp", 4, rand_, added); break;
         case 8: AddSparkRipples(e, Sprite(kParticleSprite), rand_, added); break;
         case 0xc:
           AddBeginSpell(e, it->actor, "effect\\ring_blue.tga", "effect\\ring_yellow.tga", added);

@@ -5469,7 +5469,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00569610	661	code	0	world		named	CRagEffect	AddShieldBoomerang	
 005698b0	555	code	0	world		named	CRagEffect	AddPulsingSquare	
 00569ae0	765	code	0	world		named	CRagEffect	AddArcingSquare	
-00569de0	479	code	0	world		named	CRagEffect	method_00569de0	
+00569de0	479	code	0	world		named	CRagEffect	AddActorLink	
 00569fc0	2412	code	0	world		named	CEffectPrim	DrawPresetColorQuad	
 0056a960	1994	code	0	world		named	CEffectPrim	DrawQuad	
 0056b130	453	code	0	world		named	CEffectPrim	UpdatePrim_23	
@@ -5543,7 +5543,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00573bb0	418	code	0	world		named	CRagEffect	AddRandomRing	
 00573d60	533	code	0	world		named	CRagEffect	AddBoxWalls	
 00573f80	457	code	0	world		named	CRagEffect	AddTwirlRing	
-00574150	961	code	0	world		named	CRagEffect	method_00574150	
+00574150	961	code	0	world		named	CRagEffect	AddPanels	
 00574520	875	code	0	world		named	CRagEffect	AddBobbingSquare	
 00574890	588	code	0	world		named	CRagEffect	AddSinkingSquares	
 00574ae0	340	code	0	world		named	CRagEffect	AddSwellingSquare	

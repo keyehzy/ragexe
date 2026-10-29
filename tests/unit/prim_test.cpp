@@ -220,6 +220,13 @@ constexpr std::uint32_t kScreenSeed = 15000;          // and for the screen and 
 constexpr std::uint32_t kFlightSeed = 17000;          // and for the flying quads
 constexpr std::uint32_t kCrossedSeed = 19000;         // and for the crossed quads
 constexpr std::uint32_t kSolidSeed = 21000;           // and for the pyramids and spheres
+constexpr std::uint32_t kRibbonSeed = 23000;          // and for the ribbons
+constexpr std::uint32_t kSpanSeed = 24000;            // and for the tube and panels
+// The actors the tube's runs look up, as tools/prim_vectors.py places them.
+constexpr std::uint32_t kLinkPlayerId = 31337;
+constexpr std::int32_t kLinkActorId = 4242;
+constexpr Vec3 kLinkActor = {-18.0f, -6.5f, 9.0f};
+constexpr Vec3 kLinkPlayer = {12.5f, -3.0f, -20.0f};
 
 float F(std::uint32_t bits) { return std::bit_cast<float>(bits); }
 std::uint32_t B(float f) { return std::bit_cast<std::uint32_t>(f); }
@@ -561,7 +568,8 @@ std::vector<std::uint32_t> PiecesStateOf(const EffectPrim& p) {
 bool IsRingWall(std::int32_t id) { return id == 0x20 || id == 0x3a || id == 0x3b; }
 
 bool IsBand(std::int32_t id) {
-  return id == 0x23 || id == 0x3d || id == 0x3f || id == 0x42 || id == 0x43;
+  return id == 0x23 || id == 0x3d || id == 0x3f || id == 0x42 || id == 0x43 || id == 0x24 ||
+         id == 0x2e;
 }
 
 // A dword of a record as ids 0x23, 0x3d, 0x3f, 0x42 and 0x43 read it.
@@ -1425,6 +1433,8 @@ void CheckTargetEffects(std::span<const SquareEffectVector> effects,
     CHECK(EffectDuration(v.id) == v.duration);
     EffectWorld world(v.seed);
     world.SetPlayer(vec(v.player));
+    world.SetPlayerId(kLinkPlayerId);
+    world.SetActor(kLinkActorId, kLinkActor);
     if (sprites) {
       world.SetParticle({&act, &sprite});
       for (const char* name : kEffectSprites) world.SetSprite(name, {&act, &sprite});
@@ -1710,6 +1720,7 @@ void CheckFlights(std::span<const ShapeVector> flights, std::uint32_t seed,
     owner.duration = v.duration;
     EffectPrim p = MakePrimitive(&owner, v.id, {F(v.offset[0]), F(v.offset[1]), F(v.offset[2])});
     for (std::size_t f = 0; f < v.field_count; ++f) Apply(v.fields[f], p);
+    if (v.id == 0xa || v.id == 0xb) ResetHistory(p);
     p.textures.clear();
     for (std::int32_t i = 0; i < p.image_count; ++i) p.textures.push_back("t" + std::to_string(i));
     const PrimScene scene = SceneOf(v.scene, &attr);
@@ -1753,4 +1764,57 @@ TEST_CASE("Pyramids, spheres and ids 0x11 and 0x12 step and draw as the original
 
 TEST_CASE("The pyramid and sphere effects play as the original's", "[effect]") {
   CheckTargetEffects(kSolidEffects, StateOfSolidEffect, true);
+}
+
+namespace {
+
+std::vector<std::uint32_t> StateOfRibbon(const EffectPrim& p) {
+  std::vector<std::uint32_t> out = StateOfScreen(p);
+  for (float x : p.offset) out.push_back(B(x));
+  for (float x : p.points) out.push_back(B(x));
+  return out;
+}
+
+}  // namespace
+
+TEST_CASE("History ribbons step and draw as the original's", "[effect]") {
+  CheckFlights(kRibbons, kRibbonSeed, StateOfRibbon);
+}
+
+TEST_CASE("The tube and the panels step and draw as the original's", "[effect]") {
+  std::map<std::string, std::uint32_t> ids;
+  for (std::uint32_t i = 0; i < 5; ++i) ids["t" + std::to_string(i)] = kSyntheticTextures + i;
+  EffectActors actors;
+  actors.player_id = kLinkPlayerId;
+  actors.player = kLinkPlayer;
+  actors.others[kLinkActorId] = kLinkActor;
+  std::size_t n = 0;
+  for (const ShapeVector& v : kSpans) {
+    INFO("primitive " << n << ", id " << v.id);
+    RagEffect owner;
+    for (std::size_t i = 0; i < 3; ++i) owner.position[i] = F(v.position[i]);
+    owner.duration = v.duration;
+    EffectPrim p = MakePrimitive(&owner, v.id, {0.0f, 0.0f, 0.0f});
+    for (std::size_t f = 0; f < v.field_count; ++f) Apply(v.fields[f], p);
+    p.textures = {"t0", "t1", "t2", "t3", "t4"};
+    PrimScene scene = SceneOf(v.scene, nullptr);
+    scene.actors = &actors;
+    ragexe::core::CrtRand rand(kSpanSeed + static_cast<std::uint32_t>(n));
+    for (std::size_t f = 0; f < v.frame_count; ++f) {
+      INFO("frame " << f);
+      const ShapeFrameVector& fv = v.frames[f];
+      const bool more = UpdatePrimitive(p, rand, scene);
+      CHECK(more == (fv.more != 0));
+      CheckState(WallsStateOf(p), fv.state, fv.state_count);
+      PrimDrawing drawing;
+      if (more) DrawPrimitive(p, scene, drawing);
+      CheckTriangles(drawing.triangles, fv.triangles, fv.count, ids);
+      ++owner.frame;
+    }
+    ++n;
+  }
+}
+
+TEST_CASE("The tube and panel effects play as the original's", "[effect]") {
+  CheckTargetEffects(kSpanEffects, WallsStateOf);
 }

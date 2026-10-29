@@ -2479,9 +2479,20 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Checks:** 40 synthetic primitives and 14 effect runs; 5,468,837 values in
     `prim_test`.
 
+- [x] Ribbons, the tube and panels (`docs/render/effect-prim.md#ribbons-the-tube-and-panels`):
+  - **`UpdatePrim_10` and `RenderHistoryRibbon`** (ids 0xa and 0xb, which nothing
+    creates), **`UpdatePrim_36` and `RenderTubeBetweenPoints`** (0x24) and
+    **`UpdatePrim_46` and `RenderVerticalPanels`** (0x2e): every `CEffectPrim` id is now
+    ported.
+  - **Effect ids 0xe8, 0x115, 0x11f, 0x122, 0x124 and 0x126** through two setups; the tube
+    looks its actor up by id (the player's through `g_ClientState+0xcdc`, the rest through
+    `CWorld::GetActorById`), which `EffectWorld` now carries.
+  - **Checks:** 28 synthetic primitives and 8 effect runs; 5,745,547 values in
+    `prim_test`.
+
 ### Next actions
-1. M4, the renderer: the last primitive ids, 0xa and 0xb (`RenderHistoryRibbon`, which
-   nothing creates), 0x24 (`RenderTubeBetweenPoints`, effect 0xe8) and 0x2e
-   (`RenderVerticalPanels`, effects 0x115, 0x11f, 0x122, 0x124 and 0x126).
+1. M4, the renderer: the 137 cases of `CRagEffect::vf01` not yet ported, now that every
+   primitive id is: sort out those that only play their `.str` (or nothing), then port
+   the rest in groups as before.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.
