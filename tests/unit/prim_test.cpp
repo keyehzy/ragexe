@@ -219,6 +219,7 @@ constexpr std::uint32_t kTrailSeed = 13000;           // and for the sprite trai
 constexpr std::uint32_t kScreenSeed = 15000;          // and for the screen and history rings
 constexpr std::uint32_t kFlightSeed = 17000;          // and for the flying quads
 constexpr std::uint32_t kCrossedSeed = 19000;         // and for the crossed quads
+constexpr std::uint32_t kSolidSeed = 21000;           // and for the pyramids and spheres
 
 float F(std::uint32_t bits) { return std::bit_cast<float>(bits); }
 std::uint32_t B(float f) { return std::bit_cast<std::uint32_t>(f); }
@@ -753,6 +754,8 @@ void Apply(const FieldVector& f, EffectPrim& p) {
         p.axis[(f.field - 0x1c0) / 4] = F(f.value);
       } else if (f.field >= 0xc4 && f.field < 0xf4) {
         p.matrix[(f.field - 0xc4) / 4] = v;
+      } else if (f.field >= 0xf4 && f.field < 0x124) {
+        p.orbit[(f.field - 0xf4) / 4] = v;
       } else if (f.field >= 0x2e0 && f.field < 0x2ec) {
         p.step[(f.field - 0x2e0) / 4] = F(f.value);
       } else if (f.field >= 0x31c && f.field < 0x328) {
@@ -1650,7 +1653,49 @@ TEST_CASE("The screen and history ring effects play as the original's", "[effect
 
 namespace {
 
-void CheckFlights(std::span<const ShapeVector> flights, std::uint32_t seed) {
+// The fields tools/prim_vectors.py's SOLID_STATE lists, then the matrix.
+std::vector<std::uint32_t> StateOfSolid(const EffectPrim& p) {
+  std::vector<std::uint32_t> out = {B(p.position[0]),
+                                    B(p.position[1]),
+                                    B(p.position[2]),
+                                    U(p.image),
+                                    p.color,
+                                    U(p.age),
+                                    p.fading ? 1u : 0u,
+                                    U(p.red),
+                                    U(p.green),
+                                    U(p.blue),
+                                    B(p.speed),
+                                    B(p.acceleration),
+                                    B(p.heading),
+                                    B(p.pitch),
+                                    B(p.alpha),
+                                    B(p.alpha_speed),
+                                    B(p.heading_speed),
+                                    B(p.distance),
+                                    B(p.distance_speed),
+                                    B(p.distance_rate),
+                                    B(p.bottom_radius),
+                                    B(p.top_radius),
+                                    B(p.bottom_radius_speed),
+                                    B(p.top_radius_speed),
+                                    B(p.height),
+                                    B(p.height_speed)};
+  for (const Vec3* v : {&p.step, &p.start, &p.travel})
+    for (float x : *v) out.push_back(B(x));
+  for (float m : p.matrix) out.push_back(B(m));
+  return out;
+}
+
+bool IsSolid(std::int32_t id) { return id == 9 || id == 0xe || id == 0x11 || id == 0x12; }
+
+std::vector<std::uint32_t> StateOfSolidEffect(const EffectPrim& p) {
+  if (IsSolid(p.id)) return StateOfSolid(p);
+  return IsScreen(p.id) ? StateOfScreen(p) : StateOfTrail(p);
+}
+
+void CheckFlights(std::span<const ShapeVector> flights, std::uint32_t seed,
+                  std::vector<std::uint32_t> (*state)(const EffectPrim&) = StateOfFlight) {
   std::map<std::string, std::uint32_t> ids;
   for (std::uint32_t i = 0; i < 4; ++i) ids["t" + std::to_string(i)] = kSyntheticTextures + i;
   const ragexe::res::AttrMap attr = TestAttr();
@@ -1674,7 +1719,7 @@ void CheckFlights(std::span<const ShapeVector> flights, std::uint32_t seed) {
       const ShapeFrameVector& fv = v.frames[f];
       const bool more = UpdatePrimitive(p, rand, scene);
       CHECK(more == (fv.more != 0));
-      CheckState(StateOfFlight(p), fv.state, fv.state_count);
+      CheckState(state(p), fv.state, fv.state_count);
       PrimDrawing drawing;
       if (more) DrawPrimitive(p, scene, drawing);
       CheckTriangles(drawing.triangles, fv.triangles, fv.count, ids);
@@ -1700,4 +1745,12 @@ TEST_CASE("Crossed quads step and draw as the original's", "[effect]") {
 
 TEST_CASE("The crossed quad effects play as the original's", "[effect]") {
   CheckTargetEffects(kCrossedEffects, StateOfFlightEffect, true);
+}
+
+TEST_CASE("Pyramids, spheres and ids 0x11 and 0x12 step and draw as the original's", "[effect]") {
+  CheckFlights(kSolids, kSolidSeed, StateOfSolid);
+}
+
+TEST_CASE("The pyramid and sphere effects play as the original's", "[effect]") {
+  CheckTargetEffects(kSolidEffects, StateOfSolidEffect, true);
 }

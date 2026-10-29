@@ -437,16 +437,20 @@ bool UpdateBouncer(EffectPrim& p, core::CrtRand& rand, const PrimScene& scene) {
 
 // CEffectPrim::UpdatePrim_13 (00580df0): a cylinder moving up its matrix's y, turning, its
 // rings and height growing to max_height; with kNarrowing its top closes from fade_at.
-bool UpdateCylinder(EffectPrim& p) {
+// UpdatePrim_18 (00580bc0), id 0x12, is the same without the first turn and the heading's
+// and pitch's rates (turning false).
+bool UpdateCylinder(EffectPrim& p, bool turning = true) {
   FollowOwner(p);
   p.speed = p.acceleration + p.speed;
   p.top_radius_speed = p.top_radius_rate + p.top_radius_speed;
   p.bottom_radius_speed = p.bottom_radius_rate + p.bottom_radius_speed;
   p.height_speed = p.height_rate + p.height_speed;
-  p.heading_speed = p.heading_rate + p.heading_speed;
-  p.pitch_speed = p.pitch_rate + p.pitch_speed;
-  p.heading = p.heading_speed + p.heading;
-  p.pitch = p.pitch_speed + p.pitch;
+  if (turning) {
+    p.heading_speed = p.heading_rate + p.heading_speed;
+    p.pitch_speed = p.pitch_rate + p.pitch_speed;
+    p.heading = p.heading_speed + p.heading;
+    p.pitch = p.pitch_speed + p.pitch;
+  }
   p.matrix = RotateY(MakeRotationX(Radians(p.pitch)), Radians(p.heading));
   const float back = -p.speed;
   const Matrix& m = p.matrix;
@@ -1710,6 +1714,43 @@ float TurnTowards(const Vec3& from, float x, float z) {
   return AngleBetween(from[0], from[2], x, z);
 }
 
+// CEffectPrim::UpdatePrim_9 (0057f8c0), id 9: along its matrix's z at the speed, taking the
+// speed and acceleration of changes 2 and 5 at change_at; with kHalts stopping at age
+// period; with kSinks taking step changes 1 and 4 30 frames before its life instead of
+// fading.
+void UpdatePyramid(EffectPrim& p) {
+  FollowOwner(p);
+  if (p.age == p.change_at) {
+    p.speed = std::bit_cast<float>(p.changes[2]);
+    p.acceleration = std::bit_cast<float>(p.changes[5]);
+  }
+  p.speed = p.acceleration + p.speed;
+  p.step = AlongZ(p, p.speed);
+  for (std::size_t i = 0; i < 3; ++i) p.travel[i] = p.step[i] + p.travel[i];
+  PlaceAtTravel(p);
+  if ((p.flags & EffectPrim::kHalts) != 0 && p.age == p.period) {
+    p.acceleration = 0.0f;
+    p.speed = 0.0f;
+  }
+  if ((p.flags & EffectPrim::kSinks) == 0) {
+    UpdateAlpha(p);
+  } else if (p.age == p.life - 30) {
+    p.speed = std::bit_cast<float>(p.step_changes[1]);
+    p.acceleration = std::bit_cast<float>(p.step_changes[4]);
+  }
+}
+
+// CEffectPrim::UpdatePrim_14 (005811f0), id 0xe: at the owner's point, the distance
+// (the radius) and heading taking their speeds.
+void UpdateSphere(EffectPrim& p) {
+  FollowOwner(p);
+  p.position = p.start;
+  p.distance_speed = p.distance_rate + p.distance_speed;
+  p.distance = p.distance_speed + p.distance;
+  p.heading = p.heading_speed + p.heading;
+  UpdateAlpha(p);
+}
+
 // The end every sprite trail's update shares: the angle with the camera under
 // kFaceCamera, then the alpha, the history and the sprite's frame.
 bool EndTrailStep(EffectPrim& p, const PrimScene& scene) {
@@ -2567,6 +2608,106 @@ Vec3 TransformPointFromXThenZ(const Matrix& m, const Vec3& p) {
   return {(((p[0] * m[0]) + (p[2] * m[6])) + (p[1] * m[3])) + m[9],
           (((p[0] * m[1]) + (p[2] * m[7])) + (p[1] * m[4])) + m[10],
           (((p[0] * m[2]) + (p[2] * m[8])) + (p[1] * m[5])) + m[11]};
+}
+
+// CEffectPrim::RenderPyramid (00582990), id 9: a four-sided pyramid in the second matrix
+// about the position, its base the scale either side along x and y and its tip the height
+// along z; each side a triangle of the first texture (base, tip, base) with AddPrimitive's
+// flags 1, u from 0 a fifth along a side, v 1 at the base and 0 at the tip. The view
+// transform is written out with every sum from x, then z, then y, and each side's last
+// corner projected inline; every corner has a 0 in it, so the second matrix's sums round
+// alike in any order.
+void DrawPyramid(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
+  const float s = p.scale;
+  const float h = p.height;
+  const std::array<std::array<Vec3, 3>, 4> sides = {{
+      {{{-s, -s, 0.0f}, {0.0f, 0.0f, h}, {s, -s, 0.0f}}},
+      {{{-s, -s, 0.0f}, {0.0f, 0.0f, h}, {-s, s, 0.0f}}},
+      {{{-s, s, 0.0f}, {0.0f, 0.0f, h}, {s, s, 0.0f}}},
+      {{{s, s, 0.0f}, {0.0f, 0.0f, h}, {s, -s, 0.0f}}},
+  }};
+  const auto vertex = [&](const Vec3& c, float u, float v) {
+    Vec3 q = TransformPoint(p.orbit, c);
+    for (std::size_t i = 0; i < 3; ++i) q[i] = q[i] + p.position[i];
+    ScreenVertex sv =
+        ProjectPoint(ClampNear(TransformPointFromXThenZ(scene.view, q)), scene.projection);
+    sv.diffuse = p.color;
+    sv.u = u;
+    sv.v = v;
+    return sv;
+  };
+  const std::string& texture = FirstTexture(p);
+  float u0 = 0.0f;
+  for (const auto& c : sides) {
+    const float u1 = u0 + kBandLength;
+    out.triangles.push_back(
+        {texture, {vertex(c[0], u0, 1.0f), vertex(c[1], u0, 0.0f), vertex(c[2], u1, 1.0f)}});
+    u0 = u1;
+  }
+}
+
+// CEffectPrim::RenderSphere (005857e0), id 0xe: a sphere of radius distance about the
+// position, a cell every sweep degrees from latitude −90 and longitude 0 (turned by the
+// heading), each two triangles of the first texture with AddPrimitive's flags 1. A cell's
+// corners are the z rows of turns about x by the latitude and y by the longitude (the next
+// longitude a quarter degree further), u stepping across the 360 degrees and v down the
+// 180. The first triangle's view transforms are written out, x's sum from z and y's and z's
+// from x, then z; the second's first too, its second through TransformPoint and projected
+// inline with x scaled first, its third through TransformPoint.
+void DrawSphere(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
+  const float sweep = p.sweep;
+  const float u_step = 1.0f / (360.0f / sweep);
+  const float v_step = 1.0f / (180.0f / sweep);
+  const float lon_end = 360.0f - sweep;
+  const float lat_end = 90.0f - sweep;
+  const Matrix& view = scene.view;
+  const Projection& pr = scene.projection;
+  const std::string& texture = FirstTexture(p);
+  const auto at = [&](float x_turn, float y_turn) {
+    const Matrix m = RotateY(MakeRotationX(x_turn), y_turn);
+    Vec3 q;
+    for (std::size_t i = 0; i < 3; ++i) q[i] = ((m[6 + i] * p.distance) + m[9 + i]) + p.position[i];
+    return q;
+  };
+  const auto vertex = [&](ScreenVertex sv, float u, float v) {
+    sv.diffuse = p.color;
+    sv.u = u;
+    sv.v = v;
+    return sv;
+  };
+  float v0 = 0.0f;
+  float lat = -90.0f;
+  while (!(lat > lat_end)) {
+    const std::int32_t lat_degrees = Ftol(lat);
+    const float v1 = v0 + v_step;
+    float u0 = 0.0f;
+    float lon = 0.0f;
+    while (!(lon > lon_end)) {
+      const float lon_a = Radians(lon + p.heading);
+      const float lat_a = core::DegreesToRadians(lat_degrees);
+      const float lon_b = Radians(((lon + sweep) + 0.25f) + p.heading);
+      const float lat_b = Radians(lat + sweep);
+      const Vec3 a = at(lat_a, lon_a);
+      const Vec3 b = at(lat_b, lon_a);
+      const Vec3 c = at(lat_a, lon_b);
+      const Vec3 d = at(lat_b, lon_b);
+      const float u1 = u0 + u_step;
+      out.triangles.push_back(
+          {texture,
+           {vertex(ProjectPoint(ClampNear(TransformPointFromXZ(view, a)), pr), u0, v0),
+            vertex(ProjectPoint(ClampNear(TransformPointFromXZ(view, b)), pr), u0, v1),
+            vertex(ProjectPoint(ClampNear(TransformPointFromXZ(view, c)), pr), u1, v0)}});
+      out.triangles.push_back(
+          {texture,
+           {vertex(ProjectPoint(ClampNear(TransformPointFromXZ(view, d)), pr), u1, v1),
+            vertex(ProjectPoint(ClampNear(TransformPoint(view, c)), pr, true), u1, v0),
+            vertex(ProjectPoint(ClampNear(TransformPoint(view, b)), pr), u0, v1)}});
+      u0 = u1;
+      lon = lon + sweep;
+    }
+    v0 = v0 + v_step;
+    lat = lat + sweep;
+  }
 }
 
 // CEffectPrim::RenderScreenLine (00581b00), id 0x14: a hairline from the position up 10, a
@@ -3469,6 +3610,12 @@ bool UpdatePrimitive(EffectPrim& p, core::CrtRand& rand, const PrimScene& scene)
       p.position[1] = p.position[1] + 5.0f;
       break;
     case 0xd: UpdateCylinder(p); break;
+    case 0x12: UpdateCylinder(p, false); break;
+    case 9: UpdatePyramid(p); break;
+    case 0xe: UpdateSphere(p); break;
+    case 0x11:
+      // Nothing creates it, and vf01 only ages it.
+      break;
     case 0x17: UpdateRisingWalls(p, false); break;
     case 0x18: UpdateTurningRings(p); break;
     case 0x19: UpdateRisingWalls(p, true); break;
@@ -3539,6 +3686,8 @@ void DrawPrimitive(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out
     case 0xc: DrawHistoryRings(p, scene, out); break;
     case 0xf: DrawTransformedQuad(p, scene, out); break;
     case 0x10: DrawCrossedQuads(p, scene, out); break;
+    case 9: DrawPyramid(p, scene, out); break;
+    case 0xe: DrawSphere(p, scene, out); break;
     case 0x16: DrawBillboard(p, scene, out); break;
     case 0x14: DrawScreenLine(p, scene, out); break;
     case 5:
@@ -6256,6 +6405,381 @@ EffectPrim MakeConcentrationColumn(RagEffect& effect, float rise, std::int32_t l
 
 }  // namespace
 
+namespace {
+
+// A pyramid (id 9) of the life, kHalts, tipped pitch degrees and turned heading degrees
+// (its second matrix the same as its first), with the texture.
+EffectPrim MakePyramid(RagEffect& effect, std::int32_t life, float heading, float pitch,
+                       const char* texture) {
+  EffectPrim p = MakePrimitive(&effect, 9, {0.0f, 0.0f, 0.0f});
+  p.flags |= EffectPrim::kHalts;
+  p.life = life;
+  p.heading = heading;
+  p.pitch = pitch;
+  p.matrix = RotateY(MakeRotationX(Radians(p.pitch)), Radians(p.heading));
+  p.orbit = p.matrix;
+  p.textures = {texture};
+  return p;
+}
+
+// The icicles and stones that rise from the ground at 3 a step, slowing to a stop at
+// age 20 (or the halt given), fading over their last 10.
+void Rise(EffectPrim& p, std::int32_t halt) {
+  p.speed = 3.0f;
+  p.acceleration = (p.speed / static_cast<float>(p.life)) * -2.0f;
+  p.period = halt;
+  p.fade_at = p.life - 10;
+}
+
+// The trails' turn towards the target (CRenderObject::TurnTowards on the effect) and the
+// matrix about y by the negated facing whose z row they step along.
+Matrix TurnToTarget(RagEffect& effect) {
+  effect.facing = TurnTowards(effect.position, effect.target[0], effect.target[2]);
+  return MakeRotationY(Radians(-effect.facing));
+}
+
+// CRenderObject::GroundDistanceTo (00500530) from the effect to its target.
+float DistanceToTarget(const RagEffect& effect) {
+  const float dx = effect.target[0] - effect.position[0];
+  const float dz = effect.target[2] - effect.position[2];
+  return SqrtFloat((dz * dz) + (dx * dx));
+}
+
+// The sphere of 대폭발.tga ("great explosion") the blasts add: widening from the speed
+// given, slowing by half, turning 3 a step, fading in to the alpha a fifteenth (or a
+// seventh) at a time and out over its last 15.
+EffectPrim MakeBlastSphere(RagEffect& effect, std::int32_t life, float widen) {
+  EffectPrim p = MakePrimitive(&effect, 0xe, {0.0f, 0.0f, 0.0f});
+  p.life = life;
+  p.distance_speed = widen;
+  p.distance_rate = (p.distance_speed / static_cast<float>(p.life)) * -0.5f;
+  p.heading_speed = 3.0f;
+  p.alpha = 0.0f;
+  p.fade_at = p.life - 15;
+  p.textures = {"effect\\\264\353\306\370\271\337.tga"};
+  return p;
+}
+
+// The flat ring of ring_yellow.tga under a blast: widening from 1.75, slowing by half,
+// fading in a fifteenth at a time and out over its last 15.
+EffectPrim MakeBlastRing(RagEffect& effect, std::int32_t life, float cap) {
+  EffectPrim p = MakePrimitive(&effect, 0xc, {0.0f, 0.0f, 0.0f});
+  p.life = life;
+  p.quad_flags |= 0x200;
+  p.pitch = 90.0f;
+  p.distance_speed = 1.75f;
+  p.distance_rate = (p.distance_speed / static_cast<float>(p.life)) * -0.5f;
+  p.bottom_radius = cap;
+  p.alpha = 0.0f;
+  return p;
+}
+
+// The ring's fade, alpha speed, history and texture, set after any alpha_max.
+void FinishBlastRing(EffectPrim& p) {
+  p.alpha_speed = p.alpha_max * kFifteenth;
+  p.fade_at = p.life - 15;
+  ResetHistory(p);
+  p.textures = {"effect\\ring_yellow.tga"};
+}
+
+}  // namespace
+
+void AddIcicleTrail(RagEffect& effect, bool minimal, core::CrtRand& rand,
+                    std::vector<EffectPrim>& added) {
+  if (minimal) return;
+  if (effect.frame == 0) {
+    const Matrix m = TurnToTarget(effect);
+    for (std::size_t i = 0; i < 3; ++i)
+      effect.stride[i] = (((m[6 + i] * 5.0f) + 0.0f) + 0.0f) + m[9 + i];
+    for (std::size_t i = 0; i < 3; ++i) effect.walk[i] = effect.walk[i] - effect.stride[i];
+    for (std::size_t i = 0; i < 3; ++i)
+      effect.stride[i] = (((m[6 + i] + m[6 + i]) + 0.0f) + 0.0f) + m[9 + i];
+  }
+  if (effect.landed) return;
+  const Vec3 at = effect.position;
+  for (std::size_t i = 0; i < 3; ++i) effect.position[i] = effect.position[i] + effect.walk[i];
+  if (!(DistanceToTarget(effect) > 2.5f)) effect.landed = true;
+  effect.position = at;
+  EffectPrim p = MakePrimitive(&effect, 9, {0.0f, 0.0f, 0.0f});
+  p.flags |= EffectPrim::kHalts;
+  p.life = 40;
+  const std::int32_t around = rand.Next() % 360;
+  const float out = static_cast<float>(rand.Next() % 10 + 5) * 0.1f;
+  p.offset = {core::SinDegrees(around) * out, 30.0f, -(core::CosDegrees(around) * out)};
+  for (std::size_t i = 0; i < 3; ++i) p.offset[i] = effect.walk[i] + p.offset[i];
+  p.scale = static_cast<float>(rand.Next() % 40 + 60) * kHundredth;
+  p.height = static_cast<float>(rand.Next() % 30 + 150) * 0.1f;
+  p.heading = static_cast<float>(rand.Next() % 360);
+  p.pitch = static_cast<float>(rand.Next() % 30 + 75);
+  p.matrix = RotateY(MakeRotationX(Radians(p.pitch)), Radians(p.heading));
+  p.orbit = p.matrix;
+  Rise(p, 20);
+  p.textures = {"effect\\ice.tga"};
+  added.push_back(std::move(p));
+  for (std::size_t i = 0; i < 3; ++i) effect.walk[i] = effect.walk[i] - effect.stride[i];
+}
+
+void AddIcicleBurst(RagEffect& effect, core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  if (effect.frame != 0) return;
+  // effect\EF_FrostDiver2.wav plays here.
+  for (std::int32_t n = 0; n < 8; ++n) {
+    EffectPrim p = MakePrimitive(&effect, 9, {0.0f, 0.0f, 0.0f});
+    p.life = 40;
+    p.flags |= EffectPrim::kHalts;
+    const std::int32_t around = rand.Next() % 360;
+    const float out = static_cast<float>((rand.Next() & 3) + 1) * 0.1f;
+    p.offset = {core::SinDegrees(around) * out, 30.0f, -(core::CosDegrees(around) * out)};
+    p.scale = static_cast<float>(rand.Next() % 250 + 100) * kHundredth;
+    p.height = static_cast<float>(rand.Next() % 100 + 200) * 0.1f;
+    p.heading = static_cast<float>(rand.Next() % 360);
+    p.pitch = static_cast<float>(rand.Next() % 20 + 80);
+    p.matrix = RotateY(MakeRotationX(Radians(p.pitch)), Radians(p.heading));
+    p.orbit = p.matrix;
+    Rise(p, 20);
+    p.alpha = 200.0f;
+    p.textures = {"effect\\ice.tga"};
+    added.push_back(std::move(p));
+  }
+}
+
+void AddIceWall(RagEffect& effect, core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  if (effect.frame != 0) return;
+  // effect\wizard_icewall.wav plays here.
+  effect.duration = 9999;
+  for (std::int32_t along = -2; along < 4; along += 2) {
+    EffectPrim p = MakePrimitive(&effect, 9, {0.0f, 0.0f, 0.0f});
+    p.life = effect.duration;
+    p.flags |= EffectPrim::kHalts;
+    const std::int32_t around = rand.Next() % 360;
+    p.offset = {0.0f, 30.0f, -(static_cast<float>(along) * core::CosDegrees(around))};
+    // The hundredths of up to 39, in whole numbers: always 0.
+    const std::int32_t whole = (rand.Next() % 40) / 100;
+    p.scale = static_cast<float>(whole) + 2.5f;
+    p.height = static_cast<float>(rand.Next() % 100 + 300) * 0.1f;
+    p.heading = static_cast<float>(rand.Next() % 360);
+    p.pitch = static_cast<float>(rand.Next() % 6 + 87);
+    p.matrix = RotateY(MakeRotationX(Radians(p.pitch)), Radians(p.heading));
+    p.orbit = p.matrix;
+    p.speed = 3.0f;
+    p.acceleration = (p.speed * std::bit_cast<float>(0x3ccccccdu)) * -2.0f;  // 0.025
+    p.period = 20;
+    p.alpha = 200.0f;
+    p.fade_at = p.life - 10;
+    p.textures = {"effect\\ice.tga"};
+    added.push_back(std::move(p));
+  }
+}
+
+void AddEarthSpike(RagEffect& effect, core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  if (effect.frame != 0) return;
+  // effect\wizard_earthspike.wav plays here, and the game mode's vf05 is sent 0x87 with 1
+  // and 0x94 with 1, 0.24 and 0.2.
+  EffectPrim spike = MakePrimitive(&effect, 9, {0.0f, 0.0f, 0.0f});
+  spike.life = 240;
+  spike.flags = EffectPrim::kHalts | EffectPrim::kSinks;
+  rand.Next();
+  rand.Next();
+  spike.offset = {0.0f, 10.0f, 0.0f};
+  spike.scale = static_cast<float>(rand.Next() % 50 + 300) * kHundredth;
+  spike.height = 18.0f;
+  spike.heading = static_cast<float>(rand.Next() % 360);
+  spike.pitch = static_cast<float>(rand.Next() % 20 + 80);
+  spike.matrix = RotateY(MakeRotationX(Radians(spike.pitch)), Radians(spike.heading));
+  spike.orbit = spike.matrix;
+  spike.speed = 1.0f;
+  spike.acceleration = kHundredth;
+  spike.alpha = 250.0f;
+  spike.period = 15;
+  spike.change_at = 12;
+  spike.changes[2] = std::bit_cast<std::uint32_t>(-1.2f);
+  spike.changes[5] = 0;
+  spike.fade_at = spike.life - 10;
+  spike.textures = {"effect\\stone.bmp"};
+  added.push_back(std::move(spike));
+  for (std::int32_t to = 60; to < 420; to += 60) {
+    const std::int32_t past = to == 0 ? 0 : rand.Next() % to;
+    const std::int32_t turn = (to - 60) + past;
+    const float heading = static_cast<float>(turn) > 360.0f ? 360.0f : static_cast<float>(turn);
+    EffectPrim p = MakePrimitive(&effect, 9, {0.0f, 0.0f, 0.0f});
+    p.life = 240;
+    p.flags |= EffectPrim::kHalts;
+    const std::int32_t around = rand.Next() % 360;
+    rand.Next();
+    p.offset = {core::SinDegrees(around) * 3.5f, 20.0f, core::CosDegrees(around) * -3.5f};
+    p.scale = static_cast<float>(rand.Next() % 100 + 400) * kHundredth;
+    p.height = 20.0f;
+    p.heading = heading;
+    p.pitch = 100.0f;
+    p.matrix = RotateY(MakeRotationX(Radians(p.pitch)), Radians(p.heading));
+    p.orbit = p.matrix;
+    p.speed = 1.5f;
+    p.acceleration = 0.0f;
+    p.alpha = 250.0f;
+    p.period = 2;
+    p.fade_at = p.life - 10;
+    p.textures = {"effect\\stone.bmp"};
+    added.push_back(std::move(p));
+  }
+}
+
+void AddStoneTrail(RagEffect& effect, core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  if (effect.frame == 0) {
+    // effect\EF_FrostDiver.wav plays here.
+    const Matrix m = TurnToTarget(effect);
+    for (std::size_t i = 0; i < 3; ++i) effect.stride[i] = (m[6 + i] + m[6 + i]) + m[9 + i];
+    for (std::size_t i = 0; i < 3; ++i) effect.walk[i] = effect.walk[i] - effect.stride[i];
+  }
+  if (effect.landed) return;
+  if (effect.frame % 3 == 0) {
+    if (!(DistanceToTarget(effect) > 2.5f)) effect.landed = true;
+    EffectPrim p = MakePrimitive(&effect, 9, {0.0f, 0.0f, 0.0f});
+    p.flags |= EffectPrim::kHalts;
+    p.life = 40;
+    rand.Next();
+    rand.Next();
+    p.offset = {0.0f, 20.0f, 0.0f};
+    for (std::size_t i = 0; i < 3; ++i) p.offset[i] = effect.walk[i] + p.offset[i];
+    p.scale = static_cast<float>(rand.Next() % 40 + 60) * kHundredth;
+    p.height = 10.0f;
+    p.heading = static_cast<float>(rand.Next() % 360);
+    p.pitch = static_cast<float>(rand.Next() % 30 + 75);
+    p.matrix = RotateY(MakeRotationX(Radians(p.pitch)), Radians(p.heading));
+    p.orbit = p.matrix;
+    Rise(p, 6);
+    p.textures = {"effect\\stone.bmp"};
+    added.push_back(std::move(p));
+  }
+  for (std::size_t i = 0; i < 3; ++i) effect.walk[i] = effect.walk[i] - effect.stride[i];
+}
+
+void AddStoneTriad(RagEffect& effect, std::vector<EffectPrim>& added) {
+  if (effect.frame != 0) return;
+  constexpr std::array<Vec3, 3> kOffsets = {
+      {{0.0f, 40.0f, -12.0f}, {12.0f, 40.0f, 6.0f}, {-12.0f, 40.0f, 6.0f}}};
+  for (std::int32_t k = 0; k < 3; ++k) {
+    EffectPrim p =
+        MakePyramid(effect, 1000, static_cast<float>((6 - k) * 120), 75.0f, "effect\\stone.bmp");
+    p.quad_flags |= 0x200;
+    effect.duration = 1000;
+    p.offset = kOffsets[static_cast<std::size_t>(k)];
+    p.scale = std::bit_cast<float>(0x3f666666u);  // 0.9
+    p.height = 25.0f;
+    p.speed = 3.5f;
+    p.acceleration = kThousandth;
+    p.period = 10;
+    p.fade_at = p.life - 10;
+    added.push_back(std::move(p));
+    for (std::size_t i = 0; i < 3; ++i) effect.walk[i] = effect.walk[i] - effect.stride[i];
+  }
+}
+
+void AddSpikeField(RagEffect& effect, core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  if (effect.frame != 0) return;
+  // effect\wizard_earthspike.wav plays here, and the game mode's vf05 is sent 0x87 with 0.
+  effect.duration = effect.duration + 50;
+  for (std::int32_t z = -10; z < 15; z += 5) {
+    for (std::int32_t x = -10; x < 15; x += 5) {
+      EffectPrim p = MakePrimitive(&effect, 9, {0.0f, 0.0f, 0.0f});
+      p.life = effect.duration + rand.Next() % 30 - 10;
+      p.flags = EffectPrim::kHalts | EffectPrim::kSinks;
+      rand.Next();
+      rand.Next();
+      const std::int32_t tall = rand.Next() % 60 + 1;
+      p.offset = {static_cast<float>(x), 10.0f, static_cast<float>(z)};
+      p.scale = static_cast<float>(rand.Next() % 50 + 300) * kHundredth;
+      p.height = (static_cast<float>(tall) * 0.1f) + 9.0f;
+      p.heading = static_cast<float>(rand.Next() % 360);
+      p.pitch = static_cast<float>(rand.Next() % 20 + 80);
+      p.matrix = RotateY(MakeRotationX(Radians(p.pitch)), Radians(p.heading));
+      p.orbit = p.matrix;
+      p.speed = 1.0f;
+      p.acceleration = kHundredth;
+      p.step_changes[1] = std::bit_cast<std::uint32_t>(-1.0f);
+      p.step_changes[4] = std::bit_cast<std::uint32_t>(-kHundredth);
+      p.period = 14;
+      p.change_at = 11;
+      p.changes[2] = std::bit_cast<std::uint32_t>(-1.2f);
+      p.changes[5] = 0;
+      p.textures = {"effect\\stone.bmp"};
+      added.push_back(std::move(p));
+    }
+  }
+}
+
+void AddStormGust(RagEffect& effect, bool minimal, core::CrtRand& rand,
+                  std::vector<EffectPrim>& added) {
+  // effect\wizard_stormgust.wav plays at frame 0.
+  if (minimal) return;
+  const std::int32_t f = effect.frame;
+  if (f % 29 != 0 || f <= 30 || f > 150) return;
+  for (std::int32_t n = 0; n < 2; ++n) {
+    const std::int32_t heading = rand.Next() % 360;
+    const auto out = static_cast<float>(rand.Next() % 25 + 3);
+    EffectPrim p = MakePrimitive(&effect, 9, {0.0f, 0.0f, 0.0f});
+    p.life = 215 - effect.frame;
+    p.flags |= EffectPrim::kHalts;
+    const std::int32_t around = rand.Next() % 360;
+    p.offset = {core::SinDegrees(around) * out, 20.0f, -(core::CosDegrees(around) * out)};
+    p.scale = static_cast<float>(rand.Next() % 100 + 400) * kHundredth;
+    p.height = 20.0f;
+    p.heading = static_cast<float>(heading);
+    p.pitch = 100.0f;
+    p.matrix = RotateY(MakeRotationX(Radians(p.pitch)), Radians(p.heading));
+    p.orbit = p.matrix;
+    p.speed = 1.5f;
+    p.acceleration = 0.0f;
+    p.alpha = 250.0f;
+    p.period = 3;
+    p.fade_at = p.life - 10;
+    p.textures = {"effect\\ice.tga"};
+    added.push_back(std::move(p));
+  }
+  // AdvanceStr: the .str plays on, 80 up, until the frame meets the duration.
+}
+
+void AddBlast(RagEffect& effect, std::vector<EffectPrim>& added) {
+  if (effect.frame != 0) return;
+  // effect\EF_MagnumBreak.wav plays here.
+  EffectPrim ring = MakeBlastRing(effect, effect.duration, 12.0f);
+  FinishBlastRing(ring);
+  added.push_back(std::move(ring));
+  EffectPrim sphere = MakeBlastSphere(effect, effect.duration, std::bit_cast<float>(0x3f933333u));
+  sphere.alpha_speed = sphere.alpha_max * kFifteenth;
+  added.push_back(std::move(sphere));
+  EffectPrim last = MakeBlastRing(effect, 30, 12.0f);
+  FinishBlastRing(last);
+  added.push_back(std::move(last));
+}
+
+void AddExplosionSphere(RagEffect& effect, std::vector<EffectPrim>& added) {
+  if (effect.frame != 0) return;
+  EffectPrim p = MakePrimitive(&effect, 0xe, {0.0f, 0.0f, 0.0f});
+  p.life = 250;
+  p.distance = 13.5f;
+  p.offset[1] = -10.0f;
+  p.heading = 2.0f;
+  p.alpha = 100.0f;
+  p.textures = {"effect\\\264\353\306\370\271\337.tga"};
+  added.push_back(std::move(p));
+}
+
+bool ProcessMagnumBreak(RagEffect& effect, std::vector<EffectPrim>& added) {
+  if (effect.frame == 7 || effect.frame == 20) {
+    // effect\EF_MagnumBreak.wav plays here.
+    EffectPrim ring = MakeBlastRing(effect, 20, 5.0f);
+    ring.alpha_max = 180.0f;
+    FinishBlastRing(ring);
+    added.push_back(std::move(ring));
+    EffectPrim sphere = MakeBlastSphere(effect, 20, std::bit_cast<float>(0x3faccccdu));
+    sphere.alpha_max = 240.0f;
+    sphere.alpha_speed = sphere.alpha_max * kPixel;
+    added.push_back(std::move(sphere));
+  }
+  if (effect.frame > 299) return false;
+  // AdvanceStr: the .str plays on, 80 up.
+  return true;
+}
+
 void AddRisingLight(RagEffect& effect, bool minimal, core::CrtRand& rand,
                     std::vector<EffectPrim>& added) {
   if (effect.frame == 0) {
@@ -6690,6 +7214,17 @@ void EffectWorld::Step(const PrimScene& scene) {
           break;
         case 0x73: AddBlitzBeat(e, it->actor, beats_, rand_, added); break;
         case 0xdc: ended = !ProcessConcentrationDC(e, it->actor, rand_, added); break;
+        case 0x1b: AddIcicleTrail(e, minimal_, rand_, added); break;
+        case 0x1c: AddIcicleBurst(e, rand_, added); break;
+        case 0x4a: AddIceWall(e, rand_, added); break;
+        case 0x4f: AddEarthSpike(e, rand_, added); break;
+        case 0x7b: AddStoneTrail(e, rand_, added); break;
+        case 0x84: AddStoneTriad(e, added); break;
+        case 0x8e: AddSpikeField(e, rand_, added); break;
+        case 0x59: AddStormGust(e, minimal_, rand_, added); break;
+        case 0x11: AddBlast(e, added); break;
+        case 0x3f: AddExplosionSphere(e, added); break;
+        case 0xaa: ended = !ProcessMagnumBreak(e, added); break;
         case 8: AddSparkRipples(e, Sprite(kParticleSprite), rand_, added); break;
         case 0xc:
           AddBeginSpell(e, it->actor, "effect\\ring_blue.tga", "effect\\ring_yellow.tga", added);

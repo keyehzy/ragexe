@@ -35,6 +35,9 @@ struct RagEffect {
   bool landed = false;        // +0xb4, set by a flying primitive with kLands on the ground
   float aim_heading = 0.0f;   // +0xd4, the heading and pitch the arrow effects last aimed by
   float aim_pitch = 0.0f;     // +0xd8
+  float facing = 0.0f;        // +0x38, CRenderObject's, turned to the target by the trails
+  Vec3 stride{};              // +0xf4, the trails' step towards the target
+  Vec3 walk{};                // +0x100, how far the trails have stepped
 };
 
 // The actor an effect plays on (+0xa0): where it stands and which way it faces (+0x38,
@@ -216,9 +219,11 @@ struct EffectPrim {
   static constexpr std::uint32_t kEndNear = 0x100;     // 5: ends within 3 of the target
   static constexpr std::uint32_t kItemColors = 0x200;  // 5 and 6: the frame's own colours
   static constexpr std::uint32_t kStraight = 0x400;    // 5: its own step and step speed
-  static constexpr std::uint32_t kNarrowing = 0x1;     // 0xd: the top closes from fade_at
-  static constexpr std::uint32_t kHeightStops = 0x1;   // 3 and 0x13: the height stops at 0
-  static constexpr std::uint32_t kUncapped = 0x1;      // 4 and 0xc: the width the whole radius
+  static constexpr std::uint32_t kNarrowing = 0x1;     // 0xd and 0x12: the top closes from fade_at
+  static constexpr std::uint32_t kHalts = 0x1;         // 9: stops at age +0x134
+  static constexpr std::uint32_t kSinks = 0x2;  // 9: moves again 30 before its life, not fading
+  static constexpr std::uint32_t kHeightStops = 0x1;  // 3 and 0x13: the height stops at 0
+  static constexpr std::uint32_t kUncapped = 0x1;     // 4 and 0xc: the width the whole radius
   // The flying ids 0xf, 0x10 and 0x16.
   static constexpr std::uint32_t kScrollV = 0x2;       // the texture's v steps a tenth a frame
   static constexpr std::uint32_t kLands = 0x4;         // stops on the ground, telling the owner
@@ -811,6 +816,44 @@ void AddBlitzBeat(RagEffect& effect, const EffectActor& actor, std::int32_t& bea
                   core::CrtRand& rand, std::vector<EffectPrim>& added);
 bool ProcessConcentrationDC(RagEffect& effect, const EffectActor& actor, core::CrtRand& rand,
                             std::vector<EffectPrim>& added);
+
+// The effects that add pyramids (id 9) and spheres (id 0xe), each called once a frame:
+//  - AddIcicleTrail (00558980), id 0x1b: unless minimal effects are on, an icicle of
+//    ice.tga each frame, stepping 2 at a time from 5 out towards the target until within
+//    2.5 of it;
+//  - AddIcicleBurst (00558e10), id 0x1c: eight icicles of ice.tga at frame 0;
+//    EF_FrostDiver2.wav;
+//  - AddIceWall (0055ce30), id 0x4a: three tall icicles of ice.tga in a row, the effect
+//    lasting 9999 frames; wizard_icewall.wav;
+//  - AddEarthSpike (0055d110), id 0x4f: a spike of stone.bmp that rises, drops back and
+//    stops, and six stones round it; wizard_earthspike.wav and two game mode messages;
+//  - AddStoneTrail (00561350), id 0x7b: a stone every third frame stepping 2 at a time
+//    towards the target, stopping only if the target is within 2.5 of the effect;
+//    EF_FrostDiver.wav;
+//  - AddStoneTriad (00561750), id 0x84: three stones a third of a turn apart, rising for
+//    10 frames and lasting 1000;
+//  - AddSpikeField (005624a0), id 0x8e: a five by five field of spikes of stone.bmp that
+//    rise and sink, the effect 50 frames longer; wizard_earthspike.wav;
+//  - AddStormGust (00565600), id 0x59: unless minimal effects are on, two icicles of
+//    ice.tga every 29 frames from 58 to 145; wizard_stormgust.wav;
+//  - AddBlast (005553e0), id 0x11: a sphere of 대폭발.tga between two widening rings of
+//    ring_yellow.tga; EF_MagnumBreak.wav;
+//  - AddExplosionSphere (0055c4f0), id 0x3f: a still sphere of 대폭발.tga for 250 frames;
+//  - ProcessMagnumBreak (00566ac0), id 0xaa: a ring and a sphere at frames 7 and 20; it
+//    ends after frame 299 (false).
+void AddIcicleTrail(RagEffect& effect, bool minimal, core::CrtRand& rand,
+                    std::vector<EffectPrim>& added);
+void AddIcicleBurst(RagEffect& effect, core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddIceWall(RagEffect& effect, core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddEarthSpike(RagEffect& effect, core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddStoneTrail(RagEffect& effect, core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddStoneTriad(RagEffect& effect, std::vector<EffectPrim>& added);
+void AddSpikeField(RagEffect& effect, core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddStormGust(RagEffect& effect, bool minimal, core::CrtRand& rand,
+                  std::vector<EffectPrim>& added);
+void AddBlast(RagEffect& effect, std::vector<EffectPrim>& added);
+void AddExplosionSphere(RagEffect& effect, std::vector<EffectPrim>& added);
+bool ProcessMagnumBreak(RagEffect& effect, std::vector<EffectPrim>& added);
 
 // The world's object list as effects use it (CWorld::UpdateGameObjects, 004c4a10): each
 // world step every object's vf01 in order, a primitive an effect adds joining the end and

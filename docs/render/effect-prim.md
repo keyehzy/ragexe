@@ -1510,6 +1510,105 @@ after frame 150, long before its duration of 9999. `method_005647c0` (`005647c0`
 its column: id 0xd, 4.5 across and 10 high, rising by the speed it is given (1 here) and
 0.01 a step more each step, fading in to 90.
 
+## Pyramids and spheres
+
+Four more ids, two drawn as solids and two never created:
+
+| Id | Update | Drawing | Shape |
+|---:|--------|---------|-------|
+| 9 | `UpdatePrim_9` (`0057f8c0`) | `RenderPyramid` (`00582990`) | a four-sided pyramid in the second matrix |
+| 0xe | `UpdatePrim_14` (`005811f0`) | `RenderSphere` (`005857e0`) | a sphere of cells every +0x1b8 degrees |
+| 0x11 | none (`vf01` only ages it) | none | |
+| 0x12 | `UpdatePrim_18` (`00580bc0`) | none | |
+
+No `CreatePrimitive` call in the binary passes 0x11 or 0x12 (nor 0xa or 0xb), and only
+`CreatePrimitive` calls `InitPrimitive`.
+
+**A pyramid's update** (id 9):
+1. **The start.** At the owner plus the offset.
+2. **Changes.** At `change_at` the speed takes change 2 (+0x1cc) and the acceleration
+   change 5 (+0x1d0), with no 0.0001 test.
+3. **Moving.** The speed takes the acceleration; the step is the speed along the matrix's
+   z; the travel takes the step; it stands at the start plus the travel.
+4. **Flag 1** stops it, speed and acceleration, at age +0x134.
+5. **Flag 2** skips the alpha's update. Instead, 30 frames before its life, it takes the
+   speed from +0x1d8 and the acceleration from +0x1e4 (step changes 1 and 4), so that a
+   spike can rise, stop and sink again.
+
+**A sphere's update** (0xe) stands at the owner plus the offset. The distance (its radius)
+and the heading take their speeds, the distance's speed its rate, then the alpha's update
+runs.
+
+**0x12's update** is the cylinder's (`UpdatePrim_13`) without the first turn: the heading's
+and pitch's speeds neither take their rates nor turn it before its matrix is built.
+`vf01` ignores what it answers, as it does for 0xd.
+
+**A pyramid** (`RenderPyramid`) has four sides about the position in the second matrix
+(+0xf4):
+- **Shape.** Each side runs from a base corner (the scale +0x248 either way along x and
+  y) up to the tip (the height +0x290 along z) and back to the next base corner.
+- **Texture.** Each side is one triangle of the first texture, with AddPrimitive's flags 1.
+  u steps 0.2 a side (`005e9f40`); v is 1 at the base and 0 at the tip.
+- **The view** is written out with every sum from x, then z, then y, and each side's last
+  corner is projected inline.
+- **Sum orders.** Every corner has a 0 among its three values, so the second matrix's
+  sums round alike in any order.
+
+**A sphere** (`RenderSphere`) has a cell every +0x1b8 degrees:
+- **The grid.** The latitude runs from −90 while not past 90 less the sweep, the
+  longitude from 0 while not past 360 less it.
+- **A corner** is the z row, times the distance, of a turn about x by the latitude, then
+  about y by the longitude plus the heading. The next longitude adds a quarter degree
+  (`005e653c`).
+- **Texture.** u steps 1/(360/sweep) a cell and v 1/(180/sweep) a row.
+- **Two triangles** of the first texture per cell, with AddPrimitive's flags 1:
+  - (lat, lon), (lat + sweep, lon), (lat, lon + sweep);
+  - then the far corner, the third again and the second again.
+- **Projection.** The first triangle's view transforms are written out, x's sum from z
+  and y's and z's from x, then z. The second triangle's first corner is written the same
+  way; its second goes through `TransformPoint` and is projected inline with x scaled
+  first; its third goes through `TransformPoint`.
+- **Size.** A sweep below about 16 would give more triangles than the primitive's buffer
+  (+0x1eb0, 512) holds; the setups use the default 36, 100 triangles.
+
+**The effects:**
+
+| Effect ids | Function | Ids | What |
+|-----------|----------|---:|------|
+| 0x1b | `AddIcicleTrail` (`00558980`) | 9 | unless minimal effects are on, from frame 0 an icicle of `ice.tga` each frame, 5 out and then 2 more each frame towards the target, until one lands within 2.5 of it |
+| 0x1c | `AddIcicleBurst` (`00558e10`) | 9 | at frame 0 eight icicles of `ice.tga` round the actor, 20 to 30 high; `effect\EF_FrostDiver2.wav` |
+| 0x4a | `AddIceWall` (`0055ce30`) | 9 | at frame 0 three icicles of `ice.tga` 30 to 40 high in a row, the effect and they lasting 9999 frames; `effect\wizard_icewall.wav` |
+| 0x4f | `AddEarthSpike` (`0055d110`) | 9 | at frame 0 a spike of `stone.bmp` that rises for 12 frames, drops back for 3 and stops, not fading (flag 2 with no step changes), and six stones round it, all for 240 frames; `effect\wizard_earthspike.wav` |
+| 0x7b | `AddStoneTrail` (`00561350`) | 9 | every third frame a stone of `stone.bmp`, 2 further each frame towards the target; `effect\EF_FrostDiver.wav` |
+| 0x84 | `AddStoneTriad` (`00561750`) | 9 | at frame 0 three stones of `stone.bmp` a third of a turn apart, rising for 10 frames and lasting 1000, as the effect does |
+| 0x8e | `AddSpikeField` (`005624a0`) | 9 | at frame 0 a five by five field of spikes of `stone.bmp`, 5 apart, that rise, stop at 14 and sink again; the effect 50 frames longer; `effect\wizard_earthspike.wav` |
+| 0x59 | `AddStormGust` (`00565600`) | 9 | unless minimal effects are on, two icicles of `ice.tga` at frames 58, 87, 116 and 145, living until frame 215; `effect\wizard_stormgust.wav` |
+| 0x11 | `AddBlast` (`005553e0`) | 0xc, 0xe | at frame 0 a widening sphere of `대폭발.tga` ("great explosion") turning 3 a frame, a ring of `ring_yellow.tga` for the effect and one for 30 frames; `effect\EF_MagnumBreak.wav` |
+| 0x3f | `AddExplosionSphere` (`0055c4f0`) | 0xe | at frame 0 a sphere of `대폭발.tga` of radius 13.5, 10 up, still, at alpha 100, for 250 frames |
+| 0xaa | `ProcessMagnumBreak` (`00566ac0`) | 0xc, 0xe | at frames 7 and 20 a ring and a sphere as 0x11's, 20 frames each; `effect\EF_MagnumBreak.wav`; it ends after frame 299 |
+
+**The trails** (0x1b and 0x7b) turn the effect (a `CRenderObject`, +0x38) towards the
+target with `TurnTowards`:
+- **The walk.** They step along the z row of a turn about y by the negated facing,
+  keeping the step at +0xf4 and the walk so far at +0x100.
+- **0x1b** steps 5 at first, then 2 a frame. Before each icicle it measures
+  (`CRenderObject::GroundDistanceTo`, `00500530`) from the effect moved by the walk; within
+  2.5 it sets +0xb4 and adds no more after this one.
+- **0x7b** steps 2 a frame and measures from where the effect stands. Its stones stop
+  only if the target is within 2.5 of the effect to begin with.
+
+**Notes on the effects:**
+- **Pyramids.** Every one is tipped by its pitch and turned by its heading, its second
+  matrix a copy of the first. The icicles of 0x1b, 0x1c and 0x4a rise at 3 a frame,
+  slowing to a stop at age 20.
+- **Unused calls.** Several setups call `rand`, `SinDegrees` and `CosDegrees` for values
+  they never use. 0x4a's scale adds 2.5 to a whole number of hundredths below 40, always 0.
+- **Messages.** 0x4f sends the game mode's vf05 0x87 with 1 and 0x94 with pointers to 1,
+  0.24 and 0.2; 0x8e sends 0x87 with 0.
+- **Endings.** 0x59 answers `AdvanceStr`'s result and 0xaa false after frame 299, both
+  tested by `vf01`; the other setups' results are not. In the port, 0x59 plays to its
+  duration, as the oracle's `AdvanceStr` answers true.
+
 ## In the port
 
 **`src/core/crt_rand`:** `CrtRand`, `srand` and `rand`.
@@ -1520,9 +1619,9 @@ its column: id 0xd, 4.5 across and 10 high, rising by the speed it is given (1 h
 
 **`src/render/effect_prim`:**
 - `EffectPrim` with `MakePrimitive`, `ResetHistory`, `UpdatePrimitive` (vf01) and
-  `DrawPrimitive` (vf03), for ids 0 to 8, 0xc, 0xd, 0xf, 0x10, 0x13 to 0x16, the twelve ring ids,
-  the eight facing-square ids, the three flat-square ids, the three mote ids, the six ids
-  of single squares and rectangles, the eight of walls and bands and 0x26, 0x2c and 0x31.
+  `DrawPrimitive` (vf03), for ids 0 to 9, 0xc to 0x16, the twelve ring ids, the eight
+  facing-square ids, the three flat-square ids, the three mote ids, the six ids of single
+  squares and rectangles, the eight of walls and bands and 0x26, 0x2c and 0x31.
   `PrimScene` carries the camera's yaw and pitch, the ground, the view, the projection
   and the sprite slope; `PrimDrawing` gets the triangles and the sprite quads, each with
   the sprite it is of;
@@ -1539,7 +1638,8 @@ its column: id 0xd, 4.5 across and 10 high, rising by the speed it is given (1 h
   `AddStoneCurse` with `overthrust` for 0x80) and the twelve of
   [flying quads](#flying-quads) (`AddWallsOfMagic`, `AddMarker` and `AddFallingSpell`
   for two ids each) and the five of [crossed quads](#crossed-quads) (`AddAgilityRays`
-  for three ids, `AddArrows` for two);
+  for three ids, `AddArrows` for two) and the eleven of
+  [pyramids and spheres](#pyramids-and-spheres);
 - `EffectWorld`, the world's list as effects use it:
   - `Launch` adds an effect;
   - `Step` runs a world step in the list's order;
@@ -1695,11 +1795,28 @@ the six `불화살` images, `icearrow.tga`, `ac_center2.tga` and the rest).
   - the game mode given a vtable whose vf05 is `C3dGround::vf03` (`004bc290`, an empty
     function of four arguments), for Concentration's message;
   - Concentration for 160 steps, past its end.
+- **40 synthetic pyramids, spheres and primitives of ids 0x11 and 0x12**, ten of each, as
+  for the flying quads:
+  - flags 1 and 2, changes and ages around 30 before the life;
+  - the second matrix at random, sweeps of 20 to 100 (none small enough to overflow the
+    buffer; 26 among them, where 1/(360/sweep) and sweep/360 round apart), and radii,
+    rates and colours at random;
+  - the state is the position, image, colour, age and fade, colours, speeds, angles, alpha,
+    distance, radii and height with their speeds, the step, start and travel and the
+    matrix; the triangles are checked at steps 0, 3, 9, 20 and the last.
+- **The eleven pyramid and sphere effects and three more runs**, sampled densely, as for
+  the crossed-quad effects:
+  - 0x1b twice more, once with the target 1.8 from the actor, so that its first step ends
+    3.2 from it, just past the 2.5 it stops within;
+  - 0x7b a second time with the target within 2.5, where its stones stop;
+  - 0x8e for all 300 of its frames, until its spikes sink; 0x59 for 230, until its last
+    icicles are gone; Magnum Break for 305, past its end.
 
-`tests/unit/prim_test.cpp` matches all of it: 4,662,264 values, the CRT's first `rand` values
+`tests/unit/prim_test.cpp` matches all of it: 5,468,837 values, the CRT's first `rand` values
 among them.
 
 **Not ported:**
-- the other 8 primitive ids;
+- ids 0xa and 0xb (`RenderHistoryRibbon`), which nothing creates, 0x24
+  (`RenderTubeBetweenPoints`) and 0x2e (`RenderVerticalPanels`);
 - the other effects' processing;
 - the sounds.

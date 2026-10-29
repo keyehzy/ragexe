@@ -2469,8 +2469,19 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     `prim_test`. ragview takes `--effect-level`, and now plays all of `--effect-step` before
     its first frame rather than 8.
 
+- [x] Pyramids and spheres (`docs/render/effect-prim.md#pyramids-and-spheres`):
+  - **`UpdatePrim_9` and `RenderPyramid`** (id 9), **`UpdatePrim_14` and `RenderSphere`**
+    (0xe), and ids 0x11 (aged only) and 0x12 (the cylinder's update without its turn),
+    which nothing creates.
+  - **Effect ids 0x11, 0x1b, 0x1c, 0x3f, 0x4a, 0x4f, 0x59, 0x7b, 0x84, 0x8e and 0xaa**
+    through eleven setups: icicles and stones walked towards the target, bursts, walls
+    and fields of spikes, Storm Gust and the blasts.
+  - **Checks:** 40 synthetic primitives and 14 effect runs; 5,468,837 values in
+    `prim_test`.
+
 ### Next actions
-1. M4, the renderer: the last primitive ids, 9, 0xa, 0xb, 0xe, 0x11, 0x12, 0x24 and
-   0x2e, with the effects that add them.
+1. M4, the renderer: the last primitive ids, 0xa and 0xb (`RenderHistoryRibbon`, which
+   nothing creates), 0x24 (`RenderTubeBetweenPoints`, effect 0xe8) and 0x2e
+   (`RenderVerticalPanels`, effects 0x115, 0x11f, 0x122, 0x124 and 0x126).
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

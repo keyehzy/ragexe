@@ -876,9 +876,12 @@ def random_flight(rng, o, owner, pid):
     return prim, offset, sets
 
 
-def synthetic_flights(o, rng, lines, ids=FLIGHT_IDS, seed=17000, prefix="kFlight", table="kFlights"):
+def synthetic_flights(o, rng, lines, ids=FLIGHT_IDS, seed=17000, prefix="kFlight", table="kFlights",
+                      make=None, state_of=None, sampled=None):
     """Ten primitives of each of ids, stepped and drawn on their own after srand(seed + n),
-    as synthetic3, with a target near the owner and the ground below."""
+    as synthetic3, with a target near the owner and the ground below; make and state_of
+    stand in for random_flight and flight_state, and sampled, when given, names the frames
+    whose triangles are recorded besides the last."""
     emu = o.emu
     actor = emu.scratch(size=0x100)
     rows = []
@@ -895,7 +898,7 @@ def synthetic_flights(o, rng, lines, ids=FLIGHT_IDS, seed=17000, prefix="kFlight
         duration = rng.choice([12, 40, 300])
         emu.write_u32(effect + 0xC0, duration)
         emu.write_u32(effect + 0xBC, 0)
-        prim, offset, sets = random_flight(rng, o, effect, pid)
+        prim, offset, sets = (make or random_flight)(rng, o, effect, pid)
         emu.call(SRAND, seed + n)
         view, yaw, slope, pitch = o.scene(rng)
         name = f"{prefix}{n}"
@@ -904,12 +907,15 @@ def synthetic_flights(o, rng, lines, ids=FLIGHT_IDS, seed=17000, prefix="kFlight
         frames = []
         for frame in range(40):
             more = emu.call(PRIM_VF01, this=prim).eax & 0xFF
-            state = flight_state(o, prim)
+            state = (state_of or flight_state)(o, prim)
             added = o.draw(prim) if more else []
             lines.append(f"static const std::uint32_t {name}Frame{frame}State[] = {{{hexs(state)}}};")
-            lines.append(f"static const TriangleVector {name}Frame{frame}Triangles[] = {triangles_cpp(added)};")
-            frames.append(f"    {{{more}, {name}Frame{frame}State, {len(state)}, {name}Frame{frame}Triangles, "
-                          f"{len(added)}, nullptr, 0}},")
+            if sampled is None or frame in sampled or not more or frame == 39:
+                lines.append(f"static const TriangleVector {name}Frame{frame}Triangles[] = {triangles_cpp(added)};")
+                triangles = f"{name}Frame{frame}Triangles, {len(added)}"
+            else:
+                triangles = "nullptr, kUnchecked"
+            frames.append(f"    {{{more}, {name}Frame{frame}State, {len(state)}, {triangles}, nullptr, 0}},")
             emu.write_u32(effect + 0xBC, emu.read_u32(effect + 0xBC) + 1)
             if not more:
                 break
@@ -923,6 +929,96 @@ def synthetic_flights(o, rng, lines, ids=FLIGHT_IDS, seed=17000, prefix="kFlight
     lines.append(f"static const ShapeVector {table}[] = {{")
     lines += rows
     lines.append("};")
+
+
+SOLID_IDS = [9, 0xE, 0x11, 0x12]
+# What the pyramid, sphere and 0x12's updates change: the position, image, colour, age,
+# fade, colours, speed and acceleration, heading and pitch, alpha and its speed, the
+# heading's speed, the distance with its speed and rate, the radii and their speeds, the
+# height and its speed, and the step, start and travel.
+SOLID_STATE = [0x4, 0x8, 0xC, 0x28, 0x124, 0x140, 0xC0, 0x19C, 0x1A0, 0x1A4, 0x1EC, 0x1F0, 0x23C, 0x240,
+               0x254, 0x258, 0x260, 0x278, 0x27C, 0x280, 0x224, 0x228, 0x22C, 0x230, 0x290, 0x294, 0x2E0,
+               0x2E4, 0x2E8, 0x2EC, 0x2F0, 0x2F4, 0x2F8, 0x2FC, 0x300]
+
+
+def solid_state(o, prim):
+    """SOLID_STATE and the matrix +0xc4."""
+    emu = o.emu
+    return [emu.read_u32(prim + f) for f in SOLID_STATE] + list(struct.unpack("<12I", emu.mem_read(prim + 0xC4, 48)))
+
+
+def random_solid(rng, o, owner, pid):
+    """A primitive of SOLID_IDS with the fields its update and drawing read set at random;
+    returns it, its offset and the fields set, as random_flight. Sweeps stay at 20 or more,
+    where a sphere's triangles fit the primitive's buffer (+0x1eb0, 512)."""
+    emu = o.emu
+    prim = emu.alloc(PRIM_SIZE)
+    emu.call(PRIM_CTOR, this=prim)
+    offset = [f32(rng.uniform(-20, 20)) for _ in range(3)]
+    emu.call(INIT_PRIMITIVE, owner, pid, *(bits(v) for v in offset), this=prim)
+    sets = {}
+
+    def w(f, v):
+        emu.write_u32(prim + f, v & 0xFFFFFFFF)
+        sets[f] = v & 0xFFFFFFFF
+
+    def wf(f, v):
+        w(f, bits(f32(v)))
+
+    life = rng.randrange(8, 46)
+    w(0x144, life)
+    w(0x150, rng.choice([-1, 0, rng.randrange(0, life)]))
+    w(0x160, rng.choice([-1, rng.randrange(0, 6)]))
+    w(0x13C, rng.choice([0, 1, 2, 3]))
+    w(0x134, rng.randrange(0, 10))
+    for f in (0x19C, 0x1A0, 0x1A4):
+        w(f, rng.choice([-3, 254, rng.randrange(-20, 280)]))
+    for f in (0x1A8, 0x1AC, 0x1B0):
+        w(f, rng.choice([0, 0, 9, -13, 40]))
+    wf(0x254, rng.uniform(0, 254))
+    wf(0x258, rng.uniform(-15, 15))
+    wf(0x204, rng.choice([254.0, 200.0]))
+    for f, lo, hi in ((0x1CC, -2, 2), (0x1D0, -0.2, 0.2), (0x1D8, -2, 2), (0x1E4, -0.2, 0.2), (0x1EC, -3, 3),
+                      (0x1F0, -0.3, 0.3), (0x23C, 0, 360), (0x240, -90, 180), (0x260, -8, 8), (0x26C, -0.5, 0.5),
+                      (0x264, -8, 8), (0x270, -0.5, 0.5), (0x248, 0.5, 5), (0x290, -5, 30), (0x294, -2, 2),
+                      (0x298, -0.2, 0.2), (0x278, 0, 20), (0x27C, -2, 2), (0x280, -0.2, 0.2), (0x224, 0, 10),
+                      (0x228, 0, 10), (0x22C, -1, 1), (0x230, -1, 1), (0x234, -0.1, 0.1), (0x238, -0.1, 0.1)):
+        wf(f, rng.uniform(lo, hi))
+    wf(0x29C, rng.choice([100.0, 30.0, 12.0]))
+    # 26: 1/(360/26) and 26/360 round apart.
+    wf(0x1B8, rng.choice([20.0, 22.5, 26.0, 30.0, 36.0, 45.0, 60.0, 90.0, 100.0]))
+    for base in (0xC4, 0xF4):
+        matrix = [rng.uniform(-1, 1) for _ in range(9)] + [rng.uniform(-0.5, 0.5) for _ in range(3)]
+        for i, v in enumerate(matrix):
+            wf(base + 4 * i, v)
+    frames = rng.randrange(1, 4)
+    w(0x164, frames)
+    w(0x148, rng.choice([1, 2, 3]))
+    # vf01 ignores whether 0x12's images ran out, so one that does not loop would read past
+    # its textures.
+    w(0x1B4, 1)
+    textures = emu.alloc(4 * frames)
+    for i in range(frames):
+        emu.write_u32(textures + 4 * i, TEXTURE_BASE + 0x100 + i)
+    emu.write_u32(prim + 0xA8, textures)
+    return prim, offset, sets
+
+
+# The effects that add pyramids and spheres; 0x1b twice more, once with its target 1.8
+# from the actor, so that its first step ends 3.2 from it, just past the 2.5 it stops
+# within; 0x7b again with its target within 2.5, where its stones stop; 0x8e for its whole
+# 300 frames, until its spikes sink; 0x59 until its last icicles are gone.
+SOLID_EFFECTS = [(0x1B, 100), (0x1C, 60), (0x4A, 48), (0x4F, 250), (0x7B, 100), (0x7B, 40, 3, True), (0x84, 40),
+                 (0x8E, 300), (0x59, 230), (0x11, 40), (0x3F, 30), (0xAA, 305), (0x1B, 80), (0x1B, 40, 3, True)]
+
+
+def solid_effect_state(o, prim):
+    """What the pyramid and sphere effects' primitives are checked by: solid_state for
+    SOLID_IDS, screen_state for the rings and state_trail for the rest."""
+    pid = o.emu.read_u32(prim + 0x130)
+    if pid in SOLID_IDS:
+        return solid_state(o, prim)
+    return screen_state(o, prim) if pid in SCREEN_IDS else state_trail(o, prim)
 
 
 def flight_effect_state(o, prim):
@@ -1631,7 +1727,7 @@ def square_effects(o, rng, lines, effects=SQUARE_EFFECTS, prefix="kSquareEffect"
     vf02 that ignores them (CEffectPrim's), for effects that send it some; dense (True, or
     the effect ids it applies to) records the first four frames, then every fourth state and
     every eighth drawing, however many primitives there are. An entry of effects may fix the
-    level as a third value."""
+    level as a third value, and put the target within 2.5 of the actor with a fourth."""
     emu = o.emu
     rows = []
     player = emu.read_u32(o.world + 0x3C)
@@ -1655,6 +1751,8 @@ def square_effects(o, rng, lines, effects=SQUARE_EFFECTS, prefix="kSquareEffect"
         level = rng.randrange(1, 6)
         if len(entry) > 2:
             level = entry[2]
+        if len(entry) > 3 and entry[3]:
+            target = (f32(pos[0] + 1.5), target[1], f32(pos[2] - 1.0))
         emu.call(SRAND, seed + run)
         effect = o.rag_effect(actor)
         emu.call(INIT_EFFECT, actor, eid, 0, 0, 0, this=effect)
@@ -1779,6 +1877,10 @@ def main():
     # is an empty function of four arguments to stand in for it.
     o.emu.write_u32(o.mode, o.emu.scratch(struct.pack("<6I", 0, 0, 0, 0, 0, EMPTY_VF4)))
     square_effects(o, rng, lines, CROSSED_EFFECTS, "kCrossedEffect", 20000, flight_effect_state, True, None, True,
+                   True, True)
+    synthetic_flights(o, rng, lines, SOLID_IDS, 21000, "kSolid", "kSolids", random_solid, solid_state,
+                      (0, 3, 9, 20))
+    square_effects(o, rng, lines, SOLID_EFFECTS, "kSolidEffect", 22000, solid_effect_state, True, None, True,
                    True, True)
     names = sorted(o.textures.items(), key=lambda kv: kv[1])
     lines.append("static const TextureVector kTextures[] = {" +
