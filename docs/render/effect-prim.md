@@ -1753,7 +1753,8 @@ the six `불화살` images, `icearrow.tga`, `ac_center2.tga` and the rest).
 ## Checks
 
 `tools/prim_vectors.py` runs the original in the emulation oracle and writes
-`tests/unit/prim_vectors.inc`:
+`tests/unit/prim_vectors/`, one file per family of primitives so that none grows too large
+for git:
 - **The table:** `InitEffect` on a constructed `CRagEffect` for every id 0 to 0x151, both
   ways of the minimal flag, each with its own `srand` seed. It records the name handed to
   `LoadStrFile` and the duration.

@@ -206,7 +206,19 @@ struct ItemVector {
   int angle, type;
 };
 
-#include "prim_vectors.inc"
+// tools/prim_vectors.py writes these, one per family of primitives.
+#include "prim_vectors/basics.inc"
+#include "prim_vectors/crossed.inc"
+#include "prim_vectors/flights.inc"
+#include "prim_vectors/motes.inc"
+#include "prim_vectors/ribbons.inc"
+#include "prim_vectors/rings.inc"
+#include "prim_vectors/screens.inc"
+#include "prim_vectors/solids.inc"
+#include "prim_vectors/squares.inc"
+#include "prim_vectors/textures.inc"
+#include "prim_vectors/trails.inc"
+#include "prim_vectors/walls.inc"
 
 constexpr std::uint32_t kSyntheticTextures = 0x7100;  // the script's stand-in pointers
 constexpr std::uint32_t kSyntheticSeed = 500;         // srand before the n-th primitive's frames
