@@ -25,17 +25,27 @@ constexpr float kHalf = 0.5f;                                  // 005e25b8
 constexpr float kQuadTip = std::bit_cast<float>(0x3f555555u);  // 005e9f90, 5/6
 constexpr std::uint32_t kVertexZ = 0x358637bd;                 // 1e-6, at the near plane
 constexpr std::uint32_t kVertexRhw = 0x3f7fffef;
-constexpr float kFar = 1500.0f;                                   // 005e9f60
-constexpr float kHundredth = std::bit_cast<float>(0x3c23d70au);   // 005e39dc, 0.01
-constexpr float kBounceBack = std::bit_cast<float>(0xbf2aaaabu);  // 005e9e04, -2/3
-constexpr float kPixel = std::bit_cast<float>(0x3e124925u);       // 005e9564, 1/7
-constexpr float kRhwBias = std::bit_cast<float>(0x3727c5acu);     // 005e9568, 1e-5
-constexpr float kEndDistance = 3.0f;                              // 005e29d8
-constexpr float kCylinderU = 0.25f;                               // 005e653c
-constexpr float kRingCell = std::bit_cast<float>(0x3d430c31u);    // 005e9ef4, 1/21
-constexpr float kRingWave = std::bit_cast<float>(0x3e19999au);    // 005e9ed8, 0.15
-constexpr std::uint32_t kSlowWaves = 0x42c60000;                  // 99.0 at +0x1f0
-constexpr std::uint32_t kLowWalls = 0x40c00831;                   // 6.001, a ring's height
+constexpr float kFar = 1500.0f;                                     // 005e9f60
+constexpr float kHundredth = std::bit_cast<float>(0x3c23d70au);     // 005e39dc, 0.01
+constexpr float kBounceBack = std::bit_cast<float>(0xbf2aaaabu);    // 005e9e04, -2/3
+constexpr float kPixel = std::bit_cast<float>(0x3e124925u);         // 005e9564, 1/7
+constexpr float kRhwBias = std::bit_cast<float>(0x3727c5acu);       // 005e9568, 1e-5
+constexpr float kEndDistance = 3.0f;                                // 005e29d8
+constexpr float kCylinderU = 0.25f;                                 // 005e653c
+constexpr float kRingCell = std::bit_cast<float>(0x3d430c31u);      // 005e9ef4, 1/21
+constexpr float kRingWave = std::bit_cast<float>(0x3e19999au);      // 005e9ed8, 0.15
+constexpr std::uint32_t kSlowWaves = 0x42c60000;                    // 99.0 at +0x1f0
+constexpr std::uint32_t kLowWalls = 0x40c00831;                     // 6.001, a ring's height
+constexpr float kWallsClose = std::bit_cast<float>(0x3c23d70au);    // 005e9f24, 0.01
+constexpr float kBoxGrowth = std::bit_cast<float>(0x3ba3d70au);     // 005e9f28, 0.005
+constexpr float kBoxPulse = std::bit_cast<float>(0x3eb33333u);      // 005e9f30, 0.35
+constexpr float kBoxBase = std::bit_cast<float>(0x3f266666u);       // 005e9f2c, 0.65
+constexpr float kBounceShrink = std::bit_cast<float>(0x3f333333u);  // 005e89c4, 0.7
+constexpr float kPerHalfTurn = std::bit_cast<float>(0x3bb60b61u);   // 005e2690, 1/180
+constexpr float kBandSpread = std::bit_cast<float>(0x3d75c28fu);    // 005e9f4c, 0.06
+constexpr float kBandBack = std::bit_cast<float>(0x3e19999au);      // 005e9ed8, 0.15
+constexpr float kBandLift = std::bit_cast<float>(0x3d23d70au);      // 005e9f20, 0.04
+constexpr float kBandLength = std::bit_cast<float>(0x3e4ccccdu);    // 005e9f40, 0.2
 
 std::int32_t Ftol(float f) {
   if (std::isnan(f) || f <= -2147483904.0f || f >= 2147483648.0f)
@@ -1471,6 +1481,180 @@ void UpdateAsuraSquares(EffectPrim& p, const PrimScene& scene) {
   }
 }
 
+// CEffectPrim::UpdatePrim_32 (00571bb0), id 0x20: each ring closes in by a hundredth a
+// step, fades in by 10 for 10 steps and then out by 1; faded out it goes back to radius 20
+// and tilt 90, and stops once past age 30. Every wall stands at the height times the sine
+// of the age.
+void UpdateClosingWalls(EffectPrim& p) {
+  for (PrimRing& r : p.rings) {
+    if (!r.active) continue;
+    ++r.age;
+    r.radius = r.radius - kWallsClose;
+    if (r.age < 10) {
+      r.alpha = Add16(r.alpha, 10);
+    } else {
+      r.alpha = Add16(r.alpha, -1);
+      if (r.alpha <= 0) {
+        r.alpha = 0;
+        if (r.age > 30) r.active = false;
+        r.radius = 20.0f;
+        r.tilt = 90;
+      }
+    }
+    r.heights.fill(TableAt(kSines, r.age) * r.height);
+  }
+}
+
+// CEffectPrim::UpdatePrim_58 (0056b7f0), id 0x3a, at its owner: each ring's centre stands
+// at its orbit along its angle, which it reduces past 360 but never turns; it fades in by
+// 5 to 180 for 10 steps and, from the age in its kind, out by 2. Wall i stands at the
+// height times sin 9i, and for 90 steps times the sine of the age too, never below 0.
+void UpdateOrbitingRings(EffectPrim& p) {
+  p.position = p.owner->position;
+  const core::AngleTables& t = core::GetAngleTables();
+  for (PrimRing& r : p.rings) {
+    if (!r.active) continue;
+    ++r.age;
+    if (r.angle >= 360) r.angle = Add16(r.angle, -360);
+    r.center = {(TableAt(kCosines, r.angle) * r.orbit) + 0.0f, 0.0f,
+                (TableAt(kSines, r.angle) * r.orbit) + 0.0f};
+    if (r.age >= r.kind) {
+      r.alpha = Add16(r.alpha, -2);
+      if (r.alpha < 0) r.alpha = 0;
+    } else if (r.age < 10) {
+      r.alpha = Add16(r.alpha, 5);
+      if (r.alpha > 180) r.alpha = 180;
+    }
+    for (std::size_t i = 0; i < r.heights.size(); ++i) {
+      float h = t.sin[9 * i] * r.height;
+      if (r.age <= 90) h = h * TableAt(kSines, r.age);
+      r.heights[i] = h >= 0.0f ? h : 0.0f;
+    }
+  }
+}
+
+// CEffectPrim::UpdatePrim_59 (0056ba70), id 0x3b, at its owner: each ring waits out a
+// negative age, then turns 5 degrees a step and opens by 3 to 120 degrees, fading in by
+// 10 to 250 for its first 11 steps and out by 3 after 1400.
+void UpdateRaisedRings(EffectPrim& p) {
+  p.position = p.owner->position;
+  for (PrimRing& r : p.rings) {
+    if (!r.active) continue;
+    ++r.age;
+    if (r.age <= 0) continue;
+    const std::int16_t angle = r.angle;
+    r.angle = Add16(angle, 5);
+    if (r.angle >= 360) r.angle = Add16(angle, -355);
+    r.span = Add16(r.span, 3);
+    if (r.span > 120) r.span = 120;
+    if (r.age > 1400) {
+      r.alpha = Add16(r.alpha, -3);
+      if (r.alpha < 0) r.alpha = 0;
+    }
+    if (r.age < 12) {
+      r.alpha = Add16(r.alpha, 10);
+      if (r.alpha > 250) r.alpha = 250;
+    }
+  }
+}
+
+// CEffectPrim::UpdatePrim_35 (00571c40), id 0x23: each box fades in by 9 for 10 steps and
+// then out by 1, stopping once faded past age 30; its half-length and half-width grow by
+// 0.005 a step, and its height is the full height times the sine of the age.
+void UpdateBox(EffectPrim& p) {
+  for (PrimBand& b : p.bands) {
+    if (!b.active) continue;
+    ++b.age;
+    if (b.age < 10) {
+      b.alpha = Add16(b.alpha, 9);
+    } else {
+      b.alpha = Add16(b.alpha, -1);
+      if (b.alpha <= 0) {
+        b.alpha = 0;
+        if (b.age > 30) b.active = false;
+      }
+    }
+    b.values[0] = b.values[0] + kBoxGrowth;
+    b.values[1] = b.values[1] + kBoxGrowth;
+    b.values[2] = TableAt(kSines, b.age) * b.size;
+  }
+}
+
+// CEffectPrim::UpdatePrim_61 (00571cb0), id 0x3d: each box waits out a negative age; its
+// phase turns a degree a step, and from the age it fades at it fades by 2. Its height is
+// 0.65 of the full height plus 0.35 of it on the phase's sine, for 90 steps times the
+// sine of the age too.
+void UpdateBoxWalls(EffectPrim& p) {
+  for (PrimBand& b : p.bands) {
+    if (!b.active) continue;
+    ++b.age;
+    if (b.age <= 0) continue;
+    b.phase = Add16(b.phase, 1);
+    if (b.age > b.fade_at) {
+      b.alpha = Add16(b.alpha, -2);
+      if (b.alpha < 0) b.alpha = 0;
+    }
+    float h = (TableAt(kSines, b.phase % 360) * b.size) * kBoxPulse;
+    h = h + (b.size * kBoxBase);
+    if (b.age < 90) h = h * TableAt(kSines, b.age);
+    b.values[2] = h;
+  }
+}
+
+// CEffectPrim::UpdatePrim_63 (0056bc30), id 0x3f: every record, active or not, ages and
+// has its angle reduced past 360; the second and fourth pulse their radius by half the
+// sine of half their age (within 720) about the radius in their first value.
+void UpdatePentagonBand(EffectPrim& p) {
+  for (std::size_t k = 0; k < p.bands.size(); ++k) {
+    PrimBand& b = p.bands[k];
+    ++b.age;
+    if (b.angle >= 360) b.angle = Add16(b.angle, -360);
+    if (k == 1 || k == 3) b.size = (TableAt(kSines, b.age % 720 / 2) * 0.5f) + b.values[0];
+  }
+}
+
+// CEffectPrim::UpdatePrim_66 (005722d0), id 0x42: each band waits out a negative age, then
+// brightens by 8 for 5 steps and fades by 4; its far end lies its length on from the near
+// along its angle.
+void UpdateArcBands(EffectPrim& p) {
+  for (PrimBand& b : p.bands) {
+    if (!b.active) continue;
+    ++b.age;
+    if (b.age <= 0) continue;
+    if (b.age <= 5) {
+      b.alpha = Add16(b.alpha, 8);
+    } else {
+      b.alpha = Add16(b.alpha, -4);
+      if (b.alpha < 0) b.alpha = 0;
+    }
+    b.points[1][0] = (TableAt(kCosines, b.angle) * b.length) + b.points[0][0];
+    b.points[1][2] = (TableAt(kSines, b.angle) * b.length) + b.points[0][2];
+  }
+}
+
+// CEffectPrim::UpdatePrim_67 (0056b460), id 0x43: each trail waits out a negative age, then
+// fades by 5 after 35 steps; its newest segment goes 8 degrees further through its
+// bounce, a bounce more past 180, and every segment takes the one before's place.
+void UpdateBouncingBands(EffectPrim& p) {
+  for (PrimBand& b : p.bands) {
+    if (!b.active) continue;
+    ++b.age;
+    if (b.age <= 0) continue;
+    if (b.age > 35) b.alpha = Add16(b.alpha, -5);
+    if (b.alpha < 0) b.alpha = 0;
+    const float through = b.values[0] + 8.0f;
+    b.values[0] = through;
+    if (through > 180.0f) {
+      b.values[0] = through - 180.0f;
+      b.bounces[0] = static_cast<std::int8_t>(b.bounces[0] + 1);
+    }
+    for (std::size_t i = b.values.size() - 1; i > 0; --i) {
+      b.values[i] = b.values[i - 1];
+      b.bounces[i] = b.bounces[i - 1];
+    }
+  }
+}
+
 ScreenVertex Vertex(float x, float y, std::uint32_t color, float u, float v) {
   ScreenVertex s;
   s.x = x;
@@ -2211,6 +2395,297 @@ void DrawAsuraSquares(const EffectPrim& p, const PrimScene& scene, PrimDrawing& 
   }
 }
 
+// The four ways the walls of 0x20's rings lean, less each wall's angle (one reduction past
+// 360): rings 0 to 3 mirror their angles about 225, 135, 45 and 315 degrees.
+constexpr std::array<std::int32_t, 4> kWallLeans = {450, 270, 90, 630};
+
+// CEffectPrim::RenderSlantedRingWalls (0056cc90), id 0x20: each active ring's span in steps
+// of a ninth from its angle (a full ring's 21st step back at its start) at its radius,
+// moved by its first two flag bytes (signed) along x and z. Each wall leans up by the tilt
+// to its height and out the ring's way (kWallLeans) and joins the last step's. The
+// original keeps the corners at +0x88 of the record.
+void DrawSlantedWalls(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
+  for (std::size_t k = 0; k < p.rings.size(); ++k) {
+    const PrimRing& r = p.rings[k];
+    if (!r.active || r.span <= 0) continue;
+    const std::int32_t step = r.span / 9;
+    const auto dx = static_cast<float>(static_cast<std::int8_t>(r.flags[0]));
+    const auto dz = static_cast<float>(static_cast<std::int8_t>(r.flags[1]));
+    const auto moved = [dx, dz](const Vec3& v) { return Vec3{dx + v[0], v[1], dz + v[2]}; };
+    Vec3 last_bottom{};
+    Vec3 last_top{};
+    std::int32_t cell = 0;
+    for (std::int32_t a = 0; a < r.span; a += step) {
+      std::int32_t index = (r.angle + a) % 360;
+      if (r.span == 360 && cell == 20) index = r.angle;
+      const Vec3 bottom = {TableAt(kCosines, index) * r.radius, 0.0f,
+                           TableAt(kSines, index) * r.radius};
+      const float wall = r.heights[static_cast<std::size_t>(cell)];
+      const float out_by = TableAt(kCosines, r.tilt) * wall;
+      const float up = TableAt(kSines, r.tilt) * wall;
+      std::int32_t lean = kWallLeans[k] - index;
+      if (lean >= 360) lean -= 360;
+      const Vec3 top = {(TableAt(kCosines, lean) * out_by) + bottom[0], -up,
+                        (TableAt(kSines, lean) * out_by) + bottom[2]};
+      if (cell > 0) {
+        DrawPresetQuad(p, scene, cell - 1, r.alpha,
+                       {moved(last_bottom), moved(bottom), moved(top), moved(last_top)}, out);
+      }
+      cell = std::min(cell + 1, 20);
+      last_bottom = bottom;
+      last_top = top;
+      if (step == 0) break;
+    }
+  }
+}
+
+// CEffectPrim::RenderOffsetRingWalls (0056c2d0), id 0x3a: as RenderRingWalls, each ring
+// about its own centre, its walls' tops not lifted with it.
+void DrawOffsetRingWalls(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
+  for (const PrimRing& r : p.rings) {
+    if (!r.active || r.span <= 0) continue;
+    const std::int32_t step = r.span / 21;
+    Vec3 last_bottom{};
+    Vec3 last_top{};
+    std::int32_t cell = 0;
+    for (std::int32_t a = 0; a < r.span; a += step) {
+      std::int32_t index = (r.angle + a) % 360;
+      if (r.span == 360 && cell == 20) index = r.angle;
+      const float c = TableAt(kCosines, index);
+      const float s = TableAt(kSines, index);
+      const Vec3 bottom = {(c * r.radius) + r.center[0], r.center[1], (s * r.radius) + r.center[2]};
+      const float wall = r.heights[static_cast<std::size_t>(cell)];
+      const float out_by = TableAt(kCosines, r.tilt) * wall;
+      const Vec3 top = {(out_by * c) + bottom[0], -(TableAt(kSines, r.tilt) * wall),
+                        (out_by * s) + bottom[2]};
+      if (cell > 0)
+        DrawPresetQuad(p, scene, cell - 1, r.alpha, {last_bottom, bottom, top, last_top}, out);
+      cell = std::min(cell + 1, 20);
+      last_bottom = bottom;
+      last_top = top;
+      if (step == 0) break;
+    }
+  }
+}
+
+// CEffectPrim::RenderRaisedRingWalls (0056caa0), id 0x3b: as RenderRingWalls, each ring
+// lifted its height (+4) above the primitive. The original keeps the corners at +0x88 of
+// the record.
+void DrawRaisedRingWalls(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
+  for (const PrimRing& r : p.rings) {
+    if (!r.active || r.span <= 0) continue;
+    const std::int32_t step = r.span / 21;
+    Vec3 last_bottom{};
+    Vec3 last_top{};
+    std::int32_t cell = 0;
+    for (std::int32_t a = 0; a < r.span; a += step) {
+      std::int32_t index = (r.angle + a) % 360;
+      if (r.span == 360 && cell == 20) index = r.angle;
+      const float c = TableAt(kCosines, index);
+      const float s = TableAt(kSines, index);
+      const Vec3 bottom = {c * r.radius, -r.height, s * r.radius};
+      const float wall = r.heights[static_cast<std::size_t>(cell)];
+      const float out_by = TableAt(kCosines, r.tilt) * wall;
+      const float up = TableAt(kSines, r.tilt) * wall;
+      const Vec3 top = {(out_by * c) + bottom[0], -(up + r.height), (out_by * s) + bottom[2]};
+      if (cell > 0)
+        DrawPresetQuad(p, scene, cell - 1, r.alpha, {last_bottom, bottom, top, last_top}, out);
+      cell = std::min(cell + 1, 20);
+      last_bottom = bottom;
+      last_top = top;
+      if (step == 0) break;
+    }
+  }
+}
+
+// A box's four corners 1 up, the half-length along its angle and the half-width across:
+// (+, +), (+, −), (−, −), (−, +). The original keeps them at +0x88 of the record.
+std::array<Vec3, 4> BoxCorners(const PrimBand& b) {
+  const float c = TableAt(kCosines, b.angle);
+  const float s = TableAt(kSines, b.angle);
+  const auto corner = [c, s](float x, float z) {
+    return Vec3{(x * c) - (z * s), -1.0f, (x * s) + (z * c)};
+  };
+  const float x = b.values[0];
+  const float z = b.values[1];
+  return {corner(x, z), corner(x, -z), corner(-x, -z), corner(-x, z)};
+}
+
+// The four walls between a box's corners up to its height, each from a corner to the next
+// and up, in the look given.
+void DrawBoxSides(const EffectPrim& p, const PrimScene& scene, const PrimBand& b,
+                  const std::array<Vec3, 4>& q, const QuadLook& look, PrimDrawing& out) {
+  const auto top = [&b](const Vec3& v) { return Vec3{v[0], v[1] - b.values[2], v[2]}; };
+  for (std::size_t i = 0; i < 4; ++i) {
+    const Vec3& a = q[i];
+    const Vec3& next = q[(i + 1) % 4];
+    DrawQuad(p, scene, {a, next, top(next), top(a)}, look, out);
+  }
+}
+
+// CEffectPrim::RenderBox (0056f2b0), id 0x23: each active box with some alpha as its four
+// walls, white onto ONE, then its floor both ways at half the alpha, relative to the
+// primitive.
+void DrawBox(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
+  for (const PrimBand& b : p.bands) {
+    if (!b.active || b.alpha <= 0) continue;
+    const std::array<Vec3, 4> q = BoxCorners(b);
+    DrawBoxSides(p, scene, b, q, {b.alpha, true, 0, false, 255, 255, 255}, out);
+    const QuadLook floor = {static_cast<std::int16_t>(b.alpha / 2), false, 0, false, 255, 255, 255};
+    DrawQuad(p, scene, {q[0], q[1], q[2], q[3]}, floor, out);
+    DrawQuad(p, scene, {q[3], q[2], q[1], q[0]}, floor, out);
+  }
+}
+
+// CEffectPrim::RenderBoxWalls (0056f770), id 0x3d: each active box with some alpha as its
+// four walls, relative to the primitive: white for a fourth value of 0, (235, 255, 235)
+// onto ONE for 1, and for any other the last box's look (the original's is unset at
+// first).
+void DrawBoxWalls(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
+  QuadLook look = {0, false, 0, false, 255, 255, 255};
+  for (const PrimBand& b : p.bands) {
+    if (!b.active || b.alpha <= 0) continue;
+    const float color = b.values[3];
+    if (std::isnan(color) || color == 0.0f) {
+      look = {0, false, 0, false, 255, 255, 255};
+    } else if (std::bit_cast<std::uint32_t>(color) == 0x3f800000) {
+      look = {0, true, 0, false, 235, 255, 235};
+    }
+    look.alpha = b.alpha;
+    DrawBoxSides(p, scene, b, BoxCorners(b), look, out);
+  }
+}
+
+// CEffectPrim::RenderPentagonBand (00570750), id 0x3f: each active record with some alpha
+// as a five-sided tube of its radius from its second point to its fourth, the sides from
+// its angle 72 degrees apart; (230, 255, 230), in the world.
+void DrawPentagonBand(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
+  for (const PrimBand& b : p.bands) {
+    if (!b.active || b.alpha <= 0) continue;
+    const Vec3& low = b.points[1];
+    const Vec3& high = b.points[3];
+    Vec3 last_near{};
+    Vec3 last_far{};
+    for (std::int32_t i = 0; i <= 5; ++i) {
+      auto a = static_cast<std::int16_t>(i * 72 + b.angle);
+      if (a >= 360) a = static_cast<std::int16_t>(a - 360);
+      const float x = b.size * TableAt(kCosines, a);
+      const float z = b.size * TableAt(kSines, a);
+      const Vec3 near = {low[0] + x, low[1], low[2] + z};
+      const Vec3 far = {high[0] + x, high[1], high[2] + z};
+      if (i > 0)
+        DrawQuad(p, scene, {last_near, near, far, last_far},
+                 {b.alpha, false, 0, true, 230, 255, 230}, out);
+      last_near = near;
+      last_far = far;
+    }
+  }
+}
+
+// CEffectPrim::RenderArcBands (005704e0), id 0x42: each active band with some alpha as two
+// five-sided tubes from its first point to its second, lifted by its first value, their
+// sides 72 degrees apart about the line across its angle: one of its radius, (255, 255,
+// 55) onto ONE, then one a quarter wider, (255, 255, 200); in the world.
+void DrawArcBands(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
+  const core::AngleTables& t = core::GetAngleTables();
+  for (const PrimBand& b : p.bands) {
+    if (!b.active || b.alpha <= 0) continue;
+    const std::int32_t across = static_cast<std::int16_t>(b.angle + 90) % 360;
+    const float ac = TableAt(kCosines, across);
+    const float as = TableAt(kSines, across);
+    const Vec3& from = b.points[0];
+    const Vec3& to = b.points[1];
+    for (std::int32_t layer = 0; layer < 2; ++layer) {
+      const QuadLook look = layer == 0 ? QuadLook{b.alpha, true, 0, true, 255, 255, 55}
+                                       : QuadLook{b.alpha, false, 0, true, 255, 255, 200};
+      Vec3 last_near{};
+      Vec3 last_far{};
+      for (std::size_t j = 0; j <= 5; ++j) {
+        const float radius = layer == 0 ? b.size : b.size + 0.25f;
+        const float rs = radius * t.sin[72 * j];
+        const float rc = radius * t.cos[72 * j];
+        const float dx = rc * ac;
+        const float dz = rc * as;
+        const float y = rs - b.values[0];
+        const Vec3 near = {from[0] + dx, y + from[1], from[2] + dz};
+        const Vec3 far = {to[0] + dx, y + to[1], to[2] + dz};
+        if (j > 0) DrawQuad(p, scene, {last_near, near, far, last_far}, look, out);
+        last_near = near;
+        last_far = far;
+      }
+    }
+  }
+}
+
+// Where a segment of 0x43's trail lies from its start: out along the heading two lengths a
+// bounce made, each 0.7 of the last, and the share of the next its degrees through it
+// make; up 1.5 lengths times the sine of those degrees, shrunk the same.
+struct BouncePoint {
+  float out;
+  float up;
+};
+
+BouncePoint BounceAt(float length, std::int8_t bounces, float through) {
+  float out = 0.0f;
+  float shrink = 1.0f;
+  for (std::int32_t n = 0; n < bounces; ++n) {
+    const float once = shrink * length;
+    out = out + (once + once);
+    shrink = shrink * kBounceShrink;
+  }
+  if (through > 0.0f) {
+    const float part = ((through * kPerHalfTurn) * shrink) * length;
+    out = out + (part + part);
+  }
+  const auto degrees = static_cast<std::int16_t>(Ftol(through));
+  const float up = (TableAt(kSines, degrees) * length) * -1.5f;
+  float again = 1.0f;
+  for (std::int32_t n = 0; n < bounces; ++n) again = again * kBounceShrink;
+  return {out, up * again};
+}
+
+// CEffectPrim::RenderBandSegments (0056c6c0), id 0x43: each active trail with some alpha as
+// 20 segments, each from one record's bounce point to the next's, a three-sided tube of
+// the radius about the line across their direction (VectorToDegrees, a quarter turn on),
+// at the alpha less 5 a segment while some is left; (255, 200, 10 + 7 a segment), in the
+// world.
+void DrawBandSegments(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out) {
+  const core::AngleTables& t = core::GetAngleTables();
+  for (const PrimBand& b : p.bands) {
+    if (!b.active || b.alpha <= 0) continue;
+    const float hc = TableAt(kCosines, b.heading);
+    const float hs = TableAt(kSines, b.heading);
+    const Vec3& start = b.points[0];
+    for (std::size_t i = 0; i < 20; ++i) {
+      const BouncePoint from = BounceAt(b.length, b.bounces[i], b.values[i]);
+      const BouncePoint to = BounceAt(b.length, b.bounces[i + 1], b.values[i + 1]);
+      const Vec3 a = {from.out * hc, from.up, from.out * hs};
+      const Vec3 z = {to.out * hc, to.up, to.out * hs};
+      const std::int16_t back = VectorToDegrees(a[0] - z[0], a[2] - z[2]);
+      const std::int32_t across = static_cast<std::int16_t>(back + 90) % 360;
+      const Vec3 near_center = {a[0] + start[0], a[1] + start[1], a[2] + start[2]};
+      const Vec3 far_center = {z[0] + start[0], z[1] + start[1], z[2] + start[2]};
+      const auto segment = static_cast<std::int32_t>(i);
+      const std::int32_t alpha = b.alpha - 5 * segment;
+      const QuadLook look = {static_cast<std::int16_t>(alpha), false, 0, true, 255, 200,
+                             (10 + 7 * segment) & 0xff};
+      Vec3 last_near{};
+      Vec3 last_far{};
+      for (std::size_t j = 0; j <= 3; ++j) {
+        const float ry = b.size * t.sin[120 * j];
+        const float rc = b.size * t.cos[120 * j];
+        const float dx = rc * TableAt(kCosines, across);
+        const float dz = rc * TableAt(kSines, across);
+        const Vec3 near = {near_center[0] + dx, ry + near_center[1], dz + near_center[2]};
+        const Vec3 far = {far_center[0] + dx, ry + far_center[1], dz + far_center[2]};
+        if (j > 0 && alpha > 0) DrawQuad(p, scene, {last_near, near, far, last_far}, look, out);
+        last_near = near;
+        last_far = far;
+      }
+    }
+  }
+}
+
 // The particles of ids 0 and 2: heading and pitch, then 4 to 7 out along the matrix's z,
 // 10 up.
 void AimParticle(EffectPrim& p, std::int32_t heading, core::CrtRand& rand) {
@@ -2310,6 +2785,14 @@ bool UpdatePrimitive(EffectPrim& p, core::CrtRand& rand, const PrimScene& scene)
     case 0x34: UpdateBeams(p, scene, true); break;
     case 0x35: UpdateBeams(p, scene, false); break;
     case 0x41: UpdateAsuraSquares(p, scene); break;
+    case 0x20: UpdateClosingWalls(p); break;
+    case 0x3a: UpdateOrbitingRings(p); break;
+    case 0x3b: UpdateRaisedRings(p); break;
+    case 0x23: UpdateBox(p); break;
+    case 0x3d: UpdateBoxWalls(p); break;
+    case 0x3f: UpdatePentagonBand(p); break;
+    case 0x42: UpdateArcBands(p); break;
+    case 0x43: UpdateBouncingBands(p); break;
     case 0x1f:
     case 0x28:
     case 0x2b:
@@ -2377,6 +2860,14 @@ void DrawPrimitive(const EffectPrim& p, const PrimScene& scene, PrimDrawing& out
     case 0x34: DrawBeams(p, scene, out); break;
     case 0x35: DrawSlashLines(p, scene, out); break;
     case 0x41: DrawAsuraSquares(p, scene, out); break;
+    case 0x20: DrawSlantedWalls(p, scene, out); break;
+    case 0x3a: DrawOffsetRingWalls(p, scene, out); break;
+    case 0x3b: DrawRaisedRingWalls(p, scene, out); break;
+    case 0x23: DrawBox(p, scene, out); break;
+    case 0x3d: DrawBoxWalls(p, scene, out); break;
+    case 0x3f: DrawPentagonBand(p, scene, out); break;
+    case 0x42: DrawArcBands(p, scene, out); break;
+    case 0x43: DrawBandSegments(p, scene, out); break;
     default: break;
   }
 }
@@ -3397,6 +3888,215 @@ void AddAsuraStrike(RagEffect& effect, const EffectActor& actor, std::vector<Eff
   added.push_back(std::move(p));
 }
 
+void AddGrandCross(RagEffect& effect, const EffectActor& actor, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  // effect\cru_grand cross.wav plays here.
+  EffectPrim p = MakeRings(effect, 0x20, "effect\\ring_white.tga");
+  p.scale = 1.0f;
+  constexpr std::array<std::int16_t, 4> kAngles = {180, 90, 0, 270};
+  constexpr std::array<std::array<std::int8_t, 2>, 4> kOffsets = {
+      {{23, 23}, {23, -23}, {-23, -23}, {-23, 23}}};
+  for (std::size_t k = 0; k < p.rings.size(); ++k) {
+    PrimRing& r = p.rings[k];
+    SetRing(r, {90, 120.0f, 0, kAngles[k], 0, 90, Bits(0x419f3333), 0});
+    r.flags[0] = static_cast<std::uint8_t>(kOffsets[k][0]);
+    r.flags[1] = static_cast<std::uint8_t>(kOffsets[k][1]);
+  }
+  added.push_back(std::move(p));
+}
+
+void AddBox(RagEffect& effect, const EffectActor& actor, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  EffectPrim p = MakeRings(effect, 0x23, "effect\\ring_yellow.tga");
+  p.scale = 1.0f;
+  for (std::size_t k = 0; k < 2; ++k) {
+    PrimBand& b = p.bands[k];
+    b.active = true;
+    b.age = 0;
+    b.size = 60.0f;
+    b.angle = static_cast<std::int16_t>(k * 90);
+    b.alpha = 0;
+    b.values[0] = 24.0f;
+    b.values[1] = Bits(0x404ccccd);
+    b.values[2] = 0.0f;
+  }
+  added.push_back(std::move(p));
+}
+
+namespace {
+
+// Rings whose every wall starts at one height, and their flag bytes at one value.
+void SetRingWalls(PrimRing& r, const RingSetup& s, float wall, std::uint8_t flag) {
+  SetRing(r, s);
+  r.heights.fill(wall);
+  r.flags.fill(flag);
+}
+
+}  // namespace
+
+void AddCloudRings(RagEffect& effect, const EffectActor& actor, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  // _heal_effect.wav plays here.
+  EffectPrim p = MakeRings(effect, 0x3b, "effect\\cloud11.tga");
+  p.scale = 4.0f;
+  SetRingWalls(p.rings[0], {90, 8.0f, 0, 0, 0, 90, 3.0f, 0}, 3.0f, 0);
+  SetRingWalls(p.rings[1], {70, 8.0f, 0, 10, 0, 90, Bits(0x404ccccd), 0}, 2.5f, 0);
+  SetRingWalls(p.rings[2], {50, 8.0f, 0, 20, 0, 90, Bits(0x4059999a), 0}, 2.0f, 0);
+  SetRingWalls(p.rings[3], {30, 8.0f, 0, 30, 0, 90, Bits(0x40666666), 0}, 1.5f, 0);
+  added.push_back(std::move(p));
+}
+
+void AddOpeningPortal(RagEffect& effect, const EffectActor& actor, core::CrtRand& rand,
+                      std::vector<EffectPrim>& added) {
+  if (effect.frame == 0) {
+    EffectPrim p = MakeRings(effect, 0x39, "effect\\magic_violet.tga");
+    p.scale = 4.0f;
+    for (std::size_t k = 0; k < 3; ++k) {
+      const auto angle = static_cast<std::int16_t>(rand.Next() % 360);
+      const auto radius = static_cast<float>(4 - static_cast<std::int32_t>(k));
+      SetRingWalls(p.rings[k], {360, 50.0f, 0, angle, 0, 90, radius, 1400}, 0.0f, 1);
+    }
+    p.rings[3].active = false;
+    added.push_back(std::move(p));
+  }
+  if (effect.frame == 1) {
+    effect.position = actor.position;
+    EffectPrim p = MakeRings(effect, 0x3c, "effect\\ring_blue.tga");
+    p.scale = 4.0f;
+    const float low = Bits(kLowWalls);
+    SetRingWalls(p.rings[0], {360, low, 0, 0, 0, 2, 0.0f, 3111}, 0.0f, 1);
+    SetRingWalls(p.rings[1], {360, low, -10, 25, 0, 3, 0.0f, 3111}, 0.0f, 1);
+    SetRingWalls(p.rings[2], {360, low, -20, 50, 0, 4, 0.0f, 3111}, 0.0f, 1);
+    p.rings[3].active = false;
+    p.rings[3].age = 0;
+    p.rings[3].kind = 0;
+    added.push_back(std::move(p));
+  }
+  if (effect.frame == 2) {
+    EffectPrim p = MakeRings(effect, 0x3b, "effect\\cloud11.tga");
+    p.scale = 4.0f;
+    SetRingWalls(p.rings[0], {30, 1.5f, 0, 0, 0, 90, 9.0f, 0}, 1.5f, 0);
+    SetRingWalls(p.rings[1], {30, 3.5f, 0, 90, 0, 90, 7.5f, 0}, 1.5f, 0);
+    SetRingWalls(p.rings[2], {30, 5.5f, 0, 180, 0, 90, 6.0f, 0}, 1.5f, 0);
+    SetRingWalls(p.rings[3], {30, 7.5f, 0, 270, 0, 90, 4.5f, 0}, 1.5f, 0);
+    added.push_back(std::move(p));
+  }
+}
+
+void AddBoxWalls(RagEffect& effect, const EffectActor& actor, const char* texture,
+                 std::int8_t variant, core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  EffectPrim p = MakeRings(effect, 0x3d, texture);
+  p.scale = 1.0f;
+  PrimBand& b = p.bands[0];
+  b.active = true;
+  b.age = 0;
+  b.phase = static_cast<std::int16_t>(rand.Next() % 360);
+  const bool first = variant == 0;
+  b.size = first ? 50.0f : 16.0f;
+  b.angle = 0;
+  b.alpha = first ? 30 : 120;
+  b.fade_at = first ? 864 : 1880;
+  b.values[0] = first ? 5.0f : 2.5f;
+  b.values[1] = b.values[0];
+  b.values[2] = 0.0f;
+  b.values[3] = static_cast<float>(variant);
+  added.push_back(std::move(p));
+}
+
+void AddPentagonBand(RagEffect& effect, const EffectActor& actor, const char* texture,
+                     std::int8_t variant, std::vector<EffectPrim>& added) {
+  if (effect.frame != 0) return;
+  effect.position = actor.position;
+  EffectPrim p = MakeRings(effect, 0x3f, texture);
+  for (std::size_t k = 0; k < p.bands.size(); ++k) {
+    PrimBand& b = p.bands[k];
+    const auto n = static_cast<std::int32_t>(k);
+    b.active = true;
+    b.age = 0;
+    b.alpha = variant == 2 ? 30 : variant == 10 ? 25 : 40;
+    b.length = 0.0f;
+    if (k == 3) {
+      b.age = 180;
+      b.size = variant == 1 ? 4.0f : variant == 2 ? 1.0f : 2.0f;
+    } else if (variant == 1) {
+      b.size = static_cast<float>(n * 2) + 4.0f;
+    } else if (variant == 2) {
+      b.size = (static_cast<float>(n) * 0.5f) + 1.0f;
+    } else {
+      b.size = static_cast<float>(n) + 2.0f;
+    }
+    b.values[0] = b.size;
+    b.angle = static_cast<std::int16_t>(n * 25);
+    b.points[1] = effect.position;
+    effect.target = effect.position;
+    const bool short_band = variant == 10;
+    effect.target[1] = effect.target[1] - (short_band ? 60.0f : 300.0f);
+    effect.target[0] = effect.target[0] - (short_band ? 15.0f : 70.0f);
+    effect.target[2] = effect.target[2] - (short_band ? 15.0f : 70.0f);
+    b.points[3] = effect.target;
+  }
+  added.push_back(std::move(p));
+}
+
+void AddArcBands(RagEffect& effect, const EffectActor& actor, core::CrtRand& rand,
+                 std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  // effect\EF_hit2.wav plays at frames 10 and 30, effect\EF_hit4.wav at 20.
+  if (effect.frame >= 2) return;
+  EffectPrim p = MakeRings(effect, 0x42, "effect\\cloud11.tga");
+  p.scale = 0.0f;
+  p.travel = effect.target;
+  const float dx = effect.target[0] - effect.position[0];
+  const float dz = effect.target[2] - effect.position[2];
+  const auto spread = [&rand](float at) {
+    return ((static_cast<float>(rand.Next() % 100) * kBandSpread) - 3.0f) + at;
+  };
+  for (PrimBand& b : p.bands) {
+    b.active = true;
+    b.age = -static_cast<std::int32_t>(rand.Next() % 20);
+    b.angle = VectorToDegrees(dx, dz);
+    b.alpha = 0;
+    Vec3& from = b.points[0];
+    from[0] = spread(effect.position[0]);
+    from[2] = spread(effect.position[2]);
+    from[1] = effect.position[1];
+    b.values[1] = static_cast<float>(rand.Next() % 100) * kBandBack;
+    from[0] = from[0] - (TableAt(kCosines, b.angle) * b.values[1]);
+    from[2] = from[2] - (TableAt(kSines, b.angle) * b.values[1]);
+    b.points[1] = {from[0], effect.position[1], from[2]};
+    b.size = 0.25f;
+    b.values[0] = (static_cast<float>(rand.Next() % 100) * kBandLift) + 8.0f;
+    b.length = (static_cast<float>(rand.Next() % 100) * kBandLength) + 20.0f;
+  }
+  added.push_back(std::move(p));
+}
+
+void AddBouncingBands(RagEffect& effect, const EffectActor& actor, core::CrtRand& rand,
+                      std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame < 0 || effect.frame >= 4) return;
+  EffectPrim p = MakeRings(effect, 0x43, "effect\\white02.bmp");
+  p.image_count = 1;
+  p.scale = 0.0f;
+  for (PrimBand& b : p.bands) {
+    b.active = true;
+    b.age = -static_cast<std::int32_t>(rand.Next() % 26);
+    b.size = Bits(0x3dcccccd);
+    b.alpha = static_cast<std::int16_t>(rand.Next() % 51 + 125);
+    b.heading = static_cast<std::int16_t>(rand.Next() % 360);
+    b.length = static_cast<float>(rand.Next() % 8) + 6.0f;
+    b.bounces.fill(0);
+    b.values.fill(0.0f);
+    b.points[0] = effect.position;
+  }
+  added.push_back(std::move(p));
+}
+
 RagEffect& EffectWorld::Launch(std::int32_t id, const EffectActor& actor) {
   Object o;
   o.effect = std::make_unique<RagEffect>();
@@ -3522,6 +4222,27 @@ void EffectWorld::Step(const PrimScene& scene) {
           AddSlashLines(e, it->actor, true, added);
           break;
         case 0x148: AddAsuraStrike(e, it->actor, added); break;
+        case 0xe2:
+          AddGrandCross(e, it->actor, added);
+          AddBox(e, it->actor, added);
+          break;
+        case 0xe0: AddCloudRings(e, it->actor, added); break;
+        case 0x13d: AddOpeningPortal(e, it->actor, rand_, added); break;
+        case 0x13e: AddBoxWalls(e, it->actor, "effect\\ring_red.tga", 0, rand_, added); break;
+        case 0x13f: AddBoxWalls(e, it->actor, "effect\\alpha_down.tga", 1, rand_, added); break;
+        case 0x133:
+        case 0x142:
+        case 0x143:
+        case 0x144: {
+          const std::int8_t variant = e.id == 0x133   ? 0
+                                      : e.id == 0x142 ? 1
+                                      : e.id == 0x143 ? 2
+                                                      : 10;
+          AddPentagonBand(e, it->actor, "effect\\cloud11.tga", variant, added);
+          break;
+        }
+        case 0x149: AddArcBands(e, it->actor, rand_, added); break;
+        case 0x14a: AddBouncingBands(e, it->actor, rand_, added); break;
         case 0xf8:
           AddFadingRings(e, it->actor, "effect\\ring_yellow.tga", added);
           // AdvanceStr, which answers false without a .str (InitEffect loads none for

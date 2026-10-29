@@ -2413,10 +2413,21 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Checks:** 24 synthetic primitives and the eight effects; 1,848,563 values in
     `prim_test`.
 
+- [x] Walls and bands (`docs/render/effect-prim.md#walls-and-bands`):
+  - **`RenderSlantedRingWalls`, `RenderOffsetRingWalls`, `RenderRaisedRingWalls`,
+    `RenderBox`, `RenderBoxWalls`, `RenderPentagonBand`, `RenderArcBands` and
+    `RenderBandSegments`:** quarter rings whose walls lean their own way, rings about
+    their own centres or lifted, boxes, five-sided tubes between two points, and a
+    bouncing trail of three-sided tubes.
+  - **`CEffectPrim` ids 0x20, 0x23, 0x3a, 0x3b, 0x3d, 0x3f, 0x42 and 0x43**, and effect
+    ids 0xe0, 0xe2, 0x133, 0x13d to 0x13f, 0x142 to 0x144, 0x149 and 0x14a through eight
+    setups. Nothing adds 0x3a.
+  - **Checks:** 32 synthetic primitives and the eleven effects; 2,584,702 values in
+    `prim_test`.
+
 ### Next actions
-1. M4, the renderer: the other 30 primitive ids, next the other walls and bands
-   (`RenderSlantedRingWalls` 0x20, `RenderOffsetRingWalls` 0x3a, `RenderRaisedRingWalls`
-   0x3b, `RenderBoxWalls` 0x3d, `RenderPentagonBand` 0x3f, `RenderArcBands` 0x42,
-   `RenderBandSegments` 0x43) and the effects that add them.
+1. M4, the renderer: the other 22 primitive ids, next the other ids drawn by
+   `RenderActFrameHistory` (3, 4, 7, 8, 0x15, 0x26, 0x2c and 0x31) and the effects that
+   add them.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

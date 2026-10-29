@@ -988,6 +988,144 @@ adds four rings of radius 4.1 and tilt 80 at 180, 270, 0 and 90 degrees:
 - **Never called.** `AddCoinBurst` (`005754a0`) is `AddBurstSquares` with `coin_a.bmp`,
   colour 1, ages −18 to −47 and 12 up instead of 9. The port leaves it out.
 
+## Walls and bands
+
+Eight more primitive ids keep four records each at +0x156b0. Three draw rings of walls
+through `DrawPresetColorQuad`, like [the ring walls](#ring-walls); five draw boxes and
+tubes through `DrawQuad`:
+
+| Id | Drawing | Shape |
+|---:|---------|-------|
+| 0x20 | `RenderSlantedRingWalls` (`0056cc90`) | quarter rings whose walls lean their own way |
+| 0x3a | `RenderOffsetRingWalls` (`0056c2d0`) | rings, each about its own centre |
+| 0x3b | `RenderRaisedRingWalls` (`0056caa0`) | rings lifted off the ground |
+| 0x23 | `RenderBox` (`0056f2b0`) | a box: four walls and a floor |
+| 0x3d | `RenderBoxWalls` (`0056f770`) | a box's four walls |
+| 0x3f | `RenderPentagonBand` (`00570750`) | a five-sided tube between two points |
+| 0x42 | `RenderArcBands` (`005704e0`) | two five-sided tubes, one inside the other |
+| 0x43 | `RenderBandSegments` (`0056c6c0`) | a trail of 20 three-sided tubes, bouncing |
+
+**The rings' records** are those of [the ring walls](#the-ring-records), with:
+- **0x20:** the first two flag bytes (+0x70, +0x71), signed, move the ring along x and z.
+- **0x3a:** the ring's centre at +0x88, and how far out it circles at +0xac.
+- **0x3b:** the height (+4) lifts the whole ring.
+
+**The other records**, as 0x23, 0x3d, 0x3f, 0x42 and 0x43 read them:
+
+| Offset | What |
+|-------:|------|
+| +0 | active (a byte; 0x42 tests it signed, above 0) |
+| +2 | 0x3d: the phase, turning a degree a step |
+| +4 | 0x23 and 0x3d: the full height; the others: the tube's radius |
+| +8, +0xc, +0xe | the age, the angle and the alpha |
+| +0x10 | 0x3d: the age it starts fading |
+| +0x14 | 0x23 and 0x3d: the half-length, half-width, height and (0x3d) colour; 0x3f: the radius it pulses about; 0x42: the lift, then how far back it starts; 0x43: 21 values, below |
+| +0x68 | 0x43: the heading, degrees |
+| +0x6c | 0x42: the tube's length; 0x43: the first bounce's |
+| +0x70 | 0x43: 21 signed bytes, below |
+| +0x88 | 0x42: its two ends (+0x88, +0x94); 0x3f: its ends at +0x94 and +0xac; 0x43: where it starts |
+
+**Closing walls** (0x20, `UpdatePrim_32` `00571bb0`):
+- **Closing in.** The radius falls by a hundredth (`005e9f24`) a step.
+- **Fading** in by 10 a step for 10 steps, then out by 1. Faded out, the ring goes back to
+  radius 20 and tilt 90, and once past age 30 it stops.
+- **The walls** all stand at the height times the sine of the age.
+- **Drawing.** As `RenderRingWalls`, with these differences:
+  - the span goes in ninths, not 21sts;
+  - there are no low walls;
+  - the ring is moved along x and z by its flag bytes;
+  - each wall's top leans out by the tilt not along the wall's angle but along a lean of
+    450, 270, 90 or 630 (rings 0 to 3) less it, reduced once past 360. Each ring's walls
+    so mirror their angles about 225, 135, 45 and 315 degrees.
+
+  The drawing writes its corners into the record at +0x88.
+
+**Orbiting rings** (0x3a, `UpdatePrim_58` `0056b7f0`), at the owner:
+- **The centre** is the orbit along the angle (its y 0). The angle is reduced past 360
+  but never turns.
+- **Fading** in by 5 to 180 for 10 steps, and out by 2 from the age in the kind.
+- **The walls.** Wall i stands at the height times sin 9i, and for 90 steps times the
+  sine of the age too; never below 0.
+- **Drawing.** As `RenderRingWalls` about the ring's centre, without low walls. The tops
+  are not lifted with the centre: their y is that of a ring on the ground.
+
+**Raised rings** (0x3b, `UpdatePrim_59` `0056ba70`), at the owner, after a negative age:
+- **Turning** 5 degrees a step; the span opens by 3 to 120.
+- **Fading** in by 10 to 250 for 11 steps, and out by 3 after 1400.
+- **Drawing.** As `RenderRingWalls`, without low walls, the whole ring lifted by its
+  height. The drawing writes its corners into the record at +0x88.
+
+**Boxes** (0x23, `UpdatePrim_35` `00571c40`; 0x3d, `UpdatePrim_61` `00571cb0`):
+- **0x23** fades in by 9 for 10 steps, then out by 1, and stops once faded past age 30.
+  Its half-length and half-width grow by 0.005 a step, and its height is the full height
+  times the sine of the age.
+- **0x3d** waits out a negative age. Its phase turns a degree a step, and from the age in
+  +0x10 it fades by 2. Its height is 0.65 of the full height plus 0.35 of it on the
+  phase's sine, and for 90 steps times the sine of the age too.
+- **The corners** lie 1 up, the half-length along the angle and the half-width across:
+  (+, +), (+, −), (−, −), (−, +).
+- **The walls** each run from a corner to the next and up the height, relative to the
+  primitive.
+- **0x23's drawing.** The walls are white onto ONE. The floor follows, both ways, at half
+  the alpha.
+- **0x3d's drawing.** The walls are white for a colour of 0 and (235, 255, 235) onto ONE
+  for 1. For any other the look stays the last box's; the original's is unset before the
+  first.
+
+  Both drawings write the corners into the record at +0x88.
+
+**The pentagon band** (0x3f, `UpdatePrim_63` `0056bc30`):
+- **Every record**, active or not, ages, and has its angle reduced past 360.
+- **The second and fourth** pulse their radius by half the sine of half their age (within
+  720) about the radius in +0x14.
+- **Drawing.** A five-sided tube of the radius from +0x94 to +0xac, its sides 72 degrees
+  apart from the angle; (230, 255, 230), in the world.
+
+**Arc bands** (0x42, `UpdatePrim_66` `005722d0`), after a negative age:
+- **Fading** in by 8 for 5 steps, then out by 4.
+- **The far end** lies the length on from the near one along the angle.
+- **Drawing.** Two five-sided tubes from end to end, lifted by +0x14, in the world. Their
+  sides lie 72 degrees apart about the line across the angle (the angle plus 90, within
+  360). The first is of the radius, (255, 255, 55) onto ONE. The second is a quarter
+  wider, (255, 255, 200).
+
+**Bouncing bands** (0x43, `UpdatePrim_67` `0056b460`), after a negative age:
+- **Fading** by 5 after 35 steps.
+- **Bouncing.** The newest segment (+0x14) goes 8 degrees further through its bounce.
+  Past 180 it starts the next: less 180, and its bounces (+0x70) one more.
+- **The trail.** Every value and byte then takes the one before's place, so the 21 are
+  the last 21 steps.
+- **A point of the trail** is out along the heading and up:
+  - **out:** twice the length for each bounce made, each 0.7 (`005e89c4`) of the last,
+    plus twice the share of the next its degrees make (over 180, `005e2690`);
+  - **up:** 1.5 lengths times the sine of its degrees (truncated), shrunk by 0.7 a bounce.
+- **Drawing.** Twenty segments from each point to the next, each a three-sided tube of the
+  radius:
+  - the tube's sides lie about the line across their direction: `VectorToDegrees` of the
+    first less the second, plus 90;
+  - segment i is at the alpha less 5i, while that is above 0;
+  - its colour is (255, 200, 10 + 7i), in the world.
+
+**The effects:**
+
+| Effect ids | Function | Id | What |
+|-----------|----------|---:|------|
+| 0xe2 | `AddGrandCross` (`00574da0`) and `AddBox` (`00575100`) | 0x20, 0x23 | four quarter rings of `ring_white.tga` at 180, 90, 0 and 270 degrees, moved 23 along each diagonal, radius 19.9, height 120, tilt 90; and two boxes of `ring_yellow.tga` 24 by 3.2, 60 high, crossed. `effect\cru_grand cross.wav` |
+| 0xe0 | `AddCloudRings` (`005734b0`) | 0x3b | four rings of `cloud11.tga` 8 up: spans 90 to 30, angles 0 to 30, radius 3 to 3.6, walls 3 to 1.5; scale 4; `_heal_effect.wav` |
+| 0x13d | `AddOpeningPortal` (`005784a0`) | 0x39, 0x3c, 0x3b | three rings of `magic_violet.tga` 50 high at random angles, radius 4 to 2, fading from 1400; at step 1, three low rings of `ring_blue.tga` as `AddReadyPortal`'s, kind 3111; at step 2, four 30-degree arcs of `cloud11.tga` a quarter turn apart, 1.5 to 7.5 up and radius 9 to 4.5; scale 4 |
+| 0x13e, 0x13f | `AddBoxWalls` (`00573d60`) | 0x3d | one box of `ring_red.tga` (0) or `alpha_down.tga` (1): 10 by 10 and 50 high at alpha 30, fading from 864; or 5 by 5 and 16 high at 120, from 1880, green. The phase by `rand()` |
+| 0x133, 0x142 to 0x144 | `AddPentagonBand` (`00569330`) | 0x3f | four tubes of `cloud11.tga` from the actor to 300 up and 70 back along x and z (60 and 15 for variant 10), angles 25 apart; radius 2 to 4 (1: 4 to 8; 2: 1 to 2), the fourth's fixed and aged 180; alpha 40 (2: 30; 10: 25) |
+| 0x149 | `AddArcBands` (`00579da0`) | 0x42 | at steps 0 and 1: four tubes of `cloud11.tga`, radius 0.25, towards the target from up to 3 about the actor, started up to 15 back, lifted 8 to 12 and 20 to 40 long; ages 0 to −19; `effect\EF_hit2.wav` at steps 10 and 30, `effect\EF_hit4.wav` at 20 |
+| 0x14a | `AddBouncingBands` (`00567bd0`) | 0x43 | at steps 0 to 3: four trails of `white02.bmp`, radius 0.1, alpha 125 to 175, headings by `rand()`, first bounces 6 to 13 long; ages 0 to −25 |
+
+**Notes on the effects:**
+- **Positioning.** The effects keep themselves at the actor each step, except:
+  - `AddPentagonBand`, on the first step only;
+  - `AddOpeningPortal`, at step 1 only.
+- **The pentagon band's target.** `AddPentagonBand` writes each tube's top end to the
+  effect's target (+0xe8) as it goes.
+- **Unused.** Nothing adds id 0x3a; the port checks it on synthetic records only.
+
 ## In the port
 
 **`src/core/crt_rand`:** `CrtRand`, `srand` and `rand`.
@@ -999,17 +1137,17 @@ adds four rings of radius 4.1 and tilt 80 at 180, 270, 0 and 90 degrees:
 **`src/render/effect_prim`:**
 - `EffectPrim` with `MakePrimitive`, `ResetHistory`, `UpdatePrimitive` (vf01) and
   `DrawPrimitive` (vf03), for ids 0 to 2, 5, 6, 0xd, the twelve ring ids, the eight
-  facing-square ids, the three flat-square ids, the three mote ids and the six ids of
-  single squares and rectangles. `PrimScene` carries the camera's yaw and pitch, the ground, the view,
-  the projection and the sprite slope; `PrimDrawing` gets the triangles and the sprite
-  quads;
+  facing-square ids, the three flat-square ids, the three mote ids, the six ids of
+  single squares and rectangles and the eight of walls and bands. `PrimScene` carries the
+  camera's yaw and pitch, the ground, the view, the projection and the sprite slope;
+  `PrimDrawing` gets the triangles and the sprite quads;
 - `ProcessHitSpark`, `ProcessRingBurst` and `ProcessHit3`; `AddRingWaves` (with `slow`
   for `AddSlowRingWaves`), `AddRisingRings`, `AddFadingRings`, the eight setups of
   [More rings](#more-rings), the eleven of [the square effects](#the-square-effects) and
   `AddTwinSquares`, `AddSwellingSquare`, `AddRisingMotes`, `AddPulsingMotes`,
-  `AddPoppingMotes` and the seven setups of
+  `AddPoppingMotes`, the seven setups of
   [single squares and rectangles](#single-squares-and-rectangles) (`AddRays` with
-  `short_rays` for `AddShortRays`);
+  `short_rays` for `AddShortRays`) and the eight of [walls and bands](#walls-and-bands);
 - `EffectWorld`, the world's list as effects use it:
   - `Launch` adds an effect;
   - `Step` runs a world step in the list's order;
@@ -1025,16 +1163,16 @@ precision, shared with the `.str` player.
 **`ragview --effect-id ID`** plays the id's `.str` ([gpu.md](gpu.md)), and launches the id
 again when its effect and primitives are done. `--minimal-effects` picks the `_min`
 files. The effects thrown at a target aim 50 out either way along the ground. The
-installed 2003 data lacks many of the squares' textures, and ragview draws those blank:
-- the clouds;
+installed 2003 data lacks many of the effects' textures, and ragview draws those blank:
+- the clouds, `cloud11.tga` among them;
 - the `pok` sparks;
 - `pikapika2.bmp`;
 - the two boomerangs;
-- `ring_white.tga`;
-- `white01.bmp` and the `asura` squares.
+- `ring_white.tga` and `ring_red.tga`;
+- `white01.bmp`, `white02.bmp` and the `asura` squares.
 
-The melody notes, the item pictures, `alpha_down.tga`, the `lens` rays and
-`shockwave_c.bmp` are there.
+The melody notes, the item pictures, `alpha_down.tga`, `magic_violet.tga`, the `lens`
+rays and `shockwave_c.bmp` are there.
 
 ## Checks
 
@@ -1104,11 +1242,23 @@ The melody notes, the item pictures, `alpha_down.tga`, the `lens` rays and
   - every colour, the rays' lengths (negative too) and 0x29's turns past 360;
   - 0xe3 for 104 steps, until its squares fly, and 0x12f for 112, past frame 100.
   0x41's corners are checked through the triangles drawn from them.
+- **32 synthetic walls and bands**, four of each id, 24 steps each, and the eleven effects
+  that add them, as for the squares:
+  - ages around the updates' thresholds, negative ages, and angles and phases past 360
+    and below 0;
+  - 0x20's quarter rings within the first quarter turn, where every ring's lean stays
+    inside the tables, and its offsets either way;
+  - 0x3d's colours 0, −0 and 1, and 0x43's bounces from −2 to 7 and degrees from 0 to
+    180;
+  - 0xe2 for 112 steps, until its walls and boxes have faded.
 
-`tests/unit/prim_test.cpp` matches all of it: 1,848,563 values, the CRT's first `rand` values
+  The corners the drawings of 0x20, 0x23, 0x3b and 0x3d write are checked through the
+  triangles drawn from them.
+
+`tests/unit/prim_test.cpp` matches all of it: 2,584,702 values, the CRT's first `rand` values
 among them.
 
 **Not ported:**
-- the other 30 primitive ids;
+- the other 22 primitive ids;
 - the other effects' processing;
 - the sounds.

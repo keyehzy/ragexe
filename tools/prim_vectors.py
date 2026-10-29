@@ -809,10 +809,28 @@ def piece_state(o, prim):
     return out
 
 
+WALL_IDS = [0x20, 0x23, 0x3A, 0x3B, 0x3D, 0x3F, 0x42, 0x43]
+# The drawings that write their corners into the record at +0x88 to +0xb4.
+WALL_DRAWN = [0x20, 0x23, 0x3B, 0x3D]
+
+
+def wall_state(o, prim):
+    """As piece_state, leaving out the corners the drawings of WALL_DRAWN write."""
+    emu = o.emu
+    out = [emu.read_u32(prim + f) for f in RING_STATE]
+    drawn = emu.read_u32(prim + 0x130) in WALL_DRAWN
+    for k in range(4):
+        words = list(struct.unpack(f"<{RING_SIZE // 4}I", emu.mem_read(prim + RING + RING_SIZE * k, RING_SIZE)))
+        out += [0 if drawn and 4 * i >= 0x88 else w for i, w in enumerate(words)]
+    return out
+
+
 def prim_state(o, prim):
     pid = o.emu.read_u32(prim + 0x130)
     if pid in SQUARE_IDS:
         return square_state(o, prim)
+    if pid in WALL_IDS:
+        return wall_state(o, prim)
     if pid in PIECE_IDS:
         return piece_state(o, prim)
     return mote_state(o, prim) if pid in MOTE_IDS else ring_state(o, prim)
@@ -909,6 +927,65 @@ def random_piece(rng, pid):
     return bytes(rec)
 
 
+def random_point(rng):
+    return (f32(rng.uniform(-40, 40)), f32(rng.uniform(-60, 10)), f32(rng.uniform(-40, 40)))
+
+
+def random_wall(rng, pid):
+    """A record as ids 0x20, 0x23, 0x3a, 0x3b, 0x3d, 0x3f, 0x42 and 0x43 read it, the bytes
+    they leave alone zero; the angles stay inside the tables the drawings index."""
+    rec = bytearray(RING_SIZE)
+    active = rng.random() < 0.9
+    if pid in (0x20, 0x3A, 0x3B):
+        # 0x20's third ring leans 90 less each wall's angle: within the first quarter, every
+        # ring's leans stay inside the tables.
+        span = rng.choice([90, 90, 45, 9, 27, 18] if pid == 0x20 else [360, 360, 30, 90, 120, 21, 50])
+        height = {0x20: rng.uniform(20, 130), 0x3A: rng.uniform(5, 60)}.get(pid, rng.uniform(0, 10))
+        age = {0x20: rng.choice([rng.randrange(0, 40), 9, 10, 30, 31, 95]),
+               0x3A: rng.choice([rng.randrange(0, 120), 9, 10, 89, 90, 91])}.get(
+            pid, rng.choice([rng.randrange(-3, 20), rng.randrange(1395, 1405)]))
+        angle = rng.randrange(0, {0x20: 91 - span, 0x3A: 700, 0x3B: 400}[pid])
+        kind = rng.choice([0, 5, 10, 50, 1400, 30000]) if pid == 0x3A else 0
+        struct.pack_into("<BxhfIhhh", rec, 0, active, span, f32(height), age & 0xFFFFFFFF, angle,
+                         rng.randrange(-5, 256), kind)
+        struct.pack_into("<21f", rec, 0x14, *(f32(rng.uniform(-5, 40)) for _ in range(21)))
+        struct.pack_into("<hxxf", rec, 0x68, rng.randrange(20, 120), f32(rng.uniform(0.5, 25)))
+        if pid == 0x20:
+            struct.pack_into("<bb", rec, 0x70, rng.choice([23, -23, 0, 100, -100]), rng.choice([23, -23, 0, 7]))
+        if pid == 0x3A:
+            struct.pack_into("<3f", rec, 0x88, *random_point(rng))
+            # An orbit of 0 leaves the centre's x and z +0 or −0 by the angle's cosine and sine.
+            struct.pack_into("<f", rec, 0xAC, f32(rng.choice([0.0, rng.uniform(0, 30)])))
+        return bytes(rec)
+    age = {0x23: rng.choice([rng.randrange(0, 40), 9, 10, 95]), 0x3D: rng.randrange(-3, 100),
+           0x3F: rng.randrange(-50, 800), 0x42: rng.randrange(-5, 30), 0x43: rng.randrange(-5, 60)}[pid]
+    phase = rng.randrange(-300, 400) if pid == 0x3D else 0
+    size = {0x23: rng.uniform(10, 80), 0x3D: rng.uniform(5, 60), 0x3F: rng.uniform(0.5, 6),
+            0x42: rng.uniform(0.1, 2)}.get(pid, rng.uniform(0.05, 1))
+    angle = rng.randrange(0, 400 if pid == 0x3F else 360)
+    fade_at = rng.randrange(0, 120) if pid == 0x3D else 0
+    struct.pack_into("<BxhfIhhh", rec, 0, active, phase, f32(size), age & 0xFFFFFFFF, angle,
+                     rng.randrange(-5, 256), fade_at)
+    if pid in (0x23, 0x3D):
+        values = [rng.uniform(1, 30), rng.uniform(1, 30), rng.uniform(-10, 60),
+                  rng.choice([0.0, 1.0, 0.0, 1.0, -0.0]) if pid == 0x3D else rng.uniform(-5, 5)]
+    elif pid == 0x3F:
+        values = [rng.uniform(0.5, 6)]
+    elif pid == 0x42:
+        values = [rng.uniform(0, 15), rng.uniform(0, 15)]
+    else:
+        values = [rng.choice([0.0, rng.uniform(0, 180), rng.randrange(0, 181)]) for _ in range(21)]
+    struct.pack_into(f"<{len(values)}f", rec, 0x14, *(f32(v) for v in values))
+    struct.pack_into("<hxxf", rec, 0x68, rng.randrange(0, 360) if pid == 0x43 else 0,
+                     f32(rng.uniform(2, 14) if pid == 0x43 else rng.uniform(5, 40) if pid == 0x42 else 0))
+    if pid == 0x43:
+        struct.pack_into("<21b", rec, 0x70, *(rng.randrange(-2, 8) for _ in range(21)))
+    if pid in (0x3F, 0x42, 0x43):
+        for k in range(4):
+            struct.pack_into("<3f", rec, 0x88 + 0xC * k, *random_point(rng))
+    return bytes(rec)
+
+
 def synthetic_records(o, rng, lines, ids, prefix, seed, make, state_of, frame_count=12, checked=(0, 6, 11)):
     """Primitives of the ids with random records (make), each stepped and drawn on its own
     after srand(seed + n); the states as state_of reads them."""
@@ -973,6 +1050,8 @@ def synthetic_records(o, rng, lines, ids, prefix, seed, make, state_of, frame_co
 
 
 MOTE_EFFECTS = [(0xCA, 32), (0xE4, 32), (0xCB, 32), (0xFE, 32)]
+WALL_EFFECTS = [(0xE2, 112), (0xE0, 56), (0x13D, 56), (0x13E, 40), (0x13F, 40), (0x133, 32), (0x142, 32),
+                (0x143, 32), (0x144, 32), (0x149, 48), (0x14A, 80)]
 PIECE_EFFECTS = [(0xE3, 104), (0x106, 40), (0x10A, 40), (0x114, 40), (0x129, 40), (300, 32), (0x12F, 112),
                  (0x148, 64)]
 
@@ -1155,6 +1234,8 @@ def main():
     square_effects(o, rng, lines, MOTE_EFFECTS, "kMoteEffect", 8000)
     synthetic_records(o, rng, lines, PIECE_IDS, "kPiece", 9000, random_piece, piece_state, 24, (0, 8, 16, 23))
     square_effects(o, rng, lines, PIECE_EFFECTS, "kPieceEffect", 10000)
+    synthetic_records(o, rng, lines, WALL_IDS, "kWall", 11000, random_wall, wall_state, 24, (0, 8, 16, 23))
+    square_effects(o, rng, lines, WALL_EFFECTS, "kWallEffect", 12000)
     names = sorted(o.textures.items(), key=lambda kv: kv[1])
     lines.append("static const TextureVector kTextures[] = {" +
                  ", ".join(f'{{0x{v:x}, "{c_literal(k)}"}}' for k, v in names) + "};")

@@ -95,8 +95,10 @@ struct PrimRing {
   std::int16_t tilt = 0;            // +0x68, the walls' lean out, degrees from flat
   float radius = 0.0f;              // +0x6c
   // +0x70, a byte per wall: settled, or how it moves (0x39); the first two also a mode and
-  // a height (0x36).
+  // a height (0x36), or the ring's offset along x and z (0x20, signed).
   std::array<std::uint8_t, 21> flags{};
+  Vec3 center{};       // +0x88, 0x3a: where the ring stands, from the primitive
+  float orbit = 0.0f;  // +0xac, 0x3a: how far out the centre circles
 };
 
 // The same records as the facing squares read them (ids 0x1f, 0x28, 0x2b, 0x2d, 0x2f, 0x33,
@@ -168,6 +170,27 @@ struct PrimPiece {
   std::int8_t delay = 0;         // +0x72, 0x32: when it sparkles
   std::uint8_t image = 0;        // +0x73, 0x32: the index into textures
   std::array<Vec3, 4> points{};  // +0x88: 0x29 and 0x32, the centre; 0x32, its trail after it
+};
+
+// The same records as ids 0x23, 0x3d, 0x3f, 0x42 and 0x43 read them: a box of four walls
+// (0x23, 0x3d), a band between two points (0x3f, 0x42) or a bouncing trail (0x43).
+struct PrimBand {
+  bool active = false;       // +0; 0x42 tests it as a signed byte above 0
+  std::int16_t phase = 0;    // +2, 0x3d: turns a degree a frame, the height's pulse
+  float size = 0.0f;         // +4: 0x23 and 0x3d the full height; the others the band's radius
+  std::int32_t age = 0;      // +8
+  std::int16_t angle = 0;    // +0xc, degrees
+  std::int16_t alpha = 0;    // +0xe
+  std::int16_t fade_at = 0;  // +0x10, 0x3d: the age it starts fading
+  // +0x14: 0x23 and 0x3d, the box's half-length and half-width, its height and (0x3d) its
+  // colour; 0x3f, the radius it pulses about; 0x42, the lift and how far back it starts;
+  // 0x43, each segment's way through its bounce in degrees (to 180), the newest first.
+  std::array<float, 21> values{};
+  std::int16_t heading = 0;               // +0x68, 0x43: the way it bounces, degrees
+  float length = 0.0f;                    // +0x6c, 0x42 and 0x43: the band's, the first bounce's
+  std::array<std::int8_t, 21> bounces{};  // +0x70, 0x43: each segment's bounces made
+  // +0x88: 0x42, its two ends; 0x3f, its ends at the second and fourth; 0x43, where it starts.
+  std::array<Vec3, 4> points{};
 };
 
 // CEffectPrim (0x15990 bytes): one particle or shape an effect adds to the world, stepped
@@ -294,6 +317,7 @@ struct EffectPrim {
   std::array<PrimSquare, 4> squares{};
   std::array<PrimMotes, 4> motes{};
   std::array<PrimPiece, 4> pieces{};
+  std::array<PrimBand, 4> bands{};
 };
 
 // What vf03 hands the renderer.
@@ -491,6 +515,42 @@ void AddSlashLines(RagEffect& effect, const EffectActor& actor, bool right,
 void AddSpreadingRings(RagEffect& effect, const EffectActor& actor, std::int16_t alpha,
                        const char* texture, std::int8_t preset, std::vector<EffectPrim>& added);
 void AddAsuraStrike(RagEffect& effect, const EffectActor& actor, std::vector<EffectPrim>& added);
+
+// The effects of the other walls and bands (docs/render/effect-prim.md#walls-and-bands),
+// on their first frame unless said:
+//  - AddGrandCross (00574da0), id 0xe2 with AddBox: id 0x20, four quarter rings of
+//    ring_white.tga moved 23 out along each diagonal, each wall leaning out at its angle
+//    mirrored about the quarter's middle, closing in; effect\cru_grand cross.wav;
+//  - AddBox (00575100), id 0xe2: id 0x23, two long thin boxes of ring_yellow.tga crossed,
+//    rising and growing as they fade;
+//  - AddCloudRings (005734b0), id 0xe0: id 0x3b, four open rings of cloud11.tga 8 up,
+//    turning and opening to a third of a turn, _heal_effect.wav;
+//  - AddOpeningPortal (005784a0), id 0x13d: id 0x39, three rings of magic_violet.tga at
+//    random angles; at frame 1, id 0x3c, three low spreading rings of ring_blue.tga; at
+//    frame 2, id 0x3b, four short arcs of cloud11.tga, each higher and further in;
+//  - AddBoxWalls (00573d60), ids 0x13e (ring_red.tga, 0) and 0x13f (alpha_down.tga, 1): id
+//    0x3d, a box of four walls pulsing in height, white or (1) green;
+//  - AddPentagonBand (00569330), ids 0x133 (0), 0x142 (1), 0x143 (2) and 0x144 (10), all
+//    cloud11.tga: id 0x3f, four five-sided bands from the actor up to 300 above (60 for
+//    10), leaning 70 (15) out along x and z, which it writes to the target;
+//  - AddArcBands (00579da0), id 0x149, at frames 0 and 1: id 0x42, four bands of
+//    cloud11.tga thrown towards the target from about the actor, effect\EF_hit2.wav at
+//    frames 10 and 30 and effect\EF_hit4.wav at 20;
+//  - AddBouncingBands (00567bd0), id 0x14a, at frames 0 to 3: id 0x43, four trails of
+//    white02.bmp bouncing out from the actor, each bounce 0.7 of the last.
+void AddGrandCross(RagEffect& effect, const EffectActor& actor, std::vector<EffectPrim>& added);
+void AddBox(RagEffect& effect, const EffectActor& actor, std::vector<EffectPrim>& added);
+void AddCloudRings(RagEffect& effect, const EffectActor& actor, std::vector<EffectPrim>& added);
+void AddOpeningPortal(RagEffect& effect, const EffectActor& actor, core::CrtRand& rand,
+                      std::vector<EffectPrim>& added);
+void AddBoxWalls(RagEffect& effect, const EffectActor& actor, const char* texture,
+                 std::int8_t variant, core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddPentagonBand(RagEffect& effect, const EffectActor& actor, const char* texture,
+                     std::int8_t variant, std::vector<EffectPrim>& added);
+void AddArcBands(RagEffect& effect, const EffectActor& actor, core::CrtRand& rand,
+                 std::vector<EffectPrim>& added);
+void AddBouncingBands(RagEffect& effect, const EffectActor& actor, core::CrtRand& rand,
+                      std::vector<EffectPrim>& added);
 
 // The world's object list as effects use it (CWorld::UpdateGameObjects, 004c4a10): each
 // world step every object's vf01 in order, a primitive an effect adds joining the end and

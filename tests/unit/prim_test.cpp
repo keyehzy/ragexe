@@ -194,6 +194,7 @@ constexpr std::uint32_t kShapeSeed = 700;             // the same for the shapes
 constexpr std::uint32_t kSquareSeed = 4000;           // and for the facing squares
 constexpr std::uint32_t kMoteSeed = 7000;             // and for the motes
 constexpr std::uint32_t kPieceSeed = 9000;            // and for the single squares
+constexpr std::uint32_t kWallSeed = 11000;            // and for the walls and bands
 
 float F(std::uint32_t bits) { return std::bit_cast<float>(bits); }
 std::uint32_t B(float f) { return std::bit_cast<std::uint32_t>(f); }
@@ -264,8 +265,11 @@ void ApplyRing(std::uint32_t offset, std::uint32_t v, EffectPrim& p) {
     case 0x10: r.kind = Low(v); break;
     case 0x68: r.tilt = Low(v); break;
     case 0x6c: r.radius = F(v); break;
+    case 0xac: r.orbit = F(v); break;
     default:
-      if (o >= 0x70) {
+      if (o >= 0x88 && o < 0x94) {
+        r.center[(o - 0x88) / 4] = F(v);
+      } else if (o >= 0x70) {
         for (std::uint32_t b = 0; b < 4 && o - 0x70 + b < r.flags.size(); ++b)
           r.flags[o - 0x70 + b] = static_cast<std::uint8_t>(v >> (8 * b));
       } else {
@@ -523,8 +527,99 @@ std::vector<std::uint32_t> PiecesStateOf(const EffectPrim& p) {
   return out;
 }
 
+bool IsRingWall(std::int32_t id) { return id == 0x20 || id == 0x3a || id == 0x3b; }
+
+bool IsBand(std::int32_t id) {
+  return id == 0x23 || id == 0x3d || id == 0x3f || id == 0x42 || id == 0x43;
+}
+
+// A dword of a record as ids 0x23, 0x3d, 0x3f, 0x42 and 0x43 read it.
+void ApplyBand(std::uint32_t offset, std::uint32_t v, EffectPrim& p) {
+  PrimBand& b = p.bands[offset / kRingSize];
+  const std::uint32_t o = offset % kRingSize;
+  if (o == 0) {
+    b.active = (v & 0xff) != 0;
+    b.phase = High(v);
+  } else if (o == 4) {
+    b.size = F(v);
+  } else if (o == 8) {
+    b.age = static_cast<std::int32_t>(v);
+  } else if (o == 0xc) {
+    b.angle = Low(v);
+    b.alpha = High(v);
+  } else if (o == 0x10) {
+    b.fade_at = Low(v);
+  } else if (o >= 0x14 && o < 0x68) {
+    b.values[(o - 0x14) / 4] = F(v);
+  } else if (o == 0x68) {
+    b.heading = Low(v);
+  } else if (o == 0x6c) {
+    b.length = F(v);
+  } else if (o >= 0x70 && o < 0x88) {
+    for (std::uint32_t i = 0; i < 4 && o - 0x70 + i < b.bounces.size(); ++i)
+      b.bounces[o - 0x70 + i] = static_cast<std::int8_t>(v >> (8 * i));
+  } else if (o >= 0x88) {
+    b.points[(o - 0x88) / 0xc][(o - 0x88) % 0xc / 4] = F(v);
+  } else {
+    FAIL("unknown band field " << offset);
+  }
+}
+
+// The position, the age and each whole record of ids 0x20, 0x23, 0x3a, 0x3b, 0x3d, 0x3f,
+// 0x42 and 0x43, the rings' or the bands' way; the corners the drawings of 0x20, 0x23, 0x3b
+// and 0x3d write are left out as the script leaves them.
+std::vector<std::uint32_t> WallsStateOf(const EffectPrim& p) {
+  std::vector<std::uint32_t> out = {B(p.position[0]), B(p.position[1]), B(p.position[2]), U(p.age)};
+  const bool drawn = p.id == 0x20 || p.id == 0x23 || p.id == 0x3b || p.id == 0x3d;
+  for (std::size_t k = 0; k < 4; ++k) {
+    std::array<std::uint8_t, kRingSize> bytes{};
+    const auto put = [&bytes](std::size_t at, const auto& value) {
+      std::memcpy(bytes.data() + at, &value, sizeof(value));
+    };
+    if (IsRingWall(p.id)) {
+      const PrimRing& r = p.rings[k];
+      put(0, static_cast<std::uint8_t>(r.active ? 1 : 0));
+      put(2, r.span);
+      put(4, r.height);
+      put(8, r.age);
+      put(0xc, r.angle);
+      put(0xe, r.alpha);
+      put(0x10, r.kind);
+      put(0x14, r.heights);
+      put(0x68, r.tilt);
+      put(0x6c, r.radius);
+      put(0x70, r.flags);
+      if (!drawn) {
+        put(0x88, r.center);
+        put(0xac, r.orbit);
+      }
+    } else {
+      const PrimBand& b = p.bands[k];
+      put(0, static_cast<std::uint8_t>(b.active ? 1 : 0));
+      put(2, b.phase);
+      put(4, b.size);
+      put(8, b.age);
+      put(0xc, b.angle);
+      put(0xe, b.alpha);
+      put(0x10, b.fade_at);
+      put(0x14, b.values);
+      put(0x68, b.heading);
+      put(0x6c, b.length);
+      put(0x70, b.bounces);
+      if (!drawn) put(0x88, b.points);
+    }
+    for (std::size_t i = 0; i < bytes.size(); i += 4) {
+      std::uint32_t word = 0;
+      std::memcpy(&word, bytes.data() + i, 4);
+      out.push_back(word);
+    }
+  }
+  return out;
+}
+
 std::vector<std::uint32_t> StateFor(const EffectPrim& p) {
   if (IsSquare(p.id)) return SquareStateOf(p);
+  if (IsRingWall(p.id) || IsBand(p.id)) return WallsStateOf(p);
   if (IsPiece(p.id)) return PiecesStateOf(p);
   return IsMote(p.id) ? MotesStateOf(p) : RingStateOf(p);
 }
@@ -612,6 +707,8 @@ void Apply(const FieldVector& f, EffectPrim& p) {
           ApplyMote(f.field - kRingBase, f.value, p);
         } else if (IsPiece(p.id)) {
           ApplyPiece(f.field - kRingBase, f.value, p);
+        } else if (IsBand(p.id)) {
+          ApplyBand(f.field - kRingBase, f.value, p);
         } else {
           ApplyRing(f.field - kRingBase, f.value, p);
         }
@@ -1243,4 +1340,37 @@ TEST_CASE("Single squares and rectangles step and draw as the original's", "[eff
 
 TEST_CASE("The single square effects play as the original's", "[effect]") {
   CheckTargetEffects(kPieceEffects);
+}
+
+TEST_CASE("Walls and bands step and draw as the original's", "[effect]") {
+  std::map<std::string, std::uint32_t> ids;
+  for (std::uint32_t i = 0; i < 5; ++i) ids["t" + std::to_string(i)] = kSyntheticTextures + i;
+  std::size_t n = 0;
+  for (const ShapeVector& v : kWalls) {
+    INFO("wall primitive " << n << ", id " << v.id);
+    RagEffect owner;
+    for (std::size_t i = 0; i < 3; ++i) owner.position[i] = F(v.position[i]);
+    owner.duration = v.duration;
+    EffectPrim p = MakePrimitive(&owner, v.id, {0.0f, 0.0f, 0.0f});
+    for (std::size_t f = 0; f < v.field_count; ++f) Apply(v.fields[f], p);
+    p.textures = {"t0", "t1", "t2", "t3", "t4"};
+    const PrimScene scene = SceneOf(v.scene, nullptr);
+    ragexe::core::CrtRand rand(kWallSeed + static_cast<std::uint32_t>(n));
+    for (std::size_t f = 0; f < v.frame_count; ++f) {
+      INFO("frame " << f);
+      const ShapeFrameVector& fv = v.frames[f];
+      const bool more = UpdatePrimitive(p, rand, scene);
+      CHECK(more == (fv.more != 0));
+      CheckState(WallsStateOf(p), fv.state, fv.state_count);
+      PrimDrawing drawing;
+      if (more) DrawPrimitive(p, scene, drawing);
+      CheckTriangles(drawing.triangles, fv.triangles, fv.count, ids);
+      ++owner.frame;
+    }
+    ++n;
+  }
+}
+
+TEST_CASE("The wall and band effects play as the original's", "[effect]") {
+  CheckTargetEffects(kWallEffects);
 }
