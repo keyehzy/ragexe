@@ -233,6 +233,7 @@ struct StrEffectVector {
 // tools/prim_vectors.py writes these, one per family of primitives.
 #include "prim_vectors/basics.inc"
 #include "prim_vectors/crossed.inc"
+#include "prim_vectors/cylinders.inc"
 #include "prim_vectors/flights.inc"
 #include "prim_vectors/motes.inc"
 #include "prim_vectors/ribbons.inc"
@@ -1464,10 +1465,12 @@ class PlayingStr : public EffectStr {
   void Reset() override {}
 };
 
-// str_plays: the runs made with that stand-in; before it, InitEffect loads no .str.
+// str_plays: the runs made with that stand-in; before it, InitEffect loads no .str. facings:
+// the actor's facing by run, 0 for the rest.
 void CheckTargetEffects(std::span<const SquareEffectVector> effects,
                         std::vector<std::uint32_t> (*state)(const EffectPrim&) = StateFor,
-                        bool sprites = false, bool str_plays = false) {
+                        bool sprites = false, bool str_plays = false,
+                        const std::map<std::size_t, float>& facings = {}) {
   PlayingStr playing;
   const ragexe::res::AttrMap attr = TestAttr();
   const ragexe::res::Sprite sprite = TestSprite();
@@ -1475,9 +1478,11 @@ void CheckTargetEffects(std::span<const SquareEffectVector> effects,
   std::map<std::string, std::uint32_t> ids = {{"", 0}};
   for (const TextureVector& t : kTextures) ids[t.name] = t.id;
   const auto vec = [](const std::uint32_t* v) { return Vec3{F(v[0]), F(v[1]), F(v[2])}; };
+  std::size_t run = 0;
   for (const SquareEffectVector& v : effects) {
     INFO("effect id " << v.id);
     CHECK(EffectDuration(v.id) == v.duration);
+    const auto facing = facings.find(run++);
     EffectWorld world(v.seed);
     world.SetPlayer(vec(v.player));
     world.SetPlayerId(kLinkPlayerId);
@@ -1486,7 +1491,8 @@ void CheckTargetEffects(std::span<const SquareEffectVector> effects,
       world.SetParticle({&act, &sprite});
       for (const char* name : kEffectSprites) world.SetSprite(name, {&act, &sprite});
     }
-    RagEffect& e = world.Launch(v.id, {vec(v.position), 0.0f});
+    RagEffect& e =
+        world.Launch(v.id, {vec(v.position), facing == facings.end() ? 0.0f : facing->second});
     e.target = vec(v.target);
     e.level = v.level;
     if (str_plays) e.str = &playing;
@@ -1890,6 +1896,17 @@ class ScriptedStr : public EffectStr {
 };
 
 }  // namespace
+
+// The spell circle's rings by RingStateOf, the cylinders as the trails (tools/prim_vectors.py's
+// cylinder_effect_state).
+std::vector<std::uint32_t> StateOfCylinderEffect(const EffectPrim& p) {
+  return p.id == 0x17 ? RingStateOf(p) : StateOfTrail(p);
+}
+
+TEST_CASE("The cylinder effects and spell circles play as the original's", "[effect]") {
+  CheckTargetEffects(kCylinderEffects, StateOfCylinderEffect, false, true,
+                     {{2, 30.0f}, {3, 200.0f}});
+}
 
 TEST_CASE("Concentration's other columns play as the original's", "[effect]") {
   CheckTargetEffects(kColumnEffects, StateOfFlightEffect, true, true);

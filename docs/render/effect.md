@@ -239,7 +239,7 @@ dropped: neither the view's shake nor the jokes are ported.
 game mode, step by step ([effect-prim.md](effect-prim.md#checks)).
 
 **Not ported:**
-- the 40 cases of `CRagEffect::vf01` that add primitives of their own and are not yet
+- the 32 cases of `CRagEffect::vf01` that add primitives of their own and are not yet
   ported ([PLAN.md](../PLAN.md));
 - the sounds, the view's shake and the jokes;
 - the texture cache's use counts.

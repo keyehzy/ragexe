@@ -915,6 +915,19 @@ void AddActorLink(RagEffect& effect, const EffectActor& actor, const PrimScene& 
 void AddPanels(RagEffect& effect, const EffectActor& actor, const char* texture, std::int32_t kind,
                core::CrtRand& rand, std::vector<EffectPrim>& added);
 
+// Cylinders (id 0xd) and a spell circle (id 0x17) (docs/render/effect-prim.md#more-cylinders):
+// AddTwinCylinders (00552130), effect 6; AddWarpColumn (00559e00), 0x22; AddSonicBlowCylinder
+// (00561070), 0x7a; AddCylinderStack (00562140), 0x8a; AddShrinkingCylinders (005622a0),
+// 0x8c; AddSpellCircle (00552ee0, 00552f60 and 005532e0 through 005673b0), 0x36, 0x37, 0x39.
+void AddTwinCylinders(RagEffect& effect, std::vector<EffectPrim>& added);
+void AddWarpColumn(RagEffect& effect, std::vector<EffectPrim>& added);
+void AddSonicBlowCylinder(RagEffect& effect, const EffectActor& actor, core::CrtRand& rand,
+                          std::vector<EffectPrim>& added);
+void AddCylinderStack(RagEffect& effect, std::vector<EffectPrim>& added);
+void AddShrinkingCylinders(RagEffect& effect, std::vector<EffectPrim>& added);
+void AddSpellCircle(RagEffect& effect, const EffectActor& actor, const char* texture,
+                    std::int8_t scale, std::vector<EffectPrim>& added);
+
 // CRagEffect::AdvanceStr (0054fba0): false without a .str, else the .str's step.
 bool AdvanceStr(RagEffect& effect, const EffectActor& actor, float x, float y, float z);
 // CRagEffect::ResetStr (0054fb40): the frame back to 0 and the .str to its start.

@@ -7259,6 +7259,148 @@ bool ProcessConcentrationDC(RagEffect& effect, const EffectActor& actor, core::C
   return effect.frame <= 150;
 }
 
+void AddTwinCylinders(RagEffect& effect, std::vector<EffectPrim>& added) {
+  if (effect.frame != 0) return;
+  EffectPrim low = MakePrimitive(&effect, 0xd, {0.0f, 0.0f, 0.0f});
+  low.life = 55;
+  low.matrix = RotateY(MakeRotationX(Radians(low.pitch)), Radians(low.heading));
+  low.acceleration = std::bit_cast<float>(0xb892ccf7u);
+  low.heading_speed = -10.0f;
+  low.top_radius = 6.0f;
+  low.top_radius_speed = std::bit_cast<float>(0x3da3d70au);  // 0.08
+  low.bottom_radius = 5.0f;
+  low.height = 6.5f;
+  low.height_speed = std::bit_cast<float>(0xbdcccccdu);  // -0.1
+  low.alpha = 5.0f;
+  low.alpha_max = 245.0f;
+  low.alpha_speed = 10.0f;
+  low.fade_at = low.life - low.life / 5;
+  low.textures = {"effect\\ring_blue.tga"};
+  added.push_back(std::move(low));
+  EffectPrim high = MakePrimitive(&effect, 0xd, {0.0f, 0.0f, 0.0f});
+  high.life = 55;
+  high.sweep = 45.0f;
+  high.heading_speed = 10.0f;
+  high.top_radius = 4.5f;
+  high.bottom_radius = 4.5f;
+  high.height_speed = 2.5f;
+  high.height_rate = (high.height_speed / static_cast<float>(high.life)) * -2.0f;
+  high.alpha = 160.0f;
+  high.fade_at = high.life - high.life / 3;
+  high.textures = {"effect\\ring_blue.tga"};
+  added.push_back(std::move(high));
+}
+
+void AddWarpColumn(RagEffect& effect, std::vector<EffectPrim>& added) {
+  if (effect.frame != 0) return;
+  // effect\EF_Teleportation.wav plays here.
+  EffectPrim p = MakePrimitive(&effect, 0xd, {0.0f, 0.0f, 0.0f});
+  p.life = 60;
+  p.flags |= EffectPrim::kNarrowing;
+  p.top_radius = 4.0f;
+  p.bottom_radius = 4.0f;
+  p.height_speed = 5.0f;
+  p.height_rate = 0.25f;
+  p.heading_speed = 2.0f;
+  p.fade_at = 0;
+  p.textures = {"effect\\ring_blue.tga"};
+  added.push_back(std::move(p));
+}
+
+void AddSonicBlowCylinder(RagEffect& effect, const EffectActor& actor, core::CrtRand& rand,
+                          std::vector<EffectPrim>& added) {
+  if (effect.frame != 0) return;
+  // effect\assasin_sonicblow.wav plays here.
+  std::int32_t heading = Ftol(180.0f - actor.facing);
+  const std::int32_t across = rand.Next() % 10;
+  const std::int32_t up = rand.Next() % 20;
+  rand.Next();
+  if (heading < 0) heading += 360;
+  EffectPrim p = MakePrimitive(&effect, 0xd, {0.0f, 0.0f, 0.0f});
+  p.life = 12;
+  p.heading = static_cast<float>(heading);
+  p.pitch = -90.0f;
+  p.matrix = RotateY(MakeRotationX(Radians(p.pitch)), Radians(p.heading));
+  // A first step, as UpdateCylinder takes one at speed 2.
+  for (std::size_t i = 0; i < 3; ++i)
+    p.step[i] = p.matrix[9 + i] - (p.matrix[3 + i] + p.matrix[3 + i]);
+  for (std::size_t i = 0; i < 3; ++i) p.travel[i] = p.step[i] + p.travel[i];
+  const std::int32_t quarters = (across + 1) / 4;
+  const std::int32_t halves = (up + 1) / 2;
+  p.offset = {static_cast<float>(quarters), static_cast<float>(halves - 11), 0.0f};
+  p.speed = std::bit_cast<float>(0x3ecccccdu);  // 0.4
+  p.acceleration = (p.speed / static_cast<float>(p.life)) * -0.5f;
+  p.top_radius = 7.0f;
+  p.bottom_radius = 4.0f;
+  p.height = 3.5f;
+  p.fade_at = p.life - p.life / 2;
+  p.textures = {"effect\\magic_red.tga"};
+  added.push_back(std::move(p));
+}
+
+void AddCylinderStack(RagEffect& effect, std::vector<EffectPrim>& added) {
+  if (effect.frame != 0) return;
+  for (std::int32_t n = 1; n <= 3; ++n) {
+    const std::int32_t below = 4 - n;
+    EffectPrim p = MakePrimitive(&effect, 0xd, {0.0f, 0.0f, 0.0f});
+    p.life = effect.duration;
+    p.heading_speed = -3.0f;
+    p.top_radius = static_cast<float>(n + 3);
+    p.bottom_radius = static_cast<float>(n) + 1.5f;
+    p.height = static_cast<float>((below + 1) * below * 2 + 1) + 2.5f;
+    p.spin = -0.5f;
+    p.alpha = static_cast<float>(effect.frame * -7 + 240);
+    p.textures = {"effect\\magic_red.tga"};
+    added.push_back(std::move(p));
+  }
+}
+
+void AddShrinkingCylinders(RagEffect& effect, std::vector<EffectPrim>& added) {
+  if (effect.frame % 25 != 0) return;
+  EffectPrim p = MakePrimitive(&effect, 0xd, {0.0f, 0.0f, 0.0f});
+  p.life = 60;
+  p.heading_speed = 1.5f;
+  p.heading_rate = std::bit_cast<float>(0x3cf5c28fu);  // 0.03
+  p.top_radius = 10.5f;
+  p.top_radius_speed = std::bit_cast<float>(0xbdf5c28fu);  // -0.12
+  p.top_radius_rate = std::bit_cast<float>(0x3b449ba6u);   // 0.003
+  p.bottom_radius = 7.5f;
+  p.bottom_radius_speed = std::bit_cast<float>(0xbdf5c28fu);
+  p.bottom_radius_rate = std::bit_cast<float>(0x3b449ba6u);
+  p.height = 7.5f;
+  p.alpha = 240.0f;
+  p.fade_at = p.life - p.life / 2;
+  // The first stands still, as long as the effect.
+  if (effect.frame == 0) {
+    p.life = effect.duration;
+    p.heading_speed = 1.5f;
+    p.top_radius = 11.0f;
+    p.bottom_radius = 7.5f;
+    p.top_radius_speed = 0.0f;
+    p.top_radius_rate = 0.0f;
+    p.bottom_radius_speed = 0.0f;
+    p.bottom_radius_rate = 0.0f;
+    p.fade_at = p.life - p.life / 10;
+  }
+  p.textures = {"effect\\ring_yellow.tga"};
+  added.push_back(std::move(p));
+}
+
+void AddSpellCircle(RagEffect& effect, const EffectActor& actor, const char* texture,
+                    std::int8_t scale, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  // effect\EF_BeginSpell.wav plays here.
+  if (effect.duration < 90) effect.duration = 90;
+  EffectPrim p = MakeRings(effect, 0x17, texture);
+  p.scale = static_cast<float>(scale);
+  SetRing(p.rings[0], {315, 25.0f, 0, 0, 180, 70, 4.5f, 0});
+  SetRing(p.rings[1], {315, 22.0f, 0, 90, 180, 57, 5.0f, 0});
+  SetRing(p.rings[2], {315, 19.0f, 0, 180, 180, 45, 5.5f, 0});
+  SetRing(p.rings[3], {360, 250.0f, 0, 0, 70, 89, 4.0f, 0});
+  added.push_back(std::move(p));
+}
+
 bool AdvanceStr(RagEffect& effect, const EffectActor& actor, float x, float y, float z) {
   return effect.str != nullptr && effect.str->Advance(effect, actor.position, x, y, z);
 }
@@ -7648,6 +7790,14 @@ void EffectWorld::Step(const PrimScene& world_scene) {
           AddFadingRings(e, it->actor, "effect\\ring_yellow.tga", added);
           ended = !AdvanceStr(e, it->actor, 0.0f, -80.0f, 0.0f);
           break;
+        case 6: AddTwinCylinders(e, added); break;
+        case 0x22: AddWarpColumn(e, added); break;
+        case 0x7a: AddSonicBlowCylinder(e, it->actor, rand_, added); break;
+        case 0x8a: AddCylinderStack(e, added); break;
+        case 0x8c: AddShrinkingCylinders(e, added); break;
+        case 0x36: AddSpellCircle(e, it->actor, "effect\\ring_blue.tga", 2, added); break;
+        case 0x37: AddSpellCircle(e, it->actor, "effect\\ring_yellow.tga", 1, added); break;
+        case 0x39: AddSpellCircle(e, it->actor, "effect\\ring_yellow.tga", 0, added); break;
         default: ended = !ProcessStrEffect(e, it->actor, added, messages_); break;
       }
       for (EffectPrim& p : added) {

@@ -1684,6 +1684,23 @@ as the bands' (`PrimBand`):
 - **Unread fields.** It also zeroes the scale (+0x248), and `AddActorLink` the record's
   +0x6c; nothing ported reads either.
 
+## More cylinders
+
+Eight more cases of `CRagEffect::vf01` add cylinders (id 0xd,
+[particles and cylinders](#particles-and-cylinders)) or a spell circle of rings (id 0x17,
+`UpdateRisingWalls`). None of the ids has a `.str`.
+
+| Effect ids | Function | What |
+|-----------|----------|------|
+| 6 | `AddTwinCylinders` (`00552130`) | on the first frame two cylinders of `ring_blue.tga`, 55 steps: a low one 5 to 6 across and widening by 0.08, 6.5 high and sinking by 0.1, turning −10, fading in by 10 from 5 to 245 and out over its last fifth; and a 45-degree sweep 4.5 across, rising at 2.5 and falling back as fast by its end, turning 10, alpha 160, out over its last third |
+| 0x22 | `AddWarpColumn` (`00559e00`) | on the first frame `EF_Teleportation.wav` and a cylinder of `ring_blue.tga`, 60 steps, 4 across, rising at 5 and 0.25 faster each step, turning 2, its top closing from the first step (flag 1, fading from 0) |
+| 0x7a | `AddSonicBlowCylinder` (`00561070`) | on the first frame `assasin_sonicblow.wav` and a cylinder of `magic_red.tga`, 12 steps, lying along the actor's facing (heading 180 less it, within 0 to 360; pitch −90); three `rand()`: x offset (r % 10 + 1) / 4, y (r % 20 + 1) / 2 − 11, the third unused; thrown at 0.4, slowing by half by its end, 4 to 7 across and 3.5 long, with a first step taken (as `UpdateCylinder` at speed 2) |
+| 0x8a | `AddCylinderStack` (`00562140`) | on the first frame three cylinders of `magic_red.tga` as long as the effect: n + 1.5 to n + 3 across and 27.5, 15.5 and 7.5 high for n = 1 to 3, turning −3, spin −0.5, alpha 240 |
+| 0x8c | `AddShrinkingCylinders` (`005622a0`) | every 25 frames a cylinder of `ring_yellow.tga`, 60 steps, 7.5 to 10.5 across and narrowing by 0.12 less 0.003 a step, 7.5 high, turning at 1.5 and 0.03 faster each step, alpha 240, out over its second half; the first as long as the effect, 7.5 to 11 across and not narrowing, out over its last tenth |
+| 0x36, 0x37, 0x39 | `AddSpellCircle` (`005673b0`, called by `00552ee0`, `00552f60` and `005532e0`) | the effect at the actor each step; on the first frame `EF_BeginSpell.wav`, the duration at least 90, and an id 0x17 as long as the effect, of `ring_blue.tga` (scale 2), `ring_yellow.tga` (1) and `ring_yellow.tga` (0): three open rings (span 315) 25, 22 and 19 high at 0, 90 and 180 degrees, leaning 70, 57 and 45, 4.5, 5 and 5.5 out, alpha 180, and a whole ring 250 high, leaning 89, 4 out, alpha 70 |
+
+`005673b0` makes id 0x19 instead when its second argument is `'!'`, which no caller passes.
+
 ## In the port
 
 **`src/core/crt_rand`:** `CrtRand`, `srand` and `rand`.
@@ -1716,7 +1733,7 @@ as the bands' (`PrimBand`):
   for three ids, `AddArrows` for two), the eleven of
   [pyramids and spheres](#pyramids-and-spheres) and the two of
   [ribbons, the tube and panels](#ribbons-the-tube-and-panels) (`AddPanels` for five
-  ids);
+  ids) and the six of [more cylinders](#more-cylinders);
 - `ProcessStrEffect` for the 97 cases that only play their `.str`, and `AdvanceStr` and
   `ResetStr` through an effect's `EffectStr` ([effect.md](effect.md#which-cases-play-their-str));
 - `EffectWorld`, the world's list as effects use it:
@@ -1916,11 +1933,13 @@ for git:
     an empty function of four arguments, standing in), with the three floats of 0x94;
   - the frame and duration wherever they move other than by a step;
   - `g_ModeSwitcher+4` set to the game mode, which 0x127 and 0x128 read straight.
+- **The eight cylinder effects and spell circles** (0x7a twice, the actor facing 30 and
+  200 degrees), as for the crossed-quad effects.
 
-`tests/unit/prim_test.cpp` matches all of it: 6,802,902 values, the CRT's first `rand` values
+`tests/unit/prim_test.cpp` matches all of it: 7,110,580 values, the CRT's first `rand` values
 among them.
 
 **Not ported:**
-- the 40 cases of `CRagEffect::vf01` that add primitives of their own and are not yet
+- the 32 cases of `CRagEffect::vf01` that add primitives of their own and are not yet
   ported ([effect.md](effect.md#which-cases-play-their-str));
 - the sounds, the view's shake and the jokes.
