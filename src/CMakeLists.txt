@@ -76,6 +76,7 @@ add_library(ragexe_render STATIC
   render/player_names.cpp
   render/scene.cpp
   render/scene_graph.cpp
+  render/text.cpp
   render/texture.cpp)
 target_include_directories(ragexe_render PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(ragexe_render PUBLIC ragexe_core ragexe_res PRIVATE ragexe_options)

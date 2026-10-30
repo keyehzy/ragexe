@@ -74,3 +74,5 @@ address	namespace	name	evidence	type
 00684e28	Global	g_cellCursorHidden	1 hides the cell cursor: static_init_166 sets it, CGameMode::method_005159d0 sets it for cells of attribute 1 or 5 and clears it otherwise	dword
 00684e2c	Global	g_cellCursorColor	the cell cursor's colour: 0xaa55ffff from static_init_166, then 0x6600ffaa, or 0xfeff0000 and 0xfeffff00 for the hidden attributes 1 and 5	dword
 00679f78	Global	g_cellCursorUv	static_init_093 004bbb30 fills (0, 0), (1, 0), (0, 1), (1, 1): the cell cursor quad's coordinates	float
+0067c9d8	Global	g_fontLanguage	SelectLanguage 004ca940 sets it by service type (0 to 6); FontEntry::FontEntry gives a font of language 0 its language, and for 1, 5, 6 and 7 a height 3 more	dword
+0067c998	Global	g_codePage	SelectLanguage 004ca940 sets it by service type (949, 932, 936, 950, 874 or 0, the system's); CharNextExA and CharPrevExA step text on it	dword

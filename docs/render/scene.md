@@ -168,8 +168,11 @@ two-texture ground. The scene's 2D draws (`00410620`) keep the same bound textur
 original leaves them.
 
 **Not ported yet:**
-- **The vertex-buffer lists and +0x174** are drawn empty; they come with the models and
-  effects that fill them.
+- **The vertex-buffer lists and +0x174** are drawn empty:
+  - **The vertex-buffer lists** are dead. Their adder `004128e0` has one caller,
+    `FUN_004b8a50`, which only calls itself.
+  - **+0x174** holds the Granny models' primitives (`00412720`, called by
+    `C3dGrannyGameActor` and `CGrannyPc`), which come with the Granny sub-milestone.
 - **The projection's transforms.** The fog's set-up and `ComputeVertexFog` are in
   `src/render/fog` ([fog.md](fog.md)).
 - **The in-place texture coordinate scaling.**

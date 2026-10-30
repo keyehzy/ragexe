@@ -158,8 +158,8 @@ entry	size	kind	library	reach	name	referenced_by
 004a29f0	93	code	0	unreferenced	Global::FUN_004a29f0	
 004a58b0	45	code	0	dead	Global::FUN_004a58b0	004a86e0
 004a5980	71	code	0	unreferenced	Global::FUN_004a5980	
-004a6010	288	code	0	unreferenced	Global::FUN_004a6010	
-004a6460	320	code	0	unreferenced	Global::FUN_004a6460	
+004a6010	288	code	0	unreferenced	Global::DrawVerticalText	
+004a6460	320	code	0	unreferenced	Global::FitTextWithEllipsis	
 004a6670	28	code	0	unreferenced	Global::FUN_004a6670	
 004a86e0	33	code	0	unreferenced	Global::FUN_004a86e0	
 004a8e50	68	code	0	unreferenced	Global::FUN_004a8e50	

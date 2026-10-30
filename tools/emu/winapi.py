@@ -179,7 +179,9 @@ class WinApi:
 
     def char_next(self, code_page, p, flags):
         """Single-byte code pages only: the next byte, or p itself at the end. Stepping
-        over double-byte characters would be this stub's guess, not the system's."""
+        over double-byte characters would be this stub's guess, not the system's. The code
+        page is a WORD, so the high half of its stack slot is ignored."""
+        code_page &= 0xFFFF
         if code_page not in (0, 874, 1252):
             self.emu.fault(f"CharNextExA on code page {code_page}, which has double-byte characters")
             return 0

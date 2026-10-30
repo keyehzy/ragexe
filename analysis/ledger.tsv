@@ -345,8 +345,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00410c80	51	code	0	render	unreferenced	raw	Global	FUN_00410c80	
 00410cd0	21	code	0	render		named	SceneRenderer	method_00410cd0	
 00410cf0	251	code	0	render	unreferenced	raw	Global	FUN_00410cf0	
-00410df0	188	code	0	render		named	SceneRenderer	method_00410df0	
-00410eb0	340	code	0	render		named	SceneRenderer	method_00410eb0	
+00410df0	188	code	0	render		named	SceneRenderer	DrawText	
+00410eb0	340	code	0	render		named	SceneRenderer	DrawOutlinedText	
 00411010	125	code	0	render		named	SceneRenderer	SetFogEnabled	
 00411090	561	code	0	render		named	SceneRenderer	SetupProjection	
 004112d0	2361	code	0	render		named	SceneRenderer	SetStageMode	
@@ -2804,18 +2804,18 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004a5bb0	61	code	0	ui		named	UIWindow	method_004a5bb0	
 004a5bf0	127	code	0	ui		named	UIWindow	ParseColorCode	
 004a5c70	56	code	0	ui		named	UIWindow	FindColorCode	
-004a5cb0	110	code	0	ui		named	UIWindow	method_004a5cb0	
-004a5d20	152	code	0	ui		named	UIFrameWnd	method_004a5d20	
-004a5dc0	209	code	0	ui		named	UIListBox	method_004a5dc0	
-004a5ea0	143	code	0	ui		named	UIWindow	method_004a5ea0	
-004a5f30	214	code	0	ui		named	UINameBalloonText	method_004a5f30	
-004a6010	288	code	0	ui	unreferenced	raw	Global	FUN_004a6010	
-004a6130	256	code	0	ui		named	UIVerticalNameBalloonText	method_004a6130	
+004a5cb0	110	code	0	ui		named	UIWindow	DrawText	
+004a5d20	152	code	0	ui		named	UIFrameWnd	DrawRightAlignedText	
+004a5dc0	209	code	0	ui		named	UIListBox	DrawColorCodedText	
+004a5ea0	143	code	0	ui		named	UIWindow	DrawShadowedText	
+004a5f30	214	code	0	ui		named	UINameBalloonText	DrawOutlinedText	
+004a6010	288	code	0	ui	unreferenced	named	Global	DrawVerticalText	
+004a6130	256	code	0	ui		named	UIVerticalNameBalloonText	DrawOutlinedText	
 004a6230	80	code	0	ui		named	UIMerchantItemShopWnd	method_004a6230	
-004a6280	129	code	0	ui		named	UIWindow	method_004a6280	
-004a6310	129	code	0	ui		named	UIBalloonText	method_004a6310	
-004a63a0	186	code	0	ui		named	UIVerticalNameBalloonText	method_004a63a0	
-004a6460	320	code	0	ui	unreferenced	raw	Global	FUN_004a6460	
+004a6280	129	code	0	ui		named	UIWindow	GetTextWidth	
+004a6310	129	code	0	ui		named	UIBalloonText	GetTextHeight	
+004a63a0	186	code	0	ui		named	UIVerticalNameBalloonText	GetVerticalTextHeight	
+004a6460	320	code	0	ui	unreferenced	named	Global	FitTextWithEllipsis	
 004a65a0	25	code	0	ui		named	UIWindow	method_004a65a0	
 004a65c0	27	code	0	ui		named	UIChatWnd	method_004a65c0	
 004a65e0	136	code	0	ui		named	UIFrameWnd	method_004a65e0	

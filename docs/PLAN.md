@@ -2598,6 +2598,18 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Checks:** 160 objects and 120 players, the calls seen through code hooks; 2,456
     values.
 
+- [x] Text (`docs/render/text.md`, `src/render/text`):
+  - **Fonts:** `FontEntry`'s record, a language of 0 taking the service language's (one
+    of iRO's is Arial three pixels taller), and `CreateFontA`'s arguments: the escapement
+    for vertical text, the charset, and the face or its alternative as installed.
+  - **The calls:** the `TextOutA` runs of the thirteen functions that draw and measure
+    text: plain, outlined on the diagonals or on the axes, shadowed, right-aligned, colour
+    coded (`^RRGGBB`, its digit table read with a signed char), vertical, and fitted with
+    "...".
+  - **Checks:** every font case and 400 calls, with GDI stood in for; 11,017 values.
+  - **Also found:** the scene's vertex-buffer lists are dead, +0x174 is the Granny
+    models', and the visible-cell globals are never read.
+
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

@@ -192,7 +192,9 @@ ported from `vf03` without a vector of its own.
 `IntersectCellRay` and `PickCell`.
 
 **Not ported:**
-- the cell range globals;
+- the cell range globals (`0067caa0` to `0067caac`): `DrawWorld` writes the visible leaves'
+  least and greatest cells there and `CGameMode::method_0050dc90` resets them, but nothing
+  reads them;
 - `RayIntersectsBoxInRange` (`0040b960`), the model box test that nothing reaches;
 - the move to the picked cell, which comes with the game mode. The cursor over it is in
   [ground.md](ground.md#the-cell-cursor).
