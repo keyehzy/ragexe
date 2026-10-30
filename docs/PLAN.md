@@ -2638,6 +2638,16 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     some points past 2^24) and 500 cursor steps, on real `CActRes` structures; 31,487
     values.
 
+- [x] Surfaces and textures on the screen (`docs/render/texture.md#drawing`,
+  `src/render/blit`):
+  - **`CTexture`'s slots 3 and 4:** a screen rectangle of texels (point filtered, in a
+    colour) or of the whole image (linear, white), with the calibration's texel offset, as
+    one strip through `SceneRenderer::DrawScreenRect`; 0 ÷ 0 is the x87's indefinite NaN.
+  - **`CSurface`'s slots 3 and 4:** a `BltFast` with the colour key, clipped to the screen
+    (the right and bottom by unsigned comparisons), or a `Blt` stretched over (0, 0, w, h).
+  - **Checks:** 400 texture rectangles through the fake Direct3D device and 600 surface
+    blits; 35,961 values.
+
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

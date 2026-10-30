@@ -29,13 +29,13 @@ CDCBitmap	005e2630	0	8	00403d10	CDCBitmap::vf08
 CSurface	005e26dc	0	0	004160b0	CSurface::`scalar_deleting_destructor'	
 CSurface	005e26dc	0	1	00416130	CSurface::UpdatePixels	
 CSurface	005e26dc	0	2	00416330	CSurface::FillColor	
-CSurface	005e26dc	0	3	004163c0	CSurface::vf03	
-CSurface	005e26dc	0	4	004163f0	CSurface::vf04	
+CSurface	005e26dc	0	3	004163c0	CSurface::DrawRegion	
+CSurface	005e26dc	0	4	004163f0	CSurface::DrawImage	
 CSurfaceWallpaper	005e26f4	0	0	00416510	CSurfaceWallpaper::`scalar_deleting_destructor'	
 CSurfaceWallpaper	005e26f4	0	1	00416550	CSurfaceWallpaper::UpdatePixels	
 CSurfaceWallpaper	005e26f4	0	2	00416330	CSurface::FillColor	
-CSurfaceWallpaper	005e26f4	0	3	004163c0	CSurface::vf03	
-CSurfaceWallpaper	005e26f4	0	4	004163f0	CSurface::vf04	
+CSurfaceWallpaper	005e26f4	0	3	004163c0	CSurface::DrawRegion	
+CSurfaceWallpaper	005e26f4	0	4	004163f0	CSurface::DrawImage	
 CTexture	005e270c	0	0	00416680	CTexture::`scalar_deleting_destructor'	
 CTexture	005e270c	0	1	00416990	CTexture::UpdatePixels	
 CTexture	005e270c	0	2	00416750	CTexture::FillColor	

@@ -188,19 +188,50 @@ entries; `CSprRes` keeps its palette that way, converted to ARGB 1555.
 
 ### Drawing
 
-`CTexture`'s slots 3 and 4 (`00416f10`, `00416fc0`) draw the texture as a screen
-rectangle (x, y, width, height) through `SceneRenderer::method_00410ab0`. The texel
-offsets from the calibration go to both corners.
-- **Slot 3** maps the rectangle 1:1 to texels:
+Slots 3 and 4 draw a surface onto the screen at (x, y) with a width and a height. Their
+callers reach them through the vtable, so a `CSurface` and a `CTexture` draw alike to them.
+
+**`CTexture`'s** (`00416f10` `DrawRegion`, `00416fc0` `DrawImage`) draw the texture as a
+screen rectangle through `SceneRenderer::DrawScreenRect` (`00410ab0`). The rectangle is
+x, y, x + width and y + height, each sum an int stored as a float. The texel offsets from
+the calibration (`006053f4`, `006053f8`, [device.md](device.md#calibratetexeloffset)) go
+to both corners.
+- **Slot 3** maps the rectangle 1:1 to texels, in the colour given, filtered by points:
   - `u` runs from `offset_u / texture width` to `(width + offset_u) / texture width`;
   - `v` likewise.
-
-  It passes the colour argument.
-- **Slot 4** maps the whole image:
+- **Slot 4** maps the whole image, in white (`0xffffffff`), filtered linearly:
   - `u` runs from `offset_u / texture width` to that plus `u scale` (+0x18);
   - `v` likewise.
 
-  The colour is `0xffffffff`.
+Each division is single precision:
+- The width is divided by as `fild` loads it, the whole unsigned integer.
+- The height is first stored as a float, so a height past 2²⁴ is rounded before the
+  division.
+- A texture of size 0 gives infinities, and 0 ÷ 0 the x87's indefinite NaN (`0xffc00000`).
+
+**`DrawScreenRect`:**
+1. `ALPHAREF` 1, `ALPHATESTENABLE`, `ALPHABLENDENABLE`, and `ZENABLE` off.
+2. Stage 0's `MAGFILTER` and `MINFILTER`: `POINT`, or `LINEAR` when asked.
+3. The texture, when it is not the bound one (+0x50).
+4. One `TRIANGLESTRIP` of `0x1c4` vertices: top left, bottom left, top right, bottom right.
+   z is 1e-5 (`0x3727c5ac`) and rhw 0.99999 (`0x3f7fff58`), with the colour as diffuse and
+   specular `0xffffffff`. There is no half-pixel shift; the texel offset stands in for it.
+5. Both filters `LINEAR` again. `ALPHAREF` stays 1.
+
+**`CSurface`'s** (`004163c0` `DrawRegion`, `004163f0` `DrawImage`) blit the
+`IDirectDrawSurface7` (+0xc) onto the back buffer (`SceneRenderer`+0x7c):
+- **Slot 3** (`SceneRenderer::BlitSurface`, `0040e610`): `BltFast` at (x, y) of the source
+  rectangle (0, 0, width, height), clipped to the screen (+0x80, +0x84, which `BeginScene`
+  copies from the device). Its flags are `DDBLTFAST_SRCCOLORKEY | DDBLTFAST_WAIT` (`0x11`).
+  - **The right and bottom** become the screen's edge less x or y when x + width or
+    y + height is past it. The comparison is unsigned, so a rectangle ending left of or
+    above the screen also counts as past it, and gets a source rectangle wider than the
+    surface. DirectDraw refuses such a blit, so nothing is drawn.
+  - **A negative x or y** moves the source's left or top in by as much, and the point to 0.
+  - **Nothing** is blitted when the clipped rectangle is empty (signed comparisons).
+  - The colour argument is not read.
+- **Slot 4** (`SceneRenderer::StretchSurface`, `0040e6a0`): `Blt` of the whole source
+  stretched over (0, 0, width, height) with `DDBLT_WAIT`. The point is not read.
 
 ### CopyRectFrom and the bump maps
 
@@ -234,6 +265,17 @@ They belong with the water, which is ported later.
 | `SurfaceSide` | a `CSurface`'s size |
 | `MipmapCount` | `CreateSurface`'s mipmap count |
 
+`src/render/blit.{h,cpp}`:
+
+| Port | Original |
+|------|----------|
+| `DrawScreenRect` | `SceneRenderer::DrawScreenRect` |
+| `DrawTextureRegion`, `DrawTextureImage` | `CTexture`'s slots 3 and 4, with `TextureExtent` and `TexelOffset` |
+| `BlitSurface`, `StretchSurface` | `CSurface`'s slots 3 and 4: the `BltFast` or `Blt` |
+
+The rectangles return their calls and quads as `ScreenSprites`
+([actor.md](actor.md#on-the-screen)).
+
 The mipmaps are left to the renderer.
 
 **Where the port differs:**
@@ -256,3 +298,14 @@ port with every texel:
 
 The emulator's surfaces start filled with `0xa5`, so a texel the original leaves alone
 shows. The fake `Lock` returns the rectangle's top-left, as DirectDraw does.
+
+**The rectangles.** `tools/blit_vectors.py` writes `tests/unit/blit_vectors.inc`:
+- **400 calls of `CTexture`'s slots 3 and 4,** at assorted points, sizes and colours. The
+  points and sizes include sums that wrap and values past 2²⁴; the texture sizes include
+  powers of two, odd sizes, 0 and sizes past 2²⁴. The image scales, texel offsets and bound
+  textures vary. Every call to the fake Direct3D device is recorded, the 400 draws with
+  their vertices.
+- **600 calls of `CSurface`'s slots 3 and 4,** at points inside, across and past each
+  edge of assorted screens. The `BltFast` or `Blt` the back buffer gets is recorded.
+
+`tests/unit/blit_test.cpp` matches all 35,961 values.

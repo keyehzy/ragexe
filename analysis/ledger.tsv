@@ -311,8 +311,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0040e130	986	code	0	render		named	SceneRenderer	CacheSpriteImage	
 0040e510	38	code	0	render		named	Global	DestroyTexturePoolEntry	
 0040e540	205	code	0	render		named	SceneRenderer	FindCachedSprite	
-0040e610	140	code	0	render		named	SceneRenderer	method_0040e610	
-0040e6a0	56	code	0	render		named	SceneRenderer	method_0040e6a0	
+0040e610	140	code	0	render		named	SceneRenderer	BlitSurface	
+0040e6a0	56	code	0	render		named	SceneRenderer	StretchSurface	
 0040e6e0	660	code	0	render		named	SceneRenderer	BuildScreenQuadTriangles	
 0040e980	875	code	0	render		named	SceneRenderer	AddSpriteQuad	
 0040ecf0	469	code	0	render		named	SceneRenderer	ClearLists	
@@ -340,7 +340,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00410450	267	code	0	render		named	SceneRenderer	DrawAdditiveNoDepth	
 00410560	162	code	0	render		named	SceneRenderer	DrawStageModePrimitives	
 00410620	1159	code	0	render		named	SceneRenderer	DrawActFrame	
-00410ab0	414	code	0	render		named	SceneRenderer	method_00410ab0	
+00410ab0	414	code	0	render		named	SceneRenderer	DrawScreenRect	
 00410c50	35	code	0	render		named	SceneRenderer	Present	
 00410c80	51	code	0	render	unreferenced	raw	Global	FUN_00410c80	
 00410cd0	21	code	0	render		named	SceneRenderer	StartFrameCount	
@@ -462,8 +462,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00416110	31	code	0	render		named	CSurface	~CSurface	
 00416130	508	code	0	render		named	CSurface	UpdatePixels	
 00416330	131	code	0	render		named	CSurface	FillColor	
-004163c0	38	code	0	render		named	CSurface	vf03	
-004163f0	38	code	0	render		named	CSurface	vf04	
+004163c0	38	code	0	render		named	CSurface	DrawRegion	
+004163f0	38	code	0	render		named	CSurface	DrawImage	
 00416420	184	code	0	render		named	CSurface	CreateSurface	
 004164e0	34	code	0	render		named	CSurfaceWallpaper	CSurfaceWallpaper	
 00416510	33	code	0	render		named	CSurfaceWallpaper	`scalar_deleting_destructor'	
