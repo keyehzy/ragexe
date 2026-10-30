@@ -166,6 +166,30 @@ bool Load(const res::DataFiles& files, const std::string& path, std::vector<std:
 // A sprite and its actions, with each image uploaded as the texture cache would hold it:
 // an 8-bit image decoded through the palette into a slot at the corner of a 256 x 256
 // page (CTexture::DrawRleImage, index 0 clear), a 32-bit image in a texture of its own.
+// The launched effect's .str (EffectStr) through the StrPlayer, at the effect's frame, under
+// the view and projection of the frame being drawn; it leaves the actor's point on screen
+// in the effect, as AdvanceStr does.
+class PlayerStr : public render::EffectStr {
+ public:
+  PlayerStr(render::StrPlayer& player, const render::Matrix& view,
+            const render::Projection& projection)
+      : player_(player), view_(view), projection_(projection) {}
+  bool Advance(render::RagEffect& effect, const render::Vec3& actor, float x, float y,
+               float z) override {
+    player_.SetFrame(effect.frame);
+    if (!player_.Advance(view_, actor, projection_, x, y, z)) return false;
+    effect.screen_x = player_.screen_x();
+    effect.screen_y = player_.screen_y();
+    return true;
+  }
+  void Reset() override { player_.Reset(); }
+
+ private:
+  render::StrPlayer& player_;
+  const render::Matrix& view_;
+  const render::Projection& projection_;
+};
+
 struct ActorSprite {
   res::Sprite sprite;
   res::Act act;
@@ -533,7 +557,8 @@ int main(int argc, char** argv) {
   // (ProcessGenericType's offset, 80 pixels up). Each texture is uploaded the first time a
   // triangle asks for it: effect\ and its name, .bmp added when it has none, and "1.bmp"
   // past a layer's names (GetEffectEntryTexture, 004289a0).
-  // --effect-id: the world's effect objects for the primitives, and the .str the id names.
+  // --effect-id: the world's effect objects for the primitives, and the .str the id names,
+  // which the effect plays as its case of vf01 does, if at all.
   render::EffectWorld prim_world;
   const bool has_prims = o.effect_id >= 0;
   // The sprites effects load, the particle first; each drawn quad names the one it is of.
@@ -568,6 +593,7 @@ int main(int argc, char** argv) {
     if (!has_effect) std::fprintf(stderr, "ragview: no effect %s\n", o.effect.c_str());
   }
   render::StrPlayer effect_player(effect_str);
+  PlayerStr launched_str(effect_player, camera.view, projection);
   core::FrameTimer world_steps;
   world_steps.SetFrameRate(60, static_cast<std::uint32_t>(SDL_GetTicks()));
   std::map<std::pair<std::size_t, std::int32_t>, std::uint32_t> effect_textures;
@@ -740,10 +766,17 @@ int main(int argc, char** argv) {
           render::RagEffect& e = prim_world.Launch(o.effect_id, {player, actor_object.facing});
           e.target = {player[0] + 50.0f, player[1], player[2] + 50.0f};
           e.level = o.effect_level;
+          // InitEffect's LoadStrFile: the .str from its start.
+          if (has_effect) {
+            effect_player.Reset();
+            e.str = &launched_str;
+          }
         }
         prim_world.SetPlayer(player);
         prim_world.Step(scene);
       }
+      // The view's shake and the jokes are not ported.
+      prim_world.TakeMessages();
       const render::PrimDrawing drawing = prim_world.Draw(scene);
       for (std::size_t i = 0; i < drawing.quads.size(); ++i) {
         const auto it = sprite_of.find(drawing.quad_sprites[i]);
@@ -768,7 +801,7 @@ int main(int argc, char** argv) {
       }
     }
     if (has_effect) {
-      for (std::uint32_t i = 0; i < steps; ++i) {
+      for (std::uint32_t i = 0; i < steps && !has_prims; ++i) {
         if (!effect_player.Advance(camera.view, player, projection, 0.0f, -80.0f, 0.0f)) {
           effect_player.Reset();
           effect_player.Advance(camera.view, player, projection, 0.0f, -80.0f, 0.0f);

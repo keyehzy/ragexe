@@ -5390,7 +5390,6 @@ bool AddAspersio(RagEffect& effect, const PrimSprite& particle, core::CrtRand& r
     ResetHistory(p);
     added.push_back(std::move(p));
   }
-  // The .str plays on, 80 up (AdvanceStr), until the frame meets the duration.
   return effect.frame != effect.duration;
 }
 
@@ -6744,8 +6743,7 @@ void AddIceWall(RagEffect& effect, core::CrtRand& rand, std::vector<EffectPrim>&
 
 void AddEarthSpike(RagEffect& effect, core::CrtRand& rand, std::vector<EffectPrim>& added) {
   if (effect.frame != 0) return;
-  // effect\wizard_earthspike.wav plays here, and the game mode's vf05 is sent 0x87 with 1
-  // and 0x94 with 1, 0.24 and 0.2.
+  // effect\wizard_earthspike.wav plays here, as the view starts to shake.
   EffectPrim spike = MakePrimitive(&effect, 9, {0.0f, 0.0f, 0.0f});
   spike.life = 240;
   spike.flags = EffectPrim::kHalts | EffectPrim::kSinks;
@@ -6847,7 +6845,7 @@ void AddStoneTriad(RagEffect& effect, std::vector<EffectPrim>& added) {
 
 void AddSpikeField(RagEffect& effect, core::CrtRand& rand, std::vector<EffectPrim>& added) {
   if (effect.frame != 0) return;
-  // effect\wizard_earthspike.wav plays here, and the game mode's vf05 is sent 0x87 with 0.
+  // effect\wizard_earthspike.wav plays here, as the view starts to shake.
   effect.duration = effect.duration + 50;
   for (std::int32_t z = -10; z < 15; z += 5) {
     for (std::int32_t x = -10; x < 15; x += 5) {
@@ -6906,7 +6904,6 @@ void AddStormGust(RagEffect& effect, bool minimal, core::CrtRand& rand,
     p.textures = {"effect\\ice.tga"};
     added.push_back(std::move(p));
   }
-  // AdvanceStr: the .str plays on, 80 up, until the frame meets the duration.
 }
 
 void AddBlast(RagEffect& effect, std::vector<EffectPrim>& added) {
@@ -7034,9 +7031,7 @@ bool ProcessMagnumBreak(RagEffect& effect, std::vector<EffectPrim>& added) {
     sphere.alpha_speed = sphere.alpha_max * kPixel;
     added.push_back(std::move(sphere));
   }
-  if (effect.frame > 299) return false;
-  // AdvanceStr: the .str plays on, 80 up.
-  return true;
+  return effect.frame <= 299;
 }
 
 void AddRisingLight(RagEffect& effect, bool minimal, core::CrtRand& rand,
@@ -7249,8 +7244,8 @@ void AddBlitzBeat(RagEffect& effect, const EffectActor& actor, std::int32_t& bea
 
 bool ProcessConcentrationDC(RagEffect& effect, const EffectActor& actor, core::CrtRand& rand,
                             std::vector<EffectPrim>& added) {
-  // The actor's vf02 is sent message 0x7e (250, 120, 120) at frame 0 and 0x7f at the end,
-  // and at frame 18 the game mode's vf05 message 0x87 with effect\ac_concentration.wav.
+  // The actor's vf02 is sent message 0x7e (250, 120, 120) at frame 0 and 0x7f at the end;
+  // effect\ac_concentration.wav plays at frame 18, as the view starts to shake.
   if (effect.frame == 0) added.push_back(MakeConcentrationColumn(effect, 1.0f, 50));
   effect.position = actor.position;
   if (effect.frame > 12 && effect.frame < 110 && effect.frame % 4 == 0) {
@@ -7261,8 +7256,97 @@ bool ProcessConcentrationDC(RagEffect& effect, const EffectActor& actor, core::C
     p.blue = 0;
     added.push_back(std::move(p));
   }
-  // AdvanceStr: the .str plays on, 80 up.
   return effect.frame <= 150;
+}
+
+bool AdvanceStr(RagEffect& effect, const EffectActor& actor, float x, float y, float z) {
+  return effect.str != nullptr && effect.str->Advance(effect, actor.position, x, y, z);
+}
+
+void ResetStr(RagEffect& effect) {
+  effect.frame = 0;
+  // Without a .str the original would read through a null pointer.
+  if (effect.str != nullptr) effect.str->Reset();
+}
+
+bool ProcessStrEffect(RagEffect& effect, const EffectActor& actor, std::vector<EffectPrim>& added,
+                      std::vector<ModeMessage>& messages) {
+  const std::int32_t f = effect.frame;
+  const auto shake = [&messages] { messages.push_back({mode_message::kShake, {0, 0, 0}}); };
+  switch (effect.id) {
+      // clang-format off
+    // ProcessGenericType (005671c0), which vf01 jumps to (0054e5d4) for these.
+    case 0x34: case 0x40: case 0x46: case 0x6d: case 0x6e: case 0x7e: case 0x87: case 0x8b:
+    case 0x8d: case 0x8f: case 0x90: case 0x92: case 0x93: case 0x94: case 0x95: case 0x96:
+    case 0x97: case 0x98: case 0x9c: case 0x9d: case 0x9e: case 0xa7: case 0xa8: case 0xa9:
+    case 0xc7: case 0xd0: case 0xd1: case 0xd3: case 0xd5: case 0xd6: case 0x137: case 0x14f:
+    case 0x150:
+    // The same step after the sounds docs/render/effect.md lists, a function each (00558270
+    // to 00566a50).
+    case 0x17: case 0x19: case 0x1d: case 0x1e: case 0x29: case 0x31: case 0x41: case 0x42:
+    case 0x43: case 0x44: case 0x45: case 0x4b: case 0x4c: case 0x4d: case 0x4e: case 0x53:
+    case 0x54: case 0x55: case 0x57: case 0x58: case 0x5b: case 0x5f: case 0x60: case 0x61:
+    case 0x65: case 0x67: case 0x68: case 0x6a: case 0x6b: case 0x6c: case 0x6f: case 0x70:
+    case 0x71: case 0x7c: case 0x7f: case 0x81: case 0x83: case 0x99: case 0x9a: case 0x9b:
+      // clang-format on
+      return AdvanceStr(effect, actor, 0.0f, -80.0f, 0.0f);
+    // vf01's own (0054e571 for 0xcc to 0xd2, 0054e03f, 0054e402 and 0054e463): on the first
+    // frame to the actor, as a sound plays.
+    // clang-format off
+    case 0xcc: case 0xcd: case 0xce: case 0xcf: case 0xd2: case 0x111: case 0x131: case 0x132:
+      // clang-format on
+      if (f == 0) effect.position = actor.position;
+      return AdvanceStr(effect, actor, 0.0f, -80.0f, 0.0f);
+    case 0x5a:  // 005653b0
+      if (f > 49 && f % 50 == 0 && f < 300) shake();
+      return AdvanceStr(effect, actor, 0.0f, -80.0f, 0.0f);
+    case 0x5c:  // 00565ec0
+      if (f == 40) shake();
+      return AdvanceStr(effect, actor, 0.0f, -80.0f, 0.0f);
+    case 0x66:  // 005660f0
+      if (f == 35) shake();
+      return AdvanceStr(effect, actor, 0.0f, -80.0f, 0.0f);
+    case 0x82:
+    case 0xfa:  // 005668f0, whose answer vf01 leaves unread: 9999 steps, past the .str's end
+      if (f == 0) effect.duration = 9999;
+      AdvanceStr(effect, actor, 0.0f, -80.0f, 0.0f);
+      return true;
+    case 0x85:
+    case 0x86:  // 00566800 and 00566830
+      if (AdvanceStr(effect, actor, 0.0f, -80.0f, 0.0f)) return true;
+      effect.frame = 9999;
+      return false;
+    case 0x91:  // 005668d0: the .str again from its start each time it ends
+      if (!AdvanceStr(effect, actor, 0.0f, -80.0f, 0.0f)) ResetStr(effect);
+      return true;
+    case 0xfb:  // vf01's own (0054e0b8), 20 up
+      return AdvanceStr(effect, actor, 0.0f, -20.0f, 0.0f);
+    case 0x127:
+    case 0x128:  // 0057ccb0, Frost Joke and Scream, with no .str played
+      if (f == 0) {
+        const std::uint32_t joke = effect.id == 0x127 ? 1 : 0;
+        messages.push_back({mode_message::kJoke, {joke, 0, 0}});
+      }
+      return true;
+    case 0x12d:  // 00568e70: no .str, a sound at frame 300, and past 2300 back to 299
+      if (f > 2300) effect.frame = 299;
+      return true;
+    case 0xda:  // ProcessConcentrationDA (00566df0)
+      effect.position = actor.position;
+      if (f == 0) added.push_back(MakeConcentrationColumn(effect, 2.0f, 50));
+      return AdvanceStr(effect, actor, 0.0f, -80.0f, 0.0f);
+    case 0xdb:  // ProcessConcentrationDB (00566e60)
+      effect.position = actor.position;
+      if (f == 30) {
+        added.push_back(MakeConcentrationColumn(effect, std::bit_cast<float>(0x3ff33333u), 30));
+      }
+      return AdvanceStr(effect, actor, 0.0f, -80.0f, 0.0f);
+    case 0xdd:  // vf01's own (0054e1d3): a column every step, with no .str played
+      added.push_back(MakeConcentrationColumn(effect, 1.0f, 50));
+      return true;
+    // 0x69's function (00566340) does nothing, nor does vf01 for an id it has no case for.
+    default: return true;
+  }
 }
 
 PrimSprite EffectWorld::Sprite(const std::string& name) const {
@@ -7321,7 +7405,10 @@ void EffectWorld::Step(const PrimScene& world_scene) {
           AddTeleportationRings(e, it->actor, "effect\\Magic_Violet.tga", 0, added);
           break;
         case 0x13a: AddTeleportationWalls(e, it->actor, "effect\\ring_yellow.tga", added); break;
-        case 0x13b: AddGlassWall(e, it->actor, "effect\\alpha_down.tga", rand_, added); break;
+        case 0x13b:
+          AddGlassWall(e, it->actor, "effect\\alpha_down.tga", rand_, added);
+          AdvanceStr(e, it->actor, 0.0f, -80.0f, 0.0f);
+          break;
         case 0x13c: AddReadyPortal(e, it->actor, added); break;
         case 0xe5:
         case 0xe6:
@@ -7408,7 +7495,10 @@ void EffectWorld::Step(const PrimScene& world_scene) {
         case 0x47: AddSpiralSpark(e, Sprite(kParticleSprite), added); break;
         case 0x48: AddWideningSpirals(e, it->actor, Sprite(kParticleSprite), added); break;
         case 100: AddRemoveTrap(e, Sprite(kParticleSprite), rand_, added); break;
-        case 0x56: ended = !AddAspersio(e, Sprite(kParticleSprite), rand_, added); break;
+        case 0x56:
+          ended = !AddAspersio(e, Sprite(kParticleSprite), rand_, added);
+          if (!ended) AdvanceStr(e, it->actor, 0.0f, -80.0f, 0.0f);
+          break;
         case 0x75: AddWaterBall(e, Sprite(kEffectSprites[6]), added); break;
         case 0xd8:
         case 0xd9: AddTripleShot(e, Sprite(kParticleSprite), e.id == 0xd9, added); break;
@@ -7445,7 +7535,10 @@ void EffectWorld::Step(const PrimScene& world_scene) {
           AddPentagonBand(e, it->actor, "effect\\cloud11.tga", variant, added);
           break;
         }
-        case 0xd: ProcessGlassWall(e, it->actor, added); break;
+        case 0xd:
+          ProcessGlassWall(e, it->actor, added);
+          AdvanceStr(e, it->actor, 0.0f, -80.0f, 0.0f);
+          break;
         case 0x72:
         case 0x89: AddWallsOfMagic(e, it->actor, e.id == 0x89, added); break;
         case 0x30: AddPondRing(e, added); break;
@@ -7475,18 +7568,38 @@ void EffectWorld::Step(const PrimScene& world_scene) {
           AddArrows(e, it->actor, e.id == 0x1f, Sprite(kEffectSprites[11]), rand_, added);
           break;
         case 0x73: AddBlitzBeat(e, it->actor, beats_, rand_, added); break;
-        case 0xdc: ended = !ProcessConcentrationDC(e, it->actor, rand_, added); break;
+        case 0xdc:
+          if (e.frame == 18) messages_.push_back({mode_message::kShake, {1, 0, 0}});
+          ended = !ProcessConcentrationDC(e, it->actor, rand_, added);
+          AdvanceStr(e, it->actor, 0.0f, -80.0f, 0.0f);
+          break;
         case 0x1b: AddIcicleTrail(e, minimal_, rand_, added); break;
         case 0x1c: AddIcicleBurst(e, rand_, added); break;
         case 0x4a: AddIceWall(e, rand_, added); break;
-        case 0x4f: AddEarthSpike(e, rand_, added); break;
+        case 0x4f:
+          if (e.frame == 0) {
+            messages_.push_back({mode_message::kShake, {1, 0, 0}});
+            messages_.push_back(
+                {mode_message::kShakeAmplitudes, {0x3f800000u, 0x3e75c28fu, 0x3e4ccccdu}});
+          }
+          AddEarthSpike(e, rand_, added);
+          break;
         case 0x7b: AddStoneTrail(e, rand_, added); break;
         case 0x84: AddStoneTriad(e, added); break;
-        case 0x8e: AddSpikeField(e, rand_, added); break;
-        case 0x59: AddStormGust(e, minimal_, rand_, added); break;
+        case 0x8e:
+          if (e.frame == 0) messages_.push_back({mode_message::kShake, {0, 0, 0}});
+          AddSpikeField(e, rand_, added);
+          break;
+        case 0x59:
+          AddStormGust(e, minimal_, rand_, added);
+          ended = !AdvanceStr(e, it->actor, 0.0f, -80.0f, 0.0f);
+          break;
         case 0x11: AddBlast(e, added); break;
         case 0x3f: AddExplosionSphere(e, added); break;
-        case 0xaa: ended = !ProcessMagnumBreak(e, added); break;
+        case 0xaa:
+          ended = !ProcessMagnumBreak(e, added);
+          if (!ended) AdvanceStr(e, it->actor, 0.0f, -80.0f, 0.0f);
+          break;
         case 0xe8: AddActorLink(e, it->actor, scene, added); break;
         case 0x115: AddPanels(e, it->actor, "effect\\ring_blue.tga", 0, rand_, added); break;
         case 0x11f: AddPanels(e, it->actor, "effect\\ring_red.tga", 1, rand_, added); break;
@@ -7521,7 +7634,10 @@ void EffectWorld::Step(const PrimScene& world_scene) {
         case 0x79:
         case 0x80: AddStoneCurse(e, it->actor, scene, e.id == 0x80, added); break;
         case 0xd7: AddWedgeBurst(e, it->actor, scene, rand_, added); break;
-        case 0x28: AddSignum(e, it->actor, scene, rand_, added); break;
+        case 0x28:
+          AddSignum(e, it->actor, scene, rand_, added);
+          ended = !AdvanceStr(e, it->actor, 0.0f, -80.0f, 0.0f);
+          break;
         case 0x141:
           AddRingedColumn(e, it->actor, "effect\\ring_blue.tga", Sprite(kParticleSprite), rand_,
                           added);
@@ -7530,11 +7646,9 @@ void EffectWorld::Step(const PrimScene& world_scene) {
         case 0x14a: AddBouncingBands(e, it->actor, rand_, added); break;
         case 0xf8:
           AddFadingRings(e, it->actor, "effect\\ring_yellow.tga", added);
-          // AdvanceStr, which answers false without a .str (InitEffect loads none for
-          // 0xf8): the effect ends before its frame counts on.
-          ended = true;
+          ended = !AdvanceStr(e, it->actor, 0.0f, -80.0f, 0.0f);
           break;
-        default: break;
+        default: ended = !ProcessStrEffect(e, it->actor, added, messages_); break;
       }
       for (EffectPrim& p : added) {
         Object o;

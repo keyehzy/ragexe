@@ -28,17 +28,20 @@ import random
 import struct
 import sys
 
+from unicorn import UC_HOOK_CODE
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from actor_vectors import (ADD_SPRITE_QUAD, GET_FRAME_COUNT, GET_GAME_MODE, SCALES,  # noqa: E402
                            Oracle, bits, f32)
 
 RAG_EFFECT_CTOR, INIT_EFFECT, RAG_EFFECT_VF01 = 0x54D220, 0x54EEE0, 0x54D4C0
-LOAD_STR_FILE, ADVANCE_STR = 0x54FAE0, 0x54FBA0
+LOAD_STR_FILE, ADVANCE_STR, RESET_STR = 0x54FAE0, 0x54FBA0, 0x54FB40
 GET_ACTOR_BY_ID, PLAYER_ID = 0x4C4CF0, 0x68734C
 # The ids the tube's runs look up: the player's (g_ClientState+0xcdc) and one other actor's,
 # where LINK_ACTOR stands; tests/unit/prim_test.cpp uses the same.
 LINK_PLAYER_ID, LINK_ACTOR_ID, LINK_ACTOR, LINK_PLAYER = 31337, 4242, (-18.0, -6.5, 9.0), (12.5, -3.0, -20.0)
 EMPTY_VF4 = 0x4BC290
+MODE_SWITCHER = 0x67C9E8
 PRIM_CTOR, INIT_PRIMITIVE, PRIM_VF01, PRIM_VF02, PRIM_VF03 = 0x57CFA0, 0x586380, 0x57DCE0, 0x586050, 0x586070
 ADD_PRIMITIVE, GET_TEXTURE, PLAY_WAVE = 0x412550, 0x40CC00, 0x4352A0
 SET_SPRITE, SET_ACT, JOB_NAMES = 0x5018A0, 0x501910, 0x686DC8
@@ -1932,11 +1935,127 @@ def square_effects(o, rng, lines, effects=SQUARE_EFFECTS, prefix="kSquareEffect"
     lines.append("};")
 
 
+# The cases of CRagEffect::vf01 that only play their .str, or nothing, with Concentration's
+# columns (0xda, 0xdb and 0xdd); then those ported before that step a .str or send the game
+# mode messages.
+STR_IDS = (
+    0x17, 0x19, 0x1D, 0x1E, 0x29, 0x31, 0x34, 0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x4B, 0x4C, 0x4D, 0x4E,
+    0x53, 0x54, 0x55, 0x57, 0x58, 0x5A, 0x5B, 0x5C, 0x5F, 0x60, 0x61, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6A, 0x6B,
+    0x6C, 0x6D, 0x6E, 0x6F, 0x70, 0x71, 0x7C, 0x7E, 0x7F, 0x81, 0x82, 0x83, 0x85, 0x86, 0x87, 0x8B, 0x8D, 0x8F,
+    0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9A, 0x9B, 0x9C, 0x9D, 0x9E, 0xA7, 0xA8, 0xA9,
+    0xC7, 0xCC, 0xCD, 0xCE, 0xCF, 0xD0, 0xD1, 0xD2, 0xD3, 0xD5, 0xD6, 0xDA, 0xDB, 0xDD, 0xFA, 0xFB, 0x111,
+    0x127, 0x128, 0x12D, 0x131, 0x132, 0x137, 0x14F, 0x150,
+    0xD, 0x28, 0x4F, 0x56, 0x59, 0x8E, 0xAA, 0xDC, 0xF8, 0x13B)
+# Concentration's other columns, as the crossed-quad effects run 0xdc.
+COLUMN_EFFECTS = [(0xDA, 70), (0xDB, 70), (0xDD, 70)]
+# AdvanceStr's stand-in answers false to every period-th call (never, for 0), as a .str
+# that has ended would.
+STR_PERIODS = (7, 0)
+STR_STEPS = 2600  # past 0x12d's turn back at frame 2300
+
+
+def str_effects(o, rng, lines, seed=26000):
+    """Each of STR_IDS through the world's list, once for each of STR_PERIODS, for up to
+    STR_STEPS steps: each step what the effect asks of its .str (AdvanceStr's offsets and
+    answer, the real ResetStr on a stand-in .str header) and the messages it sends the game
+    mode (C3dGround::vf03, an empty function of four arguments, standing in for its vf05),
+    then its frame and duration where they move other than by a step. Steps that ask the
+    same are run together."""
+    emu = o.emu
+    events = []
+    calls, period = [0], [0]
+
+    def advance(this, x, y, z):
+        n = calls[0]
+        calls[0] += 1
+        more = int(period[0] == 0 or n % period[0] != period[0] - 1)
+        events.append((0 if more else 1, x, y, z, 0))
+        return more
+
+    def message(this, m, a, b, c):
+        if m == 0x94:
+            a, b, c = emu.read_u32(a), emu.read_u32(b), emu.read_u32(c)
+        events.append((3, m, a, b, c))
+        return 0
+
+    o.advance_str = advance
+    emu.uc.hook_add(UC_HOOK_CODE, lambda uc, address, size, data: events.append((2, 0, 0, 0, 0)),
+                    begin=RESET_STR, end=RESET_STR)
+    emu.replace_thiscall(EMPTY_VF4, 4, message)
+    # 0x127 and 0x128 read the game mode straight from g_ModeSwitcher+4 (0057ccc1).
+    emu.write_u32(MODE_SWITCHER + 4, o.mode)
+    # Three layers, layer 0 with keys (ResetStr reads +8 and +0x388).
+    header = emu.scratch(size=0x400)
+    emu.write_u32(header + 8, 3)
+    emu.write_u32(header + 0x388, 1)
+    player = emu.read_u32(o.world + 0x3C)
+    rows = []
+    run = 0
+    for eid in STR_IDS:
+        for p in STR_PERIODS:
+            mark = emu.heap_mark()
+            o.reset_world()
+            actor = emu.scratch(size=0x100)
+            emu.write_u32(actor, emu.scratch(struct.pack("<3I", 0, 0, PRIM_VF02)))
+            pos = (f32(rng.uniform(-30, 30)), f32(rng.uniform(-10, 0)), f32(rng.uniform(-30, 30)))
+            emu.mem_write(actor + 4, struct.pack("<3f", *pos))
+            at = (f32(rng.uniform(-30, 30)), f32(rng.uniform(-200, 0)), f32(rng.uniform(-30, 30)))
+            emu.mem_write(player + 4, struct.pack("<3f", *at))
+            target = toward(rng, pos, 30, 90)
+            level = rng.randrange(1, 6)
+            emu.call(SRAND, seed + run)
+            effect = o.rag_effect(actor)
+            emu.call(INIT_EFFECT, actor, eid, 0, 0, 0, this=effect)
+            emu.mem_write(effect + 0xE8, struct.pack("<3f", *target))
+            emu.write_u32(effect + 0xB8, level)
+            emu.write_u32(effect + 0x75C, header)
+            calls[0], period[0] = 0, p
+            frame, duration = 0, emu.read_u32(effect + 0xC0)
+            steps, ended = [], False
+            for step in range(STR_STEPS):
+                del events[:]
+                more = emu.call(RAG_EFFECT_VF01, this=effect).eax & 0xFF
+                asked = [e for e in events if e[0] < 3] + [e for e in events if e[0] == 3]
+                if more:
+                    f, d = emu.read_u32(effect + 0xBC), emu.read_u32(effect + 0xC0)
+                    if f != frame + 1:
+                        asked.append((4, f, 0, 0, 0))
+                    if d != duration:
+                        asked.append((5, d, 0, 0, 0))
+                    frame, duration = f, d
+                if steps and steps[-1][2] == asked and steps[-1][1] == step - 1:
+                    steps[-1][1] = step
+                else:
+                    steps.append([step, step, asked])
+                if not more:
+                    ended = True
+                    break
+                for node, prim in o.world_objects():
+                    if not emu.call(PRIM_VF01, this=prim).eax & 0xFF:
+                        o.unlink(node)
+            name = f"kStrEffect{run}"
+            flat, refs = [], []
+            for first, last, asked in steps:
+                refs.append(f"{{{first}, {last}, {len(flat)}, {len(asked)}}}")
+                flat += asked
+            lines.append(f"static const StrEventVector {name}Events[] = "
+                         f"{{{', '.join('{' + hexs(e) + '}' for e in flat) or '{}'}}};")
+            lines.append(f"static const StrStepVector {name}Steps[] = {{{', '.join(refs)}}};")
+            rows.append(f"    {{{eid}, {p}, {seed + run}, {{{hexs(map(bits, pos))}}}, {{{hexs(map(bits, at))}}}, "
+                        f"{{{hexs(map(bits, target))}}}, {level}, {steps[-1][1] + 1}, {int(ended)}, {name}Events, "
+                        f"{name}Steps, {len(steps)}}},")
+            emu.heap_release(mark)
+            run += 1
+    lines.append("static const StrEffectVector kStrEffects[] = {")
+    lines += rows
+    lines.append("};")
+
+
 GENERATED = "// Generated by tools/prim_vectors.py from the original in the emulation oracle."
 # The files main writes, in the order the oracle runs them; kTextures, last, names every
 # texture the others use.
 PARTS = ("basics", "rings", "squares", "motes", "walls", "trails", "screens", "flights", "crossed", "solids",
-         "ribbons", "textures")
+         "ribbons", "strs", "textures")
 
 
 def main():
@@ -1977,7 +2096,8 @@ def main():
     lines = parts["screens"]
     synthetic_screens(o, rng, lines)
     # Signum's Cross.str plays on; the port leaves its end to the .str player.
-    o.emu.replace_thiscall(ADVANCE_STR, 3, lambda this, x, y, z: 1)
+    o.advance_str = lambda this, x, y, z: 1
+    o.emu.replace_thiscall(ADVANCE_STR, 3, lambda this, x, y, z: o.advance_str(this, x, y, z))
     square_effects(o, rng, lines, SCREEN_EFFECTS, "kScreenEffect", 16000, screen_effect_state, True, None, True,
                    True, True)
     lines = parts["flights"]
@@ -2001,6 +2121,10 @@ def main():
     link_actors(o)
     synthetic_records(o, rng, lines, SPAN_IDS, "kSpan", 24000, random_span, wall_state, 24, (0, 8, 16, 23))
     square_effects(o, rng, lines, SPAN_EFFECTS, "kSpanEffect", 25000, wall_state, False, None, True, True, True)
+    lines = parts["strs"]
+    square_effects(o, rng, lines, COLUMN_EFFECTS, "kColumnEffect", 25500, flight_effect_state, True, None, True,
+                   True, True)
+    str_effects(o, rng, lines)
     names = sorted(o.textures.items(), key=lambda kv: kv[1])
     lines = parts["textures"]
     lines.append("static const TextureVector kTextures[] = {" +

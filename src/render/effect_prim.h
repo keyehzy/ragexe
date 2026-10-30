@@ -6,6 +6,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "core/crt_rand.h"
@@ -21,6 +22,22 @@ struct Sprite;
 }  // namespace ragexe::res
 
 namespace ragexe::render {
+
+struct RagEffect;
+
+// An effect's .str (+0x758, which InitEffect has LoadStrFile load), as CRagEffect plays it
+// (docs/render/effect.md).
+class EffectStr {
+ public:
+  virtual ~EffectStr() = default;
+  // AdvanceStr (0054fba0), with a .str: false once its layers have run out; else the
+  // actor's point on screen, offset by (x, y, z), to the effect's +0xdc and +0xe0, and
+  // each layer on to the effect's frame.
+  virtual bool Advance(RagEffect& effect, const Vec3& actor, float x, float y, float z) = 0;
+  // ResetStr (0054fb40), after it has set the effect's frame to 0: every layer back to its
+  // first key.
+  virtual void Reset() = 0;
+};
 
 // A CRagEffect as its primitives read it (docs/render/effect-prim.md).
 struct RagEffect {
@@ -38,7 +55,24 @@ struct RagEffect {
   float facing = 0.0f;        // +0x38, CRenderObject's, turned to the target by the trails
   Vec3 stride{};              // +0xf4, the trails' step towards the target
   Vec3 walk{};                // +0x100, how far the trails have stepped
+  EffectStr* str = nullptr;   // without one, AdvanceStr answers false
 };
+
+// A message an effect sends the game mode (its vf05, CGameMode::SendMsg 0051d990), with
+// the three values it passes (those of 0x94 by pointer).
+struct ModeMessage {
+  std::int32_t message = 0;
+  std::array<std::uint32_t, 3> values{};
+};
+
+namespace mode_message {
+// CView::StartShake (004cf450) on the game mode's view (+0xb8): with 1, 200 ms, else 650 ms.
+inline constexpr std::int32_t kShake = 0x87;
+// CView::SetShakeAmplitudes (004cf4b0), three floats.
+inline constexpr std::int32_t kShakeAmplitudes = 0x94;
+// A line from BA_frostjoke.txt (1) or DC_scream.txt (0) said aloud.
+inline constexpr std::int32_t kJoke = 0xb3;
+}  // namespace mode_message
 
 // The actor an effect plays on (+0xa0): where it stands and which way it faces (+0x38,
 // CRenderObject's, in degrees).
@@ -881,6 +915,15 @@ void AddActorLink(RagEffect& effect, const EffectActor& actor, const PrimScene& 
 void AddPanels(RagEffect& effect, const EffectActor& actor, const char* texture, std::int32_t kind,
                core::CrtRand& rand, std::vector<EffectPrim>& added);
 
+// CRagEffect::AdvanceStr (0054fba0): false without a .str, else the .str's step.
+bool AdvanceStr(RagEffect& effect, const EffectActor& actor, float x, float y, float z);
+// CRagEffect::ResetStr (0054fb40): the frame back to 0 and the .str to its start.
+void ResetStr(RagEffect& effect);
+// The cases of CRagEffect::vf01 that only play their .str, or nothing, and Concentration's
+// columns (docs/render/effect.md): false once the effect is over. Any other id does nothing.
+bool ProcessStrEffect(RagEffect& effect, const EffectActor& actor, std::vector<EffectPrim>& added,
+                      std::vector<ModeMessage>& messages);
+
 // The world's object list as effects use it (CWorld::UpdateGameObjects, 004c4a10): each
 // world step every object's vf01 in order, a primitive an effect adds joining the end and
 // running the same step; an object whose vf01 answers false is deleted, and an effect's
@@ -907,6 +950,8 @@ class EffectWorld {
 
   void Step(const PrimScene& scene);
   PrimDrawing Draw(const PrimScene& scene) const;
+  // The messages effects have sent the game mode since the last call, in order.
+  std::vector<ModeMessage> TakeMessages() { return std::exchange(messages_, {}); }
 
   bool empty() const { return objects_.empty(); }
   core::CrtRand& rand() { return rand_; }
@@ -926,6 +971,7 @@ class EffectWorld {
   Vec3 player_{};
   std::int32_t beats_ = 0;  // DAT_0068658c, AddBlitzBeat's
   EffectActors actors_;
+  std::vector<ModeMessage> messages_;
 };
 
 }  // namespace ragexe::render

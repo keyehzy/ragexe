@@ -70,6 +70,8 @@ class StrPlayer {
 
   // CRagEffect::vf01's last step: the next frame.
   void Step() { ++frame_; }
+  // The frame of an effect whose frame the effect world keeps (RagEffect::frame, +0xbc).
+  void SetFrame(std::int32_t frame) { frame_ = frame; }
 
   // CRagEffect::vf03 (0054ee50) and 00550070: two triangles for each layer from 1 on that
   // Advance moved, the quad of its corners turned by its angle about its position.

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <array>
 #include <bit>
 #include <catch2/catch_test_macros.hpp>
@@ -206,6 +207,29 @@ struct ItemVector {
   int angle, type;
 };
 
+// What an effect asked of its .str and the game mode in a step: kind 0 or 1 AdvanceStr (x, y
+// and z, answered true or false), 2 ResetStr, 3 a message (its number and three values); then
+// 4 the frame and 5 the duration where they moved other than by the step.
+struct StrEventVector {
+  std::uint32_t kind, a, b, c, d;
+};
+
+// Steps first to last, each asking the same events.
+struct StrStepVector {
+  std::uint32_t first, last, offset, count;
+};
+
+struct StrEffectVector {
+  int id;
+  std::uint32_t period, seed;
+  std::uint32_t position[3], player[3], target[3];
+  int level;
+  std::uint32_t steps, ended;
+  const StrEventVector* events;
+  const StrStepVector* runs;
+  std::size_t run_count;
+};
+
 // tools/prim_vectors.py writes these, one per family of primitives.
 #include "prim_vectors/basics.inc"
 #include "prim_vectors/crossed.inc"
@@ -216,6 +240,7 @@ struct ItemVector {
 #include "prim_vectors/screens.inc"
 #include "prim_vectors/solids.inc"
 #include "prim_vectors/squares.inc"
+#include "prim_vectors/strs.inc"
 #include "prim_vectors/textures.inc"
 #include "prim_vectors/trails.inc"
 #include "prim_vectors/walls.inc"
@@ -1431,9 +1456,19 @@ namespace {
 // The effects of target, level and player positions, their primitives' states as state
 // reads them; with sprites, every effect sprite the stand-in, the ground under the scene and
 // the quads checked too.
+// The .str tools/prim_vectors.py has AdvanceStr stand in for from the screen effects on:
+// it plays on, and leaves the effect as it is.
+class PlayingStr : public EffectStr {
+ public:
+  bool Advance(RagEffect&, const Vec3&, float, float, float) override { return true; }
+  void Reset() override {}
+};
+
+// str_plays: the runs made with that stand-in; before it, InitEffect loads no .str.
 void CheckTargetEffects(std::span<const SquareEffectVector> effects,
                         std::vector<std::uint32_t> (*state)(const EffectPrim&) = StateFor,
-                        bool sprites = false) {
+                        bool sprites = false, bool str_plays = false) {
+  PlayingStr playing;
   const ragexe::res::AttrMap attr = TestAttr();
   const ragexe::res::Sprite sprite = TestSprite();
   const ragexe::res::Act act = TestAct(true);
@@ -1454,6 +1489,7 @@ void CheckTargetEffects(std::span<const SquareEffectVector> effects,
     RagEffect& e = world.Launch(v.id, {vec(v.position), 0.0f});
     e.target = vec(v.target);
     e.level = v.level;
+    if (str_plays) e.str = &playing;
     std::map<const EffectPrim*, std::size_t> order;
     PrimScene scene;
     std::size_t next_scene = 0;
@@ -1670,7 +1706,7 @@ TEST_CASE("Screen wedges, screen rings and history rings step and draw as the or
 }
 
 TEST_CASE("The screen and history ring effects play as the original's", "[effect]") {
-  CheckTargetEffects(kScreenEffects, StateOfScreenEffect, true);
+  CheckTargetEffects(kScreenEffects, StateOfScreenEffect, true, true);
 }
 
 namespace {
@@ -1759,7 +1795,7 @@ TEST_CASE("Flying quads and billboards step and draw as the original's", "[effec
 }
 
 TEST_CASE("The flying quad effects play as the original's", "[effect]") {
-  CheckTargetEffects(kFlightEffects, StateOfFlightEffect, true);
+  CheckTargetEffects(kFlightEffects, StateOfFlightEffect, true, true);
 }
 
 TEST_CASE("Crossed quads step and draw as the original's", "[effect]") {
@@ -1767,7 +1803,7 @@ TEST_CASE("Crossed quads step and draw as the original's", "[effect]") {
 }
 
 TEST_CASE("The crossed quad effects play as the original's", "[effect]") {
-  CheckTargetEffects(kCrossedEffects, StateOfFlightEffect, true);
+  CheckTargetEffects(kCrossedEffects, StateOfFlightEffect, true, true);
 }
 
 TEST_CASE("Pyramids, spheres and ids 0x11 and 0x12 step and draw as the original's", "[effect]") {
@@ -1775,7 +1811,7 @@ TEST_CASE("Pyramids, spheres and ids 0x11 and 0x12 step and draw as the original
 }
 
 TEST_CASE("The pyramid and sphere effects play as the original's", "[effect]") {
-  CheckTargetEffects(kSolidEffects, StateOfSolidEffect, true);
+  CheckTargetEffects(kSolidEffects, StateOfSolidEffect, true, true);
 }
 
 namespace {
@@ -1828,5 +1864,82 @@ TEST_CASE("The tube and the panels step and draw as the original's", "[effect]")
 }
 
 TEST_CASE("The tube and panel effects play as the original's", "[effect]") {
-  CheckTargetEffects(kSpanEffects, WallsStateOf);
+  CheckTargetEffects(kSpanEffects, WallsStateOf, false, true);
+}
+
+namespace {
+
+// AdvanceStr as tools/prim_vectors.py stands in for it in its .str runs: false to every
+// period-th call (never, for 0); each call and each ResetStr is recorded.
+class ScriptedStr : public EffectStr {
+ public:
+  explicit ScriptedStr(std::uint32_t period) : period_(period) {}
+  bool Advance(RagEffect&, const Vec3&, float x, float y, float z) override {
+    const bool more = period_ == 0 || calls_ % period_ != period_ - 1;
+    ++calls_;
+    events.push_back({more ? 0u : 1u, B(x), B(y), B(z), 0});
+    return more;
+  }
+  void Reset() override { events.push_back({2, 0, 0, 0, 0}); }
+
+  std::vector<std::array<std::uint32_t, 5>> events;
+
+ private:
+  std::uint32_t period_;
+  std::uint32_t calls_ = 0;
+};
+
+}  // namespace
+
+TEST_CASE("Concentration's other columns play as the original's", "[effect]") {
+  CheckTargetEffects(kColumnEffects, StateOfFlightEffect, true, true);
+}
+
+TEST_CASE("Effects ask their .str and the game mode as the original's", "[effect]") {
+  const ragexe::res::Sprite sprite = TestSprite();
+  const ragexe::res::Act act = TestAct(true);
+  const auto vec = [](const std::uint32_t* v) { return Vec3{F(v[0]), F(v[1]), F(v[2])}; };
+  for (const StrEffectVector& v : kStrEffects) {
+    INFO("effect id " << v.id << ", period " << v.period);
+    EffectWorld world(v.seed);
+    world.SetPlayer(vec(v.player));
+    world.SetParticle({&act, &sprite});
+    for (const char* name : kEffectSprites) world.SetSprite(name, {&act, &sprite});
+    RagEffect& e = world.Launch(v.id, {vec(v.position), 0.0f});
+    e.target = vec(v.target);
+    e.level = v.level;
+    ScriptedStr str(v.period);
+    e.str = &str;
+    std::int32_t frame = 0;
+    std::int32_t duration = e.duration;
+    bool alive = true;
+    std::size_t run = 0;
+    for (std::uint32_t step = 0; step < v.steps; ++step) {
+      INFO("step " << step);
+      str.events.clear();
+      world.Step(PrimScene{});
+      std::vector<std::array<std::uint32_t, 5>> asked = str.events;
+      for (const ModeMessage& m : world.TakeMessages())
+        asked.push_back({3, U(m.message), m.values[0], m.values[1], m.values[2]});
+      alive = std::ranges::any_of(world.objects(),
+                                  [](const EffectWorld::Object& o) { return o.effect != nullptr; });
+      if (alive) {
+        if (e.frame != frame + 1) asked.push_back({4, U(e.frame), 0, 0, 0});
+        if (e.duration != duration) asked.push_back({5, U(e.duration), 0, 0, 0});
+        frame = e.frame;
+        duration = e.duration;
+      }
+      while (run < v.run_count && v.runs[run].last < step) ++run;
+      REQUIRE(run < v.run_count);
+      const StrStepVector& r = v.runs[run];
+      REQUIRE(asked.size() == r.count);
+      for (std::size_t i = 0; i < asked.size(); ++i) {
+        INFO("event " << i);
+        const StrEventVector& want = v.events[r.offset + i];
+        CHECK(asked[i] == std::array<std::uint32_t, 5>{want.kind, want.a, want.b, want.c, want.d});
+      }
+      if (!alive) break;
+    }
+    CHECK(alive == (v.ended == 0));
+  }
 }

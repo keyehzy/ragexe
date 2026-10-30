@@ -1717,13 +1717,16 @@ as the bands' (`PrimBand`):
   [pyramids and spheres](#pyramids-and-spheres) and the two of
   [ribbons, the tube and panels](#ribbons-the-tube-and-panels) (`AddPanels` for five
   ids);
+- `ProcessStrEffect` for the 97 cases that only play their `.str`, and `AdvanceStr` and
+  `ResetStr` through an effect's `EffectStr` ([effect.md](effect.md#which-cases-play-their-str));
 - `EffectWorld`, the world's list as effects use it:
   - `Launch` adds an effect;
   - `Step` runs a world step in the list's order;
   - `Draw` gives the primitives' triangles and quads;
   - `SetParticle`, `SetSprite`, `SetMinimal` and `SetPlayer` give it the sprites effects
     load by name (`kParticleSprite` and `kEffectSprites`), the minimal flag and where the
-    player stands; `SetPlayerId` and `SetActor` the actors an id names, for the tube.
+    player stands; `SetPlayerId` and `SetActor` the actors an id names, for the tube;
+  - `TakeMessages` gives the messages effects have sent the game mode (`ModeMessage`).
 
 **`src/core/angles`:** `DegreesToRadians`.
 
@@ -1731,8 +1734,8 @@ as the bands' (`PrimBand`):
 `RoundedProduct`, a float times a double rounded once to single
 precision, shared with the `.str` player.
 
-**`ragview --effect-id ID`** plays the id's `.str` ([gpu.md](gpu.md)), and launches the id
-again when its effect and primitives are done. `--minimal-effects` picks the `_min` files,
+**`ragview --effect-id ID`** plays the id's `.str` as its case does ([gpu.md](gpu.md)), and
+launches the id again when its effect and primitives are done. `--minimal-effects` picks the `_min` files,
 and `--effect-level N` gives the effect a level (0 by default), which the arrows and blitz
 beat count by. The effects thrown at a target aim 50 out either way along the ground. The
 installed 2003 data lacks many of the effects' textures, and ragview draws those blank:
@@ -1901,10 +1904,23 @@ for git:
   - the player's id written at `g_ClientState+0xcdc`;
   - `CWorld::GetActorById` answering one other actor;
   - 0xe8 run to the player, to that actor and to no one.
+- **Concentration's other columns** (0xda, 0xdb and 0xdd), 70 steps each, as for the
+  crossed-quad effects.
+- **Every case that only plays its `.str`**, and the ten ported before that step a `.str`
+  or send the game mode messages (0xd, 0x28, 0x4f, 0x56, 0x59, 0x8e, 0xaa, 0xdc, 0xf8 and
+  0x13b), twice each, for up to 2600 steps:
+  - `AdvanceStr` answering false to every seventh call (a `.str` that ends there), then
+    never;
+  - each step, `AdvanceStr`'s offsets and answer, the real `ResetStr` on a stand-in `.str`
+    header (three layers), and the messages the game mode's vf05 gets (`C3dGround::vf03`,
+    an empty function of four arguments, standing in), with the three floats of 0x94;
+  - the frame and duration wherever they move other than by a step;
+  - `g_ModeSwitcher+4` set to the game mode, which 0x127 and 0x128 read straight.
 
-`tests/unit/prim_test.cpp` matches all of it: 5,745,547 values, the CRT's first `rand` values
+`tests/unit/prim_test.cpp` matches all of it: 6,802,902 values, the CRT's first `rand` values
 among them.
 
 **Not ported:**
-- the other effects' processing;
-- the sounds.
+- the 40 cases of `CRagEffect::vf01` that add primitives of their own and are not yet
+  ported ([effect.md](effect.md#which-cases-play-their-str));
+- the sounds, the view's shake and the jokes.

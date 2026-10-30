@@ -2490,9 +2490,24 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Checks:** 28 synthetic primitives and 8 effect runs; 5,745,547 values in
     `prim_test`.
 
+- [x] The cases that only play their `.str` (`docs/render/effect.md#which-cases-play-their-str`):
+  - **97 cases of `CRagEffect::vf01`:** `ProcessGenericType` and the 40 functions like it
+    after their sounds, the potions' and three more of vf01's own, 0xfb 20 up, 0x82 and
+    0xfa lasting 9999 steps, 0x85 and 0x86, 0x91 starting its `.str` again, 0x69, 0x12d
+    and the jokes with none, and Concentration's other three columns.
+  - **`AdvanceStr` and `ResetStr`** through an effect's `EffectStr`, false without one;
+    the ten cases ported before that step a `.str` now call it too. ragview plays the
+    launched effect's `.str` through it.
+  - **Messages to the game mode** (`CGameMode::SendMsg`): the view's shake, its amplitudes
+    and the jokes, which `EffectWorld` keeps.
+  - **Checks:** each of those cases and the ten twice, `AdvanceStr` answered as a `.str`
+    that ends and one that does not; Concentration's columns; 6,802,902 values in
+    `prim_test`.
+
 ### Next actions
-1. M4, the renderer: the 137 cases of `CRagEffect::vf01` not yet ported, now that every
-   primitive id is: sort out those that only play their `.str` (or nothing), then port
-   the rest in groups as before.
+1. M4, the renderer: the 40 cases of `CRagEffect::vf01` left, which add primitives of
+   their own (0x3 to 0x6, 0xa, 0xb, 0x12, 0x14 and 0x7d, 0x15, 0x16, 0x18, 0x20 to 0x22,
+   0x27, 0x2c to 0x2f, 0x32, 0x33, 0x35 to 0x37, 0x39, 0x50, 0x51, 0x78, 0x7a, 0x88, 0x8a,
+   0x8c, 0xa4 to 0xa6, 0xab, 0xd4, 0x14e and 0x151), in groups as before.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.
