@@ -7747,6 +7747,159 @@ void AddWanderingSpark(RagEffect& effect, const PrimSprite& particle, core::CrtR
   added.push_back(std::move(p));
 }
 
+namespace {
+
+// The actor's point on screen as 0x4 and 0x5 write the projection out: (x × the scale) × 1/z.
+void PlaceOnScreenCoordinateFirst(RagEffect& effect, const EffectActor& actor,
+                                  const PrimScene& scene) {
+  const Vec3 v = ClampNear(TransformPoint(scene.view, actor.position));
+  const float inverse = 1.0f / v[2];
+  effect.screen_x =
+      ((v[0] * scene.projection.scale_x) * inverse) + static_cast<float>(scene.projection.origin_x);
+  effect.screen_y =
+      ((v[1] * scene.projection.scale_y) * inverse) + static_cast<float>(scene.projection.origin_y);
+}
+
+}  // namespace
+
+void AddHitCross(RagEffect& effect, const EffectActor& actor, const PrimScene& scene, bool wide,
+                 core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  PlaceOnScreenCoordinateFirst(effect, actor, scene);
+  if (effect.frame != 0) return;
+  // effect\EF_hit5.wav (0x4) or EF_hit6.wav (0x5) plays here.
+  const auto first = static_cast<float>(rand.Next() % 360);
+  const std::array<float, 2> angles = {first, static_cast<float>(Ftol(first) + 90)};
+  for (const float angle : angles) {
+    EffectPrim p = MakePrimitive(&effect, 0, {0.0f, 0.0f, 0.0f});
+    p.life = 17;
+    p.offset[1] = -20.0f;
+    p.angle = static_cast<float>(Ftol(angle));
+    p.spin = -5.0f;
+    p.spin_rate = (p.spin / static_cast<float>(p.life)) * kEaseOut;
+    p.width = static_cast<float>(rand.Next() % 5 + (wide ? 20 : 10));
+    p.height = static_cast<float>(wide ? rand.Next() % 10 + 30 : rand.Next() % 5 + 15);
+    p.width_speed = -(p.width / static_cast<float>(p.life));
+    p.height_speed = wide ? 2.5f : std::bit_cast<float>(0x3fd9999au);  // 1.7
+    p.height_rate = 0.5f;
+    p.fade_at = p.life - p.life / 2;
+    p.textures = {"effect\\lens2.tga"};
+    added.push_back(std::move(p));
+  }
+}
+
+void AddEndure(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+               core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  PlaceOnScreen(effect, actor, scene, false);
+  if (effect.frame == 0) {
+    // effect\EF_Endure.wav plays here.
+    EffectPrim p = MakePrimitive(&effect, 0, {0.0f, 0.0f, 0.0f});
+    p.life = effect.duration;
+    p.flags |= EffectPrim::kStopGrowth;
+    p.offset[1] = -20.0f;
+    p.width = 150.0f;
+    p.height = 150.0f;
+    p.width_speed = -5.0f;
+    p.height_speed = -5.0f;
+    p.period = p.life - 35;
+    p.width_rate = -(p.width_speed / static_cast<float>(p.period));
+    p.height_rate = -(p.height_speed / static_cast<float>(p.period));
+    p.alpha = 0.0f;
+    p.alpha_speed = p.alpha_max * kTwentieth;
+    p.fade_at = p.life - p.life / 3;
+    p.textures = {"effect\\endure.tga"};
+    added.push_back(std::move(p));
+  }
+  if (effect.frame >= 50) return;
+  EffectPrim p = MakePrimitive(&effect, 0, {0.0f, 0.0f, 0.0f});
+  p.life = 40;
+  p.angle = static_cast<float>(rand.Next() % 360);
+  p.heading = p.angle;
+  p.speed = -4.0f;
+  p.acceleration = -(p.speed / static_cast<float>(p.life));
+  p.width = static_cast<float>(rand.Next() % 100 + 60) * kHundredth;
+  p.height = static_cast<float>(rand.Next() % 20 + 30);
+  p.alpha = 0.0f;
+  p.alpha_speed = p.alpha_max * kTwentieth;
+  p.fade_at = p.life - p.life / 3;
+  // 100 to 139 out from the actor at the heading, and 20 up.
+  const auto out = static_cast<float>(rand.Next() % 40 + 100);
+  p.offset[0] = core::SinDegrees(Ftol(p.heading)) * out;
+  p.offset[1] = -(core::CosDegrees(Ftol(p.heading)) * out);
+  p.offset[1] = p.offset[1] - 20.0f;
+  p.textures = {"effect\\alpha_down.tga"};
+  added.push_back(std::move(p));
+}
+
+void AddNapalmBeat(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+                   core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  PlaceOnScreen(effect, actor, scene, false, true);
+  if (effect.frame >= 15) return;
+  // effect\EF_NapalmBeat.wav plays on the first frame.
+  EffectPrim p = MakePrimitive(&effect, 0, {0.0f, 0.0f, 0.0f});
+  p.life = 30;
+  // 10 to 59 out at a random angle, and 20 up.
+  const auto out = static_cast<float>(rand.Next() % 50 + 10);
+  const std::int32_t angle = rand.Next() % 360;
+  p.offset[0] = core::SinDegrees(angle) * out;
+  p.offset[1] = -(core::CosDegrees(angle) * out);
+  p.offset[1] = p.offset[1] - 20.0f;
+  p.height = static_cast<float>(rand.Next() % 40 + 20);
+  p.width = p.height;
+  p.alpha = 0.0f;
+  p.alpha_speed = p.alpha_max * std::bit_cast<float>(0x3dcccccdu);  // 0.1
+  p.fade_at = p.life - p.life / 3;
+  p.image_loop = false;
+  p.image_delay = 2;
+  // effect\폭발1.TGA to 8 ("explosion").
+  p.image_count = 8;
+  p.textures.clear();
+  for (std::int32_t n = 1; n <= p.image_count; ++n)
+    p.textures.push_back("effect\\\306\370\271\337" + std::to_string(n) + ".TGA");
+  added.push_back(std::move(p));
+}
+
+void AddSandStorm(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+                  core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  PlaceOnScreen(effect, actor, scene, false);
+  if (effect.frame >= 60 || effect.frame % 2 != 0) return;
+  EffectPrim p = MakePrimitive(&effect, 0, {0.0f, 0.0f, 0.0f});
+  p.flags = EffectPrim::kWander;
+  p.life = effect.duration - rand.Next() % 100;
+  p.speed = static_cast<float>(rand.Next() % 300 + 260) * kHundredth;
+  p.heading = static_cast<float>(rand.Next() % 15 + 130);
+  p.width = 30.0f;
+  p.height = 30.0f;
+  // From -500 to 139 across and -240 to -191 up from the actor.
+  p.offset[0] = static_cast<float>(rand.Next() % 640 - 500);
+  p.offset[1] = static_cast<float>(rand.Next() % 50 - 240);
+  p.period = rand.Next() % 10 + 10;
+  p.alpha = 128.0f;
+  p.fade_at = p.life - p.life / 3;
+  p.image_count = 1;
+  p.textures = {"effect\\sand1.bmp"};
+  added.push_back(std::move(p));
+}
+
+void AddFireRing(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+                 core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  PlaceOnScreen(effect, actor, scene, true, true);
+  const std::int32_t angle = rand.Next() % 360;
+  if (effect.frame != 0) return;
+  EffectPrim p = MakePrimitive(&effect, 0, {0.0f, 0.0f, 0.0f});
+  p.life = 30;
+  p.offset[1] = -20.0f;
+  p.width = 10.0f;
+  p.height = 10.0f;
+  p.width_speed = std::bit_cast<float>(0x40b66666u);  // 5.7
+  p.height_speed = std::bit_cast<float>(0x40b66666u);
+  p.angle = static_cast<float>(angle);
+  p.spin = -18.0f;
+  p.spin_rate = (p.spin / static_cast<float>(p.life)) * std::bit_cast<float>(0xbecccccdu);  // -0.4
+  p.fade_at = p.life - p.life / 2;
+  p.textures = {"effect\\FireRing.tga"};
+  added.push_back(std::move(p));
+}
+
 bool AdvanceStr(RagEffect& effect, const EffectActor& actor, float x, float y, float z) {
   return effect.str != nullptr && effect.str->Advance(effect, actor.position, x, y, z);
 }
@@ -8144,6 +8297,12 @@ void EffectWorld::Step(const PrimScene& world_scene) {
         case 0x36: AddSpellCircle(e, it->actor, "effect\\ring_blue.tga", 2, added); break;
         case 0x37: AddSpellCircle(e, it->actor, "effect\\ring_yellow.tga", 1, added); break;
         case 0x39: AddSpellCircle(e, it->actor, "effect\\ring_yellow.tga", 0, added); break;
+        case 4:
+        case 5: AddHitCross(e, it->actor, scene, e.id == 4, rand_, added); break;
+        case 0xb: AddEndure(e, it->actor, scene, rand_, added); break;
+        case 0x20: AddNapalmBeat(e, it->actor, scene, rand_, added); break;
+        case 0x2e: AddSandStorm(e, it->actor, scene, rand_, added); break;
+        case 0x32: AddFireRing(e, it->actor, scene, rand_, added); break;
         case 0x2f: AddTorch(e, it->actor, Sprite(kEffectSprites[12]), added); break;
         case 0x27: AddHolyWater(e, it->actor, Sprite(kEffectSprites[13]), added); break;
         case 0x35: AddPoisonHit(e, Sprite(kEffectSprites[14]), added); break;

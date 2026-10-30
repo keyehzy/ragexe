@@ -5288,8 +5288,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00551050	90	code	0	render		named	SceneRenderer	ProjectPoint	
 005510b0	1573	code	0	world		named	CRagEffect	ProcessHit3	
 005516e0	1293	code	0	world		named	CRagEffect	method_005516e0	
-00551bf0	660	code	0	world		named	CRagEffect	method_00551bf0	
-00551e90	660	code	0	world		named	CRagEffect	method_00551e90	
+00551bf0	660	code	0	world		named	CRagEffect	AddHitCross	
+00551e90	660	code	0	world		named	CRagEffect	AddSmallHitCross	
 00552130	742	code	0	world		named	CRagEffect	AddTwinCylinders	
 00552420	768	code	0	world		named	CRagEffect	AddHealingColumn	
 00552720	861	code	0	world		named	CRagEffect	AddSparkRipples	
@@ -5311,7 +5311,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00555ab0	954	code	0	world		named	CRagEffect	AddDetoxBubbles	
 00555e70	412	code	0	world		named	CRagEffect	AddChimneySmoke	
 00556010	840	code	0	world		named	CRagEffect	AddWanderingSpark	
-00556360	635	code	0	world		named	CRagEffect	method_00556360	
+00556360	635	code	0	world		named	CRagEffect	AddSandStorm	
 005565e0	299	code	0	world		named	CRagEffect	AddTorch	
 00556710	1162	code	0	world		named	CRagEffect	AddPondRing	
 00556ba0	362	code	0	world		named	CRagEffect	AddChristmas	
@@ -5319,7 +5319,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00557140	1216	code	0	world		named	CRagEffect	AddRain	
 00557600	580	code	0	world		named	CRagEffect	AddSnowfall	
 00557850	690	code	0	world		named	CRagEffect	method_00557850	
-00557b10	1099	code	0	world		named	CRagEffect	method_00557b10	
+00557b10	1099	code	0	world		named	CRagEffect	AddEndure	
 00557f60	781	code	0	world		named	CRagEffect	AddSightShadows	
 00558270	20	code	0	world		named	CRagEffect	ProcessType17	
 00558290	616	code	0	world		named	CRagEffect	AddFireballs	
@@ -5330,7 +5330,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005590f0	20	code	0	world		named	CRagEffect	ProcessType1D	
 00559110	104	code	0	world		named	CRagEffect	ProcessThunderStorm	
 00559180	1819	code	0	world		named	CRagEffect	AddFireArrows	
-005598a0	759	code	0	world		named	CRagEffect	method_005598a0	
+005598a0	759	code	0	world		named	CRagEffect	AddNapalmBeat	
 00559ba0	595	code	0	world		named	CRagEffect	AddWhirlingShadows	
 00559e00	338	code	0	world		named	CRagEffect	AddWarpColumn	
 00559f60	407	code	0	world		named	CRagEffect	AddReadyPortalRipple	
@@ -5338,7 +5338,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0055a4a0	998	code	0	world		named	CRagEffect	AddIncAgility	
 0055a890	1019	code	0	world		named	CRagEffect	AddDecAgility	
 0055ac90	275	code	0	world		named	CRagEffect	AddHolyWater	
-0055adb0	552	code	0	world		named	CRagEffect	method_0055adb0	
+0055adb0	552	code	0	world		named	CRagEffect	AddFireRing	
 0055afe0	1305	code	0	world		named	CRagEffect	method_0055afe0	
 0055b500	204	code	0	world		named	CRagEffect	AddPoisonHit	
 0055b5d0	877	code	0	world		named	CRagEffect	AddLockOn	

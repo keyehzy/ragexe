@@ -237,6 +237,7 @@ struct StrEffectVector {
 #include "prim_vectors/flights.inc"
 #include "prim_vectors/motes.inc"
 #include "prim_vectors/particles.inc"
+#include "prim_vectors/rays.inc"
 #include "prim_vectors/ribbons.inc"
 #include "prim_vectors/rings.inc"
 #include "prim_vectors/screens.inc"
@@ -1916,6 +1917,10 @@ TEST_CASE("The particle effects of their own sprites play as the original's", "[
 
 TEST_CASE("The other particle effects play as the original's", "[effect]") {
   CheckTargetEffects(kOtherParticleEffects, StateOfFlightEffect, true, true, {}, 3);
+}
+
+TEST_CASE("The ray effects play as the original's", "[effect]") {
+  CheckTargetEffects(kRayEffects, StateOf, false, true);
 }
 
 TEST_CASE("Concentration's other columns play as the original's", "[effect]") {

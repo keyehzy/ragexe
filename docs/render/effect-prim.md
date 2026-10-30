@@ -1728,6 +1728,29 @@ of sprites each `이팩트\` and a name (`.spr` and `.act`), or `Shadow`. None o
 when below 0 and 1. Nothing else writes them, and the constructor leaves them, so they
 are 1 in effect (the oracle's heap starts zeroed).
 
+## More rays
+
+Six more cases add rays and diamonds on screen (id 0,
+[`CEffectPrim`, ids 0 to 2](#primitives)), each drawn from the effect's point on screen
+(+0xdc, +0xe0), which each case works out every step with `CView`'s matrix and the
+near plane at 10 (`TransformPoint`), in an order of its own:
+
+| Order | Effect ids |
+|-------|-----------|
+| (x × scale) × 1/z, written out | 0x4, 0x5 |
+| (1/z × x) × scale, as `SceneRenderer::ProjectPoint` | 0xb, 0x2e |
+| (1/z × scale) × x, written out | 0x20, and 0x32 with the transform's sums from z |
+
+y is (y × scale) × 1/z for all of them. None of the ids has a `.str`.
+
+| Effect ids | Function | What |
+|-----------|----------|------|
+| 0x4, 0x5 | `AddHitCross` (`00551bf0`, `00551e90`) | on the first frame `EF_hit5.wav` or `EF_hit6.wav` and two rays of `lens2.tga` a quarter turn apart at a random angle, 17 steps, 20 up, spinning −5 slowing by 2/3, 20 to 24 (10 to 14) wide narrowing to nothing, 30 to 39 (15 to 19) long growing at 2.5 (1.7) and 0.5 faster each step, out over the second half |
+| 0xb | `AddEndure` (`00557b10`) | on the first frame `EF_Endure.wav` and a diamond of `endure.tga` as long as the effect, 20 up, 150 across shrinking by 5 less 5/(life − 35) each step until life − 35 (flag 2), fading in by a twentieth of 254 and out over the last third; then until frame 50 a ray of `alpha_down.tga` each step, 40 steps, at a random angle 100 to 139 out and 20 up, closing in at 4 and slowing to nothing, 0.6 to 1.59 wide, 30 to 49 long |
+| 0x20 | `AddNapalmBeat` (`005598a0`) | until frame 15 each step a diamond of `effect\폭발1.TGA` to `8` ("explosion"), 30 steps, two steps an image played once, 10 to 59 out at a random angle and 20 up, 20 to 59 across, fading in by a tenth of 254 and out over the last third; `EF_NapalmBeat.wav` on the first frame |
+| 0x2e | `AddSandStorm` (`00556360`) | until frame 60 every other frame a diamond of `sand1.bmp`, wandering (flag 8) every 10 to 19 steps, the effect's duration less up to 99 steps, 2.6 to 5.59 a step at a heading 130 to 144, 30 across, −500 to 139 across and 191 to 240 up from the actor, alpha 128, out over the last third |
+| 0x32 | `AddFireRing` (`0055adb0`) | a `rand()` every step; on the first frame a diamond of `FireRing.tga` at that angle, 30 steps, 20 up, 10 across growing by 5.7, spinning −18 slowing by 0.4, out over the second half |
+
 ## In the port
 
 **`src/core/crt_rand`:** `CrtRand`, `srand` and `rand`.
@@ -1762,7 +1785,8 @@ are 1 in effect (the oracle's heap starts zeroed).
   [ribbons, the tube and panels](#ribbons-the-tube-and-panels) (`AddPanels` for five
   ids), the six of [more cylinders](#more-cylinders) and the eight of
   [more particles](#more-particles) (`AddChimneySmoke` and `AddRisingBubbles` for two ids
-  each, `AddPoisonBubbles` for three) and its six others;
+  each, `AddPoisonBubbles` for three) and its six others, and the five of
+  [more rays](#more-rays) (`AddHitCross` for two ids);
 - `ProcessStrEffect` for the 97 cases that only play their `.str`, and `AdvanceStr` and
   `ResetStr` through an effect's `EffectStr` ([effect.md](effect.md#which-cases-play-their-str));
 - `EffectWorld`, the world's list as effects use it:
@@ -1967,11 +1991,13 @@ for git:
 - **The twelve particle effects**, 0xa5 four times and 0x2c twice, as for the crossed-quad
   effects, the stand-in act's actions three times over (six) for 0xa5's picks; then the six
   others, 0x18 and 0x50 twice, the same way.
+- **The six ray effects**, each twice, as for the crossed-quad effects, their primitives
+  checked as the synthetic ones.
 
-`tests/unit/prim_test.cpp` matches all of it: 7,273,751 values, the CRT's first `rand` values
+`tests/unit/prim_test.cpp` matches all of it: 7,420,761 values, the CRT's first `rand` values
 among them.
 
 **Not ported:**
-- the 14 cases of `CRagEffect::vf01` that add primitives of their own and are not yet
+- the 8 cases of `CRagEffect::vf01` that add primitives of their own and are not yet
   ported ([effect.md](effect.md#which-cases-play-their-str));
 - the sounds, the view's shake and the jokes.

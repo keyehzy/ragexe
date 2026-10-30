@@ -978,6 +978,21 @@ void AddSightShadows(RagEffect& effect, const EffectActor& actor, const PrimScen
 void AddWanderingSpark(RagEffect& effect, const PrimSprite& particle, core::CrtRand& rand,
                        std::vector<EffectPrim>& added);
 
+// Rays and diamonds on screen (ids 0 to 2; docs/render/effect-prim.md#more-rays): AddHitCross
+// (00551bf0 and 00551e90), 0x4 and 0x5; AddEndure (00557b10), 0xb; AddNapalmBeat (005598a0),
+// 0x20; AddSandStorm (00556360), 0x2e; AddFireRing (0055adb0), 0x32. Each also works out the
+// actor's point on screen every step, in its own order.
+void AddHitCross(RagEffect& effect, const EffectActor& actor, const PrimScene& scene, bool wide,
+                 core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddEndure(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+               core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddNapalmBeat(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+                   core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddSandStorm(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+                  core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddFireRing(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+                 core::CrtRand& rand, std::vector<EffectPrim>& added);
+
 // CRagEffect::AdvanceStr (0054fba0): false without a .str, else the .str's step.
 bool AdvanceStr(RagEffect& effect, const EffectActor& actor, float x, float y, float z);
 // CRagEffect::ResetStr (0054fb40): the frame back to 0 and the .str to its start.
