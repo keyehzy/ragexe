@@ -62,8 +62,20 @@ A box is separated on an axis when its reach falls short of the distance between
 centres (or the comparison is unordered).
 
 **Later models.** `LazyModelLoadThread` places the models farther than 200 from the
-player. `CWorld::UpdateGameObjects` then inserts them, so they reach the leaves after the
-first ones. ragview places every model before building the tree.
+player, and `AddLoadedModel` (`004c5030`) counts each at +0x58. `CWorld::UpdateGameObjects`
+(`004c4a10`) then inserts them with `InsertModel`, into the tree as `BuildSceneGraph` left
+it:
+- **A leaf's box** by then has the height its first models and cells gave it, or the
+  `.rsw`'s bounds, so a later model can miss a leaf it would have reached in a tree
+  still ±999,999 tall.
+- **The leaves it reaches** and their ancestors are left dirty.
+
+`LoadWorldScene` does the same: it builds the tree from the near models, then inserts the
+rest (`InsertLateModel`).
+
+**When `CreateThread` fails,** `LoadWorld` runs `LazyModelLoadThread` itself and then
+`JoinModelLoadThread` (`004c5200`), which sets the count at +0x58 to 0 (`004c5255`). The
+later models are then never inserted, and the world draws without them.
 
 ## The frustum
 
@@ -183,7 +195,9 @@ original, an 80 × 64 attribute map and 30 model stand-ins.
     `PickCell`'s answer and cell;
   - 500 calls to `HitsBox`, including rays along an axis, from inside the box, from a face
     and at exactly the parallel limit;
-  - 500 calls to `RayIntersectsTriangle` and 400 to `IntersectCellRay`, some off the map.
+  - 500 calls to `RayIntersectsTriangle` and 400 to `IntersectCellRay`, some off the map;
+- `BuildSceneGraph` from the heights and with copied bounds on the first 20 models, then the
+  other 10 inserted as `UpdateGameObjects` inserts them: every node again.
 
 The port matches every value (`tests/unit/scene_graph_test.cpp`). The drawing order is
 ported from `vf03` without a vector of its own.

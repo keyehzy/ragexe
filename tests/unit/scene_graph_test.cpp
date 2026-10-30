@@ -4,6 +4,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <cstddef>
 #include <cstdint>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -153,6 +154,22 @@ void CheckGraph(const SceneGraph& graph, const SceneNodeVector* want, const std:
   }
 }
 
+// The bounds tree tools/scene_graph_vectors.py gives BuildSceneGraph to copy.
+std::vector<ragexe::res::WorldBounds> SourceBounds() {
+  std::vector<ragexe::res::WorldBounds> bounds(1365);
+  for (std::size_t k = 0; k < bounds.size(); ++k) {
+    const auto node = static_cast<std::int32_t>(k);
+    for (std::size_t i = 0; i < 3; ++i) {
+      const auto at = static_cast<std::int32_t>(i);
+      bounds[k].min[i] = SourceBound(node, at);
+      bounds[k].max[i] = SourceBound(node, at + 3);
+      bounds[k].centre[i] = SourceBound(node, at + 6);
+      bounds[k].half_extent[i] = SourceBound(node, at + 9);
+    }
+  }
+  return bounds;
+}
+
 }  // namespace
 
 TEST_CASE("OrientedBoxIntersectsBox separates boxes as the original does", "[scene_graph]") {
@@ -176,20 +193,31 @@ TEST_CASE("BuildSceneGraph fills the tree as the original does", "[scene_graph]"
     CheckGraph(graph, kSceneNodes0, kSceneMembers0);
   }
   SECTION("copying a version 2.1 world's bounds") {
-    std::vector<ragexe::res::WorldBounds> bounds(1365);
-    for (std::size_t k = 0; k < bounds.size(); ++k) {
-      const auto node = static_cast<std::int32_t>(k);
-      for (std::size_t i = 0; i < 3; ++i) {
-        const auto at = static_cast<std::int32_t>(i);
-        bounds[k].min[i] = SourceBound(node, at);
-        bounds[k].max[i] = SourceBound(node, at + 3);
-        bounds[k].centre[i] = SourceBound(node, at + 6);
-        bounds[k].half_extent[i] = SourceBound(node, at + 9);
-      }
-    }
     SceneGraph graph;
-    BuildSceneGraph(s.ground, s.attr, s.models, bounds, graph);
+    BuildSceneGraph(s.ground, s.attr, s.models, SourceBounds(), graph);
     CheckGraph(graph, kSceneNodes1, kSceneMembers1);
+  }
+}
+
+TEST_CASE("Models inserted after BuildSceneGraph go where the original puts them",
+          "[scene_graph]") {
+  const Scene s = MakeScene();
+  const std::span<const ModelInstance> first = std::span(s.models).first(kLateFrom);
+  const auto insert_rest = [&](SceneGraph& graph) {
+    for (std::size_t m = kLateFrom; m < s.models.size(); ++m)
+      InsertLateModel(graph, s.models[m], static_cast<int>(m));
+  };
+  SECTION("from the heights") {
+    SceneGraph graph;
+    BuildSceneGraph(s.ground, s.attr, first, {}, graph);
+    insert_rest(graph);
+    CheckGraph(graph, kLateNodes0, kLateMembers0);
+  }
+  SECTION("copying a version 2.1 world's bounds") {
+    SceneGraph graph;
+    BuildSceneGraph(s.ground, s.attr, first, SourceBounds(), graph);
+    insert_rest(graph);
+    CheckGraph(graph, kLateNodes1, kLateMembers1);
   }
 }
 

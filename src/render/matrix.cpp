@@ -1,6 +1,7 @@
 #include "render/matrix.h"
 
 #include <cmath>
+#include <cstddef>
 
 namespace ragexe::render {
 
@@ -8,7 +9,8 @@ float SinFloat(float radians) { return static_cast<float>(std::sin(static_cast<d
 
 float CosFloat(float radians) { return static_cast<float>(std::cos(static_cast<double>(radians))); }
 
-float SqrtFloat(float value) { return std::sqrt(value); }
+// fsqrt gives the real indefinite for a negative number (core::X87).
+float SqrtFloat(float value) { return static_cast<float>(Sqrt(core::X87<float>(value))); }
 
 Matrix MakeRotationX(float radians) {
   Matrix m = kIdentity;
@@ -59,54 +61,122 @@ Matrix MakeScale(const Vec3& s) {
   return m;
 }
 
-Matrix MakeRotationFromKey(const std::array<float, 4>& q) {
-  const float x2 = q[0] + q[0];
-  const float y2 = q[1] + q[1];
-  const float z2 = q[2] + q[2];
-  const float wx = x2 * q[3];
-  const float wy = y2 * q[3];
-  const float wz = z2 * q[3];
-  const float xx = x2 * q[0];
-  const float xy = y2 * q[0];
-  const float xz = z2 * q[0];
-  const float yy = y2 * q[1];
-  const float yz = z2 * q[1];
-  const float zz = z2 * q[2];
-  Matrix m{};
-  m[0] = 1.0f - (zz + yy);
-  m[1] = xy + wz;
-  m[2] = xz - wy;
-  m[3] = xy - wz;
-  m[4] = 1.0f - (zz + xx);
-  m[5] = yz + wx;
-  m[6] = xz + wy;
-  m[7] = yz - wx;
-  m[8] = 1.0f - (yy + xx);
-  return m;
-}
+namespace {
 
-Matrix Multiply(const Matrix& a, const Matrix& b) {
-  Matrix r{};
-  r[0] = ((a[0] * b[0]) + (a[1] * b[3])) + (a[2] * b[6]);
-  r[3] = ((a[4] * b[3]) + (a[3] * b[0])) + (a[5] * b[6]);
-  r[6] = ((a[7] * b[3]) + (a[6] * b[0])) + (a[8] * b[6]);
-  r[9] = (((a[10] * b[3]) + (a[9] * b[0])) + (a[11] * b[6])) + b[9];
-  r[1] = ((a[1] * b[4]) + (a[2] * b[7])) + (a[0] * b[1]);
-  r[4] = ((a[5] * b[7]) + (a[4] * b[4])) + (a[3] * b[1]);
-  r[7] = ((a[8] * b[7]) + (a[7] * b[4])) + (a[6] * b[1]);
-  r[10] = (((a[11] * b[7]) + (a[10] * b[4])) + (a[9] * b[1])) + b[10];
-  r[2] = ((a[2] * b[8]) + (a[0] * b[2])) + (a[1] * b[5]);
-  r[5] = ((a[5] * b[8]) + (a[4] * b[5])) + (a[3] * b[2]);
-  r[8] = ((a[8] * b[8]) + (a[7] * b[5])) + (a[6] * b[2]);
-  r[11] = (((a[11] * b[8]) + (a[10] * b[5])) + (a[9] * b[2])) + b[11];
+// T is the x87's value at the thread's precision control: core::X87<float> under single
+// precision, core::X87<double> under double.
+template <typename T>
+std::array<T, 12> Widen(const Matrix& m) {
+  std::array<T, 12> r{};
+  for (std::size_t i = 0; i < 12; ++i) r[i] = static_cast<T>(m[i]);
   return r;
 }
 
-Matrix RotateX(const Matrix& m, float radians) { return Multiply(m, MakeRotationX(radians)); }
-Matrix RotateY(const Matrix& m, float radians) { return Multiply(m, MakeRotationY(radians)); }
-Matrix RotateZ(const Matrix& m, float radians) { return Multiply(m, MakeRotationZ(radians)); }
-Matrix Translate(const Matrix& m, const Vec3& t) { return Multiply(m, MakeTranslation(t)); }
-Matrix Scale(const Matrix& m, const Vec3& s) { return Multiply(m, MakeScale(s)); }
+template <typename T>
+float Store(T v) {
+  return static_cast<float>(v);
+}
+
+template <typename T>
+Matrix MakeRotationFromKeyAs(const std::array<float, 4>& key) {
+  const T q0 = key[0], q1 = key[1], q2 = key[2], q3 = key[3];
+  const T x2 = q0 + q0;
+  const float y2 = Store(q1 + q1);
+  const float z2 = Store(q2 + q2);
+  const float wx = Store(x2 * q3);
+  const float wy = Store(y2 * q3);
+  const float wz = Store(z2 * q3);
+  const T xx = x2 * q0;
+  const T xy = y2 * q0;
+  const float xz = Store(z2 * q0);
+  const float yy = Store(y2 * q1);
+  const float yz = Store(z2 * q1);
+  const T zz = z2 * q2;
+  const T one = 1;
+  Matrix m{};
+  m[0] = Store(one - (zz + yy));
+  m[1] = Store(xy + wz);
+  m[2] = Store(T{xz} - wy);
+  m[3] = Store(xy - wz);
+  m[4] = Store(one - (T{Store(zz)} + xx));
+  m[5] = Store(T{yz} + wx);
+  m[6] = Store(T{xz} + wy);
+  m[7] = Store(T{yz} - wx);
+  m[8] = Store(one - (T{yy} + xx));
+  return m;
+}
+
+template <typename T>
+Matrix MultiplyAs(const Matrix& left, const Matrix& right) {
+  const std::array<T, 12> a = Widen<T>(left);
+  const std::array<T, 12> b = Widen<T>(right);
+  Matrix r{};
+  r[0] = Store(((a[0] * b[0]) + (a[1] * b[3])) + (a[2] * b[6]));
+  r[3] = Store(((a[4] * b[3]) + (a[3] * b[0])) + (a[5] * b[6]));
+  r[6] = Store(((a[7] * b[3]) + (a[6] * b[0])) + (a[8] * b[6]));
+  r[9] = Store((((a[10] * b[3]) + (a[9] * b[0])) + (a[11] * b[6])) + b[9]);
+  r[1] = Store(((a[1] * b[4]) + (a[2] * b[7])) + (a[0] * b[1]));
+  r[4] = Store(((a[5] * b[7]) + (a[4] * b[4])) + (a[3] * b[1]));
+  r[7] = Store(((a[8] * b[7]) + (a[7] * b[4])) + (a[6] * b[1]));
+  r[10] = Store((((a[11] * b[7]) + (a[10] * b[4])) + (a[9] * b[1])) + b[10]);
+  r[2] = Store(((a[2] * b[8]) + (a[0] * b[2])) + (a[1] * b[5]));
+  r[5] = Store(((a[5] * b[8]) + (a[4] * b[5])) + (a[3] * b[2]));
+  r[8] = Store(((a[8] * b[8]) + (a[7] * b[5])) + (a[6] * b[2]));
+  r[11] = Store((((a[11] * b[8]) + (a[10] * b[5])) + (a[9] * b[2])) + b[11]);
+  return r;
+}
+
+template <typename T>
+Matrix InvertAs(const Matrix& m) {
+  const std::array<T, 12> a = Widen<T>(m);
+  Matrix out{};
+  const T c0 = (a[4] * a[8]) - (a[7] * a[5]);
+  const T det = ((c0 * a[0]) - (((a[3] * a[8]) - (a[6] * a[5])) * a[1])) +
+                (((a[7] * a[3]) - (a[6] * a[4])) * a[2]);
+  const T inv = Store(T{1} / det);
+  out[0] = Store(c0 * inv);
+  out[1] = Store(-(((a[1] * a[8]) - (a[7] * a[2])) * inv));
+  out[2] = Store(((a[1] * a[5]) - (a[2] * a[4])) * inv);
+  out[3] = Store(-(((a[3] * a[8]) - (a[6] * a[5])) * inv));
+  out[4] = Store(((a[0] * a[8]) - (a[6] * a[2])) * inv);
+  out[5] = Store(-(((a[0] * a[5]) - (a[3] * a[2])) * inv));
+  out[6] = Store(((a[7] * a[3]) - (a[6] * a[4])) * inv);
+  out[7] = Store(-(((a[7] * a[0]) - (a[6] * a[1])) * inv));
+  out[8] = Store(((a[4] * a[0]) - (a[3] * a[1])) * inv);
+  const std::array<T, 12> r = Widen<T>(out);
+  out[9] = Store(-(((a[11] * r[6]) + (a[9] * r[0])) + (a[10] * r[3])));
+  out[10] = Store(-(((a[11] * r[7]) + (r[4] * a[10])) + (a[9] * r[1])));
+  out[11] = Store(-(((r[5] * a[10]) + (a[9] * r[2])) + (a[11] * r[8])));
+  return out;
+}
+
+}  // namespace
+
+Matrix MakeRotationFromKey(const std::array<float, 4>& q, core::FpuPrecision precision) {
+  return precision == core::FpuPrecision::kDouble ? MakeRotationFromKeyAs<core::X87<double>>(q)
+                                                  : MakeRotationFromKeyAs<core::X87<float>>(q);
+}
+
+Matrix Multiply(const Matrix& a, const Matrix& b, core::FpuPrecision precision) {
+  return precision == core::FpuPrecision::kDouble ? MultiplyAs<core::X87<double>>(a, b)
+                                                  : MultiplyAs<core::X87<float>>(a, b);
+}
+
+Matrix RotateX(const Matrix& m, float radians, core::FpuPrecision precision) {
+  return Multiply(m, MakeRotationX(radians), precision);
+}
+Matrix RotateY(const Matrix& m, float radians, core::FpuPrecision precision) {
+  return Multiply(m, MakeRotationY(radians), precision);
+}
+Matrix RotateZ(const Matrix& m, float radians, core::FpuPrecision precision) {
+  return Multiply(m, MakeRotationZ(radians), precision);
+}
+Matrix Translate(const Matrix& m, const Vec3& t, core::FpuPrecision precision) {
+  return Multiply(m, MakeTranslation(t), precision);
+}
+Matrix Scale(const Matrix& m, const Vec3& s, core::FpuPrecision precision) {
+  return Multiply(m, MakeScale(s), precision);
+}
 
 Matrix MakeLookAt(const Vec3& eye, const Vec3& target, const Vec3& up) {
   Matrix m = kIdentity;
@@ -139,25 +209,9 @@ Matrix MakeLookAt(const Vec3& eye, const Vec3& target, const Vec3& up) {
   return m;
 }
 
-Matrix Invert(const Matrix& a) {
-  Matrix r{};
-  const float c0 = (a[4] * a[8]) - (a[7] * a[5]);
-  const float det = ((c0 * a[0]) - (((a[3] * a[8]) - (a[6] * a[5])) * a[1])) +
-                    (((a[7] * a[3]) - (a[6] * a[4])) * a[2]);
-  const float inv = 1.0f / det;
-  r[0] = c0 * inv;
-  r[1] = -(((a[1] * a[8]) - (a[7] * a[2])) * inv);
-  r[2] = ((a[1] * a[5]) - (a[2] * a[4])) * inv;
-  r[3] = -(((a[3] * a[8]) - (a[6] * a[5])) * inv);
-  r[4] = ((a[0] * a[8]) - (a[6] * a[2])) * inv;
-  r[5] = -(((a[0] * a[5]) - (a[3] * a[2])) * inv);
-  r[6] = ((a[7] * a[3]) - (a[6] * a[4])) * inv;
-  r[7] = -(((a[7] * a[0]) - (a[6] * a[1])) * inv);
-  r[8] = ((a[4] * a[0]) - (a[3] * a[1])) * inv;
-  r[9] = -(((a[11] * r[6]) + (a[9] * r[0])) + (a[10] * r[3]));
-  r[10] = -(((a[11] * r[7]) + (r[4] * a[10])) + (a[9] * r[1]));
-  r[11] = -(((r[5] * a[10]) + (a[9] * r[2])) + (a[11] * r[8]));
-  return r;
+Matrix Invert(const Matrix& a, core::FpuPrecision precision) {
+  return precision == core::FpuPrecision::kDouble ? InvertAs<core::X87<double>>(a)
+                                                  : InvertAs<core::X87<float>>(a);
 }
 
 }  // namespace ragexe::render

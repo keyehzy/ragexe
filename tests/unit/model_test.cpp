@@ -62,6 +62,13 @@ std::array<std::int32_t, 3> CellColor(float x, float y, float z) {
           static_cast<std::int32_t>(std::bit_cast<std::uint32_t>(z) >> 5 & 0x7f)};
 }
 
+// The stand-in for the placements of kDoublePlacements: the points' last bits.
+std::array<std::int32_t, 3> LowCellColor(float x, float y, float z) {
+  return {static_cast<std::int32_t>(std::bit_cast<std::uint32_t>(x) & 0x3f),
+          static_cast<std::int32_t>(std::bit_cast<std::uint32_t>(y) & 0x3f),
+          static_cast<std::int32_t>(std::bit_cast<std::uint32_t>(z) & 0x3f)};
+}
+
 struct SingleNodeVector {
   const std::uint32_t* vertices;
   std::size_t vertex_count;
@@ -74,6 +81,22 @@ struct SingleLoadVector {
   const char* const* file;
   const SingleNodeVector* nodes;
   std::size_t node_count;
+};
+
+struct PlacementVector {
+  const char* const* file;
+  std::uint32_t placement[9];
+  int twice;  // at double precision
+  const std::uint32_t* instance;
+  const NodeVector* nodes;
+  std::size_t node_count;
+};
+
+struct CellCoordVector {
+  std::uint32_t x, z, cell;
+  std::int32_t width, height;
+  std::int32_t single[2];
+  std::int32_t twice[2];  // at double precision
 };
 
 #include "model_vectors.inc"
@@ -123,6 +146,49 @@ std::string FieldName(std::size_t i) {
   return "?";
 }
 
+// The instance's fields and nodes after Setup and Light against the original's.
+void CheckPlaced(const ModelInstance& instance, const std::uint32_t* want_fields,
+                 const NodeVector* want_nodes, std::size_t node_count) {
+  const std::vector<std::uint32_t> fields = InstanceFields(instance);
+  for (std::size_t i = 0; i < 73; ++i) {
+    INFO("instance value " << i << " (" << FieldName(i) << ")");
+    CHECK(fields[i] == want_fields[i]);
+  }
+  REQUIRE(instance.nodes.size() == node_count);
+  for (std::size_t n = 0; n < node_count; ++n) {
+    INFO("node " << n);
+    const ModelNodeInstance& node = instance.nodes[n];
+    const NodeVector& want = want_nodes[n];
+    CHECK(B(node.alpha) == want.alpha);
+    for (std::size_t i = 0; i < 12; ++i) {
+      INFO("matrix " << i);
+      CHECK(B(node.matrix[i]) == want.matrix[i]);
+    }
+    for (std::size_t i = 0; i < 6; ++i) {
+      INFO("box " << i);
+      CHECK(B(node.box[i]) == want.box[i]);
+    }
+    REQUIRE(node.faces.size() == want.faces);
+    for (std::size_t f = 0; f < want.faces; ++f) {
+      INFO("face " << f);
+      const std::uint32_t* shade = want.shades + f * 9;
+      for (std::size_t c = 0; c < 3; ++c) {
+        INFO("corner " << c);
+        CHECK(node.faces[f].colors[c] == shade[c]);
+        CHECK(B(node.faces[f].uv[c * 2]) == shade[3 + c * 2]);
+        CHECK(B(node.faces[f].uv[c * 2 + 1]) == shade[4 + c * 2]);
+      }
+      for (std::size_t k = 0; k < 9; ++k) CHECK(node.tint[f * 9 + k] == want.tint[f * 9 + k]);
+    }
+  }
+}
+
+GroundLight ModelLight() {
+  return {{F(kModelLight[0]), F(kModelLight[1]), F(kModelLight[2])},
+          {F(kModelLight[3]), F(kModelLight[4]), F(kModelLight[5])},
+          {F(kModelLight[6]), F(kModelLight[7]), F(kModelLight[8])}};
+}
+
 }  // namespace
 
 TEST_CASE("SlerpRotation interpolates rotation keys as the original does", "[model]") {
@@ -135,10 +201,67 @@ TEST_CASE("SlerpRotation interpolates rotation keys as the original does", "[mod
   }
 }
 
+TEST_CASE("SlerpRotation at double precision interpolates as the lazy loader does", "[model]") {
+  for (const SlerpVector& v : kDoubleSlerpVectors) {
+    const std::array<float, 4> a = {F(v.a[0]), F(v.a[1]), F(v.a[2]), F(v.a[3])};
+    const std::array<float, 4> b = {F(v.b[0]), F(v.b[1]), F(v.b[2]), F(v.b[3])};
+    INFO("t " << F(v.t));
+    const std::array<float, 4> got =
+        SlerpRotation(F(v.t), a, b, ragexe::core::FpuPrecision::kDouble);
+    for (std::size_t i = 0; i < 4; ++i) CHECK(B(got[i]) == v.result[i]);
+  }
+}
+
+TEST_CASE("GroundCellColor finds the cell under a point as the original does", "[model]") {
+  for (const CellCoordVector& v : kCellCoordVectors) {
+    INFO("x " << F(v.x) << " z " << F(v.z) << " cell " << F(v.cell));
+    GroundMesh ground;
+    ground.width = v.width;
+    ground.height = v.height;
+    ground.cell_size = F(v.cell);
+    const auto width = static_cast<std::size_t>(v.width);
+    ground.cells.resize(width * static_cast<std::size_t>(v.height));
+    for (std::size_t i = 0; i < ground.cells.size(); ++i)
+      ground.cells[i].lightmap_color = {static_cast<std::uint8_t>(i % width),
+                                        static_cast<std::uint8_t>(i / width), 7};
+    const auto expect = [&](const std::int32_t* cell) -> std::array<std::int32_t, 3> {
+      if (cell[0] < 0 || cell[1] < 0 || cell[0] >= v.width || cell[1] >= v.height)
+        return {0xff, 0xff, 0xff};
+      return {cell[0], cell[1], 7};
+    };
+    CHECK(GroundCellColor(ground, F(v.x), F(v.z), ragexe::core::FpuPrecision::kSingle) ==
+          expect(v.single));
+    CHECK(GroundCellColor(ground, F(v.x), F(v.z), ragexe::core::FpuPrecision::kDouble) ==
+          expect(v.twice));
+  }
+}
+
+TEST_CASE(
+    "Model instances at double precision are placed and lit as the lazy loader does, "
+    "degenerate ones at either precision",
+    "[model]") {
+  const GroundLight light = ModelLight();
+  std::size_t index = 0;
+  for (const PlacementVector& v : kDoublePlacements) {
+    INFO("placement " << index++);
+    const auto precision =
+        v.twice != 0 ? ragexe::core::FpuPrecision::kDouble : ragexe::core::FpuPrecision::kSingle;
+    ragexe::res::Model model;
+    std::string error;
+    const std::vector<std::uint8_t> file = FromHex(v.file);
+    REQUIRE(ragexe::res::DecodeModel(file, model, &error));
+    ModelInstance instance;
+    REQUIRE(CreateModelInstance(model, {F(v.placement[0]), F(v.placement[1]), F(v.placement[2])},
+                                {F(v.placement[3]), F(v.placement[4]), F(v.placement[5])},
+                                {F(v.placement[6]), F(v.placement[7]), F(v.placement[8])}, 0.0f,
+                                instance, precision));
+    LightModel(instance, light, LowCellColor, precision);
+    CheckPlaced(instance, v.instance, v.nodes, v.node_count);
+  }
+}
+
 TEST_CASE("Model instances are placed, lit and drawn as the original does", "[model]") {
-  const GroundLight light{{F(kModelLight[0]), F(kModelLight[1]), F(kModelLight[2])},
-                          {F(kModelLight[3]), F(kModelLight[4]), F(kModelLight[5])},
-                          {F(kModelLight[6]), F(kModelLight[7]), F(kModelLight[8])}};
+  const GroundLight light = ModelLight();
   GroundColorFade fade;
   fade.water = {F(kModelFade[0]), F(kModelFade[1]), F(kModelFade[2])};
   fade.ground = {F(kModelFade[3]), F(kModelFade[4]), F(kModelFade[5])};
@@ -155,39 +278,7 @@ TEST_CASE("Model instances are placed, lit and drawn as the original does", "[mo
                                 {F(v.placement[6]), F(v.placement[7]), F(v.placement[8])},
                                 F(v.speed), instance));
     LightModel(instance, light, CellColor);
-
-    const std::vector<std::uint32_t> fields = InstanceFields(instance);
-    for (std::size_t i = 0; i < 73; ++i) {
-      INFO("instance value " << i << " (" << FieldName(i) << ")");
-      CHECK(fields[i] == v.instance[i]);
-    }
-    REQUIRE(instance.nodes.size() == v.node_count);
-    for (std::size_t n = 0; n < v.node_count; ++n) {
-      INFO("node " << n);
-      const ModelNodeInstance& node = instance.nodes[n];
-      const NodeVector& want = v.nodes[n];
-      CHECK(B(node.alpha) == want.alpha);
-      for (std::size_t i = 0; i < 12; ++i) {
-        INFO("matrix " << i);
-        CHECK(B(node.matrix[i]) == want.matrix[i]);
-      }
-      for (std::size_t i = 0; i < 6; ++i) {
-        INFO("box " << i);
-        CHECK(B(node.box[i]) == want.box[i]);
-      }
-      REQUIRE(node.faces.size() == want.faces);
-      for (std::size_t f = 0; f < want.faces; ++f) {
-        INFO("face " << f);
-        const std::uint32_t* shade = want.shades + f * 9;
-        for (std::size_t c = 0; c < 3; ++c) {
-          INFO("corner " << c);
-          CHECK(node.faces[f].colors[c] == shade[c]);
-          CHECK(B(node.faces[f].uv[c * 2]) == shade[3 + c * 2]);
-          CHECK(B(node.faces[f].uv[c * 2 + 1]) == shade[4 + c * 2]);
-        }
-        for (std::size_t k = 0; k < 9; ++k) CHECK(node.tint[f * 9 + k] == want.tint[f * 9 + k]);
-      }
-    }
+    CheckPlaced(instance, v.instance, v.nodes, v.node_count);
 
     ModelDrawSettings settings;
     settings.viewport = GroundViewportOf(SetSize(800, 600));

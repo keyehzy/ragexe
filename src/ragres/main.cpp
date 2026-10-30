@@ -19,8 +19,9 @@
 //                                          decodes .rsw files as C3dWorldRes does
 //   ragres load-world [--raw] INSTALL MAP CELL_X CELL_Y
 //                                          loads a world as CWorld::LoadWorld does, the
-//                                          player in that cell, as hashes (--raw: each
-//                                          model's fields)
+//                                          player in that cell, from data.grf with the
+//                                          .gpf patches over it, as hashes (--raw: each
+//                                          model's fields and nodes)
 //   ragres decode-rsms [--single] FILE...  decodes .rsm files as C3dModelRes does, with
 //                                          --single at the x87's single precision
 //   ragres decode-rsxs FILE...             decodes .rsx files as C3dAnimModelRes does
@@ -62,6 +63,7 @@
 // Names are printed and written as stored (CP949) with bytes outside printable ASCII
 // written as %XX, until the CP949 conversion arrives.
 
+#include <algorithm>
 #include <bit>
 #include <cstdio>
 #include <cstring>
@@ -331,7 +333,8 @@ std::uint64_t Fnv1a64(std::span<const std::uint32_t> values) {
 // its nodes depth first (alpha, matrix, box, each face's colours and texture coordinates, its
 // ground colours); then "graph n" and per scene graph node depth first "G k box dirty cells
 // attribute-cells models", the box its minimum, maximum, centre and half extents hashed, the models
-// the instances' indices or "-". With --raw, a model's line holds its fields themselves.
+// the instances' indices or "-". With --raw, a model's line holds its fields themselves,
+// then "|" and its nodes' values.
 int LoadWorld(std::vector<std::string> args) {
   bool raw = false;
   if (!args.empty() && args.front() == "--raw") {
@@ -342,13 +345,26 @@ int LoadWorld(std::vector<std::string> args) {
     std::fprintf(stderr, "usage: ragres load-world [--raw] INSTALL MAP CELL_X CELL_Y\n");
     return 2;
   }
+  // The patcher merges each .gpf into data.grf in name order, so the last one's files win.
+  const std::filesystem::path install = args[0];
+  std::vector<std::filesystem::path> paths;
+  for (const auto& entry : std::filesystem::directory_iterator(install))
+    if (entry.path().extension() == ".gpf") paths.push_back(entry.path());
+  std::sort(paths.begin(), paths.end());
+  paths.insert(paths.begin(), install / "data.grf");
   std::string error;
-  auto archive = ragexe::res::GrfArchive::Open(std::filesystem::path(args[0]) / "data.grf", &error);
-  if (!archive) {
-    std::fprintf(stderr, "%s\n", error.c_str());
-    return 1;
+  std::vector<std::unique_ptr<ragexe::res::GrfArchive>> archives;
+  std::vector<const ragexe::res::GrfArchive*> layers;
+  for (const std::filesystem::path& path : paths) {
+    archives.push_back(ragexe::res::GrfArchive::Open(path, &error));
+    if (!archives.back()) {
+      std::fprintf(stderr, "%s: %s\n", path.string().c_str(), error.c_str());
+      return 1;
+    }
+    layers.insert(layers.begin(), archives.back().get());
   }
-  const ragexe::res::DataFiles files(args[0], std::move(archive));
+  ragexe::res::DataFiles files(install);
+  files.set_layers(std::move(layers));
   const std::string& map = args[1];
   const auto cell_x = static_cast<std::int32_t>(std::stol(args[2]));
   const auto cell_y = static_cast<std::int32_t>(std::stol(args[3]));
@@ -400,6 +416,8 @@ int LoadWorld(std::vector<std::string> args) {
     if (raw) {
       std::printf("I %zu %zu", k, scene.records[k]);
       for (const std::uint32_t v : fields) std::printf(" %08x", v);
+      std::printf(" |");
+      for (const std::uint32_t v : nodes) std::printf(" %08x", v);
       std::printf("\n");
       continue;
     }

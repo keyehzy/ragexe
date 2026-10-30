@@ -8,6 +8,7 @@
 #include <string_view>
 #include <vector>
 
+#include "core/x87.h"
 #include "res/resource.h"
 
 namespace ragexe::res {
@@ -91,7 +92,7 @@ struct Model {
 // The x87's precision control while a model loads: the CRT's default, double, on
 // LazyModelLoadThread, or single on the main thread after DirectDraw's FPUSETUP
 // (docs/formats/rsm.md#the-loaders-precision).
-enum class FpuPrecision : std::uint8_t { kDouble, kSingle };
+using core::FpuPrecision;
 
 // C3dModelRes::Load on a whole .rsm file.
 bool DecodeModel(std::span<const std::uint8_t> data, Model& out, std::string* error,

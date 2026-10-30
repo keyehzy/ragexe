@@ -198,6 +198,42 @@ The port's loader does either ([rsm.md](../formats/rsm.md#the-loaders-precision)
 file is loaded once, by the first model that names it, so it loads at single precision when
 any near model names it. ragview loads each file so.
 
+**Placement and lighting at double precision.** Under the double control word the x87 keeps
+53 bits for whatever stays on its stack, and rounds to single precision only where a value
+is stored as a float. The port's matrix functions, `CreateModelInstance`, `LightModel` and
+`GroundCellColor` take the precision, and keep doubles exactly where the original keeps
+values on the stack:
+- **Each matrix element** is one expression, rounded once when it is stored. In
+  `MakeRotationFromKey` (`00409ae0`), 2x·x, 2y·x and 2z·z stay on the stack, and z·2z is
+  also stored and reloaded for the second diagonal element (`00409b4d`). In `Invert`
+  (`00409ed0`) the first cofactor stays on the stack while 1/det is stored (`00409f14`).
+- **Angles:** π × degrees × 1/180 is rounded once, when pushed as the argument.
+- **Keys:** the fraction is an `fidiv` stored as a float. The translation's 1 − t stays on the
+  stack (`00401006`). In the slerp, b's weight sin(φt)/sin ω stays on the stack while a's is
+  stored (`00401108`); on the linear path both stay. `_CIacos`'s square root and its
+  operands are double.
+- **The box** (`004b98c0`): the centre of the box's two x corners, which are summed
+  unrounded (`004b9c4a`), and the z half extent, whose
+  difference and product stay on the stack (`004b9ca2`). Each axis's 1/√ stays on the stack.
+- **The lighting** (`004b7e30`): each normal's components are stored, its length's
+  reciprocal is not. For the face normal (shade type 1) z·(1/length) stays on the stack
+  for the dot product (`004b8212`). Red and green are stored before their scaling to bytes;
+  blue is scaled from the stack, as is the alpha (`004b8091`).
+- **The ground's colour** (`004b8510`): a corner's x is added to the instance's x on the
+  stack. `GetCellCoords` (`004bc3b0`) stores x / size as a double for `floor`. At single precision
+  the quotient of a point just below a cell edge can round up onto the edge; at double it
+  stays in the cell below.
+
+`LoadWorldScene` places and lights a model at single precision when it is near the
+player, as the main thread does, and at double precision otherwise.
+
+**NaNs.** A model scaled by 0 on an axis has a determinant of 0, so `Invert` multiplies 0 by
+∞ and its axes divide 0 by 0. The x87 gives the negative "real indefinite" for an invalid
+operation, where ARM gives a positive NaN, and of two NaN operands it keeps the one with the
+larger significand, the positive one when they tie, where ARM and SSE keep the first. The
+port computes on `core::X87` values, which follow the x87's rules
+(`tests/unit/x87_test.cpp` checks them against the emulated x87).
+
 ## Checks
 
 `tools/model_vectors.py` writes the original's results in the emulation oracle to
@@ -220,10 +256,35 @@ Each is loaded at double precision, then placed, set up and lit at single precis
 - the node matrices after three animation steps;
 - 200 calls to `SlerpRotationKey`, fractions inside and outside 0 to 1.
 
-`GetCellColor` is replaced by a function of the point's bits. `GetTexture` gives each
+**At double precision,** as `LazyModelLoadThread` runs them:
+- the same 200 calls to `SlerpRotationKey`;
+- each model placed twice more, at other rotations and scales, and lit: the instance's
+  fields and its nodes, as above;
+- 400 calls to `GetCellCoords` under both control words, on points at and a few float steps
+  either side of cell edges; 14 fall in different cells at the two precisions;
+- each model with a scale of 0 on some axis, at double and at single precision.
+
+`GetCellColor` is replaced by a function of the point's bits: seven bits from the fifth
+bit up or higher for the placements at single precision, the last six bits for those at
+double, so that there a point a float step away gives another colour. `GetTexture` gives each
 texture name a stand-in whose format is 4444 for a name of odd length.
 
 The port matches every value bit for bit (`tests/unit/model_test.cpp`).
+
+**The matrices.** `tools/matrix_vectors.py` runs these at both precisions, and
+`tests/unit/matrix_test.cpp` matches every value:
+- `Multiply` and `Invert` of 300 random matrices, some with a zero row;
+- `MakeRotationFromKey` of 300 quaternions, unit and not;
+- `TranslationKeys::GetMatrixAt` and `RotationKeys::GetMatrixAt` on 200 tracks each, of two
+  to four keys, at times before, on and between the keys;
+- `SqrtFloat` of zeros, infinities, NaNs and negatives, and `SinFloat` and `CosFloat` of
+  finite angles. The emulator's `fsin` and `fcos` leave an infinity as it is, where the x87
+  gives the real indefinite, so those are not compared.
+
+**The x87's arithmetic.** `tools/x87_vectors.py` runs `fadd`, `fsub`, `fmul`, `fdiv` and
+`fsqrt` in the emulator, floats at single precision and doubles at double, on every pair of
+zeros, ones, infinities, NaNs of either sign with assorted payloads, signalling NaNs and large
+numbers. `core::X87` matches every result (`tests/unit/x87_test.cpp`).
 
 **The order.** `tools/world_vectors.py` runs `LoadWorld` itself on 150 synthetic worlds
 and writes `tests/unit/world_vectors.inc`. `CreateThread` answers 0, so the lazy loader runs
@@ -244,24 +305,27 @@ in `LoadWorld`, and the sort, `AddLoadedModel` and the cell's centre are the ori
 where its player stands.
 
 **Real maps.** `tools/world_oracle.py` runs `LoadWorld` itself on maps from the install,
-then `CWorld::UpdateGameObjects`. It compares them with `ragres load-world`, which loads the
-port's world with `LoadWorldScene` (`src/render/world_scene`), the player in the centre of
-the attribute map both times.
+then `LazyModelLoadThread` to its end, then `CWorld::UpdateGameObjects`. It compares them
+with `ragres load-world`, which loads the port's world with `LoadWorldScene`
+(`src/render/world_scene`), the player in the centre of the attribute map both times. Both
+read `data.grf` with the `.gpf` patches over it, in name order, as the patcher merges them.
 - **Real in the oracle:** the resource manager, with its types registered by their static
   initializers; every loader; the ground's build; the models' placement and lighting; the
-  scene graph. The x87 runs at single precision, and at double while `LazyModelLoadThread`
-  runs, as on its own thread.
+  scene graph. The x87 runs at single precision, and at double in `LazyModelLoadThread`, as
+  on its own thread.
 - **Stood in for:** the textures, the effects' and sounds' makers, the player, the UI, and
   Direct3D's lights.
 - **Compared:** each model of +0x48 (its `.rsw` record, its fields +0xc0 to +0x1e4, its
   nodes' alpha, matrix, box, face colours and ground colours), and each scene graph node's
   box, cells and models.
 
-On twelve maps from the smallest to `moc_fild03`:
-- **Equal:** every model's record, in order, and every near model, about 400 in all.
-- **Different:** most far models, and the scene graph nodes they fall in. They are placed
-  and lit at double precision, which the port does not do yet: its placement and lighting
-  round as the main thread does.
+**On all 208 maps** every model's record, in order, every model's fields and nodes, near and
+far, and every scene graph node are equal. Run with `--sample 0`, the comparison takes about
+two hours.
+
+In the oracle `LazyModelLoadThread` runs to its end before `UpdateGameObjects`. In the
+client the two threads overlap, so the main thread may insert the far models over several
+frames, with the world drawn in between.
 
 **Not ported yet:** the volumes and their matrices.
 

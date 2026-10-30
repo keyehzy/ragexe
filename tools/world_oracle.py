@@ -4,10 +4,11 @@ usage: .venv/bin/python -I tools/world_oracle.py [--sample N] [--jobs J] [--raw]
 
 CWorld::LoadWorld (004c3ab0) runs in the emulation oracle on a map's files from the install
 (data.grf and its patches, through `ragres extract`), the player in the centre of the
-attribute map, then CWorld::UpdateGameObjects puts the late models in the scene graph. The
-x87 runs at single precision, as the main thread does after FPUSETUP, and at double while
-LazyModelLoadThread runs, as a new thread does; CreateThread answers 0, so LoadWorld runs
-the lazy loader itself. Real: the resource manager (its types registered by their static
+attribute map. LazyModelLoadThread, which CreateThread is given, then runs to its end, and
+CWorld::UpdateGameObjects puts the models it placed in the scene graph. The x87 runs at
+single precision, as the main thread does after FPUSETUP, and at double in the thread, as a
+new thread does. (Were CreateThread to fail, LoadWorld would run the thread itself and then
+JoinModelLoadThread, which drops the count of models waiting for the scene graph.) Real: the resource manager (its types registered by their static
 initializers), every loader, the ground's build, the models' placement and lighting, the
 scene graph. Stood in for: TextureCache::GetTexture and texture creation, the effects' and
 sounds' makers, the player, the UI's progress, Present, and Direct3D's lights.
@@ -27,7 +28,6 @@ import tempfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 import oracle_pool  # noqa: E402
-from unicorn import UC_HOOK_CODE  # noqa: E402
 from unicorn.x86_const import UC_X86_REG_FPCW  # noqa: E402
 
 from emu import Emulator  # noqa: E402
@@ -42,7 +42,7 @@ TYPE_INITIALIZERS = (0x4207A0, 0x421B10, 0x426A00, 0x4275F0, 0x427740, 0x427790,
 GET_RESOURCE_MANAGER, GET_RESOURCE = 0x4DFA10, 0x4DFF60
 GET_TEXTURE, CREATE_TEXTURE = 0x40CC00, 0x405350
 LOAD_WORLD, UPDATE_GAME_OBJECTS, CWORLD_CTOR = 0x4C3AB0, 0x4C4A10, 0x4C35C0
-LAZY_LOADER, JOIN_LOADER = 0x4C33A0, 0x4C5200
+LAZY_LOADER, THREAD_HANDLE = 0x4C33A0, 0x7C1
 SEND_MSG, GET_GAME_MODE, PLAYER_CELL = 0x51D990, 0x4CBF30, 0x686C90
 STOOD_IN = ((0x40EF30, 3), (0x4B3970, 4), (0x4A8740, 0), (0x410C50, 1), (0x5B1050, 0), (0x4C3890, 0),
             (0x4C4E60, 0))
@@ -129,13 +129,14 @@ def load(emu, manager, mapname, records):
     emu.replace_thiscall(CREATE_TEXTURE, 5, lambda this, w, h, pixels, fmt, flag: emu.alloc(0x130))
     for address, nargs in STOOD_IN:
         emu.replace_thiscall(address, nargs, lambda this, *args: 0)
-    emu.api.stubs["KERNEL32.DLL!CreateThread"] = Stub(6, lambda *args: 0)
+    threads = []
+
+    def create_thread(attributes, stack, start, parameter, flags, thread_id):
+        threads.append((start, parameter))
+        return THREAD_HANDLE
+
+    emu.api.stubs["KERNEL32.DLL!CreateThread"] = Stub(6, create_thread)
     emu.api.stubs["KERNEL32.DLL!SetThreadPriority"] = Stub(2, lambda *args: 1)
-    # A new thread starts at the CRT's precision; the main thread is back at FPUSETUP's.
-    emu.uc.hook_add(UC_HOOK_CODE, lambda uc, a, s, d: uc.reg_write(UC_X86_REG_FPCW, DOUBLE),
-                    begin=LAZY_LOADER, end=LAZY_LOADER)
-    emu.uc.hook_add(UC_HOOK_CODE, lambda uc, a, s, d: uc.reg_write(UC_X86_REG_FPCW, SINGLE),
-                    begin=JOIN_LOADER, end=JOIN_LOADER)
     name = emu.cstr(f"{mapname}.rsw")
     emu.replace_thiscall(SEND_MSG, 4, lambda this, message, a, b, c: name)
     world = emu.alloc(0x100)
@@ -150,6 +151,12 @@ def load(emu, manager, mapname, records):
     emu.mem_write(PLAYER_CELL, struct.pack("<ii", *cell))
     emu.call(LOAD_WORLD, this=world)
     near = emu.read_u32(world + 0x54)
+    # The thread runs to its end at the CRT's precision, a new thread's, before the main
+    # thread, back at FPUSETUP's, next updates the world.
+    assert threads == [(LAZY_LOADER, world)]
+    emu.uc.reg_write(UC_X86_REG_FPCW, DOUBLE)
+    emu.call(LAZY_LOADER, world)
+    emu.uc.reg_write(UC_X86_REG_FPCW, SINGLE)
     emu.call(UPDATE_GAME_OBJECTS, this=world)
     return dump(emu, world, records, near), cell
 
@@ -184,7 +191,8 @@ def dump(emu, world, records, near):
 
         visit(u(m + 0x28))
         fields = floats(emu, m + 0xC0, 73)
-        lines.append(f"I {k} {record} " + (" ".join(f"{v:08x}" for v in fields) if RAW else
+        lines.append(f"I {k} {record} " + (" ".join(f"{v:08x}" for v in fields) + " | "
+                                            + " ".join(f"{v:08x}" for v in nodes) if RAW else
                                             f"{fnv1a64(fields):016x} {fnv1a64(nodes):016x}"))
     graph = []
 
@@ -220,7 +228,7 @@ def main():
     ap.add_argument("--ragres", default=os.path.join(ROOT, "build", "dev", "src", "ragres"))
     ap.add_argument("--sample", type=int, default=12, help="maps to compare (0: every map)")
     ap.add_argument("--jobs", type=int, default=0, help="worker processes (0: one per core but one)")
-    ap.add_argument("--raw", action="store_true", help="each model's fields, not their hash")
+    ap.add_argument("--raw", action="store_true", help="each model's fields and nodes, not their hashes")
     ap.add_argument("--show", type=int, default=0, help="differing lines to print for each map")
     args = ap.parse_args()
     maps = args.maps

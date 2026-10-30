@@ -23,16 +23,19 @@ struct NodeKeys {
 std::array<float, 4> RotationFromAxisAngle(const Vec3& axis, float angle);
 
 // SlerpRotationKey (00401050): from a to b by t along the shorter arc, linearly when they
-// are within 1e-6 of each other.
+// are within 1e-6 of each other. The weight of b stays on the x87 stack, as does a's on the
+// linear path.
 std::array<float, 4> SlerpRotation(float t, const std::array<float, 4>& a,
-                                   const std::array<float, 4>& b);
+                                   const std::array<float, 4>& b,
+                                   core::FpuPrecision precision = core::FpuPrecision::kSingle);
 
 // C3dNode::ComputeMatrixAtTime (004b6db0) for one node: scale, then rotation, then
 // translation, each from its keys at time (TranslationKeys 00401520, RotationKeys 00401d10,
 // ScaleKeys 00402070). Between two keys the translation is interpolated linearly and the
 // rotation spherically; past the last key the original reads one key beyond its keys, and
 // the port holds the last one.
-Matrix NodeMatrixAt(const NodeKeys& keys, std::int32_t time);
+Matrix NodeMatrixAt(const NodeKeys& keys, std::int32_t time,
+                    core::FpuPrecision precision = core::FpuPrecision::kSingle);
 
 // A face's colours and texture coordinates as the lighting leaves them (C3dNode+0x118,
 // 0x24 bytes each): ARGB at each corner, then (u, v) at each corner.
@@ -86,26 +89,34 @@ struct ModelInstance {
 // (004b9340), the speed as the .rsw's times 1/3 (005e8968), then Setup (004b9820): the
 // nodes from the model's first node down (C3dNode::vf01, 004b7580), their matrices at time
 // 0, and the box (004b98c0), which centres the model on its box's x and z and stands it on
-// its top. False for a model without nodes.
+// its top. False for a model without nodes. LoadWorld sets up the models near the player
+// on the main thread, at single precision, and LazyModelLoadThread the rest, at double.
 bool CreateModelInstance(const res::Model& model, const Vec3& position, const Vec3& rotation,
-                         const Vec3& scale, float rsw_speed, ModelInstance& out);
+                         const Vec3& scale, float rsw_speed, ModelInstance& out,
+                         core::FpuPrecision precision = core::FpuPrecision::kSingle);
 
 // ModelInstance 004b95f0: the world matrix (the centring, scale, rotations about y, x and
 // z, then the position) and its inverse.
-void UpdateWorldMatrix(ModelInstance& instance);
+void UpdateWorldMatrix(ModelInstance& instance,
+                       core::FpuPrecision precision = core::FpuPrecision::kSingle);
 
 // The ground colour C3dNode 004b8510 adds to each corner (C3dGround15::GetCellColor,
 // 004c03b0): red, green and blue at world (x, y, z).
 using CellColorLookup = std::function<std::array<std::int32_t, 3>(float x, float y, float z)>;
 
 // GetCellColor on a built ground: the lightmap colour of the cell under (x, z), white
-// outside the ground.
-std::array<std::int32_t, 3> GroundCellColor(const GroundMesh& ground, float x, float z);
+// outside the ground. GetCellCoords (004bc3b0) floors each coordinate over the cell size as
+// the x87 divides it.
+std::array<std::int32_t, 3> GroundCellColor(
+    const GroundMesh& ground, float x, float z,
+    core::FpuPrecision precision = core::FpuPrecision::kSingle);
 
 // ModelInstance 004ba270 and C3dNode::vf02 (004b7e30): each face's colours by the
 // instance's shade type (0 white, 1 lit by the face normal, 2 by the corner normals) with
-// the node's alpha, its texture coordinates, and the colours plus the ground's.
-void LightModel(ModelInstance& instance, const GroundLight& light, const CellColorLookup& cell);
+// the node's alpha, its texture coordinates, and the colours plus the ground's. Light runs
+// on the thread that set the instance up, at its precision.
+void LightModel(ModelInstance& instance, const GroundLight& light, const CellColorLookup& cell,
+                core::FpuPrecision precision = core::FpuPrecision::kSingle);
 
 // What the draw reads besides the instance.
 struct ModelDrawSettings {

@@ -67,7 +67,8 @@ bool DecodeWorld(std::span<const std::uint8_t> data, bool lightmaps, World& out,
                  std::string* error);
 
 // The direction CWorld lights the world from: Matrix::MakeRotationX by angle_x, then
-// RotateY by angle_y, both in degrees, and the sum of the matrix's second and fourth rows.
+// RotateY by angle_y, both in degrees, and the sum of the matrix's second and fourth rows,
+// at the single precision of the main thread, which loads the world.
 std::array<float, 3> WorldLightVector(std::int32_t angle_y, std::int32_t angle_x);
 
 // C3dWorldRes.

@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <set>
+#include <span>
 #include <utility>
 
 #include "render/world_load.h"
@@ -34,8 +35,11 @@ bool LoadWorldScene(const res::DataFiles& files, std::string_view map, float pla
   if (!BuildGround(out.ground, light, true, out.mesh, &reason))
     return Fail(error, out.world.ground + ": " + reason);
 
-  const CellColorLookup cell_color = [&](float x, float, float z) {
-    return GroundCellColor(out.mesh, x, z);
+  const CellColorLookup single_cell = [&](float x, float, float z) {
+    return GroundCellColor(out.mesh, x, z, core::FpuPrecision::kSingle);
+  };
+  const CellColorLookup double_cell = [&](float x, float, float z) {
+    return GroundCellColor(out.mesh, x, z, core::FpuPrecision::kDouble);
   };
   std::set<std::string> single_files;
   for (const res::WorldModel& placed : out.world.models)
@@ -48,23 +52,28 @@ bool LoadWorldScene(const res::DataFiles& files, std::string_view map, float pla
     if (added) {
       auto model = std::make_unique<res::Model>();
       std::string ignored;
-      const auto precision = single_files.contains(placed.file) ? res::FpuPrecision::kSingle
-                                                                : res::FpuPrecision::kDouble;
+      const auto precision = single_files.contains(placed.file) ? core::FpuPrecision::kSingle
+                                                                : core::FpuPrecision::kDouble;
       bytes = files.Load("data\\model\\" + placed.file);
       if (bytes && res::DecodeModel(*bytes, *model, &ignored, precision))
         it->second = std::move(model);
     }
     if (!it->second) continue;
+    const bool near = IsNearModel(placed, player_x, player_z);
+    const auto precision = near ? core::FpuPrecision::kSingle : core::FpuPrecision::kDouble;
     ModelInstance instance;
     if (!CreateModelInstance(*it->second, placed.position, placed.rotation, placed.scale,
-                             placed.animation_speed, instance))
+                             placed.animation_speed, instance, precision))
       continue;
-    LightModel(instance, light, cell_color);
+    LightModel(instance, light, near ? single_cell : double_cell, precision);
     out.models.push_back(std::move(instance));
     out.records.push_back(index);
-    if (IsNearModel(placed, player_x, player_z)) ++out.near_count;
+    if (near) ++out.near_count;
   }
-  BuildSceneGraph(out.mesh, out.attr, out.models, out.world.bounds, out.graph);
+  BuildSceneGraph(out.mesh, out.attr, std::span(out.models).first(out.near_count), out.world.bounds,
+                  out.graph);
+  for (std::size_t k = out.near_count; k < out.models.size(); ++k)
+    InsertLateModel(out.graph, out.models[k], static_cast<int>(k));
   return true;
 }
 

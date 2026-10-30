@@ -16,7 +16,9 @@ SceneRenderer: SceneRenderer::ScreenRay's (00411c50) ray through random screen p
 SceneRayQuery::CollectNodes' leaves (004c62e0) and CGameMode::PickCell's (005147a0) cell for
 each, with the view's inverse from Matrix::Invert (00409ed0); and SceneRayQuery::HitsBox
 (004c6460), RayIntersectsTriangle (0040b7b0) and C3dAttr::IntersectCellRay (00427230) on
-random rays.
+random rays. Last, BuildSceneGraph again on the first 20 models, and the rest inserted
+afterwards with SceneGraphNode::InsertModel (004c54c0), as CWorld::UpdateGameObjects
+(004c4a10) inserts the models LazyModelLoadThread placed.
 The x87 runs at single precision, as DirectDraw's FPUSETUP leaves it in the client.
 """
 import math
@@ -31,7 +33,7 @@ from model_vectors import look_at  # noqa: E402
 
 BUILD_SCENE_GRAPH, NODE_CTOR, NODE_SIZE, SUBDIVIDE = 0x4C4F10, 0x4C5270, 0x80, 0x4C5340
 FRUSTUM_CTOR, FRUSTUM_SIZE, CULL, CLASSIFY_OBB, CLEAR_VISIBLE = 0x4CEA70, 0xC0, 0x4CEB00, 0x4CED90, 0x4CEC80
-OBB_INTERSECTS_BOX = 0x4C56D0
+OBB_INTERSECTS_BOX, INSERT_MODEL, LATE_FROM = 0x4C56D0, 0x4C54C0, 20
 SET_SIZE, SCENE_RENDERER_SIZE, G_PSCENE_RENDERER, INVERT = 0x40DB70, 0x2A0, 0x625E98, 0x409ED0
 SCREEN_RAY, LIST_CTOR, COLLECT_NODES, HITS_BOX = 0x411C50, 0x4C62B0, 0x4C62E0, 0x4C6460
 RAY_TRIANGLE, CELL_RAY, PICK_CELL = 0x40B7B0, 0x427230, 0x5147A0
@@ -227,7 +229,46 @@ def main():
                      f"{{{', '.join(f'0x{bits(v):08x}' for v in box)}}}, {result}}},")
     lines.append("};")
     picking(emu, rng, lines, root, attr, aw, ah, [v[0] for v in views], eyes, index)
+    late(emu, lines, ground, attr, instances, source, nodes_of)
     print("\n".join(lines))
+
+
+def late(emu, lines, ground, attr, instances, source, nodes_of):
+    """BuildSceneGraph on the first 20 models, then the other 10 inserted as
+    CWorld::UpdateGameObjects (004c4a10) inserts the models LazyModelLoadThread placed:
+    SceneGraphNode::InsertModel (004c54c0) from the root, into the tree as built."""
+    u = emu.read_u32
+    vector = emu.scratch(struct.pack(f"<{len(instances)}I", *instances))
+    for copied in (0, 1):
+        world = emu.scratch(size=0x100)
+        emu.write_u32(world + 0x38, ground)
+        emu.write_u32(world + 0x40, attr)
+        emu.write_u32(world + 0x48, vector)
+        emu.write_u32(world + 0x4C, vector + 4 * LATE_FROM)
+        root = world + 0x68
+        emu.call(NODE_CTOR, this=root)
+        emu.write_u32(world + 0xE8, source if copied else 0)
+        emu.call(BUILD_SCENE_GRAPH, this=world)
+        for m in instances[LATE_FROM:]:
+            emu.call(INSERT_MODEL, m, 0, this=root)
+        lines.append(f"// The models from {LATE_FROM} inserted after BuildSceneGraph "
+                     f"{'copying the bounds' if copied else 'from the heights'}, as kSceneNodes{copied}.")
+        lines.append(f"static const SceneNodeVector kLateNodes{copied}[] = {{")
+        model_lines = []
+        for k, n in enumerate(nodes_of(root)):
+            box = struct.unpack("<12I", emu.mem_read(n + 0x14, 48))
+            rect = struct.unpack("<4i", emu.mem_read(n + 0x5C, 16))
+            attr_rect = struct.unpack("<4i", emu.mem_read(n + 0x70, 16))
+            members = [instances.index(u(p)) for p in range(u(n + 0x4C), u(n + 0x50), 4)]
+            lines.append(f"    {{{{{', '.join(f'0x{v:08x}' for v in box)}}}, {u(n + 0x44)}, "
+                         f"{{{', '.join(map(str, rect))}}}, {{{', '.join(map(str, attr_rect))}}}}},")
+            if members:
+                model_lines.append(f"    {k}, {len(members)}, {', '.join(map(str, members))},")
+        lines.append("};")
+        lines.append(f"static const std::int32_t kLateMembers{copied}[] = {{")
+        lines += model_lines
+        lines += ["    -1,", "};"]
+    lines.append(f"static constexpr std::size_t kLateFrom = {LATE_FROM};")
 
 
 def unit(rng):

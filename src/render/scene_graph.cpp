@@ -115,7 +115,7 @@ void AttrHeightRange(const res::AttrMap& attr, const std::array<std::int32_t, 4>
 
 // SceneGraphNode::UpdateHeightBounds (004c5fa0).
 void UpdateHeightBounds(SceneGraph& graph, int index, const GroundMesh& ground,
-                        const res::AttrMap& attr, const std::vector<ModelInstance>& models) {
+                        const res::AttrMap& attr, std::span<const ModelInstance> models) {
   SceneGraphNode& n = graph.nodes[static_cast<std::size_t>(index)];
   n.dirty = false;
   if (n.depth != kLeafDepth) {
@@ -253,7 +253,7 @@ bool OrientedBoxIntersectsBox(const ModelInstance& model, const std::array<float
 }
 
 void BuildSceneGraph(const GroundMesh& ground, const res::AttrMap& attr,
-                     const std::vector<ModelInstance>& models,
+                     std::span<const ModelInstance> models,
                      const std::vector<res::WorldBounds>& bounds, SceneGraph& out) {
   out.nodes.assign(1, SceneGraphNode{});
   SceneGraphNode& root = out.nodes[0];
@@ -290,6 +290,10 @@ void BuildSceneGraph(const GroundMesh& ground, const res::AttrMap& attr,
     return;
   }
   UpdateHeightBounds(out, 0, ground, attr, models);
+}
+
+void InsertLateModel(SceneGraph& graph, const ModelInstance& model, int model_index) {
+  InsertModel(graph, 0, model, model_index);
 }
 
 Frustum MakeFrustum(float slope_x, float slope_y, const Matrix& view) {

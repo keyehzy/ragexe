@@ -2687,8 +2687,27 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     CP949 names, with the x87 at double while the lazy loader runs.
   - **On twelve maps:** every record in order and every near model equal; the far models
     differ.
-- [ ] The far models' placement and lighting at double precision (`Setup` and `Light` on
-  `LazyModelLoadThread`), so the far models and the scene graph match too.
+- [x] The far models' placement and lighting at double precision (`docs/render/model.md`,
+  `src/core/x87.h`):
+  - **`core::X87`:** a value on the x87 stack at single or double precision, with the x87's
+    NaNs: the negative real indefinite for an invalid operation, and of two NaNs the larger
+    significand, then the positive one.
+  - **The matrices, keys, slerp, `Setup`, `Light` and `GetCellCoords`** take the precision
+    and round where the original stores; `LoadWorldScene` places and lights the far models at
+    double precision.
+  - **The scene graph** is built from the near models; the rest are inserted afterwards, as
+    `UpdateGameObjects` inserts them into the narrowed tree (`InsertLateModel`).
+  - **Found on the way:** `ragres load-world` now reads the `.gpf` patches over `data.grf`;
+    the `.rsw` loader's light angle rounds at the main thread's single precision; the
+    oracle's failing `CreateThread` had left the far models out of the original's scene
+    graph, so the thread now runs to its end.
+  - **Checks:** `tools/world_oracle.py` reports all 208 maps equal: every record, model and
+    scene graph node. New vectors cover matrices and key tracks at both precisions, the
+    x87's arithmetic on special values, the models at double precision and degenerate ones,
+    `GetCellCoords`, and late insertion.
+- [ ] Whole frames: the draws the port submits for a reference map and view against the D3D7
+  calls the original records in the emulator (the M4 exit).
+- [ ] ragview reads the `.gpf` patches over `data.grf`, as `ragres load-world` does.
 
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,

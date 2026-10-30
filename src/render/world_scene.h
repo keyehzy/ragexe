@@ -36,10 +36,13 @@ struct WorldScene {
 // Loads data\<map>.rsw, its .gnd and its .gat, builds the ground with the .rsw's light
 // (ISLIGHTMAP on), then places the models as LoadWorld does from the player's point
 // (x, z): in ModelLoadOrder's order, each .rsm loaded once at the precision its first
-// loader runs at (single when a near model names it), lit by the map's light and the
-// ground's cell colours. A model whose .rsm does not load or has no nodes is left out.
-// Then the scene graph, with the .rsw's bounds when it has them. False, with error, when
-// the .rsw, .gnd or .gat does not load or the ground does not build.
+// loader runs at (single when a near model names it). Each model is placed and lit, by the
+// map's light and the ground's cell colours, at the precision of the thread that sets it
+// up: single for a near model, on the main thread, and double for the rest, on
+// LazyModelLoadThread. A model whose .rsm does not load or has no nodes is left out. Then
+// the scene graph of the near models, with the .rsw's bounds when it has them, and the
+// rest inserted into it as UpdateGameObjects inserts them. False, with error, when the
+// .rsw, .gnd or .gat does not load or the ground does not build.
 bool LoadWorldScene(const res::DataFiles& files, std::string_view map, float player_x,
                     float player_z, WorldScene& out, std::string* error);
 

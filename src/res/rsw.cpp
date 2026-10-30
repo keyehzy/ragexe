@@ -54,8 +54,11 @@ std::array<float, 6> MultiplyRows1And3(const Matrix& a, const Matrix& b) {
 float Sin(float a) { return static_cast<float>(std::sin(static_cast<double>(a))); }
 float Cos(float a) { return static_cast<float>(std::cos(static_cast<double>(a))); }
 
+// fild, fmul by π and fmul by 1/180 under the main thread's single precision: the product
+// rounds to a float, then the angle. The product is exact in double below 2^29 degrees.
 float Radians(std::int32_t degrees) {
-  return static_cast<float>(static_cast<double>(degrees) * kPi * kOneOver180);
+  const auto turned = static_cast<float>(static_cast<double>(degrees) * kPi);
+  return turned * kOneOver180;
 }
 
 }  // namespace

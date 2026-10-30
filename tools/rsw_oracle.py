@@ -3,7 +3,8 @@
 usage: .venv/bin/python -I tools/rsw_oracle.py [--jobs J]
 
 Runs C3dWorldRes::Load (00435dd0) in the emulation oracle on every .rsw of data.grf and on
-synthetic worlds of every version, with the ISLIGHTMAP option (0061ec60) on and off, and
+synthetic worlds of every version, with the ISLIGHTMAP option (0061ec60) on and off, at the
+single precision of the main thread, which loads the world (CWorld::LoadWorld), and
 compares the names, the water and light values, the models, the sound and effect records
 and the scene-graph bounds with `ragres decode-rsws`.
 """
@@ -19,6 +20,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 import oracle_pool  # noqa: E402
 from emu import Emulator  # noqa: E402
+from unicorn.x86_const import UC_X86_REG_FPCW  # noqa: E402
 
 C3DWORLDRES_CTOR, C3DWORLDRES_LOAD = 0x435B90, 0x435DD0  # analysis/labels
 C3DWORLDRES_SIZE = 0x1C0
@@ -129,6 +131,7 @@ def work(state, item):
     emu.write_u32(ISLIGHTMAP, lightmaps)
     emu.mem_write(obj, bytes(C3DWORLDRES_SIZE))
     emu.call(C3DWORLDRES_CTOR, this=obj)
+    emu.uc.reg_write(UC_X86_REG_FPCW, 0x007F)  # the main thread's, after FPUSETUP
     ok = emu.call(C3DWORLDRES_LOAD, emu.cstr("t.rsw"), this=obj).eax & 0xFF
     if not ok:
         emu.heap_release(mark)

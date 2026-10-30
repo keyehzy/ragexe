@@ -210,7 +210,9 @@ through a stack `DataFile` without checking a single read.
    - `Matrix::MakeRotationX(x · π · 1/180)` (`004095d0`), then `Matrix::RotateY(y · π ·
      1/180)` (`00409770`);
    - π is the float at `005e2aa8` (3.1415920), 1/180 the float at `005e2690`;
-   - each angle is an int, multiplied on the FPU and stored as a float;
+   - each angle is an int, multiplied on the FPU and stored as a float. `LoadWorld` loads
+     the world on the main thread, at single precision, so the product with π rounds to a
+     float before the product with 1/180;
    - the vector is the sum of the matrix's second row and its translation row, so it is
      `(sin x · sin y, cos x, sin x · cos y)`.
 3. **The objects.**
@@ -236,17 +238,22 @@ through a stack `DataFile` without checking a single read.
 - **Records:** sound and effect records are kept as bytes until their makers are
   ported. The bytes a 1.x sound conversion leaves unset are 0.
 
-**The light vector** is computed in double precision:
+**The light vector** is computed as the main thread computes it:
+- each angle rounded after × π and again after × 1/180 (`00436231`);
 - one sine and one cosine of each angle, rounded to float as the original stores them;
-- the products of floats are exact in double, and each sum has only one non-zero term.
+- the products of floats are exact in double, and each sum has only one non-zero term, so
+  each is one product rounded once, as at single precision.
+
+The angle's first rounding matters for some angles: `mjolnir_04_1`'s 25 and 35 degrees give
+a light vector one float step apart at double precision.
 
 **Where the port differs:**
 - truncated files fail;
 - so do names with no NUL inside their record, which the original copies on past it;
 - a world below 1.3 gets a water level of 0.
 
-**The oracle:** `tools/rsw_oracle.py` runs the original `Load` on every `.rsw` in
-`data.grf`, and on 19 synthetic worlds, with ISLIGHTMAP on and off. It compares every
+**The oracle:** `tools/rsw_oracle.py` runs the original `Load` at single precision on every
+`.rsw` in `data.grf`, and on 19 synthetic worlds, with ISLIGHTMAP on and off. It compares every
 name, water and light value (the light vector bit for bit), model, sound and effect
 record, and every scene-graph bound.
 

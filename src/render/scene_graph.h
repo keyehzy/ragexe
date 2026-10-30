@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdint>
+#include <span>
 #include <vector>
 
 #include "render/camera.h"
@@ -42,10 +43,17 @@ bool OrientedBoxIntersectsBox(const ModelInstance& model, const std::array<float
 // CWorld::BuildSceneGraph (004c4f10): the root over the ground, less 1 at the far edges,
 // split to depth 5; each model in the leaves its oriented box meets; the ground's and the
 // attribute map's cells under each node; then the bounds a version 2.1 .rsw gives (depth
-// first), or else the heights under each leaf (UpdateHeightBounds, 004c5fa0).
+// first), or else the heights under each leaf (UpdateHeightBounds, 004c5fa0). LoadWorld
+// builds it from the models near the player.
 void BuildSceneGraph(const GroundMesh& ground, const res::AttrMap& attr,
-                     const std::vector<ModelInstance>& models,
+                     std::span<const ModelInstance> models,
                      const std::vector<res::WorldBounds>& bounds, SceneGraph& out);
+
+// SceneGraphNode::InsertModel (004c54c0) from the root, as CWorld::UpdateGameObjects
+// (004c4a10) inserts each model LazyModelLoadThread placed: into the leaves its oriented box
+// meets as their boxes stand, the leaf and its ancestors marked dirty. A leaf whose height
+// BuildSceneGraph narrowed can miss a model it would have taken before.
+void InsertLateModel(SceneGraph& graph, const ModelInstance& model, int model_index);
 
 // ViewFrustum's six planes (normal, distance) in world space: the sides at the slopes
 // SetSize gives, near 10 and far 1500, carried by the view matrix (CullSceneGraph,

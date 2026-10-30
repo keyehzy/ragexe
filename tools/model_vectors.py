@@ -19,7 +19,10 @@ fade's other sets and translucency; and the node matrices after AdvanceAnimation
 (004b96a0) steps.
 The loader runs at the CRT's double precision, as on the client's lazy loading thread and
 as tools/rsm_oracle.py checks the port's loader; the rest at single precision, as
-DirectDraw's FPUSETUP leaves the main thread.
+DirectDraw's FPUSETUP leaves the main thread. Appended: the models loaded at single
+precision, as the main thread loads those near the player, and SlerpRotationKey and the
+models' placement and lighting at double precision, as the lazy loading thread runs them,
+with C3dGround::GetCellCoords (004bc3b0) under both precisions.
 """
 import glob
 import math
@@ -35,7 +38,7 @@ from emu.winapi import WINDOW  # noqa: E402
 from rsm_oracle import model as synthetic_model  # noqa: E402
 
 C3DMODELRES_CTOR, C3DMODELRES_LOAD, C3DMODELRES_SIZE = 0x42BB00, 0x42BE00, 0x1A8
-GET_TEXTURE, GET_CELL_COLOR, GET_GAME_MODE = 0x40CC00, 0x4C03B0, 0x4CBF30
+GET_TEXTURE, GET_CELL_COLOR, GET_GAME_MODE, GET_CELL_COORDS = 0x40CC00, 0x4C03B0, 0x4CBF30, 0x4BC3B0
 INSTANCE_CTOR, INSTANCE_SIZE, COPY_VOLUMES = 0x4B9340, 0x200, 0x4B9550
 SETUP, LIGHT, RENDER, ADVANCE = 0x4B9820, 0x4BA270, 0x4B9740, 0x4B96A0
 SET_TRANSLUCENT, SLERP = 0x4B7DA0, 0x401050
@@ -66,6 +69,11 @@ def bits(f):
 def cell_color(x, y, z):
     """The stand-in for GetCellColor: channels from the point's bits."""
     return ((bits(x) >> 7) & 0x7F, (bits(y) >> 9) & 0x7F, (bits(z) >> 5) & 0x7F)
+
+
+def low_cell_color(x, y, z):
+    """A stand-in for GetCellColor that sees a point's last bits."""
+    return [bits(v) & 0x3F for v in (x, y, z)]
 
 
 def texture_names(data):
@@ -113,9 +121,11 @@ class Oracle:
             self.textures[texture] = text
             return texture
 
+        self.cell_color = cell_color
+
         def get_cell_color(this, x, y, z, out):
-            for k, c in enumerate(cell_color(*(struct.unpack("<f", struct.pack("<I", v))[0]
-                                               for v in (x, y, z)))):
+            for k, c in enumerate(self.cell_color(*(struct.unpack("<f", struct.pack("<I", v))[0]
+                                                    for v in (x, y, z)))):
                 emu.write_u32(out + 4 * k, c)
             return 0
 
@@ -164,10 +174,11 @@ class Oracle:
     def matrices(self, root):
         return [n[1] for n in self.nodes(root)]
 
-    def run(self, data, placement, light, views):
+    def place(self, data, placement, light, fpcw):
+        """Loads the model at double precision, then places and lights an instance under fpcw;
+        the instance and its root node."""
         emu = self.emu
         self.textures, self.names = {}, texture_names(data)
-        mark = emu.heap_mark()
         emu.serve_data_files({"data\\m.rsm": data})
         res = emu.alloc(C3DMODELRES_SIZE)
         emu.call(C3DMODELRES_CTOR, this=res)
@@ -175,7 +186,7 @@ class Oracle:
         # loader is checked (tools/rsm_oracle.py); the instance at FPUSETUP's.
         emu.uc.reg_write(UC_X86_REG_FPCW, 0x027F)
         assert emu.call(C3DMODELRES_LOAD, emu.cstr("m.rsm"), this=res).eax & 0xFF
-        emu.uc.reg_write(UC_X86_REG_FPCW, 0x007F)
+        emu.uc.reg_write(UC_X86_REG_FPCW, fpcw)
         position, rotation, scale, speed = placement
         instance = emu.alloc(INSTANCE_SIZE)
         emu.call(INSTANCE_CTOR, this=instance)
@@ -188,7 +199,13 @@ class Oracle:
         emu.write_u32(instance + 0x1E8, 0)
         vectors = [emu.scratch(struct.pack("<3f", *v)) for v in light]
         emu.call(LIGHT, *vectors, this=instance)
-        root = emu.read_u32(instance + 0x28)
+        emu.uc.reg_write(UC_X86_REG_FPCW, 0x007F)
+        return instance, emu.read_u32(instance + 0x28)
+
+    def run(self, data, placement, light, views):
+        emu = self.emu
+        mark = emu.heap_mark()
+        instance, root = self.place(data, placement, light, 0x007F)
         placed = (self.floats(instance + 0xC0, 73), self.nodes(root))
         renders = []
         for view, clip, fade, alternate, tint, translucent in views:
@@ -207,12 +224,13 @@ class Oracle:
         return placed, renders, steps
 
 
-def slerps(oracle):
+def slerps(oracle, fpcw=0x007F):
     """SlerpRotationKey on random unit quaternions, fractions in and out of [0, 1], and
-    pairs closer than its threshold."""
+    pairs closer than its threshold, under fpcw."""
     import random
     rng = random.Random(5)
     emu = oracle.emu
+    emu.uc.reg_write(UC_X86_REG_FPCW, fpcw)
     out = []
     for k in range(200):
         a = [rng.uniform(-1, 1) for _ in range(4)]
@@ -233,6 +251,7 @@ def slerps(oracle):
         emu.call(SLERP, bits(t), pa, pb, 0, this=r)
         out.append((bits(t), [bits(c) for c in a], [bits(c) for c in b],
                     list(struct.unpack("<4I", emu.mem_read(r + 4, 16)))))
+    emu.uc.reg_write(UC_X86_REG_FPCW, 0x007F)
     return out
 
 
@@ -318,6 +337,7 @@ def main():
     lines += cases
     lines.append("};")
     lines += single_loads(models)
+    lines += double_placements(oracle, models, light)
     print("\n".join(lines))
 
 
@@ -355,6 +375,95 @@ def single_loads(models):
     lines.append("// their count, face normals, corner normals, the face count}.")
     lines.append("static const SingleLoadVector kSingleLoads[] = {")
     lines += [f"    {{kModel{k}, kSingle{k}, sizeof(kSingle{k}) / sizeof(kSingle{k}[0])}}," for k in range(len(models))]
+    lines.append("};")
+    return lines
+
+
+def cell_coords(oracle):
+    """GetCellCoords on points at and a few ulps either side of cell edges, and anywhere,
+    under both precisions: where x / size rounds across an integer at single precision only."""
+    import random
+    rng = random.Random(11)
+    emu = oracle.emu
+    ground, out = emu.scratch(size=0x20), emu.scratch(size=8)
+    rows = []
+    for k in range(400):
+        cell = f32(rng.choice([10.0, 5.0, 9.7, 3.3, 0.1 * rng.randint(1, 200)]))
+        width, height = rng.randint(1, 40), rng.randint(1, 40)
+
+        def point(size):
+            if k % 4 == 3:
+                return bits(f32(rng.uniform(-cell * size, cell * size)))
+            edge = bits(f32(rng.randint(-size // 2 - 2, size // 2 + 2) * cell))
+            nudged = edge + rng.randint(-3, 3)
+            return edge if edge & 0x7FFFFFFF == 0 else nudged
+
+        x, z = point(width), point(height)
+        emu.mem_write(ground + 8, struct.pack("<iif", width, height, cell))
+        cells = []
+        for fpcw in (0x007F, 0x027F):
+            emu.uc.reg_write(UC_X86_REG_FPCW, fpcw)
+            emu.call(GET_CELL_COORDS, x, z, out, out + 4, this=ground)
+            cells.append(struct.unpack("<ii", emu.mem_read(out, 8)))
+        rows.append((x, z, bits(cell), width, height, *cells))
+    emu.uc.reg_write(UC_X86_REG_FPCW, 0x007F)
+    return rows
+
+
+def double_placements(oracle, models, light):
+    """SlerpRotationKey's cases, then each model placed twice more and lit, at double
+    precision as LazyModelLoadThread places and lights the models far from the player:
+    the instance's fields and its nodes, as kModelVectors records them, with GetCellColor
+    replaced by a function of the point's last bits (low_cell_color). Then each with a
+    scale of 0 on some axis, whose inverse and axes are NaNs, at double and at single
+    precision. Between them, GetCellCoords, which the lighting's ground colours go through."""
+    lines = ["// SlerpRotationKey's cases at double precision."]
+    lines.append("static const SlerpVector kDoubleSlerpVectors[] = {")
+    for t, a, b, r in slerps(oracle, 0x027F):
+        lines.append(f"    {{0x{t:08x}, {{{hexes(a)}}}, {{{hexes(b)}}}, {{{hexes(r)}}}}},")
+    lines.append("};")
+    cases = []
+    degenerate = [(1.0, 0.0, 1.0), (0.0, 0.0, 0.0), (0.0, 1.5, -2.0), (1.0, 1.0, 0.0), (-0.0, 2.0, 1.0)]
+    for k, (name, data) in enumerate(models):
+        for j in range(4):
+            c = f"{k}_{j}"
+            scale = ((1.0, 1.0, 1.0) if (k + j) % 3 == 0 else (0.85 + 0.1 * j, 1.35, -0.6 if k % 2 else 1.7)
+                     if j < 2 else degenerate[(k + j) % len(degenerate)])
+            placement = ((37.3 * k - 151.9 + 11.1 * j, 4.7 - 2.3 * j, 93.6 - 17.9 * k),
+                         (23.7 * k + 41.3 * j - 3.1, 117.1 - 13.3 * k - 61.7 * j, 7.9 * k - 29.3 + j),
+                         scale, 0.0)
+            fpcw = 0x007F if j == 3 else 0x027F
+            emu = oracle.emu
+            mark = emu.heap_mark()
+            oracle.cell_color = low_cell_color
+            instance, root = oracle.place(data, placement, light, fpcw)
+            oracle.cell_color = cell_color
+            fields, nodes = oracle.floats(instance + 0xC0, 73), oracle.nodes(root)
+            emu.heap_release(mark)
+            for n, (alpha, matrix, box, colours, ground) in enumerate(nodes):
+                lines.append(f"static const std::uint32_t kDoubleShade{c}_{n}[] = {{{hexes(colours) or '0'}}};")
+                lines.append(f"static const std::int32_t kDoubleTint{c}_{n}[] = {{{hexes(ground) or '0'}}};")
+            lines.append(f"static const NodeVector kDoubleNodes{c}[] = {{")
+            for n, (alpha, matrix, box, colours, ground) in enumerate(nodes):
+                lines.append(f"    {{0x{alpha:08x}, {{{hexes(matrix)}}}, {{{hexes(box)}}}, kDoubleShade{c}_{n}, "
+                             f"kDoubleTint{c}_{n}, {len(colours) // 9}}},")
+            lines.append("};")
+            lines.append(f"static const std::uint32_t kDoubleInstance{c}[73] = {{{hexes(fields)}}};")
+            position, rotation, scale, _ = placement
+            cases.append(f"    {{kModel{k}, {{{hexes(bits(f32(x)) for x in (*position, *rotation, *scale))}}}, "
+                         f"{int(fpcw == 0x027F)}, kDoubleInstance{c}, kDoubleNodes{c}, {len(nodes)}}},")
+    lines.append("// C3dGround::GetCellCoords at single and double precision: {x, z, cell size, width,")
+    lines.append("// height, the cell at single precision, at double}.")
+    lines.append("static const CellCoordVector kCellCoordVectors[] = {")
+    for x, z, cell, width, height, single, double in cell_coords(oracle):
+        lines.append(f"    {{0x{x:08x}, 0x{z:08x}, 0x{cell:08x}, {width}, {height}, {{{single[0]}, {single[1]}}}, "
+                     f"{{{double[0]}, {double[1]}}}}},")
+    lines.append("};")
+    lines.append("// Each model of kModelVectors placed and lit twice at double precision, then with a scale")
+    lines.append("// of 0 on some axis at double and at single: {file, position, rotation and scale, whether")
+    lines.append("// at double precision, the instance's fields +0xc0 to +0x1e4, the nodes}.")
+    lines.append("static const PlacementVector kDoublePlacements[] = {")
+    lines += cases
     lines.append("};")
     return lines
 
