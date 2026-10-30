@@ -47,7 +47,6 @@ address	namespace	name	calling_convention	evidence
 00410cd0	SceneRenderer	method_00410cd0	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 0040d1a0
 00410df0	SceneRenderer	method_00410df0	__thiscall	__thiscall; called with this from 2 functions of SceneRenderer, e.g. 004a2990; through the pointer at 00625e98
 00410eb0	SceneRenderer	method_00410eb0	__thiscall	__thiscall; called with this from 3 functions of SceneRenderer, e.g. 004a29f0; through the pointer at 00625e98
-00411c50	SceneRenderer	method_00411c50	__thiscall	__thiscall; called with this from 2 functions of SceneRenderer, e.g. 00514540; through the pointer at 00625e98
 00411d40	SceneRenderer	method_00411d40	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 004cba20; through the pointer at 00625e98
 00412150	SceneRenderer	method_00412150	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 004cba20; through the pointer at 00625e98
 00412aa0	SceneRenderer	method_00412aa0	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 004b6e50; through the pointer at 00625e98
@@ -473,8 +472,6 @@ address	namespace	name	calling_convention	evidence
 005130b0	CGameMode	method_005130b0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00515d10
 00513c20	CGameMode	method_00513c20	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00515d10
 005144a0	CGameMode	method_005144a0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00515d10
-00514540	CGameMode	method_00514540	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00515d10
-005147a0	CGameMode	method_005147a0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 005159d0
 00514900	CGameMode	method_00514900	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00515d10
 005149c0	CGameMode	method_005149c0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00515d10
 00515540	CGameMode	method_00515540	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00515d10

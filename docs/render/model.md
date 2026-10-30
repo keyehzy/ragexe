@@ -193,9 +193,11 @@ texture name a stand-in whose format is 4444 for a name of odd length.
 
 The port matches every value bit for bit (`tests/unit/model_test.cpp`).
 
-**Not ported yet:**
-- the volumes and their matrices;
-- `SetTranslucentIfRayHits`.
+**Not ported yet:** the volumes and their matrices.
+
+**`SetTranslucentIfRayHits` never fires** in this client: it needs the instance's +0x1e8,
+which nothing sets ([scene_graph.md](scene_graph.md#picking)). The node's flag it would set
+(+0x124) is ported for the draw.
 
 Which models are drawn, and whether clipped, is the scene graph's
 ([scene_graph.md](scene_graph.md)).

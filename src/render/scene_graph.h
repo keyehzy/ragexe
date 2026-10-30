@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <vector>
 
+#include "render/camera.h"
 #include "render/ground.h"
 #include "render/matrix.h"
 #include "render/model.h"
@@ -87,5 +88,45 @@ void DrawVisible(const VisibleNodes& visible, const SceneGraph& graph, const Fru
                  std::vector<ModelInstance>& models,
                  const std::vector<ModelDrawSettings>& model_settings,
                  std::vector<VisiblePrimitive>& out);
+
+// Picking (docs/render/scene_graph.md#picking).
+
+// A ray: where it starts and its unit direction.
+struct ViewRay {
+  Vec3 origin{};
+  Vec3 direction{};
+};
+
+// SceneRenderer::ScreenRay (00411c50): the ray from the eye (CView+0x7c) through screen point
+// (x, y), the point's offset from the viewport's origin over the scales taken through the
+// view's inverse (CView+0xc4) and normalised.
+ViewRay ScreenRay(const Projection& projection, std::int32_t x, std::int32_t y, const Vec3& eye,
+                  const Matrix& inverse);
+
+// SceneRayQuery::HitsBox (004c6460): whether the ray meets the box (minimum, maximum) at a
+// distance no more than range. Along an axis the ray hardly moves on, the box counts as
+// 0.7 of its width there.
+bool RayHitsBox(const ViewRay& ray, float range, const Vec3& min, const Vec3& max);
+
+// SceneRayQuery::CollectNodes (004c62e0): the leaves under the root whose boxes, and whose
+// ancestors' boxes below the root, the ray meets, depth first, at the range 999999.
+std::vector<int> CollectRayLeaves(const SceneGraph& graph, const ViewRay& ray);
+
+// RayIntersectsTriangle (0040b7b0): Moller and Trumbore's test of the triangle (a, b, c),
+// giving the barycentric u and v and the distance t along the ray, which may be negative.
+bool RayHitsTriangle(const ViewRay& ray, const Vec3& a, const Vec3& b, const Vec3& c, float& u,
+                     float& v, float& t);
+
+// C3dAttr::IntersectCellRay (00427230): the nearest distance at which the ray meets the cell's
+// two triangles, 999999 when it misses both, and 0 for a cell off the map.
+float IntersectCellRay(const res::AttrMap& attr, const ViewRay& ray, std::int32_t x,
+                       std::int32_t z);
+
+// CGameMode::PickCell (005147a0): the attribute cell under screen point (x, y), the one nearest
+// along the ray through it among the cells of the leaves the ray meets (the first of equals);
+// false when the ray meets none.
+bool PickCell(const Projection& projection, const Camera& camera, std::int32_t x, std::int32_t y,
+              const SceneGraph& graph, const res::AttrMap& attr, std::int32_t& cell_x,
+              std::int32_t& cell_z);
 
 }  // namespace ragexe::render

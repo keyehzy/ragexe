@@ -2567,6 +2567,16 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Checks:** 260 camera frames with shakes and 2000 `ApplyShake` steps; 22,041 values
     in the shake's test.
 
+- [x] Picking (`docs/render/scene_graph.md#picking`):
+  - **The cell under the mouse:** `SceneRenderer`'s ray through a screen point, the scene
+    graph leaves it meets (`SceneRayQuery`'s slab test), and the nearest attribute cell
+    (`C3dAttr::IntersectCellRay`, `RayIntersectsTriangle`), as `CGameMode::PickCell`
+    finds it.
+  - **Models between the camera and the player** never turn translucent: the test needs
+    `ModelInstance`+0x1e8, which nothing sets.
+  - **Checks:** 300 picks under five views, 500 box, 500 triangle and 400 cell tests; 5,904
+    values.
+
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

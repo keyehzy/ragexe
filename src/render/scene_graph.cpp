@@ -391,4 +391,155 @@ void DrawVisible(const VisibleNodes& visible, const SceneGraph& graph, const Fru
   }
 }
 
+namespace {
+
+constexpr float kRayRange = 999999.0f;              // 005e895c, 005e268c and 005e9760
+constexpr float kRayParallel = 9.99999974738e-06f;  // 005e8958 and 005e2688
+constexpr float kParallelShrink = 0.699999988079f;  // 005e89c4
+
+// One axis of HitsBox's slab test: the distances where the ray crosses the box's two faces
+// narrowing [near, far]; false once the ray misses.
+bool Slab(float direction, float offset, float half, float& near, float& far) {
+  if (kRayParallel < std::fabs(direction)) {
+    const float inverse = 1.0f / direction;
+    const float t1 = (half + offset) * inverse;
+    const float t2 = (offset - half) * inverse;
+    if (t1 <= t2) {
+      if (near < t1) near = t1;
+      if (t2 < far) far = t2;
+    } else {
+      if (near < t2) near = t2;
+      if (t1 < far) far = t1;
+    }
+    return !(far < near) && !(far < 0.0f);
+  }
+  const float shrunk = half * kParallelShrink;
+  return !(0.0f < -offset - shrunk) && !(shrunk - offset < 0.0f);
+}
+
+void CollectRayLeavesFrom(const SceneGraph& graph, const ViewRay& ray, int node, int depth,
+                          std::vector<int>& out) {
+  if (depth == 5) {
+    out.push_back(node);
+    return;
+  }
+  for (const int child : graph.nodes[static_cast<std::size_t>(node)].children) {
+    const SceneGraphNode& c = graph.nodes[static_cast<std::size_t>(child)];
+    if (RayHitsBox(ray, kRayRange, c.min, c.max))
+      CollectRayLeavesFrom(graph, ray, child, depth + 1, out);
+  }
+}
+
+}  // namespace
+
+ViewRay ScreenRay(const Projection& projection, std::int32_t x, std::int32_t y, const Vec3& eye,
+                  const Matrix& inverse) {
+  const auto origin_x = static_cast<float>(projection.origin_x);
+  const auto origin_y = static_cast<float>(projection.origin_y);
+  const float across = static_cast<float>(x) / origin_x - 1.0f;
+  const float down = 1.0f - static_cast<float>(y) / origin_y;
+  const float sx = (across * origin_x) / projection.scale_x;
+  const float sy = -((origin_y * down) / projection.scale_y);
+  ViewRay ray;
+  ray.origin = eye;
+  for (std::size_t i = 0; i < 3; ++i)
+    ray.direction[i] = (inverse[3 + i] * sy + inverse[i] * sx) + inverse[6 + i];
+  const Vec3& d = ray.direction;
+  const float scale = 1.0f / SqrtFloat((d[0] * d[0] + d[1] * d[1]) + d[2] * d[2]);
+  for (float& c : ray.direction) c = scale * c;
+  return ray;
+}
+
+bool RayHitsBox(const ViewRay& ray, float range, const Vec3& min, const Vec3& max) {
+  float near = -kRayRange;
+  float far = kRayRange;
+  Vec3 centre{}, half{}, offset{};
+  for (std::size_t i = 0; i < 3; ++i) centre[i] = (max[i] + min[i]) * 0.5f;
+  for (std::size_t i = 0; i < 3; ++i) half[i] = max[i] - centre[i];
+  for (std::size_t i = 0; i < 3; ++i) offset[i] = centre[i] - ray.origin[i];
+  for (std::size_t i = 0; i < 3; ++i)
+    if (!Slab(ray.direction[i], offset[i], half[i], near, far)) return false;
+  if (near <= 0.0f) return !(range < far);
+  return !(range < near);
+}
+
+std::vector<int> CollectRayLeaves(const SceneGraph& graph, const ViewRay& ray) {
+  std::vector<int> out;
+  if (!graph.nodes.empty()) CollectRayLeavesFrom(graph, ray, 0, 0, out);
+  return out;
+}
+
+bool RayHitsTriangle(const ViewRay& ray, const Vec3& a, const Vec3& b, const Vec3& c, float& u,
+                     float& v, float& t) {
+  const Vec3& o = ray.origin;
+  const Vec3& d = ray.direction;
+  const Vec3 e1{b[0] - a[0], b[1] - a[1], b[2] - a[2]};
+  const Vec3 e2{c[0] - a[0], c[1] - a[1], c[2] - a[2]};
+  const float px = e2[2] * d[1] - e2[1] * d[2];
+  const float py = e2[0] * d[2] - e2[2] * d[0];
+  const float pz = e2[1] * d[0] - e2[0] * d[1];
+  const float det = (pz * e1[2] + py * e1[1]) + e1[0] * px;
+  if (-kRayParallel < det && det < kRayParallel) return false;
+  const float inverse = 1.0f / det;
+  const float tx = o[0] - a[0];
+  const float ty = o[1] - a[1];
+  const float tz = o[2] - a[2];
+  u = ((tz * pz + ty * py) + tx * px) * inverse;
+  if (u < 0.0f || u > 1.0f) return false;
+  const float qx = ty * e1[2] - tz * e1[1];
+  const float qy = tz * e1[0] - e1[2] * tx;
+  const float qz = tx * e1[1] - ty * e1[0];
+  v = ((qz * d[2] + qy * d[1]) + qx * d[0]) * inverse;
+  if (v < 0.0f || v + u > 1.0f) return false;
+  t = ((qz * e2[2] + qy * e2[1]) + qx * e2[0]) * inverse;
+  return true;
+}
+
+float IntersectCellRay(const res::AttrMap& attr, const ViewRay& ray, std::int32_t x,
+                       std::int32_t z) {
+  if (x < 0 || x >= attr.width || z < 0 || z >= attr.height) return 0.0f;
+  const res::AttrCell& cell =
+      attr.cells[static_cast<std::size_t>(attr.width) * static_cast<std::size_t>(z) +
+                 static_cast<std::size_t>(x)];
+  const auto size = static_cast<float>(attr.cell_size);
+  const std::int32_t ix = x - attr.width / 2;
+  const std::int32_t iz = z - attr.height / 2;
+  const float x0 = static_cast<float>(ix) * size;
+  const float x1 = static_cast<float>(ix + 1) * size;
+  const float z0 = static_cast<float>(iz) * size;
+  const float z1 = static_cast<float>(iz + 1) * size;
+  // The corners as GetHeight reads them: 0 and 1 along x at the near z, 2 and 3 at the far.
+  const Vec3 a{x0, cell.heights[0], z0};
+  const Vec3 b{x1, cell.heights[1], z0};
+  const Vec3 c{x0, cell.heights[2], z1};
+  const Vec3 d{x1, cell.heights[3], z1};
+  float best = kRayRange;
+  float u = 0.0f, v = 0.0f, t = 0.0f;
+  if (RayHitsTriangle(ray, a, b, c, u, v, t) && t < best) best = t;
+  if (RayHitsTriangle(ray, b, d, c, u, v, t) && t < best) best = t;
+  return best;
+}
+
+bool PickCell(const Projection& projection, const Camera& camera, std::int32_t x, std::int32_t y,
+              const SceneGraph& graph, const res::AttrMap& attr, std::int32_t& cell_x,
+              std::int32_t& cell_z) {
+  const ViewRay ray = ScreenRay(projection, x, y, camera.eye, camera.inverse);
+  float best = kRayRange;
+  for (const int leaf : CollectRayLeaves(graph, ray)) {
+    const std::array<std::int32_t, 4>& cells =
+        graph.nodes[static_cast<std::size_t>(leaf)].attr_cells;
+    for (std::int32_t z = cells[1]; z <= cells[3]; ++z) {
+      for (std::int32_t cx = cells[0]; cx <= cells[2]; ++cx) {
+        const float distance = IntersectCellRay(attr, ray, cx, z);
+        if (distance < best) {
+          best = distance;
+          cell_x = cx;
+          cell_z = z;
+        }
+      }
+    }
+  }
+  return best < kRayRange;
+}
+
 }  // namespace ragexe::render

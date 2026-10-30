@@ -116,6 +116,56 @@ The reach is the box's half extents projected on the normal.
 
 A model or cell in several leaves is drawn once, at its first.
 
+## Picking
+
+`CGameMode::PickCell` (`005147a0`) finds the attribute cell under the mouse
+(`g_DirectInputMouse`+0x14 and +0x18). `CGameMode::method_005159d0` calls it each input step
+(unless +0x35c is 2, 3 or 4). It uses the cell to walk there on a click (the player's `vf02`,
+message 0x41 with the cell), and with a client option (`g_ClientState`+0x184c) it keeps the
+cell and a colour for the cursor (`00684e20` to `00684e2c`).
+
+**The ray** is `SceneRenderer::ScreenRay`'s (`00411c50`), from the eye (`CView`+0x7c):
+1. The point's offset from the viewport's origin (+0x2c, +0x30) is
+   sx = ((x / origin x) − 1) · origin x / scale x and sy = −(origin y · (1 − y / origin y))
+   / scale y, each operation rounded to single precision.
+2. The direction is (row 1 · sy + row 0 · sx) + row 2 of the view's inverse (`CView`+0xc4).
+3. It is scaled by 1 / `SqrtFloat`((x² + y²) + z²).
+
+**The leaves** come from `SceneRayQuery::CollectNodes` (`004c62e0`): from the root (not
+itself tested), each child whose box the ray meets (`HitsBox`, `004c6460`) is walked, depth
+first, and the leaves at depth 5 are listed.
+
+**`HitsBox`** is a slab test on the box's centre and half extents, at the range 999999
+(`005e895c`):
+- **Each axis** along which the ray moves more than 0.00001 (`005e8958`) narrows the near and
+  far distances to where it crosses the two faces. It misses once far < near or far < 0.
+- **An axis it hardly moves along** keeps the distances. It misses unless its offset from
+  the centre is within 0.7 (`005e89c4`) of the half extent, so the box counts as narrower.
+- **The range:** with near ≤ 0 the far distance must be within it, otherwise the near.
+
+**The cell:** for each leaf, row by row (z, then x) over its attribute cells (+0x70 to +0x7c),
+`C3dAttr::IntersectCellRay` (`00427230`) gives a distance. The least wins, the first of
+equals, while below 999999.
+- **The cell's corners:** x0 and x1 = (x − width / 2) · size and the next, z0 and z1 the same
+  for z (C's division), and the four heights. Its triangles are (x0 z0, x1 z0, x0 z1) and
+  (x1 z0, x1 z1, x0 z1).
+- **Each triangle** goes through `RayIntersectsTriangle` (`0040b7b0`), Möller and Trumbore's
+  test with the determinant outside ±0.00001 (`005e2688`). It gives the distance along the ray,
+  which is not required to be positive.
+- **The miss value:** a cell the ray misses gives 999999 (`005e28cc`), and one off the map 0,
+  which would win.
+
+**Models between the camera and the player.** `CGameMode::MarkModelsOnPlayerRay`
+(`00514540`) runs the same query each input step. Its ray goes through the player's point on
+screen (its +0x90, and +0x94 less 23 (`005e97cc`) times the height ratio), and its range is
+the camera's distance plus the player's y, less 16 (`005e2728`). Each model in the leaves
+met goes to `ModelInstance::SetTranslucentIfRayHits` (`004bab80`), which would mark its
+nodes translucent for the next draw. It does so only when the model's +0x1e8 is set, and
+nothing sets it: `CWorld::LoadWorld` (`004c40d7`) and `LazyModelLoadThread` (`004c3532`)
+clear it, and no other code writes a `ModelInstance`'s +0x1e8. So in this client no model
+ever turns translucent this way. With +0x398 set, the same function also logs the nearest
+cell distance ("nearest : %f").
+
 ## Checks
 
 `tools/scene_graph_vectors.py` writes the original's results in the emulation oracle to
@@ -127,11 +177,22 @@ original, an 80 × 64 attribute map and 30 model stand-ins.
   and models, depth first;
 - under five views, `CullSceneGraph`'s planes, the inside and crossing leaves, and each
   model's class;
-- 300 calls to `OrientedBoxIntersectsBox`.
+- 300 calls to `OrientedBoxIntersectsBox`;
+- **picking under the same five views:**
+  - 300 screen points, some off the screen: the ray, the leaves it meets, and
+    `PickCell`'s answer and cell;
+  - 500 calls to `HitsBox`, including rays along an axis, from inside the box, from a face
+    and at exactly the parallel limit;
+  - 500 calls to `RayIntersectsTriangle` and 400 to `IntersectCellRay`, some off the map.
 
 The port matches every value (`tests/unit/scene_graph_test.cpp`). The drawing order is
 ported from `vf03` without a vector of its own.
 
+**In the port:** `ScreenRay`, `RayHitsBox`, `CollectRayLeaves`, `RayHitsTriangle`,
+`IntersectCellRay` and `PickCell`.
+
 **Not ported:**
 - the cell range globals;
-- `SceneRayQuery`, the picking that finds the leaves a ray crosses.
+- `RayIntersectsBoxInRange` (`0040b960`), the model box test that nothing reaches;
+- what the game mode does with the picked cell (moving, the cursor), which comes with the
+  game mode.

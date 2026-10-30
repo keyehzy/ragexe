@@ -36,6 +36,31 @@ struct IntersectVector {
   int result;
 };
 
+struct PickVector {
+  int view, x, y;
+  std::uint32_t ray[6];
+  const std::int32_t* leaves;
+  std::size_t leaf_count;
+  int picked, cell_x, cell_z;
+};
+
+struct BoxRayVector {
+  std::uint32_t values[13];  // origin, direction, range, minimum, maximum
+  int hit;
+};
+
+struct TriangleRayVector {
+  std::uint32_t values[15];  // origin, direction, a, b, c
+  std::uint32_t hit;
+  std::uint32_t uvt[3];
+};
+
+struct CellRayVector {
+  std::uint32_t ray[6];
+  std::int32_t x, z;
+  std::uint32_t distance;
+};
+
 #include "scene_graph_vectors.inc"
 
 float F(std::uint32_t bits) { return std::bit_cast<float>(bits); }
@@ -190,5 +215,69 @@ TEST_CASE("The frustum finds the nodes and models the original does", "[scene_gr
       INFO("model " << m);
       CHECK(ClassifyOrientedBox(f, s.models[m]) == v.classes[m]);
     }
+  }
+}
+
+namespace {
+
+ViewRay RayOf(const std::uint32_t* v) {
+  return {{F(v[0]), F(v[1]), F(v[2])}, {F(v[3]), F(v[4]), F(v[5])}};
+}
+
+}  // namespace
+
+TEST_CASE("The mouse's ray picks the cell the original does", "[scene_graph]") {
+  const Scene s = MakeScene();
+  SceneGraph graph;
+  BuildSceneGraph(s.ground, s.attr, s.models, {}, graph);
+  const Projection projection = SetSize(800, 600);
+  std::size_t n = 0;
+  for (const PickVector& v : kPickVectors) {
+    INFO("pick " << n++ << " at " << v.x << ", " << v.y);
+    Camera camera;
+    const auto view = static_cast<std::size_t>(v.view);
+    for (std::size_t i = 0; i < 3; ++i) camera.eye[i] = F(kPickEyes[view][i]);
+    for (std::size_t i = 0; i < 12; ++i) camera.inverse[i] = F(kPickInverses[view][i]);
+    const ViewRay ray = ScreenRay(projection, v.x, v.y, camera.eye, camera.inverse);
+    const float got[6] = {ray.origin[0],    ray.origin[1],    ray.origin[2],
+                          ray.direction[0], ray.direction[1], ray.direction[2]};
+    for (std::size_t i = 0; i < 6; ++i) {
+      INFO("ray " << i);
+      CHECK(B(got[i]) == v.ray[i]);
+    }
+    CHECK(CollectRayLeaves(graph, ray) == std::vector<int>(v.leaves, v.leaves + v.leaf_count));
+    std::int32_t x = -1, z = -1;
+    CHECK(PickCell(projection, camera, v.x, v.y, graph, s.attr, x, z) == (v.picked != 0));
+    CHECK(x == v.cell_x);
+    CHECK(z == v.cell_z);
+  }
+}
+
+TEST_CASE("Rays meet boxes, triangles and cells as the original's", "[scene_graph]") {
+  std::size_t n = 0;
+  for (const BoxRayVector& v : kBoxRayVectors) {
+    INFO("box " << n++);
+    const Vec3 min{F(v.values[7]), F(v.values[8]), F(v.values[9])};
+    const Vec3 max{F(v.values[10]), F(v.values[11]), F(v.values[12])};
+    CHECK(RayHitsBox(RayOf(v.values), F(v.values[6]), min, max) == (v.hit != 0));
+  }
+  n = 0;
+  for (const TriangleRayVector& v : kTriangleRayVectors) {
+    INFO("triangle " << n++);
+    const auto corner = [&v](std::size_t k) {
+      return Vec3{F(v.values[6 + 3 * k]), F(v.values[7 + 3 * k]), F(v.values[8 + 3 * k])};
+    };
+    float u = F(0xdeadbeef), w = F(0xdeadbeef), t = F(0xdeadbeef);
+    CHECK(RayHitsTriangle(RayOf(v.values), corner(0), corner(1), corner(2), u, w, t) ==
+          (v.hit != 0));
+    CHECK(B(u) == v.uvt[0]);
+    CHECK(B(w) == v.uvt[1]);
+    CHECK(B(t) == v.uvt[2]);
+  }
+  const Scene s = MakeScene();
+  n = 0;
+  for (const CellRayVector& v : kCellRayVectors) {
+    INFO("cell " << n++ << ": " << v.x << ", " << v.z);
+    CHECK(B(IntersectCellRay(s.attr, RayOf(v.ray), v.x, v.z)) == v.distance);
   }
 }

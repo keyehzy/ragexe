@@ -10,8 +10,13 @@ from the heights (SceneGraphNode::UpdateHeightBounds, 004c5fa0) and once copying
 tree as a version 2.1 .rsw gives one (SceneGraphNode::CopyBounds, 004c68c0). Recorded:
 every node, depth first. Then ViewFrustum::CullSceneGraph (004ceb00) runs under several
 views: its planes, the nodes it finds inside and crossing, and
-ViewFrustum::ClassifyOrientedBox (004ced90) of each model. Last, OrientedBoxIntersectsBox
-(004c56d0) on random boxes.
+ViewFrustum::ClassifyOrientedBox (004ced90) of each model. Then OrientedBoxIntersectsBox
+(004c56d0) on random boxes. Last the picking, under the same views on an 800 x 600
+SceneRenderer: SceneRenderer::ScreenRay's (00411c50) ray through random screen points,
+SceneRayQuery::CollectNodes' leaves (004c62e0) and CGameMode::PickCell's (005147a0) cell for
+each, with the view's inverse from Matrix::Invert (00409ed0); and SceneRayQuery::HitsBox
+(004c6460), RayIntersectsTriangle (0040b7b0) and C3dAttr::IntersectCellRay (00427230) on
+random rays.
 The x87 runs at single precision, as DirectDraw's FPUSETUP leaves it in the client.
 """
 import math
@@ -27,6 +32,10 @@ from model_vectors import look_at  # noqa: E402
 BUILD_SCENE_GRAPH, NODE_CTOR, NODE_SIZE, SUBDIVIDE = 0x4C4F10, 0x4C5270, 0x80, 0x4C5340
 FRUSTUM_CTOR, FRUSTUM_SIZE, CULL, CLASSIFY_OBB, CLEAR_VISIBLE = 0x4CEA70, 0xC0, 0x4CEB00, 0x4CED90, 0x4CEC80
 OBB_INTERSECTS_BOX = 0x4C56D0
+SET_SIZE, SCENE_RENDERER_SIZE, G_PSCENE_RENDERER, INVERT = 0x40DB70, 0x2A0, 0x625E98, 0x409ED0
+SCREEN_RAY, LIST_CTOR, COLLECT_NODES, HITS_BOX = 0x411C50, 0x4C62B0, 0x4C62E0, 0x4C6460
+RAY_TRIANGLE, CELL_RAY, PICK_CELL = 0x40B7B0, 0x427230, 0x5147A0
+MOUSE_X, MOUSE_Y = 0x628B5C, 0x628B60  # g_DirectInputMouse +0x14 and +0x18
 GROUND_SHAPE = (40, 32)  # cells of 10
 ATTR_CELL = 5
 SLOPES = (5.7027130126953125, 7.6037387847900391)  # SetSize at 800 x 600: +8, +0xc
@@ -166,13 +175,14 @@ def main():
     root, index = trees[0]
     frustum = emu.scratch(size=FRUSTUM_SIZE)
     emu.call(FRUSTUM_CTOR, this=frustum)
-    views = []
+    views, eyes = [], []
     for yaw, pitch, distance, at in [(0.4, 0.8, 300.0, (0, 0, 0)), (2.0, 0.6, 120.0, (-150, 0, 80)),
                                      (3.5, 1.2, 600.0, (100, -10, -120)), (5.0, 0.4, 60.0, (220, 0, 180)),
                                      (1.2, 0.9, 30.0, (-230, 0, -190))]:
         eye = (at[0] + distance * math.sin(yaw) * math.cos(pitch), at[1] - distance * math.sin(pitch),
                at[2] - distance * math.cos(yaw) * math.cos(pitch))
         view = look_at(eye, at)
+        eyes.append([f32(c) for c in eye])
         matrix = emu.scratch(struct.pack("<12f", *view))
         emu.call(CULL, bits(f32(SLOPES[0])), bits(f32(SLOPES[1])), matrix, root, this=frustum)
         planes = list(struct.unpack("<42I", emu.mem_read(frustum, 0xA8)))
@@ -216,7 +226,148 @@ def main():
         lines.append(f"    {{{{{', '.join(f'0x{bits(v):08x}' for v in values)}}}, "
                      f"{{{', '.join(f'0x{bits(v):08x}' for v in box)}}}, {result}}},")
     lines.append("};")
+    picking(emu, rng, lines, root, attr, aw, ah, [v[0] for v in views], eyes, index)
     print("\n".join(lines))
+
+
+def unit(rng):
+    d = [rng.gauss(0, 1) for _ in range(3)]
+    n = math.sqrt(sum(c * c for c in d))
+    return [f32(c / n) for c in d]
+
+
+def picking(emu, rng, lines, root, attr, aw, ah, views, eyes, index):
+    u = emu.read_u32
+    renderer = emu.scratch(size=SCENE_RENDERER_SIZE)
+    emu.call(SET_SIZE, 800, 600, this=renderer)
+    emu.write_u32(G_PSCENE_RENDERER, renderer)
+    cview = emu.scratch(size=0x1C0)
+    mode = emu.scratch(size=0x400)
+    emu.write_u32(mode + 0xB4, root - 0x68)
+    emu.write_u32(mode + 0xB8, cview)
+    out = emu.scratch(size=0x40)
+
+    def floats(addr, n):
+        return list(struct.unpack(f"<{n}I", emu.mem_read(addr, 4 * n)))
+
+    def leaves(ray):
+        query = emu.scratch(size=0x28)
+        emu.call(LIST_CTOR, this=query)
+        emu.call(COLLECT_NODES, emu.scratch(struct.pack("<6I", *ray)), root, this=query)
+        head, found = u(query + 4), []
+        node = u(head)
+        while node != head:
+            found.append(index[u(node + 8)])
+            node = u(node)
+        return found
+
+    lines.append("// Picking, per view: {screen x, y; the ray (origin, direction); the leaves it meets;")
+    lines.append("// PickCell's answer and cell}.")
+    rows = []
+    for k, (view, eye) in enumerate(zip(views, eyes)):
+        emu.mem_write(cview + 0x7C, struct.pack("<3f", *eye))
+        emu.call(INVERT, emu.scratch(struct.pack("<12f", *view)), this=cview + 0xC4)
+        inverse = floats(cview + 0xC4, 12)
+        for n in range(60):
+            x, y = rng.randrange(0, 800), rng.randrange(0, 600)
+            if n % 20 == 19:
+                x, y = rng.choice([(-40, 300), (900, 10), (400, -30), (0, 0), (799, 599)])
+            emu.call(SCREEN_RAY, x, y, cview + 0x7C, cview + 0xC4, out, this=renderer)
+            ray = floats(out, 6)
+            found = leaves(ray)
+            emu.write_u32(MOUSE_X, x & 0xFFFFFFFF)
+            emu.write_u32(MOUSE_Y, y & 0xFFFFFFFF)
+            cells = emu.scratch(struct.pack("<2i", -1, -1))
+            picked = emu.call(PICK_CELL, cells, cells + 4, this=mode).eax & 0xFF
+            cx, cz = struct.unpack("<2i", emu.mem_read(cells, 8))
+            name = f"kPickLeaves{k}_{n}"
+            lines.append(f"static const std::int32_t {name}[] = {{{', '.join(map(str, found)) or '-1'}}};")
+            rows.append(f"    {{{k}, {x}, {y}, {{{', '.join(f'0x{v:08x}' for v in ray)}}}, {name}, {len(found)}, "
+                        f"{picked}, {cx}, {cz}}},")
+        lines.append(f"static const std::uint32_t kPickInverse{k}[12] = {{{', '.join(f'0x{v:08x}' for v in inverse)}}};")
+    lines.append("static const std::uint32_t* const kPickInverses[] = {"
+                 + ", ".join(f"kPickInverse{k}" for k in range(len(views))) + "};")
+    lines.append("static const std::uint32_t kPickEyes[][3] = {"
+                 + ", ".join("{" + ", ".join(f"0x{bits(c):08x}" for c in e) + "}" for e in eyes) + "};")
+    lines.append("static const PickVector kPickVectors[] = {")
+    lines += rows
+    lines.append("};")
+
+    # HitsBox: rays from around the map at boxes near and far, some along an axis.
+    query = emu.scratch(size=0x28)
+    lines.append("// {origin, direction, range, box (minimum, maximum), HitsBox}.")
+    lines.append("static const BoxRayVector kBoxRayVectors[] = {")
+    for n in range(500):
+        origin = [f32(rng.uniform(-300, 300)), f32(rng.uniform(-200, 20)), f32(rng.uniform(-300, 300))]
+        lo = [rng.uniform(-250, 250), rng.uniform(-80, 20), rng.uniform(-250, 250)]
+        size = [rng.uniform(0.5, 120) for _ in range(3)]
+        box = [f32(c) for c in lo + [lo[i] + size[i] for i in range(3)]]
+        if n % 2 == 0:  # aimed near the box
+            target = [rng.uniform(box[i] - 10, box[i + 3] + 10) for i in range(3)]
+            d = [t - o for t, o in zip(target, origin)]
+            m = math.sqrt(sum(c * c for c in d))
+            direction = [f32(c / m) for c in d]
+        else:
+            direction = unit(rng)
+        if n % 5 == 1:
+            direction[rng.randrange(3)] = rng.choice([0.0, f32(5e-6), f32(-2e-5)])
+        rng_range = f32(rng.choice([999999.0, rng.uniform(10, 400)]))
+        if n >= 400:
+            # From inside the box, from a face (the near distance 0), and along an axis at
+            # exactly the parallel limit, each with a short range.
+            kind = n % 3
+            origin = [f32(rng.uniform(box[i] + 0.1 * size[i], box[i + 3] - 0.1 * size[i])) for i in range(3)]
+            direction = unit(rng)
+            axis = rng.randrange(3)
+            if kind == 1:
+                origin[axis] = box[axis]
+                direction[axis] = f32(abs(direction[axis]) + 0.2)
+            elif kind == 2:
+                direction[axis] = rng.choice([f32(9.99999974738e-06), f32(-9.99999974738e-06)])
+            rng_range = f32(rng.uniform(0.5, 30))
+        emu.mem_write(query + 0xC, struct.pack("<7f", *origin, *direction, rng_range))
+        hit = emu.call(HITS_BOX, emu.scratch(struct.pack("<6f", *box)), this=query).eax & 0xFF
+        values = origin + direction + [rng_range] + box
+        lines.append(f"    {{{{{', '.join(f'0x{bits(v):08x}' for v in values)}}}, {hit}}},")
+    lines.append("};")
+
+    # RayIntersectsTriangle: triangles about a point near the ray, so many are hit.
+    lines.append("// {ray, triangle a, b, c; RayIntersectsTriangle, u, v, t (from 0xdeadbeef)}.")
+    lines.append("static const TriangleRayVector kTriangleRayVectors[] = {")
+    for n in range(500):
+        origin = [f32(rng.uniform(-100, 100)) for _ in range(3)]
+        direction = unit(rng)
+        along = rng.uniform(-50, 300)
+        centre = [origin[i] + direction[i] * along + rng.uniform(-8, 8) for i in range(3)]
+        tri = [f32(centre[i % 3] + rng.uniform(-15, 15)) for i in range(9)]
+        if n % 10 == 3:  # edge on to the ray
+            tri[6:9] = [f32(tri[i] + (tri[3 + i] - tri[i]) * 0.5) for i in range(3)]
+        outs = emu.scratch(struct.pack("<3I", 0xDEADBEEF, 0xDEADBEEF, 0xDEADBEEF))
+        hit = emu.call(RAY_TRIANGLE, emu.scratch(struct.pack("<6f", *origin, *direction)),
+                       emu.scratch(struct.pack("<3f", *tri[0:3])), emu.scratch(struct.pack("<3f", *tri[3:6])),
+                       emu.scratch(struct.pack("<3f", *tri[6:9])), outs, outs + 4, outs + 8).eax
+        values = [bits(v) for v in origin + direction + tri] + floats(outs, 3)
+        lines.append(f"    {{{{{', '.join(f'0x{v:08x}' for v in values[:15])}}}, {hit}, "
+                     f"{{{', '.join(f'0x{v:08x}' for v in values[15:])}}}}},")
+    lines.append("};")
+
+    # IntersectCellRay: rays at a cell's middle from above, some cells off the map.
+    lines.append("// {ray, cell x, z, IntersectCellRay}.")
+    lines.append("static const CellRayVector kCellRayVectors[] = {")
+    for n in range(400):
+        cx, cz = rng.randrange(-2, aw + 2), rng.randrange(-2, ah + 2)
+        target = [(cx - aw // 2 + rng.uniform(-0.5, 1.5)) * ATTR_CELL, rng.uniform(-20, 10),
+                  (cz - ah // 2 + rng.uniform(-0.5, 1.5)) * ATTR_CELL]
+        origin = [f32(target[0] + rng.uniform(-80, 80)), f32(rng.uniform(-300, -60)),
+                  f32(target[2] + rng.uniform(-80, 80))]
+        d = [t - o for t, o in zip(target, origin)]
+        m = math.sqrt(sum(c * c for c in d))
+        direction = [f32(c / m) for c in d]
+        emu.call(CELL_RAY, emu.scratch(struct.pack("<6f", *origin, *direction)), cx, cz, this=attr)
+        result = bits(f32(emu.st0()))
+        lines.append(f"    {{{{{', '.join(f'0x{bits(v):08x}' for v in origin + direction)}}}, {cx}, {cz}, "
+                     f"0x{result:08x}}},")
+    lines.append("};")
 
 
 if __name__ == "__main__":

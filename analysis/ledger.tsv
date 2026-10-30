@@ -350,7 +350,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00411010	125	code	0	render		named	SceneRenderer	SetFogEnabled	
 00411090	561	code	0	render		named	SceneRenderer	SetupProjection	
 004112d0	2361	code	0	render		named	SceneRenderer	SetStageMode	
-00411c50	225	code	0	render		named	SceneRenderer	method_00411c50	
+00411c50	225	code	0	render		named	SceneRenderer	ScreenRay	
 00411d40	1027	code	0	render		named	SceneRenderer	method_00411d40	
 00412150	1021	code	0	render		named	SceneRenderer	method_00412150	
 00412550	449	code	0	render		named	SceneRenderer	AddPrimitive	
@@ -4585,9 +4585,9 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00513c20	274	code	0	game		named	CGameMode	method_00513c20	
 00513d40	1820	code	0	game		named	CGameMode	ProcessPickedObject	
 005144a0	146	code	0	game		named	CGameMode	method_005144a0	
-00514540	523	code	0	game		named	CGameMode	method_00514540	
+00514540	523	code	0	game		named	CGameMode	MarkModelsOnPlayerRay	
 00514750	77	code	1	stl		named	std::list	~list	
-005147a0	341	code	0	game		named	CGameMode	method_005147a0	
+005147a0	341	code	0	game		named	CGameMode	PickCell	
 00514900	182	code	0	game		named	CGameMode	method_00514900	
 005149c0	2939	code	0	game		named	CGameMode	method_005149c0	
 00515540	394	code	0	game		named	CGameMode	method_00515540	
