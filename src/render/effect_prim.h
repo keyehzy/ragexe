@@ -56,6 +56,7 @@ struct RagEffect {
   Vec3 stride{};              // +0xf4, the trails' step towards the target
   Vec3 walk{};                // +0x100, how far the trails have stepped
   EffectStr* str = nullptr;   // without one, AdvanceStr answers false
+  std::int32_t bursts = 1;    // +0xb0, 0x51's: only the constructor sets it
   // +0xc4 and +0xc8, which only 0x2f and 0xa5 read, raising them to 1 first: the scale and
   // image delay of their sprite. Nothing else sets them.
   float sprite_scale = 0.0f;
@@ -1002,6 +1003,15 @@ void AddStolenSparks(RagEffect& effect, const PrimSprite& spark, core::CrtRand& 
                      std::vector<EffectPrim>& added);
 void AddCoins(RagEffect& effect, bool minimal, const PrimSprite& coin, core::CrtRand& rand,
               std::vector<EffectPrim>& added);
+
+// Bursts along the actor's facing (docs/render/effect-prim.md#bursts): AddHitBurst
+// (005516e0), 0x3, a cylinder of lens2.tga and five particles; AddYellowBursts (0055dee0),
+// 0x51, every 20 frames while below 20 × bursts a widening cylinder of ring_yellow.tga, and
+// after the first four particles and four bouncers.
+void AddHitBurst(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+                 const PrimSprite& particle, core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddYellowBursts(RagEffect& effect, const EffectActor& actor, const PrimSprite& particle,
+                     core::CrtRand& rand, std::vector<EffectPrim>& added);
 
 // CRagEffect::AdvanceStr (0054fba0): false without a .str, else the .str's step.
 bool AdvanceStr(RagEffect& effect, const EffectActor& actor, float x, float y, float z);

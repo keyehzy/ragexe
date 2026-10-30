@@ -2535,10 +2535,16 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Checks:** five effect runs (one with minimal effects on) and 0xa's two `.str` runs;
     7,559,067 values in `prim_test`.
 
+- [x] Bursts (`docs/render/effect-prim.md#bursts`):
+  - **Effect ids 0x3 and 0x51:** a cylinder along the actor's facing with particles fanned
+    round it; 0x51 repeats while the frame is below 20 × +0xb0, which only the constructor
+    sets (to 1).
+  - **Checks:** four effect runs, one with +0xb0 written to 3; 7,616,781 values in
+    `prim_test`.
+
 ### Next actions
-1. M4, the renderer: the 6 cases of `CRagEffect::vf01` left (0x3, 0x33, 0x51, 0x78, 0xa4
-   and 0xa6), in groups as before: next 0x3 and 0x51 (cylinders, particles and a
-   bouncer), then 0x33 and 0xa4, which make their primitives without `CreatePrimitive`,
-   and 0x78 and 0xa6, which change the actor.
+1. M4, the renderer: the 4 cases of `CRagEffect::vf01` left (0x33, 0x78, 0xa4 and 0xa6):
+   0x33 and 0xa4, which make their primitives without `CreatePrimitive`, then 0x78 and
+   0xa6, which change the actor.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

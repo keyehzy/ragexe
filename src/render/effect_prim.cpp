@@ -7960,6 +7960,76 @@ void AddCoins(RagEffect& effect, bool minimal, const PrimSprite& coin, core::Crt
   }
 }
 
+namespace {
+
+// The particles of 0x3 and 0x51: as ProcessRingBurst's, and shrinking to nothing.
+EffectPrim MakeBurstParticle(RagEffect& effect, std::int32_t facing, const PrimSprite& particle,
+                             core::CrtRand& rand) {
+  EffectPrim p = MakePrimitive(&effect, 5, {0.0f, 0.0f, 0.0f});
+  AimParticle(p, facing - 40 + rand.Next() % 80, rand);
+  p.speed = static_cast<float>(rand.Next() % 90 + 60) * kHundredth;
+  p.life = rand.Next() % 24 + 6;
+  p.acceleration = (p.speed / static_cast<float>(p.life)) * -0.5f;
+  p.scale = static_cast<float>(rand.Next() % 100 + 60) * kHundredth;
+  p.scale_speed = -(p.scale / static_cast<float>(p.life));
+  SetUpParticle(p, particle);
+  return p;
+}
+
+}  // namespace
+
+void AddHitBurst(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+                 const PrimSprite& particle, core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  PlaceOnScreen(effect, actor, scene, false);
+  if (effect.frame != 0) return;
+  // effect\EF_hit4.wav plays here.
+  const std::int32_t facing = EffectFacing(actor);
+  EffectPrim c = MakeCylinder(effect, 15, facing);
+  c.top_radius = 4.0f;
+  c.bottom_radius = 0.5f;
+  c.height_speed = 0.25f;
+  c.height_rate = std::bit_cast<float>(0x3e19999au);  // 0.15
+  c.fade_at = c.life - c.life / 3;
+  c.textures = {"effect\\lens2.tga"};
+  added.push_back(std::move(c));
+  for (std::int32_t n = 0; n < 5; ++n)
+    added.push_back(MakeBurstParticle(effect, facing, particle, rand));
+}
+
+void AddYellowBursts(RagEffect& effect, const EffectActor& actor, const PrimSprite& particle,
+                     core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  const std::int32_t f = effect.frame;
+  if (f % 20 != 0 || f >= effect.bursts * 20) return;
+  const std::int32_t facing = EffectFacing(actor);
+  EffectPrim c = MakeCylinder(effect, 15, facing);
+  // Wider by a tenth each frame of the effect's, from 6 to 11.
+  const auto frame = static_cast<float>(f);
+  c.top_radius = core::RoundedProduct(frame, 0.1) + 11.0f;
+  c.bottom_radius = core::RoundedProduct(frame, 0.1) + 6.0f;
+  c.height = 2.5f;
+  c.fade_at = c.life - c.life / 2;
+  c.textures = {"effect\\ring_yellow.tga"};
+  added.push_back(std::move(c));
+  if (f <= 0) return;
+  for (std::int32_t n = 0; n < 4; ++n)
+    added.push_back(MakeBurstParticle(effect, facing, particle, rand));
+  for (std::int32_t n = 0; n < 4; ++n) {
+    EffectPrim p = MakePrimitive(&effect, 6, {0.0f, 0.0f, 0.0f});
+    AimParticle(p, facing + 140 + rand.Next() % 80, rand);
+    p.matrix = MakeRotationY(Radians(p.heading));
+    p.life = rand.Next() % 24 + 6;
+    p.speed = static_cast<float>(rand.Next() % 90 + 60) * kHundredth;
+    p.acceleration = (p.speed / static_cast<float>(p.life)) * -0.5f;
+    p.fall_speed = static_cast<float>(rand.Next() % 90 + 30) * -kHundredth;
+    const float fall = p.fall_speed / static_cast<float>(p.life);
+    p.fall_rate = -(fall + fall);
+    p.scale = static_cast<float>(rand.Next() % 100 + 60) * kHundredth;
+    p.scale_speed = -(p.scale / static_cast<float>(p.life));
+    SetUpParticle(p, particle);
+    added.push_back(std::move(p));
+  }
+}
+
 bool AdvanceStr(RagEffect& effect, const EffectActor& actor, float x, float y, float z) {
   return effect.str != nullptr && effect.str->Advance(effect, actor.position, x, y, z);
 }
@@ -8357,6 +8427,8 @@ void EffectWorld::Step(const PrimScene& world_scene) {
         case 0x36: AddSpellCircle(e, it->actor, "effect\\ring_blue.tga", 2, added); break;
         case 0x37: AddSpellCircle(e, it->actor, "effect\\ring_yellow.tga", 1, added); break;
         case 0x39: AddSpellCircle(e, it->actor, "effect\\ring_yellow.tga", 0, added); break;
+        case 3: AddHitBurst(e, it->actor, scene, Sprite(kParticleSprite), rand_, added); break;
+        case 0x51: AddYellowBursts(e, it->actor, Sprite(kParticleSprite), rand_, added); break;
         case 0x12: AddStolenSparks(e, Sprite(kEffectSprites[22]), rand_, added); break;
         case 0xa:
           AddCoins(e, minimal_, Sprite(kEffectSprites[21]), rand_, added);

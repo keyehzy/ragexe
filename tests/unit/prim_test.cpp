@@ -233,6 +233,7 @@ struct StrEffectVector {
 // tools/prim_vectors.py writes these, one per family of primitives.
 #include "prim_vectors/basics.inc"
 #include "prim_vectors/bouncers.inc"
+#include "prim_vectors/bursts.inc"
 #include "prim_vectors/crossed.inc"
 #include "prim_vectors/cylinders.inc"
 #include "prim_vectors/flights.inc"
@@ -1469,12 +1470,14 @@ class PlayingStr : public EffectStr {
 };
 
 // str_plays: the runs made with that stand-in; before it, InitEffect loads no .str. facings:
-// the actor's facing by run, 0 for the rest. minimal: minimal effects on.
+// the actor's facing by run, 0 for the rest. minimal: minimal effects on. setup: anything
+// more to set in a run's effect, by run.
 void CheckTargetEffects(std::span<const SquareEffectVector> effects,
                         std::vector<std::uint32_t> (*state)(const EffectPrim&) = StateFor,
                         bool sprites = false, bool str_plays = false,
                         const std::map<std::size_t, float>& facings = {},
-                        std::size_t act_copies = 2, bool minimal = false) {
+                        std::size_t act_copies = 2, bool minimal = false,
+                        void (*setup)(std::size_t run, RagEffect& effect) = nullptr) {
   PlayingStr playing;
   const ragexe::res::AttrMap attr = TestAttr();
   const ragexe::res::Sprite sprite = TestSprite();
@@ -1501,6 +1504,7 @@ void CheckTargetEffects(std::span<const SquareEffectVector> effects,
     e.target = vec(v.target);
     e.level = v.level;
     if (str_plays) e.str = &playing;
+    if (setup != nullptr) setup(run - 1, e);
     std::map<const EffectPrim*, std::size_t> order;
     PrimScene scene;
     std::size_t next_scene = 0;
@@ -1990,4 +1994,12 @@ TEST_CASE("The bouncer effects play as the original's", "[effect]") {
   CheckTargetEffects(kBouncerEffects, StateOfFlightEffect, true, true);
   CheckTargetEffects(kMinimalBouncerEffects, StateOfFlightEffect, true, true, {}, 2, true);
   CheckStrEffects(kBouncerStrEffects);
+}
+
+TEST_CASE("The burst effects play as the original's", "[effect]") {
+  CheckTargetEffects(kBurstEffects, StateOfFlightEffect, true, true,
+                     {{0, 30.0f}, {1, 250.0f}, {2, 100.0f}, {3, 300.0f}}, 2, false,
+                     [](std::size_t run, RagEffect& e) {
+                       if (run == 3) e.bursts = 3;
+                     });
 }
