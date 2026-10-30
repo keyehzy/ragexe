@@ -4552,7 +4552,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00511b60	203	code	0	game		named	CGameMode	StepCellToward	
 00511c30	281	code	0	game		named	CGameMode	method_00511c30	
 00511d50	135	code	0	game		named	CGameMode	GetAttrCell	
-00511de0	105	code	0	game		named	CGameMode	method_00511de0	
+00511de0	105	code	0	game		named	CGameMode	GetCellCentre	
 00511e50	103	code	0	game		named	CGameMode	CellToWorld	
 00511ec0	126	code	0	game		named	CGameMode	IsPathFound	
 00511f40	647	code	0	game		named	CGameMode	method_00511f40	

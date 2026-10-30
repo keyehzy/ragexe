@@ -67,6 +67,7 @@
 #include "render/scene_graph.h"
 #include "render/text.h"
 #include "render/texture.h"
+#include "render/world_load.h"
 #include "res/act.h"
 #include "res/bitmap.h"
 #include "res/client_tables.h"
@@ -453,7 +454,9 @@ int main(int argc, char** argv) {
   }
 
   // The world's models, as CWorld::LoadWorld places them, lit by the map's light and the
-  // ground's colours. Each texture is uploaded once, by name.
+  // ground's colours, in the order it and its lazy loader add them from where the player
+  // stands (docs/render/model.md#loading); a model that fails to load drops out of it. Each
+  // texture is uploaded once, by name.
   std::map<std::string, std::unique_ptr<res::Model>> model_files;
   std::map<std::string, std::pair<std::uint32_t, bool>> model_textures;  // id, ARGB 4444
   std::vector<render::ModelInstance> models;
@@ -462,7 +465,10 @@ int main(int argc, char** argv) {
   const render::CellColorLookup cell_color = [&](float x, float, float z) {
     return render::GroundCellColor(mesh, x, z);
   };
-  for (const res::WorldModel& placed : world.models) {
+  const auto load_order =
+      render::ModelLoadOrder(world.models, player[0], player[2], [](std::size_t) { return true; });
+  for (const std::size_t index : load_order) {
+    const res::WorldModel& placed = world.models[index];
     auto& file = model_files[placed.file];
     if (!file) {
       auto model = std::make_unique<res::Model>();

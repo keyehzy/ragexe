@@ -155,12 +155,41 @@ node:
 **The instance's alpha** (+0x1ed) then steps by 5: down to 0x5a while +0x1ec is set (it
 is then cleared), otherwise up to 0xff.
 
+## Loading
+
+`CWorld::LoadWorld` does not place the `.rsw`'s models in the file's order. It splits
+them by their distance from the player:
+1. **The player's point** is the centre of the cell the player enters on
+   (`ClientState`+0x620 and +0x624, `00686c90`), from `CGameMode::GetCellCentre`
+   (`00511de0`): `(cell − side × 0.5) × cell size + cell size × 0.5`, each step in single
+   precision. `LoadWorld` sets the attribute map's cell size to 5 first. The point's height,
+   `0067bf44`, is 0: nothing writes it after its static initializer.
+2. **The distance** to each model is `sqrt((dx² + dy²) + dz²)`, in single precision.
+3. **A model within 200** (`005e8974`) is placed at once, in the file's order. So is one
+   whose distance is NaN, since the test is `fcom` and C0 or C3.
+4. **The others** go into a vector of (distance, record) pairs (`0067bf50`).
+5. `LoadWorld` then builds the scene graph from the models it has, makes the effects'
+   and sounds' makers, and starts `LazyModelLoadThread` (`004c33a0`). If `CreateThread`
+   fails, it runs the function itself and joins it.
+6. **The thread** sorts the pairs (`004c7410`: by the distance, then by the record's
+   address) and places each model in turn. `CWorld::AddLoadedModel` (`004c5030`) appends
+   it to +0x48, and `CWorld::UpdateGameObjects` (`004c4a10`) puts the new ones into the
+   scene graph each frame, in that order.
+
+**A model is skipped** in either loop when its `.rsm` does not load, or when the named
+node is not found and the model's first node entry is empty.
+
+**The final order** of +0x48, and of the models in the scene graph's leaves, is therefore
+the near models in the file's order, then the far ones from the nearest. The records are
+allocated one after another as the world resource reads them, so their addresses follow
+the file's order, and the port breaks ties by it.
+
 ## The loader's precision
 
 The model's vertices are baked at load ([rsm.md](../formats/rsm.md)), and the loader runs
 on two threads:
-- **The main thread** loads the models within 200 of the player after DirectDraw's
-  `FPUSETUP`, so its x87 rounds them to single precision.
+- **The main thread** loads the models within 200 of the player ([loading](#loading))
+  after DirectDraw's `FPUSETUP`, so its x87 rounds them to single precision.
 - **`LazyModelLoadThread`** loads the rest at the CRT's default, double precision.
 
 The port's loader matches the second, and the oracles check it so. The models placed
@@ -192,6 +221,24 @@ Each is loaded at double precision, then placed, set up and lit at single precis
 texture name a stand-in whose format is 4444 for a name of odd length.
 
 The port matches every value bit for bit (`tests/unit/model_test.cpp`).
+
+**The order.** `tools/world_vectors.py` runs `LoadWorld` itself on 150 synthetic worlds
+and writes `tests/unit/world_vectors.inc`. `CreateThread` answers 0, so the lazy loader runs
+in `LoadWorld`, and the sort, `AddLoadedModel` and the cell's centre are the original's.
+- **The resources, the map's name and `FindNode`** are stood in for, and so is whatever
+  places, lights and draws.
+- **The worlds** have up to 40 models around the player's cell, on attribute maps of
+  assorted sizes, with cells off the map and cells past 2²⁴. Among the models:
+  - some exactly 200 away, some a float step either side of it, and some with a NaN position;
+  - some at another's point;
+  - points where summing the squares in another order would cross 200;
+  - some with no `.rsm` or no node.
+- **It records** the records the instances at +0x48 come from, in order, and the cell's
+  centre.
+
+`tests/unit/world_load_test.cpp` matches all 2,870 values with `CellCentre` and
+`ModelLoadOrder` (`src/render/world_load`). ragview places the models in that order from
+where its player stands.
 
 **Not ported yet:** the volumes and their matrices.
 

@@ -2659,6 +2659,16 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Checks:** all four tables on nine service types, every job's scale, and `vf16` for
     every job; 28,184 values.
 
+- [x] The order a world's models load in (`docs/render/model.md#loading`,
+  `src/render/world_load`), toward the M4 exit's whole frames:
+  - **`CWorld::LoadWorld`** places the models within 200 of the player's cell centre at
+    once, in file order, and leaves the rest to `LazyModelLoadThread`, which sorts them by
+    distance; `AddLoadedModel` and `UpdateGameObjects` add them to the scene graph in turn.
+  - **The oracle runs `LoadWorld` whole:** a `CreateThread` that fails makes it run the lazy
+    loader itself, so the original's sort and placement run in the emulator.
+  - **ragview** places its models in that order.
+  - **Checks:** 150 synthetic worlds; 2,870 values.
+
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

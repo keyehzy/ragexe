@@ -77,3 +77,6 @@ address	namespace	name	evidence	type
 0067c9d8	Global	g_fontLanguage	SelectLanguage 004ca940 sets it by service type (0 to 6); FontEntry::FontEntry gives a font of language 0 its language, and for 1, 5, 6 and 7 a height 3 more	dword
 0067c998	Global	g_codePage	SelectLanguage 004ca940 sets it by service type (949, 932, 936, 950, 874 or 0, the system's); CharNextExA and CharPrevExA step text on it	dword
 0067c9d4	Global	g_serviceType	the service type: InitMsgStringTable copies the built-in strings for 0, IsSpecialActorIdOnKoreaService tests 0, UISelectServerWnd::LoadSelectionFromRegistry defaults to it, InitJobAndSkillNames names job 2 Mage for 1	dword
+0067bf40	Global	g_loadOrigin	the player's point CWorld::LoadWorld measures the models' distances from: x and z (+8) from CGameMode::GetCellCentre of ClientState+0x620, +0x624; the height (+4) stays 0	float
+0067bf50	Global	g_lazyModels	vector of (distance, .rsw model record) pairs past 200 from g_loadOrigin: CWorld::LoadWorld fills it, LazyModelLoadThread sorts and places them, JoinModelLoadThread empties it	std_vector
+0067bf90	Global	g_modelLoadThread	CreateThread's handle for LazyModelLoadThread; JoinModelLoadThread waits on it and clears it	pointer

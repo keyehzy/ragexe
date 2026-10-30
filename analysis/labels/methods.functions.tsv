@@ -438,7 +438,6 @@ address	namespace	name	calling_convention	evidence
 0050fdf0	CGameMode	method_0050fdf0	__thiscall	__thiscall; called with this from 2 functions of CGameMode, e.g. 0050cfb0
 00511940	CGameMode	method_00511940	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0052a070
 00511c30	CGameMode	method_00511c30	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00511f40
-00511de0	CGameMode	method_00511de0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00530f40
 00511f40	CGameMode	method_00511f40	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 005159d0
 00512230	CGameMode	method_00512230	__thiscall	__thiscall; called with this from 4 functions of CGameMode, e.g. 00511a40
 005122a0	CGameMode	method_005122a0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00511f40

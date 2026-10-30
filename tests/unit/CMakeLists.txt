@@ -43,6 +43,7 @@ add_executable(ragexe_tests
   water_test.cpp
   wav_test.cpp
   windows_no_dialogs.cpp
+  world_load_test.cpp
   xml_test.cpp)
 target_include_directories(ragexe_tests PRIVATE ${PROJECT_SOURCE_DIR}/tests)
 target_link_libraries(ragexe_tests PRIVATE ragexe_game ragexe_glyphs ragexe_render ragexe_res ragexe_stb_image ZLIB::ZLIB Catch2::Catch2WithMain ragexe_options)
