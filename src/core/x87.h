@@ -10,4 +10,8 @@ float RoundedProduct(float a, double b);
 // exactly, under the same precision control.
 float RoundedQuotient(float a, double b);
 
+// a + b rounded once to single precision, as the x87 adds a double operand under the same
+// precision control.
+float RoundedSum(float a, double b);
+
 }  // namespace ragexe::core

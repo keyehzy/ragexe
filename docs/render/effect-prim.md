@@ -1777,6 +1777,24 @@ shrinking to nothing, three history records of `particle1`.
 **+0xb0** is 1 from the constructor (`0054d2aa`), and nothing else writes it, so 0x51 makes
 its first cylinder alone.
 
+## The frost ring
+
+`AddFrostRing` (`0055afe0`), effect id 0x33, with no `.str`:
+- **On the first frame,** a diamond of `ice.tga` (id 2) every 40 degrees round from 0 to
+  320, 15 steps each:
+  - its angle and heading the ring's less 15 plus up to 59 (`rand()`);
+  - every third (from the first) 100 to 109 long and 10 wide, the rest 45 to 49 and 4;
+  - speed 12.8 (4.8) plus 0 to 4 (`rand() % 45 / 10`), the sum from a double rounded once,
+    slowing by 2/3 of it over its life (from a double too);
+  - up to 4 out (`rand() % 5`) at the ring's angle, and 20 up;
+  - its matrix from its pitch and heading, copied to the second (+0xf4); +0x134 20; alpha
+    200, out over its last 10 steps.
+- **Each step,** the actor's point on screen, the view's sums from z and then
+  `SceneRenderer::ProjectPoint`'s order.
+- **On the first frame and the eighth,** a puff of `smoke.tga` (id 0), 25 steps, 0.85 a
+  step at a heading of −20 to 19, 1 across and growing by 6 a step, by 0.5 from age 10
+  (its changes), out over the last third.
+
 ## In the port
 
 **`src/core/crt_rand`:** `CrtRand`, `srand` and `rand`.
@@ -1813,7 +1831,8 @@ its first cylinder alone.
   [more particles](#more-particles) (`AddChimneySmoke` and `AddRisingBubbles` for two ids
   each, `AddPoisonBubbles` for three) and its six others, and the five of
   [more rays](#more-rays) (`AddHitCross` for two ids), the two of
-  [bouncers](#bouncers) and the two of [bursts](#bursts);
+  [bouncers](#bouncers), the two of [bursts](#bursts) and
+  [the frost ring](#the-frost-ring);
 - `ProcessStrEffect` for the 97 cases that only play their `.str`, and `AdvanceStr` and
   `ResetStr` through an effect's `EffectStr` ([effect.md](effect.md#which-cases-play-their-str));
 - `EffectWorld`, the world's list as effects use it:
@@ -1827,9 +1846,9 @@ its first cylinder alone.
 
 **`src/core/angles`:** `DegreesToRadians`.
 
-**`src/core/x87`:** `RoundedQuotient`, a float over a double rounded once, and
-`RoundedProduct`, a float times a double rounded once to single
-precision, shared with the `.str` player.
+**`src/core/x87`:** `RoundedQuotient`, a float over a double rounded once,
+`RoundedProduct`, a float times a double rounded once to single precision, shared with
+the `.str` player, and `RoundedSum`, a float plus a double rounded once.
 
 **`ragview --effect-id ID`** plays the id's `.str` as its case does ([gpu.md](gpu.md)), and
 launches the id again when its effect and primitives are done. `--minimal-effects` picks the `_min` files,
@@ -2024,11 +2043,12 @@ for git:
   state; 0xa once more with minimal effects on, and through the `.str` runs above.
 - **The two burst effects**, each twice, the actor facing four ways; the second run of 0x51
   with +0xb0 written to 3, for the bursts after the first.
+- **The frost ring** three times, as for the ray effects.
 
-`tests/unit/prim_test.cpp` matches all of it: 7,616,781 values, the CRT's first `rand` values
+`tests/unit/prim_test.cpp` matches all of it: 7,635,846 values, the CRT's first `rand` values
 among them.
 
 **Not ported:**
-- the 4 cases of `CRagEffect::vf01` that add primitives of their own and are not yet
-  ported ([effect.md](effect.md#which-cases-play-their-str));
+- the 3 cases of `CRagEffect::vf01` not yet ported, which need more than the effect world
+  has ([effect.md](effect.md#which-cases-play-their-str));
 - the sounds, the view's shake and the jokes.

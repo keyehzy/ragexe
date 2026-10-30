@@ -29,6 +29,13 @@ float RoundedProduct(float a, double b) {
   return RoundOnce(hi, std::fma(static_cast<double>(a), b, -hi));
 }
 
+float RoundedSum(float a, double b) {
+  const double x = static_cast<double>(a);
+  const double hi = x + b;
+  const double other = hi - x;
+  return RoundOnce(hi, (x - (hi - other)) + (b - other));
+}
+
 float RoundedQuotient(float a, double b) {
   const double hi = static_cast<double>(a) / b;
   const double rest = std::fma(-hi, b, static_cast<double>(a));

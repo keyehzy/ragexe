@@ -2542,9 +2542,16 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Checks:** four effect runs, one with +0xb0 written to 3; 7,616,781 values in
     `prim_test`.
 
+- [x] The frost ring (`docs/render/effect-prim.md#the-frost-ring`):
+  - **Effect id 0x33:** a ring of ice diamonds (id 2) and two puffs of smoke (id 0);
+    `core::RoundedSum` for a float plus a double rounded once.
+  - **Checks:** three effect runs; 7,635,846 values in `prim_test`.
+
 ### Next actions
-1. M4, the renderer: the 4 cases of `CRagEffect::vf01` left (0x33, 0x78, 0xa4 and 0xa6):
-   0x33 and 0xa4, which make their primitives without `CreatePrimitive`, then 0x78 and
-   0xa6, which change the actor.
+1. M4, the renderer: the 3 cases of `CRagEffect::vf01` left, each needing more than the
+   effect world has: 0x78 (`00560dd0`, Cloaking) fades the actor itself
+   (`CRenderObject::method_00500720` with 50), 0xa4 (`00562b30`) lays out an icon on screen
+   for each of the player's states (the vector at `00641f9c`, named by `ClientState`
+   `005a8080`), and 0xa6 (`00562d90`) leaves after-images of the actor (`CBlurPC`).
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

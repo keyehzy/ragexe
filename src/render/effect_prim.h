@@ -1013,6 +1013,11 @@ void AddHitBurst(RagEffect& effect, const EffectActor& actor, const PrimScene& s
 void AddYellowBursts(RagEffect& effect, const EffectActor& actor, const PrimSprite& particle,
                      core::CrtRand& rand, std::vector<EffectPrim>& added);
 
+// AddFrostRing (0055afe0), 0x33 (docs/render/effect-prim.md#the-frost-ring): a ring of ice
+// diamonds (id 2) on the first frame and smoke rays (id 0) on it and the eighth.
+void AddFrostRing(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+                  core::CrtRand& rand, std::vector<EffectPrim>& added);
+
 // CRagEffect::AdvanceStr (0054fba0): false without a .str, else the .str's step.
 bool AdvanceStr(RagEffect& effect, const EffectActor& actor, float x, float y, float z);
 // CRagEffect::ResetStr (0054fb40): the frame back to 0 and the .str to its start.

@@ -8030,6 +8030,60 @@ void AddYellowBursts(RagEffect& effect, const EffectActor& actor, const PrimSpri
   }
 }
 
+void AddFrostRing(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+                  core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  if (effect.frame == 0) {
+    // A diamond of ice.tga every 40 degrees round, each turned up to 60 more; every third
+    // longer, wider and faster.
+    std::int32_t n = 0;
+    float step = 0.0f;
+    do {
+      EffectPrim p = MakePrimitive(&effect, 2, {0.0f, 0.0f, 0.0f});
+      p.life = 15;
+      p.angle = (step - 15.0f) + static_cast<float>(rand.Next() % 60);
+      p.heading = p.angle;
+      const bool long_one = n % 3 == 0;
+      p.height = static_cast<float>(long_one ? rand.Next() % 10 + 100 : rand.Next() % 5 + 45);
+      p.width = long_one ? 10.0f : 4.0f;
+      const std::int32_t extra = rand.Next() % 45 / 10;
+      p.speed = core::RoundedSum(static_cast<float>(extra), long_one ? 12.8 : 4.8);
+      p.acceleration = core::RoundedProduct(-(p.speed / static_cast<float>(p.life)), 2.0 / 3.0);
+      // Up to 4 out at the ring's angle, and 20 up.
+      const auto out = static_cast<float>(rand.Next() % 5);
+      const std::int32_t at = Ftol(step);
+      p.offset[0] = core::SinDegrees(at) * out;
+      p.offset[1] = -(core::CosDegrees(at) * out);
+      p.offset[1] = p.offset[1] - 20.0f;
+      p.matrix = RotateY(MakeRotationX(Radians(p.pitch)), Radians(p.heading));
+      p.orbit = p.matrix;
+      p.period = 20;
+      p.alpha = 200.0f;
+      p.fade_at = p.life - 10;
+      p.textures = {"effect\\ice.tga"};
+      added.push_back(std::move(p));
+      step = step + 40.0f;
+      ++n;
+    } while (step < 360.0f);
+  }
+  PlaceOnScreen(effect, actor, scene, true);
+  if (effect.frame != 0 && effect.frame != 7) return;
+  // A puff of smoke.tga, growing by 6 a step and from age 10 by 0.5.
+  EffectPrim p = MakePrimitive(&effect, 0, {0.0f, 0.0f, 0.0f});
+  p.life = 25;
+  p.speed = std::bit_cast<float>(0x3f59999au);  // 0.85
+  p.heading = static_cast<float>(rand.Next() % 40 - 20);
+  p.width = 1.0f;
+  p.height = 1.0f;
+  p.height_speed = 6.0f;
+  p.width_speed = 6.0f;
+  p.change_at = 10;
+  p.changes[0] = 0x3f000000u;
+  p.changes[1] = 0x3f000000u;
+  p.fade_at = p.life - p.life / 3;
+  p.textures = {"effect\\smoke.tga"};
+  added.push_back(std::move(p));
+}
+
 bool AdvanceStr(RagEffect& effect, const EffectActor& actor, float x, float y, float z) {
   return effect.str != nullptr && effect.str->Advance(effect, actor.position, x, y, z);
 }
@@ -8427,6 +8481,7 @@ void EffectWorld::Step(const PrimScene& world_scene) {
         case 0x36: AddSpellCircle(e, it->actor, "effect\\ring_blue.tga", 2, added); break;
         case 0x37: AddSpellCircle(e, it->actor, "effect\\ring_yellow.tga", 1, added); break;
         case 0x39: AddSpellCircle(e, it->actor, "effect\\ring_yellow.tga", 0, added); break;
+        case 0x33: AddFrostRing(e, it->actor, scene, rand_, added); break;
         case 3: AddHitBurst(e, it->actor, scene, Sprite(kParticleSprite), rand_, added); break;
         case 0x51: AddYellowBursts(e, it->actor, Sprite(kParticleSprite), rand_, added); break;
         case 0x12: AddStolenSparks(e, Sprite(kEffectSprites[22]), rand_, added); break;

@@ -237,6 +237,7 @@ struct StrEffectVector {
 #include "prim_vectors/crossed.inc"
 #include "prim_vectors/cylinders.inc"
 #include "prim_vectors/flights.inc"
+#include "prim_vectors/frost.inc"
 #include "prim_vectors/motes.inc"
 #include "prim_vectors/particles.inc"
 #include "prim_vectors/rays.inc"
@@ -2002,4 +2003,8 @@ TEST_CASE("The burst effects play as the original's", "[effect]") {
                      [](std::size_t run, RagEffect& e) {
                        if (run == 3) e.bursts = 3;
                      });
+}
+
+TEST_CASE("The frost ring plays as the original's", "[effect]") {
+  CheckTargetEffects(kFrostEffects, StateOf, false, true);
 }

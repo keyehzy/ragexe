@@ -5339,7 +5339,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0055a890	1019	code	0	world		named	CRagEffect	AddDecAgility	
 0055ac90	275	code	0	world		named	CRagEffect	AddHolyWater	
 0055adb0	552	code	0	world		named	CRagEffect	AddFireRing	
-0055afe0	1305	code	0	world		named	CRagEffect	method_0055afe0	
+0055afe0	1305	code	0	world		named	CRagEffect	AddFrostRing	
 0055b500	204	code	0	world		named	CRagEffect	AddPoisonHit	
 0055b5d0	877	code	0	world		named	CRagEffect	AddLockOn	
 0055b940	1274	code	0	world		named	CRagEffect	AddRipplingColumn	

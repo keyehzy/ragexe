@@ -5339,7 +5339,7 @@ entry	size	namespace	name	source	fid	thunk	calling_convention	signature
 0055a890	1019	CRagEffect	AddDecAgility	USER_DEFINED	0	0	__thiscall	undefined AddDecAgility(CRagEffect * this)
 0055ac90	275	CRagEffect	AddHolyWater	USER_DEFINED	0	0	__thiscall	undefined AddHolyWater(CRagEffect * this)
 0055adb0	552	CRagEffect	AddFireRing	USER_DEFINED	0	0	__thiscall	undefined AddFireRing(CRagEffect * this)
-0055afe0	1305	CRagEffect	method_0055afe0	USER_DEFINED	0	0	__thiscall	undefined method_0055afe0(CRagEffect * this)
+0055afe0	1305	CRagEffect	AddFrostRing	USER_DEFINED	0	0	__thiscall	undefined AddFrostRing(CRagEffect * this)
 0055b500	204	CRagEffect	AddPoisonHit	USER_DEFINED	0	0	__thiscall	undefined AddPoisonHit(CRagEffect * this)
 0055b5d0	877	CRagEffect	AddLockOn	USER_DEFINED	0	0	__thiscall	undefined AddLockOn(CRagEffect * this)
 0055b940	1274	CRagEffect	AddRipplingColumn	USER_DEFINED	0	0	__thiscall	undefined AddRipplingColumn(CRagEffect * this)
