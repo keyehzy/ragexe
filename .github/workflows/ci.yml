@@ -121,8 +121,9 @@ jobs:
         run: |
           python3 -m venv .lint
           .lint/bin/pip install -q -r tools/requirements-lint.txt
-          # The renderer includes the shaders' generated header, which only a build makes.
-          cmake --build --preset dev --target src/shaders/scene_shaders.h
+          # The renderer includes generated headers, the shaders' and the fonts', which only a
+          # build makes.
+          cmake --build --preset dev --target src/shaders/scene_shaders.h src/fonts/embedded_fonts.h
           git ls-files 'src/*.cpp' 'tests/unit/*.cpp' 'fuzz/*.cpp' | xargs .lint/bin/clang-tidy -p build/dev --quiet
 
       - name: Build
