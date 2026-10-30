@@ -305,7 +305,7 @@ entry	subsystem	rule	evidence
 00410c50	render	class	class SceneRenderer
 00410c80	render	neighbours	between 00410c50 and 00410cd0
 00410cd0	render	class	class SceneRenderer
-00410cf0	render	neighbours	between 00410cd0 and 00410df0
+00410cf0	render	class	class SceneRenderer
 00410df0	render	class	class SceneRenderer
 00410eb0	render	class	class SceneRenderer
 00411010	render	class	class SceneRenderer

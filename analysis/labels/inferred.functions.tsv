@@ -248,7 +248,7 @@ address	namespace	name	calling_convention	evidence
 00515f60	CGameMode	OnChangeState	__thiscall	vf06; empty
 004cb480	CMode	DrawFadeIn	__thiscall	when +0x10 is set, starts MusicFadeThread with ClientState +0x648; draws black with alpha falling over 255 ms
 004cb830	CMode	DrawCursor	__thiscall	the mouse cursor from cursors.act and cursors.spr, its frame taken from the time since +0x24 in 24 ms units
-004cba20	CMode	SaveScreenshot	__thiscall	when +0x2c is set: stamps the date, saves ScreenShot\screen<name><nnn>.jpg (or .bmp with Ctrl) and reports "is Saved"
+004cba20	CMode	SaveScreenshot	__thiscall	when +0x2c is set: stamps GetLocalTime's date (0060c164, the day names 0060c188 to 0060c1c4) with five SceneRenderer::DrawText at x 3 to 5, height - 17 to - 15, black then white, saves ScreenShot\screen<name><nnn>.jpg (or .bmp with Ctrl) and reports "is Saved"
 # SceneRenderer: every caller loads ECX from g_pSceneRenderer
 0040dca0	SceneRenderer	ClearFrame	__thiscall	(black): C3dDevice::Clear(0xff000000), else C3dDevice::ClearDepth
 0040dcf0	SceneRenderer	BeginScene	__thiscall	copies the device's surfaces and size from g_C3dDevice, then IDirect3DDevice7::BeginScene (slot 5) on +0x78; true on success
@@ -2807,3 +2807,5 @@ address	namespace	name	calling_convention	evidence
 004a6310	UIBalloonText	GetTextHeight	__thiscall	(text, length, language, height, bold), ret 0x14: as UIWindow::GetTextWidth, the cy.
 004a63a0	UIVerticalNameBalloonText	GetVerticalTextHeight	__thiscall	(text, length, language, height, bold), ret 0x14: the heights (cy) of the text's characters (CharNextExA) summed.
 004a6460	Global	FitTextWithEllipsis	__thiscall	(text, out, width, language, height), ret 0x14: copies text to out; when out is at least width wide, takes characters off its end (CharPrevExA) while it and "..." (00606730) are wider, then appends "..."; 0 without the window's surface (+0x28).
+00410cd0	SceneRenderer	StartFrameCount	__thiscall	zeroes the frame count +0x3c and keeps timeGetTime at +0x40, the time it counts from; called once by 0040d1a0.
+00410cf0	SceneRenderer	DrawFrameRate	__thiscall	unreferenced: DrawText "Total : 0 - 0" at (0, 0) and "Unused : n - n<<17" for the queued textures +0x25c at (0, 16) in black, then the frames +0x3c times 1000.0f (005e26c4) over the ms since +0x40, "%.01f fps", at (+0x24 - 40, +0x28 - 14) in 0xffff; after more than a second with an even count, halves both.

@@ -44,7 +44,6 @@ address	namespace	name	calling_convention	evidence
 0040e6a0	SceneRenderer	method_0040e6a0	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 004163f0; through the pointer at 00625e98
 0040ef30	SceneRenderer	method_0040ef30	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 004c3ab0; through the pointer at 00625e98
 00410ab0	SceneRenderer	method_00410ab0	__thiscall	__thiscall; called with this from 2 functions of SceneRenderer, e.g. 00416f10; through the pointer at 00625e98
-00410cd0	SceneRenderer	method_00410cd0	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 0040d1a0
 00411d40	SceneRenderer	method_00411d40	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 004cba20; through the pointer at 00625e98
 00412150	SceneRenderer	method_00412150	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 004cba20; through the pointer at 00625e98
 00412aa0	SceneRenderer	method_00412aa0	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 004b6e50; through the pointer at 00625e98

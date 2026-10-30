@@ -5,7 +5,7 @@
 # as CI does.
 #
 # A library is added here by the milestone that first uses it (docs/PLAN.md section 5:
-# miniaudio and FreeType come later). glslang and SPIRV-Cross are build tools only.
+# miniaudio comes later). glslang and SPIRV-Cross are build tools only.
 
 include(FetchContent)
 
@@ -48,6 +48,30 @@ FetchContent_Declare(stb
   URL_HASH SHA256=b01aa93e1a968aed55f43e072c98ee401d2f20e897aabdb1a166c7166886ed11
   DOWNLOAD_EXTRACT_TIMESTAMP ON)
 FetchContent_MakeAvailable(stb)
+
+# FreeType: the text's glyphs, in place of GDI (docs/render/text.md#the-glyphs). Always
+# built from the pinned release, as the shader tools are, so every machine draws the same
+# pixels; without the optional libraries it can use.
+set(FT_DISABLE_ZLIB ON CACHE BOOL "" FORCE)
+set(FT_DISABLE_BZIP2 ON CACHE BOOL "" FORCE)
+set(FT_DISABLE_PNG ON CACHE BOOL "" FORCE)
+set(FT_DISABLE_HARFBUZZ ON CACHE BOOL "" FORCE)
+set(FT_DISABLE_BROTLI ON CACHE BOOL "" FORCE)
+FetchContent_Declare(freetype
+  URL https://downloads.sourceforge.net/project/freetype/freetype2/2.15.0/freetype-2.15.0.tar.xz
+  URL_HASH SHA256=93cd47eb719c325107f2d3cf087d06299e944c3b48a40b55537302304dea1dd5
+  DOWNLOAD_EXTRACT_TIMESTAMP ON
+  EXCLUDE_FROM_ALL
+  SYSTEM)
+FetchContent_MakeAvailable(freetype)
+
+# Liberation Sans, metric-compatible with Arial, the face the iRO client asks for. Its
+# regular and bold are embedded in the glyph library (SIL Open Font License 1.1).
+FetchContent_Declare(liberation_fonts
+  URL https://github.com/liberationfonts/liberation-fonts/files/7261482/liberation-fonts-ttf-2.1.5.tar.gz
+  URL_HASH SHA256=7191c669bf38899f73a2094ed00f7b800553364f90e2637010a69c0e268f25d0
+  DOWNLOAD_EXTRACT_TIMESTAMP ON)
+FetchContent_MakeAvailable(liberation_fonts)
 
 # glslang and SPIRV-Cross: the renderer's shaders are written once in GLSL and compiled
 # during the build, to SPIR-V for SDL_GPU's Vulkan backend and on to MSL for its Metal

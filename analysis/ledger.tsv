@@ -343,8 +343,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00410ab0	414	code	0	render		named	SceneRenderer	method_00410ab0	
 00410c50	35	code	0	render		named	SceneRenderer	Present	
 00410c80	51	code	0	render	unreferenced	raw	Global	FUN_00410c80	
-00410cd0	21	code	0	render		named	SceneRenderer	method_00410cd0	
-00410cf0	251	code	0	render	unreferenced	raw	Global	FUN_00410cf0	
+00410cd0	21	code	0	render		named	SceneRenderer	StartFrameCount	
+00410cf0	251	code	0	render	unreferenced	named	SceneRenderer	DrawFrameRate	
 00410df0	188	code	0	render		named	SceneRenderer	DrawText	
 00410eb0	340	code	0	render		named	SceneRenderer	DrawOutlinedText	
 00411010	125	code	0	render		named	SceneRenderer	SetFogEnabled	

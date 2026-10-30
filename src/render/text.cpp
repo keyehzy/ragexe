@@ -1,7 +1,13 @@
 #include "render/text.h"
 
 #include <array>
+#include <cinttypes>
+#include <cmath>
+#include <cstdio>
 #include <cstring>
+#include <limits>
+
+#include "core/x87.h"
 
 namespace ragexe::render {
 
@@ -279,6 +285,74 @@ std::string FitText(const std::string& text, std::int32_t width, std::int32_t la
   out.resize(end);
   out += kEllipsis;
   return out;
+}
+
+void DrawScreenshotStamp(const LocalTime& time, std::int32_t screen_height,
+                         std::vector<TextRun>& out) {
+  // 0060c1c4 to 0060c188.
+  static constexpr std::array<const char*, 7> kDays = {"Sunday",   "Monday", "Tuesday", "Wednesday",
+                                                       "Thursday", "Friday", "Saturday"};
+  const char* day = time.day_of_week < kDays.size() ? kDays[time.day_of_week] : "";
+  std::array<char, 128> text{};
+  std::snprintf(text.data(), text.size(), "%d/%02d/%02d/%s  %02d: %02d: %02d", time.year,
+                time.month, time.day, day, time.hour, time.minute, time.second);
+  const std::string stamp = text.data();
+  const std::int32_t y = screen_height - 16;
+  DrawSceneText(5, y, stamp, 0, out);
+  DrawSceneText(3, y, stamp, 0, out);
+  DrawSceneText(4, y + 1, stamp, 0, out);
+  DrawSceneText(4, y - 1, stamp, 0, out);
+  DrawSceneText(4, y, stamp, 0xffffff, out);
+}
+
+void StartFrameCount(FrameCount& count, std::uint32_t now) {
+  count.frames = 0;
+  count.start = now;
+}
+
+void DrawFrameRate(FrameCount& count, std::uint32_t now, std::uint32_t queued_textures,
+                   std::int32_t width, std::int32_t height, std::vector<TextRun>& out) {
+  static constexpr double kMillisecondsPerSecond = 1000.0;  // 005e26c4
+  const std::uint32_t elapsed = now - count.start;
+  // fild of the count, fmul by a float, fidiv by the time as a signed int.
+  const auto scaled =
+      static_cast<float>(static_cast<double>(count.frames) * kMillisecondsPerSecond);
+  const auto divisor = static_cast<std::int32_t>(elapsed);
+  float fps = 0.0f;
+  if (divisor != 0) {
+    fps = core::RoundedQuotient(scaled, static_cast<double>(divisor));
+  } else {
+    fps = scaled != 0.0f ? std::numeric_limits<float>::infinity()
+                         : std::numeric_limits<float>::quiet_NaN();
+  }
+  if (elapsed > 1000 && (count.frames & 1) == 0) {
+    count.frames >>= 1;
+    count.start += elapsed >> 1;
+  }
+  std::array<char, 128> text{};
+  std::snprintf(text.data(), text.size(), "Total : %d - %d", 0, 0);
+  DrawSceneText(0, 0, text.data(), 0, out);
+  std::snprintf(text.data(), text.size(), "Unused : %" PRId32 " - %" PRId32,
+                static_cast<std::int32_t>(queued_textures),
+                static_cast<std::int32_t>(queued_textures << 17));
+  DrawSceneText(0, 16, text.data(), 0, out);
+  DrawSceneText(width - 40, height - 14, FormatTenths(fps) + " fps", 0xffff, out);
+}
+
+std::string FormatTenths(float value) {
+  if (std::isnan(value)) return "-1.$";
+  const bool negative = value < 0.0f;
+  if (std::isinf(value)) return negative ? "-1.$" : "1.$";
+  // A float times ten is exact in a double, and so is its fraction.
+  const double tenths = std::fabs(static_cast<double>(value)) * 10.0;
+  double whole = std::floor(tenths);
+  if (tenths - whole >= 0.5) whole += 1.0;
+  // The tenths as an integer, exact in "%.0f", and the point put before its last digit.
+  std::array<char, 64> text{};
+  std::snprintf(text.data(), text.size(), "%02.0f", whole);
+  std::string digits = text.data();
+  digits.insert(digits.size() - 1, ".");
+  return negative ? "-" + digits : digits;
 }
 
 }  // namespace ragexe::render

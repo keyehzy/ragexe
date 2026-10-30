@@ -300,7 +300,7 @@ C3dDevice	curated		572	estimated	0	00404240				28	27	render
 VertexBuffer	curated		16	new	0	00405f60				5	5	render		
 FontCache	curated		16	estimated	0	00406b60		00407a40		3	3	render		FontEntry@0x4
 TextureCache	curated		16	estimated	0			0040c9f0		8	8	render		
-SceneRenderer	curated		672	new	0	0040d1a0		0040d830		61	60	render		
+SceneRenderer	curated		672	new	0	0040d1a0		0040d830		62	60	render		
 RenderTriangle	curated		156	new	0	0040c5f0 0040c620				3	1	render		
 RenderQuad	curated		196	new	0	0040c6b0 0040c6f0				3	3	render		
 TriangleSet	curated		28	new	0	0040c780		0040c790		3	3	render		

@@ -115,6 +115,24 @@ add_custom_command(OUTPUT "${RAGEXE_SHADER_DIR}/scene_shaders.h"
   DEPENDS ${RAGEXE_SHADER_OUTPUTS} "${PROJECT_SOURCE_DIR}/cmake/embed_files.cmake"
   VERBATIM)
 
+# The text's glyphs drawn with FreeType, in place of GDI, from Liberation Sans embedded in
+# a generated header.
+set(RAGEXE_FONT_DIR "${CMAKE_CURRENT_BINARY_DIR}/fonts")
+add_custom_command(OUTPUT "${RAGEXE_FONT_DIR}/embedded_fonts.h"
+  COMMAND "${CMAKE_COMMAND}" -E make_directory "${RAGEXE_FONT_DIR}"
+  COMMAND "${CMAKE_COMMAND}" "-DOUTPUT=${RAGEXE_FONT_DIR}/embedded_fonts.h"
+    "-DFILES=kSansRegular=${liberation_fonts_SOURCE_DIR}/LiberationSans-Regular.ttf|kSansBold=${liberation_fonts_SOURCE_DIR}/LiberationSans-Bold.ttf"
+    -P "${PROJECT_SOURCE_DIR}/cmake/embed_files.cmake"
+  DEPENDS "${liberation_fonts_SOURCE_DIR}/LiberationSans-Regular.ttf"
+    "${liberation_fonts_SOURCE_DIR}/LiberationSans-Bold.ttf"
+    "${PROJECT_SOURCE_DIR}/cmake/embed_files.cmake"
+  VERBATIM)
+add_library(ragexe_glyphs STATIC
+  render/glyphs.cpp
+  "${RAGEXE_FONT_DIR}/embedded_fonts.h")
+target_include_directories(ragexe_glyphs PRIVATE "${RAGEXE_FONT_DIR}")
+target_link_libraries(ragexe_glyphs PUBLIC ragexe_render PRIVATE freetype ragexe_options)
+
 # The SDL_GPU device that replays the scene's Direct3D 7 calls.
 add_library(ragexe_gpu STATIC
   render/gpu_device.cpp
@@ -139,4 +157,4 @@ target_link_libraries(ragres PRIVATE ragexe_render ragexe_res ragexe_options)
 
 add_executable(ragview ragview/main.cpp)
 target_include_directories(ragview SYSTEM PRIVATE ${stb_SOURCE_DIR})
-target_link_libraries(ragview PRIVATE ragexe_gpu ragexe_render ragexe_res ragexe_options)
+target_link_libraries(ragview PRIVATE ragexe_glyphs ragexe_gpu ragexe_render ragexe_res ragexe_options)

@@ -4,7 +4,7 @@
 //           [--no-fog] [--actor SPRITE | --player JOB SEX HAIR [--hair-color N]
 //           [--clothes-color N] [--headgear TOP MID BOTTOM] [--weapon KIND] [--shield ID]]
 //           [--action BASE] [--effect NAME | --effect-id ID [--minimal-effects]
-//           [--effect-level N]] [--effect-step N] [--screenshot FILE.png] MAP
+//           [--effect-level N]] [--effect-step N] [--fps] [--stamp] [--screenshot FILE.png] MAP
 //
 // MAP is a .rsw name such as prontera. The ground is built and drawn by the ported
 // C3dGround15, through the scene lists and DrawScene, and the calls are replayed on
@@ -23,6 +23,9 @@
 // primitives the id adds, ported for ids 0 to 2 and the ring effects. --effect-level gives
 // the effect the level its message would (+0xb8, 0 by default), which the arrows and blitz
 // beat count by.
+// --fps draws the frame rate as SceneRenderer 00410cf0 would, which the client never calls;
+// --stamp draws the date and time on the screenshot as the client stamps its own. Text is
+// drawn with FreeType in place of GDI (docs/render/text.md#the-glyphs).
 // --screenshot renders one frame offscreen to a PNG and exits; otherwise a window opens,
 // and Escape or --frames N closes it.
 
@@ -34,6 +37,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <ctime>
 #include <filesystem>
 #include <list>
 #include <map>
@@ -50,6 +54,7 @@
 #include "render/effect_table.h"
 #include "render/fixed_function.h"
 #include "render/fog.h"
+#include "render/glyphs.h"
 #include "render/gpu_device.h"
 #include "render/ground.h"
 #include "render/model.h"
@@ -57,6 +62,7 @@
 #include "render/player_names.h"
 #include "render/scene.h"
 #include "render/scene_graph.h"
+#include "render/text.h"
 #include "render/texture.h"
 #include "res/act.h"
 #include "res/bitmap.h"
@@ -87,6 +93,7 @@ constexpr std::uint32_t kShadowTextureIdBase = 0x48000;
 constexpr std::uint32_t kEffectTextureIdBase = 0x50000;
 constexpr std::uint32_t kPrimTextureIdBase = 0x58000;
 constexpr std::uint32_t kParticleTextureIdBase = 0x5c000;  // then 0x400 for each effect sprite
+constexpr std::uint32_t kTextTextureId = 0x60000;
 constexpr std::uint32_t kSpritePage = 256;  // the sprite texture cache's pages (0040e130)
 
 struct Options {
@@ -116,6 +123,8 @@ struct Options {
   bool minimal_effects = false;
   int effect_level = 0;
   int effect_step = 15;
+  bool fps = false;
+  bool stamp = false;
   std::string screenshot;
 };
 
@@ -126,6 +135,20 @@ int ParseInt(const char* text, int fallback) {
   return end != text && *end == '\0' ? static_cast<int>(v) : fallback;
 }
 
+// GetLocalTime's fields from the C library's clock.
+render::LocalTime LocalNow() {
+  const std::time_t now = std::time(nullptr);
+  std::tm tm{};
+#ifdef _WIN32
+  localtime_s(&tm, &now);
+#else
+  localtime_r(&now, &tm);
+#endif
+  const auto field = [](int v) { return static_cast<std::uint16_t>(v); };
+  return {field(tm.tm_year + 1900), field(tm.tm_mon + 1), field(tm.tm_wday), field(tm.tm_mday),
+          field(tm.tm_hour),        field(tm.tm_min),     field(tm.tm_sec)};
+}
+
 int Usage() {
   std::fprintf(stderr,
                "usage: ragview [--install DIR] [--size W H] [--at X Z] [--yaw DEGREES]\n"
@@ -133,7 +156,7 @@ int Usage() {
                "               [--hair-color N] [--clothes-color N] [--headgear TOP MID BOTTOM]\n"
                "               [--weapon KIND] [--shield ID]] [--action BASE]\n"
                "               [--effect NAME | --effect-id ID [--minimal-effects]\n"
-               "               [--effect-level N]] [--effect-step N]\n"
+               "               [--effect-level N]] [--effect-step N] [--fps] [--stamp]\n"
                "               [--screenshot FILE.png] MAP\n");
   return 2;
 }
@@ -305,6 +328,10 @@ int main(int argc, char** argv) {
       o.effect_step = ParseInt(argv[++i], 15);
     } else if (a == "--no-fog") {
       o.fog = false;
+    } else if (a == "--fps") {
+      o.fps = true;
+    } else if (a == "--stamp") {
+      o.stamp = true;
     } else if (a == "--screenshot" && next(1)) {
       o.screenshot = argv[++i];
     } else if (!a.starts_with("--") && o.map.empty()) {
@@ -884,6 +911,39 @@ int main(int argc, char** argv) {
     calls.insert(calls.end(), scene.begin(), scene.end());
     draws = render::RecordDraws(state, calls);
   };
+  // Text over the finished scene, as GDI drew it on the back buffer before Present: the runs
+  // drawn into a layer the screen's size, then the layer as one last draw of only the texels
+  // the glyphs cover (an alpha test), outside the scene's device state.
+  const auto glyphs = render::GlyphRenderer::Create(1);  // iRO's service language
+  std::vector<std::uint32_t> text_layer;
+  const auto draw_text = [&](const std::vector<render::TextRun>& runs,
+                             std::vector<render::DrawRecord>& draws) {
+    if (runs.empty() || !glyphs) return;
+    text_layer.assign(static_cast<std::size_t>(o.width) * static_cast<std::size_t>(o.height), 0);
+    for (const render::TextRun& run : runs) glyphs->Draw(run, o.width, o.height, text_layer);
+    device->SetTexture(kTextTextureId, static_cast<std::uint32_t>(o.width),
+                       static_cast<std::uint32_t>(o.height), text_layer);
+    render::DrawRecord d;
+    d.primitive = static_cast<std::uint32_t>(spans.size());
+    spans.emplace_back(static_cast<std::uint32_t>(vertices.size()), 4);
+    const auto w = static_cast<float>(o.width);
+    const auto h = static_cast<float>(o.height);
+    for (const auto& [x, y] : {std::pair{0.0f, 0.0f}, {w, 0.0f}, {0.0f, h}, {w, h}})
+      vertices.push_back({x, y, 0.0f, 1.0f, 0xffffffff, 0, x / w, y / h, 0.0f, 0.0f});
+    d.pipeline.z_test = false;
+    d.pipeline.z_write = false;
+    d.pipeline.cull = 1;                     // NONE
+    d.pipeline.primitive = 5;                // TRIANGLESTRIP
+    d.uniforms.stage0_color = {2, 2, 0, 0};  // SELECTARG1(TEXTURE)
+    d.uniforms.stage0_alpha = {2, 2, 0, 0};
+    d.uniforms.stage1_color = {1, 0, 0, 0};  // DISABLE
+    d.uniforms.stage1_alpha = {1, 0, 0, 0};
+    d.uniforms.alpha_test = {1, 5, 0, 0};  // GREATER than 0
+    d.textures = {kTextTextureId, 0};
+    d.samplers[0] = {1, 1, 3, 3};  // POINT, CLAMP
+    draws.push_back(d);
+  };
+  render::FrameCount frame_count;
   const render::VertexLookup lookup = [&](std::uint32_t id) {
     return std::span<const render::GpuVertex>(vertices.data() + spans[id].first, spans[id].second);
   };
@@ -898,6 +958,13 @@ int main(int argc, char** argv) {
   if (!o.screenshot.empty()) {
     std::vector<render::DrawRecord> draws;
     frame(1, actor_object.start_time, draws);
+    std::vector<render::TextRun> runs;
+    if (o.fps) {
+      render::StartFrameCount(frame_count, actor_object.start_time);
+      render::DrawFrameRate(frame_count, actor_object.start_time, 0, o.width, o.height, runs);
+    }
+    if (o.stamp) render::DrawScreenshotStamp(LocalNow(), o.height, runs);
+    draw_text(runs, draws);
     std::vector<std::uint32_t> argb;
     if (!device->RenderToImage(draws, lookup, width, height, clear, argb)) {
       std::fprintf(stderr, "ragview: %s\n", device->error().c_str());
@@ -927,6 +994,7 @@ int main(int argc, char** argv) {
   render::CameraDrag drag;
   drag.last_x = static_cast<std::int32_t>(mouse_x);
   drag.last_y = static_cast<std::int32_t>(mouse_y);
+  render::StartFrameCount(frame_count, static_cast<std::uint32_t>(SDL_GetTicks()));
   for (int n = 1; running; ++n) {
     SDL_Event e;
     bool reset = false;
@@ -964,11 +1032,17 @@ int main(int argc, char** argv) {
     drag.last_x = drag.mouse_x;
     drag.last_y = drag.mouse_y;
     std::vector<render::DrawRecord> draws;
-    frame(static_cast<std::uint32_t>(n), static_cast<std::uint32_t>(SDL_GetTicks()), draws);
+    const auto now = static_cast<std::uint32_t>(SDL_GetTicks());
+    frame(static_cast<std::uint32_t>(n), now, draws);
+    std::vector<render::TextRun> runs;
+    // No textures wait to be deleted: ragview keeps them all.
+    if (o.fps) render::DrawFrameRate(frame_count, now, 0, o.width, o.height, runs);
+    draw_text(runs, draws);
     if (!device->DrawFrame(draws, lookup, width, height, clear)) {
       std::fprintf(stderr, "ragview: %s\n", device->error().c_str());
       return 1;
     }
+    ++frame_count.frames;  // SceneRenderer::Present
     if (o.frames > 0 && n >= o.frames) running = false;
   }
   device.reset();

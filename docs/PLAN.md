@@ -29,7 +29,7 @@ server can send with packet 0x01C7 (`docs/protocol/code-modules.md`).
 | Original | Role | Replacement |
 |---|---|---|
 | DDRAW / Direct3D 7 (via `DirectDrawCreateEx`) | rendering, 2D surfaces | SDL3 + SDL_GPU (Metal / Vulkan / D3D12), fixed-function state emulated in shaders |
-| GDI32 (`CreateFontA`, `TextOutA` into DIBs) | text | FreeType glyph atlas + a bundled open font |
+| GDI32 (`CreateFontA`, `TextOutA` into DIBs) | text | FreeType + a bundled open font (Liberation Sans) |
 | DINPUT, USER32 messages, IMM32 | input, IME | SDL3 events and SDL3 text input/IME |
 | DSOUND + `mss32.dll` + `Mp3dec.asi` (Miles) | 2D/3D sound, MP3 BGM, ADPCM | miniaudio (mixing, spatial audio, MP3/WAV decoding) |
 | `ijl15.dll` (Intel JPEG) | JPEG textures | stb_image |
@@ -2609,6 +2609,21 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Checks:** every font case and 400 calls, with GDI stood in for; 11,017 values.
   - **Also found:** the scene's vertex-buffer lists are dead, +0x174 is the Granny
     models', and the visible-cell globals are never read.
+
+- [x] The glyphs, the screenshot's stamp and the frame rate (`docs/render/text.md#the-glyphs`,
+  `#the-stamp-and-the-frame-rate`, `src/render/glyphs`, a new `ragexe_glyphs` library):
+  - **FreeType 2.15.0** in place of GDI, always built from its release, drawing every
+    language in Liberation Sans (embedded, Arial's metrics): cell heights as `CreateFontA`
+    reads them, hinted glyphs without smoothing, vertical fonts turned a quarter, code page
+    1252.
+  - **The stamp:** `CMode::SaveScreenshot`'s date and time, outlined in black.
+  - **The frame rate:** `SceneRenderer`'s frame count, and `00410cf0`, which nothing calls,
+    with its `"%.01f"` as the client's C runtime prints it (ties up, "1.$" and "-1.$").
+  - **ragview** draws text last, over the scene: `--fps` and `--stamp`.
+  - **Checks:** 120 stamps and 308 frame rates, eight of them a hair from a float midpoint
+    that a division through a double would get wrong; 23,933 values in the text test. The
+    glyphs are checked against themselves: cells, baselines, colours, clipping, the vertical
+    turn, and a line's pixels summed.
 
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,

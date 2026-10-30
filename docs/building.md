@@ -8,6 +8,9 @@ there by the milestone that first uses it; so far SDL3 3.4.18, zlib 1.3.2 and, f
 tests, Catch2 3.16.1. Two build tools are always built from their pinned releases,
 never taken from the system: glslang 16.6.0 and SPIRV-Cross (Vulkan SDK 1.4.363.0),
 which compile the renderer's shaders during the build ([render/gpu.md](render/gpu.md#shaders)).
+FreeType 2.15.0 is always built from its release too, so every machine draws the same
+glyphs, from Liberation Sans 2.1.5, which the build downloads and embeds
+([render/text.md](render/text.md#the-glyphs)).
 
 ## Prerequisites
 
@@ -205,6 +208,7 @@ archives.
 - `platform` (SDL);
 - `res` (archives and resources; zlib);
 - `render` (the original's Direct3D 7 state and drawing, without SDL);
+- `glyphs` (the text's glyphs, with FreeType and the embedded fonts);
 - `gpu` (the SDL_GPU device that replays it, with shaders compiled during the build);
 - `game` (modes).
 

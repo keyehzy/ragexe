@@ -144,4 +144,47 @@ std::int32_t VerticalTextHeight(const std::string& text, std::size_t length, std
 std::string FitText(const std::string& text, std::int32_t width, std::int32_t language,
                     std::int32_t height, const TextMetrics& metrics);
 
+// The date and time from GetLocalTime, as far as the stamp reads its SYSTEMTIME.
+struct LocalTime {
+  std::uint16_t year = 0;
+  std::uint16_t month = 0;
+  std::uint16_t day_of_week = 0;  // 0 Sunday to 6 Saturday
+  std::uint16_t day = 0;
+  std::uint16_t hour = 0;
+  std::uint16_t minute = 0;
+  std::uint16_t second = 0;
+};
+
+// CMode::SaveScreenshot (004cba20), before it saves the back buffer: the date and time
+// ("%d/%02d/%02d/%s  %02d: %02d: %02d", 0060c164, the day by its English name) at x 4, 16 above
+// the bottom of a screen height tall; black a pixel right, left, down and up, then white. A day
+// of the week past 6, which GetLocalTime never gives, reads past the original's names; here it
+// is empty.
+void DrawScreenshotStamp(const LocalTime& time, std::int32_t screen_height,
+                         std::vector<TextRun>& out);
+
+// SceneRenderer's frame count (+0x3c), which Present (00410c50) adds one to each frame, and
+// the time it counts from (+0x40).
+struct FrameCount {
+  std::uint32_t frames = 0;
+  std::uint32_t start = 0;
+};
+
+// 00410cd0: no frames yet, from now (timeGetTime's).
+void StartFrameCount(FrameCount& count, std::uint32_t now);
+
+// 00410cf0, which nothing in this client calls: at the top left, "Total : 0 - 0" and "Unused
+// : n - n << 17" for the n textures queued to be deleted (+0x25c), as signed ints; at the
+// bottom right of a width × height screen (40 in, 14 up) in yellow, the frames each second
+// since the start, "%.01f fps". After more than a second (the time taken as unsigned) with an
+// even count, both the count and the time are halved.
+void DrawFrameRate(FrameCount& count, std::uint32_t now, std::uint32_t queued_textures,
+                   std::int32_t width, std::int32_t height, std::vector<TextRun>& out);
+
+// A float as the client's C runtime prints it with "%.01f": the exact value rounded to tenths
+// with ties away from zero; the sign when it is below zero, so "-0.0" for a little under zero
+// but "0.0" for a negative zero; an infinity as "1.$" or "-1.$" ("1.#INF" rounded at the '#');
+// and the x87's indefinite NaN as "-1.$".
+std::string FormatTenths(float value);
+
 }  // namespace ragexe::render

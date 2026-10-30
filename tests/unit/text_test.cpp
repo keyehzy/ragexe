@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <limits>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -39,6 +40,20 @@ struct TextVector {
   std::uint32_t color_after;
 };
 
+struct StampVector {
+  int time[7];  // year, month, day of the week, day, hour, minute, second
+  int height;
+  int enabled;
+  RunVector runs[5];
+};
+
+struct FrameRateVector {
+  std::uint32_t frames, start, now, queued;
+  int width, height;
+  RunVector runs[3];
+  std::uint32_t frames_after, start_after;
+};
+
 #include "text_vectors.inc"
 
 // tools/text_vectors.py's GetTextExtentPoint32A, and single-byte characters (code page 1252).
@@ -59,11 +74,11 @@ class TestMetrics : public TextMetrics {
   }
 };
 
-void CheckRuns(const std::vector<TextRun>& got, const TextVector& v) {
-  REQUIRE(got.size() == v.run_count);
+void CheckRuns(const std::vector<TextRun>& got, const RunVector* runs, std::size_t count) {
+  REQUIRE(got.size() == count);
   for (std::size_t i = 0; i < got.size(); ++i) {
     INFO("run " << i);
-    const RunVector& want = v.runs[i];
+    const RunVector& want = runs[i];
     CHECK(got[i].x == want.x);
     CHECK(got[i].y == want.y);
     CHECK(got[i].text == std::string(want.text, want.length));
@@ -177,6 +192,56 @@ TEST_CASE("The text calls make the original's runs", "[text]") {
         continue;
       }
     }
-    CheckRuns(runs, v);
+    CheckRuns(runs, v.runs, v.run_count);
   }
+}
+
+TEST_CASE("The screenshot's stamp is the original's", "[text]") {
+  std::size_t n = 0;
+  for (const StampVector& v : kStamps) {
+    INFO("case " << n++);
+    std::vector<TextRun> runs;
+    if (v.enabled != 0) {
+      const LocalTime time{
+          static_cast<std::uint16_t>(v.time[0]), static_cast<std::uint16_t>(v.time[1]),
+          static_cast<std::uint16_t>(v.time[2]), static_cast<std::uint16_t>(v.time[3]),
+          static_cast<std::uint16_t>(v.time[4]), static_cast<std::uint16_t>(v.time[5]),
+          static_cast<std::uint16_t>(v.time[6])};
+      DrawScreenshotStamp(time, v.height, runs);
+    }
+    CheckRuns(runs, v.runs, v.enabled != 0 ? 5 : 0);
+  }
+}
+
+TEST_CASE("The frame rate is drawn as the original's", "[text]") {
+  std::size_t n = 0;
+  for (const FrameRateVector& v : kFrameRates) {
+    INFO("case " << n++ << ": " << v.frames << " frames in " << v.now - v.start << " ms");
+    FrameCount count{v.frames, v.start};
+    std::vector<TextRun> runs;
+    DrawFrameRate(count, v.now, v.queued, v.width, v.height, runs);
+    CheckRuns(runs, v.runs, 3);
+    CHECK(count.frames == v.frames_after);
+    CHECK(count.start == v.start_after);
+  }
+  FrameCount count{7, 7};
+  StartFrameCount(count, 1234);
+  CHECK(count.frames == 0);
+  CHECK(count.start == 1234);
+}
+
+TEST_CASE("Tenths are printed as the client's C runtime prints them", "[text]") {
+  CHECK(FormatTenths(0.0f) == "0.0");
+  CHECK(FormatTenths(-0.0f) == "0.0");
+  CHECK(FormatTenths(-0.01f) == "-0.0");
+  CHECK(FormatTenths(-0.05f) == "-0.1");
+  CHECK(FormatTenths(0.25f) == "0.3");
+  CHECK(FormatTenths(-0.25f) == "-0.3");
+  CHECK(FormatTenths(0.05f) == "0.1");  // just over 0.05
+  CHECK(FormatTenths(0.35f) == "0.3");  // just under 0.35
+  CHECK(FormatTenths(9.96f) == "10.0");
+  CHECK(FormatTenths(std::numeric_limits<float>::infinity()) == "1.$");
+  CHECK(FormatTenths(-std::numeric_limits<float>::infinity()) == "-1.$");
+  CHECK(FormatTenths(std::numeric_limits<float>::quiet_NaN()) == "-1.$");
+  CHECK(FormatTenths(3.4e38f) == "339999995214436424907732413799364296704.0");
 }

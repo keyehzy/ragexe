@@ -22,9 +22,11 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from unicorn.x86_const import UC_X86_REG_ESP, UC_X86_REG_FPCW  # noqa: E402
+from unicorn import UC_HOOK_CODE  # noqa: E402
+from unicorn.x86_const import UC_X86_REG_EBP, UC_X86_REG_EIP, UC_X86_REG_ESP, UC_X86_REG_FPCW  # noqa: E402
 
 from emu import Emulator  # noqa: E402
+from emu.emulator import TEB  # noqa: E402
 from emu.winapi import Stub  # noqa: E402
 
 FONT_ENTRY, CREATE_FONT = 0x4077D0, 0x407870
@@ -35,6 +37,7 @@ SCENE_TEXT, SCENE_OUTLINED = 0x410DF0, 0x410EB0
 WINDOW_TEXT, SHADOWED, RIGHT_ALIGNED, COLOR_CODED = 0x4A5CB0, 0x4A5EA0, 0x4A5D20, 0x4A5DC0
 VERTICAL, BALLOON, VERTICAL_BALLOON = 0x4A6010, 0x4A5F30, 0x4A6130
 WIDTH, HEIGHT, VERTICAL_HEIGHT, FIT = 0x4A6280, 0x4A6310, 0x4A63A0, 0x4A6460
+STAMP, STAMP_END, RENDERER_PTR, FRAME_RATE = 0x4CBA20, 0x4CBB74, 0x625E98, 0x410CF0
 FACES = [b"\xb1\xbc\xb8\xb2", b"Arial", bytes.fromhex("826c827220826f835383568362834e"),
          b"\xcb\xce\xcc\xe5", b"\xb2\xd3\xa9\xfa\xc5\xe9", b"Tahoma"]
 ALTERNATIVES = [b"Gulim", b"Arial", b"MS Gothic", b"SimSun", b"MingLiU", b"Tahoma"]
@@ -112,12 +115,13 @@ class Oracle:
         stubs["GDI32.DLL!EnumFontFamiliesExA"] = Stub(5, enum_fonts)
         stubs["USER32.DLL!GetDC"] = Stub(1, lambda hwnd: 0x1234)
         # A window: its surface at +0x28; a renderer: its back buffer at +0x7c, with an
-        # AddRef-like slot 1 that does nothing.
+        # AddRef-like slot 1 that does nothing but pop its this, as a COM method.
+        emu.replace_thiscall(NO_OP, 1, lambda this, com_this: 0)
         self.window = emu.scratch(size=0x100)
         emu.write_u32(self.window + 0x28, 0x8888)
         back = emu.scratch(size=0x10)
         emu.write_u32(back, emu.scratch(struct.pack("<2I", NO_OP, NO_OP)))
-        self.renderer = emu.scratch(size=0x100)
+        self.renderer = emu.scratch(size=0x300)
         emu.write_u32(self.renderer + 0x7C, back)
 
     def run(self, address, *args, this):
@@ -247,7 +251,95 @@ def main():
     lines.append("static const TextVector kTexts[] = {")
     lines += cases
     lines.append("};")
+    lines += stamps(o, rng) + frame_rates(o, rng)
     print("\n".join(lines))
+
+
+def run_vector(calls):
+    return "{" + ", ".join(f'{{{x}, {y}, "{c_string(t)}", {len(t)}, 0x{c:08x}, {{{f[0]}, {f[1]}, {f[2]}, {f[3]}}}}}'
+                           for x, y, t, c, f in calls) + "}"
+
+
+def stamps(o, rng):
+    """CMode::SaveScreenshot (004cba20) up to its last DrawText: the date GetLocalTime gives,
+    drawn five times above the renderer's (00625e98) bottom edge (+0x28)."""
+    emu = o.emu
+    emu.write_u32(RENDERER_PTR, o.renderer)
+    clock = {}
+
+    def local_time(out):
+        emu.mem_write(out, struct.pack("<8H", *clock["time"]))
+        return 0
+
+    emu.api.stubs["KERNEL32.DLL!GetLocalTime"] = Stub(1, local_time)
+
+    def stop(uc, address, size, user):
+        # Out before the folder and the file: the SEH frame unlinked, then to the sentinel.
+        ebp = uc.reg_read(UC_X86_REG_EBP)
+        emu.write_u32(TEB, emu.read_u32(ebp - 0xC))
+        uc.reg_write(UC_X86_REG_EIP, emu.sentinel)
+
+    hook = emu.uc.hook_add(UC_HOOK_CODE, stop, begin=STAMP_END, end=STAMP_END)
+    mode = emu.scratch(size=0x40)
+    rows = []
+    for n in range(120):
+        time = [rng.randrange(1980, 2040), rng.randrange(1, 13), rng.randrange(7), rng.randrange(1, 32),
+                rng.randrange(24), rng.randrange(60), rng.randrange(60), rng.randrange(1000)]
+        if n % 10 == 9:
+            time[:7] = [rng.randrange(0x10000), rng.randrange(0x10000), rng.randrange(7)] + [
+                rng.randrange(0x10000) for _ in range(4)]
+        clock["time"] = time
+        height = rng.choice([rng.randrange(0, 1200), 480, 600, 768])
+        enabled = 0 if n % 15 == 7 else 1
+        emu.write_u32(o.renderer + 0x28, height)
+        emu.write_u32(mode + 0x2C, enabled)
+        _, calls = o.run(STAMP, this=mode)
+        rows.append(f"    {{{{{', '.join(str(v) for v in time[:7])}}}, {height}, {enabled}, "
+                    f"{run_vector(calls)}}},")
+    emu.uc.hook_del(hook)
+    return ["// {GetLocalTime's year, month, day of the week, day, hour, minute and second; the",
+            "// renderer's height; CMode+0x2c; the runs, as kTexts'}.",
+            "static const StampVector kStamps[] = {"] + rows + ["};"]
+
+
+def frame_rates(o, rng):
+    """SceneRenderer 00410cf0, which nothing calls: the frame count (+0x3c) over the time
+    since +0x40 by timeGetTime, and the texture count +0x25c."""
+    emu = o.emu
+    clock = {}
+    emu.api.stubs["WINMM.DLL!timeGetTime"] = Stub(0, lambda: clock["now"])
+    # Counts and times whose rate lies within 2**-56 of a midpoint between two floats beside an
+    # n.25 or n.75: divided through a double, it would round to the tie and print the next tenth.
+    near_ties = [(1113335922, 2062688255), (1310373445, 2059526143), (1504768294, 2056396799),
+                 (1603263528, 2054807551), (1256672854, 1516347391), (1337736429, 1514561535),
+                 (1909941338, 2049843199), (2007800872, 2048253951)]
+    rows = []
+    for n in range(300 + len(near_ties)):
+        frames = rng.choice([rng.randrange(0, 200), rng.randrange(0, 100000), rng.getrandbits(32)])
+        start = rng.getrandbits(32)
+        elapsed = rng.choice([rng.randrange(0, 5000), 0, 1000, 1001, 2000, rng.getrandbits(32),
+                              (1 << 32) - rng.randrange(1, 100)])
+        if n % 25 == 3:
+            frames = 0
+        if n % 20 == 0:
+            # n.25 and n.75 exactly: ties at the tenths, which the CRT rounds up.
+            m = rng.randrange(1, 50)
+            frames, elapsed = rng.choice([1, 3, 9, 11, 13]) * m, 4000 * m
+        if n >= 300:
+            frames, elapsed = near_ties[n - 300]
+        clock["now"] = (start + elapsed) & 0xFFFFFFFF
+        unused = rng.choice([0, rng.randrange(0, 40), rng.getrandbits(32)])
+        width, height = rng.choice([(640, 480), (800, 600), (1024, 768), (rng.randrange(0, 2000),
+                                                                           rng.randrange(0, 2000))])
+        for offset, value in ((0x3C, frames), (0x40, start), (0x25C, unused), (0x24, width), (0x28, height)):
+            emu.write_u32(o.renderer + offset, value)
+        _, calls = o.run(FRAME_RATE, this=o.renderer)
+        after = (emu.read_u32(o.renderer + 0x3C), emu.read_u32(o.renderer + 0x40))
+        rows.append(f"    {{{frames}u, {start}u, {clock['now']}u, {unused}u, {width}, {height}, "
+                    f"{run_vector(calls)}, {after[0]}u, {after[1]}u}},")
+    return ["// {+0x3c, +0x40, timeGetTime, +0x25c, the renderer's width and height; the runs, as",
+            "// kTexts'; +0x3c and +0x40 after}.",
+            "static const FrameRateVector kFrameRates[] = {"] + rows + ["};"]
 
 
 if __name__ == "__main__":
