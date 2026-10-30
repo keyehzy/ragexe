@@ -1,7 +1,7 @@
 // ragview: a map's ground drawn as the client draws it (docs/render/gpu.md).
 //
 //   ragview [--install DIR] [--size W H] [--at X Z] [--yaw DEGREES] [--frames N]
-//           [--no-fog] [--actor SPRITE | --player JOB SEX HAIR [--hair-color N]
+//           [--no-fog] [--actor SPRITE | --job JOB | --player JOB SEX HAIR [--hair-color N]
 //           [--clothes-color N] [--headgear TOP MID BOTTOM] [--weapon KIND] [--shield ID]]
 //           [--action BASE] [--effect NAME | --effect-id ID [--minimal-effects]
 //           [--effect-level N]] [--effect-step N] [--fps] [--stamp] [--screenshot FILE.png] MAP
@@ -12,7 +12,9 @@
 // standing at world (X, Z) (the map's centre by default), turned to YAW if given. The
 // map's fog is on, as the client's FOG setting is by default, unless --no-fog. An actor
 // stands where the player does, drawn from data\sprite\SPRITE.spr and .act (npc\4_m_01
-// by default, none for no actor), idle and facing south. --player draws a player character
+// by default, none for no actor), idle and facing south. --job draws the NPC or monster of a
+// job id instead (CNpc::vf16: its name in ClientState's job names), with the job's shadow
+// scale. --player draws a player character
 // there instead: the body of job JOB (0 the novice) and sex SEX (0 female, 1 male), with
 // hair style HAIR, layered by the job's .imf, dressed in the palettes, headgear, weapon and
 // shield given. --action sets the base action (0 idle; 80 attacking, which shows the
@@ -73,6 +75,7 @@
 #include "res/gnd.h"
 #include "res/grf.h"
 #include "res/imf.h"
+#include "res/name_tables.h"
 #include "res/palette.h"
 #include "res/rsm.h"
 #include "res/rsw.h"
@@ -112,6 +115,7 @@ struct Options {
   std::string actor = "npc\\4_m_01";
   bool player = false;
   int job = 0;
+  int npc_job = -1;
   int sex = 1;
   int hair = 1;
   int hair_color = 0;
@@ -154,7 +158,8 @@ render::LocalTime LocalNow() {
 int Usage() {
   std::fprintf(stderr,
                "usage: ragview [--install DIR] [--size W H] [--at X Z] [--yaw DEGREES]\n"
-               "               [--frames N] [--no-fog] [--actor SPRITE | --player JOB SEX HAIR\n"
+               "               [--frames N] [--no-fog] [--actor SPRITE | --job JOB |\n"
+               "               --player JOB SEX HAIR\n"
                "               [--hair-color N] [--clothes-color N] [--headgear TOP MID BOTTOM]\n"
                "               [--weapon KIND] [--shield ID]] [--action BASE]\n"
                "               [--effect NAME | --effect-id ID [--minimal-effects]\n"
@@ -301,6 +306,8 @@ int main(int argc, char** argv) {
       o.frames = ParseInt(argv[++i], -1);
     } else if (a == "--actor" && next(1)) {
       o.actor = argv[++i];
+    } else if (a == "--job" && next(1)) {
+      o.npc_job = ParseInt(argv[++i], -1);
     } else if (a == "--player" && next(3)) {
       o.player = true;
       o.job = ParseInt(argv[++i], -1);
@@ -543,6 +550,12 @@ int main(int argc, char** argv) {
     dress(render::kPlayerWeapon, weapon[0]);
     dress(render::kPlayerWeaponGlow, weapon[1]);
     dress(render::kPlayerShield, render::PlayerShieldNames(o.job, o.sex, o.shield));
+  } else if (o.npc_job >= 0) {
+    // iRO's service type, 1; the actor's own job is the one asked for.
+    const render::PlayerSpriteNames names = render::NpcSpriteNames(o.npc_job, o.npc_job, 1);
+    has_actor = !names.sprite.empty() &&
+                LoadActorSprite(files, names.sprite, *device, kActorTextureIdBase, actor);
+    if (!has_actor) std::fprintf(stderr, "ragview: no sprite for job %d\n", o.npc_job);
   } else if (o.actor != "none") {
     has_actor = LoadActorSprite(files, o.actor, *device, kActorTextureIdBase, actor);
     if (!has_actor) std::fprintf(stderr, "ragview: no sprite %s\n", o.actor.c_str());
@@ -551,6 +564,9 @@ int main(int argc, char** argv) {
   render::PlayerHeadOffset head_offset;
   render::RenderObject actor_object;
   actor_object.shadow = true;
+  // CPc::UpdateBody and CNpc::vf16: the job's shadow scale.
+  if (o.player) actor_object.shadow_scale = res::JobShadowScale(o.job);
+  if (o.npc_job >= 0) actor_object.shadow_scale = res::JobShadowScale(o.npc_job);
   // vf07 with the base action: the action's delay (4 beyond the .act's), at least 1.
   actor_object.base_action = o.action;
   const auto base = static_cast<std::size_t>(std::max(o.action, 0));

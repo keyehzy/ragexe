@@ -119,8 +119,10 @@ runs on Vulkan; D3D12 would need DXIL.
 9. **The actor:** the sprite and actions `--actor` names (`npc\4_m_01` by default,
    `none` for none), or with `--player JOB SEX HAIR` a player's body, head and `.imf`,
    dressed by `--hair-color`, `--clothes-color`, `--headgear`, `--weapon` and `--shield`
-   ([player.md](player.md)), and `shadow.spr`; each image uploaded as the sprite texture
-   cache draws it ([actor.md](actor.md)).
+   ([player.md](player.md)), or with `--job JOB` the NPC or monster of a job id as
+   `CNpc::vf16` names it ([client_tables.md](../formats/client_tables.md#built-in-tables)).
+   Then `shadow.spr`, scaled by the job's shadow scale; each image uploaded as the sprite
+   texture cache draws it ([actor.md](actor.md)).
 10. **The effect:** with `--effect NAME`, `texture\effect\NAME.str`, played where the
     actor stands ([effect.md](effect.md)). With `--effect-id ID`, the `.str` that effect
     id plays and the primitives it adds ([effect-prim.md](effect-prim.md));

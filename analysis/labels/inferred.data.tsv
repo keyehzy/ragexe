@@ -76,3 +76,4 @@ address	namespace	name	evidence	type
 00679f78	Global	g_cellCursorUv	static_init_093 004bbb30 fills (0, 0), (1, 0), (0, 1), (1, 1): the cell cursor quad's coordinates	float
 0067c9d8	Global	g_fontLanguage	SelectLanguage 004ca940 sets it by service type (0 to 6); FontEntry::FontEntry gives a font of language 0 its language, and for 1, 5, 6 and 7 a height 3 more	dword
 0067c998	Global	g_codePage	SelectLanguage 004ca940 sets it by service type (949, 932, 936, 950, 874 or 0, the system's); CharNextExA and CharPrevExA step text on it	dword
+0067c9d4	Global	g_serviceType	the service type: InitMsgStringTable copies the built-in strings for 0, IsSpecialActorIdOnKoreaService tests 0, UISelectServerWnd::LoadSelectionFromRegistry defaults to it, InitJobAndSkillNames names job 2 Mage for 1	dword

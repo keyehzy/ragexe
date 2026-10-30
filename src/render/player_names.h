@@ -28,6 +28,12 @@ struct PlayerSpriteNames {
   std::string sprite;
 };
 
+// CNpc::vf16 (0053fae0): an NPC's or a monster's actions and sprite, NPC\<name> when the actor's
+// own job (CGameActor::GetJob, 00503490) is below 1000 and 몬스터\<name> otherwise, the name
+// the given job's (res::JobName). Nothing for a job outside the names, which the original
+// reads from past them.
+PlayerSpriteNames NpcSpriteNames(std::int32_t job, std::int32_t actor_job, std::int32_t service);
+
 // CPc::vf21 to vf23 (layers 2 to 4) through 00593bb0 and 00594020:
 // 악세사리\<sex>\<sex><headgear>, nothing for headgear 0. The actions are also nothing for
 // headgear 0x12 and 0x13 on a male, which leaves those undrawn.

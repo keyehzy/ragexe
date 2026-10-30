@@ -286,7 +286,7 @@ UIWindowMgr	1152	estimated	1288	139	609	0.53		the global at 00641fa8 is followed
 VertexBuffer	16	new	16	4	16	1.00		
 ViewFrustum	192	new	192	3	28	0.15		6 overlapping uses dropped
 WorldColorFade	72	estimated	88	22	70	0.97		the global at 00686598 is followed by a variable at 006865f0 (written by the dynamic initializer 0057cf40)
-XmlDocument	40	estimated	56	1	4	0.10		the global at 0067c9a0 is followed by a variable at 0067c9d8 (another data label); 7 addresses before it, 0067c9c8 first, are used only by other code: fields or variables
+XmlDocument	40	estimated	52	1	4	0.10		the global at 0067c9a0 is followed by a variable at 0067c9d4 (another data label); 6 addresses before it, 0067c9c8 first, are used only by other code: fields or variables
 XmlElement	40	new	40	7	37	0.93		4 overlapping uses dropped
 __non_rtti_object	12	estimated		2	12	1.00		
 bad_cast	12	estimated		2	12	1.00		

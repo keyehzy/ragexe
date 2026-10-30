@@ -175,7 +175,54 @@ In that mode the description text, on lines with no `#`, is dropped: each `\n` r
 the field. The client reads its skill names, descriptions and SP amounts with
 `ClientState`'s own loaders instead.
 
+## Built-in tables
+
+`method_00588a00` also builds tables of its own into `ClientState`, from strings and
+constants in the image.
+
+**`InitJobAndSkillNames`** (`0058ac70`) fills four vectors:
+
+| Into | Entries | Holds |
+|------|--------:|-------|
+| +0x754 | 0x580 | a name for each job: the player jobs' (`Novice`, `Swordman`…), and the NPCs' and monsters' sprite names (`1_M_01`, `Poring`…). 831 keep the default, `1_ETC_01` (`0061cec4`) |
+| +0x410 | 158 | the skill names by id, from `Unknown Skill` and `NV_BASIC` |
+| +0x490 | 5 | the guild skills' names, `GD_APPROVAL` to `GD_EXTENSION` |
+| +0x764 | 2 | the sexes' letters, `F` and `M` |
+
+- **Job 2** is `Mage` when the service type (`0067c9d4`) is 1, as on iRO, and `Magician`
+  on the others. Nothing else depends on it.
+- **Beside the skill names,** two vectors of 158 zeros (+0x450, +0x460). Beside the guild
+  skills' names, one of 5 (+0x4a0).
+- **The job names vector** is first sized to 1000 entries of the default, then to 0x580:
+  the monsters run from 1000 to 1407 (`DOKEBI_`).
+
+**`InitShadowScales`** (`0059a5e0`) sizes the vector at +0x16b4 to 0x580 floats of 1 and
+sets the jobs whose shadow differs:
+
+| Scale | Jobs |
+|------:|------|
+| 1.5 | 13 and 21, the knight and the crusader on their mounts |
+| 0.5 | 1004, 1005, 1007, 1011, 1035, 1042, 1091, 1167, 1174, 1175 |
+| 0.3 | 1008, 1049, 1050, 1051 |
+| 0.2 | 1047, 1048 |
+| 0.1 | 1070 |
+| 0, no shadow | 111, 1025, 1030, 1037, 1078 to 1085 (the plants), 1127 |
+
+`GetShadowScale` (`0059b750`) reads it unchecked. `CPc::UpdateBody`, `CNpc::vf16` and
+`CGrannyPc::vf16` keep a job's scale at +0x40 ([actor.md](../render/actor.md#the-shadow)).
+
+**An NPC's or a monster's sprite.** `CNpc::vf16` (`0053fae0`) takes a job and builds
+`<folder>\<name>.spr` and `.act`, then hands them to `SetSprite` and `SetAct`:
+- The name is the job's.
+- The folder is `NPC` (`00614720`) when the actor's own job (`CGameActor::GetJob`) is below
+  1000, and `몬스터` (`00607e50`) otherwise.
+
 ## In the port
+
+`src/res/name_tables.{h,cpp}`: `JobName` (by job and service type), `SkillName`,
+`GuildSkillName`, `SexLetter` and `JobShadowScale`. A job outside the tables has no name
+and a scale of 1; the original reads past the tables there. `render::NpcSpriteNames`
+(`src/render/player_names`) builds `CNpc::vf16`'s names.
 
 `src/res/client_tables.{h,cpp}`:
 - `ParseNamePairs`, `ParseNumberRecords`, `ParseLineRecords`, `ParseFields` and
@@ -198,3 +245,14 @@ emulation oracle on its table from `data.grf` and from the `.gpf` patches that c
   code the emulator does not run.
 - **What it compares:** every record, in order, against `ragres decode-name-pairs`,
   `decode-number-records` and `decode-line-records`.
+
+**The built-in tables:** `tools/name_table_vectors.py` writes
+`tests/unit/name_table_vectors.inc`:
+- `InitJobAndSkillNames`' four tables for service types 0 to 8, and the sizes of the
+  vectors of zeros;
+- `GetShadowScale` for every job after `InitShadowScales`;
+- `CNpc::vf16` for every job on service type 1, with the actor's own job the same, below
+  1000 or not (`GetJob` stood in for). It records the names `SetSprite` and `SetAct` get and
+  the scale kept at +0x40.
+
+`tests/unit/name_tables_test.cpp` matches all 28,184 values.

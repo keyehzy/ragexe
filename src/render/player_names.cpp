@@ -2,6 +2,9 @@
 
 #include <cstddef>
 #include <string>
+#include <string_view>
+
+#include "res/name_tables.h"
 
 namespace ragexe::render {
 
@@ -581,6 +584,18 @@ std::string PlayerBodyPaletteName(std::int32_t job, std::int32_t sex, std::int32
   if (palette == 0) return {};
   return std::string(kBodyPalette) + At(kBodyPalettes, job) + At(kSexSuffixes, sex) + "_" +
          std::to_string(palette) + ".pal";
+}
+
+PlayerSpriteNames NpcSpriteNames(std::int32_t job, std::int32_t actor_job, std::int32_t service) {
+  static constexpr std::int32_t kFirstMonster = 1000;
+  static constexpr std::string_view kNpcFolder = "NPC\\";  // 00614720
+  static constexpr std::string_view kMonsterFolder =
+      "\xb8\xf3\xbd\xba\xc5\xcd\\";  // 몬스터, 00607e50
+  const std::string_view name = res::JobName(job, service);
+  if (name.empty()) return {};
+  std::string path(actor_job < kFirstMonster ? kNpcFolder : kMonsterFolder);
+  path += name;
+  return {path, path};
 }
 
 }  // namespace ragexe::render

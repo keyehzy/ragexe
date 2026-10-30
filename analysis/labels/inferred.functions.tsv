@@ -2814,3 +2814,6 @@ address	namespace	name	calling_convention	evidence
 0040e6a0	SceneRenderer	StretchSurface	__thiscall	(x, y, width, height, IDirectDrawSurface7*), ret 0x14: Blt of the whole surface onto the back buffer +0x7c stretched over (0, 0, width, height) with DDBLT_WAIT; x and y unread; CSurface::DrawImage
 004163c0	CSurface	DrawRegion	__thiscall	vf03 (x, y, width, height, colour), ret 0x14: SceneRenderer::BlitSurface of the surface +0xc; the colour is unread
 004163f0	CSurface	DrawImage	__thiscall	vf04 (x, y, width, height), ret 0x10: SceneRenderer::StretchSurface of the surface +0xc
+0058ac70	ClientState	InitJobAndSkillNames	__thiscall	fills +0x754 with 0x580 job names (default 1_ETC_01; job 2 Mage on service type 1, else Magician), +0x410 with the 158 skill names (zeros at +0x450, +0x460), +0x490 with the 5 guild skill names (zeros at +0x4a0) and +0x764 with F and M; ClientState::method_00588a00
+0059a5e0	ClientState	InitShadowScales	__thiscall	sizes the float vector +0x16b0 to 0x580 entries of 1 and sets each job's shadow scale that differs (1.5 for 13 and 21, 0 for the plants 1078..1085 and others); ClientState::method_00588a00
+0059b750	ClientState	GetShadowScale	__thiscall	(job), ret 4: the float at +0x16b4 + job * 4, unchecked; CPc::UpdateBody, CNpc::vf16 and CGrannyPc::vf16 keep it at +0x40

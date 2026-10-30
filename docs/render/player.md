@@ -202,4 +202,3 @@ in CP949:
   named after the id;
 - the message `vf02` sends;
 - `00545540`, the special drawing for a few ids on the Korean service;
-- the jobs' shadow scales (`ClientState` `0059b750`). ragview uses 1.

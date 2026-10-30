@@ -2648,6 +2648,17 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Checks:** 400 texture rectangles through the fake Direct3D device and 600 surface
     blits; 35,961 values.
 
+- [x] Jobs' names and shadows (`docs/formats/client_tables.md#built-in-tables`,
+  `src/res/name_tables`):
+  - **`InitJobAndSkillNames`:** the 0x580 job names (players', NPCs' and monsters'; `Mage`
+    only on service type 1), the 158 skill names, the guild skills' and the sexes' letters.
+  - **`InitShadowScales`:** each job's shadow scale: 1.5 for the mounted knight and
+    crusader, 0 for the plants and others.
+  - **`CNpc::vf16`:** an NPC's or a monster's sprite, `NPC\` or `몬스터\` by the actor's job.
+  - **ragview** takes `--job JOB` and scales every shadow by its job.
+  - **Checks:** all four tables on nine service types, every job's scale, and `vf16` for
+    every job; 28,184 values.
+
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

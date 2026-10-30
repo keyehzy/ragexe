@@ -59,7 +59,7 @@ UIStaticBitmap	92	estimated: end of the last field the class or its bases use
 UIWindow	76	estimated: end of the last field the class or its bases use
 UIWindowMgr	1152	estimated: end of the last field the class or its bases use; at most 1288: the global at 00641fa8 is followed by a variable at 006424b0 (written by the dynamic initializer 004a7040)
 WorldColorFade	72	estimated: end of the last field the class or its bases use; at most 88: the global at 00686598 is followed by a variable at 006865f0 (written by the dynamic initializer 0057cf40)
-XmlDocument	40	estimated: end of the last field the class or its bases use; at most 56: the global at 0067c9a0 is followed by a variable at 0067c9d8 (another data label); 7 addresses before it, 0067c9c8 first, are used only by other code: fields or variables
+XmlDocument	40	estimated: end of the last field the class or its bases use; at most 52: the global at 0067c9a0 is followed by a variable at 0067c9d4 (another data label); 6 addresses before it, 0067c9c8 first, are used only by other code: fields or variables
 __non_rtti_object	12	estimated: end of the last field the class or its bases use
 bad_cast	12	estimated: end of the last field the class or its bases use
 bad_typeid	12	estimated: end of the last field the class or its bases use

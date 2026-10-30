@@ -5673,7 +5673,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00588b60	24	code	0	game		named	ClientState	method_00588b60	
 00588b80	17	code	0	game		named	ClientState	method_00588b80	
 00588ba0	8395	code	0	game		named	ClientState	InitNameTables	
-0058ac70	12456	code	0	game		named	ClientState	method_0058ac70	
+0058ac70	12456	code	0	game		named	ClientState	InitJobAndSkillNames	
 0058dd20	618	code	0	game		named	ClientState	method_0058dd20	
 0058df90	202	code	0	game		named	ClientState	method_0058df90	
 0058e060	505	code	0	game		named	ClientState	method_0058e060	
@@ -5882,8 +5882,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0059a350	117	code	0	game	unreferenced	raw	Global	FUN_0059a350	
 0059a3e0	96	code	0	game		named	ClientState	method_0059a3e0	
 0059a440	300	code	0	game		named	ClientState	method_0059a440	
-0059a5e0	4456	code	0	game		named	ClientState	method_0059a5e0	
-0059b750	19	code	0	game		named	ClientState	method_0059b750	
+0059a5e0	4456	code	0	game		named	ClientState	InitShadowScales	
+0059b750	19	code	0	game		named	ClientState	GetShadowScale	
 0059b770	68	code	0	game		named	ClientState	method_0059b770	
 0059b7c0	34	code	0	game		named	ClientState	method_0059b7c0	
 0059b7f0	37	code	0	game		named	ClientState	method_0059b7f0	

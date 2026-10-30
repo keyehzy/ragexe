@@ -30,6 +30,7 @@ add_executable(ragexe_tests
   scene_test.cpp
   mode_switcher_test.cpp
   model_test.cpp
+  name_tables_test.cpp
   palette_test.cpp
   player_test.cpp
   prim_test.cpp

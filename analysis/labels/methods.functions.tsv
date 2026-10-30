@@ -562,7 +562,6 @@ address	namespace	name	calling_convention	evidence
 00588ae0	ClientState	method_00588ae0	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 0053b5a0
 00588b60	ClientState	method_00588b60	__thiscall	__thiscall; called with this from 9 functions of ClientState, e.g. 0046db50
 00588b80	ClientState	method_00588b80	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0048f950
-0058ac70	ClientState	method_0058ac70	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588a00
 0058dd20	ClientState	method_0058dd20	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588a00
 0058df90	ClientState	method_0058df90	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 004aaa00
 0058e060	ClientState	method_0058e060	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 0045e6b0
@@ -728,8 +727,6 @@ address	namespace	name	calling_convention	evidence
 0059a290	ClientState	method_0059a290	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00566860
 0059a3e0	ClientState	method_0059a3e0	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 00543020
 0059a440	ClientState	method_0059a440	__thiscall	__thiscall; called with this from 4 functions of ClientState, e.g. 005034e0
-0059a5e0	ClientState	method_0059a5e0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588a00
-0059b750	ClientState	method_0059b750	__thiscall	__thiscall; called with this from 3 functions of ClientState, e.g. 0053fae0
 0059b770	ClientState	method_0059b770	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 00514900
 0059b7c0	ClientState	method_0059b7c0	__thiscall	__thiscall; called with this from 3 functions of ClientState, e.g. 00480bc0
 0059b7f0	ClientState	method_0059b7f0	__thiscall	__thiscall; called with this from 5 functions of ClientState, e.g. 00480bc0

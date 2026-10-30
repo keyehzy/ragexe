@@ -42,6 +42,7 @@ add_library(ragexe_res STATIC
   res/imf.cpp
   res/item_tables.cpp
   res/manner.cpp
+  res/name_tables.cpp
   res/rsm.cpp
   res/rsw.cpp
   res/rsx.cpp
