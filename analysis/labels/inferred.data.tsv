@@ -69,3 +69,8 @@ address	namespace	name	evidence	type
 0067ca94	Global	g_viewShakeDistanceSwing	CView::ApplyShake's function-local static: the distance amplitude (+0x10) taken at its first step after start-up (guard bit 2 of 0067ca9c), added each step and its sign turned	float
 0067ca98	Global	g_viewShakeSidewaysSwing	CView::ApplyShake's function-local static: the point's amplitude (+0xc) taken at its first step after start-up (guard bit 1 of 0067ca9c), times the yaw's cosine and sine each step and its sign turned	float
 0067ca9c	Global	g_viewShakeSwingGuard	the guard bits of CView::ApplyShake's three function-local statics 0067ca98 (1), 0067ca94 (2) and 0067ca90 (4)	byte
+00684e20	Global	g_cellCursorX	the cell cursor's attribute cell x, set by CGameMode::method_005159d0 from PickCell; CView::DrawWorld passes it to C3dGround15::DrawCellCursor	dword
+00684e24	Global	g_cellCursorZ	the cell cursor's attribute cell z (as g_cellCursorX)	dword
+00684e28	Global	g_cellCursorHidden	1 hides the cell cursor: static_init_166 sets it, CGameMode::method_005159d0 sets it for cells of attribute 1 or 5 and clears it otherwise	dword
+00684e2c	Global	g_cellCursorColor	the cell cursor's colour: 0xaa55ffff from static_init_166, then 0x6600ffaa, or 0xfeff0000 and 0xfeffff00 for the hidden attributes 1 and 5	dword
+00679f78	Global	g_cellCursorUv	static_init_093 004bbb30 fills (0, 0), (1, 0), (0, 1), (1, 1): the cell cursor quad's coordinates	float

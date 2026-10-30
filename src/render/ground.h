@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "render/matrix.h"
+#include "res/gat.h"
 #include "res/gnd.h"
 #include "res/rsw.h"
 
@@ -167,5 +168,27 @@ using CellRect = std::array<std::int32_t, 4>;
 // and walls. With cull, a surface wholly off the viewport is left out.
 void DrawGroundCells(GroundMesh& mesh, const ViewMatrix& view, const CellRect& rect, bool cull,
                      const GroundDrawSettings& settings, std::vector<GroundPrimitive>& out);
+
+// The cell cursor (docs/render/ground.md#the-cell-cursor): the attribute cell under the mouse
+// that CGameMode::method_005159d0 keeps (00684e20 to 00684e2c) and CView::DrawWorld draws.
+struct CellCursor {
+  std::int32_t x = 0, z = 0;
+  bool hidden = true;                // 00684e28, set at start-up
+  std::uint32_t color = 0xaa55ffff;  // 00684e2c
+};
+
+// CGameMode::method_005159d0 on a picked cell, with the option (g_ClientState+0x184c) on: the
+// cell kept, shown in 0x6600ffaa unless its attribute (CGameMode::GetCellAttribute, 005121d0,
+// 1 off the map) is 1 (red, 0xfeff0000) or 5 (yellow, 0xfeffff00), which hide it.
+void PlaceCellCursor(CellCursor& cursor, const res::AttrMap& attr, std::int32_t x, std::int32_t z);
+
+// C3dGround15::DrawCellCursor (004c0240) and DrawCellCursorQuad (004bc570): the cursor's quad of
+// grid.tga over attribute cell (x, z), the ground cell under it narrowed to its quarter, at the
+// attribute cell's heights, projected as the ground is and drawn a little nearer, in colour; for
+// the translucent list (flags 1), blended by source alpha (5, 6). False when the ground cell is off
+// the map or has no top.
+bool DrawCellCursor(const GroundMesh& mesh, const res::AttrMap& attr, const ViewMatrix& view,
+                    const GroundViewport& viewport, std::int32_t x, std::int32_t z,
+                    std::uint32_t color, std::array<ScreenVertex, 4>& out);
 
 }  // namespace ragexe::render

@@ -83,7 +83,7 @@ def ground_file(rng, width, height, lightmaps):
     return out
 
 
-def build(data, lightmaps, light):
+def build(data, lightmaps, light, other_texture=None):
     emu = Emulator(max_instructions=2_000_000_000).init_crt()
     emu.uc.reg_write(UC_X86_REG_FPCW, 0x007F)
     emu.serve_data_files({"data\\t.gnd": data})
@@ -94,6 +94,8 @@ def build(data, lightmaps, light):
     pages = []
 
     def get_texture(this, name, flag):
+        if name not in names and other_texture is not None:
+            return other_texture(name)
         return TEXTURE_BASE + 0x10 * names.index(name)
 
     def create_texture(this, width, height, pixels, fmt, flag):

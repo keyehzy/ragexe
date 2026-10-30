@@ -566,4 +566,83 @@ std::string WaterTextureName(std::int32_t type, std::int32_t index) {
   return name;
 }
 
+void PlaceCellCursor(CellCursor& cursor, const res::AttrMap& attr, std::int32_t x, std::int32_t z) {
+  cursor.x = x;
+  cursor.z = z;
+  cursor.hidden = false;
+  std::int32_t type = 1;
+  if (x >= 0 && x < attr.width && z >= 0 && z < attr.height)
+    type = attr.cells[static_cast<std::size_t>(attr.width) * static_cast<std::size_t>(z) +
+                      static_cast<std::size_t>(x)]
+               .attribute;
+  if (type == 1 || type == 5) {
+    cursor.hidden = true;
+    cursor.color = type == 1 ? 0xfeff0000u : 0xfeffff00u;
+  } else {
+    cursor.color = 0x6600ffaau;
+  }
+}
+
+bool DrawCellCursor(const GroundMesh& mesh, const res::AttrMap& attr, const ViewMatrix& view,
+                    const GroundViewport& viewport, std::int32_t x, std::int32_t z,
+                    std::uint32_t color, std::array<ScreenVertex, 4>& out) {
+  constexpr float kNearer = 1.99999994948e-05f;  // 005e8944, added to each rhw
+  if (x < 0 || x / 2 >= mesh.width || z < 0 || z / 2 >= mesh.height) return false;
+  const GroundCellMesh& cell =
+      mesh.cells[static_cast<std::size_t>(mesh.width) * static_cast<std::size_t>(z / 2) +
+                 static_cast<std::size_t>(x / 2)];
+  if (cell.surfaces[0] < 0) return false;
+  // C3dGround15::GetCellCursorCorners (004c02d0): the top surface's corners, which a surface shared
+  // with other cells holds as the last of them placed it; C3dGround::SetAttrHeights (004bc500): the
+  // heights the attribute cell's.
+  std::array<Vec3, 4> c{};
+  const GroundSurfaceMesh& top = mesh.surfaces[static_cast<std::size_t>(cell.surfaces[0])];
+  for (std::size_t k = 0; k < 4; ++k)
+    c[k] = {top.vertices[k].x, top.vertices[k].y, top.vertices[k].z};
+  if (x < attr.width && z < attr.height) {
+    const res::AttrCell& a =
+        attr.cells[static_cast<std::size_t>(attr.width) * static_cast<std::size_t>(z) +
+                   static_cast<std::size_t>(x)];
+    for (std::size_t k = 0; k < 4; ++k) c[k][1] = a.heights[k];
+  }
+  // Halfway to the far side for an odd x or z, to the near side for an even one; corners 1
+  // and 2 hold the far x and z, corner 0 the near ones.
+  const bool odd_x = x % 2 != 0;
+  const bool odd_z = z % 2 != 0;
+  for (Vec3& p : c) {
+    if (odd_x) {
+      if (p[0] < c[1][0]) p[0] = (c[1][0] - p[0]) * 0.5f + p[0];
+    } else if (p[0] > c[0][0]) {
+      p[0] = p[0] - (p[0] - c[0][0]) * 0.5f;
+    }
+    if (odd_z) {
+      if (p[2] < c[2][2]) p[2] = (c[2][2] - p[2]) * 0.5f + p[2];
+    } else if (p[2] > c[0][2]) {
+      p[2] = p[2] - (p[2] - c[0][2]) * 0.5f;
+    }
+  }
+  const float scale = DepthScale();
+  const float origin_x = static_cast<float>(viewport.origin_x);
+  const float origin_y = static_cast<float>(viewport.origin_y);
+  static constexpr std::array<float, 8> kUv = {0, 0, 1, 0, 0, 1, 1, 1};  // 00679f78
+  const ViewMatrix& m = view;
+  for (std::size_t k = 0; k < 4; ++k) {
+    const Vec3& p = c[k];
+    const float tx = ((p[1] * m[3] + m[0] * p[0]) + p[2] * m[6]) + m[9];
+    const float ty = ((m[4] * p[1] + p[0] * m[1]) + p[2] * m[7]) + m[10];
+    const float tz = ((m[5] * p[1] + p[0] * m[2]) + p[2] * m[8]) + m[11];
+    const float rhw = 1.0f / NearClamped(tz);
+    ScreenVertex& s = out[k];
+    s.x = (rhw * viewport.scale_x) * tx + origin_x;
+    s.y = (rhw * ty) * viewport.scale_y + origin_y;
+    s.rhw = rhw + kNearer;
+    s.z = ((1.0f / s.rhw - kNear) * scale) * s.rhw;
+    s.diffuse = color;
+    s.specular = 0xff000000;
+    s.u = kUv[2 * k];
+    s.v = kUv[2 * k + 1];
+  }
+  return true;
+}
+
 }  // namespace ragexe::render

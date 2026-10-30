@@ -321,6 +321,51 @@ The record's +0x18 would choose an alpha of `0x80` instead, but `Build` leaves i
 - **Negative angles:** the lookup starts just after entry 360, so `−k` reads entry
   `361 − k`, one degree past `360 − k`.
 
+## The cell cursor
+
+The green square under the mouse marks the attribute cell (`.gat`, half a ground cell) the
+player would walk to.
+
+**Choosing the cell.** Each input step `CGameMode::method_005159d0` picks the cell under the
+mouse ([scene_graph.md](scene_graph.md#picking)). With the option `g_ClientState`+0x184c on
+(the client's state constructor sets it, `00587258`, and a key toggles it), it keeps:
+- the cell (`00684e20`, `00684e24`);
+- whether the cursor is hidden (`00684e28`);
+- its colour (`00684e2c`).
+
+Before the first pick it is hidden, in `0xaa55ffff` (`static_init_166`, `0050c240`). The
+cell's attribute comes from `CGameMode::GetCellAttribute` (`005121d0`), which gives 1 off
+the map:
+- **1:** hidden, in `0xfeff0000` (red);
+- **5:** hidden, in `0xfeffff00` (yellow);
+- **anything else:** shown, in `0x6600ffaa`.
+
+So the cursor appears only over cells the player can walk on. A failed pick leaves it as it
+was.
+
+**Drawing it.** `CView::DrawWorld` (`004cf73d`), after the visible nodes, calls the ground's
+slot 15 (`C3dGround15::DrawCellCursor`, `004c0240`) with the view matrix, the cell and the
+colour.
+1. **The ground cell** under it is (x / 2, z / 2). Nothing is drawn when that cell is off the
+   map or has no top.
+2. **It loads `grid.tga`** and calls `DrawCellCursorQuad` (`004bc570`).
+3. **The corners** come from slot 16 (`GetCellCursorCorners`, `004c02d0`): the top
+   surface's four vertex positions. A surface that several cells share holds the corners of
+   the last of them `Build` placed, so the cursor follows that cell.
+   `C3dGround::SetAttrHeights` (`004bc500`) then puts the attribute cell's four heights in
+   their y.
+4. **The quarter:** each corner's x moves halfway to corner 1's x when x is odd, and halfway
+   to corner 0's when even; z the same with corners 2 and 0.
+5. **Projection** is as the surfaces', with its own orders:
+   - x = ((y · m₃ + m₀ · x) + z · m₆) + m₉, y and z alike;
+   - z kept at least 1;
+   - the screen x = (rhw · scale x) · x + origin x, and the screen y = (rhw · y) · scale y
+     + origin y.
+6. **A little nearer:** the rhw is 0.00002 (`005e8944`) more, and z is taken from it.
+7. **The quad** has the colour, the specular `0xff000000`, and the coordinates (0, 0),
+   (1, 0), (0, 1), (1, 1) (`00679f78`, which `static_init_093` fills). It is drawn with
+   blends 5 and 6 (source alpha) and goes on the translucent list (flags 1).
+
 ## In the port
 
 `src/render/ground.{h,cpp}`:
@@ -331,6 +376,7 @@ The record's +0x18 would choose an alpha of `0x80` instead, but `Build` leaves i
 | `BuildGround` | `Build`: cells, surfaces with their vertices, and the atlas |
 | `GroundMesh` | the cells and surfaces, with their corner records and frame stamps |
 | `DrawGroundCells` | `DrawCells` with `DrawSurface` and the water; `GroundPrimitive`s for `AddPrimitive` |
+| `PlaceCellCursor`, `DrawCellCursor` | the cell cursor's choice and its quad (`CellCursor`) |
 | `core::SinDegrees`, `CosDegrees` | the angle tables, `src/core/angles` |
 
 - **Textures** are indices into the file's names, not loaded.
@@ -375,6 +421,10 @@ The record's +0x18 would choose an alpha of `0x80` instead, but `Build` leaves i
       coordinates, texture and page;
     - every cell's frame stamp and water heights;
     - the angle tables.
+  - **The cell cursor:**
+    - 180 calls to slot 15 over a 12 × 10 attribute map, in and around it, under the five
+      views and two rolled ones. Each call's quad matches bit for bit.
+    - `GetCellAttribute` for every cell and a ring off the map.
 - **Real maps** (`ground_oracle_sample` in `ctest`, when the data is present).
   `tools/ground_oracle.py` builds maps of `data.grf` both ways in the original and
   through `ragres build-grounds`, and compares hashes of the same values.

@@ -50,6 +50,24 @@ struct DrawVector {
   std::size_t cell_count;
 };
 
+struct CursorAttrCell {
+  std::uint32_t heights[4];
+  std::int32_t attribute;
+};
+
+struct CursorVector {
+  int view, x, z;
+  std::uint32_t color;
+  int drawn;
+  std::uint32_t vertices[32];
+  const char* texture;
+  int src_blend, dest_blend;
+};
+
+struct CellAttributeVector {
+  int x, z, attribute;
+};
+
 #include "ground_draw_vectors.inc"
 
 std::vector<std::uint8_t> FromHex(const char* const* pieces) {
@@ -166,5 +184,79 @@ TEST_CASE("DrawGroundCells adds the original's primitives") {
         }
       }
     }
+  }
+}
+
+namespace {
+
+ragexe::res::AttrMap CursorAttr() {
+  ragexe::res::AttrMap attr;
+  attr.width = kCursorAttrWidth;
+  attr.height = kCursorAttrHeight;
+  for (const CursorAttrCell& c : kCursorAttr) {
+    ragexe::res::AttrCell cell;
+    for (std::size_t k = 0; k < 4; ++k) cell.heights[k] = F(c.heights[k]);
+    cell.attribute = c.attribute;
+    attr.cells.push_back(cell);
+  }
+  return attr;
+}
+
+}  // namespace
+
+TEST_CASE("The cell cursor draws the original's quad") {
+  ragexe::res::Ground ground;
+  std::string error;
+  REQUIRE(ragexe::res::DecodeGround(FromHex(kCursorGround), ground, &error));
+  GroundLight light;
+  for (std::size_t k = 0; k < 3; ++k) {
+    light.direction[k] = F(kDrawLight[k]);
+    light.diffuse[k] = F(kDrawLight[3 + k]);
+    light.ambient[k] = F(kDrawLight[6 + k]);
+  }
+  GroundMesh mesh;
+  REQUIRE(BuildGround(ground, light, true, mesh, &error));
+  const ragexe::res::AttrMap attr = CursorAttr();
+  const ViewportVector& vp = kDrawVectors[0].viewport;
+  const GroundViewport viewport{F(vp.scale_x), F(vp.scale_y), vp.center_x, vp.center_y,
+                                vp.width,      vp.height,     vp.origin_x, vp.origin_y};
+  std::size_t n = 0;
+  for (const CursorVector& v : kCursorVectors) {
+    INFO("cursor " << n++ << " at " << v.x << ", " << v.z);
+    ViewMatrix view{};
+    for (std::size_t k = 0; k < 12; ++k)
+      view[k] = F(kCursorViews[static_cast<std::size_t>(v.view)][k]);
+    std::array<ScreenVertex, 4> quad{};
+    REQUIRE(DrawCellCursor(mesh, attr, view, viewport, v.x, v.z, v.color, quad) == (v.drawn != 0));
+    if (v.drawn == 0) continue;
+    CHECK(std::string(v.texture) == "grid.tga");
+    CHECK(v.src_blend == 5);
+    CHECK(v.dest_blend == 6);
+    for (std::size_t k = 0; k < 4; ++k) {
+      INFO("vertex " << k);
+      const ScreenVertex& q = quad[k];
+      const std::uint32_t got[8] = {Bits(q.x), Bits(q.y),  Bits(q.z), Bits(q.rhw),
+                                    q.diffuse, q.specular, Bits(q.u), Bits(q.v)};
+      for (std::size_t i = 0; i < 8; ++i) {
+        INFO("field " << i);
+        CHECK(got[i] == v.vertices[k * 8 + i]);
+      }
+    }
+  }
+}
+
+TEST_CASE("The cell cursor reads the attribute the original does") {
+  const ragexe::res::AttrMap attr = CursorAttr();
+  for (const CellAttributeVector& v : kCellAttributes) {
+    INFO("cell " << v.x << ", " << v.z);
+    CellCursor cursor;
+    PlaceCellCursor(cursor, attr, v.x, v.z);
+    CHECK(cursor.x == v.x);
+    CHECK(cursor.z == v.z);
+    CHECK(cursor.hidden == (v.attribute == 1 || v.attribute == 5));
+    const std::uint32_t color = v.attribute == 1   ? 0xfeff0000u
+                                : v.attribute == 5 ? 0xfeffff00u
+                                                   : 0x6600ffaau;
+    CHECK(cursor.color == color);
   }
 }

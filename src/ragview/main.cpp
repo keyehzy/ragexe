@@ -637,6 +637,11 @@ int main(int argc, char** argv) {
     return it->second;
   };
 
+  // The mouse's point for the cell cursor, none in a screenshot.
+  bool has_mouse = false;
+  std::int32_t mouse_cell_x = 0, mouse_cell_y = 0;
+  render::CellCursor cell_cursor;
+
   const auto frame = [&](std::uint32_t number, std::uint32_t now,
                          std::vector<render::DrawRecord>& draws) {
     settings.frame = number;
@@ -702,6 +707,31 @@ int main(int argc, char** argv) {
       lists.Add(s, p.flags);
       spans.emplace_back(static_cast<std::uint32_t>(vertices.size()), s.vertex_count);
       for (const render::ScreenVertex& sv : p.vertices)
+        vertices.push_back({sv.x, sv.y, sv.z, sv.rhw, sv.diffuse, render::VertexFog(sv.rhw, fog),
+                            sv.u, sv.v, 0.0f, 0.0f});
+    }
+    // CGameMode::method_005159d0 keeps the attribute cell under the mouse, and
+    // CView::DrawWorld draws the cursor over it after the visible nodes.
+    std::int32_t picked_x = 0, picked_z = 0;
+    if (has_mouse && render::PickCell(projection, camera, mouse_cell_x, mouse_cell_y, graph, attr,
+                                      picked_x, picked_z))
+      render::PlaceCellCursor(cell_cursor, attr, picked_x, picked_z);
+    std::array<render::ScreenVertex, 4> cursor_quad{};
+    if (!cell_cursor.hidden &&
+        render::DrawCellCursor(mesh, attr, camera.view, settings.viewport, cell_cursor.x,
+                               cell_cursor.z, cell_cursor.color, cursor_quad)) {
+      render::ScenePrimitive s;
+      s.id = static_cast<std::uint32_t>(spans.size());
+      s.texture = prim_texture("grid.tga");
+      s.src_blend = 5;
+      s.dest_blend = 6;
+      s.type = 5;
+      s.vertex_count = 4;
+      s.rhw0 = cursor_quad[0].rhw;
+      s.rhw1 = cursor_quad[1].rhw;
+      lists.Add(s, render::scene_flags::kTranslucent);
+      spans.emplace_back(static_cast<std::uint32_t>(vertices.size()), 4);
+      for (const render::ScreenVertex& sv : cursor_quad)
         vertices.push_back({sv.x, sv.y, sv.z, sv.rhw, sv.diffuse, render::VertexFog(sv.rhw, fog),
                             sv.u, sv.v, 0.0f, 0.0f});
     }
@@ -919,6 +949,9 @@ int main(int argc, char** argv) {
     const SDL_Keymod mods = SDL_GetModState();
     drag.mouse_x = static_cast<std::int32_t>(mouse_x);
     drag.mouse_y = static_cast<std::int32_t>(mouse_y);
+    has_mouse = true;
+    mouse_cell_x = drag.mouse_x;
+    mouse_cell_y = drag.mouse_y;
     drag.shift = (mods & SDL_KMOD_SHIFT) != 0;
     drag.ctrl = (mods & SDL_KMOD_CTRL) != 0;
     if (reset) {

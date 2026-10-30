@@ -194,5 +194,5 @@ ported from `vf03` without a vector of its own.
 **Not ported:**
 - the cell range globals;
 - `RayIntersectsBoxInRange` (`0040b960`), the model box test that nothing reaches;
-- what the game mode does with the picked cell (moving, the cursor), which comes with the
-  game mode.
+- the move to the picked cell, which comes with the game mode. The cursor over it is in
+  [ground.md](ground.md#the-cell-cursor).

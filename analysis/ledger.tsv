@@ -3076,8 +3076,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004bc410	53	code	0	world		named	C3dGround	SetWaterParams	
 004bc450	135	code	0	world		named	C3dGround15	StepWater	
 004bc4e0	20	code	0	world		named	C3dGround15	GetWaterTexture	
-004bc500	104	code	0	world		named	C3dGround	vf16	
-004bc570	663	code	0	world		named	C3dGround15	method_004bc570	
+004bc500	104	code	0	world		named	C3dGround	SetAttrHeights	
+004bc570	663	code	0	world		named	C3dGround15	DrawCellCursorQuad	
 004bc810	420	code	0	world		named	C3dGround15	vf01	
 004bc9c0	610	code	0	world		named	C3dGround15	Reset	
 004bcc30	6187	code	0	world		named	C3dGround15	Build	
@@ -3095,8 +3095,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004bfdb0	574	code	0	world		named	C3dGround15	vf10	
 004bfff0	77	code	0	world		named	C3dGround15	vf14	
 004c0040	511	code	0	world		named	C3dGround15	vf13	
-004c0240	131	code	0	world		named	C3dGround15	vf15	
-004c02d0	212	code	0	world		named	C3dGround15	vf16	
+004c0240	131	code	0	world		named	C3dGround15	DrawCellCursor	
+004c02d0	212	code	0	world		named	C3dGround15	GetCellCursorCorners	
 004c03b0	144	code	0	world		named	C3dGround15	GetCellColor	
 004c0440	38	code	1	stl		named	std::vector	~vector	
 004c0470	35	code	1	stl		named	std::vector	size	
@@ -4556,7 +4556,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00511e50	103	code	0	game		named	CGameMode	CellToWorld	
 00511ec0	126	code	0	game		named	CGameMode	IsPathFound	
 00511f40	647	code	0	game		named	CGameMode	method_00511f40	
-005121d0	88	code	0	game		named	CGameMode	method_005121d0	
+005121d0	88	code	0	game		named	CGameMode	GetCellAttribute	
 00512230	97	code	0	game		named	CGameMode	method_00512230	
 005122a0	112	code	0	game		named	CGameMode	method_005122a0	
 00512310	167	code	0	game		named	CGameMode	method_00512310	

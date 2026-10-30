@@ -12,6 +12,11 @@ matrix: with and without screen culling, the colour fade's other set (00679f9c),
 replaced. Recorded: every primitive DrawCells added, in order, from the ground list and
 the alpha list (its vertices, second coordinates, texture and lightmap), and every cell's
 frame stamp and corner heights afterwards.
+
+Then the cell cursor: on one more ground with an attribute map (C3dGround+4), C3dGround15
+slot 15 (004c0240) for attribute cells in and around the map under each view, recording the
+quad it adds to the alpha list (vertices, texture, blends); and CGameMode::GetCellAttribute's
+attribute for each cell and some off the map.
 """
 import math
 import os
@@ -30,6 +35,8 @@ DRAW_CELLS, WATER_TEXTURE, WATER_TEXTURE_ID = 0x4BE500, 0x4BC4E0, 0x73000000
 FRAME = 7
 WATER_UV_SCALE = 0x679F98
 INIT_ANGLE_TABLES, SIN_TABLE, COS_TABLE = 0x40B2F0, 0x6247B4, 0x623C6C
+DRAW_CURSOR, CELL_ATTRIBUTE, GRID_TEXTURE = 0x4C0240, 0x5121D0, 0x74000000
+CURSOR_UV = 0x679F78  # static_init_093 (004bbb30): (0, 0), (1, 0), (0, 1), (1, 1)
 
 
 def view_matrix(yaw, pitch, distance, shift):
@@ -48,9 +55,7 @@ def bits(f):
     return struct.unpack("<I", struct.pack("<f", f))[0]
 
 
-def draw(data, lightmaps, light, settings):
-    emu, g, pages = build(data, lightmaps, light)
-    u = emu.read_u32
+def renderer(emu):
     emu.call(INIT_ANGLE_TABLES)  # WinMain fills SinDegrees' and CosDegrees' tables at start-up
     # The renderer's constructor makes a texture, so the device comes first.
     emu.call(C3DDEVICE_CTOR, this=G_C3DDEVICE)
@@ -59,6 +64,13 @@ def draw(data, lightmaps, light, settings):
     emu.call(SCENE_RENDERER_CTOR, this=sr)
     emu.call(SET_SIZE, 800, 600, this=sr)
     emu.write_u32(G_PSCENE_RENDERER, sr)
+    return sr
+
+
+def draw(data, lightmaps, light, settings):
+    emu, g, pages = build(data, lightmaps, light)
+    u = emu.read_u32
+    sr = renderer(emu)
     emu.write_u32(sr + 0x34, FRAME)
     emu.mem_write(WORLD_COLOR_FADE + 0x2C, struct.pack("<6f", *settings["fade"]))
     emu.write_u32(ALTERNATE_FADE, settings["alternate"])
@@ -167,7 +179,85 @@ def main():
     lines.append("static const DrawVector kDrawVectors[] = {")
     lines += cases
     lines.append("};")
+    # The configs' views, and two rolled ones, which the client's camera never is, for the
+    # order of the cursor's sums.
+    rolled = []
+    for roll in (0.3, -0.5):
+        m = view_matrix(0.6, 0.8, 80.0, (-5.0, 4.0))
+        cr, sr = math.cos(roll), math.sin(roll)
+        for row in range(3):
+            a, b = m[3 * row], m[3 * row + 1]
+            m[3 * row], m[3 * row + 1] = a * cr - b * sr, a * sr + b * cr
+        rolled.append(m)
+    cursors(rng, light, [cfg["matrix"] for cfg in configs] + rolled, lines)
     print("\n".join(lines))
+
+
+def cursors(rng, light, views, lines):
+    w, h = 6, 5
+    data = ground_file(rng, w, h, 5)
+    names = []
+
+    def texture(name):
+        names.append(emu.read_cstr(name, 64, encoding="latin-1"))
+        return GRID_TEXTURE
+
+    emu, g, _ = build(data, 1, light, texture)
+    u = emu.read_u32
+    sr = renderer(emu)
+    emu.mem_write(CURSOR_UV, struct.pack("<8f", 0, 0, 1, 0, 0, 1, 1, 1))
+    aw, ah = 2 * w, 2 * h
+    cells = [([f32(rng.uniform(-15, 5)) for _ in range(4)], rng.choice([0, 0, 0, 1, 5, 2, 3]))
+             for _ in range(aw * ah)]
+    attr = emu.scratch(size=0x130)
+    emu.write_u32(attr + 0x110, aw)
+    emu.write_u32(attr + 0x114, ah)
+    emu.write_u32(attr + 0x118, 5)
+    emu.write_u32(attr + 0x120, emu.scratch(b"".join(struct.pack("<4fi", *hs, t) for hs, t in cells)))
+    emu.write_u32(g + 4, attr)
+    lines.append(f"static const char* const kCursorGround[] = {{")
+    hexed = data.hex()
+    lines += [f'    "{hexed[i:i + 96]}",' for i in range(0, len(hexed), 96)]
+    lines += ["    nullptr,", "};"]
+    lines.append(f"static constexpr std::int32_t kCursorAttrWidth = {aw}, kCursorAttrHeight = {ah};")
+    lines.append("// The attribute map's cells: four heights and the attribute.")
+    lines.append("static const CursorAttrCell kCursorAttr[] = {")
+    lines += [f"    {{{{{', '.join(f'0x{bits(v):08x}' for v in hs)}}}, {t}}}," for hs, t in cells]
+    lines.append("};")
+    lines.append("static const std::uint32_t kCursorViews[][12] = {" + ", ".join(
+        "{" + ", ".join(f"0x{bits(f32(x)):08x}" for x in v) + "}" for v in views) + "};")
+    lines.append("// {view, x, z, colour; drawn, the quad's vertices, texture name, source and destination")
+    lines.append("// blends}.")
+    lines.append("static const CursorVector kCursorVectors[] = {")
+    for n in range(180):
+        view = n % len(views)
+        x, z = rng.randrange(-2, aw + 2), rng.randrange(-2, ah + 2)
+        color = rng.choice([0x6600FFAA, 0xFEFF0000, rng.getrandbits(32)])
+        before = (u(sr + 0xDC) - u(sr + 0xD8)) // 8
+        del names[:]
+        emu.call(DRAW_CURSOR, emu.scratch(struct.pack("<12f", *views[view])), x, z, color, this=g)
+        added = [u(a + 4) for a in range(u(sr + 0xD8) + 8 * before, u(sr + 0xDC), 8)]
+        assert len(added) <= 1
+        verts, name, blends = [0] * 32, "", (0, 0)
+        if added:
+            p = added[0]
+            verts = list(struct.unpack("<32I", emu.mem_read(u(p), 0x80)))
+            assert u(p + 0xC) == GRID_TEXTURE
+            name = names[0]
+            blends = (u(p + 0x14), u(p + 0x18))
+        lines.append(f"    {{{view}, {x}, {z}, 0x{color:08x}, {len(added)}, "
+                     f"{{{', '.join(f'0x{v:x}' for v in verts)}}}, \"{name}\", {blends[0]}, {blends[1]}}},")
+    lines.append("};")
+    world = emu.scratch(size=0x100)
+    emu.write_u32(world + 0x40, attr)
+    mode = emu.scratch(size=0x400)
+    emu.write_u32(mode + 0xB4, world)
+    rows = []
+    for z in range(-1, ah + 1):
+        for x in range(-1, aw + 1):
+            rows.append(f"{{{x}, {z}, {emu.call(CELL_ATTRIBUTE, x, z, this=mode).eax}}}")
+    lines.append("// {x, z, CGameMode::GetCellAttribute}.")
+    lines.append("static const CellAttributeVector kCellAttributes[] = {" + ", ".join(rows) + "};")
 
 
 if __name__ == "__main__":

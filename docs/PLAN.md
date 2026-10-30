@@ -2577,6 +2577,16 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Checks:** 300 picks under five views, 500 box, 500 triangle and 400 cell tests; 5,904
     values.
 
+- [x] The cell cursor (`docs/render/ground.md#the-cell-cursor`):
+  - **The cell:** the picked attribute cell kept with a colour by its attribute. Cells of
+    attribute 1 and 5 hide the cursor, so it shows only over walkable cells.
+  - **The quad:** `grid.tga` over the quarter of the ground cell under it, at the attribute
+    cell's heights, drawn a little nearer with source-alpha blending. The corners come from
+    the top surface, which a shared surface takes from the last cell placed.
+  - **ragview** picks the cell under the mouse each frame and draws the cursor.
+  - **Checks:** 180 cursor quads under seven views, and the attribute lookup on every cell;
+    3,094 values.
+
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

@@ -294,7 +294,6 @@ address	namespace	name	calling_convention	evidence
 004b63f0	std::Tree	method_004b63f0	__thiscall	__thiscall; called with this from 2 functions of UIWindowMgr, e.g. 004b41a0
 004bb6d0	std::list	method_004bb6d0	__thiscall	__thiscall; called with this from 1 functions of C3dNode, e.g. 004b6ac0
 004bb710	std::list	method_004bb710	__thiscall	__thiscall; called with this from 1 functions of C3dNode, e.g. 004b7580
-004bc570	C3dGround15	method_004bc570	__thiscall	__thiscall; called with this from 1 functions of C3dGround15, e.g. 004c0240
 004bf070	C3dGround15	method_004bf070	__thiscall	__thiscall; called with this from 1 functions of C3dGround15, e.g. 004befa0
 004bfa60	C3dGround15	method_004bfa60	__thiscall	__thiscall; called with this from 1 functions of C3dGround15, e.g. 004bfdb0
 004bfd50	C3dGround15	method_004bfd50	__thiscall	__thiscall; called with this from 1 functions of C3dGround15, e.g. 004bfdb0
@@ -456,7 +455,6 @@ address	namespace	name	calling_convention	evidence
 00511c30	CGameMode	method_00511c30	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00511f40
 00511de0	CGameMode	method_00511de0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00530f40
 00511f40	CGameMode	method_00511f40	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 005159d0
-005121d0	CGameMode	method_005121d0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 005159d0
 00512230	CGameMode	method_00512230	__thiscall	__thiscall; called with this from 4 functions of CGameMode, e.g. 00511a40
 005122a0	CGameMode	method_005122a0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00511f40
 00512310	CGameMode	method_00512310	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 005159d0

@@ -5955,7 +5955,7 @@ C3dGround	005e8900	0	12	004bc320	C3dGround::vf12
 C3dGround	005e8900	0	13	004bc330	C3dGround::vf13	
 C3dGround	005e8900	0	14	004bc350	C3dGround::vf14	
 C3dGround	005e8900	0	15	004bc360	C3dGround::vf15	
-C3dGround	005e8900	0	16	004bc500	C3dGround::vf16	
+C3dGround	005e8900	0	16	004bc500	C3dGround::SetAttrHeights	
 CWorld	005e8970	0	0	004c36b0	CWorld::`scalar_deleting_destructor'	
 C3dGround15	005e897c	0	0	004c4250	C3dGround15::`scalar_deleting_destructor'	
 C3dGround15	005e897c	0	1	004bc810	C3dGround15::vf01	
@@ -5972,8 +5972,8 @@ C3dGround15	005e897c	0	11	004bfc90	C3dGround15::GetCellTint
 C3dGround15	005e897c	0	12	004bf6c0	C3dGround15::vf12	
 C3dGround15	005e897c	0	13	004c0040	C3dGround15::vf13	
 C3dGround15	005e897c	0	14	004bfff0	C3dGround15::vf14	
-C3dGround15	005e897c	0	15	004c0240	C3dGround15::vf15	
-C3dGround15	005e897c	0	16	004c02d0	C3dGround15::vf16	
+C3dGround15	005e897c	0	15	004c0240	C3dGround15::DrawCellCursor	
+C3dGround15	005e897c	0	16	004c02d0	C3dGround15::GetCellCursorCorners	
 CLanguage	005e89cc	0	0	004c7ab0	CLanguage::`scalar_deleting_destructor'	
 CLanguage	005e89cc	0	1	004c7a50	CLanguage::vf01	
 CLanguage	005e89cc	0	2	004c7a60	CLanguage::vf02	
