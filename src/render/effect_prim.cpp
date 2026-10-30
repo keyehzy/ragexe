@@ -7900,6 +7900,66 @@ void AddFireRing(RagEffect& effect, const EffectActor& actor, const PrimScene& s
   added.push_back(std::move(p));
 }
 
+void AddStolenSparks(RagEffect& effect, const PrimSprite& spark, core::CrtRand& rand,
+                     std::vector<EffectPrim>& added) {
+  if (effect.frame != 0) return;
+  // effect\EF_Steal.wav plays here.
+  for (std::int32_t n = 0; n < 10; ++n) {
+    EffectPrim p = MakePrimitive(&effect, 6, {0.0f, 0.0f, 0.0f});
+    p.heading = static_cast<float>(rand.Next() % 360);
+    p.pitch = static_cast<float>(rand.Next() % 100 - 50);
+    p.matrix = RotateX(MakeRotationY(Radians(p.heading)), Radians(p.pitch));
+    // 4 to 7 out along the matrix's z, and 10 up.
+    const auto out = static_cast<float>(rand.Next() % 4 + 4);
+    const Matrix& m = p.matrix;
+    p.drift = {(out * m[6]) + m[9], (out * m[7]) + m[10], (out * m[8]) + m[11]};
+    p.offset = {p.drift[0], p.drift[1] - 10.0f, p.drift[2]};
+    p.matrix = MakeRotationY(Radians(p.heading));
+    p.life = effect.duration;
+    p.speed = static_cast<float>(rand.Next() % 50 + 50) * kHundredth;
+    p.acceleration = (p.speed / static_cast<float>(p.life)) * -0.5f;
+    p.fall_speed = static_cast<float>(rand.Next() % 90 + 60) * -kHundredth;
+    p.fall_rate = (p.fall_speed / static_cast<float>(p.life)) * -2.0f;
+    p.scale = static_cast<float>(rand.Next() % 100 + 100) * kHundredth;
+    p.scale_speed = -(p.scale / static_cast<float>(p.life));
+    p.fade_at = p.life - p.life / 3;
+    p.sprite = spark;
+    ResetHistory(p);
+    added.push_back(std::move(p));
+  }
+}
+
+void AddCoins(RagEffect& effect, bool minimal, const PrimSprite& coin, core::CrtRand& rand,
+              std::vector<EffectPrim>& added) {
+  if (minimal || effect.frame != 20) return;
+  for (std::int32_t n = 0; n < 5; ++n) {
+    EffectPrim p = MakePrimitive(&effect, 6, {0.0f, 0.0f, 0.0f});
+    p.life = rand.Next() % 30 + 40;
+    p.heading = static_cast<float>(rand.Next() % 12 * 30);
+    p.matrix = MakeRotationY(Radians(p.heading));
+    // 2 or 3 out at the heading, and 10 up.
+    const auto out = static_cast<float>(rand.Next() % 2 + 2);
+    const Matrix& m = p.matrix;
+    const float y = (out * m[7]) + m[10];
+    p.offset = {(out * m[6]) + m[9], y - 10.0f, (out * m[8]) + m[11]};
+    p.matrix = MakeRotationY(Radians(p.heading));
+    p.speed = static_cast<float>(rand.Next() % 50 + 50) * kHundredth;
+    p.acceleration =
+        (p.speed / static_cast<float>(p.life)) * std::bit_cast<float>(0xbe924925u);  // -2/7
+    p.fall_speed =
+        static_cast<float>(rand.Next() % 100 + 50) * std::bit_cast<float>(0xbd23d70au);  // -0.04
+    p.fall_rate = -((p.fall_speed / static_cast<float>(p.life)) * 4.0f);
+    p.scale = 2.0f;
+    p.fade_at = p.life - p.life / 3;
+    p.coin_sound = true;
+    p.image_delay = 1;
+    p.sprite = coin;
+    p.history_count = 2;
+    ResetHistory(p);
+    added.push_back(std::move(p));
+  }
+}
+
 bool AdvanceStr(RagEffect& effect, const EffectActor& actor, float x, float y, float z) {
   return effect.str != nullptr && effect.str->Advance(effect, actor.position, x, y, z);
 }
@@ -8297,6 +8357,12 @@ void EffectWorld::Step(const PrimScene& world_scene) {
         case 0x36: AddSpellCircle(e, it->actor, "effect\\ring_blue.tga", 2, added); break;
         case 0x37: AddSpellCircle(e, it->actor, "effect\\ring_yellow.tga", 1, added); break;
         case 0x39: AddSpellCircle(e, it->actor, "effect\\ring_yellow.tga", 0, added); break;
+        case 0x12: AddStolenSparks(e, Sprite(kEffectSprites[22]), rand_, added); break;
+        case 0xa:
+          AddCoins(e, minimal_, Sprite(kEffectSprites[21]), rand_, added);
+          AdvanceStr(e, it->actor, 0.0f, -80.0f, 0.0f);
+          ended = e.frame >= 100;
+          break;
         case 4:
         case 5: AddHitCross(e, it->actor, scene, e.id == 4, rand_, added); break;
         case 0xb: AddEndure(e, it->actor, scene, rand_, added); break;

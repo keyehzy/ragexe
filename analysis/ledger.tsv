@@ -5307,7 +5307,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00554cc0	793	code	0	world		named	CRagEffect	AddSoulStrike	
 00554ff0	1006	code	0	world		named	CRagEffect	AddBash	
 005553e0	951	code	0	world		named	CRagEffect	AddBlast	
-005557a0	780	code	0	world		named	CRagEffect	method_005557a0	
+005557a0	780	code	0	world		named	CRagEffect	AddStolenSparks	
 00555ab0	954	code	0	world		named	CRagEffect	AddDetoxBubbles	
 00555e70	412	code	0	world		named	CRagEffect	AddChimneySmoke	
 00556010	840	code	0	world		named	CRagEffect	AddWanderingSpark	
@@ -5318,7 +5318,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00556d10	1069	code	0	world		named	CRagEffect	AddRisingLight	
 00557140	1216	code	0	world		named	CRagEffect	AddRain	
 00557600	580	code	0	world		named	CRagEffect	AddSnowfall	
-00557850	690	code	0	world		named	CRagEffect	method_00557850	
+00557850	690	code	0	world		named	CRagEffect	AddCoins	
 00557b10	1099	code	0	world		named	CRagEffect	AddEndure	
 00557f60	781	code	0	world		named	CRagEffect	AddSightShadows	
 00558270	20	code	0	world		named	CRagEffect	ProcessType17	

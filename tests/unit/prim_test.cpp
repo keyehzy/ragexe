@@ -232,6 +232,7 @@ struct StrEffectVector {
 
 // tools/prim_vectors.py writes these, one per family of primitives.
 #include "prim_vectors/basics.inc"
+#include "prim_vectors/bouncers.inc"
 #include "prim_vectors/crossed.inc"
 #include "prim_vectors/cylinders.inc"
 #include "prim_vectors/flights.inc"
@@ -1468,12 +1469,12 @@ class PlayingStr : public EffectStr {
 };
 
 // str_plays: the runs made with that stand-in; before it, InitEffect loads no .str. facings:
-// the actor's facing by run, 0 for the rest.
+// the actor's facing by run, 0 for the rest. minimal: minimal effects on.
 void CheckTargetEffects(std::span<const SquareEffectVector> effects,
                         std::vector<std::uint32_t> (*state)(const EffectPrim&) = StateFor,
                         bool sprites = false, bool str_plays = false,
                         const std::map<std::size_t, float>& facings = {},
-                        std::size_t act_copies = 2) {
+                        std::size_t act_copies = 2, bool minimal = false) {
   PlayingStr playing;
   const ragexe::res::AttrMap attr = TestAttr();
   const ragexe::res::Sprite sprite = TestSprite();
@@ -1487,6 +1488,7 @@ void CheckTargetEffects(std::span<const SquareEffectVector> effects,
     CHECK(EffectDuration(v.id) == v.duration);
     const auto facing = facings.find(run++);
     EffectWorld world(v.seed);
+    world.SetMinimal(minimal);
     world.SetPlayer(vec(v.player));
     world.SetPlayerId(kLinkPlayerId);
     world.SetActor(kLinkActorId, kLinkActor);
@@ -1927,11 +1929,13 @@ TEST_CASE("Concentration's other columns play as the original's", "[effect]") {
   CheckTargetEffects(kColumnEffects, StateOfFlightEffect, true, true);
 }
 
-TEST_CASE("Effects ask their .str and the game mode as the original's", "[effect]") {
+namespace {
+
+void CheckStrEffects(std::span<const StrEffectVector> effects) {
   const ragexe::res::Sprite sprite = TestSprite();
   const ragexe::res::Act act = TestAct(2);
   const auto vec = [](const std::uint32_t* v) { return Vec3{F(v[0]), F(v[1]), F(v[2])}; };
-  for (const StrEffectVector& v : kStrEffects) {
+  for (const StrEffectVector& v : effects) {
     INFO("effect id " << v.id << ", period " << v.period);
     EffectWorld world(v.seed);
     world.SetPlayer(vec(v.player));
@@ -1974,4 +1978,16 @@ TEST_CASE("Effects ask their .str and the game mode as the original's", "[effect
     }
     CHECK(alive == (v.ended == 0));
   }
+}
+
+}  // namespace
+
+TEST_CASE("Effects ask their .str and the game mode as the original's", "[effect]") {
+  CheckStrEffects(kStrEffects);
+}
+
+TEST_CASE("The bouncer effects play as the original's", "[effect]") {
+  CheckTargetEffects(kBouncerEffects, StateOfFlightEffect, true, true);
+  CheckTargetEffects(kMinimalBouncerEffects, StateOfFlightEffect, true, true, {}, 2, true);
+  CheckStrEffects(kBouncerStrEffects);
 }

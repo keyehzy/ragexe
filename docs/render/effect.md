@@ -125,6 +125,8 @@ The column is `AddConcentrationColumn` (`005647c0`,
   `ProcessConcentrationDC` (0xdc, `00566ed0`) leave the answer unread;
 - `AddAspersio` (0x56, `00565bd0`) and `ProcessMagnumBreak` (0xaa, `00566ac0`) step it
   only while they go on, and leave the answer unread;
+- `AddCoins` (0xa, `00557850`) steps it each step, leaves the answer unread, and is over at
+  frame 100;
 - `AddSignum` (0x28, `00564b00`), `AddStormGust` (0x59, `00565600`) and vf01's case 0xf8
   are over when it answers false.
 
@@ -239,7 +241,7 @@ dropped: neither the view's shake nor the jokes are ported.
 game mode, step by step ([effect-prim.md](effect-prim.md#checks)).
 
 **Not ported:**
-- the 8 cases of `CRagEffect::vf01` that add primitives of their own and are not yet
+- the 6 cases of `CRagEffect::vf01` that add primitives of their own and are not yet
   ported ([PLAN.md](../PLAN.md));
 - the sounds, the view's shake and the jokes;
 - the texture cache's use counts.

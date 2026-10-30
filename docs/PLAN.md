@@ -2529,10 +2529,16 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     each case with its own order for the actor's point on screen.
   - **Checks:** twelve effect runs; 7,420,761 values in `prim_test`.
 
+- [x] Bouncers (`docs/render/effect-prim.md#bouncers`):
+  - **Effect ids 0x12 and 0xa:** Steal's sparks and the coins, bouncers (id 6) of two more
+    sprites; 0xa steps its `.str` and ends at frame 100.
+  - **Checks:** five effect runs (one with minimal effects on) and 0xa's two `.str` runs;
+    7,559,067 values in `prim_test`.
+
 ### Next actions
-1. M4, the renderer: the 8 cases of `CRagEffect::vf01` left (0x3, 0xa, 0x12, 0x33, 0x51,
-   0x78, 0xa4 and 0xa6), in groups as before: next 0x3 and 0x51 (cylinders, particles and
-   a bouncer), 0xa and 0x12 (bouncers, id 6), then 0x33 and 0xa4, which make their
-   primitives without `CreatePrimitive`, and 0x78 and 0xa6, which change the actor.
+1. M4, the renderer: the 6 cases of `CRagEffect::vf01` left (0x3, 0x33, 0x51, 0x78, 0xa4
+   and 0xa6), in groups as before: next 0x3 and 0x51 (cylinders, particles and a
+   bouncer), then 0x33 and 0xa4, which make their primitives without `CreatePrimitive`,
+   and 0x78 and 0xa6, which change the actor.
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

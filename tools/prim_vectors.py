@@ -1816,7 +1816,8 @@ SQUARE_EFFECTS = [(0xE5, 24), (0xE6, 24), (0xE9, 24), (0xF9, 48), (0x109, 48), (
 
 
 def square_effects(o, rng, lines, effects=SQUARE_EFFECTS, prefix="kSquareEffect", seed=5000, state_of=None,
-                   with_quads=False, looks=None, release=False, messages=False, dense=False, facings=None):
+                   with_quads=False, looks=None, release=False, messages=False, dense=False, facings=None,
+                   full=()):
     """The effects through the world's list with a target, a level and the player's
     position; looks maps an effect id to where its views look, from the actor, the player
     and the target; release gives the heap back after each run; messages gives the actor a
@@ -1825,7 +1826,7 @@ def square_effects(o, rng, lines, effects=SQUARE_EFFECTS, prefix="kSquareEffect"
     every eighth drawing, however many primitives there are. An entry of effects may fix the
     level as a third value, and with a fourth put the target within 2.5 of the actor (True)
     or give its y (a number, the actor id 0xe8 runs to). facings maps a run's index to the
-    actor's facing (+0x38), 0 otherwise."""
+    actor's facing (+0x38), 0 otherwise. The effect ids in full have every state recorded."""
     emu = o.emu
     rows = []
     player = emu.read_u32(o.world + 0x3C)
@@ -1884,7 +1885,9 @@ def square_effects(o, rng, lines, effects=SQUARE_EFFECTS, prefix="kSquareEffect"
             # add many only the second and the last.
             objects = o.world_objects()
             is_dense = dense is True or (dense and eid in dense)
-            if is_dense:
+            if eid in full:
+                sampled = True
+            elif is_dense:
                 sampled = frame < 4 or frame % 4 == 0 or frame == count - 1
             elif len(objects) <= 2:
                 sampled = True
@@ -1978,6 +1981,11 @@ def ray_effect_state(o, prim):
     """STATE, as for the synthetic rays and diamonds."""
     return o.state(prim)
 
+# The bouncer effects, each twice, the coins' every state; 0xa again with minimal effects
+# on, and through the .str runs.
+BOUNCER_EFFECTS = [(0x12, 40), (0x12, 40), (0xA, 110), (0xA, 110)]
+MINIMAL_BOUNCER_EFFECTS = [(0xA, 40)]
+
 
 # Concentration's other columns, as the crossed-quad effects run 0xdc.
 COLUMN_EFFECTS = [(0xDA, 70), (0xDB, 70), (0xDD, 70)]
@@ -1987,13 +1995,9 @@ STR_PERIODS = (7, 0)
 STR_STEPS = 2600  # past 0x12d's turn back at frame 2300
 
 
-def str_effects(o, rng, lines, seed=26000):
-    """Each of STR_IDS through the world's list, once for each of STR_PERIODS, for up to
-    STR_STEPS steps: each step what the effect asks of its .str (AdvanceStr's offsets and
-    answer, the real ResetStr on a stand-in .str header) and the messages it sends the game
-    mode (C3dGround::vf03, an empty function of four arguments, standing in for its vf05),
-    then its frame and duration where they move other than by a step. Steps that ask the
-    same are run together."""
+def str_stand_ins(o):
+    """AdvanceStr answering by the period set, recording each call; the real ResetStr
+    recorded; the game mode's vf05 recorded; and a stand-in .str header."""
     emu = o.emu
     events = []
     calls, period = [0], [0]
@@ -2021,10 +2025,24 @@ def str_effects(o, rng, lines, seed=26000):
     header = emu.scratch(size=0x400)
     emu.write_u32(header + 8, 3)
     emu.write_u32(header + 0x388, 1)
+    return events, calls, period, header
+
+
+def str_effects(o, rng, lines, seed=26000, ids=STR_IDS, prefix="kStrEffect"):
+    """Each of ids through the world's list, once for each of STR_PERIODS, for up to
+    STR_STEPS steps: each step what the effect asks of its .str (AdvanceStr's offsets and
+    answer, the real ResetStr on a stand-in .str header) and the messages it sends the game
+    mode (C3dGround::vf03, an empty function of four arguments, standing in for its vf05),
+    then its frame and duration where they move other than by a step. Steps that ask the
+    same are run together. The stand-ins are set up on the first call."""
+    emu = o.emu
+    if not hasattr(o, "str_stand_ins"):
+        o.str_stand_ins = str_stand_ins(o)
+    events, calls, period, header = o.str_stand_ins
     player = emu.read_u32(o.world + 0x3C)
     rows = []
     run = 0
-    for eid in STR_IDS:
+    for eid in ids:
         for p in STR_PERIODS:
             mark = emu.heap_mark()
             o.reset_world()
@@ -2066,7 +2084,7 @@ def str_effects(o, rng, lines, seed=26000):
                 for node, prim in o.world_objects():
                     if not emu.call(PRIM_VF01, this=prim).eax & 0xFF:
                         o.unlink(node)
-            name = f"kStrEffect{run}"
+            name = f"{prefix}{run}"
             flat, refs = [], []
             for first, last, asked in steps:
                 refs.append(f"{{{first}, {last}, {len(flat)}, {len(asked)}}}")
@@ -2079,7 +2097,7 @@ def str_effects(o, rng, lines, seed=26000):
                         f"{name}Steps, {len(steps)}}},")
             emu.heap_release(mark)
             run += 1
-    lines.append("static const StrEffectVector kStrEffects[] = {")
+    lines.append(f"static const StrEffectVector {prefix}s[] = {{")
     lines += rows
     lines.append("};")
 
@@ -2088,7 +2106,7 @@ GENERATED = "// Generated by tools/prim_vectors.py from the original in the emul
 # The files main writes, in the order the oracle runs them; kTextures, last, names every
 # texture the others use.
 PARTS = ("basics", "rings", "squares", "motes", "walls", "trails", "screens", "flights", "crossed", "solids",
-         "ribbons", "strs", "cylinders", "particles", "rays", "textures")
+         "ribbons", "strs", "cylinders", "particles", "rays", "bouncers", "textures")
 
 
 def main():
@@ -2172,6 +2190,14 @@ def main():
                    None, True, True, True)
     lines = parts["rays"]
     square_effects(o, rng, lines, RAY_EFFECTS, "kRayEffect", 30000, ray_effect_state, False, None, True, True, True)
+    lines = parts["bouncers"]
+    square_effects(o, rng, lines, BOUNCER_EFFECTS, "kBouncerEffect", 31000, flight_effect_state, True, None, True,
+                   True, True, None, {0xA})
+    o.emu.write_u32(MINIMAL_EFFECTS, 1)
+    square_effects(o, rng, lines, MINIMAL_BOUNCER_EFFECTS, "kMinimalBouncerEffect", 31200, flight_effect_state, True,
+                   None, True, True, True)
+    o.emu.write_u32(MINIMAL_EFFECTS, 0)
+    str_effects(o, rng, lines, 31500, (0xA,), "kBouncerStrEffect")
     names = sorted(o.textures.items(), key=lambda kv: kv[1])
     lines = parts["textures"]
     lines.append("static const TextureVector kTextures[] = {" +

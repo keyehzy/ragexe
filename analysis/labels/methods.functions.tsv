@@ -569,8 +569,6 @@ address	namespace	name	calling_convention	evidence
 0054b8e0	CPlayer	method_0054b8e0	__thiscall	__thiscall; called with this from 1 functions of CPlayer, e.g. 0054b770
 0054cf80	CPlayer	method_0054cf80	__thiscall	__thiscall; called with this from 1 functions of CPlayer, e.g. 0054b4a0
 005516e0	CRagEffect	method_005516e0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
-005557a0	CRagEffect	method_005557a0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
-00557850	CRagEffect	method_00557850	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 0055afe0	CRagEffect	method_0055afe0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 0055dee0	CRagEffect	method_0055dee0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 00560dd0	CRagEffect	method_00560dd0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0

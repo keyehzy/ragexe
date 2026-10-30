@@ -1751,6 +1751,16 @@ y is (y × scale) × 1/z for all of them. None of the ids has a `.str`.
 | 0x2e | `AddSandStorm` (`00556360`) | until frame 60 every other frame a diamond of `sand1.bmp`, wandering (flag 8) every 10 to 19 steps, the effect's duration less up to 99 steps, 2.6 to 5.59 a step at a heading 130 to 144, 30 across, −500 to 139 across and 191 to 240 up from the actor, alpha 128, out over the last third |
 | 0x32 | `AddFireRing` (`0055adb0`) | a `rand()` every step; on the first frame a diamond of `FireRing.tga` at that angle, 30 steps, 20 up, 10 across growing by 5.7, spinning −18 slowing by 0.4, out over the second half |
 
+## Bouncers
+
+Two more cases throw particles that bounce off the ground (id 6,
+[particles and cylinders](#particles-and-cylinders)).
+
+| Effect ids | Function | Sprite | What |
+|-----------|----------|--------|------|
+| 0x12 | `AddStolenSparks` (`005557a0`) | `particle7` | on the first frame `EF_Steal.wav` and ten bouncers as long as the effect: at a random heading and a pitch of −50 to 49, 4 to 7 out along that matrix and 10 up (kept at +0x310, and the offset), then along the heading alone at 0.5 to 0.99 slowing by half, fall speed −0.6 to −1.49, turned round to as much the other way by the end, scale 1 to 1.99 shrinking to nothing, out over the last third |
+| 0xa | `AddCoins` (`00557850`) | `동전` ("coin") | at frame 20, unless minimal effects are on, five coins of 40 to 69 steps at a heading of 0 to 330 by thirties, 2 or 3 out and 10 up, 0.5 to 0.99 a step slowing by 2/7, fall speed −2 to −5.96, its rate four times speed over life the other way, scale 2, an image a step, two history records, ringing `EF_Coin%d` as they bounce (+0x168), out over the last third; then `AdvanceStr`, its answer unread, and over at frame 100 |
+
 ## In the port
 
 **`src/core/crt_rand`:** `CrtRand`, `srand` and `rand`.
@@ -1786,7 +1796,8 @@ y is (y × scale) × 1/z for all of them. None of the ids has a `.str`.
   ids), the six of [more cylinders](#more-cylinders) and the eight of
   [more particles](#more-particles) (`AddChimneySmoke` and `AddRisingBubbles` for two ids
   each, `AddPoisonBubbles` for three) and its six others, and the five of
-  [more rays](#more-rays) (`AddHitCross` for two ids);
+  [more rays](#more-rays) (`AddHitCross` for two ids) and the two of
+  [bouncers](#bouncers);
 - `ProcessStrEffect` for the 97 cases that only play their `.str`, and `AdvanceStr` and
   `ResetStr` through an effect's `EffectStr` ([effect.md](effect.md#which-cases-play-their-str));
 - `EffectWorld`, the world's list as effects use it:
@@ -1993,11 +2004,13 @@ for git:
   others, 0x18 and 0x50 twice, the same way.
 - **The six ray effects**, each twice, as for the crossed-quad effects, their primitives
   checked as the synthetic ones.
+- **The two bouncer effects**, each twice, as for the crossed-quad effects, the coins' every
+  state; 0xa once more with minimal effects on, and through the `.str` runs above.
 
-`tests/unit/prim_test.cpp` matches all of it: 7,420,761 values, the CRT's first `rand` values
+`tests/unit/prim_test.cpp` matches all of it: 7,559,067 values, the CRT's first `rand` values
 among them.
 
 **Not ported:**
-- the 8 cases of `CRagEffect::vf01` that add primitives of their own and are not yet
+- the 6 cases of `CRagEffect::vf01` that add primitives of their own and are not yet
   ported ([effect.md](effect.md#which-cases-play-their-str));
 - the sounds, the view's shake and the jokes.
