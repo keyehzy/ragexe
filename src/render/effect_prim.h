@@ -448,7 +448,7 @@ inline constexpr const char* kParticleSprite = "\300\314\306\321\306\256\\partic
 // ef_snow, sakura01, 단풍, 침투경_, 데몬스트레이션, Waterball, 축복, particle6 and Sight
 // (00618d58, 00618f20, 00619df4, 00619e18, 0061a10c, 0061a154, 006195fc, 00618cd0, 00618ca8
 // and 00618fac), and Shadow (00618f8c).
-inline constexpr std::array<const char*, 19> kEffectSprites = {
+inline constexpr std::array<const char*, 21> kEffectSprites = {
     "\300\314\306\321\306\256\\particle2",
     "\300\314\306\321\306\256\\ef_snow",
     "\300\314\306\321\306\256\\sakura01",
@@ -467,7 +467,9 @@ inline constexpr std::array<const char*, 19> kEffectSprites = {
     "\300\314\306\321\306\256\\particle3",
     "\300\314\306\321\306\256\\DarkBreath",
     "\300\314\306\321\306\256\\\261\274\266\322\277\254\261\342",
-    "\300\314\306\321\306\256\\\305\251\270\256\275\272\270\266\275\272"};
+    "\300\314\306\321\306\256\\\305\251\270\256\275\272\270\266\275\272",
+    "\300\314\306\321\306\256\\fireball",
+    "\300\314\306\321\306\256\\\303\342"};
 
 // CRagEffect::ProcessRingBurst (005505a0), effect id 0, on its first frame: a cylinder of
 // ring_blue.tga rising from the actor, and unless minimal effects are on, two particles
@@ -959,6 +961,22 @@ void AddRisingBubbles(RagEffect& effect, const PrimSprite& bubble, const res::At
                       bool grounded, core::CrtRand& rand, std::vector<EffectPrim>& added);
 void AddPoisonBubbles(RagEffect& effect, const PrimSprite& bubble, bool sinking,
                       core::CrtRand& rand, std::vector<EffectPrim>& added);
+// More (docs/render/effect-prim.md#more-particles): AddDetoxBubbles (00555ab0), 0x15, the
+// poison bubbles of particle2, every 15 frames with minimal effects; AddFireballs (00558290),
+// 0x18, and AddSpears (0055dc90), 0x50, four each at the target; AddWhirlingShadows
+// (00559ba0), 0x21, and AddSightShadows (00557f60), 0x16, a sprite and its shadow circling
+// the actor; AddWanderingSpark (00556010), 0x2d, a particle1 wandering and keyed.
+void AddDetoxBubbles(RagEffect& effect, const PrimSprite& bubble, bool minimal, core::CrtRand& rand,
+                     std::vector<EffectPrim>& added);
+void AddFireballs(RagEffect& effect, const PrimSprite& ball, std::vector<EffectPrim>& added);
+void AddSpears(RagEffect& effect, const PrimSprite& spear, std::vector<EffectPrim>& added);
+void AddWhirlingShadows(RagEffect& effect, const EffectActor& actor, const PrimSprite& sprite,
+                        const PrimSprite& shadow, std::vector<EffectPrim>& added);
+void AddSightShadows(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+                     const PrimSprite& sight, const PrimSprite& shadow,
+                     std::vector<EffectPrim>& added);
+void AddWanderingSpark(RagEffect& effect, const PrimSprite& particle, core::CrtRand& rand,
+                       std::vector<EffectPrim>& added);
 
 // CRagEffect::AdvanceStr (0054fba0): false without a .str, else the .str's step.
 bool AdvanceStr(RagEffect& effect, const EffectActor& actor, float x, float y, float z);

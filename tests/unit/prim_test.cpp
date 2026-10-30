@@ -1914,6 +1914,10 @@ TEST_CASE("The particle effects of their own sprites play as the original's", "[
   CheckTargetEffects(kParticleEffects, StateOfFlightEffect, true, true, {}, 3);
 }
 
+TEST_CASE("The other particle effects play as the original's", "[effect]") {
+  CheckTargetEffects(kOtherParticleEffects, StateOfFlightEffect, true, true, {}, 3);
+}
+
 TEST_CASE("Concentration's other columns play as the original's", "[effect]") {
   CheckTargetEffects(kColumnEffects, StateOfFlightEffect, true, true);
 }

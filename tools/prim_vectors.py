@@ -1965,6 +1965,10 @@ PARTICLE_EFFECTS = [(0x2F, 40), (0x27, 40), (0x35, 40), (0xD4, 72), (0xA5, 130),
                     (0xA5, 40), (0x2C, 40), (0x2C, 40), (0x151, 40), (0xAB, 40), (0x14E, 40), (0x14, 48),
                     (0x7D, 48), (0x88, 48)]
 
+# The particle effects of the stock sprites and the fireballs; 0x18 and 0x50 twice.
+OTHER_PARTICLE_EFFECTS = [(0x15, 48), (0x18, 56), (0x18, 56), (0x50, 40), (0x50, 40), (0x21, 40), (0x16, 40),
+                          (0x2D, 150)]
+
 
 # Concentration's other columns, as the crossed-quad effects run 0xdc.
 COLUMN_EFFECTS = [(0xDA, 70), (0xDB, 70), (0xDD, 70)]
@@ -2155,6 +2159,8 @@ def main():
     o.set_act = six
     square_effects(o, rng, lines, PARTICLE_EFFECTS, "kParticleEffect", 29000, flight_effect_state, True, None,
                    True, True, True)
+    square_effects(o, rng, lines, OTHER_PARTICLE_EFFECTS, "kOtherParticleEffect", 29500, flight_effect_state, True,
+                   None, True, True, True)
     names = sorted(o.textures.items(), key=lambda kv: kv[1])
     lines = parts["textures"]
     lines.append("static const TextureVector kTextures[] = {" +

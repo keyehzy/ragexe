@@ -2518,10 +2518,16 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     and +0xc8.
   - **Checks:** sixteen effect runs; 7,188,401 values in `prim_test`.
 
+- [x] The other particles (`docs/render/effect-prim.md#more-particles`):
+  - **Effect ids 0x15, 0x16, 0x18, 0x21, 0x2d and 0x50:** the detoxification bubbles,
+    fireballs and spears at the target, a sprite and its shadow whirling round the actor
+    (two ways), and a wandering, keyed spark.
+  - **Checks:** eight effect runs; 7,273,751 values in `prim_test`.
+
 ### Next actions
-1. M4, the renderer: the 20 cases of `CRagEffect::vf01` left, which add primitives of
-   their own (0x3 to 0x5, 0xa, 0xb, 0x12, 0x15, 0x16, 0x18, 0x20, 0x21, 0x2d, 0x2e, 0x32,
-   0x33, 0x50, 0x51, 0x78, 0xa4 and 0xa6), in groups as before: next the other particles
-   (0x15, 0x16, 0x18, 0x21, 0x2d, 0x50).
+1. M4, the renderer: the 14 cases of `CRagEffect::vf01` left, which add primitives of
+   their own (0x3 to 0x5, 0xa, 0xb, 0x12, 0x20, 0x2e, 0x32, 0x33, 0x51, 0x78, 0xa4 and
+   0xa6), in groups as before: next the rays and diamonds (id 0: 0x4, 0x5, 0xb, 0x20, 0x2e,
+   0x32).
 2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

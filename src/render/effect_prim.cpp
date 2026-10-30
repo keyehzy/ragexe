@@ -7550,11 +7550,11 @@ void AddRisingBubbles(RagEffect& effect, const PrimSprite& bubble, const res::At
   }
 }
 
-void AddPoisonBubbles(RagEffect& effect, const PrimSprite& bubble, bool sinking,
-                      core::CrtRand& rand, std::vector<EffectPrim>& added) {
-  // effect\assasin_enchantpoison.wav and EF_PoisonAttack.wav play on the first frame, or
-  // for 0x88 EF_PoisonAttack.wav alone.
-  if (effect.frame % 5 != 0) return;
+namespace {
+
+// The bubbles of 0x14, 0x7d, 0x88 and 0x15, 40 steps each.
+EffectPrim MakeGroundBubble(RagEffect& effect, const PrimSprite& bubble, bool sinking,
+                            core::CrtRand& rand) {
   EffectPrim p = MakePrimitive(&effect, 5, {0.0f, 0.0f, 0.0f});
   p.life = 40;
   // 2 to 7 out along the ground at a random heading.
@@ -7572,6 +7572,177 @@ void AddPoisonBubbles(RagEffect& effect, const PrimSprite& bubble, bool sinking,
   p.alpha_speed = p.alpha_max * std::bit_cast<float>(0x3dcccccdu);  // 0.1
   p.fade_at = p.life - p.life / 5;
   p.sprite = bubble;
+  ResetHistory(p);
+  return p;
+}
+
+}  // namespace
+
+void AddPoisonBubbles(RagEffect& effect, const PrimSprite& bubble, bool sinking,
+                      core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  // effect\assasin_enchantpoison.wav and EF_PoisonAttack.wav play on the first frame, or
+  // for 0x88 EF_PoisonAttack.wav alone.
+  if (effect.frame % 5 != 0) return;
+  added.push_back(MakeGroundBubble(effect, bubble, sinking, rand));
+}
+
+void AddDetoxBubbles(RagEffect& effect, const PrimSprite& bubble, bool minimal, core::CrtRand& rand,
+                     std::vector<EffectPrim>& added) {
+  // effect\EF_Detoxication.wav plays on the first frame.
+  if (effect.frame % (minimal ? 15 : 5) != 0) return;
+  added.push_back(MakeGroundBubble(effect, bubble, false, rand));
+}
+
+namespace {
+
+// The fireballs of 0x18 and 0x50 (kFaceCamera and kEndNear): 15 up, turned to the target
+// and covering the ground to it over their life, an image a step.
+EffectPrim MakeFireball(RagEffect& effect, std::int32_t life, float scale, const PrimSprite& ball) {
+  // effect\EF_FireBall.wav plays with each.
+  EffectPrim p = MakePrimitive(&effect, 5, {0.0f, 0.0f, 0.0f});
+  p.life = life;
+  p.flags |= EffectPrim::kFaceCamera | EffectPrim::kEndNear;
+  p.offset = {0.0f, -15.0f, 0.0f};
+  p.facing = TurnTowards(p.position, effect.target[0], effect.target[2]);
+  p.heading = -p.facing;
+  p.facing = 180.0f - p.facing;
+  if (p.facing < 0.0f) p.facing = p.facing + 360.0f;
+  const float dx = effect.target[0] - p.position[0];
+  const float dz = effect.target[2] - p.position[2];
+  p.speed = -(SqrtFloat((dz * dz) + (dx * dx)) / static_cast<float>(p.life));
+  p.matrix = MakeRotationY(Radians(p.heading));
+  p.scale = scale;
+  p.image_delay = 1;
+  p.sprite = ball;
+  return p;
+}
+
+// A sprite and its shadow 15 out at the angle, fading and shrinking (0x21 and 0x16).
+struct ShadowedSetup {
+  std::int32_t life;
+  float up;
+  std::int32_t delay;  // 0 leaves the default
+  float rise;          // the sprite's step speed up
+  float scale, shrink;
+  float alpha, fade;
+  float shadow_alpha, shadow_fade;
+  std::int32_t fade_from_end;  // 0 for no fade
+};
+
+void AddShadowed(RagEffect& effect, std::int32_t angle, const ShadowedSetup& s,
+                 const PrimSprite& sprite, const PrimSprite& shadow,
+                 std::vector<EffectPrim>& added) {
+  const float x = core::SinDegrees(angle) * 15.0f;
+  const float z = core::CosDegrees(angle) * -15.0f;
+  EffectPrim p = MakePrimitive(&effect, 5, {0.0f, 0.0f, 0.0f});
+  p.life = s.life;
+  p.offset = {x, s.up, z};
+  p.step_speed[1] = s.rise;
+  if (s.delay != 0) p.image_delay = s.delay;
+  p.scale = s.scale;
+  p.scale_speed = s.shrink;
+  p.alpha = s.alpha;
+  p.alpha_speed = s.fade;
+  if (s.fade_from_end != 0) p.fade_at = p.life - s.fade_from_end;
+  p.sprite = sprite;
+  ResetHistory(p);
+  added.push_back(std::move(p));
+  EffectPrim d = MakePrimitive(&effect, 5, {0.0f, 0.0f, 0.0f});
+  d.life = s.life;
+  d.offset = {x, 0.0f, z};
+  d.image_delay = 2;
+  d.scale = 1.5f;
+  d.scale_speed = std::bit_cast<float>(0xbd75c28fu);  // -0.06
+  d.alpha = s.shadow_alpha;
+  d.alpha_speed = s.shadow_fade;
+  if (s.fade_from_end != 0) d.fade_at = d.life - s.fade_from_end;
+  d.sprite = shadow;
+  ResetHistory(d);
+  added.push_back(std::move(d));
+}
+
+}  // namespace
+
+void AddFireballs(RagEffect& effect, const PrimSprite& ball, std::vector<EffectPrim>& added) {
+  const std::int32_t f = effect.frame;
+  if (f != 20 && f != 24 && f != 28 && f != 32) return;
+  EffectPrim p = MakeFireball(effect, 20, std::bit_cast<float>(0x3fa66666u), ball);  // 1.3
+  // All but the first golden and fainter.
+  if (f != 20) {
+    p.red = 246;
+    p.green = 199;
+    p.blue = 76;
+    p.alpha = f == 24 ? 180.0f : f == 28 ? 130.0f : 80.0f;
+  }
+  ResetHistory(p);
+  added.push_back(std::move(p));
+}
+
+void AddSpears(RagEffect& effect, const PrimSprite& spear, std::vector<EffectPrim>& added) {
+  const std::int32_t f = effect.frame;
+  if (f != 0 && f != 4 && f != 8 && f != 12) return;
+  EffectPrim p = MakeFireball(effect, 15, 1.0f, spear);
+  if (f != 0) p.alpha = f == 4 ? 180.0f : f == 8 ? 130.0f : 80.0f;
+  // Then the effect's own SetAction (its vf07) to the action 00500150 picks from the actor's
+  // facing, which nothing drawn reads.
+  ResetHistory(p);
+  added.push_back(std::move(p));
+}
+
+void AddWhirlingShadows(RagEffect& effect, const EffectActor& actor, const PrimSprite& sprite,
+                        const PrimSprite& shadow, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame % 3 != 0) return;
+  // The frame times 10/13, then −5, each product rounded once to a float.
+  const float turn = core::RoundedProduct(
+      core::RoundedProduct(static_cast<float>(effect.frame), 0.7692307692307692), -5.0);
+  AddShadowed(effect, Ftol(turn),
+              {25, -10.0f, 0, 0.0f, 3.0f, std::bit_cast<float>(0xbdcccccdu), 250.0f, -3.0f, 150.0f,
+               -2.5f, 6},
+              sprite, shadow, added);
+}
+
+void AddSightShadows(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
+                     const PrimSprite& sight, const PrimSprite& shadow,
+                     std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  PlaceOnScreen(effect, actor, scene, false);
+  if (effect.frame % 2 != 0) return;
+  AddShadowed(effect, Ftol(static_cast<float>(effect.frame) * -5.0f),
+              {20, -20.0f, 3, std::bit_cast<float>(0x3dcccccdu), 2.5f,
+               std::bit_cast<float>(0xbdcccccdu), 150.0f, -3.0f, 120.0f, -1.0f, 0},
+              sight, shadow, added);
+}
+
+void AddWanderingSpark(RagEffect& effect, const PrimSprite& particle, core::CrtRand& rand,
+                       std::vector<EffectPrim>& added) {
+  if (effect.frame != 0) return;
+  EffectPrim p = MakePrimitive(&effect, 5, {0.0f, 0.0f, 0.0f});
+  p.flags |= EffectPrim::kWanderWide;
+  p.flags |= EffectPrim::kBounce;
+  p.life = 140;
+  effect.duration = 140;
+  p.speed = static_cast<float>(rand.Next() % 35 + 15) * kHundredth;
+  p.heading = static_cast<float>(rand.Next() % 360);
+  p.pitch = static_cast<float>(rand.Next() % 360);
+  p.matrix = RotateX(MakeRotationY(Radians(p.heading)), Radians(p.pitch));
+  // 2 to 14 out along the matrix's z, and 10 up.
+  const auto out = static_cast<float>(rand.Next() % 13 + 2);
+  const Matrix& m = p.matrix;
+  const float y = (out * m[7]) + m[10];
+  p.offset = {(out * m[6]) + m[9], y - 10.0f, (out * m[8]) + m[11]};
+  p.period = rand.Next() % 25 + 5;
+  p.scale = static_cast<float>(rand.Next() % 70 + 30) * kHundredth;
+  p.alpha = 0.0f;
+  p.alpha_max = 80.0f;
+  p.alpha_speed = p.alpha_max * std::bit_cast<float>(0x3f2aaaabu);  // 2/3
+  // At frame 40 the alpha to 120, under 200; at frame 100 to 0, under 80.
+  p.alpha_keys = true;
+  p.key = 0;
+  p.key_frames = {40.0f, 100.0f};
+  p.key_values = {120.0f, 0.0f};
+  p.key_limits = {200.0f, 80.0f};
+  p.sprite = particle;
   ResetHistory(p);
   added.push_back(std::move(p));
 }
@@ -7986,6 +8157,18 @@ void EffectWorld::Step(const PrimScene& world_scene) {
         case 0x14e:
           AddRisingBubbles(e, Sprite(kEffectSprites[15]), scene.attr, e.id == 0x14e, rand_, added);
           break;
+        case 0x15: AddDetoxBubbles(e, Sprite(kEffectSprites[0]), minimal_, rand_, added); break;
+        case 0x18: AddFireballs(e, Sprite(kEffectSprites[19]), added); break;
+        case 0x50: AddSpears(e, Sprite(kEffectSprites[20]), added); break;
+        case 0x21:
+          AddWhirlingShadows(e, it->actor, Sprite(kEffectSprites[0]), Sprite(kEffectSprites[10]),
+                             added);
+          break;
+        case 0x16:
+          AddSightShadows(e, it->actor, scene, Sprite(kEffectSprites[9]),
+                          Sprite(kEffectSprites[10]), added);
+          break;
+        case 0x2d: AddWanderingSpark(e, Sprite(kParticleSprite), rand_, added); break;
         case 0x14:
         case 0x7d:
         case 0x88:

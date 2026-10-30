@@ -1703,8 +1703,8 @@ Eight more cases of `CRagEffect::vf01` add cylinders (id 0xd,
 
 ## More particles
 
-Twelve more cases add particles (id 5, [particles and cylinders](#particles-and-cylinders))
-of sprites of their own, each `이팩트\` and a name (`.spr` and `.act`). None of the ids has a
+Eighteen more cases add particles (id 5, [particles and cylinders](#particles-and-cylinders)),
+of sprites each `이팩트\` and a name (`.spr` and `.act`), or `Shadow`. None of the ids has a
 `.str`.
 
 | Effect ids | Function | Sprite | What |
@@ -1716,6 +1716,12 @@ of sprites of their own, each `이팩트\` and a name (`.spr` and `.act`). None 
 | 0xa5 | `AddChristmas` (`00556ba0`) | `크리스마스` | the effect at the actor; on the first frame one particle, 125 steps, 10 up, its own colours and the effect's image delay; a `rand() % 10` pick: action pick / 2 (`CRenderObject::SetAction`, its vf07), and scale 0.01 when pick % 3 is 1, else 1 |
 | 0x2c, 0x151 | `AddChimneySmoke` (`00555e70`, `00564660`) | `굴뚝연기` | the effect at the actor; on the first frame 1 to 4 smoke particles by `rand()` (0x151: one, at the target): as long as the effect, leaning 75 to 104 degrees out at a random heading, 9 up, 0.3 to 0.5 a step, spinning 0.75, scale 1.5, out over the last third |
 | 0xab, 0x14e | `AddRisingBubbles` (`00563350`, `005648f0`) | `particle3` | every fifth frame a bubble, 10 steps, straight up at 0.25 to 0.49 slowing by half (one `rand()` for a heading then unused), scale 0.8, spin 3, alpha 70 and fading in by a tenth of 254, out over the last fifth; 0x14e keeps the effect 4.5 above the ground (`C3dAttr::GetHeight`) each step |
+| 0x15 | `AddDetoxBubbles` (`00555ab0`) | `particle2` | the poison bubbles below, every fifth frame (every fifteenth with minimal effects); `EF_Detoxication.wav` on the first |
+| 0x18 | `AddFireballs` (`00558290`) | `fireball` | at frames 20, 24, 28 and 32 `EF_FireBall.wav` and a fireball, 20 steps, facing the camera and ending near the target (flags 0x20 and 0x100): 15 up, turned to the target and covering the ground to it over its life (as 0x5d's ball), scale 1.3, an image a step; all but the first coloured (246, 199, 76) at alpha 180, 130 and 80 |
+| 0x50 | `AddSpears` (`0055dc90`) | `창` | the same at frames 0, 4, 8 and 12, 15 steps, scale 1, the colours left; then the effect's own `SetAction` (its vf07) to the action `00500150` picks from the actor's facing, which nothing drawn reads |
+| 0x21 | `AddWhirlingShadows` (`00559ba0`) | `particle2`, `Shadow` | the effect at the actor; every third frame at the angle frame × 10/13 × −5 (each product rounded once, from doubles) a particle 15 out (sine and −cosine), 10 up, scale 3 shrinking by 0.1, alpha 250 less 3 a step, and its shadow on the ground, two steps an image, scale 1.5 shrinking by 0.06, alpha 150 less 2.5; 25 steps, out over the last 6 |
+| 0x16 | `AddSightShadows` (`00557f60`) | `Sight`, `Shadow` | the effect at the actor and its point on screen (as Signum's); every other frame at the angle frame × −5 the same, 20 steps: `Sight` 20 up and rising 0.1, three steps an image, scale 2.5 shrinking by 0.1, alpha 150 less 3, the shadow from alpha 120 less 1 |
+| 0x2d | `AddWanderingSpark` (`00556010`) | `particle1` | on the first frame one particle, 140 steps (the duration too), wandering widely and bouncing its alpha (flags 4 and 0x80): speed 0.15 to 0.49, heading and pitch by `rand()`, 2 to 14 out along its matrix and 10 up, wandering every 5 to 29 steps, scale 0.3 to 0.99; alpha from 0 to 80 by 2/3 of that, then keyed: at frame 40 120 under 200, at 100 0 under 80 |
 | 0x14, 0x7d, 0x88 | `AddPoisonBubbles` (`00561a10`, `00561f00`) | `particle3` | every fifth frame a bubble, 40 steps, 2 to 7 out along the ground at a random heading, rising at 0.3 to 0.59 (0x88: 20 up, sinking as fast) slowing by half, scale 0.4 to 0.89, spin 3, from alpha 0 by a tenth of 254, out over the last fifth; `assasin_enchantpoison.wav` and `EF_PoisonAttack.wav` on the first frame (0x88: the second alone) |
 
 **+0xc4 and +0xc8** of the effect are read by 0x2f and 0xa5 alone, which raise them to 1
@@ -1756,7 +1762,7 @@ are 1 in effect (the oracle's heap starts zeroed).
   [ribbons, the tube and panels](#ribbons-the-tube-and-panels) (`AddPanels` for five
   ids), the six of [more cylinders](#more-cylinders) and the eight of
   [more particles](#more-particles) (`AddChimneySmoke` and `AddRisingBubbles` for two ids
-  each, `AddPoisonBubbles` for three);
+  each, `AddPoisonBubbles` for three) and its six others;
 - `ProcessStrEffect` for the 97 cases that only play their `.str`, and `AdvanceStr` and
   `ResetStr` through an effect's `EffectStr` ([effect.md](effect.md#which-cases-play-their-str));
 - `EffectWorld`, the world's list as effects use it:
@@ -1959,12 +1965,13 @@ for git:
 - **The eight cylinder effects and spell circles** (0x7a twice, the actor facing 30 and
   200 degrees), as for the crossed-quad effects.
 - **The twelve particle effects**, 0xa5 four times and 0x2c twice, as for the crossed-quad
-  effects, the stand-in act's actions three times over (six) for 0xa5's picks.
+  effects, the stand-in act's actions three times over (six) for 0xa5's picks; then the six
+  others, 0x18 and 0x50 twice, the same way.
 
-`tests/unit/prim_test.cpp` matches all of it: 7,188,401 values, the CRT's first `rand` values
+`tests/unit/prim_test.cpp` matches all of it: 7,273,751 values, the CRT's first `rand` values
 among them.
 
 **Not ported:**
-- the 20 cases of `CRagEffect::vf01` that add primitives of their own and are not yet
+- the 14 cases of `CRagEffect::vf01` that add primitives of their own and are not yet
   ported ([effect.md](effect.md#which-cases-play-their-str));
 - the sounds, the view's shake and the jokes.
