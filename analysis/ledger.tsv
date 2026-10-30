@@ -4330,7 +4330,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005005b0	92	code	0	world		named	CRenderObject	TurnTowards	
 00500610	73	code	0	world		named	CRenderObject	GetAngleBetween	
 00500660	177	code	0	world		named	CGameActor	method_00500660	
-00500720	51	code	0	world		named	CRenderObject	method_00500720	
+00500720	51	code	0	world		named	CRenderObject	SetColorChannels	
 00500760	207	code	0	world		named	CArrowEffect	method_00500760	
 00500830	272	code	0	world		named	CRenderObject	UpdateFrame	
 00500940	1182	code	0	world		named	CRenderObject	method_00500940	
@@ -5365,7 +5365,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005607e0	625	code	0	world		named	CRagEffect	AddWaterBall	
 00560a60	370	code	0	world		named	CRagEffect	AddFallingFireIvy	
 00560be0	488	code	0	world		named	CRagEffect	AddDetecting	
-00560dd0	109	code	0	world		named	CRagEffect	method_00560dd0	
+00560dd0	109	code	0	world		named	CRagEffect	ProcessCloaking	
 00560e40	556	code	0	world		named	CRagEffect	AddStoneCurse	
 00561070	723	code	0	world		named	CRagEffect	AddSonicBlowCylinder	
 00561350	1016	code	0	world		named	CRagEffect	AddStoneTrail	
@@ -5378,8 +5378,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005624a0	844	code	0	world		named	CRagEffect	AddSpikeField	
 005627f0	450	code	0	world		named	CRagEffect	AddLevelMarker	
 005629c0	356	code	0	world		named	CRagEffect	AddPartyMarker	
-00562b30	599	code	0	world		named	CRagEffect	method_00562b30	
-00562d90	926	code	0	world		named	CRagEffect	method_00562d90	
+00562b30	599	code	0	world		named	CRagEffect	ProcessStatusIcons	
+00562d90	926	code	0	world		named	CRagEffect	ProcessAfterImages	
 00563130	538	code	0	world	unreferenced	raw	Global	FUN_00563130	
 00563350	359	code	0	world		named	CRagEffect	AddRisingBubbles	
 005635c0	1787	code	0	world	unreferenced	raw	Global	FUN_005635c0	
@@ -6082,7 +6082,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005a6bf0	2273	code	0	game		named	ClientState	method_005a6bf0	
 005a75b0	2453	code	0	game		named	ClientState	method_005a75b0	
 005a7f50	295	code	0	game		named	ClientState	method_005a7f50	
-005a8080	649	code	0	game		named	ClientState	method_005a8080	
+005a8080	649	code	0	game		named	ClientState	StatusIcon	
 005a8560	63	code	0	game	unreferenced	raw	Global	FUN_005a8560	
 005a85a0	1274	code	0	game		named	ClientState	method_005a85a0	
 005a8aa0	140	code	0	game		named	ClientState	LoadPetTalkTable	

@@ -2547,11 +2547,17 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     `core::RoundedSum` for a float plus a double rounded once.
   - **Checks:** three effect runs; 7,635,846 values in `prim_test`.
 
+- [x] The actor's colour and the status icons (`docs/render/effect-prim.md#the-actors-colour`,
+  `#the-status-icons`), the last cases of `CRagEffect::vf01`:
+  - **Effect id 0x78:** Cloaking, the actor's alpha 50 (`SetColorChannels`, `00500720`).
+  - **Effect id 0xa6:** the actor's colour from the effect's, halved with a tint, and
+    after-images (`CBlurPC`) that the world steps and fades.
+  - **Effect id 0xa4:** an icon (id 0) per status of the player's (`EffectWorld::SetStatuses`,
+    the vector at `00641f9c`) in columns down the right of the screen, named by
+    `StatusIcon` (`005a8080`); a level drops them and starts again.
+  - **Checks:** ten colour runs with the after-images stepped by `CBlurPC::vf01`, and two
+    status runs with five screen sizes; 7,709,857 values in `prim_test`.
+
 ### Next actions
-1. M4, the renderer: the 3 cases of `CRagEffect::vf01` left, each needing more than the
-   effect world has: 0x78 (`00560dd0`, Cloaking) fades the actor itself
-   (`CRenderObject::method_00500720` with 50), 0xa4 (`00562b30`) lays out an icon on screen
-   for each of the player's states (the vector at `00641f9c`, named by `ClientState`
-   `005a8080`), and 0xa6 (`00562d90`) leaves after-images of the actor (`CBlurPC`).
-2. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
+1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

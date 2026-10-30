@@ -80,11 +80,34 @@ inline constexpr std::int32_t kJoke = 0xb3;
 }  // namespace mode_message
 
 // The actor an effect plays on (+0xa0): where it stands and which way it faces (+0x38,
-// CRenderObject's, in degrees).
+// CRenderObject's, in degrees), and the colour 0x78 and 0xa6 set.
 struct EffectActor {
   Vec3 position{};
   float facing = 0.0f;
+  std::uint32_t color = 0xffffffff;  // +0x7c, A << 24 | R << 16 | G << 8 | B
+  // +0x74, the alpha of the colour CGameActor::vf02 (00506858) keeps from before a tint; 0
+  // while there is none.
+  std::uint8_t saved_alpha = 0;
+  std::uint8_t tint_red = 0, tint_green = 0, tint_blue = 0;  // +0x79 to +0x7b, the tint's
 };
+
+// CRenderObject::method_00500720: each of the four channels of a +0x7c colour set to the
+// low byte of its value, but left as it is for -1.
+void SetColorChannels(std::uint32_t& color, std::int32_t alpha, std::int32_t red,
+                      std::int32_t green, std::int32_t blue);
+
+// A CBlurPC (0x31c bytes, constructed by 00540d20) 0xa6 leaves behind: a copy of its actor
+// where it stood, in a colour of its own (+0x7c, white before 0xa6 sets it) that fades by
+// +0x30c, as a colour, each world step.
+struct AfterImage {
+  Vec3 position{};                   // +4, the actor's
+  std::uint32_t color = 0xffffffff;  // +0x7c
+  std::uint32_t fade = 0x10000000;   // +0x30c
+};
+
+// CBlurPC::vf01 (00541120): the colour less the fade, while the fade is no more than it;
+// false, leaving it, once the fade is more.
+bool StepAfterImage(AfterImage& image);
 
 // A sprite and its actions, as SetSprite and SetAct load them.
 struct PrimSprite {
@@ -1018,6 +1041,23 @@ void AddYellowBursts(RagEffect& effect, const EffectActor& actor, const PrimSpri
 void AddFrostRing(RagEffect& effect, const EffectActor& actor, const PrimScene& scene,
                   core::CrtRand& rand, std::vector<EffectPrim>& added);
 
+// The actor's colour (docs/render/effect-prim.md#the-actors-colour):
+//  - ProcessCloaking (00560dd0), 0x78: the actor's alpha 50 every frame;
+//  - ProcessAfterImages (00562d90), 0xa6: the actor's colour from the effect's +4 to +0xc,
+//    and every fifth frame (every frame for a duration of 30) an after-image of it.
+// ProcessStatusIcons (00562b30), 0xa4 (docs/render/effect-prim.md#the-status-icons): on its
+// first frame an icon (id 0) for each of the player's statuses with one, down the right of
+// the screen. With a level set it first lets its icons go and starts again; it answers
+// whether it did.
+void ProcessCloaking(EffectActor& actor);
+void ProcessAfterImages(RagEffect& effect, EffectActor& actor, core::CrtRand& rand,
+                        std::vector<AfterImage>& images);
+bool ProcessStatusIcons(RagEffect& effect, const std::vector<std::int32_t>& statuses,
+                        const Projection& projection, std::vector<EffectPrim>& added);
+// ClientState::method_005a8080: the icon of a status in one of the groups 0xa4 shows in turn
+// (0, what ails the player; 1, its own skills; 2, its states; 3, blessings), or null.
+const char* StatusIcon(std::int32_t status, std::int32_t group);
+
 // CRagEffect::AdvanceStr (0054fba0): false without a .str, else the .str's step.
 bool AdvanceStr(RagEffect& effect, const EffectActor& actor, float x, float y, float z);
 // CRagEffect::ResetStr (0054fb40): the frame back to 0 and the .str to its start.
@@ -1046,6 +1086,8 @@ class EffectWorld {
   // The player's id (g_ClientState+0xcdc) and the other actors by id, for id 0x24.
   void SetPlayerId(std::uint32_t id) { actors_.player_id = id; }
   void SetActor(std::int32_t id, const Vec3& position) { actors_.others[id] = position; }
+  // The player's statuses as packet 0x196 lists them (the vector at 00641f9c), for 0xa4.
+  void SetStatuses(std::vector<std::int32_t> statuses) { statuses_ = std::move(statuses); }
 
   // CAbleToMakeEffect::LaunchEffect (00501e10) and InitEffect: effect id at the actor, its
   // duration from the table, appended to the list.
@@ -1065,6 +1107,9 @@ class EffectWorld {
     std::unique_ptr<EffectPrim> prim;
   };
   const std::list<Object>& objects() const { return objects_; }
+  // The after-images 0xa6 has added that have not yet faded. They join the world's list, so
+  // each fades in the step that adds it.
+  const std::vector<AfterImage>& after_images() const { return after_images_; }
 
  private:
   std::list<Object> objects_;
@@ -1075,6 +1120,8 @@ class EffectWorld {
   std::int32_t beats_ = 0;  // DAT_0068658c, AddBlitzBeat's
   EffectActors actors_;
   std::vector<ModeMessage> messages_;
+  std::vector<std::int32_t> statuses_;
+  std::vector<AfterImage> after_images_;
 };
 
 }  // namespace ragexe::render

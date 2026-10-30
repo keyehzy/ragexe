@@ -1795,6 +1795,71 @@ its first cylinder alone.
   step at a heading of −20 to 19, 1 across and growing by 6 a step, by 0.5 from age 10
   (its changes), out over the last third.
 
+## The actor's colour
+
+Two cases colour the actor itself (+0xa0) rather than add primitives, through
+`CRenderObject::method_00500720` (`00500720`): its four arguments set the alpha, red, green
+and blue bytes of the colour +0x7c to their low bytes, and -1 leaves a byte as it is.
+
+**`ProcessCloaking`** (`00560dd0`), effect id 0x78, each step:
+- on the first frame, `effect\assasin_cloaking.wav`;
+- the actor's alpha 50;
+- the effect's own +0x88, which on a `CRenderObject` is the shadow flag, cleared. Only
+  `CRenderObject::DrawShadow` (`00501550`) reads it, and the effect's `Render`
+  (`0054ee50`) draws its `.str` layers alone, so it changes nothing.
+
+**`ProcessAfterImages`** (`00562d90`), effect id 0xa6, reads the effect's +4, +8 and +0xc as
+a red, green and blue. `CRagEffect::vf02` message 0x2c sets them (250, 150, 150, or 200,
+200, 0, or 180, 180, 250, or with 0xfffe and 0x80 all −1).
+- **A tinted actor.** `CGameActor::vf02` (`00506858`) keeps the actor's colour at +0x74 to
+  +0x77 before it tints it, and the tint's red, green and blue at +0x79 to +0x7b. While the
+  kept alpha (+0x74) is not 0, each channel is the tint's plus the effect's (`fild`, `fadd`,
+  rounded to single precision as the FPU runs, so 255 + 0.99999994 is 256), truncated and
+  halved (`sar`, so −1 and −2 leave it as it is). The
+  actor takes them, and every fifth frame an after-image of the actor in them.
+- **Otherwise** the actor takes the effect's channels, truncated. If the red is exactly −1
+  (`cmp` with `0xbf800000`), its red becomes 250 and its green and blue 200, or 250 when
+  `rand() % 14` is 0, and nothing more. Otherwise every fifth frame, or every frame when the
+  duration is 30, an after-image: message 0 to its `vf02` (`CBlurPC::vf02`, `00541270`)
+  gives it alpha 180, the channels, and a fade of 8.
+- **The frame** goes back to 0 from 9998 before the fifth-frame test, as the duration is
+  9999.
+
+**An after-image** is a `CBlurPC` (`0x31c` bytes; its constructor, `00540d20`, copies the
+actor's place, action, sprite and parts) joined to the end of the game mode's world list, so it
+runs in the step that adds it. Its colour starts white, and its fade (+0x30c) at 0x10000000.
+Its `vf01` (`00541120`) takes the fade from the colour as a whole dword while it is no more
+than the colour, and otherwise answers false and the list deletes it.
+
+## The status icons
+
+`ProcessStatusIcons` (`00562b30`), effect id 0xa4, lasting 9999 frames:
+1. **The frame** goes back to 0 from 9998.
+2. **A level** (+0xb8, set by `CRagEffect::vf02` message 0x2c) is cleared with the frame. The
+   effect sends itself message 0x19 with 100 (`vf02`), which tells each of its primitives
+   0x18 and empties its list: the icons lose their owner and end at their next step.
+3. **On frame 0,** for each of five groups in turn, each of the player's statuses (the vector
+   at `00641f9c`, which `CGameMode::HandlePacket_0196` fills) that
+   `ClientState::method_005a8080` (`005a8080`) names an icon for in that group, unless a
+   status of the same key has one already. The key is the status, but 0x2a counts as 0xc.
+   Each icon is a primitive of id 0:
+   - +0x13c 4 (at its offset, not the owner's point), 9999 steps, 16 by 16;
+   - its texture the icon, with `TextureCache::GetTexture`;
+   - its offset (+0x304, +0x308) in a column 35 apart down from 185, 32 in from the right
+     edge (`SceneRenderer`+0x24). While the icons in the column times 35 plus 150 are
+     below the screen's height (+0x28) less 50 it goes down; otherwise a column 35 further
+     left starts again at 185.
+
+The groups are 0, what ails the player; 1, its own skills; 2, its states; 3, blessings; 4 names
+none. The icons are `effect\` and a Korean name with `.tga`, from `0061db64` to `0061e06c`:
+
+| Group | Statuses and icons |
+|-------|--------------------|
+| 0 | 8 `콰그마이어`, 0xd `민첩성감소`, 0x20 `갑옷파괴`, 0x21 `무기파괴`, 0x22 `환각`, 0x23 `무게50이상`, 0x24 `무게90이상`, 0x32 to 0x35 `스트립웨폰`, `스트립쉴드`, `스트립아머`, `스트립헬름`, 0x5a `프레임런쳐` |
+| 1 | 0 `프로보크`, 1 `인듀어`, 2 `투핸드퀴큰`, 4 `하이딩`, 5 `클로킹`, 6 `인찬트포이즌`, 7 `포이즌리액트`, 0x17 `아드레날린러쉬`, 0x18 `웨폰퍼펙션`, 0x19 `오버트러스트`, 0x1a `맥시마이즈파워`, 0x3a `오토가드`, 0x3b `리플렉트쉴드`, 0x3e `디펜더`, 0x41 `오토스펠`, 0x44 `스피어퀴큰`, 0x5b `프로스트웨폰`, 0x5c `라이트닝로더` |
+| 2 | 3 `집중력향상`, 0x1b `라이딩`, 0x1c `팔콘`, 0x1d `죽은척하기`, 0x1e `고성지르기`, 0x1f `에너지코트`, 0x25 to 0x28 `공속물약`, 0x36 to 0x39 `케미컬프로텍션[웨폰]`, `[쉴드]`, `[아머]`, `[헬름]`, 0x5d `사이즈믹웨폰` |
+| 3 | 9 `안젤루스`, 0xa `블레싱`, 0xb `시그넘크루시스`, 0xc, 0x29 and 0x2a `민첩성증가`, 0xe `슬로우포이즌`, 0xf `임포시티오마누스`, 0x10 `수프라기움`, 0x11 `아스페르시오`, 0x12 `성체강복`, 0x13 `기리에엘레이손`, 0x14 `마니피캇`, 0x15 `글로리아`, 0x16 `렉스에테르나`, 0x3d `신의뜻` |
+
 ## In the port
 
 **`src/core/crt_rand`:** `CrtRand`, `srand` and `rand`.
@@ -1833,6 +1898,10 @@ its first cylinder alone.
   [more rays](#more-rays) (`AddHitCross` for two ids), the two of
   [bouncers](#bouncers), the two of [bursts](#bursts) and
   [the frost ring](#the-frost-ring);
+- `ProcessCloaking` and `ProcessAfterImages` on an `EffectActor`'s colour, with
+  `SetColorChannels`, and the after-images (`AfterImage`, `StepAfterImage`);
+  `ProcessStatusIcons` with `StatusIcon` ([the actor's colour](#the-actors-colour),
+  [the status icons](#the-status-icons));
 - `ProcessStrEffect` for the 97 cases that only play their `.str`, and `AdvanceStr` and
   `ResetStr` through an effect's `EffectStr` ([effect.md](effect.md#which-cases-play-their-str));
 - `EffectWorld`, the world's list as effects use it:
@@ -1842,7 +1911,9 @@ its first cylinder alone.
   - `SetParticle`, `SetSprite`, `SetMinimal` and `SetPlayer` give it the sprites effects
     load by name (`kParticleSprite` and `kEffectSprites`), the minimal flag and where the
     player stands; `SetPlayerId` and `SetActor` the actors an id names, for the tube;
-  - `TakeMessages` gives the messages effects have sent the game mode (`ModeMessage`).
+    `SetStatuses` the player's statuses, for the icons;
+  - `TakeMessages` gives the messages effects have sent the game mode (`ModeMessage`);
+  - `after_images` gives the after-images still fading, each stepped once a world step.
 
 **`src/core/angles`:** `DegreesToRadians`.
 
@@ -2044,11 +2115,23 @@ for git:
 - **The two burst effects**, each twice, the actor facing four ways; the second run of 0x51
   with +0xb0 written to 3, for the bursts after the first.
 - **The frost ring** three times, as for the ray effects.
+- **The actor's colour:** 0x78 once and 0xa6 nine times on an actor of a random colour,
+  each step the frame, the actor's colour and each after-image's colour and fade, the
+  after-images stepped by their own `vf01`. The 0xa6 runs cover the colours of message 0x2c,
+  −1 in green, a duration of 30, the red of −1, a tinted actor (with sums of −3, −2.5, −2,
+  past the integers, and two a float would round), and the frame at 9998 tinted and not. `CBlurPC`'s constructor is
+  stood in for by the parts of its copy these use: the vtable, the place, a white colour
+  and the fade.
+- **The status icons** twice, every primitive's state each frame: once with 13 statuses, the
+  frame put at 9998 before frame 8; once with 51 (50 icons in five columns), then at frames
+  10 and 20 a level and 5 statuses (0x2a alone among them). The 51 also on screens 586, 585
+  and 584 high, where a column's last icon falls just above the limit, on it and past it,
+  and 1024 by 768 and 640 by 480, each icon's offset and texture.
 
-`tests/unit/prim_test.cpp` matches all of it: 7,635,846 values, the CRT's first `rand` values
+`tests/unit/prim_test.cpp` matches all of it: 7,709,857 values, the CRT's first `rand` values
 among them.
 
 **Not ported:**
-- the 3 cases of `CRagEffect::vf01` not yet ported, which need more than the effect world
-  has ([effect.md](effect.md#which-cases-play-their-str));
-- the sounds, the view's shake and the jokes.
+- the sounds, the view's shake and the jokes;
+- the after-images' drawing: they are copies of a `CPc`, which the effect world does not
+  draw.

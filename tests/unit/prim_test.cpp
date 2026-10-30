@@ -230,7 +230,59 @@ struct StrEffectVector {
   std::size_t run_count;
 };
 
+// An after-image's colour and fade.
+struct AfterImageVector {
+  std::uint32_t color, fade;
+};
+
+// After a step: whether the effect goes on, its frame, the actor's colour, and where its
+// after-images start in the run's list and how many there are.
+struct ActorStepVector {
+  int more, frame;
+  std::uint32_t color;
+  std::size_t first, count;
+};
+
+// A run on an actor of the colour given: the effect's +4 to +0xc with has_color, the actor's
+// tint with tinted, and the frame and duration where they are not 0.
+struct ActorEffectVector {
+  int id;
+  std::uint32_t seed;
+  std::uint32_t color[3];
+  int has_color;
+  std::uint32_t actor_color;
+  int tint[3];
+  int tinted;
+  int frame, duration;
+  const ActorStepVector* steps;
+  std::size_t step_count;
+  const AfterImageVector* images;
+};
+
+// Before a run's frame: the player's statuses unless they are null, and a level and a frame
+// unless they are -1.
+struct StatusChangeVector {
+  std::size_t run, frame;
+  const std::int32_t* statuses;
+  std::size_t count;
+  int level, at;
+};
+
+// An icon's offset (+0x304, +0x308) and texture.
+struct StatusIconVector {
+  std::uint32_t x, y;
+  const char* texture;
+};
+
+// The icons laid out on a screen of that size.
+struct StatusLayoutVector {
+  int width, height;
+  const StatusIconVector* icons;
+  std::size_t count;
+};
+
 // tools/prim_vectors.py writes these, one per family of primitives.
+#include "prim_vectors/actors.inc"
 #include "prim_vectors/basics.inc"
 #include "prim_vectors/bouncers.inc"
 #include "prim_vectors/bursts.inc"
@@ -1472,13 +1524,15 @@ class PlayingStr : public EffectStr {
 
 // str_plays: the runs made with that stand-in; before it, InitEffect loads no .str. facings:
 // the actor's facing by run, 0 for the rest. minimal: minimal effects on. setup: anything
-// more to set in a run's effect, by run.
+// more to set in a run's world and effect, by run and frame, before each step while the
+// effect lasts.
 void CheckTargetEffects(std::span<const SquareEffectVector> effects,
                         std::vector<std::uint32_t> (*state)(const EffectPrim&) = StateFor,
                         bool sprites = false, bool str_plays = false,
                         const std::map<std::size_t, float>& facings = {},
                         std::size_t act_copies = 2, bool minimal = false,
-                        void (*setup)(std::size_t run, RagEffect& effect) = nullptr) {
+                        void (*setup)(std::size_t run, std::size_t frame, EffectWorld& world,
+                                      RagEffect& effect) = nullptr) {
   PlayingStr playing;
   const ragexe::res::AttrMap attr = TestAttr();
   const ragexe::res::Sprite sprite = TestSprite();
@@ -1505,18 +1559,19 @@ void CheckTargetEffects(std::span<const SquareEffectVector> effects,
     e.target = vec(v.target);
     e.level = v.level;
     if (str_plays) e.str = &playing;
-    if (setup != nullptr) setup(run - 1, e);
     std::map<const EffectPrim*, std::size_t> order;
     PrimScene scene;
     std::size_t next_scene = 0;
+    bool effect = true;
     for (std::size_t f = 0; f < v.frame_count; ++f) {
       INFO("frame " << f);
       if (next_scene < v.scene_count && std::cmp_equal(v.scenes[next_scene].frame, f))
         scene = SceneOf(v.scenes[next_scene++].scene, sprites ? &attr : nullptr);
       const BurstFrameVector& fv = v.frames[f];
+      if (effect && setup != nullptr) setup(run - 1, f, world, e);
       world.Step(scene);
       std::vector<const EffectPrim*> prims;
-      bool effect = false;
+      effect = false;
       for (const EffectWorld::Object& o : world.objects()) {
         if (o.effect) {
           effect = true;
@@ -2000,11 +2055,84 @@ TEST_CASE("The bouncer effects play as the original's", "[effect]") {
 TEST_CASE("The burst effects play as the original's", "[effect]") {
   CheckTargetEffects(kBurstEffects, StateOfFlightEffect, true, true,
                      {{0, 30.0f}, {1, 250.0f}, {2, 100.0f}, {3, 300.0f}}, 2, false,
-                     [](std::size_t run, RagEffect& e) {
-                       if (run == 3) e.bursts = 3;
+                     [](std::size_t run, std::size_t frame, EffectWorld&, RagEffect& e) {
+                       if (run == 3 && frame == 0) e.bursts = 3;
                      });
 }
 
 TEST_CASE("The frost ring plays as the original's", "[effect]") {
   CheckTargetEffects(kFrostEffects, StateOf, false, true);
+}
+
+TEST_CASE("Cloaking and the after-images colour the actor as the original's", "[effect]") {
+  for (const ActorEffectVector& v : kActorEffects) {
+    INFO("effect id " << v.id << ", seed " << v.seed);
+    EffectWorld world(v.seed);
+    EffectActor actor;
+    actor.color = v.actor_color;
+    if (v.tinted != 0) {
+      actor.saved_alpha = 0xff;
+      actor.tint_red = static_cast<std::uint8_t>(v.tint[0]);
+      actor.tint_green = static_cast<std::uint8_t>(v.tint[1]);
+      actor.tint_blue = static_cast<std::uint8_t>(v.tint[2]);
+    }
+    RagEffect& e = world.Launch(v.id, actor);
+    if (v.has_color != 0) e.position = {F(v.color[0]), F(v.color[1]), F(v.color[2])};
+    if (v.frame != 0) e.frame = v.frame;
+    if (v.duration != 0) e.duration = v.duration;
+    for (std::size_t s = 0; s < v.step_count; ++s) {
+      INFO("step " << s);
+      const ActorStepVector& sv = v.steps[s];
+      world.Step(PrimScene{});
+      const EffectWorld::Object* effect = nullptr;
+      for (const EffectWorld::Object& o : world.objects())
+        if (o.effect) effect = &o;
+      REQUIRE((effect != nullptr) == (sv.more != 0));
+      if (effect == nullptr) break;
+      CHECK(effect->effect->frame == sv.frame);
+      CHECK(effect->actor.color == sv.color);
+      const std::vector<AfterImage>& images = world.after_images();
+      REQUIRE(images.size() == sv.count);
+      for (std::size_t i = 0; i < images.size(); ++i) {
+        INFO("after-image " << i);
+        CHECK(images[i].color == v.images[sv.first + i].color);
+        CHECK(images[i].fade == v.images[sv.first + i].fade);
+      }
+    }
+  }
+}
+
+TEST_CASE("The status icons play as the original's", "[effect]") {
+  CheckTargetEffects(kStatusEffects, StateOf, false, false, {}, 2, false,
+                     [](std::size_t run, std::size_t frame, EffectWorld& world, RagEffect& e) {
+                       for (const StatusChangeVector& c : kStatusChanges) {
+                         if (c.run != run || c.frame != frame) continue;
+                         if (c.statuses != nullptr)
+                           world.SetStatuses({c.statuses, c.statuses + c.count});
+                         if (c.level != -1) e.level = c.level;
+                         if (c.at != -1) e.frame = c.at;
+                       }
+                     });
+}
+
+TEST_CASE("The status icons lay out on any screen as the original's", "[effect]") {
+  const std::vector<std::int32_t> statuses(std::begin(kStatusSet1), std::end(kStatusSet1));
+  for (const StatusLayoutVector& v : kStatusLayouts) {
+    INFO("screen " << v.width << " by " << v.height);
+    RagEffect e;
+    e.id = 0xa4;
+    Projection projection;
+    projection.width = v.width;
+    projection.height = v.height;
+    std::vector<EffectPrim> added;
+    ProcessStatusIcons(e, statuses, projection, added);
+    REQUIRE(added.size() == v.count);
+    for (std::size_t i = 0; i < added.size(); ++i) {
+      INFO("icon " << i);
+      CHECK(B(added[i].offset[0]) == v.icons[i].x);
+      CHECK(B(added[i].offset[1]) == v.icons[i].y);
+      REQUIRE(added[i].textures.size() == 1);
+      CHECK(added[i].textures[0] == v.icons[i].texture);
+    }
+  }
 }

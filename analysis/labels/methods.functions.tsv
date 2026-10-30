@@ -402,7 +402,6 @@ address	namespace	name	calling_convention	evidence
 00500520	CRenderObject	method_00500520	__thiscall	__thiscall; called with this from 1 functions of CRenderObject, e.g. 00500350
 00500560	CArrowEffect	method_00500560	__thiscall	__thiscall; called with this from 1 functions of CArrowEffect, e.g. 005afbc0
 00500660	CGameActor	method_00500660	__thiscall	__thiscall; called with this from 4 functions of CGrannyPc, CPc, CPlayer, mg::mgType1::CMonster, e.g. 004f0790
-00500720	CRenderObject	method_00500720	__thiscall	__thiscall; called with this from 4 functions of CBlurPC, CCorpse, CNumEffect, CPlayer, e.g. 00506c80
 00500760	CArrowEffect	method_00500760	__thiscall	__thiscall; called with this from 1 functions of CArrowEffect, e.g. 005afbc0
 00500940	CRenderObject	method_00500940	__thiscall	__thiscall; called with this from 4 functions of CBlowEffect, CGrannyPc, CPc, CPlayer, e.g. 00540a60
 005018e0	CGameActor	method_005018e0	__thiscall	__thiscall; called with this from 1 functions of CGameActor, e.g. 00503f30
@@ -568,9 +567,6 @@ address	namespace	name	calling_convention	evidence
 0054b880	CPlayer	method_0054b880	__thiscall	__thiscall; called with this from 1 functions of CPlayer, e.g. 0054c550
 0054b8e0	CPlayer	method_0054b8e0	__thiscall	__thiscall; called with this from 1 functions of CPlayer, e.g. 0054b770
 0054cf80	CPlayer	method_0054cf80	__thiscall	__thiscall; called with this from 1 functions of CPlayer, e.g. 0054b4a0
-00560dd0	CRagEffect	method_00560dd0	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
-00562b30	CRagEffect	method_00562b30	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
-00562d90	CRagEffect	method_00562d90	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0054d4c0
 0056cfb0	WorldColorFade	method_0056cfb0	__thiscall	__thiscall; called with this from 2 functions of WorldColorFade, e.g. 0050dc90
 0056d0b0	WorldColorFade	method_0056d0b0	__thiscall	__thiscall; called with this from 1 functions of WorldColorFade, e.g. 0050dc90
 00586650	WorldColorFade	method_00586650	__thiscall	__thiscall; called with this from 1 functions of WorldColorFade, e.g. 00435dd0
@@ -802,7 +798,6 @@ address	namespace	name	calling_convention	evidence
 005a6bf0	ClientState	method_005a6bf0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0050b2c0
 005a75b0	ClientState	method_005a75b0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00588a00
 005a7f50	ClientState	method_005a7f50	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 00513860
-005a8080	ClientState	method_005a8080	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00562b30
 005a85a0	ClientState	method_005a85a0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00586860
 005a8b30	ClientState	method_005a8b30	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 005367f0
 005a9800	ClientState	method_005a9800	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 005a8b30

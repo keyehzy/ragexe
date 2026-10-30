@@ -8084,6 +8084,268 @@ void AddFrostRing(RagEffect& effect, const EffectActor& actor, const PrimScene& 
   added.push_back(std::move(p));
 }
 
+void SetColorChannels(std::uint32_t& color, std::int32_t alpha, std::int32_t red,
+                      std::int32_t green, std::int32_t blue) {
+  const auto set = [&color](std::int32_t value, std::uint32_t shift) {
+    if (value == -1) return;
+    color = (color & ~(0xffu << shift)) | (static_cast<std::uint32_t>(value & 0xff) << shift);
+  };
+  set(alpha, 24);
+  set(red, 16);
+  set(green, 8);
+  set(blue, 0);
+}
+
+bool StepAfterImage(AfterImage& image) {
+  if (image.fade > image.color) return false;
+  image.color -= image.fade;
+  return true;
+}
+
+void ProcessCloaking(EffectActor& actor) {
+  // On the first frame effect\assasin_cloaking.wav plays. The effect's own +0x88, a
+  // CRenderObject's shadow, is cleared too; an effect never draws one.
+  SetColorChannels(actor.color, 50, -1, -1, -1);
+}
+
+namespace {
+
+// A tint channel and an effect's colour summed (fild, fadd, rounded to single precision as
+// the FPU runs) and truncated.
+std::int32_t TintSum(std::uint8_t tint, float value) {
+  return Ftol(static_cast<float>(tint) + value);
+}
+
+// operator new (0x31c) and CBlurPC::CBlurPC on the actor, appended to the game mode's world.
+AfterImage& AddAfterImage(const EffectActor& actor, std::vector<AfterImage>& images) {
+  AfterImage& image = images.emplace_back();
+  image.position = actor.position;
+  return image;
+}
+
+}  // namespace
+
+void ProcessAfterImages(RagEffect& effect, EffectActor& actor, core::CrtRand& rand,
+                        std::vector<AfterImage>& images) {
+  const Vec3& color = effect.position;
+  if (actor.saved_alpha != 0) {
+    // Halfway between the tint and the effect's colour.
+    const std::int32_t red = TintSum(actor.tint_red, color[0]) >> 1;
+    const std::int32_t green = TintSum(actor.tint_green, color[1]) >> 1;
+    const std::int32_t blue = TintSum(actor.tint_blue, color[2]) >> 1;
+    SetColorChannels(actor.color, -1, red, green, blue);
+    if (effect.frame == 9998) effect.frame = 0;
+    if (effect.frame % 5 != 0) return;
+    SetColorChannels(AddAfterImage(actor, images).color, -1, red, green, blue);
+    return;
+  }
+  const std::int32_t red = Ftol(color[0]);
+  const std::int32_t green = Ftol(color[1]);
+  const std::int32_t blue = Ftol(color[2]);
+  SetColorChannels(actor.color, -1, red, green, blue);
+  if (effect.frame == 9998) effect.frame = 0;
+  if (color[0] == -1.0f) {
+    // Red 250, and green and blue 200, or one time in fourteen 250.
+    const std::int32_t other = rand.Next() % 14 < 1 ? 250 : 200;
+    SetColorChannels(actor.color, -1, 250, other, other);
+    return;
+  }
+  if (effect.duration != 30 && effect.frame % 5 != 0) return;
+  // CBlurPC::vf02 (00541270), message 0: alpha 180, the colour, fading 8 a step.
+  AfterImage& image = AddAfterImage(actor, images);
+  SetColorChannels(image.color, 180, red, green, blue);
+  image.fade = 0x08000000;
+}
+
+bool ProcessStatusIcons(RagEffect& effect, const std::vector<std::int32_t>& statuses,
+                        const Projection& projection, std::vector<EffectPrim>& added) {
+  if (effect.frame == 9998) effect.frame = 0;
+  bool dropped = false;
+  if (effect.level != 0) {
+    // vf02 message 0x19 with 100: every primitive told 0x18 and the list emptied.
+    effect.level = 0;
+    effect.frame = 0;
+    dropped = true;
+  }
+  if (effect.frame != 0) return dropped;
+  constexpr std::int32_t kSpacing = 35;
+  constexpr std::int32_t kTop = 150;
+  const std::int32_t bottom = projection.height - 50;
+  std::vector<std::int32_t> shown;
+  std::int32_t in_column = 0, x = 0, y = 0;
+  for (std::int32_t group = 0; group < 5; ++group) {
+    for (const std::int32_t status : statuses) {
+      // 0x2a counts as 0xc, whose icon it shares; 0x29, which shares it too, does not.
+      const std::int32_t key = status == 0x2a ? 0xc : status;
+      const char* icon = StatusIcon(status, group);
+      if (icon == nullptr || std::ranges::find(shown, key) != shown.end()) continue;
+      EffectPrim p = MakePrimitive(&effect, 0, {0.0f, 0.0f, 0.0f});
+      p.flags = EffectPrim::kAbsolute;
+      p.life = 9999;
+      p.width = 16.0f;
+      p.height = 16.0f;
+      if (in_column * kSpacing + kTop < bottom) {
+        y += kSpacing;
+      } else {
+        x -= kSpacing;
+        y = kSpacing;
+        in_column = 0;
+      }
+      p.offset[0] = static_cast<float>(projection.width + x - 32);
+      p.offset[1] = static_cast<float>(y + kTop);
+      p.textures.assign(static_cast<std::size_t>(p.image_count), std::string());
+      p.textures[0] = icon;
+      added.push_back(std::move(p));
+      shown.push_back(key);
+      ++in_column;
+    }
+  }
+  return dropped;
+}
+
+const char* StatusIcon(std::int32_t status, std::int32_t group) {
+  switch (group) {
+    case 0:
+      switch (status) {
+        case 0x8:  // 콰그마이어, 0061e030
+          return "effect\134\304\342\261\327\270\266\300\314\276\356.tga";
+        case 0xd:  // 민첩성감소, 0061e06c
+          return "effect\134\271\316\303\270\274\272\260\250\274\322.tga";
+        case 0x20:  // 갑옷파괴, 0061e058
+          return "effect\134\260\251\277\312\306\304\261\253.tga";
+        case 0x21:  // 무기파괴, 0061e01c
+          return "effect\134\271\253\261\342\306\304\261\253.tga";
+        case 0x22:  // 환각, 0061e048
+          return "effect\134\310\257\260\242.tga";
+        case 0x23:  // 무게50이상, 0061e004
+          return "effect\134\271\253\260\32450\300\314\273\363.tga";
+        case 0x24:  // 무게90이상, 0061dfec
+          return "effect\134\271\253\260\32490\300\314\273\363.tga";
+        case 0x32:  // 스트립웨폰, 0061dfd4
+          return "effect\134\275\272\306\256\270\263\277\376\306\371.tga";
+        case 0x33:  // 스트립쉴드, 0061dfbc
+          return "effect\134\275\272\306\256\270\263\275\257\265\345.tga";
+        case 0x34:  // 스트립아머, 0061dfa4
+          return "effect\134\275\272\306\256\270\263\276\306\270\323.tga";
+        case 0x35:  // 스트립헬름, 0061df8c
+          return "effect\134\275\272\306\256\270\263\307\357\270\247.tga";
+        case 0x5a:  // 프레임런쳐, 0061df74
+          return "effect\134\307\301\267\271\300\323\267\261\303\304.tga";
+        default: return nullptr;
+      }
+    case 1:
+      switch (status) {
+        case 0x0:  // 프로보크, 0061deb8
+          return "effect\134\307\301\267\316\272\270\305\251.tga";
+        case 0x1:  // 인듀어, 0061df60
+          return "effect\134\300\316\265\340\276\356.tga";
+        case 0x2:  // 투핸드퀴큰, 0061df1c
+          return "effect\134\305\365\307\332\265\345\304\373\305\253.tga";
+        case 0x4:  // 하이딩, 0061de74
+          return "effect\134\307\317\300\314\265\371.tga";
+        case 0x5:  // 클로킹, 0061df34
+          return "effect\134\305\254\267\316\305\267.tga";
+        case 0x6:  // 인찬트포이즌, 0061df48
+          return "effect\134\300\316\302\371\306\256\306\367\300\314\301\360.tga";
+        case 0x7:  // 포이즌리액트, 0061decc
+          return "effect\134\306\367\300\314\301\360\270\256\276\327\306\256.tga";
+        case 0x17:  // 아드레날린러쉬, 0061dee4
+          return "effect\134\276\306\265\345\267\271\263\257\270\260\267\257\275\254.tga";
+        case 0x18:  // 웨폰퍼펙션, 0061de88
+          return "effect\134\277\376\306\371\306\333\306\345\274\307.tga";
+        case 0x19:  // 오버트러스트, 0061dea0
+          return "effect\134\277\300\271\366\306\256\267\257\275\272\306\256.tga";
+        case 0x1a:  // 맥시마이즈파워, 0061df00
+          return "effect\134\270\306\275\303\270\266\300\314\301\356\306\304\277\366.tga";
+        case 0x3a:  // 오토가드, 0061de1c
+          return "effect\134\277\300\305\344\260\241\265\345.tga";
+        case 0x3b:  // 리플렉트쉴드, 0061de30
+          return "effect\134\270\256\307\303\267\272\306\256\275\257\265\345.tga";
+        case 0x3e:  // 디펜더, 0061de48
+          return "effect\134\265\360\306\346\264\365.tga";
+        case 0x41:  // 오토스펠, 0061de08
+          return "effect\134\277\300\305\344\275\272\306\347.tga";
+        case 0x44:  // 스피어퀴큰, 0061de5c
+          return "effect\134\275\272\307\307\276\356\304\373\305\253.tga";
+        case 0x5b:  // 프로스트웨폰, 0061ddf0
+          return "effect\134\307\301\267\316\275\272\306\256\277\376\306\371.tga";
+        case 0x5c:  // 라이트닝로더, 0061ddd8
+          return "effect\134\266\363\300\314\306\256\264\327\267\316\264\365.tga";
+        default: return nullptr;
+      }
+    case 2:
+      switch (status) {
+        case 0x3:  // 집중력향상, 0061ddc0
+          return "effect\134\301\375\301\337\267\302\307\342\273\363.tga";
+        case 0x1b:  // 라이딩, 0061dd84
+          return "effect\134\266\363\300\314\265\371.tga";
+        case 0x1c:  // 팔콘, 0061dd98
+          return "effect\134\306\310\304\334.tga";
+        case 0x1d:  // 죽은척하기, 0061dda8
+          return "effect\134\301\327\300\272\303\264\307\317\261\342.tga";
+        case 0x1e:  // 고성지르기, 0061dd6c
+          return "effect\134\260\355\274\272\301\366\270\243\261\342.tga";
+        case 0x1f:  // 에너지코트, 0061dd54
+          return "effect\134\277\241\263\312\301\366\304\332\306\256.tga";
+        case 0x25:
+        case 0x26:
+        case 0x27:
+        case 0x28:  // 공속물약, 0061dd40
+          return "effect\134\260\370\274\323\271\260\276\340.tga";
+        case 0x36:  // 케미컬프로텍션[웨폰], 0061dd20
+          return "effect\134\304\311\271\314\304\303\307\301\267\316\305\330\274\307["
+                 "\277\376\306\371].tga";
+        case 0x37:  // 케미컬프로텍션[쉴드], 0061dd00
+          return "effect\134\304\311\271\314\304\303\307\301\267\316\305\330\274\307["
+                 "\275\257\265\345].tga";
+        case 0x38:  // 케미컬프로텍션[아머], 0061dce0
+          return "effect\134\304\311\271\314\304\303\307\301\267\316\305\330\274\307["
+                 "\276\306\270\323].tga";
+        case 0x39:  // 케미컬프로텍션[헬름], 0061dcc0
+          return "effect\134\304\311\271\314\304\303\307\301\267\316\305\330\274\307["
+                 "\307\357\270\247].tga";
+        case 0x5d:  // 사이즈믹웨폰, 0061dca8
+          return "effect\134\273\347\300\314\301\356\271\315\277\376\306\371.tga";
+        default: return nullptr;
+      }
+    case 3:
+      switch (status) {
+        case 0x9:  // 안젤루스, 0061db94
+          return "effect\134\276\310\301\251\267\347\275\272.tga";
+        case 0xa:  // 블레싱, 0061dc20
+          return "effect\134\272\355\267\271\275\314.tga";
+        case 0xb:  // 시그넘크루시스, 0061dbc0
+          return "effect\134\275\303\261\327\263\321\305\251\267\347\275\303\275\272.tga";
+        case 0xc:
+        case 0x29:
+        case 0x2a:  // 민첩성증가, 0061dc34
+          return "effect\134\271\316\303\270\274\272\301\365\260\241.tga";
+        case 0xe:  // 슬로우포이즌, 0061dbdc
+          return "effect\134\275\275\267\316\277\354\306\367\300\314\301\360.tga";
+        case 0xf:  // 임포시티오마누스, 0061db78
+          return "effect\134\300\323\306\367\275\303\306\274\277\300\270\266\264\251\275\272.tga";
+        case 0x10:  // 수프라기움, 0061dbf4
+          return "effect\134\274\366\307\301\266\363\261\342\277\362.tga";
+        case 0x11:  // 아스페르시오, 0061dba8
+          return "effect\134\276\306\275\272\306\344\270\243\275\303\277\300.tga";
+        case 0x12:  // 성체강복, 0061dc0c
+          return "effect\134\274\272\303\274\260\255\272\271.tga";
+        case 0x13:  // 기리에엘레이손, 0061dc78
+          return "effect\134\261\342\270\256\277\241\277\244\267\271\300\314\274\325.tga";
+        case 0x14:  // 마니피캇, 0061dc4c
+          return "effect\134\270\266\264\317\307\307\304\261.tga";
+        case 0x15:  // 글로리아, 0061dc94
+          return "effect\134\261\333\267\316\270\256\276\306.tga";
+        case 0x16:  // 렉스에테르나, 0061dc60
+          return "effect\134\267\272\275\272\277\241\305\327\270\243\263\252.tga";
+        case 0x3d:  // 신의뜻, 0061db64
+          return "effect\134\275\305\300\307\266\346.tga";
+        default: return nullptr;
+      }
+    default: return nullptr;
+  }
+}
+
 bool AdvanceStr(RagEffect& effect, const EffectActor& actor, float x, float y, float z) {
   return effect.str != nullptr && effect.str->Advance(effect, actor.position, x, y, z);
 }
@@ -8526,6 +8788,14 @@ void EffectWorld::Step(const PrimScene& world_scene) {
         case 0x88:
           AddPoisonBubbles(e, Sprite(kEffectSprites[15]), e.id == 0x88, rand_, added);
           break;
+        case 0x78: ProcessCloaking(it->actor); break;
+        case 0xa6: ProcessAfterImages(e, it->actor, rand_, after_images_); break;
+        case 0xa4:
+          if (ProcessStatusIcons(e, statuses_, scene.projection, added)) {
+            for (Object& o : objects_)
+              if (o.prim && o.prim->owner == &e) o.prim->owner = nullptr;
+          }
+          break;
         default: ended = !ProcessStrEffect(e, it->actor, added, messages_); break;
       }
       for (EffectPrim& p : added) {
@@ -8544,6 +8814,7 @@ void EffectWorld::Step(const PrimScene& world_scene) {
     }
     it = more ? std::next(it) : objects_.erase(it);
   }
+  std::erase_if(after_images_, [](AfterImage& image) { return !StepAfterImage(image); });
 }
 
 PrimDrawing EffectWorld::Draw(const PrimScene& scene) const {

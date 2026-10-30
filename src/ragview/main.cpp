@@ -763,7 +763,8 @@ int main(int argc, char** argv) {
       for (std::uint32_t i = 0; i < steps; ++i) {
         if (prim_world.empty()) {
           // The effects thrown at a target aim at a point 50 out either way along the ground.
-          render::RagEffect& e = prim_world.Launch(o.effect_id, {player, actor_object.facing});
+          render::RagEffect& e =
+              prim_world.Launch(o.effect_id, {player, actor_object.facing, actor_object.color});
           e.target = {player[0] + 50.0f, player[1], player[2] + 50.0f};
           e.level = o.effect_level;
           // InitEffect's LoadStrFile: the .str from its start.
@@ -774,8 +775,11 @@ int main(int argc, char** argv) {
         }
         prim_world.SetPlayer(player);
         prim_world.Step(scene);
+        // Cloaking and the after-images colour the actor, drawn from the next frame.
+        for (const render::EffectWorld::Object& object : prim_world.objects())
+          if (object.effect) actor_object.color = object.actor.color;
       }
-      // The view's shake and the jokes are not ported.
+      // The view's shake and the jokes are not ported, and the after-images not drawn.
       prim_world.TakeMessages();
       const render::PrimDrawing drawing = prim_world.Draw(scene);
       for (std::size_t i = 0; i < drawing.quads.size(); ++i) {

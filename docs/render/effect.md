@@ -91,7 +91,8 @@ When `AdvanceStr` answers false, the effect is over.
 
 `CRagEffect::vf01` (`0054d4c0`) runs one case per effect id (its jump table is at
 `0054e658`). 97 of the cases do no more than play the effect's `.str`, sounds aside, or
-not even that.
+not even that. The rest add primitives, or colour the actor and show the status icons
+([effect-prim.md](effect-prim.md#the-actors-colour)); all of them are ported.
 
 **Without a `.str`** (+0x758 null), `AdvanceStr` answers false at once. A case that ends
 on the answer then ends on its first step, before its frame counts on.
@@ -241,7 +242,5 @@ dropped: neither the view's shake nor the jokes are ported.
 game mode, step by step ([effect-prim.md](effect-prim.md#checks)).
 
 **Not ported:**
-- the 3 cases of `CRagEffect::vf01` not yet ported, which need more than the effect world
-  has ([PLAN.md](../PLAN.md));
 - the sounds, the view's shake and the jokes;
 - the texture cache's use counts.

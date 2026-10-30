@@ -31,8 +31,8 @@ import sys
 from unicorn import UC_HOOK_CODE
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from actor_vectors import (ADD_SPRITE_QUAD, GET_FRAME_COUNT, GET_GAME_MODE, SCALES,  # noqa: E402
-                           Oracle, bits, f32)
+from actor_vectors import (ADD_SPRITE_QUAD, G_PSCENE_RENDERER, GET_FRAME_COUNT, GET_GAME_MODE,  # noqa: E402
+                           SCALES, Oracle, bits, f32)
 
 RAG_EFFECT_CTOR, INIT_EFFECT, RAG_EFFECT_VF01 = 0x54D220, 0x54EEE0, 0x54D4C0
 LOAD_STR_FILE, ADVANCE_STR, RESET_STR = 0x54FAE0, 0x54FBA0, 0x54FB40
@@ -42,6 +42,8 @@ GET_ACTOR_BY_ID, PLAYER_ID = 0x4C4CF0, 0x68734C
 LINK_PLAYER_ID, LINK_ACTOR_ID, LINK_ACTOR, LINK_PLAYER = 31337, 4242, (-18.0, -6.5, 9.0), (12.5, -3.0, -20.0)
 EMPTY_VF4 = 0x4BC290
 MODE_SWITCHER = 0x67C9E8
+BLUR_CTOR, BLUR_VTABLE, BLUR_VF01 = 0x540D20, 0x5E9A18, 0x541120
+STATUSES = 0x641F9C  # the player's statuses: begin, end and capacity
 PRIM_CTOR, INIT_PRIMITIVE, PRIM_VF01, PRIM_VF02, PRIM_VF03 = 0x57CFA0, 0x586380, 0x57DCE0, 0x586050, 0x586070
 ADD_PRIMITIVE, GET_TEXTURE, PLAY_WAVE = 0x412550, 0x40CC00, 0x4352A0
 SET_SPRITE, SET_ACT, JOB_NAMES = 0x5018A0, 0x501910, 0x686DC8
@@ -1817,7 +1819,7 @@ SQUARE_EFFECTS = [(0xE5, 24), (0xE6, 24), (0xE9, 24), (0xF9, 48), (0x109, 48), (
 
 def square_effects(o, rng, lines, effects=SQUARE_EFFECTS, prefix="kSquareEffect", seed=5000, state_of=None,
                    with_quads=False, looks=None, release=False, messages=False, dense=False, facings=None,
-                   full=(), pokes=None):
+                   full=(), pokes=None, before=None):
     """The effects through the world's list with a target, a level and the player's
     position; looks maps an effect id to where its views look, from the actor, the player
     and the target; release gives the heap back after each run; messages gives the actor a
@@ -1827,7 +1829,9 @@ def square_effects(o, rng, lines, effects=SQUARE_EFFECTS, prefix="kSquareEffect"
     level as a third value, and with a fourth put the target within 2.5 of the actor (True)
     or give its y (a number, the actor id 0xe8 runs to). facings maps a run's index to the
     actor's facing (+0x38), 0 otherwise. The effect ids in full have every state recorded.
-    pokes maps a run's index to dwords written into the effect after InitEffect."""
+    pokes maps a run's index to dwords written into the effect after InitEffect; before,
+    called with the run's index, the frame and the effect before each step, sets anything
+    more."""
     emu = o.emu
     rows = []
     player = emu.read_u32(o.world + 0x3C)
@@ -1873,6 +1877,8 @@ def square_effects(o, rng, lines, effects=SQUARE_EFFECTS, prefix="kSquareEffect"
                 scenes.append((frame, *o.scene(rng, look(pos, at, target) if look else None)))
             more = 0
             if alive:
+                if before:
+                    before(run, frame, effect)
                 more = emu.call(RAG_EFFECT_VF01, this=effect).eax & 0xFF
                 if not more:
                     alive = False
@@ -2114,12 +2120,175 @@ def str_effects(o, rng, lines, seed=26000, ids=STR_IDS, prefix="kStrEffect"):
     lines.append("};")
 
 
+# The status icons, through the world's list: run 0 at level 0, its frame put at 9998 before
+# frame 8, which it takes back to 0, starting again; run 1 at a level, so it starts by letting
+# its icons go, then again with fewer statuses at frame 10 and the same at 20, each time with
+# a level.
+STATUS_EFFECTS = [(0xA4, 40, 0), (0xA4, 40, 1)]
+STATUS_SETS = (
+    [0xC, 0x2A, 0x29, 1, 0, 0x99, 0x23, 9, 0x1B, 0x5D, 0x3D, 0x5C, -1],
+    [0x2A, 0xC, 8, 0xD, 0x20, 0x21, 0x22, 0x24, 0x32, 0x33, 0x34, 0x35, 0x5A, 2, 4, 5, 6, 7, 0x17, 0x18,
+     0x19, 0x1A, 0x3A, 0x3B, 0x3E, 0x41, 0x44, 0x5B, 3, 0x1C, 0x1D, 0x1E, 0x1F, 0x25, 0x26, 0x36, 0x37, 0x38,
+     0x39, 0xA, 0xB, 0xE, 0xF, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x3D],
+    [0x10, 0x5A, 0x1F, 0x41, 0x2A],
+)
+# Screens (width, height) the icons of STATUS_SETS[1] are laid out on: a column's last icon
+# just above the bottom limit, at it and below it.
+STATUS_SCREENS = [(800, 586), (800, 585), (800, 584), (1024, 768), (640, 480)]
+# (run, frame): the statuses from STATUS_SETS or None, a level or None, and a frame or None.
+STATUS_CHANGES = {(0, 0): (0, None, None), (0, 8): (None, None, 9998), (1, 0): (1, None, None),
+                  (1, 10): (2, 3, None), (1, 20): (2, 2, None)}
+
+
+def set_statuses(o, statuses):
+    emu = o.emu
+    begin = emu.scratch(struct.pack(f"<{len(statuses)}i", *statuses)) if statuses else 0
+    end = begin + 4 * len(statuses)
+    emu.mem_write(STATUSES, struct.pack("<3I", begin, end, end))
+
+
+def status_changes(o):
+    """The before of the status runs: at the steps STATUS_CHANGES names, the statuses, the
+    level and the frame."""
+    def before(run, frame, effect):
+        change = STATUS_CHANGES.get((run, frame))
+        if change is None:
+            return
+        statuses, level, at = change
+        if statuses is not None:
+            set_statuses(o, STATUS_SETS[statuses])
+        if level is not None:
+            o.emu.write_u32(effect + 0xB8, level)
+        if at is not None:
+            o.emu.write_u32(effect + 0xBC, at)
+    return before
+
+
+# The effects on the actor's colour: id, steps, the effect's +4 to +0xc (the colour 0xa6
+# reads), the actor's tint (+0x79 to +0x7b, with a colour kept at +0x74) or None, and dwords
+# written into the effect after InitEffect.
+ACTOR_EFFECTS = [
+    (0x78, 12, None, None, {}),
+    (0xA6, 24, (250.0, 150.0, 150.0), None, {}),
+    (0xA6, 24, (200.7, -1.0, 0.25), None, {}),
+    (0xA6, 12, (180.0, 180.0, 250.0), None, {0xC0: 30}),
+    (0xA6, 60, (-1.0, -1.0, -1.0), None, {}),
+    (0xA6, 24, (250.0, 150.0, 150.0), (40, 200, 90), {}),
+    (0xA6, 24, (-3.0, -3.5, 1e10), (0, 1, 255), {}),
+    # Sums a float would round (to 256 and 16777220), and −2.
+    (0xA6, 12, (0.99999994, 16777216.0, -2.0), (255, 3, 0), {}),
+    (0xA6, 12, (300.9, 200.0, 0.0), None, {0xBC: 9998}),
+    (0xA6, 12, (200.0, 200.0, 0.0), (10, 20, 30), {0xBC: 9998}),
+]
+
+
+def status_layouts(o, lines):
+    """The icons 0xa4 lays out on its first step for STATUS_SETS[1] on each of
+    STATUS_SCREENS (SceneRenderer+0x24 and +0x28): each one's offset and texture."""
+    emu = o.emu
+    renderer = emu.read_u32(G_PSCENE_RENDERER)
+    size = emu.mem_read(renderer + 0x24, 8)
+    names = {v: k for k, v in o.textures.items()}
+    set_statuses(o, STATUS_SETS[1])
+    rows = []
+    for k, (width, height) in enumerate(STATUS_SCREENS):
+        mark = emu.heap_mark()
+        o.reset_world()
+        emu.mem_write(renderer + 0x24, struct.pack("<2i", width, height))
+        effect = o.rag_effect(emu.scratch(size=0x100))
+        emu.call(INIT_EFFECT, emu.read_u32(effect + 0xA0), 0xA4, 0, 0, 0, this=effect)
+        emu.call(RAG_EFFECT_VF01, this=effect)
+        icons = []
+        for _, p in o.world_objects():
+            texture = emu.read_u32(emu.read_u32(p + 0xA8))
+            icons.append(f'{{0x{emu.read_u32(p + 0x304):08x}, 0x{emu.read_u32(p + 0x308):08x}, '
+                         f'"{c_literal(names[texture])}"}}')
+        lines.append(f"static const StatusIconVector kStatusLayout{k}[] = {{{', '.join(icons)}}};")
+        rows.append(f"    {{{width}, {height}, kStatusLayout{k}, {len(icons)}}},")
+        emu.heap_release(mark)
+    emu.mem_write(renderer + 0x24, size)
+    lines.append("static const StatusLayoutVector kStatusLayouts[] = {")
+    lines += rows
+    lines.append("};")
+
+
+def blur_stand_in(o):
+    """CBlurPC::CBlurPC (00540d20) on the actor: of the copy, what the effect and the
+    after-image's own vf02 and vf01 use: the vtable, the actor's +4 to +0xc, the colour
+    (white, as CRenderObject's constructor leaves it) and the fade (0x10000000)."""
+    emu = o.emu
+
+    def construct(this, source):
+        emu.mem_write(this, bytes(0x31C))
+        emu.write_u32(this, BLUR_VTABLE)
+        emu.mem_write(this + 4, emu.mem_read(source + 4, 12))
+        emu.write_u32(this + 0x7C, 0xFFFFFFFF)
+        emu.write_u32(this + 0x30C, 0x10000000)
+        return this
+
+    emu.replace_thiscall(BLUR_CTOR, 1, construct)
+
+
+def actor_effects(o, rng, lines, seed=34000):
+    """Each of ACTOR_EFFECTS through the world's list on an actor of a random colour: each
+    step whether the effect goes on, its frame, the actor's colour and the after-images in
+    the list (their colour and fade), each stepped by its own vf01 after the effect, as the
+    list runs them."""
+    emu = o.emu
+    blur_stand_in(o)
+    rows = []
+    for run, (eid, count, color, tint, pokes) in enumerate(ACTOR_EFFECTS):
+        mark = emu.heap_mark()
+        o.reset_world()
+        actor = emu.scratch(size=0x100)
+        pos = (f32(rng.uniform(-30, 30)), f32(rng.uniform(-10, 0)), f32(rng.uniform(-30, 30)))
+        emu.mem_write(actor + 4, struct.pack("<3f", *pos))
+        actor_color = rng.getrandbits(32)
+        emu.write_u32(actor + 0x7C, actor_color)
+        if tint is not None:
+            emu.mem_write(actor + 0x74, struct.pack("<4B", 0xFF, 0x80, 0x80, 0x80))
+            emu.mem_write(actor + 0x78, struct.pack("<4B", 0xFF, *tint))
+        emu.call(SRAND, seed + run)
+        effect = o.rag_effect(actor)
+        emu.call(INIT_EFFECT, actor, eid, 0, 0, 0, this=effect)
+        if color is not None:
+            emu.mem_write(effect + 4, struct.pack("<3f", *color))
+        for offset, value in pokes.items():
+            emu.write_u32(effect + offset, value)
+        name = f"kActorEffect{run}"
+        steps, images = [], []
+        for _ in range(count):
+            more = emu.call(RAG_EFFECT_VF01, this=effect).eax & 0xFF
+            frame = emu.read_u32(effect + 0xBC)
+            kept = []
+            for node, blur in o.world_objects():
+                if not emu.call(BLUR_VF01, this=blur).eax & 0xFF:
+                    o.unlink(node)
+                    continue
+                kept.append((emu.read_u32(blur + 0x7C), emu.read_u32(blur + 0x30C)))
+            steps.append(f"{{{more}, {frame}, 0x{emu.read_u32(actor + 0x7C):08x}, {len(images)}, {len(kept)}}}")
+            images += kept
+            if not more:
+                break
+        lines.append(f"static const AfterImageVector {name}Images[] = "
+                     f"{{{', '.join(f'{{0x{c:08x}, 0x{f:08x}}}' for c, f in images) or '{}'}}};")
+        lines.append(f"static const ActorStepVector {name}Steps[] = {{{', '.join(steps)}}};")
+        rows.append(f"    {{{eid}, {seed + run}, {{{hexs(map(bits, color or (0.0, 0.0, 0.0)))}}}, "
+                    f"{int(color is not None)}, 0x{actor_color:08x}, {{{', '.join(map(str, tint or (0, 0, 0)))}}}, "
+                    f"{int(tint is not None)}, {pokes.get(0xBC, 0)}, {pokes.get(0xC0, 0)}, {name}Steps, "
+                    f"{len(steps)}, {name}Images}},")
+        emu.heap_release(mark)
+    lines.append("static const ActorEffectVector kActorEffects[] = {")
+    lines += rows
+    lines.append("};")
+
+
 GENERATED = "// Generated by tools/prim_vectors.py from the original in the emulation oracle."
 # The files main writes, in the order the oracle runs them; kTextures, last, names every
 # texture the others use.
 PARTS = ("basics", "rings", "squares", "motes", "walls", "trails", "screens", "flights", "crossed", "solids",
          "ribbons", "strs", "cylinders", "particles", "rays", "bouncers", "bursts", "frost",
-         "textures")
+         "actors", "textures")
 
 
 def main():
@@ -2217,6 +2386,18 @@ def main():
     lines = parts["frost"]
     square_effects(o, rng, lines, FROST_EFFECTS, "kFrostEffect", 33000, ray_effect_state, False, None, True, True,
                    True)
+    lines = parts["actors"]
+    actor_effects(o, rng, lines)
+    square_effects(o, rng, lines, STATUS_EFFECTS, "kStatusEffect", 35000, ray_effect_state, release=True,
+                   dense=True, full={0xA4}, before=status_changes(o))
+    for k, statuses in enumerate(STATUS_SETS):
+        lines.append(f"static const std::int32_t kStatusSet{k}[] = {{{', '.join(map(str, statuses))}}};")
+    lines.append("static const StatusChangeVector kStatusChanges[] = {" + ", ".join(
+        f"{{{run}, {frame}, {'nullptr, 0' if k is None else f'kStatusSet{k}, {len(STATUS_SETS[k])}'}, "
+        f"{-1 if level is None else level}, {-1 if at is None else at}}}"
+        for (run, frame), (k, level, at) in STATUS_CHANGES.items()) + "};")
+    status_layouts(o, lines)
+    set_statuses(o, [])
     names = sorted(o.textures.items(), key=lambda kv: kv[1])
     lines = parts["textures"]
     lines.append("static const TextureVector kTextures[] = {" +
