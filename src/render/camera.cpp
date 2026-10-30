@@ -1,32 +1,35 @@
 #include "render/camera.h"
 
 #include <cmath>
+#include <limits>
 
+#include "core/angles.h"
 #include "res/gat.h"
 
 namespace ragexe::render {
 
 namespace {
 
-constexpr float kPi = 3.1415920257568359375f;          // 005e2694 and 005e8a90
-constexpr float kInverse180 = 0.0055555556900799274f;  // 005e2690
-constexpr float kInverse360 = 0.0027777778450399637f;  // 005e26bc
-constexpr float kFieldOfView = 15.0f;                  // 005e26a0 and 005e26a4, degrees
-constexpr float kRightAngle = 90.0f;                   // 005e26b8
-constexpr float kInverse640 = 0.0015625000232830644f;  // 005e26b4
-constexpr float kInverse480 = 0.0020833334419876337f;  // 005e26b0
-constexpr float kFullTurn = 360.0f;                    // 005e2a5c
-constexpr float kHalfTurn = 180.0f;                    // 005e2a54
-constexpr float kFollow = 0.1f;                        // 005e8ab8
-constexpr float kDefaultPitch = -45.0f;                // CView::vf01's, and 0051572e
-constexpr float kDefaultDistance = 300.0f;             // 00614880
-constexpr float kOutdoorMaxDistance = 400.0f;          // 0061487c
-constexpr float kMinDistance = 230.0f;                 // 00614878
-constexpr float kIndoorPitchRange = 10.0f;             // 005e3bb4
-constexpr float kOutdoorPitchRange = 20.0f;            // 005e9560
-constexpr float kIndoorTurnRange = 20.0f;              // 005e9560
-constexpr float kIndoorYaw = 45.0f;                    // 0050da85
-constexpr float kPitchCentre = 45.0f;                  // 005e93c0, and 005e978c's −45
+constexpr float kPi = 3.1415920257568359375f;            // 005e2694 and 005e8a90
+constexpr float kInverse180 = 0.0055555556900799274f;    // 005e2690
+constexpr float kInverse360 = 0.0027777778450399637f;    // 005e26bc
+constexpr float kFieldOfView = 15.0f;                    // 005e26a0 and 005e26a4, degrees
+constexpr float kRightAngle = 90.0f;                     // 005e26b8
+constexpr float kInverse640 = 0.0015625000232830644f;    // 005e26b4
+constexpr float kInverse480 = 0.0020833334419876337f;    // 005e26b0
+constexpr float kFullTurn = 360.0f;                      // 005e2a5c
+constexpr float kHalfTurn = 180.0f;                      // 005e2a54
+constexpr float kFollow = 0.1f;                          // 005e8ab8, also the shake's step
+constexpr float kPitchShakeStep = 0.06666667014360428f;  // 005e8ab4, 1/15
+constexpr float kDefaultPitch = -45.0f;                  // CView::vf01's, and 0051572e
+constexpr float kDefaultDistance = 300.0f;               // 00614880
+constexpr float kOutdoorMaxDistance = 400.0f;            // 0061487c
+constexpr float kMinDistance = 230.0f;                   // 00614878
+constexpr float kIndoorPitchRange = 10.0f;               // 005e3bb4
+constexpr float kOutdoorPitchRange = 20.0f;              // 005e9560
+constexpr float kIndoorTurnRange = 20.0f;                // 005e9560
+constexpr float kIndoorYaw = 45.0f;                      // 0050da85
+constexpr float kPitchCentre = 45.0f;                    // 005e93c0, and 005e978c's −45
 
 // fptan's result, which the precision control does not round.
 double Tan(float radians) { return std::tan(static_cast<double>(radians)); }
@@ -123,9 +126,80 @@ void BuildCameraView(Camera& camera, const res::AttrMap* attr) {
   camera.inverse = Invert(camera.view);
 }
 
-void UpdateCamera(Camera& camera, const Vec3& player, bool fixed, const res::AttrMap* attr) {
+void StartShake(Camera& camera, std::uint32_t active, std::uint32_t length, float sideways,
+                float distance, float pitch, std::uint32_t now) {
+  CameraShake& shake = camera.shake;
+  shake.active = active;
+  shake.start = now;
+  shake.sideways = sideways;
+  shake.pitch = pitch;
+  shake.distance = distance;
+  shake.length = length == 0 ? 650 : length == 1 ? 200 : length;
+}
+
+void SetShakeAmplitudes(Camera& camera, float sideways, float distance, float pitch) {
+  camera.shake.sideways = sideways;
+  camera.shake.distance = distance;
+  camera.shake.pitch = pitch;
+}
+
+namespace {
+
+// __ftol of the yaw for SinDegrees and CosDegrees.
+std::int32_t Ftol(float f) {
+  if (std::isnan(f) || f <= -2147483904.0f || f >= 2147483648.0f)
+    return std::numeric_limits<std::int32_t>::min();
+  return static_cast<std::int32_t>(f);
+}
+
+// rand() % 5 − 2, from −2 to 2.
+float Jitter(core::CrtRand& rand) { return static_cast<float>(rand.Next() % 5 - 2); }
+
+}  // namespace
+
+void ApplyShake(Camera& camera, ShakeSwing& swing, std::uint32_t now, core::CrtRand& rand) {
+  CameraShake& shake = camera.shake;
+  if (shake.active == 0) return;
+  if (now >= shake.start + shake.length) {
+    camera.at = camera.target_at;
+    shake.active = 0;
+    camera.distance = camera.target_distance;
+    camera.pitch = camera.target_pitch;
+    return;
+  }
+  if (!swing.step_pending) return;
+  swing.step_pending = false;
+  if ((swing.taken & 1) == 0) {
+    swing.taken |= 1;
+    swing.sideways = shake.sideways;
+  }
+  // Across the view: x along the yaw's cosine, z against its sine.
+  float jitter = Jitter(rand);
+  camera.at[0] =
+      ((jitter * kFollow + swing.sideways) * core::CosDegrees(Ftol(camera.yaw))) + camera.at[0];
+  jitter = Jitter(rand);
+  camera.at[2] =
+      camera.at[2] - ((jitter * kFollow + swing.sideways) * core::SinDegrees(Ftol(camera.yaw)));
+  swing.sideways = -swing.sideways;
+  if ((swing.taken & 2) == 0) {
+    swing.taken |= 2;
+    swing.distance = shake.distance;
+  }
+  camera.distance = (Jitter(rand) * kFollow + swing.distance) + camera.distance;
+  swing.distance = -swing.distance;
+  if ((swing.taken & 4) == 0) {
+    swing.taken |= 4;
+    swing.pitch = shake.pitch;
+  }
+  camera.pitch = (Jitter(rand) * kPitchShakeStep + camera.pitch) + swing.pitch;
+  swing.pitch = -swing.pitch;
+}
+
+void UpdateCamera(Camera& camera, const Vec3& player, bool fixed, const res::AttrMap* attr,
+                  ShakeSwing& swing, std::uint32_t now, core::CrtRand& rand) {
   camera.target_at = player;
   StepCamera(camera, fixed);
+  ApplyShake(camera, swing, now, rand);
   BuildCameraView(camera, attr);
 }
 

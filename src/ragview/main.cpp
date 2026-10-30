@@ -29,6 +29,7 @@
 #include <SDL3/SDL.h>
 
 #include <algorithm>
+#include <bit>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -406,6 +407,7 @@ int main(int argc, char** argv) {
   // The player stands on the ground; the camera is placed as CGameMode places it.
   render::Vec3 player = {o.at_x, res::AttrHeight(attr, o.at_x, o.at_z), o.at_z};
   render::Camera camera;
+  render::ShakeSwing shake_swing;
   render::ResetCamera(camera);
   render::CameraControl control;
   render::PlaceCamera(camera, control, player, indoor);
@@ -653,8 +655,11 @@ int main(int argc, char** argv) {
       device->SetTexture(water_it->second, w, h, texels);
     }
     water_texture = water_it->second;
-    render::UpdateCamera(camera, player, false, &attr);
+    // The client's one CRT rand serves the shake and the effects alike.
+    render::UpdateCamera(camera, player, false, &attr, shake_swing, now, prim_world.rand());
     render::StepSpriteScales(camera.pitch, camera.distance, projection, sprite_scales);
+    // CView::DrawWorld leaves the next frame a shake step.
+    shake_swing.step_pending = true;
     // CView::vf03: the scene graph's nodes the frustum keeps, their models and cells.
     const render::Frustum frustum =
         render::MakeFrustum(projection.slope_x, projection.slope_y, camera.view);
@@ -779,8 +784,18 @@ int main(int argc, char** argv) {
         for (const render::EffectWorld::Object& object : prim_world.objects())
           if (object.effect) actor_object.color = object.actor.color;
       }
-      // The view's shake and the jokes are not ported, and the after-images not drawn.
-      prim_world.TakeMessages();
+      // CGameMode::SendMsg's shake for the view; the jokes are not ported, and the
+      // after-images not drawn.
+      for (const render::ModeMessage& m : prim_world.TakeMessages()) {
+        if (m.message == render::mode_message::kShake) {
+          // SendMsg (0051da28 and 0051da4c): 200 ms for 1, 650 for anything else.
+          render::StartShake(camera, 1, m.values[0] == 1 ? 1 : 0, 1.0f, 0.24f, 0.2f, now);
+        } else if (m.message == render::mode_message::kShakeAmplitudes) {
+          render::SetShakeAmplitudes(camera, std::bit_cast<float>(m.values[0]),
+                                     std::bit_cast<float>(m.values[1]),
+                                     std::bit_cast<float>(m.values[2]));
+        }
+      }
       const render::PrimDrawing drawing = prim_world.Draw(scene);
       for (std::size_t i = 0; i < drawing.quads.size(); ++i) {
         const auto it = sprite_of.find(drawing.quad_sprites[i]);

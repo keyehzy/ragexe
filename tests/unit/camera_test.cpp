@@ -51,6 +51,20 @@ struct DragVector {
   std::uint32_t after[5];
 };
 
+struct ShakeFrame {
+  std::uint32_t time;
+  std::uint32_t player[3];
+  std::uint32_t turn;
+  std::uint32_t calls[2][6];  // {1 StartShake or 2 SetShakeAmplitudes, active, length, amplitudes}
+  int pending, fixed;
+  std::uint32_t state[42 + 6 + 3 + 2];
+};
+
+struct ShakeStep {
+  std::uint32_t before[5];  // pitch, yaw, distance, the point's x and z
+  std::uint32_t after[4];   // pitch, distance, x and z
+};
+
 // The test map's height at a cell's corner (tools/camera_vectors.py).
 float AttrTestHeight(std::int32_t cell, std::int32_t corner) {
   return static_cast<float>(20 - (cell * 7 + corner * 13) * 29 % 331);
@@ -130,6 +144,8 @@ TEST_CASE("The camera follows the player frame by frame as CView does", "[camera
   const ragexe::res::AttrMap map = TestAttrMap();
   Camera camera;
   ResetCamera(camera);
+  ShakeSwing swing;
+  ragexe::core::CrtRand rand(1);
   std::size_t n = 0;
   std::size_t grounded = 0;
   for (const CameraFrame& f : kCameraFrames) {
@@ -139,7 +155,7 @@ TEST_CASE("The camera follows the player frame by frame as CView does", "[camera
       camera.target_pitch = F(f.target_pitch);
       camera.target_distance = F(f.target_distance);
     }
-    UpdateCamera(camera, V(f.player), f.fixed != 0, &map);
+    UpdateCamera(camera, V(f.player), f.fixed != 0, &map, swing, 0, rand);
     const std::vector<std::uint32_t> got = State(camera);
     for (std::size_t i = 0; i < got.size(); ++i) {
       INFO("value " << i);
@@ -149,6 +165,64 @@ TEST_CASE("The camera follows the player frame by frame as CView does", "[camera
   }
   // Some frames put the eye below the ground, which lifts it.
   CHECK(grounded > 0);
+}
+
+TEST_CASE("The view shakes as the original's", "[camera]") {
+  const ragexe::res::AttrMap map = TestAttrMap();
+  Camera camera;
+  ResetCamera(camera);
+  ShakeSwing swing;
+  ragexe::core::CrtRand rand(kShakeSeed);
+  std::size_t n = 0;
+  std::size_t shaken = 0;
+  for (const ShakeFrame& f : kShakeFrames) {
+    INFO("frame " << n++);
+    if (F(f.turn) != 0.0f) AddToAngle(camera, F(f.turn));
+    for (const auto& call : f.calls) {
+      if (call[0] == 1)
+        StartShake(camera, call[1], call[2], F(call[3]), F(call[4]), F(call[5]), f.time);
+      else if (call[0] == 2)
+        SetShakeAmplitudes(camera, F(call[3]), F(call[4]), F(call[5]));
+    }
+    swing.step_pending = f.pending != 0;
+    UpdateCamera(camera, V(f.player), f.fixed != 0, &map, swing, f.time, rand);
+    if (camera.shake.active != 0 && f.pending != 0) ++shaken;
+    std::vector<std::uint32_t> got = State(camera);
+    const CameraShake& s = camera.shake;
+    for (const std::uint32_t v :
+         {s.active, s.start, B(s.sideways), B(s.distance), B(s.pitch), s.length})
+      got.push_back(v);
+    // The statics in address order: 0067ca90, 0067ca94, 0067ca98.
+    for (const float v : {swing.pitch, swing.distance, swing.sideways}) got.push_back(B(v));
+    got.push_back(swing.taken);
+    got.push_back(swing.step_pending ? 1u : 0u);
+    REQUIRE(got.size() == std::size(f.state));
+    for (std::size_t i = 0; i < got.size(); ++i) {
+      INFO("value " << i);
+      CHECK(got[i] == f.state[i]);
+    }
+  }
+  CHECK(shaken > 20);
+  // ApplyShake alone on a shake that lasts, the swings as the frames left them.
+  rand = ragexe::core::CrtRand(kShakeSeed + 1);
+  camera.shake.active = 1;
+  camera.shake.start = 0;
+  camera.shake.length = 0x7fffffff;
+  n = 0;
+  for (const ShakeStep& v : kShakeSteps) {
+    INFO("step " << n++);
+    camera.pitch = F(v.before[0]);
+    camera.yaw = F(v.before[1]);
+    camera.distance = F(v.before[2]);
+    camera.at[0] = F(v.before[3]);
+    camera.at[2] = F(v.before[4]);
+    swing.step_pending = true;
+    ApplyShake(camera, swing, 0, rand);
+    CHECK(B(camera.pitch) == v.after[0]);
+    CHECK(B(camera.distance) == v.after[1]);
+    CHECK(B(camera.at[0]) == v.after[2]);
+    CHECK(B(camera.at[2]) == v.after[3]);
+  }
 }
 
 TEST_CASE("Entering and leaving maps sets the camera as CGameMode does", "[camera]") {

@@ -70,8 +70,8 @@ origin, and the same targets.
    - With `g_isFixedCamera` (`00685ecc`, a saved option) the point jumps to its target.
    - It also sets four scales for the actors' sprites from the pitch and distance
      (`0060564c`, `00605650`, `00614704`, `00614708`; [actor.md](actor.md#the-scales)).
-3. **`ApplyShake`** (`004cf2a0`) jitters the view while a shake lasts. It uses `rand`,
-   and is not ported.
+3. **`ApplyShake`** (`004cf2a0`) jitters the view while a shake lasts
+   ([the shake](#the-shake)).
 4. **`BuildView`** (`004cfa10`) builds the matrices:
    - **The eye** is distance back from the point along row 2 of `MakeRotationX(pitch)`
      then `RotateY(yaw)`, angles as π (`005e8a90`) · degrees · 1/180.
@@ -85,6 +85,36 @@ drawing (`C3dGround15::DrawCells`), the models' `Render` and the actors.
 
 **`GetHeight`** interpolates a `.gat` cell's four heights ([gat.md](../formats/gat.md)),
 along z and then x. World (0, 0) is the map's centre. Outside the map it gives 0.
+
+## The shake
+
+**Starting one.** `CGameMode::SendMsg` handles two messages the effects send
+([effect.md](effect.md)):
+- **0x87** calls `CView::StartShake` (`004cf450`) with active 1, length 1 for a value of 1
+  and 0 otherwise, and the amplitudes 1, 0.24 and 0.2 (`0051da28`, `0051da4c`).
+  `StartShake` stores them, the time (`timeGetTime`) and the length in milliseconds: 650
+  for 0, 200 for 1, and otherwise the value itself.
+- **0x94** calls `CView::SetShakeAmplitudes` (`004cf4b0`) with three floats.
+
+**Each frame** `ApplyShake` runs between `Step` and `BuildView`, while +4 is set:
+- **Once the shake has lasted** (the time at least start plus length, in wrapping
+  unsigned sums), the point, distance and pitch go back to their targets and the shake is
+  over. The yaw keeps what `Step` gave it.
+- **Otherwise, only with a step pending:** `CView::DrawWorld` sets
+  `g_viewShakeStepPending` (`0067cab4`) each frame it draws, and `ApplyShake` clears it.
+  With four `rand() % 5 − 2`s, j1 to j4, rounded to single precision at each operation:
+  - the point's x: ((j1 × 0.1 + sideways) × cos yaw) + x;
+  - its z: z − ((j2 × 0.1 + sideways) × sin yaw), the sine and cosine from the tables
+    (`SinDegrees`, `CosDegrees`) at the yaw truncated;
+  - the distance: (j3 × 0.1 + its swing) + distance;
+  - the pitch: (j4 × 1/15 (`005e8ab4`) + pitch) + its swing.
+
+  Each swing turns its sign after use.
+
+**The swings** are three function-local statics (`0067ca98` sideways, `0067ca94` the
+distance, `0067ca90` the pitch, each guarded by a bit of `0067ca9c`). Each takes the view's
+amplitude at the first step that reaches it after start-up, and keeps it for good: later
+shakes' amplitudes, and any `SetShakeAmplitudes`, change nothing once a shake has stepped.
 
 ## The matrices
 
@@ -168,6 +198,14 @@ x87 at single precision, to `tests/unit/camera_vectors.inc`:
   - one frame off the map.
 
   Some frames put the eye below the map's ground.
+- **260 frames with shakes,** on a clock stepped 10 to 39 ms a frame (300 twice), the step
+  pending on four frames in five:
+  - the first shake's amplitudes changed before its first step;
+  - shakes of 650 ms, 200 ms, 450 ms (its last frame exactly at its end), 3000 ms, one
+    whose end wraps the clock, and one started inactive; amplitudes set mid-shake;
+  - five frames with `g_isFixedCamera`.
+- **2000 steps of `ApplyShake` alone** on random pitches, distances, points and yaws, for
+  the roundings of the sums.
 - **`PlaceCamera` and `SaveViewSetting`** for eight saved settings, indoors and outdoors,
   inside and outside the limits;
 - **60 calls to `ProcessCameraInput`** across both states, Shift, Ctrl, both kinds of
@@ -175,5 +213,10 @@ x87 at single precision, to `tests/unit/camera_vectors.inc`:
 
 The port matches every field bit for bit (`tests/unit/camera_test.cpp`).
 
-**Not ported:** the shake. The sprites' scales from `SetSize` and `Step` are in
-`src/render/actor` ([actor.md](actor.md#the-scales)).
+The sprites' scales from `SetSize` and `Step` are in `src/render/actor`
+([actor.md](actor.md#the-scales)).
+
+**In the port** (`src/render/camera`): `CameraShake`, `StartShake`, `SetShakeAmplitudes`,
+`ApplyShake` and `ShakeSwing`, which holds the step pending and the swings; `UpdateCamera`
+takes them with the time and a `CrtRand`. ragview feeds it the effects' messages and the
+same `CrtRand` the effects use, as the client has one `rand`.

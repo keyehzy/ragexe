@@ -15,6 +15,13 @@ usage: .venv/bin/python -I tools/camera_vectors.py > tests/unit/camera_vectors.i
   - CGameMode 005156d0's camera input: turning, pitching and zooming with and without
     Shift and Ctrl, indoors and outdoors, with ClientState's options 5 and 6, and the
     reset state.
+  - CView frames with shakes: CView::StartShake (004cf450) and SetShakeAmplitudes
+    (004cf4b0) as CGameMode::SendMsg calls them and otherwise, the clock (timeGetTime)
+    stepped each frame and g_viewShakeStepPending (0067cab4) set on most frames, before
+    vf04, whose ApplyShake (004cf2a0) draws on rand. Recorded: the camera as above, the
+    shake +4 to +0x18 and ApplyShake's statics 0067ca90 to 0067ca9c.
+  - ApplyShake alone, 2000 steps of a shake that lasts, from random pitches, distances,
+    points and yaws: what it leaves of them.
 The x87 runs at single precision, as DirectDraw's FPUSETUP leaves it in the client.
 """
 import os
@@ -37,6 +44,11 @@ PLACE_CAMERA, LEAVE_MAP, IS_INDOOR_MAP = 0x50D9E0, 0x50DB70, 0x598BA0
 CAMERA_INPUT, MOUSE_STATE, MOUSE_X, MOUSE_Y = 0x5156D0, 0x628B74, 0x628B5C, 0x628B60
 CLIENT_OPTION, SET_CURSOR, SET_LISTENER_HEADING = 0x597950, 0x4CB7F0, 0x5B0FA0
 VIEW_SETTINGS = 0x614884  # current, indoor and outdoor latitude and distance
+SRAND, START_SHAKE, SET_SHAKE_AMPLITUDES = 0x5C2546, 0x4CF450, 0x4CF4B0
+# The swings for the pitch, distance and point at 0x67ca90 to 0x67ca98, their guard at 0x67ca9c.
+SHAKE_PENDING, SHAKE_SWINGS = 0x67CAB4, 0x67CA90
+SHAKE_SEED = 77
+APPLY_SHAKE, SHAKE_STEPS = 0x4CF2A0, 2000
 CELL_SIZE = 5
 
 
@@ -142,6 +154,87 @@ def frames(oracle, rng, shape):
         emu.call(CVIEW_UPDATE, this=oracle.view)
         out.append(([bits(v) for v in pos], bits(turn), int(retarget), bits(pitch), bits(distance),
                      fixed, oracle.camera()))
+    return out
+
+
+# Frame: the shake calls made before it, (StartShake, active, length, three amplitudes) or
+# (SetShakeAmplitudes, three amplitudes). The first shake's amplitudes are changed before
+# its first step, so ApplyShake's statics take those; the later ones' it ignores. The
+# 450 ms shake's last frame falls exactly on its end; the others' between frames.
+SHAKE_CALLS = {
+    6: [("start", 1, 0, 1.0, 0.24, 0.2), ("amplitudes", 1.37, -0.61, 0.373)],
+    40: [("start", 1, 1, 1.0, 0.24, 0.2)],
+    55: [("start", 1, 450, 3.0, 2.0, 1.0)],
+    60: [("amplitudes", 0.5, 0.5, 0.5)],
+    90: [("start", 0, 0, 1.0, 0.24, 0.2)],
+    100: [("start", 1, 0, 1.0, 0.24, 0.2)],
+    104: [("start", 1, 0xFFFFFFF0, 1.0, 0.24, 0.2)],
+    130: [("start", 1, 3000, 1.0, 0.24, 0.2)],
+}
+
+
+def shakes(oracle, rng):
+    emu = oracle.emu
+    now = [5000]
+    emu.api.stubs["WINMM.DLL!timeGetTime"] = Stub(0, lambda: now[0])
+    emu.call(SRAND, SHAKE_SEED)
+    emu.call(CVIEW_RESET, this=oracle.view)
+    pos = [0.0, 0.0, 0.0]
+    out = []
+    end = None
+    for n in range(260):
+        now[0] = (now[0] + (300 if n in (80, 112) else rng.randrange(10, 40))) & 0xFFFFFFFF
+        if end is not None and now[0] >= end:
+            now[0], end = end, None
+        pos = [f32(pos[0] + rng.uniform(-2, 2)), f32(rng.uniform(-4, 4)), f32(pos[2] + rng.uniform(-2, 2))]
+        oracle.write_floats(oracle.player + 4, pos)
+        turn = f32(rng.choice([0.0, 0.0, 0.0, rng.uniform(-30, 30)]))
+        if turn != 0.0:
+            emu.call(ADD_TO_ANGLE, bits(turn), this=oracle.view)
+        calls = []
+        for call in SHAKE_CALLS.get(n, []):
+            if call[0] == "start":
+                _, active, length, *amps = call
+                if length == 450:
+                    end = now[0] + length
+                emu.call(START_SHAKE, active, length, *(bits(f32(a)) for a in amps), this=oracle.view)
+                calls.append((1, active, length, *(bits(f32(a)) for a in amps)))
+            else:
+                amps = [bits(f32(a)) for a in call[1:]]
+                emu.call(SET_SHAKE_AMPLITUDES, *amps, this=oracle.view)
+                calls.append((2, 0, 0, *amps))
+        pending = int(rng.random() < 0.8)
+        emu.write_u32(SHAKE_PENDING, pending)
+        fixed = 1 if 70 <= n < 75 else 0
+        emu.write_u32(FIXED_CAMERA, fixed)
+        emu.call(CVIEW_UPDATE, this=oracle.view)
+        state = oracle.camera() + oracle.floats(oracle.view + 4, 6) + oracle.floats(SHAKE_SWINGS, 3)
+        state += [emu.read_u32(SHAKE_SWINGS + 0xC) & 0xFF, emu.read_u32(SHAKE_PENDING)]
+        out.append((now[0], [bits(v) for v in pos], bits(turn), calls, pending, fixed, state))
+    return out
+
+
+def shake_steps(oracle, rng):
+    """After shakes, so the statics hold their swings: ApplyShake on a shake started now that
+    lasts, its step pending each time."""
+    emu = oracle.emu
+    emu.call(SRAND, SHAKE_SEED + 1)
+    view = oracle.view
+    emu.write_u32(view + 4, 1)
+    emu.write_u32(view + 0x18, 0x7FFFFFFF)
+    out = []
+    for _ in range(SHAKE_STEPS):
+        emu.write_u32(view + 8, emu.api.stubs["WINMM.DLL!timeGetTime"].fn())
+        before = [f32(rng.uniform(-65, -25)), f32(rng.uniform(0, 360)), f32(rng.uniform(230, 400)),
+                  f32(rng.uniform(-500, 500)), f32(rng.uniform(-500, 500))]
+        oracle.write_floats(view + 0x1C, before[:3])
+        oracle.write_floats(view + 0x28, [before[3]])
+        oracle.write_floats(view + 0x30, [before[4]])
+        emu.write_u32(SHAKE_PENDING, 1)
+        emu.call(APPLY_SHAKE, this=view)
+        after = oracle.floats(view + 0x1C, 1) + oracle.floats(view + 0x24, 1) + oracle.floats(view + 0x28, 1)
+        after += oracle.floats(view + 0x30, 1)
+        out.append(([bits(v) for v in before], after))
     return out
 
 
@@ -258,6 +351,23 @@ def main():
         *head, indoor_yaw, targets, after = row
         lines.append(f"    {{{', '.join(map(str, head))}, 0x{indoor_yaw:08x}, {{{hexes(targets)}}}, "
                      f"{{{hexes(after)}}}}},")
+    lines.append("};")
+    lines.append(f"static constexpr std::uint32_t kShakeSeed = {SHAKE_SEED};")
+    lines.append("// {time, player, turn, the shake calls before it ({1 StartShake or 2 SetShakeAmplitudes,")
+    lines.append("// active, length, three amplitudes}), g_viewShakeStepPending, g_isFixedCamera; the camera")
+    lines.append("// as in kCameraFrames, the shake +4 to +0x18, ApplyShake's swings 0067ca90 to 0067ca98,")
+    lines.append("// their guard bits and the step pending after vf04}.")
+    lines.append("static const ShakeFrame kShakeFrames[] = {")
+    for time, player, turn, calls, pending, fixed, state in shakes(oracle, rng):
+        padded = calls + [(0, 0, 0, 0, 0, 0)] * (2 - len(calls))
+        lines.append(f"    {{{time}u, {{{hexes(player)}}}, 0x{turn:08x}, "
+                     f"{{{', '.join('{' + hexes(c) + '}' for c in padded)}}}, {pending}, {fixed},")
+        lines.append(f"     {{{hexes(state)}}}}},")
+    lines.append("};")
+    lines.append("// {pitch, yaw, distance, the point's x and z before ApplyShake; pitch, distance, x and z")
+    lines.append("// after}, seeded with kShakeSeed + 1.")
+    lines.append("static const ShakeStep kShakeSteps[] = {")
+    lines += [f"    {{{{{hexes(b)}}}, {{{hexes(a)}}}}}," for b, a in shake_steps(oracle, rng)]
     lines.append("};")
     print("\n".join(lines))
 

@@ -65,3 +65,7 @@ address	namespace	name	evidence	type
 00686584	Global	g_lastEffectPrim	the primitive CRagEffect's processing last created with CreatePrimitive, which it then fills in	dword
 0068658c	Global	g_blitzBeatCount	the beats AddBlitzBeat 0055f950 has added, set to 0 on an effect id 0x73's frame 0 and counted against its level	dword
 006252fc	Global	g_radianTable	InitAngleTables 0040b2f0 fills 361 floats, 0 to 360 degrees in radians (k * pi * 1/180 in single precision); DegreesToRadians 0040b380 reads it, a negative angle reading back from its end (render/effect_prim.cpp)	dword
+0067ca90	Global	g_viewShakePitchSwing	CView::ApplyShake's function-local static: the shake's pitch amplitude (+0x14) taken at its first step after start-up (guard bit 4 of 0067ca9c), added each step and its sign turned	float
+0067ca94	Global	g_viewShakeDistanceSwing	CView::ApplyShake's function-local static: the distance amplitude (+0x10) taken at its first step after start-up (guard bit 2 of 0067ca9c), added each step and its sign turned	float
+0067ca98	Global	g_viewShakeSidewaysSwing	CView::ApplyShake's function-local static: the point's amplitude (+0xc) taken at its first step after start-up (guard bit 1 of 0067ca9c), times the yaw's cosine and sine each step and its sign turned	float
+0067ca9c	Global	g_viewShakeSwingGuard	the guard bits of CView::ApplyShake's three function-local statics 0067ca98 (1), 0067ca94 (2) and 0067ca90 (4)	byte

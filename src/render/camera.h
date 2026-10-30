@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "core/crt_rand.h"
 #include "render/ground.h"
 #include "render/matrix.h"
 
@@ -36,10 +37,22 @@ Projection SetSize(std::int32_t width, std::int32_t height);
 // What the ground's drawing reads of the projection.
 GroundViewport GroundViewportOf(const Projection& p);
 
-// CView's camera (fields +0x1c to +0xf0). Each frame the current pitch, yaw, distance and
+// CView's shake (+4 to +0x18), set by CView::StartShake (004cf450) and the amplitudes by
+// CView::SetShakeAmplitudes (004cf4b0).
+struct CameraShake {
+  std::uint32_t active = 0;  // +4
+  std::uint32_t start = 0;   // +8, timeGetTime when it began
+  float sideways = 0.0f;     // +0xc, the point's swing across the view
+  float distance = 0.0f;     // +0x10
+  float pitch = 0.0f;        // +0x14
+  std::uint32_t length = 0;  // +0x18, in milliseconds
+};
+
+// CView's camera (fields +4 to +0xf0). Each frame the current pitch, yaw, distance and
 // point looked at move a tenth of the way to their targets, and the view is rebuilt from
 // them. Angles are in degrees; y grows downward, so a negative pitch looks down.
 struct Camera {
+  CameraShake shake{};           // +4
   float pitch = 0.0f;            // +0x1c
   float yaw = 0.0f;              // +0x20, in [0, 360)
   float distance = 0.0f;         // +0x24
@@ -70,9 +83,36 @@ void StepCamera(Camera& camera, bool fixed);
 // (C3dAttr::GetHeight) when there is one; then the look-at view and its inverse.
 void BuildCameraView(Camera& camera, const res::AttrMap* attr);
 
-// CView::vf04 (004cf260) for a frame: the target point is the player's position, then
-// StepCamera and BuildCameraView. The view's shake (004cf2a0) is not ported.
-void UpdateCamera(Camera& camera, const Vec3& player, bool fixed, const res::AttrMap* attr);
+// What CView::ApplyShake (004cf2a0) keeps outside the view: g_viewShakeStepPending
+// (0067cab4), which CView::DrawWorld sets each frame drawn, and three function-local statics
+// (0067ca98, 0067ca94 and 0067ca90, guarded by the bits of 0067ca9c). Each takes its
+// amplitude from the view at the first step that reaches it after start-up and keeps it,
+// turning its sign each step, whatever amplitudes later shakes have.
+struct ShakeSwing {
+  bool step_pending = false;
+  std::uint8_t taken = 0;
+  float sideways = 0.0f;
+  float distance = 0.0f;
+  float pitch = 0.0f;
+};
+
+// CView::StartShake (004cf450) at time now: active and the amplitudes as given, lasting 650
+// ms for length 0, 200 for 1, and otherwise length.
+void StartShake(Camera& camera, std::uint32_t active, std::uint32_t length, float sideways,
+                float distance, float pitch, std::uint32_t now);
+// CView::SetShakeAmplitudes (004cf4b0).
+void SetShakeAmplitudes(Camera& camera, float sideways, float distance, float pitch);
+
+// CView::ApplyShake (004cf2a0) at time now (docs/render/camera.md#the-shake): once a shake
+// has lasted its length, the point, distance and pitch back to their targets and the shake
+// over; before that, on a frame with a step pending, the point, distance and pitch jittered
+// by the swings and rand, and each swing's sign turned.
+void ApplyShake(Camera& camera, ShakeSwing& swing, std::uint32_t now, core::CrtRand& rand);
+
+// CView::vf04 (004cf260) for a frame at time now: the target point is the player's position,
+// then StepCamera, ApplyShake and BuildCameraView.
+void UpdateCamera(Camera& camera, const Vec3& player, bool fixed, const res::AttrMap* attr,
+                  ShakeSwing& swing, std::uint32_t now, core::CrtRand& rand);
 
 // A pitch and distance the player chose, kept per kind of map in the registry
 // (ClientState::SaveOptions, 00588520).

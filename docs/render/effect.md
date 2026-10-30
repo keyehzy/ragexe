@@ -220,8 +220,8 @@ Textures are uploaded as triangles first ask for them.
   `TakeMessages`.
 
 **ragview `--effect-id`:** the `.str` the id names is the launched effect's, played by its
-case at the effect's frame, from its start each launch. The game mode's messages are
-dropped: neither the view's shake nor the jokes are ported.
+case at the effect's frame, from its start each launch. The game mode's messages shake the
+view ([camera.md](camera.md#the-shake)); the jokes are not ported.
 
 ## Checks
 
@@ -242,5 +242,5 @@ dropped: neither the view's shake nor the jokes are ported.
 game mode, step by step ([effect-prim.md](effect-prim.md#checks)).
 
 **Not ported:**
-- the sounds, the view's shake and the jokes;
+- the sounds and the jokes;
 - the texture cache's use counts.

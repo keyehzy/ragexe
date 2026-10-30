@@ -2132,6 +2132,6 @@ for git:
 among them.
 
 **Not ported:**
-- the sounds, the view's shake and the jokes;
+- the sounds and the jokes;
 - the after-images' drawing: they are copies of a `CPc`, which the effect world does not
   draw.

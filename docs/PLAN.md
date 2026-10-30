@@ -2558,6 +2558,15 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Checks:** ten colour runs with the after-images stepped by `CBlurPC::vf01`, and two
     status runs with five screen sizes; 7,709,857 values in `prim_test`.
 
+- [x] The view's shake (`docs/render/camera.md#the-shake`):
+  - **`StartShake`, `SetShakeAmplitudes` and `ApplyShake`:** the point, distance and pitch
+    jittered once a drawn frame by swings that take the first shake's amplitudes for good
+    and turn their sign each step, then set back to their targets when the shake ends.
+  - **ragview** starts the shake from the effects' messages 0x87 and 0x94, on the effects'
+    `rand`.
+  - **Checks:** 260 camera frames with shakes and 2000 `ApplyShake` steps; 22,041 values
+    in the shake's test.
+
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.
