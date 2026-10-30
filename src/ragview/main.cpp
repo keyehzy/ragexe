@@ -68,7 +68,7 @@
 #include "render/scene_graph.h"
 #include "render/text.h"
 #include "render/texture.h"
-#include "render/world_load.h"
+#include "render/world_scene.h"
 #include "res/act.h"
 #include "res/bitmap.h"
 #include "res/client_tables.h"
@@ -363,25 +363,16 @@ int main(int argc, char** argv) {
   }
   const res::DataFiles files(o.install, std::move(archive));
   std::vector<std::uint8_t> bytes;
-  res::World world;
-  if (!Load(files, "data\\" + o.map + ".rsw", bytes) ||
-      !res::DecodeWorld(bytes, true, world, &error)) {
-    std::fprintf(stderr, "ragview: %s.rsw: %s\n", o.map.c_str(),
-                 error.empty() ? "not found" : error.c_str());
+  // The world as CWorld::LoadWorld leaves it, its models loaded from where the player stands
+  // (docs/render/model.md#loading).
+  render::WorldScene scene;
+  if (!render::LoadWorldScene(files, o.map, o.at_x, o.at_z, scene, &error)) {
+    std::fprintf(stderr, "ragview: %s\n", error.c_str());
     return 1;
   }
-  res::Ground ground;
-  if (!Load(files, "data\\" + world.ground, bytes) || !res::DecodeGround(bytes, ground, &error)) {
-    std::fprintf(stderr, "ragview: %s: %s\n", world.ground.c_str(),
-                 error.empty() ? "not found" : error.c_str());
-    return 1;
-  }
-  res::AttrMap attr;
-  if (!Load(files, "data\\" + world.attr, bytes) || !res::DecodeAttrMap(bytes, attr, &error)) {
-    std::fprintf(stderr, "ragview: %s: %s\n", world.attr.c_str(),
-                 error.empty() ? "not found" : error.c_str());
-    return 1;
-  }
+  const res::World& world = scene.world;
+  const res::Ground& ground = scene.ground;
+  const res::AttrMap& attr = scene.attr;
   // ClientState's indoor check (00598ba0): the map's name in the sorted indoorRswTable.txt.
   std::vector<std::string> indoor_maps;
   const bool indoor = res::LoadFields(files, res::kIndoorRswTable, true, indoor_maps) &&
@@ -392,12 +383,7 @@ int main(int argc, char** argv) {
   render::FogState fog;
   const bool fog_on = o.fog && res::LoadFogParameters(files, fog_table) &&
                       render::FindMapFog(fog_table, o.map + ".rsw", fog);
-  render::GroundMesh mesh;
-  const render::GroundLight light{world.light_vector, world.diffuse, world.ambient};
-  if (!render::BuildGround(ground, light, true, mesh, &error)) {
-    std::fprintf(stderr, "ragview: %s: %s\n", world.ground.c_str(), error.c_str());
-    return 1;
-  }
+  render::GroundMesh& mesh = scene.mesh;
 
   if (!SDL_Init(SDL_INIT_VIDEO)) {
     std::fprintf(stderr, "ragview: SDL_Init: %s\n", SDL_GetError());
@@ -454,45 +440,15 @@ int main(int argc, char** argv) {
     camera.target_yaw = o.yaw;
   }
 
-  // The world's models, as CWorld::LoadWorld places them, lit by the map's light and the
-  // ground's colours, in the order it and its lazy loader add them from where the player
-  // stands (docs/render/model.md#loading); a model that fails to load drops out of it. Each
-  // texture is uploaded once, by name.
-  std::map<std::string, std::unique_ptr<res::Model>> model_files;
+  // The world's models, as the scene placed them. Each texture is uploaded once, by name.
+  std::vector<render::ModelInstance>& models = scene.models;
   std::map<std::string, std::pair<std::uint32_t, bool>> model_textures;  // id, ARGB 4444
-  std::vector<render::ModelInstance> models;
   std::vector<std::vector<std::uint32_t>> model_texture_ids;  // per instance, by model texture
   std::vector<render::ModelDrawSettings> model_settings;
-  const render::CellColorLookup cell_color = [&](float x, float, float z) {
-    return render::GroundCellColor(mesh, x, z);
-  };
-  const auto load_order =
-      render::ModelLoadOrder(world.models, player[0], player[2], [](std::size_t) { return true; });
-  // A file a near model names loads first, on the main thread, at single precision.
-  std::set<std::string> single_files;
-  for (const res::WorldModel& placed : world.models)
-    if (render::IsNearModel(placed, player[0], player[2])) single_files.insert(placed.file);
-  for (const std::size_t index : load_order) {
-    const res::WorldModel& placed = world.models[index];
-    auto& file = model_files[placed.file];
-    if (!file) {
-      auto model = std::make_unique<res::Model>();
-      std::string ignored;
-      if (Load(files, "data\\model\\" + placed.file, bytes) &&
-          res::DecodeModel(bytes, *model, &ignored,
-                           single_files.contains(placed.file) ? res::FpuPrecision::kSingle
-                                                              : res::FpuPrecision::kDouble))
-        file = std::move(model);
-    }
-    if (!file) continue;
-    render::ModelInstance instance;
-    if (!render::CreateModelInstance(*file, placed.position, placed.rotation, placed.scale,
-                                     placed.animation_speed, instance))
-      continue;
-    render::LightModel(instance, light, cell_color);
+  for (const render::ModelInstance& instance : models) {
     std::vector<std::uint32_t> ids;
     render::ModelDrawSettings draw;
-    for (const std::string& name : file->textures) {
+    for (const std::string& name : instance.model->textures) {
       auto [it, added] = model_textures.try_emplace(
           name, kModelTextureIdBase + static_cast<std::uint32_t>(model_textures.size()), false);
       if (added) {
@@ -510,12 +466,11 @@ int main(int argc, char** argv) {
       ids.push_back(it->second.first);
       draw.texture_alpha.push_back(it->second.second);
     }
-    models.push_back(std::move(instance));
     model_texture_ids.push_back(std::move(ids));
     model_settings.push_back(std::move(draw));
   }
   std::fprintf(stderr, "ragview: %zu of %zu models, %zu files, %zu textures\n", models.size(),
-               world.models.size(), model_files.size(), model_textures.size());
+               world.models.size(), scene.model_files.size(), model_textures.size());
 
   // The actor, its shadow (shadow.spr and shadow.act), and the scales its sprites read. An
   // actor has one layer; a player has a body and a head, ordered by the job's .imf.
@@ -593,8 +548,7 @@ int main(int argc, char** argv) {
   render::SetSpriteScalesForSize(projection, sprite_scales);
   settings.viewport = render::GroundViewportOf(projection);
   // CWorld::BuildSceneGraph, with the .rsw's bounds when it has them (version 2.1).
-  render::SceneGraph graph;
-  render::BuildSceneGraph(mesh, attr, models, world.bounds, graph);
+  render::SceneGraph& graph = scene.graph;
   for (render::ModelDrawSettings& m : model_settings) {
     m.viewport = settings.viewport;
     m.fade = settings.fade;

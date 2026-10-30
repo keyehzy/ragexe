@@ -2677,6 +2677,19 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Checks:** `tools/rsm_oracle.py --single` on every `.rsm` and the synthetic ones, all
     equal; the ten models of `model_vectors.inc` loaded at single precision, 7,779 values.
 
+- [x] Worlds loaded as the original loads them (`docs/render/model.md#loading`,
+  `src/render/world_scene`):
+  - **`LoadWorldScene`:** the `.rsw`, `.gnd` and `.gat`, the ground, the models in load order
+    at their loader's precision, lit, and the scene graph; ragview and `ragres load-world`
+    both use it.
+  - **`tools/world_oracle.py`** runs the original's `LoadWorld` on real maps, then
+    `UpdateGameObjects`. It registers the resource types and serves the files by their
+    CP949 names, with the x87 at double while the lazy loader runs.
+  - **On twelve maps:** every record in order and every near model equal; the far models
+    differ.
+- [ ] The far models' placement and lighting at double precision (`Setup` and `Light` on
+  `LazyModelLoadThread`), so the far models and the scene graph match too.
+
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

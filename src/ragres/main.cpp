@@ -17,6 +17,10 @@
 //                                          ambient; prints hashes
 //   ragres decode-rsws [--no-lightmaps] FILE...
 //                                          decodes .rsw files as C3dWorldRes does
+//   ragres load-world [--raw] INSTALL MAP CELL_X CELL_Y
+//                                          loads a world as CWorld::LoadWorld does, the
+//                                          player in that cell, as hashes (--raw: each
+//                                          model's fields)
 //   ragres decode-rsms [--single] FILE...  decodes .rsm files as C3dModelRes does, with
 //                                          --single at the x87's single precision
 //   ragres decode-rsxs FILE...             decodes .rsx files as C3dAnimModelRes does
@@ -58,6 +62,7 @@
 // Names are printed and written as stored (CP949) with bytes outside printable ASCII
 // written as %XX, until the CP949 conversion arrives.
 
+#include <bit>
 #include <cstdio>
 #include <cstring>
 #include <filesystem>
@@ -74,6 +79,8 @@
 #include <vector>
 
 #include "render/ground.h"
+#include "render/world_load.h"
+#include "render/world_scene.h"
 #include "res/act.h"
 #include "res/bitmap.h"
 #include "res/client_info.h"
@@ -316,6 +323,104 @@ std::uint64_t Fnv1a64(std::span<const std::uint32_t> values) {
     h = Fnv1a64(le, h);
   }
   return h;
+}
+
+// Loads a world as CWorld::LoadWorld leaves it, the player in the centre of the cell given,
+// and prints "instances n" and "near n", the models placed at once, then per model of CWorld+0x48
+// "I k record fields nodes": its .rsw model, the FNV-1a hashes of its fields +0xc0 to +0x1e4 and of
+// its nodes depth first (alpha, matrix, box, each face's colours and texture coordinates, its
+// ground colours); then "graph n" and per scene graph node depth first "G k box dirty cells
+// attribute-cells models", the box its minimum, maximum, centre and half extents hashed, the models
+// the instances' indices or "-". With --raw, a model's line holds its fields themselves.
+int LoadWorld(std::vector<std::string> args) {
+  bool raw = false;
+  if (!args.empty() && args.front() == "--raw") {
+    raw = true;
+    args.erase(args.begin());
+  }
+  if (args.size() != 4) {
+    std::fprintf(stderr, "usage: ragres load-world [--raw] INSTALL MAP CELL_X CELL_Y\n");
+    return 2;
+  }
+  std::string error;
+  auto archive = ragexe::res::GrfArchive::Open(std::filesystem::path(args[0]) / "data.grf", &error);
+  if (!archive) {
+    std::fprintf(stderr, "%s\n", error.c_str());
+    return 1;
+  }
+  const ragexe::res::DataFiles files(args[0], std::move(archive));
+  const std::string& map = args[1];
+  const auto cell_x = static_cast<std::int32_t>(std::stol(args[2]));
+  const auto cell_y = static_cast<std::int32_t>(std::stol(args[3]));
+  ragexe::res::World world;
+  ragexe::res::AttrMap attr;
+  auto bytes = files.Load("data\\" + map + ".rsw");
+  if (!bytes || !ragexe::res::DecodeWorld(*bytes, true, world, &error)) {
+    std::fprintf(stderr, "%s.rsw: %s\n", map.c_str(), error.c_str());
+    return 1;
+  }
+  bytes = files.Load("data\\" + world.attr);
+  if (!bytes || !ragexe::res::DecodeAttrMap(*bytes, attr, &error)) {
+    std::fprintf(stderr, "%s: %s\n", world.attr.c_str(), error.c_str());
+    return 1;
+  }
+  const auto point = ragexe::render::CellCentre(attr, cell_x, cell_y);
+  ragexe::render::WorldScene scene;
+  if (!ragexe::render::LoadWorldScene(files, map, point[0], point[1], scene, &error)) {
+    std::fprintf(stderr, "%s\n", error.c_str());
+    return 1;
+  }
+  const auto bits = [](float f) { return std::bit_cast<std::uint32_t>(f); };
+  std::printf("instances %zu\nnear %zu\n", scene.models.size(), scene.near_count);
+  for (std::size_t k = 0; k < scene.models.size(); ++k) {
+    const ragexe::render::ModelInstance& m = scene.models[k];
+    std::vector<std::uint32_t> fields;
+    for (const float f : m.world) fields.push_back(bits(f));
+    for (const float f : m.inverse) fields.push_back(bits(f));
+    for (const float f : m.centre) fields.push_back(bits(f));
+    fields.push_back(static_cast<std::uint32_t>(m.field_12c));
+    for (const float f : m.half_extents) fields.push_back(bits(f));
+    for (const float f : m.box_centre) fields.push_back(bits(f));
+    for (const auto& axis : m.axes)
+      for (const float f : axis) fields.push_back(bits(f));
+    for (const auto& corner : m.corners)
+      for (const float f : corner) fields.push_back(bits(f));
+    for (const float f : m.bounds) fields.push_back(bits(f));
+    std::vector<std::uint32_t> nodes;
+    for (const ragexe::render::ModelNodeInstance& node : m.nodes) {
+      nodes.push_back(bits(node.alpha));
+      for (const float f : node.matrix) nodes.push_back(bits(f));
+      for (const float f : node.box) nodes.push_back(bits(f));
+      for (const ragexe::render::FaceShade& face : node.faces) {
+        for (const std::uint32_t c : face.colors) nodes.push_back(c);
+        for (const float f : face.uv) nodes.push_back(bits(f));
+      }
+      for (const std::int32_t t : node.tint) nodes.push_back(static_cast<std::uint32_t>(t));
+    }
+    if (raw) {
+      std::printf("I %zu %zu", k, scene.records[k]);
+      for (const std::uint32_t v : fields) std::printf(" %08x", v);
+      std::printf("\n");
+      continue;
+    }
+    std::printf("I %zu %zu %016llx %016llx\n", k, scene.records[k],
+                static_cast<unsigned long long>(Fnv1a64(fields)),
+                static_cast<unsigned long long>(Fnv1a64(nodes)));
+  }
+  std::printf("graph %zu\n", scene.graph.nodes.size());
+  for (std::size_t k = 0; k < scene.graph.nodes.size(); ++k) {
+    const ragexe::render::SceneGraphNode& n = scene.graph.nodes[k];
+    std::vector<std::uint32_t> box;
+    for (const auto* v : {&n.min, &n.max, &n.centre, &n.half})
+      for (const float f : *v) box.push_back(bits(f));
+    std::string members;
+    for (const int i : n.models) members += (members.empty() ? "" : ",") + std::to_string(i);
+    std::printf("G %zu %016llx %d %d %d %d %d %d %d %d %d %s\n", k,
+                static_cast<unsigned long long>(Fnv1a64(box)), n.dirty ? 1 : 0, n.cells[0],
+                n.cells[1], n.cells[2], n.cells[3], n.attr_cells[0], n.attr_cells[1],
+                n.attr_cells[2], n.attr_cells[3], members.empty() ? "-" : members.c_str());
+  }
+  return 0;
 }
 
 // Decodes .spr files as CSprRes does, at a detail level, and prints FNV-1a hashes of what
@@ -1499,6 +1604,7 @@ int Usage() {
                "       ragres build-grounds [--lightmaps] LIGHT FILE...\n"
                "       ragres decode-rsws [--no-lightmaps] FILE...\n"
                "       ragres decode-rsms [--single] FILE...\n"
+               "       ragres load-world [--raw] INSTALL MAP CELL_X CELL_Y\n"
                "       ragres decode-rsxs FILE...\n"
                "       ragres decode-imfs FILE...\n"
                "       ragres decode-rmas FILE...\n"
@@ -1544,6 +1650,7 @@ int main(int argc, char** argv) {
   if (command == "build-grounds") {
     return BuildGrounds(std::vector<std::string>(argv + 2, argv + argc));
   }
+  if (command == "load-world") return LoadWorld(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-rsms") return DecodeRsms(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-rsxs") return DecodeRsxs(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-imfs") return DecodeImfs(std::vector<std::string>(argv + 2, argv + argc));

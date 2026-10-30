@@ -287,16 +287,19 @@ class Emulator:
     def serve_data_files(self, files):
         """Stand in for data.grf: DataFile reads go through g_pCGPak to CGPak::LoadFile,
         answered here from files, a dict of lower-cased archive paths
-        ("data\\sprite\\x.spr") to bytes. Later calls replace the dict."""
+        ("data\\sprite\\x.spr") to bytes. Later calls replace the dict. A path's bytes
+        above 0x7f, such as CP949's, are given as Latin-1 characters, one per byte; only A to
+        Z are lowered, as the archive's names compare."""
         first = not hasattr(self, "data_files")
-        self.data_files = {name.lower(): data for name, data in files.items()}
+        lower = str.maketrans("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz")
+        self.data_files = {name.translate(lower): data for name, data in files.items()}
         if not first:
             return
         self.write_u32(G_CGPAK, CGPAK_VFTABLE)
         self.write_u32(G_PCGPAK, G_CGPAK)
 
         def load_file(this, key, size_out):
-            data = self.data_files.get(self.read_cstr(key + 4, 256))
+            data = self.data_files.get(self.read_cstr(key + 4, 256, encoding="latin-1"))
             if data is None:
                 self.write_u32(size_out, 0)
                 return 0
@@ -307,7 +310,8 @@ class Emulator:
 
         self.replace_thiscall(CGPAK_LOAD_FILE, 2, load_file)
         self.replace_thiscall(CGPAK_FREE_FILE, 1, lambda this, buffer: 0)
-        self.replace_thiscall(CGPAK_EXISTS, 1, lambda this, key: int(self.read_cstr(key + 4, 256) in self.data_files))
+        self.replace_thiscall(CGPAK_EXISTS, 1, lambda this, key: int(
+            self.read_cstr(key + 4, 256, encoding="latin-1") in self.data_files))
 
     def load_cps(self, path=None):
         """Map cps.dll (zlib 1.0.4) at CPS_BASE and send the client's compress and

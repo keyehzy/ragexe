@@ -190,7 +190,9 @@ The model's vertices are baked at load ([rsm.md](../formats/rsm.md)), and the lo
 on two threads:
 - **The main thread** loads the models within 200 of the player ([loading](#loading))
   after DirectDraw's `FPUSETUP`, so its x87 rounds them to single precision.
-- **`LazyModelLoadThread`** loads the rest at the CRT's default, double precision.
+- **`LazyModelLoadThread`** loads the rest at the CRT's default, double precision. A new
+  thread starts at the default control word, so it also places and lights them (`Setup`,
+  `Light`) at double precision.
 
 The port's loader does either ([rsm.md](../formats/rsm.md#the-loaders-precision)). A
 file is loaded once, by the first model that names it, so it loads at single precision when
@@ -240,6 +242,26 @@ in `LoadWorld`, and the sort, `AddLoadedModel` and the cell's centre are the ori
 `tests/unit/world_load_test.cpp` matches all 2,870 values with `CellCentre` and
 `ModelLoadOrder` (`src/render/world_load`). ragview places the models in that order from
 where its player stands.
+
+**Real maps.** `tools/world_oracle.py` runs `LoadWorld` itself on maps from the install,
+then `CWorld::UpdateGameObjects`. It compares them with `ragres load-world`, which loads the
+port's world with `LoadWorldScene` (`src/render/world_scene`), the player in the centre of
+the attribute map both times.
+- **Real in the oracle:** the resource manager, with its types registered by their static
+  initializers; every loader; the ground's build; the models' placement and lighting; the
+  scene graph. The x87 runs at single precision, and at double while `LazyModelLoadThread`
+  runs, as on its own thread.
+- **Stood in for:** the textures, the effects' and sounds' makers, the player, the UI, and
+  Direct3D's lights.
+- **Compared:** each model of +0x48 (its `.rsw` record, its fields +0xc0 to +0x1e4, its
+  nodes' alpha, matrix, box, face colours and ground colours), and each scene graph node's
+  box, cells and models.
+
+On twelve maps from the smallest to `moc_fild03`:
+- **Equal:** every model's record, in order, and every near model, about 400 in all.
+- **Different:** most far models, and the scene graph nodes they fall in. They are placed
+  and lit at double precision, which the port does not do yet: its placement and lighting
+  round as the main thread does.
 
 **Not ported yet:** the volumes and their matrices.
 
