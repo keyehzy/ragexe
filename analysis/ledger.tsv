@@ -5309,12 +5309,12 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005553e0	951	code	0	world		named	CRagEffect	AddBlast	
 005557a0	780	code	0	world		named	CRagEffect	method_005557a0	
 00555ab0	954	code	0	world		named	CRagEffect	method_00555ab0	
-00555e70	412	code	0	world		named	CRagEffect	method_00555e70	
+00555e70	412	code	0	world		named	CRagEffect	AddChimneySmoke	
 00556010	840	code	0	world		named	CRagEffect	method_00556010	
 00556360	635	code	0	world		named	CRagEffect	method_00556360	
-005565e0	299	code	0	world		named	CRagEffect	method_005565e0	
+005565e0	299	code	0	world		named	CRagEffect	AddTorch	
 00556710	1162	code	0	world		named	CRagEffect	AddPondRing	
-00556ba0	362	code	0	world		named	CRagEffect	method_00556ba0	
+00556ba0	362	code	0	world		named	CRagEffect	AddChristmas	
 00556d10	1069	code	0	world		named	CRagEffect	AddRisingLight	
 00557140	1216	code	0	world		named	CRagEffect	AddRain	
 00557600	580	code	0	world		named	CRagEffect	AddSnowfall	
@@ -5337,10 +5337,10 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0055a100	928	code	0	world		named	CRagEffect	AddPortalColumns	
 0055a4a0	998	code	0	world		named	CRagEffect	AddIncAgility	
 0055a890	1019	code	0	world		named	CRagEffect	AddDecAgility	
-0055ac90	275	code	0	world		named	CRagEffect	method_0055ac90	
+0055ac90	275	code	0	world		named	CRagEffect	AddHolyWater	
 0055adb0	552	code	0	world		named	CRagEffect	method_0055adb0	
 0055afe0	1305	code	0	world		named	CRagEffect	method_0055afe0	
-0055b500	204	code	0	world		named	CRagEffect	method_0055b500	
+0055b500	204	code	0	world		named	CRagEffect	AddPoisonHit	
 0055b5d0	877	code	0	world		named	CRagEffect	AddLockOn	
 0055b940	1274	code	0	world		named	CRagEffect	AddRipplingColumn	
 0055be40	1701	code	0	world		named	CRagEffect	AddSightrasher	
@@ -5370,9 +5370,9 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00561070	723	code	0	world		named	CRagEffect	AddSonicBlowCylinder	
 00561350	1016	code	0	world		named	CRagEffect	AddStoneTrail	
 00561750	701	code	0	world		named	CRagEffect	AddStoneTriad	
-00561a10	594	code	0	world		named	CRagEffect	method_00561a10	
+00561a10	594	code	0	world		named	CRagEffect	AddPoisonBubbles	
 00561c70	643	code	0	world		named	CRagEffect	AddOverThrust	
-00561f00	571	code	0	world		named	CRagEffect	method_00561f00	
+00561f00	571	code	0	world		named	CRagEffect	AddSinkingPoisonBubbles	
 00562140	343	code	0	world		named	CRagEffect	AddCylinderStack	
 005622a0	502	code	0	world		named	CRagEffect	AddShrinkingCylinders	
 005624a0	844	code	0	world		named	CRagEffect	AddSpikeField	
@@ -5381,16 +5381,16 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00562b30	599	code	0	world		named	CRagEffect	method_00562b30	
 00562d90	926	code	0	world		named	CRagEffect	method_00562d90	
 00563130	538	code	0	world	unreferenced	raw	Global	FUN_00563130	
-00563350	359	code	0	world		named	CRagEffect	method_00563350	
+00563350	359	code	0	world		named	CRagEffect	AddRisingBubbles	
 005635c0	1787	code	0	world	unreferenced	raw	Global	FUN_005635c0	
 00563cc0	239	code	0	world	unreferenced	raw	Global	FUN_00563cc0	
-00563db0	253	code	0	world		named	CRagEffect	method_00563db0	
+00563db0	253	code	0	world		named	CRagEffect	AddDarkBreath	
 00563eb0	683	code	0	world		named	CRagEffect	AddWedgeBurst	
 00564160	626	code	0	world		named	CRagEffect	AddRedTripleShot	
 005643e0	627	code	0	world		named	CRagEffect	AddBlueTripleShot	
-00564660	348	code	0	world		named	CRagEffect	method_00564660	
+00564660	348	code	0	world		named	CRagEffect	AddTargetSmoke	
 005647c0	292	code	0	world		named	CRagEffect	AddConcentrationColumn	
-005648f0	416	code	0	world		named	CRagEffect	method_005648f0	
+005648f0	416	code	0	world		named	CRagEffect	AddGroundedBubbles	
 00564a90	104	code	0	world		named	CRagEffect	ProcessAngelus	
 00564b00	1020	code	0	world		named	CRagEffect	AddSignum	
 00564f00	104	code	0	world		named	CRagEffect	ProcessMvp	

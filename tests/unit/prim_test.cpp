@@ -236,6 +236,7 @@ struct StrEffectVector {
 #include "prim_vectors/cylinders.inc"
 #include "prim_vectors/flights.inc"
 #include "prim_vectors/motes.inc"
+#include "prim_vectors/particles.inc"
 #include "prim_vectors/ribbons.inc"
 #include "prim_vectors/rings.inc"
 #include "prim_vectors/screens.inc"
@@ -1041,9 +1042,9 @@ ragexe::res::Sprite TestSprite() {
 }
 
 // The script's stand-in act; wide, its actions twice over, as the trail effects get it.
-ragexe::res::Act TestAct(bool wide = false) {
+// The script's actions, copies times over (two for its trails on, three for 0xa5's six).
+ragexe::res::Act TestAct(std::size_t copies = 1) {
   ragexe::res::Act act;
-  const std::size_t copies = wide ? 2 : 1;
   for (std::size_t c = 0; c < copies; ++c)
     for (int frames : kActionFrames) act.actions.emplace_back(static_cast<std::size_t>(frames));
   for (std::size_t c = 0; c < copies; ++c) {
@@ -1470,11 +1471,12 @@ class PlayingStr : public EffectStr {
 void CheckTargetEffects(std::span<const SquareEffectVector> effects,
                         std::vector<std::uint32_t> (*state)(const EffectPrim&) = StateFor,
                         bool sprites = false, bool str_plays = false,
-                        const std::map<std::size_t, float>& facings = {}) {
+                        const std::map<std::size_t, float>& facings = {},
+                        std::size_t act_copies = 2) {
   PlayingStr playing;
   const ragexe::res::AttrMap attr = TestAttr();
   const ragexe::res::Sprite sprite = TestSprite();
-  const ragexe::res::Act act = TestAct(true);
+  const ragexe::res::Act act = TestAct(act_copies);
   std::map<std::string, std::uint32_t> ids = {{"", 0}};
   for (const TextureVector& t : kTextures) ids[t.name] = t.id;
   const auto vec = [](const std::uint32_t* v) { return Vec3{F(v[0]), F(v[1]), F(v[2])}; };
@@ -1908,13 +1910,17 @@ TEST_CASE("The cylinder effects and spell circles play as the original's", "[eff
                      {{2, 30.0f}, {3, 200.0f}});
 }
 
+TEST_CASE("The particle effects of their own sprites play as the original's", "[effect]") {
+  CheckTargetEffects(kParticleEffects, StateOfFlightEffect, true, true, {}, 3);
+}
+
 TEST_CASE("Concentration's other columns play as the original's", "[effect]") {
   CheckTargetEffects(kColumnEffects, StateOfFlightEffect, true, true);
 }
 
 TEST_CASE("Effects ask their .str and the game mode as the original's", "[effect]") {
   const ragexe::res::Sprite sprite = TestSprite();
-  const ragexe::res::Act act = TestAct(true);
+  const ragexe::res::Act act = TestAct(2);
   const auto vec = [](const std::uint32_t* v) { return Vec3{F(v[0]), F(v[1]), F(v[2])}; };
   for (const StrEffectVector& v : kStrEffects) {
     INFO("effect id " << v.id << ", period " << v.period);

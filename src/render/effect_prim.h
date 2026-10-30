@@ -56,6 +56,10 @@ struct RagEffect {
   Vec3 stride{};              // +0xf4, the trails' step towards the target
   Vec3 walk{};                // +0x100, how far the trails have stepped
   EffectStr* str = nullptr;   // without one, AdvanceStr answers false
+  // +0xc4 and +0xc8, which only 0x2f and 0xa5 read, raising them to 1 first: the scale and
+  // image delay of their sprite. Nothing else sets them.
+  float sprite_scale = 0.0f;
+  float sprite_delay = 0.0f;
 };
 
 // A message an effect sends the game mode (its vf05, CGameMode::SendMsg 0051d990), with
@@ -444,7 +448,7 @@ inline constexpr const char* kParticleSprite = "\300\314\306\321\306\256\\partic
 // ef_snow, sakura01, 단풍, 침투경_, 데몬스트레이션, Waterball, 축복, particle6 and Sight
 // (00618d58, 00618f20, 00619df4, 00619e18, 0061a10c, 0061a154, 006195fc, 00618cd0, 00618ca8
 // and 00618fac), and Shadow (00618f8c).
-inline constexpr std::array<const char*, 12> kEffectSprites = {
+inline constexpr std::array<const char*, 19> kEffectSprites = {
     "\300\314\306\321\306\256\\particle2",
     "\300\314\306\321\306\256\\ef_snow",
     "\300\314\306\321\306\256\\sakura01",
@@ -456,7 +460,14 @@ inline constexpr std::array<const char*, 12> kEffectSprites = {
     "\300\314\306\321\306\256\\particle6",
     "\300\314\306\321\306\256\\Sight",
     "Shadow",
-    "\300\314\306\321\306\256\\particle4"};
+    "\300\314\306\321\306\256\\particle4",
+    "\300\314\306\321\306\256\\torch_01",
+    "\300\314\306\321\306\256\\\274\272\274\366\266\337\261\342",
+    "\300\314\306\321\306\256\\PoisonHit",
+    "\300\314\306\321\306\256\\particle3",
+    "\300\314\306\321\306\256\\DarkBreath",
+    "\300\314\306\321\306\256\\\261\274\266\322\277\254\261\342",
+    "\300\314\306\321\306\256\\\305\251\270\256\275\272\270\266\275\272"};
 
 // CRagEffect::ProcessRingBurst (005505a0), effect id 0, on its first frame: a cylinder of
 // ring_blue.tga rising from the actor, and unless minimal effects are on, two particles
@@ -927,6 +938,27 @@ void AddCylinderStack(RagEffect& effect, std::vector<EffectPrim>& added);
 void AddShrinkingCylinders(RagEffect& effect, std::vector<EffectPrim>& added);
 void AddSpellCircle(RagEffect& effect, const EffectActor& actor, const char* texture,
                     std::int8_t scale, std::vector<EffectPrim>& added);
+
+// Particles (id 5) of their own sprites (docs/render/effect-prim.md#more-particles):
+// AddTorch (005565e0), 0x2f; AddHolyWater (0055ac90), 0x27; AddPoisonHit (0055b500), 0x35;
+// AddDarkBreath (00563db0), 0xd4; AddChristmas (00556ba0), 0xa5; AddChimneySmoke (00555e70),
+// 0x2c, and at the target (00564660), 0x151; AddRisingBubbles (00563350 and 005648f0), 0xab
+// and 0x14e, which also keeps the effect on the ground; AddPoisonBubbles (00561a10 and
+// 00561f00), 0x14 and 0x7d, and 0x88 (sinking, 20 up).
+void AddTorch(RagEffect& effect, const EffectActor& actor, const PrimSprite& torch,
+              std::vector<EffectPrim>& added);
+void AddHolyWater(RagEffect& effect, const EffectActor& actor, const PrimSprite& water,
+                  std::vector<EffectPrim>& added);
+void AddPoisonHit(RagEffect& effect, const PrimSprite& hit, std::vector<EffectPrim>& added);
+void AddDarkBreath(RagEffect& effect, const PrimSprite& breath, std::vector<EffectPrim>& added);
+void AddChristmas(RagEffect& effect, const EffectActor& actor, const PrimSprite& tree,
+                  core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddChimneySmoke(RagEffect& effect, const EffectActor& actor, const PrimSprite& smoke,
+                     bool at_target, core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddRisingBubbles(RagEffect& effect, const PrimSprite& bubble, const res::AttrMap* attr,
+                      bool grounded, core::CrtRand& rand, std::vector<EffectPrim>& added);
+void AddPoisonBubbles(RagEffect& effect, const PrimSprite& bubble, bool sinking,
+                      core::CrtRand& rand, std::vector<EffectPrim>& added);
 
 // CRagEffect::AdvanceStr (0054fba0): false without a .str, else the .str's step.
 bool AdvanceStr(RagEffect& effect, const EffectActor& actor, float x, float y, float z);

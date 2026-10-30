@@ -7401,6 +7401,181 @@ void AddSpellCircle(RagEffect& effect, const EffectActor& actor, const char* tex
   added.push_back(std::move(p));
 }
 
+namespace {
+
+// The sprite of 0x2f and 0xa5 at the effect's own scale and image delay (+0xc4 and +0xc8),
+// each raised to 1 first.
+void UseOwnSprite(RagEffect& effect, EffectPrim& p, bool scaled) {
+  if (effect.sprite_scale <= 0.0f) effect.sprite_scale = 1.0f;
+  if (effect.sprite_delay < 1.0f) effect.sprite_delay = 1.0f;
+  if (scaled) p.scale = effect.sprite_scale;
+  p.image_delay = Ftol(effect.sprite_delay);
+}
+
+// The rising particle3 bubbles of 0xab and 0x14e: straight up from the effect, at 0.25 to
+// 0.49 a step and slowing by half, 10 steps.
+EffectPrim MakeBubble(RagEffect& effect, const PrimSprite& bubble, core::CrtRand& rand) {
+  EffectPrim p = MakePrimitive(&effect, 5, {0.0f, 0.0f, 0.0f});
+  p.life = 10;
+  rand.Next();  // a heading the pitch's matrix then replaces
+  p.matrix = MakeRotationX(core::DegreesToRadians(90));
+  p.speed = static_cast<float>(rand.Next() % 20 + 20) * std::bit_cast<float>(0x3c4ccccdu);
+  p.acceleration = (p.speed / static_cast<float>(p.life)) * -0.5f;
+  p.scale = std::bit_cast<float>(0x3f4ccccdu);  // 0.8
+  p.spin = 3.0f;
+  p.alpha = 70.0f;
+  p.alpha_speed = p.alpha_max * std::bit_cast<float>(0x3dcccccdu);  // 0.1
+  p.fade_at = p.life - p.life / 5;
+  p.sprite = bubble;
+  ResetHistory(p);
+  return p;
+}
+
+// The smoke of 0x2c and 0x151: leaning 75 to 104 degrees out at a random heading, 9 up,
+// at 0.3 to 0.5 a step, spinning 0.75, as long as the effect, out over its last third.
+EffectPrim MakeSmoke(RagEffect& effect, const Vec3& at, const PrimSprite& smoke,
+                     core::CrtRand& rand) {
+  EffectPrim p = MakePrimitive(&effect, 5, at);
+  p.life = effect.duration;
+  const float pitch = core::DegreesToRadians(rand.Next() % 30 + 75);
+  p.matrix = RotateY(MakeRotationX(pitch), core::DegreesToRadians(rand.Next() % 360));
+  p.offset[1] = -9.0f;
+  p.spin = 0.75f;
+  p.speed = static_cast<float>(rand.Next() % 3 + 3) * std::bit_cast<float>(0x3dcccccdu);
+  p.scale = 1.5f;
+  p.fade_at = p.life - p.life / 3;
+  p.sprite = smoke;
+  ResetHistory(p);
+  return p;
+}
+
+}  // namespace
+
+void AddTorch(RagEffect& effect, const EffectActor& actor, const PrimSprite& torch,
+              std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  EffectPrim p = MakePrimitive(&effect, 5, {0.0f, 0.0f, 0.0f});
+  p.flags |= EffectPrim::kItemColors;
+  p.life = effect.duration;
+  p.offset[1] = -10.0f;
+  UseOwnSprite(effect, p, true);
+  p.sprite = torch;
+  ResetHistory(p);
+  added.push_back(std::move(p));
+}
+
+void AddHolyWater(RagEffect& effect, const EffectActor& actor, const PrimSprite& water,
+                  std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  // effect\EF_Aqua.wav plays here.
+  EffectPrim p = MakePrimitive(&effect, 5, {0.0f, 0.0f, 0.0f});
+  p.life = effect.duration;
+  p.offset[1] = -20.0f;
+  p.image_delay = 2;
+  p.image_loop = false;
+  p.sprite = water;
+  ResetHistory(p);
+  added.push_back(std::move(p));
+}
+
+void AddPoisonHit(RagEffect& effect, const PrimSprite& hit, std::vector<EffectPrim>& added) {
+  if (effect.frame != 0) return;
+  EffectPrim p = MakePrimitive(&effect, 5, {0.0f, 0.0f, 0.0f});
+  p.life = effect.duration;
+  p.scale = 1.5f;
+  p.image_delay = 2;
+  p.flags |= EffectPrim::kItemColors;
+  p.image_loop = false;
+  p.sprite = hit;
+  ResetHistory(p);
+  added.push_back(std::move(p));
+}
+
+void AddDarkBreath(RagEffect& effect, const PrimSprite& breath, std::vector<EffectPrim>& added) {
+  if (effect.frame != 0) return;
+  EffectPrim p = MakePrimitive(&effect, 5, {0.0f, 0.0f, 0.0f});
+  p.life = 65;
+  p.quad_flags |= 0x200;
+  p.offset[1] = p.offset[1] - 20.0f;
+  p.scale = std::bit_cast<float>(0x3f4ccccdu);  // 0.8
+  p.image_delay = 1;
+  p.green = 0;
+  p.blue = 0;
+  p.fade_at = 60;
+  p.sprite = breath;
+  ResetHistory(p);
+  added.push_back(std::move(p));
+}
+
+void AddChristmas(RagEffect& effect, const EffectActor& actor, const PrimSprite& tree,
+                  core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  EffectPrim p = MakePrimitive(&effect, 5, {0.0f, 0.0f, 0.0f});
+  p.flags |= EffectPrim::kItemColors;
+  p.life = 125;
+  p.offset[1] = -10.0f;
+  UseOwnSprite(effect, p, false);
+  p.sprite = tree;
+  const std::int32_t pick = rand.Next() % 10;
+  // One in three of the picks all but hides it.
+  p.scale = pick % 3 == 1 ? kHundredth : 1.0f;
+  SetAction(p, pick / 2);
+  ResetHistory(p);
+  added.push_back(std::move(p));
+}
+
+void AddChimneySmoke(RagEffect& effect, const EffectActor& actor, const PrimSprite& smoke,
+                     bool at_target, core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  effect.position = actor.position;
+  if (effect.frame != 0) return;
+  if (at_target) {
+    added.push_back(MakeSmoke(effect, effect.target, smoke, rand));
+    return;
+  }
+  const std::int32_t count = rand.Next() % 4 + 1;
+  for (std::int32_t n = 0; n < count; ++n)
+    added.push_back(MakeSmoke(effect, {0.0f, 0.0f, 0.0f}, smoke, rand));
+}
+
+void AddRisingBubbles(RagEffect& effect, const PrimSprite& bubble, const res::AttrMap* attr,
+                      bool grounded, core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  if (effect.frame % 5 == 0) added.push_back(MakeBubble(effect, bubble, rand));
+  if (grounded) {
+    const float ground =
+        attr != nullptr ? res::AttrHeight(*attr, effect.position[0], effect.position[2]) : 0.0f;
+    effect.position[1] = ground - 4.5f;
+  }
+}
+
+void AddPoisonBubbles(RagEffect& effect, const PrimSprite& bubble, bool sinking,
+                      core::CrtRand& rand, std::vector<EffectPrim>& added) {
+  // effect\assasin_enchantpoison.wav and EF_PoisonAttack.wav play on the first frame, or
+  // for 0x88 EF_PoisonAttack.wav alone.
+  if (effect.frame % 5 != 0) return;
+  EffectPrim p = MakePrimitive(&effect, 5, {0.0f, 0.0f, 0.0f});
+  p.life = 40;
+  // 2 to 7 out along the ground at a random heading.
+  const Matrix m = MakeRotationY(core::DegreesToRadians(rand.Next() % 360));
+  const auto out = static_cast<float>(rand.Next() % 6 + 2);
+  for (std::size_t i = 0; i < 3; ++i) p.offset[i] = (out * m[6 + i]) + m[9 + i];
+  p.matrix = MakeRotationX(core::DegreesToRadians(90));
+  if (sinking) p.offset[1] = -20.0f;
+  const float unit = sinking ? -kHundredth : kHundredth;
+  p.speed = static_cast<float>(rand.Next() % 30 + 30) * unit;
+  p.acceleration = (p.speed / static_cast<float>(p.life)) * -0.5f;
+  p.scale = static_cast<float>(rand.Next() % 50 + 40) * kHundredth;
+  p.spin = 3.0f;
+  p.alpha = 0.0f;
+  p.alpha_speed = p.alpha_max * std::bit_cast<float>(0x3dcccccdu);  // 0.1
+  p.fade_at = p.life - p.life / 5;
+  p.sprite = bubble;
+  ResetHistory(p);
+  added.push_back(std::move(p));
+}
+
 bool AdvanceStr(RagEffect& effect, const EffectActor& actor, float x, float y, float z) {
   return effect.str != nullptr && effect.str->Advance(effect, actor.position, x, y, z);
 }
@@ -7798,6 +7973,24 @@ void EffectWorld::Step(const PrimScene& world_scene) {
         case 0x36: AddSpellCircle(e, it->actor, "effect\\ring_blue.tga", 2, added); break;
         case 0x37: AddSpellCircle(e, it->actor, "effect\\ring_yellow.tga", 1, added); break;
         case 0x39: AddSpellCircle(e, it->actor, "effect\\ring_yellow.tga", 0, added); break;
+        case 0x2f: AddTorch(e, it->actor, Sprite(kEffectSprites[12]), added); break;
+        case 0x27: AddHolyWater(e, it->actor, Sprite(kEffectSprites[13]), added); break;
+        case 0x35: AddPoisonHit(e, Sprite(kEffectSprites[14]), added); break;
+        case 0xd4: AddDarkBreath(e, Sprite(kEffectSprites[16]), added); break;
+        case 0xa5: AddChristmas(e, it->actor, Sprite(kEffectSprites[18]), rand_, added); break;
+        case 0x2c:
+        case 0x151:
+          AddChimneySmoke(e, it->actor, Sprite(kEffectSprites[17]), e.id == 0x151, rand_, added);
+          break;
+        case 0xab:
+        case 0x14e:
+          AddRisingBubbles(e, Sprite(kEffectSprites[15]), scene.attr, e.id == 0x14e, rand_, added);
+          break;
+        case 0x14:
+        case 0x7d:
+        case 0x88:
+          AddPoisonBubbles(e, Sprite(kEffectSprites[15]), e.id == 0x88, rand_, added);
+          break;
         default: ended = !ProcessStrEffect(e, it->actor, added, messages_); break;
       }
       for (EffectPrim& p : added) {

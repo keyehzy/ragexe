@@ -1701,6 +1701,27 @@ Eight more cases of `CRagEffect::vf01` add cylinders (id 0xd,
 
 `005673b0` makes id 0x19 instead when its second argument is `'!'`, which no caller passes.
 
+## More particles
+
+Twelve more cases add particles (id 5, [particles and cylinders](#particles-and-cylinders))
+of sprites of their own, each `이팩트\` and a name (`.spr` and `.act`). None of the ids has a
+`.str`.
+
+| Effect ids | Function | Sprite | What |
+|-----------|----------|--------|------|
+| 0x2f | `AddTorch` (`005565e0`) | `torch_01` | the effect at the actor each step; on the first frame one particle as long as the effect, 10 up, its own colours, its scale and image delay the effect's +0xc4 and +0xc8 |
+| 0x27 | `AddHolyWater` (`0055ac90`) | `성수뜨기` | the effect at the actor; on the first frame `EF_Aqua.wav` and one particle as long as the effect, 20 up, two steps an image, played once |
+| 0x35 | `AddPoisonHit` (`0055b500`) | `PoisonHit` | on the first frame one particle as long as the effect, scale 1.5, two steps an image, its own colours, played once |
+| 0xd4 | `AddDarkBreath` (`00563db0`) | `DarkBreath` | on the first frame one particle, 65 steps, 20 up, scale 0.8, an image a step, red alone, its quad flag 0x200, fading from 60 |
+| 0xa5 | `AddChristmas` (`00556ba0`) | `크리스마스` | the effect at the actor; on the first frame one particle, 125 steps, 10 up, its own colours and the effect's image delay; a `rand() % 10` pick: action pick / 2 (`CRenderObject::SetAction`, its vf07), and scale 0.01 when pick % 3 is 1, else 1 |
+| 0x2c, 0x151 | `AddChimneySmoke` (`00555e70`, `00564660`) | `굴뚝연기` | the effect at the actor; on the first frame 1 to 4 smoke particles by `rand()` (0x151: one, at the target): as long as the effect, leaning 75 to 104 degrees out at a random heading, 9 up, 0.3 to 0.5 a step, spinning 0.75, scale 1.5, out over the last third |
+| 0xab, 0x14e | `AddRisingBubbles` (`00563350`, `005648f0`) | `particle3` | every fifth frame a bubble, 10 steps, straight up at 0.25 to 0.49 slowing by half (one `rand()` for a heading then unused), scale 0.8, spin 3, alpha 70 and fading in by a tenth of 254, out over the last fifth; 0x14e keeps the effect 4.5 above the ground (`C3dAttr::GetHeight`) each step |
+| 0x14, 0x7d, 0x88 | `AddPoisonBubbles` (`00561a10`, `00561f00`) | `particle3` | every fifth frame a bubble, 40 steps, 2 to 7 out along the ground at a random heading, rising at 0.3 to 0.59 (0x88: 20 up, sinking as fast) slowing by half, scale 0.4 to 0.89, spin 3, from alpha 0 by a tenth of 254, out over the last fifth; `assasin_enchantpoison.wav` and `EF_PoisonAttack.wav` on the first frame (0x88: the second alone) |
+
+**+0xc4 and +0xc8** of the effect are read by 0x2f and 0xa5 alone, which raise them to 1
+when below 0 and 1. Nothing else writes them, and the constructor leaves them, so they
+are 1 in effect (the oracle's heap starts zeroed).
+
 ## In the port
 
 **`src/core/crt_rand`:** `CrtRand`, `srand` and `rand`.
@@ -1733,7 +1754,9 @@ Eight more cases of `CRagEffect::vf01` add cylinders (id 0xd,
   for three ids, `AddArrows` for two), the eleven of
   [pyramids and spheres](#pyramids-and-spheres) and the two of
   [ribbons, the tube and panels](#ribbons-the-tube-and-panels) (`AddPanels` for five
-  ids) and the six of [more cylinders](#more-cylinders);
+  ids), the six of [more cylinders](#more-cylinders) and the eight of
+  [more particles](#more-particles) (`AddChimneySmoke` and `AddRisingBubbles` for two ids
+  each, `AddPoisonBubbles` for three);
 - `ProcessStrEffect` for the 97 cases that only play their `.str`, and `AdvanceStr` and
   `ResetStr` through an effect's `EffectStr` ([effect.md](effect.md#which-cases-play-their-str));
 - `EffectWorld`, the world's list as effects use it:
@@ -1935,11 +1958,13 @@ for git:
   - `g_ModeSwitcher+4` set to the game mode, which 0x127 and 0x128 read straight.
 - **The eight cylinder effects and spell circles** (0x7a twice, the actor facing 30 and
   200 degrees), as for the crossed-quad effects.
+- **The twelve particle effects**, 0xa5 four times and 0x2c twice, as for the crossed-quad
+  effects, the stand-in act's actions three times over (six) for 0xa5's picks.
 
-`tests/unit/prim_test.cpp` matches all of it: 7,110,580 values, the CRT's first `rand` values
+`tests/unit/prim_test.cpp` matches all of it: 7,188,401 values, the CRT's first `rand` values
 among them.
 
 **Not ported:**
-- the 32 cases of `CRagEffect::vf01` that add primitives of their own and are not yet
+- the 20 cases of `CRagEffect::vf01` that add primitives of their own and are not yet
   ported ([effect.md](effect.md#which-cases-play-their-str));
 - the sounds, the view's shake and the jokes.

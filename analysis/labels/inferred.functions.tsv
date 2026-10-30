@@ -2750,3 +2750,14 @@ address	namespace	name	calling_convention	evidence
 00552ee0	CRagEffect	AddBlueSpellCircle	__thiscall	effect id 0x36: the effect at the actor; on frame 0 effect\\EF_BeginSpell.wav and AddSpellCircle 005673b0 (effect\\ring_blue.tga, 2)
 00552f60	CRagEffect	AddYellowSpellCircle	__thiscall	effect id 0x37: as 00552ee0 with (effect\\ring_yellow.tga, 1)
 005532e0	CRagEffect	AddSecondYellowSpellCircle	__thiscall	effect id 0x39: as 00552ee0 with (effect\\ring_yellow.tga, 0)
+005565e0	CRagEffect	AddTorch	__thiscall	effect id 0x2f: the effect at the actor; on frame 0 CreatePrimitive id 5 of 이팩트\\torch_01 as long as the effect, 10 up, flag 0x200, scale +0xc4 and image delay +0xc8 of the effect, each raised to 1 first; docs/render/effect-prim.md#more-particles
+0055ac90	CRagEffect	AddHolyWater	__thiscall	effect id 0x27: the effect at the actor; on frame 0 effect\\EF_Aqua.wav and CreatePrimitive id 5 of 이팩트\\성수뜨기, 20 up, image delay 2, played once
+0055b500	CRagEffect	AddPoisonHit	__thiscall	effect id 0x35: on frame 0 CreatePrimitive id 5 of 이팩트\\PoisonHit as long as the effect, scale 1.5, image delay 2, flag 0x200, played once
+00563db0	CRagEffect	AddDarkBreath	__thiscall	effect id 0xd4: on frame 0 CreatePrimitive id 5 of 이팩트\\DarkBreath, 65 frames, 20 up, scale 0.8, red alone, quad flag 0x200
+00556ba0	CRagEffect	AddChristmas	__thiscall	effect id 0xa5: the effect at the actor; on frame 0 CreatePrimitive id 5 of 이팩트\\크리스마스, 125 frames, the effect's image delay +0xc8; rand() % 10 picks the action (half of it, through vf07 SetAction) and scale 0.01 or 1
+00555e70	CRagEffect	AddChimneySmoke	__thiscall	effect id 0x2c: the effect at the actor; on frame 0 rand() % 4 + 1 CreatePrimitive id 5 of 이팩트\\굴뚝연기, leaning out at random, 9 up, spinning 0.75
+00564660	CRagEffect	AddTargetSmoke	__thiscall	effect id 0x151: as 00555e70 with one smoke particle, at the target +0xe8
+00563350	CRagEffect	AddRisingBubbles	__thiscall	effect id 0xab: every 5 frames CreatePrimitive id 5 of 이팩트\\particle3, 10 frames, rising at 0.25 to 0.49 slowing by half
+005648f0	CRagEffect	AddGroundedBubbles	__thiscall	effect id 0x14e: as 00563350, then the effect's y 4.5 above C3dAttr::GetHeight under it each frame
+00561a10	CRagEffect	AddPoisonBubbles	__thiscall	effect ids 0x14 and 0x7d: on frame 0 effect\\assasin_enchantpoison.wav and EF_PoisonAttack.wav; every 5 frames CreatePrimitive id 5 of 이팩트\\particle3, 40 frames, 2 to 7 out at random, rising
+00561f00	CRagEffect	AddSinkingPoisonBubbles	__thiscall	effect id 0x88: as 00561a10, 20 up and sinking, with EF_PoisonAttack.wav alone
