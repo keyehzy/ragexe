@@ -136,7 +136,10 @@ runs on Vulkan; D3D12 would need DXIL.
    `fogParameterTable.txt` ([fog.md](fog.md)). Every vertex carries its fog factor, and
    the first frame starts with `SetupProjection`'s fog states.
 5. The calls become `DrawRecord`s for the device.
-6. **Text,** last, as GDI drew it on the back buffer before `Present`
+6. **The cursor,** in a window: `cursors.act`'s arrow at the mouse, drawn onto the screen
+   after the scene as `CMode::DrawCursor` draws it ([actor.md](actor.md#on-the-screen)).
+   The system's cursor is hidden.
+7. **Text,** last, as GDI drew it on the back buffer before `Present`
    ([text.md](text.md#the-glyphs)): the runs drawn into a layer the screen's size, then
    one draw of the layer with an alpha test, its own state, outside the scene's.
    - `--fps`: the frame rate as `SceneRenderer` `00410cf0` would draw it, which the

@@ -63,6 +63,7 @@ target_link_libraries(ragexe_res PRIVATE ZLIB::ZLIB ragexe_stb_image ragexe_opti
 add_library(ragexe_render STATIC
   render/actor.cpp
   render/camera.cpp
+  render/cursor.cpp
   render/device.cpp
   render/effect.cpp
   render/effect_prim.cpp

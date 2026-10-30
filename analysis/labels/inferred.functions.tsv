@@ -247,7 +247,7 @@ address	namespace	name	calling_convention	evidence
 0053baa0	CLoginMode	OnChangeState	__thiscall	vf06: opens the windows of the new login state (+0x4), a switch over the states with UIWindowMgr calls
 00515f60	CGameMode	OnChangeState	__thiscall	vf06; empty
 004cb480	CMode	DrawFadeIn	__thiscall	when +0x10 is set, starts MusicFadeThread with ClientState +0x648; draws black with alpha falling over 255 ms
-004cb830	CMode	DrawCursor	__thiscall	the mouse cursor from cursors.act and cursors.spr, its frame taken from the time since +0x24 in 24 ms units
+004cb830	CMode	DrawCursor	__thiscall	the mouse cursor from cursors.act and cursors.spr: its frame (+0x3c) from the time since +0x24 in 24 ms units over the action's (+0x38) step, looping, played once (action 1) or while g_DirectInputMouse+0x28 is held (2, 9); UIWindowMgr 004b3970 message 0x10 with the frame; DrawActFrame at the mouse (00628b5c, 00628b60) plus +0x30, +0x34, colour 0xfaffffff, z test and point filtering
 004cba20	CMode	SaveScreenshot	__thiscall	when +0x2c is set: stamps GetLocalTime's date (0060c164, the day names 0060c188 to 0060c1c4) with five SceneRenderer::DrawText at x 3 to 5, height - 17 to - 15, black then white, saves ScreenShot\screen<name><nnn>.jpg (or .bmp with Ctrl) and reports "is Saved"
 # SceneRenderer: every caller loads ECX from g_pSceneRenderer
 0040dca0	SceneRenderer	ClearFrame	__thiscall	(black): C3dDevice::Clear(0xff000000), else C3dDevice::ClearDepth
@@ -749,7 +749,7 @@ address	namespace	name	calling_convention	evidence
 00410340	SceneRenderer	DrawAdditive	__thiscall	sorts the pairs at +0x104 by key and draws them; DrawScene, ONE / ONE without z writes
 00410450	SceneRenderer	DrawAdditiveNoDepth	__thiscall	sorts the pairs at +0x114 by key and draws them; DrawScene with the z-buffer off
 00410560	SceneRenderer	DrawStageModePrimitives	__thiscall	the primitives at +0x184 in the order added: texture, SetStageMode of +0x1c, SRCBLEND +0x14 and DESTBLEND +0x18, RenderPrimitive::Draw; DrawScene
-00410620	SceneRenderer	DrawActFrame	__thiscall	(x, y, act, sprite, action, frame, scale, angle, colour, z test, point filter): draws an action frame's items as transformed quads at once, outside the lists
+00410620	SceneRenderer	DrawActFrame	__thiscall	(x, y, act, sprite, action, frame, scale, angle, colour, z test, point filter), ret 0x2c: draws an action frame's items as transformed quads at once, outside the lists: ALPHATESTENABLE for a colour above 0xff000000, point filters unless C3dDevice+0x1e4, each item's texture (the sprite cache's, or a 32-bit image's own) and a TRIANGLESTRIP at z 1e-6, rhw 0.999999, half a pixel past (x, y), mirrored or turned
 00411090	SceneRenderer	SetupProjection	__thiscall	when +0x48 is set: the projection (MakePerspectiveMatrix) and identity world and view transforms, the fog colour and mode ("Your graphic accelerator does no..." without table fog), then clears +0x48; DrawScene
 004112d0	SceneRenderer	SetStageMode	__thiscall	(mode): the texture stage states of modes 0 to 15 (docs/render/texture-stages.md); DrawStageModePrimitives
 00412550	SceneRenderer	AddPrimitive	__thiscall	(primitive, flags): ComputeVertexFog when +0x4c is set, then the list the flags pick, with a depth key from the first two vertices' rhw for the translucent ones (docs/render/scene.md)

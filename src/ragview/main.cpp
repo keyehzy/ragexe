@@ -49,6 +49,7 @@
 #include "core/frame_timer.h"
 #include "render/actor.h"
 #include "render/camera.h"
+#include "render/cursor.h"
 #include "render/effect.h"
 #include "render/effect_prim.h"
 #include "render/effect_table.h"
@@ -94,6 +95,7 @@ constexpr std::uint32_t kEffectTextureIdBase = 0x50000;
 constexpr std::uint32_t kPrimTextureIdBase = 0x58000;
 constexpr std::uint32_t kParticleTextureIdBase = 0x5c000;  // then 0x400 for each effect sprite
 constexpr std::uint32_t kTextTextureId = 0x60000;
+constexpr std::uint32_t kCursorTextureIdBase = 0x61000;
 constexpr std::uint32_t kSpritePage = 256;  // the sprite texture cache's pages (0040e130)
 
 struct Options {
@@ -944,6 +946,39 @@ int main(int argc, char** argv) {
     draws.push_back(d);
   };
   render::FrameCount frame_count;
+  // CMode::DrawCursor: cursors.act's arrow (action 0) at the mouse, drawn straight onto the
+  // screen after the scene through the same device state. InitAudioAndDevice leaves the
+  // device filtering by points (C3dDevice+0x1e4), so the draw sets no filters.
+  ActorSprite cursor_sprite;
+  const bool has_cursor =
+      o.screenshot.empty() &&
+      LoadActorSprite(files, "cursors", *device, kCursorTextureIdBase, cursor_sprite);
+  render::Cursor cursor;
+  const auto draw_cursor = [&](std::uint32_t now, bool button, std::int32_t mouse_x,
+                               std::int32_t mouse_y, std::vector<render::DrawRecord>& draws) {
+    if (!has_cursor) return;
+    const render::ActFrameDraw at =
+        render::StepCursor(cursor, cursor_sprite.act, now, button, mouse_x, mouse_y);
+    const render::ActImageTextures textures = [&](std::int32_t type, std::int32_t image) {
+      const auto i = static_cast<std::size_t>(image);
+      if (type == 0) return render::ActImageTexture{cursor_sprite.ids8[i], cursor_sprite.rects8[i]};
+      return render::ActImageTexture{cursor_sprite.ids32[i], {}};
+    };
+    render::ScreenSprites sprites;
+    render::DrawActFrame(at, cursor_sprite.act, cursor_sprite.sprite, true, textures, bound,
+                         sprites);
+    for (render::SceneCall& call : sprites.calls) {
+      if (call.kind != render::SceneCall::Kind::kDraw) continue;
+      const auto& quad = sprites.quads[call.value];
+      call.value = static_cast<std::uint32_t>(spans.size());
+      spans.emplace_back(static_cast<std::uint32_t>(vertices.size()), 4);
+      for (const render::ScreenVertex& sv : quad)
+        vertices.push_back(
+            {sv.x, sv.y, sv.z, sv.rhw, sv.diffuse, sv.specular, sv.u, sv.v, 0.0f, 0.0f});
+    }
+    const std::vector<render::DrawRecord> more = render::RecordDraws(state, sprites.calls);
+    draws.insert(draws.end(), more.begin(), more.end());
+  };
   const render::VertexLookup lookup = [&](std::uint32_t id) {
     return std::span<const render::GpuVertex>(vertices.data() + spans[id].first, spans[id].second);
   };
@@ -995,6 +1030,8 @@ int main(int argc, char** argv) {
   drag.last_x = static_cast<std::int32_t>(mouse_x);
   drag.last_y = static_cast<std::int32_t>(mouse_y);
   render::StartFrameCount(frame_count, static_cast<std::uint32_t>(SDL_GetTicks()));
+  cursor.start = static_cast<std::uint32_t>(SDL_GetTicks());  // CMode::CMode
+  if (has_cursor) SDL_HideCursor();
   for (int n = 1; running; ++n) {
     SDL_Event e;
     bool reset = false;
@@ -1034,6 +1071,7 @@ int main(int argc, char** argv) {
     std::vector<render::DrawRecord> draws;
     const auto now = static_cast<std::uint32_t>(SDL_GetTicks());
     frame(static_cast<std::uint32_t>(n), now, draws);
+    draw_cursor(now, (buttons & SDL_BUTTON_LMASK) != 0, drag.mouse_x, drag.mouse_y, draws);
     std::vector<render::TextRun> runs;
     // No textures wait to be deleted: ragview keeps them all.
     if (o.fps) render::DrawFrameRate(frame_count, now, 0, o.width, o.height, runs);

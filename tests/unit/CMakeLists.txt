@@ -5,6 +5,7 @@ add_executable(ragexe_tests
   camera_test.cpp
   client_info_test.cpp
   client_tables_test.cpp
+  cursor_test.cpp
   device_test.cpp
   ebm_test.cpp
   effect_test.cpp

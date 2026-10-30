@@ -2625,6 +2625,19 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     glyphs are checked against themselves: cells, baselines, colours, clipping, the vertical
     turn, and a line's pixels summed.
 
+- [x] Action frames on the screen and the cursor (`docs/render/actor.md#on-the-screen`,
+  `src/render/cursor`):
+  - **`SceneRenderer::DrawActFrame`:** a frame's items as quads straight onto the screen:
+    its states, each item's texture and quad, mirrored or turned (the turned strip folds
+    over itself, and a NaN angle counts as none), and the coordinates a 32-bit image takes
+    from the 8-bit image before it.
+  - **`CMode::DrawCursor`:** the cursor's frame by action (looping, played once, or held
+    with the mouse button) and its draw at the mouse.
+  - **ragview** draws the client's arrow at the mouse in place of the system's.
+  - **Checks:** 320 draws of 40 synthetic acts through the fake Direct3D device (376 quads,
+    some points past 2^24) and 500 cursor steps, on real `CActRes` structures; 31,487
+    values.
+
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

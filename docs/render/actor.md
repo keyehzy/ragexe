@@ -170,6 +170,70 @@ from the frame's pool (`NewQuad`, `00412b40`; a `TRIANGLESTRIP`):
 `AddPrimitive` then puts the quad in the lists and writes its fog
 ([fog.md](fog.md#each-vertex)).
 
+## On the screen
+
+`SceneRenderer::DrawActFrame` (`00410620`) draws an action frame straight onto the screen,
+outside the lists. It takes (x, y, act, sprite, action, frame, scale, angle, colour, z
+test, point filtering). Its callers are the mouse cursor, a mini game and six `CGameMode`
+functions.
+
+**The states,** once:
+- `ALPHATESTENABLE` when the colour, as unsigned, is above `0xff000000`, so only an opaque
+  colour that is not black; `ALPHABLENDENABLE`; `ZENABLE` as asked.
+- With point filtering asked for and the device not already filtering by points
+  (`C3dDevice`+0x1e4, `00623bb4`): stage 0's `MAGFILTER` and `MINFILTER` `POINT`, and
+  `LINEAR` again at the end. `InitAudioAndDevice` sets +0x1e4 after `Init`, so in the client
+  these are never set.
+
+**Each item** of the frame (none when the action or frame is out of range,
+`CActRes::GetFrame` answering an empty frame):
+1. **The texture:** an 8-bit image's from the texture cache, with where it put the image;
+   a 32-bit image's own `CTexture` (its record's +8). It is set when it is not the bound
+   one (+0x50).
+2. Stage 0's `ALPHAOP` `MODULATE` and stage 1's `COLOROP` `DISABLE`.
+3. **The corners:** from the item's point to `(halved + 1) × size − 1` past it, each times
+   the item's scale (once rounded, from the integer) and then the scale.
+4. **The quad,** a `TRIANGLESTRIP` of `0x1c4` vertices:
+   - **Unturned** (an angle of 0, or NaN, which compares equal): the corners plus `x + 0.5`
+     and `y + 0.5` (`005e25b8`), left and right swapped for a mirrored item.
+   - **Turned:** the corners turned by `CosDegrees` and `SinDegrees` of the angle truncated,
+     then plus x and y and 0.5. The mirror is ignored, and the third vertex is the bottom
+     right and the fourth the bottom left, so the strip folds over itself.
+   - z 1e-6 (`0x358637bd`), rhw 0.999999 (`0x3f7fffef`), the colour as diffuse, specular
+     `0xff000000`.
+   - **The texture coordinates** are the cache's corners. A 32-bit image's are whatever
+     the last 8-bit image of the call left, or 0 before any.
+
+The draw skips no item: one whose image index is out of its sprite's table reads past the
+table. The port skips it.
+
+**The cursor.** `CMode::DrawCursor` (`004cb830`) draws `cursors.act` and `cursors.spr`
+each frame of the login and game modes. `CMode`'s cursor fields:
+
+| Offset | Holds |
+|-------:|-------|
+| +0x24 | when the action started (`timeGetTime`; `CMode::CMode` sets it) |
+| +0x30, +0x34 | an offset added to the mouse |
+| +0x38 | the action |
+| +0x3c | the frame |
+
+1. **The steps:** the time since the start in 24 ms units, over the action's step (20 for
+   action 5, 10 for 7, 1 for 9, 6 for 10, 3 for 11, otherwise 4). The units are unsigned,
+   so a start in the future wraps.
+2. **The frame** (`GetFrameCount` counting an action of fewer than two frames as 1):
+   - **Action 1** plays once: the steps over action 1's count, held at its last frame once
+     they pass the count.
+   - **Actions 2 and 9** play the same way while the mouse button is held
+     (`g_DirectInputMouse`+0x28, `00628b70`). Released, the start becomes now (a second
+     `timeGetTime`) and the frame 0.
+   - **Any other** loops.
+3. The frame goes to `UIWindowMgr` (`004b3970`, message 0x10).
+4. **The draw:** at the mouse (`g_DirectInputMouse`+0x14 and +0x18, `00628b5c` and
+   `00628b60`) plus the offset, each truncated. The scale is 1 with no angle, the colour
+   `0xfaffffff` (so no alpha test), with the z test and point filtering.
+
+`CActRes::GetActionDelay` is called and its answer dropped.
+
 ## In the port
 
 `src/render/actor.{h,cpp}`:
@@ -181,6 +245,10 @@ from the frame's pool (`NewQuad`, `00412b40`; a `TRIANGLESTRIP`):
   `ScreenPosition` (`vf06`'s truncation) and `ExpandBounds` are separate.
 - **The quad:** `SpriteQuadVertices`, with the texture's extent as `SpriteTextureRect`.
 
+`src/render/cursor.{h,cpp}`: `DrawActFrame`, which returns the device calls and the quads
+(`ScreenSprites`), asking for each image's texture; `Cursor` and `StepCursor`, the cursor's
+frame and what it asks `DrawActFrame` to draw. The second `timeGetTime` is the same now.
+
 **ragview** puts an actor where the player stands: `--actor SPRITE`, `npc\4_m_01` by
 default. Each frame it:
 1. steps the scales with the camera;
@@ -188,7 +256,8 @@ default. Each frame it:
 3. adds the shadow's and the body's quads to the scene lists, with their fog.
 
 It uploads each 8-bit image as the cache would draw it, at the corner of a page of its
-own.
+own. In a window it draws the client's cursor, the arrow of `cursors.act`, at the mouse
+after the scene, through the same device state, in place of the system's.
 
 ## Checks
 
@@ -206,6 +275,25 @@ precision, and writes `tests/unit/actor_vectors.inc`. It records:
   - +0x90 and +0x94 after the drawing, and after `ProjectToScreen`.
 
 `tests/unit/actor_test.cpp` matches all 15,388 values.
+
+`tools/cursor_vectors.py` writes `tests/unit/cursor_vectors.inc`. Its actions are real
+`CActRes` structures, so `GetFrame`, `GetItem`, `GetFrameCount` and `GetActionDelay` run as
+the original's. It records:
+- **`DrawActFrame`, 320 calls** on 40 synthetic acts and sprites (8-bit and 32-bit images,
+  some with no texture, some found by `CacheSpriteImage` after `FindCachedSprite` misses).
+  The calls have assorted positions, scales, angles (0, −0, NaN and turned), colours either
+  side of `0xff000000`, the z test, point filtering with the device's flag either way,
+  bound textures and actions out of range. Some items' points and some positions lie past
+  2^24, where rounding the integer to a float first would differ. Every call to the fake
+  Direct3D device is recorded: 376 draws with their vertices.
+- **`DrawCursor`, 500 times** over actions 0 to 12 (of 0 to 12 frames, two of fewer than
+  two): assorted times since the start, some wrapping and many within three plays of the
+  action, offsets, mouse points and button states. It records the
+  frame and start it leaves, the message to `UIWindowMgr`, and what it asks
+  `DrawActFrame` to draw.
+
+`tests/unit/cursor_test.cpp` matches all 31,487 values, and checks that an item with no
+image is skipped.
 
 **Not ported:**
 - `CGameActor::vf05`'s pick rectangle, which comes with the actors (M5);
