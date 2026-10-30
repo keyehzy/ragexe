@@ -4340,8 +4340,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00500ed0	159	code	0	world		named	CRenderObject	ProjectToScreen	
 00500f70	1501	code	0	world		named	CRenderObject	DrawBody	
 00501550	728	code	0	world		named	CRenderObject	DrawShadow	
-00501830	3	code	0	world		named	CRenderObject	vf05	
-00501840	39	code	0	world		named	CRenderObject	vf06	
+00501830	3	code	0	world		named	CRenderObject	OnScreenBounds	
+00501840	39	code	0	world		named	CRenderObject	SetScreenPosition	
 00501870	44	code	0	world		named	CRenderObject	Render	
 005018a0	55	code	0	world		named	CRenderObject	SetSprite	
 005018e0	18	code	0	world		named	CGameActor	method_005018e0	
@@ -4380,7 +4380,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00502b00	273	code	0	world		named	CGameActor	vf04	
 00502c20	62	code	0	world	unreferenced	raw	Global	FUN_00502c20	
 00502c60	95	code	0	world	unreferenced	raw	Global	FUN_00502c60	
-00502cc0	808	code	0	world		named	CGameActor	vf05	
+00502cc0	808	code	0	world		named	CGameActor	OnScreenBounds	
 00502ff0	47	code	0	world		named	CGameActor	vf07	
 00503020	37	code	0	world		named	CGameActor	method_00503020	
 00503050	22	code	0	world		named	CGameActor	UpdateDirectionalIndex	

@@ -94,6 +94,36 @@ for the colour of the attribute cell under the actor (`C3dGround15::GetCellTint`
 `CWorld::LoadWorld` constructs it (`004c3d0b`), and `Reset` and the destructor clear it.
 So it answers 1, 1, 1.
 
+## The point on screen
+
+**Every drawing ends with the object's point on screen,** the (sx, sy) of its placing (step 2
+above). It passes it on with one of two virtual calls:
+- **`vf05`** when an item was kept, with the bounds below;
+- **`vf06`** (`CRenderObject::vf06`, `00501840`) when none was. `vf06` stores the point,
+  truncated (`__ftol`), at +0x90 and +0x94.
+
+**`vf05` depends on the class:**
+- **A bare `CRenderObject`'s** (`00501830`) returns at once, so it keeps its old +0x90 and
+  +0x94.
+- **`CGameActor`'s** (`00502cc0`) turns the bounds into the actor's pick rectangle when
+  +0x89 is set, then calls `vf06` too. The rectangle carries a value of 50 to 400 by job
+  and settings, and is grown to a minimum size (`0067cf20`). It is registered with
+  `CActorPickNode`.
+
+**The bounds** start at the screen's width and height and 0, 0: left, top, right and
+bottom. While +0x89 is set, each kept item's quad widens them with `ExpandBounds`
+(`004fffb0`), which takes:
+- the lesser and greater of the quad's left and right (offset included);
+- its top and bottom.
+
+A player's drawing (`CPc::RenderActFrameItems`, [player.md](player.md#drawing)) widens them
+only for the body and the head.
+
+**An object not drawn** (+0x84 clear, or `CPc` without +0x85) gets its point from
+`CRenderObject::ProjectToScreen` (`00500ed0`), which places it as the drawing does and
+calls `vf06`. `CGameMode::MarkModelsOnPlayerRay` reads +0x90 and +0x94
+([scene_graph.md](scene_graph.md#picking)).
+
 ## The shadow
 
 `CRenderObject::DrawShadow` (`00501550`) takes the view matrix and a scale.
@@ -146,7 +176,9 @@ from the frame's pool (`NewQuad`, `00412b40`; a `TRIANGLESTRIP`):
 - **The scales:** `SpriteScales`, `SetSpriteScalesForSize` and `StepSpriteScales`.
 - **The object:** `RenderObject`, the fields above.
 - **Animation:** `ActorDirection` and `UpdateActorFrame`.
-- **Drawing:** `DrawActorBody` and `DrawActorShadow`, which return the quads.
+- **Drawing:** `DrawActorBody` and `DrawActorShadow`, which return the quads. The body also
+  returns the point on screen and the bounds (`ActorBody`). `ProjectToScreen`,
+  `ScreenPosition` (`vf06`'s truncation) and `ExpandBounds` are separate.
 - **The quad:** `SpriteQuadVertices`, with the texture's extent as `SpriteTextureRect`.
 
 **ragview** puts an actor where the player stands: `--actor SPRITE`, `npc\4_m_01` by
@@ -168,13 +200,15 @@ precision, and writes `tests/unit/actor_vectors.inc`. It records:
   colours, drawn with a synthetic sprite (12 8-bit and 3 32-bit images) and action (4
   actions of 3 frames): 458 body quads and 72 shadows;
 - **200 quads** through `AddSpriteQuad`, with and without angles, on both kinds of image;
-- **120 directions and 200 frame steps.**
+- **120 directions and 200 frame steps;**
+- **160 objects for their points on screen,** pickable or not, a fifth far off. For each:
+  - the call `DrawBody` ends with (seen through code hooks), with its bounds and point;
+  - +0x90 and +0x94 after the drawing, and after `ProjectToScreen`.
 
-`tests/unit/actor_test.cpp` matches all 13,744 values.
+`tests/unit/actor_test.cpp` matches all 15,388 values.
 
 **Not ported:**
-- the screen bounds `DrawBody` keeps with +0x89 (`ExpandBounds`);
-- `vf05` and `vf06`, the screen position it stores;
+- `CGameActor::vf05`'s pick rectangle, which comes with the actors (M5);
 - `vf08`'s play modes beyond 0 and 1, which it leaves alone too;
 - the texture cache's slots and pages, which change only where in a texture an image lies;
 - the palettes of other resources (+0x34).

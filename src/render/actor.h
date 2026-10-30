@@ -56,6 +56,7 @@ struct RenderObject {
   bool held = false;                     // +0x82
   bool keyed = false;                    // +0x83, drawn in red while key_color is set
   bool flat = false;                     // +0x86, every layer at one depth
+  bool pickable = false;                 // +0x89, its drawing widens the bounds
   bool shadow = false;                   // +0x88
 };
 
@@ -86,7 +87,26 @@ struct SpriteQuad {
 struct ActorBody {
   std::vector<SpriteQuad> quads;
   float pixel_scale = 0.0f;  // +0x48: the sprite's pixel at its depth, over SpriteScales::size
+  // The object's point on screen, which the drawing passes on at its end: with an item kept,
+  // to vf05 with the bounds, otherwise to vf06 (docs/render/actor.md#the-point-on-screen).
+  float screen_x = 0.0f;
+  float screen_y = 0.0f;
+  // ExpandBounds (004fffb0): left, top, right and bottom, from the screen's width, its height,
+  // 0 and 0, widened by each kept item's quad while +0x89 is set.
+  std::array<float, 4> bounds{};
 };
+
+// ProjectToScreen (00500ed0): the point on screen of an object that is not drawn, as the
+// drawing finds it, which it passes to vf06.
+std::array<float, 2> ProjectToScreen(const Vec3& position, const Matrix& view,
+                                     const Projection& projection);
+
+// CRenderObject::vf06 (00501840): the point truncated (__ftol) to +0x90 and +0x94.
+std::array<std::int32_t, 2> ScreenPosition(float x, float y);
+
+// ExpandBounds (004fffb0): the bounds widened to the quad's left and right, whichever is
+// less, and its top and bottom.
+void ExpandBounds(std::array<float, 4>& bounds, const SpriteQuad& quad);
 
 // CRenderObject::method_00500f70: the object's current frame, each item of it with an
 // image placed at the object's projected position, scaled by its depth, tinted by the

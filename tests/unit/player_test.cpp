@@ -88,6 +88,20 @@ struct ViewVector {
   std::uint32_t scales[5];
 };
 
+// A player drawn for its point on screen, its head offset 0 before: how many quads it kept,
+// the call the drawing ended with (5, vf05, with the bounds; 6, vf06) and its values (the
+// bounds, zero for 6, then x and y).
+struct PlayerPointVector {
+  int set, view;
+  std::uint32_t position[3];
+  int base, direction, frame;
+  std::uint32_t scale;
+  int offset_x, pickable;
+  std::size_t kept;
+  int call;
+  std::uint32_t values[6];
+};
+
 struct PlayerVector {
   int set, view;
   std::uint32_t position[3];
@@ -289,6 +303,53 @@ TEST_CASE("Players' layers give the original's quads", "[player]") {
       CHECK(got.image_type == want.image_type);
       CHECK(got.image == want.image);
       CHECK(got.flags == want.flags);
+    }
+  }
+}
+
+TEST_CASE("Players' points on screen and bounds are the original's", "[player]") {
+  const Projection projection = SetSize(800, 600);
+  const ragexe::res::Imf imf = TestImf();
+  const ragexe::res::Sprite sprite = TestSprite();
+  std::vector<std::array<ragexe::res::Act, kPlayerLayerCount>> sets;
+  for (const auto& set : kLayerSets) {
+    std::array<ragexe::res::Act, kPlayerLayerCount> acts;
+    for (std::size_t l = 0; l < kPlayerLayerCount; ++l)
+      if (set[l].frames != nullptr) acts[l] = LayerAct(set[l]);
+    sets.push_back(acts);
+  }
+  std::size_t n = 0;
+  for (const PlayerPointVector& v : kPlayerPoints) {
+    INFO("player " << n++);
+    const ViewVector& view = kViews[v.view];
+    Matrix m{};
+    for (std::size_t i = 0; i < 12; ++i) m[i] = F(view.view[i]);
+    const SpriteScales scales{F(view.scales[0]), F(view.scales[1]), F(view.scales[2]),
+                              F(view.scales[3]), F(view.scales[4])};
+    std::array<PlayerLayer, kPlayerLayerCount> layers;
+    for (std::size_t l = 0; l < kPlayerLayerCount; ++l) {
+      if (kLayerSets[v.set][l].frames == nullptr) continue;
+      layers[l] = {&sets[static_cast<std::size_t>(v.set)][l], &sprite};
+    }
+    RenderObject o;
+    o.position = {F(v.position[0]), F(v.position[1]), F(v.position[2])};
+    o.base_action = v.base;
+    o.action = v.base + v.direction;
+    o.frame = v.frame;
+    o.scale = F(v.scale);
+    o.offset_x = v.offset_x;
+    o.pickable = v.pickable != 0;
+    PlayerHeadOffset head{0, 0};
+    const ActorBody body =
+        DrawPlayer(o, layers, imf, m, projection, scales, {1.0f, 1.0f, 1.0f}, head);
+    REQUIRE(body.quads.size() == v.kept);
+    CHECK(v.call == (v.kept != 0 ? 5 : 6));
+    CHECK(B(body.screen_x) == v.values[4]);
+    CHECK(B(body.screen_y) == v.values[5]);
+    if (v.call != 5) continue;
+    for (std::size_t i = 0; i < 4; ++i) {
+      INFO("bound " << i);
+      CHECK(B(body.bounds[i]) == v.values[i]);
     }
   }
 }

@@ -61,6 +61,19 @@ struct ObjectVector {
   std::uint32_t pixel_scale;
 };
 
+// An object drawn for its point on screen: how many quads it kept, which call the drawing
+// ended with (5, vf05, with the bounds; 6, vf06) and its values (the bounds, zero for 6, then x
+// and y), +0x90 and +0x94 after it (0x11111111 where left alone) and after ProjectToScreen.
+struct ScreenPointVector {
+  ObjectVector object;
+  int pickable;
+  std::size_t kept;
+  int call;
+  std::uint32_t values[6];
+  std::uint32_t drawn[2];
+  std::uint32_t projected[2];
+};
+
 struct SpriteQuadVector {
   std::uint32_t values[8];
   int is32;
@@ -313,5 +326,52 @@ TEST_CASE("Actors face and animate as the original's", "[actor]") {
     CHECK(o.action == v.action_after);
     CHECK(o.frame == v.frame_after);
     CHECK(o.finished == (v.finished_after != 0));
+  }
+}
+
+TEST_CASE("Actors' points on screen and bounds are the original's", "[actor]") {
+  const Projection projection = SetSize(800, 600);
+  const ragexe::res::Sprite sprite = TestSprite();
+  const ragexe::res::Act act = TestAct();
+  constexpr std::uint32_t kUnset = 0x11111111;
+  std::size_t n = 0;
+  for (const ScreenPointVector& p : kScreenPoints) {
+    INFO("object " << n++);
+    const ObjectVector& v = p.object;
+    const ViewScaleVector& view = kViewScales[v.view];
+    const SpriteScales scales{F(view.scales[0]), F(view.scales[1]), F(view.scales[2]),
+                              F(view.scales[3]), F(view.scales[4])};
+    RenderObject o;
+    o.position = {F(v.position[0]), F(v.position[1]), F(v.position[2])};
+    o.action = v.action;
+    o.frame = v.frame;
+    o.scale = F(v.scale);
+    o.offset_x = v.offset_x;
+    o.depth_up = v.flags[0] != 0;
+    o.flat = v.flags[2] != 0;
+    o.pickable = p.pickable != 0;
+    const ActorBody body =
+        DrawActorBody(o, act, sprite, ViewOf(view), projection, scales, {1.0f, 1.0f, 1.0f});
+    REQUIRE(body.quads.size() == p.kept);
+    CHECK(p.call == (p.kept != 0 ? 5 : 6));
+    CHECK(B(body.screen_x) == p.values[4]);
+    CHECK(B(body.screen_y) == p.values[5]);
+    const auto point = ScreenPosition(body.screen_x, body.screen_y);
+    if (p.call == 5) {
+      // A bare CRenderObject's vf05 (00501830) returns at once, leaving +0x90 and +0x94.
+      for (std::size_t i = 0; i < 4; ++i) {
+        INFO("bound " << i);
+        CHECK(B(body.bounds[i]) == p.values[i]);
+      }
+      CHECK(p.drawn[0] == kUnset);
+      CHECK(p.drawn[1] == kUnset);
+    } else {
+      CHECK(static_cast<std::uint32_t>(point[0]) == p.drawn[0]);
+      CHECK(static_cast<std::uint32_t>(point[1]) == p.drawn[1]);
+    }
+    const auto projected = ProjectToScreen(o.position, ViewOf(view), projection);
+    const auto stored = ScreenPosition(projected[0], projected[1]);
+    CHECK(static_cast<std::uint32_t>(stored[0]) == p.projected[0]);
+    CHECK(static_cast<std::uint32_t>(stored[1]) == p.projected[1]);
   }
 }

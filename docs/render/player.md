@@ -190,8 +190,12 @@ in CP949:
   - **settings:** assorted flags and colours, under 3 views, from assorted head offsets.
 
   That is 782 quads in all layers, with the head offset each player leaves.
+- **120 more players for their points on screen,** pickable or not. Their vtable is
+  `CPc`'s with the bare `CRenderObject::vf05` in slot 5, as `CGameActor`'s needs the
+  client's state. For each: the call the drawing ends with and its bounds and point
+  ([actor.md](actor.md#the-point-on-screen)). Only the body and the head widen the bounds.
 
-`tests/unit/player_test.cpp` matches all 18,874 values.
+`tests/unit/player_test.cpp` matches all 19,686 values.
 
 **Not ported:**
 - `SetWeapon` (`vf20`), the weapon by item id, with its ranges of ids and the sprites

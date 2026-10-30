@@ -2587,6 +2587,17 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Checks:** 180 cursor quads under seven views, and the attribute lookup on every cell;
     3,094 values.
 
+- [x] Actors' points on screen (`docs/render/actor.md#the-point-on-screen`):
+  - **The point:** each drawing passes its point on screen to `vf05` with the bounds
+    when it kept an item, else to `vf06`, which truncates it to +0x90 and +0x94. A bare
+    `CRenderObject`'s `vf05` does nothing; `CGameActor`'s makes the pick rectangle (M5)
+    and then stores the point.
+  - **The bounds** start at the screen's size and are widened by each kept quad while
+    +0x89 is set; for a player only by the body and the head.
+  - **`ProjectToScreen`** places an object not drawn as the drawing would.
+  - **Checks:** 160 objects and 120 players, the calls seen through code hooks; 2,456
+    values.
+
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

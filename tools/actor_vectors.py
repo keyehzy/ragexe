@@ -28,7 +28,8 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from unicorn.x86_const import UC_X86_REG_FPCW  # noqa: E402
+from unicorn import UC_HOOK_CODE  # noqa: E402
+from unicorn.x86_const import UC_X86_REG_ESP, UC_X86_REG_FPCW  # noqa: E402
 
 from emu import Emulator  # noqa: E402
 from emu.winapi import Stub  # noqa: E402
@@ -45,6 +46,8 @@ GET_FRAME, GET_ITEM, GET_FRAME_COUNT = 0x421A60, 0x420520, 0x421A80
 DIRECTION, UPDATE_FRAME = 0x5000D0, 0x500830
 GET_RESOURCE_MANAGER, GET_RESOURCE = 0x4DFA10, 0x4DFF60
 RENDER_OBJECT_VTABLE = 0x5E953C
+PROJECT_TO_SCREEN, RENDER_OBJECT_VF05, RENDER_OBJECT_VF06 = 0x500ED0, 0x501830, 0x501840
+UNSET = 0x11111111
 ATTR_SIZE, CELL_SIZE = 0x130, 5
 ATTR_W, ATTR_H = 40, 40
 SIZE = (800, 600)
@@ -440,6 +443,80 @@ def main():
     lines.append("};")
     lines += sprite_quads(Oracle(), rng)
     lines += animation(rng)
+
+    # The point on screen: DrawBody's vf05 (with the bounds) or vf06 call, and +0x90 and +0x94
+    # after it and after ProjectToScreen, on objects pickable (+0x89) or not, some off screen.
+    calls = []
+
+    def record(slot, nargs):
+        def hook(uc, address, size, data):
+            esp = uc.reg_read(UC_X86_REG_ESP)
+            args = [emu.read_u32(esp + 4 + 4 * k) for k in range(nargs)]
+            if slot == 5:
+                args = list(struct.unpack("<4I", emu.mem_read(args[0], 16))) + args[1:]
+            calls.append((slot, args))
+        return hook
+
+    emu.uc.hook_add(UC_HOOK_CODE, record(5, 3), begin=RENDER_OBJECT_VF05, end=RENDER_OBJECT_VF05)
+    emu.uc.hook_add(UC_HOOK_CODE, record(6, 2), begin=RENDER_OBJECT_VF06, end=RENDER_OBJECT_VF06)
+    lines.append("// Points on screen: objects as above, then {pickable, quads kept, DrawBody's call (5 or")
+    lines.append("// 6) and its values (the bounds for 5, then x and y), +0x90 and +0x94 after it (0x11111111")
+    lines.append("// where unset), and after ProjectToScreen}.")
+    rows = []
+    for k in range(160):
+        view_index = k % len(views)
+        view, scales = views[view_index]
+        for key, v in zip(SCALES, scales):
+            emu.write_u32(SCALES[key], v)
+        emu.mem_write(obj, bytes(0xA0))
+        emu.write_u32(obj, RENDER_OBJECT_VTABLE)
+        at = ats[view_index]
+        far = rng.random() < 0.2
+        pos = (f32(at[0] + rng.uniform(-60, 60) * (8 if far else 1)), f32(rng.uniform(-25, 5)),
+               f32(at[2] + rng.uniform(-60, 60) * (8 if far else 1)))
+        action, frame = rng.randrange(4), rng.randrange(3)
+        scale = f32(rng.choice([1.0, 0.5, 1.5, 2.0]))
+        offset_x = rng.choice([0, 0, 7, -12])
+        pickable = int(rng.random() < 0.6)
+        mirror_flags = [rng.random() < 0.2, False, rng.random() < 0.15, False]
+        emu.mem_write(obj + 4, struct.pack("<3f", *pos))
+        emu.write_u32(obj + 0x20, action)
+        emu.write_u32(obj + 0x24, action)
+        emu.write_u32(obj + 0x28, frame)
+        emu.mem_write(obj + 0x3C, struct.pack("<2f", scale, 1.0))
+        emu.mem_write(obj + 0x5C, struct.pack("<iii", offset_x, 0, 0))
+        emu.write_u32(obj + 0x68, 0xFFFF0000)
+        emu.write_u32(obj + 0x7C, 0xFFFFFFFF)
+        for offset, on in zip((0x80, 0x83, 0x86, 0x88), mirror_flags):
+            emu.mem_write(obj + offset, bytes([int(on)]))
+        emu.mem_write(obj + 0x84, bytes([1]))
+        emu.mem_write(obj + 0x89, bytes([pickable]))
+        emu.write_u32(obj + 0x98, spr)
+        emu.write_u32(obj + 0x9C, act)
+        emu.write_u32(obj + 0x90, UNSET)
+        emu.write_u32(obj + 0x94, UNSET)
+        o.ground = (1.0, 1.0, 1.0)
+        o.quads.clear()
+        del calls[:]
+        matrix = emu.scratch(struct.pack("<12I", *view))
+        emu.call(DRAW_BODY, matrix, this=obj)
+        assert len(calls) == 1
+        slot, values = calls[0]
+        drawn = (emu.read_u32(obj + 0x90), emu.read_u32(obj + 0x94))
+        emu.write_u32(obj + 0x90, UNSET)
+        emu.write_u32(obj + 0x94, UNSET)
+        emu.call(PROJECT_TO_SCREEN, matrix, this=obj)
+        projected = (emu.read_u32(obj + 0x90), emu.read_u32(obj + 0x94))
+        if slot == 6:
+            values = [0, 0, 0, 0] + values
+        rows.append(f"    {{{{{view_index}, {{{hexs(map(bits, pos))}}}, {action}, {frame}, 0x{bits(scale):08x}, "
+                    f"0x3f800000, {offset_x}, 0, 0, 0xffff0000, 0xffffffff, "
+                    f"{{{', '.join(str(int(f)) for f in mirror_flags)}}}, {{0x3f800000, 0x3f800000, 0x3f800000}}, "
+                    f"0x3f800000, nullptr, 0, 0, {{}}, 0}}, {pickable}, {len(o.quads)}, {slot}, "
+                    f"{{{hexs(values)}}}, {{{hexs(drawn)}}}, {{{hexs(projected)}}}}},")
+    lines.append("static const ScreenPointVector kScreenPoints[] = {")
+    lines += rows
+    lines.append("};")
     print("\n".join(lines))
 
 

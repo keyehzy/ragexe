@@ -122,6 +122,30 @@ void UpdateActorFrame(RenderObject& object, const res::Act& act, float camera_ya
   }
 }
 
+std::array<float, 2> ProjectToScreen(const Vec3& position, const Matrix& view,
+                                     const Projection& projection) {
+  const Matrix& m = view;
+  const Vec3& p = position;
+  const float x = (((m[6] * p[2]) + (m[3] * p[1])) + (p[0] * m[0])) + m[9];
+  const float y = (((m[7] * p[2]) + (m[1] * p[0])) + (m[4] * p[1])) + m[10];
+  float z = (((m[8] * p[2]) + (m[2] * p[0])) + (m[5] * p[1])) + m[11];
+  if (!(z >= kNear)) z = kNear;
+  const float inverse = 1.0f / z;
+  return {((x * projection.scale_x) * inverse) + static_cast<float>(projection.center_x),
+          ((y * projection.scale_y) * inverse) + static_cast<float>(projection.center_y)};
+}
+
+std::array<std::int32_t, 2> ScreenPosition(float x, float y) { return {Ftol(x), Ftol(y)}; }
+
+void ExpandBounds(std::array<float, 4>& bounds, const SpriteQuad& q) {
+  const float low = q.right < q.left ? q.right : q.left;
+  const float high = q.left <= q.right ? q.right : q.left;
+  if (low < bounds[0]) bounds[0] = low;
+  if (q.top < bounds[1]) bounds[1] = q.top;
+  if (bounds[2] < high) bounds[2] = high;
+  if (bounds[3] < q.bottom) bounds[3] = q.bottom;
+}
+
 ActorBody DrawActorBody(const RenderObject& object, const res::Act& act, const res::Sprite& sprite,
                         const Matrix& view, const Projection& projection,
                         const SpriteScales& scales, const std::array<float, 3>& ground_color) {
@@ -135,6 +159,10 @@ ActorBody DrawActorBody(const RenderObject& object, const res::Act& act, const r
   const float inverse = 1.0f / z;
   const float sx = ((x * projection.scale_x) * inverse) + static_cast<float>(projection.center_x);
   const float sy = ((y * projection.scale_y) * inverse) + static_cast<float>(projection.center_y);
+  out.screen_x = sx;
+  out.screen_y = sy;
+  out.bounds = {static_cast<float>(projection.width), static_cast<float>(projection.height), 0.0f,
+                0.0f};
   const float pixel = (inverse * projection.scale_x) * kPixel;
   out.pixel_scale = pixel / scales.size;
   const float offset =
@@ -212,6 +240,7 @@ ActorBody DrawActorBody(const RenderObject& object, const res::Act& act, const r
     q.image_type = item.image_type;
     q.image = item.image;
     q.flags = (q.color >> 24) >= 0xff ? kOpaque : kTranslucent;
+    if (object.pickable) ExpandBounds(out.bounds, q);
     out.quads.push_back(q);
   }
   return out;

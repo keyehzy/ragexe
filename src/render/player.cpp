@@ -118,6 +118,10 @@ ActorBody DrawPlayer(const RenderObject& object,
   const float inverse = 1.0f / z;
   const float sx = ((x * projection.scale_x) * inverse) + static_cast<float>(projection.center_x);
   const float sy = ((y * projection.scale_y) * inverse) + static_cast<float>(projection.center_y);
+  out.screen_x = sx;
+  out.screen_y = sy;
+  out.bounds = {static_cast<float>(projection.width), static_cast<float>(projection.height), 0.0f,
+                0.0f};
   const float pixel = (inverse * projection.scale_x) * kPixel;
   out.pixel_scale = pixel / scales.size;
   const float offset =
@@ -256,6 +260,8 @@ ActorBody DrawPlayer(const RenderObject& object,
     q.image = item.image;
     q.layer = v;
     q.flags = v >= kPlayerHeadgearTop && v <= kPlayerHeadgearBottom ? kTranslucent : kOpaque;
+    // Only the body and the head widen the bounds.
+    if (object.pickable && (v == kPlayerBody || v == kPlayerHead)) ExpandBounds(out.bounds, q);
     out.quads.push_back(q);
   }
   return out;

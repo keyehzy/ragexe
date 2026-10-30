@@ -37,6 +37,7 @@ LAYER_ACT_NAME, LAYER_SPR_NAME = 0x546460, 0x546240
 GET_FRAME_COUNT = 0x421A80
 MESSAGE, ON_DRAWN = 0x543540, 0x502CC0
 CPC_VTABLE, HEAD_OFFSET, DEFAULT_ITEM = 0x5E9B94, 0x6864F0, 0x605B70
+RENDER_OBJECT_VF05, RENDER_OBJECT_VF06 = 0x501830, 0x501840
 IMF_ACTIONS, IMF_FRAMES = 104, 3
 ACTIONS = list(range(0, 16)) + list(range(32, 40)) + list(range(80, 88))
 
@@ -405,7 +406,84 @@ def main():
     lines.append("static const PlayerVector kPlayers[] = {")
     lines += players
     lines.append("};")
+    lines += player_points(emu, rng, o, player, views, layer_sets, sprs, acts, spr_table, act_table,
+                           imf_name)
     print("\n".join(lines))
+
+
+def player_points(emu, rng, o, player, views, layer_sets, sprs, acts, spr_table, act_table, imf_name):
+    """Players drawn for their point on screen and bounds, pickable (+0x89) or not: the call the
+    drawing ends with, vf05 with the bounds or vf06, and its values. CGameActor::vf05 (00502cc0)
+    turns the bounds into a pick rectangle with the client's state, so these players' vtable is
+    CPc's with CRenderObject::vf05 (00501830, a bare return) in slot 5; code hooks record both
+    calls."""
+    from unicorn import UC_HOOK_CODE
+    from unicorn.x86_const import UC_X86_REG_ESP
+    from actor_vectors import SCALES  # noqa: E402
+    calls = []
+
+    def record(slot, nargs):
+        def hook(uc, address, size, data):
+            esp = uc.reg_read(UC_X86_REG_ESP)
+            args = [emu.read_u32(esp + 4 + 4 * k) for k in range(nargs)]
+            if slot == 5:
+                args = list(struct.unpack("<4I", emu.mem_read(args[0], 16))) + args[1:]
+            else:
+                args = [0, 0, 0, 0] + args
+            calls.append((slot, args))
+        return hook
+
+    emu.uc.hook_add(UC_HOOK_CODE, record(5, 3), begin=RENDER_OBJECT_VF05, end=RENDER_OBJECT_VF05)
+    emu.uc.hook_add(UC_HOOK_CODE, record(6, 2), begin=RENDER_OBJECT_VF06, end=RENDER_OBJECT_VF06)
+    vtable = emu.scratch(emu.mem_read(CPC_VTABLE, 0x100))
+    emu.write_u32(vtable + 0x14, RENDER_OBJECT_VF05)
+    lines = ["// Players drawn for their points on screen: {set, view, position, base action, direction,",
+             "// frame, scale, x offset, pickable; quads kept, the call (5 or 6) and its values (the",
+             "// bounds, zero for 6, then x and y)}."]
+    rows = []
+    for k in range(120):
+        s = k % len(layer_sets)
+        view_index = k % len(views)
+        (view, scales), at = views[view_index]
+        for key, v in zip(SCALES, scales):
+            emu.write_u32(SCALES[key], v)
+        emu.mem_write(player, bytes(0x400))
+        emu.write_u32(player, vtable)
+        spread = 8 if rng.random() < 0.2 else 1
+        pos = (f32(at[0] + rng.uniform(-50, 50) * spread), f32(rng.uniform(-20, 5)),
+               f32(at[2] + rng.uniform(-50, 50) * spread))
+        base, direction, frame = rng.choice([0, 8, 32, 80]), rng.randrange(8), rng.randrange(0, 4)
+        scale = f32(rng.choice([1.0, 0.75, 1.5]))
+        offset_x = rng.choice([0, 0, 5, -9])
+        pickable = int(rng.random() < 0.6)
+        emu.mem_write(player + 4, struct.pack("<3f", *pos))
+        emu.write_u32(player + 0x20, base)
+        emu.write_u32(player + 0x24, base + direction)
+        emu.write_u32(player + 0x28, frame)
+        emu.mem_write(player + 0x3C, struct.pack("<f", scale))
+        emu.mem_write(player + 0x5C, struct.pack("<iii", offset_x, 0, 0))
+        emu.write_u32(player + 0x68, 0xFFFF0000)
+        emu.write_u32(player + 0x7C, 0xFFFFFFFF)
+        emu.mem_write(player + 0x89, bytes([pickable]))
+        emu.mem_write(HEAD_OFFSET, bytes(8))
+        emu.write_u32(player + 0x280, imf_name)
+        for layer in range(10):
+            emu.write_u32(spr_table + 4 * layer, sprs[layer] if layer < 8 and acts[s][layer] else 0)
+            emu.write_u32(act_table + 4 * layer, acts[s][layer] if layer < 8 else 0)
+        emu.write_u32(player + 0x2EC, spr_table)
+        emu.write_u32(player + 0x2FC, act_table)
+        o.ground = (1.0, 1.0, 1.0)
+        o.quads.clear()
+        del calls[:]
+        emu.call(RENDER, emu.scratch(struct.pack("<12I", *view)), 0, this=player)
+        assert len(calls) == 1
+        slot, values = calls[0]
+        rows.append(f"    {{{s}, {view_index}, {{{hexs(map(bits, pos))}}}, {base}, {direction}, {frame}, "
+                    f"0x{bits(scale):08x}, {offset_x}, {pickable}, {len(o.quads)}, {slot}, {{{hexs(values)}}}}},")
+    lines.append("static const PlayerPointVector kPlayerPoints[] = {")
+    lines += rows
+    lines.append("};")
+    return lines
 
 
 if __name__ == "__main__":
