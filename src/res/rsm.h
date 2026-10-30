@@ -88,8 +88,14 @@ struct Model {
   std::vector<ModelVolume> volumes;
 };
 
+// The x87's precision control while a model loads: the CRT's default, double, on
+// LazyModelLoadThread, or single on the main thread after DirectDraw's FPUSETUP
+// (docs/formats/rsm.md#the-loaders-precision).
+enum class FpuPrecision : std::uint8_t { kDouble, kSingle };
+
 // C3dModelRes::Load on a whole .rsm file.
-bool DecodeModel(std::span<const std::uint8_t> data, Model& out, std::string* error);
+bool DecodeModel(std::span<const std::uint8_t> data, Model& out, std::string* error,
+                 FpuPrecision precision = FpuPrecision::kDouble);
 
 // The client's std::sort of faces by texture (00431b30, 00431de0, 00431d40), which moves
 // all but bytes 0xe..0x13 of each record.
@@ -97,7 +103,7 @@ void SortModelFaces(std::vector<ModelFace>& faces);
 
 // ModelResMesh::ComputeNormals on a mesh whose faces are sorted. False when a face refers
 // to a missing vertex or a smoothing group outside 0..31.
-bool ComputeModelNormals(ModelMesh& mesh);
+bool ComputeModelNormals(ModelMesh& mesh, FpuPrecision precision = FpuPrecision::kDouble);
 
 // C3dModelRes.
 class RsmRes : public Resource {

@@ -44,6 +44,7 @@
 #include <list>
 #include <map>
 #include <memory>
+#include <set>
 #include <span>
 #include <string>
 #include <vector>
@@ -467,6 +468,10 @@ int main(int argc, char** argv) {
   };
   const auto load_order =
       render::ModelLoadOrder(world.models, player[0], player[2], [](std::size_t) { return true; });
+  // A file a near model names loads first, on the main thread, at single precision.
+  std::set<std::string> single_files;
+  for (const res::WorldModel& placed : world.models)
+    if (render::IsNearModel(placed, player[0], player[2])) single_files.insert(placed.file);
   for (const std::size_t index : load_order) {
     const res::WorldModel& placed = world.models[index];
     auto& file = model_files[placed.file];
@@ -474,7 +479,9 @@ int main(int argc, char** argv) {
       auto model = std::make_unique<res::Model>();
       std::string ignored;
       if (Load(files, "data\\model\\" + placed.file, bytes) &&
-          res::DecodeModel(bytes, *model, &ignored))
+          res::DecodeModel(bytes, *model, &ignored,
+                           single_files.contains(placed.file) ? res::FpuPrecision::kSingle
+                                                              : res::FpuPrecision::kDouble))
         file = std::move(model);
     }
     if (!file) continue;

@@ -2669,6 +2669,14 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **ragview** places its models in that order.
   - **Checks:** 150 synthetic worlds; 2,870 values.
 
+- [x] The loader's precision (`docs/formats/rsm.md#the-loaders-precision`):
+  - **`DecodeModel` at single precision,** as the main thread loads the models near the
+    player after `FPUSETUP`, beside the CRT's double, as the lazy loader loads the rest. The
+    two differ in 971 of the 1,127 models.
+  - **ragview** loads a file at single precision when a near model names it.
+  - **Checks:** `tools/rsm_oracle.py --single` on every `.rsm` and the synthetic ones, all
+    equal; the ten models of `model_vectors.inc` loaded at single precision, 7,779 values.
+
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

@@ -192,8 +192,9 @@ on two threads:
   after DirectDraw's `FPUSETUP`, so its x87 rounds them to single precision.
 - **`LazyModelLoadThread`** loads the rest at the CRT's default, double precision.
 
-The port's loader matches the second, and the oracles check it so. The models placed
-first can therefore differ in their last bits from the port's.
+The port's loader does either ([rsm.md](../formats/rsm.md#the-loaders-precision)). A
+file is loaded once, by the first model that names it, so it loads at single precision when
+any near model names it. ragview loads each file so.
 
 ## Checks
 

@@ -62,6 +62,20 @@ std::array<std::int32_t, 3> CellColor(float x, float y, float z) {
           static_cast<std::int32_t>(std::bit_cast<std::uint32_t>(z) >> 5 & 0x7f)};
 }
 
+struct SingleNodeVector {
+  const std::uint32_t* vertices;
+  std::size_t vertex_count;
+  const std::uint32_t* face_normals;
+  const std::uint32_t* corner_normals;
+  std::size_t face_count;
+};
+
+struct SingleLoadVector {
+  const char* const* file;
+  const SingleNodeVector* nodes;
+  std::size_t node_count;
+};
+
 #include "model_vectors.inc"
 
 float F(std::uint32_t bits) { return std::bit_cast<float>(bits); }
@@ -222,6 +236,36 @@ TEST_CASE("Model instances are placed, lit and drawn as the original does", "[mo
       CHECK(static_cast<std::uint32_t>(instance.time) == *step++);
       for (const ModelNodeInstance& node : instance.nodes)
         for (std::size_t i = 0; i < 12; ++i) CHECK(B(node.matrix[i]) == *step++);
+    }
+  }
+}
+
+TEST_CASE("Models load as the original's at single precision", "[model]") {
+  std::size_t n = 0;
+  for (const SingleLoadVector& v : kSingleLoads) {
+    INFO("model " << n++);
+    ragexe::res::Model model;
+    std::string error;
+    REQUIRE(ragexe::res::DecodeModel(FromHex(v.file), model, &error,
+                                     ragexe::res::FpuPrecision::kSingle));
+    REQUIRE(model.nodes.size() == v.node_count);
+    for (std::size_t k = 0; k < v.node_count; ++k) {
+      INFO("node " << k);
+      const ragexe::res::ModelMesh& mesh = model.nodes[k].mesh;
+      const SingleNodeVector& want = v.nodes[k];
+      REQUIRE(mesh.vertices.size() == want.vertex_count);
+      REQUIRE(mesh.faces.size() == want.face_count);
+      for (std::size_t i = 0; i < mesh.vertices.size(); ++i)
+        for (std::size_t c = 0; c < 3; ++c)
+          CHECK(B(mesh.vertices[i][c]) == want.vertices[i * 3 + c]);
+      for (std::size_t f = 0; f < mesh.faces.size(); ++f) {
+        for (std::size_t c = 0; c < 3; ++c) {
+          CHECK(B(mesh.face_normals[f][c]) == want.face_normals[f * 3 + c]);
+          for (std::size_t corner = 0; corner < 3; ++corner)
+            CHECK(B(mesh.corner_normals[f][corner][c]) ==
+                  want.corner_normals[f * 9 + corner * 3 + c]);
+        }
+      }
     }
   }
 }

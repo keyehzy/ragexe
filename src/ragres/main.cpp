@@ -17,7 +17,8 @@
 //                                          ambient; prints hashes
 //   ragres decode-rsws [--no-lightmaps] FILE...
 //                                          decodes .rsw files as C3dWorldRes does
-//   ragres decode-rsms FILE...             decodes .rsm files as C3dModelRes does
+//   ragres decode-rsms [--single] FILE...  decodes .rsm files as C3dModelRes does, with
+//                                          --single at the x87's single precision
 //   ragres decode-rsxs FILE...             decodes .rsx files as C3dAnimModelRes does
 //   ragres decode-imfs FILE...             decodes .imf files as CImfRes does
 //   ragres decode-rmas FILE...             decodes .rma files as CRmaRes does
@@ -689,12 +690,17 @@ int DecodeRsws(std::vector<std::string> files) {
 // parent children textures-hash fields-hash vertices tex-coords faces face-normals
 // corner-normals translation-keys rotation-keys", each a count:hash of the values' bytes
 // (names with a NUL each); or "n failed error".
-int DecodeRsms(const std::vector<std::string>& files) {
+int DecodeRsms(std::vector<std::string> files) {
+  auto precision = ragexe::res::FpuPrecision::kDouble;
+  if (!files.empty() && files.front() == "--single") {
+    precision = ragexe::res::FpuPrecision::kSingle;
+    files.erase(files.begin());
+  }
   int failed = 0;
   for (std::size_t n = 0; n < files.size(); ++n) {
     ragexe::res::Model model;
     std::string error;
-    if (!ragexe::res::DecodeModel(ReadFile(files[n]), model, &error)) {
+    if (!ragexe::res::DecodeModel(ReadFile(files[n]), model, &error, precision)) {
       std::printf("%zu failed %s\n", n, error.c_str());
       ++failed;
       continue;
@@ -1492,7 +1498,7 @@ int Usage() {
                "       ragres decode-gnds FILE...\n"
                "       ragres build-grounds [--lightmaps] LIGHT FILE...\n"
                "       ragres decode-rsws [--no-lightmaps] FILE...\n"
-               "       ragres decode-rsms FILE...\n"
+               "       ragres decode-rsms [--single] FILE...\n"
                "       ragres decode-rsxs FILE...\n"
                "       ragres decode-imfs FILE...\n"
                "       ragres decode-rmas FILE...\n"

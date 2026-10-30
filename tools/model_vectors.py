@@ -317,7 +317,46 @@ def main():
     lines.append("static const ModelVector kModelVectors[] = {")
     lines += cases
     lines.append("};")
+    lines += single_loads(models)
     print("\n".join(lines))
+
+
+def single_loads(models):
+    """The same models loaded at single precision, as the main thread loads the models near
+    the player: every node's vertices, face normals and corner normals, in file order."""
+    lines = []
+    for k, (name, data) in enumerate(models):
+        emu = Emulator(max_instructions=2_000_000_000).init_crt()
+        emu.replace_thiscall(GET_TEXTURE, 2, lambda this, name, flag: emu.alloc(0x130))
+        emu.serve_data_files({"data\\m.rsm": data})
+        res = emu.alloc(C3DMODELRES_SIZE)
+        emu.call(C3DMODELRES_CTOR, this=res)
+        emu.uc.reg_write(UC_X86_REG_FPCW, 0x007F)
+        assert emu.call(C3DMODELRES_LOAD, emu.cstr("m.rsm"), this=res).eax & 0xFF
+        head = emu.read_u32(res + 0x11C)
+        node, nodes = emu.read_u32(head), []
+        while node != head:
+            nodes.append(emu.read_u32(node + 8))
+            node = emu.read_u32(node)
+        rows = []
+        for n, p in enumerate(nodes):
+            mesh = emu.read_u32(p + 0x114)
+            nv, nf = struct.unpack("<ii", emu.mem_read(mesh, 8))
+            arrays = [list(struct.unpack(f"<{count}I", emu.mem_read(emu.read_u32(mesh + offset), 4 * count)))
+                      if count else [] for offset, count in ((0xC, 3 * nv), (0x10, 3 * nf), (0x14, 9 * nf))]
+            for a, values in zip(("Vertices", "FaceNormals", "CornerNormals"), arrays):
+                lines.append(f"static const std::uint32_t kSingle{k}_{n}{a}[] = {{{hexes(values) or '0'}}};")
+            rows.append(f"    {{kSingle{k}_{n}Vertices, {nv}, kSingle{k}_{n}FaceNormals, kSingle{k}_{n}CornerNormals, "
+                        f"{nf}}},")
+        lines.append(f"static const SingleNodeVector kSingle{k}[] = {{")
+        lines += rows
+        lines.append("};")
+    lines.append("// Each model of kModelVectors loaded at single precision: per node in file order {vertices,")
+    lines.append("// their count, face normals, corner normals, the face count}.")
+    lines.append("static const SingleLoadVector kSingleLoads[] = {")
+    lines += [f"    {{kModel{k}, kSingle{k}, sizeof(kSingle{k}) / sizeof(kSingle{k}[0])}}," for k in range(len(models))]
+    lines.append("};")
+    return lines
 
 
 if __name__ == "__main__":

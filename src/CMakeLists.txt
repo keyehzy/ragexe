@@ -58,7 +58,7 @@ add_library(ragexe_res STATIC
   res/wav.cpp
   res/xml.cpp)
 target_include_directories(ragexe_res PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(ragexe_res PRIVATE ZLIB::ZLIB ragexe_stb_image ragexe_options)
+target_link_libraries(ragexe_res PRIVATE ragexe_core ZLIB::ZLIB ragexe_stb_image ragexe_options)
 
 # The renderer: the original's Direct3D 7 state, and in time its SDL_GPU replacement.
 add_library(ragexe_render STATIC

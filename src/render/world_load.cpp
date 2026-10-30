@@ -26,19 +26,33 @@ std::array<float, 2> CellCentre(const res::AttrMap& attr, std::int32_t cell_x,
   return {core::RoundedProduct(x, size) + half_cell, core::RoundedProduct(z, size) + half_cell};
 }
 
+namespace {
+
+float DistanceFromPlayer(const res::WorldModel& model, float player_x, float player_z) {
+  const auto& p = model.position;
+  const float dx = p[0] - player_x;
+  const float dy = p[1] - 0.0f;
+  const float dz = p[2] - player_z;
+  return std::sqrt(((dx * dx) + (dy * dy)) + (dz * dz));
+}
+
+// fcom against 200 and C0 or C3: below, equal or unordered.
+bool Near(float distance) { return !(distance > kNearDistance); }
+
+}  // namespace
+
+bool IsNearModel(const res::WorldModel& model, float player_x, float player_z) {
+  return Near(DistanceFromPlayer(model, player_x, player_z));
+}
+
 std::vector<std::size_t> ModelLoadOrder(std::span<const res::WorldModel> models, float player_x,
                                         float player_z,
                                         const std::function<bool(std::size_t)>& loads) {
   std::vector<std::size_t> order;
   std::vector<std::pair<float, std::size_t>> far;
   for (std::size_t i = 0; i < models.size(); ++i) {
-    const auto& p = models[i].position;
-    const float dx = p[0] - player_x;
-    const float dy = p[1] - 0.0f;
-    const float dz = p[2] - player_z;
-    const float distance = std::sqrt(((dx * dx) + (dy * dy)) + (dz * dz));
-    // fcom against 200 and C0 or C3: below, equal or unordered.
-    if (!(distance > kNearDistance)) {
+    const float distance = DistanceFromPlayer(models[i], player_x, player_z);
+    if (Near(distance)) {
       if (loads(i)) order.push_back(i);
     } else {
       far.emplace_back(distance, i);

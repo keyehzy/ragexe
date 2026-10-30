@@ -1,12 +1,14 @@
 """Compares the port's model loader with the original (docs/formats/rsm.md).
 
-usage: .venv/bin/python -I tools/rsm_oracle.py [--jobs J]
+usage: .venv/bin/python -I tools/rsm_oracle.py [--single] [--jobs J]
 
 Runs C3dModelRes::Load (0042be00) in the emulation oracle on every .rsm of data.grf and on
 synthetic models of every version, with TextureCache::GetTexture replaced by a stand-in
 that records the name, and compares the header, every node (names, links, textures,
 placement, keys) and every mesh (vertices, texture coordinates, the sorted faces, face and
-corner normals), and the volumes with `ragres decode-rsms`.
+corner normals), and the volumes with `ragres decode-rsms`. The x87 runs at double
+precision, the CRT's default, as on LazyModelLoadThread; with --single at single precision,
+as on the main thread after DirectDraw's FPUSETUP, against `ragres decode-rsms --single`.
 """
 import argparse
 import os
@@ -19,6 +21,8 @@ import tempfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 import oracle_pool  # noqa: E402
+from unicorn.x86_const import UC_X86_REG_FPCW  # noqa: E402
+
 from emu import Emulator  # noqa: E402
 
 C3DMODELRES_CTOR, C3DMODELRES_LOAD = 0x42BB00, 0x42BE00  # analysis/labels
@@ -136,8 +140,10 @@ def cstring(emu, at, limit=256):
     return emu.mem_read(at, limit).split(b"\0")[0]
 
 
-def work(state, path):
+def work(state, item):
     emu, obj = state
+    path, single = item
+    emu.uc.reg_write(UC_X86_REG_FPCW, 0x007F if single else 0x027F)
     with open(path, "rb") as f:
         data = f.read()
     mark = emu.heap_mark()
@@ -195,6 +201,7 @@ def main():
     ap.add_argument("--archive", default=os.path.join(ROOT, "original", "install", "data.grf"))
     ap.add_argument("--ragres", default=os.path.join(ROOT, "build", "dev", "src", "ragres"))
     ap.add_argument("--jobs", type=int, default=0, help="worker processes (0: one per core but one)")
+    ap.add_argument("--single", action="store_true", help="load at single precision")
     args = ap.parse_args()
     with tempfile.TemporaryDirectory() as tmp:
         files_dir = os.path.join(tmp, "files")
@@ -206,8 +213,8 @@ def main():
             with open(path, "wb") as f:
                 f.write(data)
             files.append(path)
-        out = subprocess.run([args.ragres, "decode-rsms", *files], capture_output=True,
-                             text=True).stdout
+        out = subprocess.run([args.ragres, "decode-rsms", *(["--single"] if args.single else []), *files],
+                             capture_output=True, text=True).stdout
         ours = {}
         current = None
         for line in out.splitlines():
@@ -218,7 +225,8 @@ def main():
             current = int(n)
             ours[current] = ["failed"] if rest.startswith("failed") else [rest]
         ours = {n: "\n".join(lines) for n, lines in ours.items()}
-        originals = oracle_pool.run(files, init, work, args.jobs or None, label="rsm")
+        originals = oracle_pool.run([(f, args.single) for f in files], init, work, args.jobs or None,
+                                    label="rsm")
         mismatches = []
         for n, (p, want) in enumerate(zip(files, originals)):
             got = ours.get(n)

@@ -253,11 +253,24 @@ and `RsmRes`, registered by `RegisterModelTypes`.
 **The FPU arithmetic** is done in double, with the x87's NaN rules: an invalid
 operation gives `ffc00000`, and a NaN operand comes out quiet. Every value in `data.grf`
 agrees (below).
-- **That is the CRT's default precision,** at which `LazyModelLoadThread` loads most of a
-  map's models.
-- **The main thread** runs at single precision after DirectDraw's `FPUSETUP`. The models
-  it loads (those near the player) can therefore differ in their last bits
-  ([model.md](../render/model.md#the-loaders-precision)).
+
+### The loader's precision
+
+The x87's precision control decides how `Load` rounds, so `DecodeModel` takes it
+(`FpuPrecision`):
+- **Double,** the CRT's default, at which `LazyModelLoadThread` loads most of a map's
+  models.
+- **Single,** at which the main thread runs after DirectDraw's `FPUSETUP`. It loads the
+  models near the player ([model.md](../render/model.md#loading)).
+
+The two differ in the last bits of 971 of the 1,127 models' vertices or normals.
+
+At single precision each result is rounded to 24 bits:
+- **Sums and products:** every operand then has 24 bits, so a sum or product computed in
+  double is exact. Where it is not, the smaller operand is under half a 24-bit step, and the
+  result rounds the same.
+- **A quotient** is rounded once, by its remainder (`core::RoundedQuotient`).
+- **Not kept:** the x87's wider exponent range, which only values past a float's would show.
 
 **Where the port differs:**
 - **Truncated files fail,** and so do names with no NUL inside their record.
@@ -268,8 +281,10 @@ agrees (below).
 - **A 1.1 face** has 0 in the bytes the original leaves unset.
 
 **The oracle:** `tools/rsm_oracle.py` runs the original `Load` on every `.rsm` in
-`data.grf`, and on 13 synthetic models of every version. `TextureCache::GetTexture` is
-replaced by a stand-in that records the name.
+`data.grf`, and on 13 synthetic models of every version, at double precision or, with
+`--single`, at single (against `ragres decode-rsms --single`). `TextureCache::GetTexture`
+is replaced by a stand-in that records the name. Both precisions agree on every model.
+`tools/model_vectors.py` also loads its ten models at single precision for the unit tests.
 - **What it compares:** every node's names, links, textures, placement, alpha and keys,
   and every mesh's vertices, texture coordinates, sorted faces, and face and corner
   normals, bit for bit. Also the volumes.

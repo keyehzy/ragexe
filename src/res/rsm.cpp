@@ -7,6 +7,7 @@
 #include <limits>
 #include <utility>
 
+#include "core/x87.h"
 #include "res/data_file.h"
 #include "res/record_reader.h"
 #include "res/vc6_sort.h"
@@ -24,7 +25,12 @@ bool Fail(std::string* error, const char* message) {
 
 // FPU arithmetic in double, with the x87's NaN rules: a NaN operand comes out quiet (the
 // one with the larger significand when both are), and an invalid operation gives the
-// negative quiet NaN, which other processors do not produce by themselves.
+// negative quiet NaN, which other processors do not produce by themselves. At single
+// precision each result is rounded once to 24 bits: every operand then has 24 bits, so a
+// sum or product in double is exact or, its smaller operand being under half a 24-bit
+// step, rounds the same; a quotient is rounded by its remainder (core::RoundedQuotient).
+// The exponent's wider range on the x87 is not kept, which only values past a float's
+// would show.
 constexpr std::uint64_t kSignificand = (std::uint64_t{1} << 52) - 1;
 
 double Indefinite() { return std::bit_cast<double>(std::uint64_t{0xfff8000000000000}); }
@@ -46,10 +52,38 @@ double Checked(double r, double a, double b) {
   return std::isnan(r) ? Indefinite() : r;
 }
 
-double Add(double a, double b) { return Checked(a + b, a, b); }
-double Sub(double a, double b) { return Checked(a - b, a, b); }
-double Mul(double a, double b) { return Checked(a * b, a, b); }
-double Div(double a, double b) { return Checked(a / b, a, b); }
+thread_local FpuPrecision g_precision = FpuPrecision::kDouble;
+
+// Sets the precision for the loading in its scope.
+class PrecisionScope {
+ public:
+  explicit PrecisionScope(FpuPrecision precision) : previous_(g_precision) {
+    g_precision = precision;
+  }
+  ~PrecisionScope() { g_precision = previous_; }
+  PrecisionScope(const PrecisionScope&) = delete;
+  PrecisionScope& operator=(const PrecisionScope&) = delete;
+  PrecisionScope(PrecisionScope&&) = delete;
+  PrecisionScope& operator=(PrecisionScope&&) = delete;
+
+ private:
+  FpuPrecision previous_;
+};
+
+double Rounded(double r) {
+  return g_precision == FpuPrecision::kSingle && !std::isnan(r)
+             ? static_cast<double>(static_cast<float>(r))
+             : r;
+}
+
+double Add(double a, double b) { return Checked(Rounded(a + b), a, b); }
+double Sub(double a, double b) { return Checked(Rounded(a - b), a, b); }
+double Mul(double a, double b) { return Checked(Rounded(a * b), a, b); }
+double Div(double a, double b) {
+  if (g_precision == FpuPrecision::kSingle && b != 0.0 && std::isfinite(a) && std::isfinite(b))
+    return core::RoundedQuotient(static_cast<float>(a), b);
+  return Checked(a / b, a, b);
+}
 float F(double a) { return static_cast<float>(a); }
 double D(float a) { return static_cast<double>(a); }
 
@@ -97,7 +131,8 @@ void SortModelFaces(std::vector<ModelFace>& faces) {
   }
 }
 
-bool ComputeModelNormals(ModelMesh& mesh) {
+bool ComputeModelNormals(ModelMesh& mesh, FpuPrecision precision) {
+  const PrecisionScope scope(precision);
   const auto& v = mesh.vertices;
   for (const ModelFace& face : mesh.faces) {
     for (std::uint16_t index : face.vertices) {
@@ -161,7 +196,9 @@ bool ComputeModelNormals(ModelMesh& mesh) {
   return true;
 }
 
-bool DecodeModel(std::span<const std::uint8_t> data, Model& out, std::string* error) {
+bool DecodeModel(std::span<const std::uint8_t> data, Model& out, std::string* error,
+                 FpuPrecision precision) {
+  const PrecisionScope scope(precision);
   out = Model{};
   RecordReader in(data);
   char magic[4] = {};
@@ -252,7 +289,7 @@ bool DecodeModel(std::span<const std::uint8_t> data, Model& out, std::string* er
       }
     }
     SortModelFaces(mesh.faces);
-    if (!ComputeModelNormals(mesh))
+    if (!ComputeModelNormals(mesh, precision))
       return Fail(error, "a face refers to a missing vertex or smoothing group");
 
     if (minor >= 5) {
