@@ -87,6 +87,8 @@ struct SceneCall {
   std::uint32_t state = 0;  // the state; for kDraw, the D3DPRIMITIVETYPE
   std::uint32_t value = 0;  // its value; the texture id; for kDraw, the primitive id
   std::uint32_t fvf = 0;    // for kDraw: 0x1c4, or 0x2c4 with the lightmap's coordinates
+  // For kDraw: DrawWithTexCoordArray (0040c590), the lightmap's coordinates over the first.
+  bool lightmap_coords = false;
 
   friend bool operator==(const SceneCall&, const SceneCall&) = default;
 };

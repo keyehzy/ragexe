@@ -9,6 +9,13 @@ usage: .venv/bin/python -I tools/scene_vectors.py > tests/unit/scene_vectors.inc
     through AddPrimitive (00412550) with assorted flags, then DrawScene (0040efd0) runs
     after the projection, with and without fog, lightmaps and two-stage blending. Every
     render state, texture stage state, texture and draw call it makes is recorded.
+  - Scaled scenes: textures with uv scales, primitives with their own texture coordinates
+    and a second set apart, some added twice, drawn with lightmaps on one stage or two, or
+    without; each draw's vertices are recorded as sent, after the draws' in-place scaling
+    (ScaleTexCoordsByTexture, 0040c280) and the lightmap pass's coordinates.
+  - The primitive pools of a constructed SceneRenderer (0040d1a0): triangle lists and quads
+    taken past the pools' first sizes over three frames, the pools rewound after each; the
+    order of the nodes' addresses.
 The x87 runs at single precision, as DirectDraw's FPUSETUP leaves it in the client.
 """
 import os
@@ -20,8 +27,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from unicorn.x86_const import UC_X86_REG_FPCW  # noqa: E402
 
 from emu import Emulator  # noqa: E402
+from model_vectors import C3DDEVICE_CTOR, C3DDEVICE_INIT, G_C3DDEVICE, IID_HAL_DEVICE, WINDOW  # noqa: E402
 
 ADD_PRIMITIVE, DRAW_SCENE, SET_STAGE_MODE = 0x412550, 0x40EFD0, 0x4112D0
+SCENE_RENDERER_CTOR, NEW_TRIANGLE_LIST, NEW_QUAD, REWIND_POOLS = 0x40D1A0, 0x412AA0, 0x412B40, 0x412E70
 SCENE_RENDERER_SIZE, PRIMITIVE_SIZE = 0x2A0, 0x24
 IS_LIGHTMAP, TWO_STAGE = 0x61EC60, 0x6053F0
 FLAGS = [0, 0, 0x400, 0x400, 1, 1, 3, 3, 0x101, 0x103, 0x201, 0x203, 5, 5, 0x800, 8, 0x401, 0x105]
@@ -154,7 +163,133 @@ def main():
     lines.append("static const SceneVector kSceneVectors[] = {")
     lines += scenes
     lines.append("};")
+    lines += scaled_scenes()
+    lines += pools()
     print("\n".join(lines))
+
+
+def pools():
+    """SceneRenderer's primitive pools, constructed, taken past their first sizes in three
+    frames with the pools rewound between: the order of the nodes' addresses."""
+    rng = random.Random(41)
+    emu = Emulator()
+    single_precision(emu)
+    emu.call(C3DDEVICE_CTOR, this=G_C3DDEVICE)
+    assert emu.call(C3DDEVICE_INIT, WINDOW, 0, IID_HAL_DEVICE, 0, 6, this=G_C3DDEVICE).eax == 0
+    sr = emu.scratch(size=SCENE_RENDERER_SIZE)
+    emu.call(SCENE_RENDERER_CTOR, this=sr)
+    ops, taken = [], []
+    for lists, quads in ((1030, 5124), (1040, 5130), (10, 10)):
+        kinds = [0] * lists + [1] * quads
+        rng.shuffle(kinds)
+        for kind in kinds:
+            if ops and ops[-1][0] == kind:
+                ops[-1][1] += 1
+            else:
+                ops.append([kind, 1])
+            taken.append(emu.call(NEW_TRIANGLE_LIST if kind == 0 else NEW_QUAD, this=sr).eax)
+        ops.append([2, 1])
+        emu.call(REWIND_POOLS, this=sr)
+    rank = {a: k for k, a in enumerate(sorted(set(taken)))}
+    runs = []
+    for a in taken:
+        if runs and rank[a] == runs[-1][0] + runs[-1][1]:
+            runs[-1][1] += 1
+        else:
+            runs.append([rank[a], 1])
+    lines = ["// Primitive pools: {0 a triangle list (00412aa0), 1 a quad (NewQuad 00412b40), 2 the pools",
+             "// rewound (00412e70), how many in a row}.",
+             "static const std::uint32_t kPoolOps[][2] = {"]
+    lines += [f"    {{{kind}, {count}}}," for kind, count in ops]
+    lines.append("};")
+    lines.append("// Each node taken, in order, by its address's rank among them: runs of {first rank, count}.")
+    lines.append("static const std::uint32_t kPoolRanks[][2] = {")
+    lines += [f"    {{{first}, {count}}}," for first, count in runs]
+    lines.append("};")
+    return lines
+
+
+def f32bits(x):
+    return struct.unpack("<I", struct.pack("<f", x))[0]
+
+
+def scaled_scenes():
+    """Scenes whose draws are recorded with their vertices: textures with uv scales, vertices
+    with their own coordinates and the second set apart, some primitives added twice."""
+    lines = []
+    rng = random.Random(40)
+    scenes = []
+    scales = [(1.0, 1.0), (0.75, 0.5), (0.3, 0.9), (0.5, 0.125)]
+    for k, (lightmaps, two_stage) in enumerate([(1, 0), (1, 1), (0, 0), (1, 0)]):
+        emu = Emulator()
+        single_precision(emu)
+        dx = emu.directx
+        device = dx.create_device()
+        sr = renderer(emu, device)
+        emu.write_u32(IS_LIGHTMAP, lightmaps)
+        emu.mem_write(TWO_STAGE, bytes([two_stage]))
+        textures, rows = [0], []
+        for u, v in scales:
+            tex = emu.scratch(size=0x128)
+            emu.write_u32(tex + 0xC, dx.create_texture(16, 16).address)
+            emu.mem_write(tex + 0x18, struct.pack("<2f", u, v))
+            textures.append(tex)
+            rows.append(f"{{0x{tex:x}, 0x{f32bits(u):08x}, 0x{f32bits(v):08x}}}")
+        prims = []
+        for p in range(30):
+            verts, second = [], []
+            for _ in range(4):
+                verts += [f32bits(rng.uniform(0, 800)), f32bits(rng.uniform(0, 600)), f32bits(rng.random()),
+                          f32bits(rng.choice([0.25, 0.5, rng.random()])), rng.getrandbits(32), rng.getrandbits(32),
+                          f32bits(rng.uniform(-2, 2)), f32bits(rng.uniform(-2, 2))]
+                second += [f32bits(rng.uniform(0, 1)), f32bits(rng.uniform(0, 1))]
+            vbuf = emu.scratch(struct.pack("<32I", *verts))
+            sbuf = emu.scratch(struct.pack("<8I", *second))
+            prim = emu.scratch(size=PRIMITIVE_SIZE)
+            texture, lightmap = rng.choice(textures), rng.choice(textures[1:])
+            for off, v in ((0, vbuf), (4, sbuf), (8, 4), (0xC, texture), (0x10, lightmap), (0x14, 5), (0x18, 6),
+                           (0x1C, 0), (0x20, 5)):
+                emu.write_u32(prim + off, v)
+            prims.append((prim, texture, lightmap, verts, second))
+        added = []
+        for p in rng.sample(range(30), 30) + rng.sample(range(30), 6):
+            flags = rng.choice([0, 0x400, 0x400, 1, 0x101, 3])
+            emu.call(ADD_PRIMITIVE, prims[p][0], flags, this=sr)
+            added.append((p, flags))
+        start = len(dx.calls)
+        emu.call(DRAW_SCENE, this=sr)
+        draws = []
+        for c in dx.calls[start:]:
+            if c.method != "DrawPrimitive":
+                continue
+            words = [f32bits(x) if isinstance(x, float) else x
+                     for v in c.detail["vertices"] for f in v.values() for x in (f if isinstance(f, tuple) else (f,))]
+            hexes = ", ".join(f"0x{w:08x}" for w in words)
+            draws.append(f"    {{{c.args[0]}, 0x{c.args[1]:x}, {c.args[3]}, {{{hexes}}}}},")
+        lines.append(f"static const ScaledPrimitive kScaledPrimitives{k}[] = {{")
+        for prim, texture, lightmap, verts, second in prims:
+            lines.append(f"    {{0x{prim:x}, 0x{texture:x}, 0x{lightmap:x},\n"
+                         f"     {{{', '.join(f'0x{w:08x}' for w in verts)}}},\n"
+                         f"     {{{', '.join(f'0x{w:08x}' for w in second)}}}}},")
+        lines.append("};")
+        lines.append(f"static const SceneAdd kScaledAdds{k}[] = {{")
+        lines += [f"    {{{p}, 0x{flags:x}}}," for p, flags in added]
+        lines.append("};")
+        lines.append(f"static const ScaledDraw kScaledDraws{k}[] = {{")
+        lines += draws
+        lines.append("};")
+        scenes.append(f"    {{{lightmaps}, {two_stage}, kScaledPrimitives{k}, std::size(kScaledPrimitives{k}), "
+                      f"kScaledAdds{k}, std::size(kScaledAdds{k}), kScaledDraws{k}, std::size(kScaledDraws{k})}},")
+        if k == 0:
+            lines.append("// {texture, uv scale}, the same in each scene.")
+            lines.append("static const std::uint32_t kScaledTextures[][3] = {" + ", ".join(rows) + "};")
+    lines.append("// {ISLIGHTMAP, two-stage blending, primitives {address, texture, lightmap, vertices,")
+    lines.append("// second coordinates}, the order and flags AddPrimitive got them in, the draws {type,")
+    lines.append("// FVF, count, the vertices' dwords as sent}}.")
+    lines.append("static const ScaledScene kScaledScenes[] = {")
+    lines += scenes
+    lines.append("};")
+    return lines
 
 
 if __name__ == "__main__":

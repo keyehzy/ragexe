@@ -5,8 +5,8 @@ The image is mapped at its preferred base with each section's protection, on a f
 None of the original's start-up runs unless asked for: init_crt() runs _ioinit and then
 what _cinit does (the floating-point set-up through the _FPinit pointer and the C
 initializer table: atexit table, stdio, the ANSI code page, the unhandled-exception
-filter), which stdio and printf-style formatting of floats need. The C++ initializer table, and with it every game global's
-constructor, never runs. The parts of the CRT that need its own start-up are replaced:
+filter), which stdio and printf-style formatting of floats need. The C++ initializer table,
+and with it every game global's constructor, never runs. The parts of the CRT that need its own start-up are replaced:
 
   - The heap: malloc, __nh_malloc (operator new), calloc, realloc, _msize and free are
     hooked by address and served from a bump allocator. Blocks are zero-filled and never
@@ -50,7 +50,7 @@ GDT = 0x7FFC0000
 TEB = 0x7FFD0000
 STUBS = 0x7FF00000            # one 16-byte slot per import, then the return sentinel
 STACK_BASE, STACK_SIZE = 0x10000000, 0x00100000
-HEAP_BASE, HEAP_SIZE = 0x20000000, 0x04000000
+HEAP_BASE, HEAP_SIZE = 0x20000000, 0x10000000
 # The archive DataFile reads through (analysis/labels: globals, vtables, CGPak methods).
 G_CGPAK, G_PCGPAK, CGPAK_VFTABLE = 0x67CD00, 0x67CD84, 0x5E8E50
 CGPAK_LOAD_FILE, CGPAK_FREE_FILE, CGPAK_EXISTS = 0x4DD9A0, 0x4DD9F0, 0x4DDA10
@@ -486,6 +486,13 @@ class Emulator:
         self.mem_write(addr, struct.pack("<I", v & 0xFFFFFFFF))
 
     def read_cstr(self, addr, limit=4096, encoding="cp1252"):
-        data = self.mem_read(addr, limit)
-        end = data.find(b"\0")
-        return (data if end < 0 else data[:end]).decode(encoding)
+        """The string at addr, read a page at a time so that one ending near the end of a
+        mapping (a caller's stack) reads nothing past it."""
+        data = b""
+        while len(data) < limit:
+            chunk = self.mem_read(addr + len(data), min(limit - len(data), 0x1000 - (addr + len(data)) % 0x1000))
+            end = chunk.find(b"\0")
+            if end >= 0:
+                return (data + chunk[:end]).decode(encoding)
+            data += chunk
+        return data.decode(encoding)

@@ -43,9 +43,6 @@ address	namespace	name	calling_convention	evidence
 0040ef30	SceneRenderer	method_0040ef30	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 004c3ab0; through the pointer at 00625e98
 00411d40	SceneRenderer	method_00411d40	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 004cba20; through the pointer at 00625e98
 00412150	SceneRenderer	method_00412150	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 004cba20; through the pointer at 00625e98
-00412aa0	SceneRenderer	method_00412aa0	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 004b6e50; through the pointer at 00625e98
-00412c80	SceneRenderer	method_00412c80	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 004b6e50
-00412e70	SceneRenderer	method_00412e70	__thiscall	__thiscall; called with this from 1 functions of SceneRenderer, e.g. 0050d400; through the pointer at 00625e98
 00413650	std::Tree	method_00413650	__thiscall	__thiscall; called with this from 3 functions of TextureCache, e.g. 0040c9f0
 00414860	std::Tree	method_00414860	__thiscall	__thiscall; called with this from 2 functions of TextureCache, e.g. 0040c9f0
 004151e0	std::Tree	method_004151e0	__thiscall	__thiscall; called with this from 2 functions of TextureCache, e.g. 0040cca0

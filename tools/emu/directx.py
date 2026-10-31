@@ -38,7 +38,7 @@ DDENUMRET_CANCEL = 0
 
 COM_BASE, COM_SIZE = 0x40000000, 0x00400000          # stubs, vtables, objects, structures
 STUB_AREA = 0x2000
-SURFACE_BASE, SURFACE_SIZE = 0x50000000, 0x08000000   # pixel and vertex buffer memory
+SURFACE_BASE, SURFACE_SIZE = 0x50000000, 0x10000000   # pixel and vertex buffer memory
 
 
 def guid(text):

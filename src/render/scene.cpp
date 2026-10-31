@@ -94,9 +94,9 @@ struct Flush {
     out.push_back({SceneCall::Kind::kTexture, 1, 0, texture, 0});
     bound.stage1 = texture;
   }
-  void Draw(const ScenePrimitive& p, std::uint32_t fvf) {
+  void Draw(const ScenePrimitive& p, std::uint32_t fvf, bool lightmap_coords = false) {
     if (p.vertex_count == 0) return;
-    out.push_back({SceneCall::Kind::kDraw, -1, p.type, p.id, fvf});
+    out.push_back({SceneCall::Kind::kDraw, -1, p.type, p.id, fvf, lightmap_coords});
   }
 
   template <typename Less>
@@ -143,7 +143,7 @@ struct Flush {
     });
     for (const SceneEntry& e : lists.list(SceneList::kGround)) {
       Texture0(at(e).lightmap);
-      Draw(at(e), kFvf);
+      Draw(at(e), kFvf, true);
     }
   }
   // 0040f900: the ground with both textures at once.

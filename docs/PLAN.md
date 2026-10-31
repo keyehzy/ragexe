@@ -2705,8 +2705,23 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     scene graph node. New vectors cover matrices and key tracks at both precisions, the
     x87's arithmetic on special values, the models at double precision and degenerate ones,
     `GetCellCoords`, and late insertion.
-- [ ] Whole frames: the draws the port submits for a reference map and view against the D3D7
-  calls the original records in the emulator (the M4 exit).
+- [x] Whole frames: the draws the port submits against the D3D7 calls the original records in
+  the emulator, the first half of the M4 exit (`docs/render/frame.md`, `src/render/world_frame`):
+  - **`DrawWorldFrame`:** one frame as `CGameMode::OnFrame` draws it: the water's and the
+    view's steps, `CView::DrawWorld` (the visible scene graph, the cell cursor, `DrawScene`),
+    `Present`'s count and the pools rewound.
+  - **What the lists sort by:** the textures in the order `TextureCache` makes them (the
+    lightmap pages, the ground's as `Build` places surfaces, each model file's nodes'), and
+    the primitive pools' nodes, ordered as their addresses on a heap that only grows.
+  - **The vertices the draws send,** after the in-place texture coordinate scaling and the
+    lightmap pass's coordinates.
+  - **Checks:** `tools/frame_oracle.py` runs the original's frames on real maps, with its
+    textures made for real, and compares every call and vertex with `ragres draw-frame`:
+    all 208 maps equal, three frames each (161,841 draws). New vectors cover the draws'
+    scaling in four scenes and the pools taken past their first sizes.
+- [ ] Rendered frames reviewed and kept as regression baselines (the rest of the M4 exit):
+  ragview draws the world through `DrawWorldFrame`, its actors and effects added to the same
+  lists, and its screenshots of reference maps become baselines.
 - [ ] ragview reads the `.gpf` patches over `data.grf`, as `ragres load-world` does.
 
 ### Next actions

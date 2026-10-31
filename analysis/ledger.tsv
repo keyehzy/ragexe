@@ -356,11 +356,11 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00412550	449	code	0	render		named	SceneRenderer	AddPrimitive	
 00412720	440	code	0	render		named	SceneRenderer	AddTriangleList	
 004128e0	443	code	0	render	dead	named	SceneRenderer	AddVertexBufferRange	
-00412aa0	159	code	0	render		named	SceneRenderer	method_00412aa0	
+00412aa0	159	code	0	render		named	SceneRenderer	NewTriangleList	
 00412b40	159	code	0	render		named	SceneRenderer	NewQuad	
-00412be0	159	code	0	render	unreferenced	raw	Global	FUN_00412be0	
-00412c80	490	code	0	render		named	SceneRenderer	method_00412c80	
-00412e70	136	code	0	render		named	SceneRenderer	method_00412e70	
+00412be0	159	code	0	render	unreferenced	named	SceneRenderer	NewSecondPoolQuad	
+00412c80	490	code	0	render		named	SceneRenderer	AllocModelVertices	
+00412e70	136	code	0	render		named	SceneRenderer	RewindPools	
 00412f00	10	code	0	render		named	SceneRenderer	CopyRenderTargetToBackup	
 00412f10	10	code	0	render		named	SceneRenderer	CopyBackupToRenderTarget	
 00412f20	17	code	1	stl		named	std::list	begin	

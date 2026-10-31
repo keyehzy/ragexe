@@ -175,7 +175,11 @@ original leaves them.
     `C3dGrannyGameActor` and `CGrannyPc`), which come with the Granny sub-milestone.
 - **The projection's transforms.** The fog's set-up and `ComputeVertexFog` are in
   `src/render/fog` ([fog.md](fog.md)).
-- **The in-place texture coordinate scaling.**
+
+**The vertices** the draws send, after the in-place texture coordinate scaling, are
+`FrameDraws` in `src/render/world_frame` ([frame.md](frame.md#in-the-port)). The scene marks
+the lightmap pass's draws, which send the second coordinates, with
+`SceneCall::lightmap_coords`.
 
 **Where the port differs:** a translucent key that is NaN orders where a plain
 comparison puts it. The original's comparator and its inlined insertion disagree there.
@@ -193,3 +197,5 @@ with the x87 at single precision, and writes `tests/unit/scene_vectors.inc`.
 
   The two largest pass 16 entries in some lists, so the sorts take their quicksort
   path.
+- **Four scaled scenes and the primitive pools,** for the vertices the draws send and the
+  order of the pools' nodes ([frame.md](frame.md#checks)).

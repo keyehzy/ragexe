@@ -8,10 +8,11 @@ attribute map. LazyModelLoadThread, which CreateThread is given, then runs to it
 CWorld::UpdateGameObjects puts the models it placed in the scene graph. The x87 runs at
 single precision, as the main thread does after FPUSETUP, and at double in the thread, as a
 new thread does. (Were CreateThread to fail, LoadWorld would run the thread itself and then
-JoinModelLoadThread, which drops the count of models waiting for the scene graph.) Real: the resource manager (its types registered by their static
-initializers), every loader, the ground's build, the models' placement and lighting, the
-scene graph. Stood in for: TextureCache::GetTexture and texture creation, the effects' and
-sounds' makers, the player, the UI's progress, Present, and Direct3D's lights.
+JoinModelLoadThread, which drops the count of models waiting for the scene graph.) Real: the
+resource manager (its types registered by their static initializers), every loader, the
+ground's build, the models' placement and lighting, the scene graph. Stood in for:
+TextureCache::GetTexture and texture creation, the effects' and sounds' makers, the player,
+the UI's progress, Present, and Direct3D's lights.
 
 Each map is dumped as `ragres load-world` dumps the port's: per model of CWorld+0x48 its
 .rsw record and hashes of its fields and nodes, and per scene graph node its box, cells and
@@ -39,6 +40,10 @@ from model_vectors import (C3DDEVICE_CTOR, C3DDEVICE_INIT, G_C3DDEVICE, G_PSCENE
 TYPE_INITIALIZERS = (0x4207A0, 0x421B10, 0x426A00, 0x4275F0, 0x427740, 0x427790, 0x428340, 0x428770,
                      0x428EA0, 0x4299A0, 0x42B600, 0x42DA00, 0x42E900, 0x431F70, 0x433EE0, 0x435300,
                      0x435810)
+# The static initializers of what the drawing reads: TextureCache (0040bf90), g_WorldColorFade
+# (0057cf70), g_waterTextureScale (004bbb10) and g_cellCursorUv (004bbb30).
+DRAWING_INITIALIZERS = (0x40BF90, 0x57CF70, 0x4BBB10, 0x4BBB30)
+INIT_ANGLE_TABLES = 0x40B2F0  # WinMain's
 GET_RESOURCE_MANAGER, GET_RESOURCE = 0x4DFA10, 0x4DFF60
 GET_TEXTURE, CREATE_TEXTURE = 0x40CC00, 0x405350
 LOAD_WORLD, UPDATE_GAME_OBJECTS, CWORLD_CTOR = 0x4C3AB0, 0x4C4A10, 0x4C35C0
@@ -62,15 +67,19 @@ def archive_name(raw):
     return "".join(chr(c) if c < 0x80 else f"%{c:02X}" for c in raw)
 
 
+def archive_key(relative):
+    """The archive path of a file `ragres extract` wrote, its bytes as Latin-1."""
+    return re.sub(r"%([0-9A-F]{2})", lambda m: chr(int(m.group(1), 16)), relative.replace(os.sep, "\\"))
+
+
 def served(directory):
     """The files `ragres extract` wrote, keyed by their archive paths' bytes as Latin-1."""
     files = {}
     for root, _, names in os.walk(directory):
         for name in names:
             path = os.path.join(root, name)
-            relative = os.path.relpath(path, directory).replace(os.sep, "\\")
             with open(path, "rb") as f:
-                files[re.sub(r"%([0-9A-F]{2})", lambda m: chr(int(m.group(1), 16)), relative)] = f.read()
+                files[archive_key(os.path.relpath(path, directory))] = f.read()
     return files
 
 
@@ -84,22 +93,33 @@ def extract(ragres, install, directory, names):
                            capture_output=True)
 
 
+def boot():
+    """An emulator with the device initialised and its texture limits set, an 800 x 600
+    SceneRenderer, the resource types registered, the drawing's statics constructed and the
+    angle tables filled, the x87 at FPUSETUP's single precision."""
+    emu = Emulator(max_instructions=8_000_000_000).init_crt()
+    emu.uc.reg_write(UC_X86_REG_FPCW, SINGLE)
+    emu.call(C3DDEVICE_CTOR, this=G_C3DDEVICE)
+    assert emu.call(C3DDEVICE_INIT, WINDOW, 0, IID_HAL_DEVICE, 0, 6, this=G_C3DDEVICE).eax == 0
+    # CreateRenderer's texture limits, from the fake device's caps: 1 x 1 to 2048 x 2048, any aspect.
+    emu.mem_write(G_C3DDEVICE + 0x224, struct.pack("<5I", 1, 1, 2048, 2048, 0))
+    renderer = emu.scratch(size=SCENE_RENDERER_SIZE)
+    emu.call(SCENE_RENDERER_CTOR, this=renderer)
+    emu.write_u32(renderer + 0x78, emu.read_u32(G_C3DDEVICE + 0x3C))
+    emu.call(SET_SIZE, 800, 600, this=renderer)
+    emu.write_u32(G_PSCENE_RENDERER, renderer)
+    for initializer in TYPE_INITIALIZERS + DRAWING_INITIALIZERS:
+        emu.call(initializer)
+    emu.call(INIT_ANGLE_TABLES)
+    return emu
+
+
 def original(item):
     ragres, install, mapname = item
     with tempfile.TemporaryDirectory() as tmp:
         base = mapname.encode()
         extract(ragres, install, tmp, [b"data\\" + base + ext for ext in (b".rsw", b".gnd", b".gat")])
-        emu = Emulator(max_instructions=8_000_000_000).init_crt()
-        emu.uc.reg_write(UC_X86_REG_FPCW, SINGLE)
-        emu.call(C3DDEVICE_CTOR, this=G_C3DDEVICE)
-        assert emu.call(C3DDEVICE_INIT, WINDOW, 0, IID_HAL_DEVICE, 0, 6, this=G_C3DDEVICE).eax == 0
-        renderer = emu.scratch(size=SCENE_RENDERER_SIZE)
-        emu.call(SCENE_RENDERER_CTOR, this=renderer)
-        emu.write_u32(renderer + 0x78, emu.read_u32(G_C3DDEVICE + 0x3C))
-        emu.call(SET_SIZE, 800, 600, this=renderer)
-        emu.write_u32(G_PSCENE_RENDERER, renderer)
-        for initializer in TYPE_INITIALIZERS:
-            emu.call(initializer)
+        emu = boot()
         emu.serve_data_files(served(tmp))
         manager = emu.call(GET_RESOURCE_MANAGER, emu.cstr("x")).eax
         world_res = emu.call(GET_RESOURCE, emu.cstr(f"{mapname}.rsw"), this=manager).eax
@@ -113,10 +133,14 @@ def original(item):
         files = sorted({emu.mem_read(r + 0x28, 80).split(b"\0")[0] for r in records})
         extract(ragres, install, tmp, [b"data\\model\\" + f for f in files])
         emu.serve_data_files(served(tmp))
-        return load(emu, manager, mapname, records)
+        stand_in_textures(emu)
+        world, near, cell = load(emu, manager, mapname)
+        return dump(emu, world, records, near), cell
 
 
-def load(emu, manager, mapname, records):
+def stand_in_textures(emu):
+    """TextureCache::GetTexture gives one blank CTexture a name, and C3dDevice::CreateTexture a
+    new one each time."""
     textures = {}
 
     def get_texture(this, name, flag):
@@ -127,6 +151,12 @@ def load(emu, manager, mapname, records):
 
     emu.replace_thiscall(GET_TEXTURE, 2, get_texture)
     emu.replace_thiscall(CREATE_TEXTURE, 5, lambda this, w, h, pixels, fmt, flag: emu.alloc(0x130))
+
+
+def load(emu, manager, mapname, place=None):
+    """CWorld::LoadWorld of the map with the player in the cell place(emu, attr) picks, the
+    attribute map's central one by default, the lazy loader run to its end and
+    CWorld::UpdateGameObjects once: (the world, the models placed at once, the cell)."""
     for address, nargs in STOOD_IN:
         emu.replace_thiscall(address, nargs, lambda this, *args: 0)
     threads = []
@@ -147,7 +177,7 @@ def load(emu, manager, mapname, records):
     emu.write_u32(mode + 0xB4, world)
     emu.replace_thiscall(GET_GAME_MODE, 0, lambda this: mode)
     attr = emu.call(GET_RESOURCE, emu.cstr(f"{mapname}.gat"), this=manager).eax
-    cell = (emu.read_u32(attr + 0x110) // 2, emu.read_u32(attr + 0x114) // 2)
+    cell = place(emu, attr) if place else (emu.read_u32(attr + 0x110) // 2, emu.read_u32(attr + 0x114) // 2)
     emu.mem_write(PLAYER_CELL, struct.pack("<ii", *cell))
     emu.call(LOAD_WORLD, this=world)
     near = emu.read_u32(world + 0x54)
@@ -158,7 +188,7 @@ def load(emu, manager, mapname, records):
     emu.call(LAZY_LOADER, world)
     emu.uc.reg_write(UC_X86_REG_FPCW, SINGLE)
     emu.call(UPDATE_GAME_OBJECTS, this=world)
-    return dump(emu, world, records, near), cell
+    return world, near, cell
 
 
 def floats(emu, address, count):
@@ -213,6 +243,21 @@ def dump(emu, world, records, near):
     return "\n".join(lines)
 
 
+def sample_maps(ragres, install, sample):
+    """The maps of data.grf by the size of their .rsw: the smallest half of the sample and a spread
+    of the rest, or every map for a sample of 0."""
+    listing = subprocess.run([ragres, "list", os.path.join(install, "data.grf")], capture_output=True,
+                             text=True).stdout
+    sized = sorted((int(line.split("\t")[0]), line.split("\t")[4][5:-4]) for line in listing.splitlines()
+                   if line.endswith(".rsw") and line.split("\t")[4].count("\\") == 1)
+    names = [n for _, n in sized]
+    if sample and sample < len(names):
+        half = sample // 2
+        step = max(1, (len(names) - half) // (sample - half))
+        names = names[:half] + names[half::step][:sample - half]
+    return names
+
+
 def init():
     pass
 
@@ -231,18 +276,7 @@ def main():
     ap.add_argument("--raw", action="store_true", help="each model's fields and nodes, not their hashes")
     ap.add_argument("--show", type=int, default=0, help="differing lines to print for each map")
     args = ap.parse_args()
-    maps = args.maps
-    if not maps:
-        listing = subprocess.run([args.ragres, "list", os.path.join(args.install, "data.grf")],
-                                 capture_output=True, text=True).stdout
-        sized = sorted((int(line.split("\t")[0]), line.split("\t")[4][5:-4]) for line in listing.splitlines()
-                       if line.endswith(".rsw") and line.split("\t")[4].count("\\") == 1)
-        names = [n for _, n in sized]
-        if args.sample and args.sample < len(names):
-            half = args.sample // 2
-            step = max(1, (len(names) - half) // (args.sample - half))
-            names = names[:half] + names[half::step][:args.sample - half]
-        maps = names
+    maps = args.maps or sample_maps(args.ragres, args.install, args.sample)
     results = oracle_pool.run([(args.ragres, args.install, m) for m in maps], init, work, args.jobs or None,
                               label="worlds")
     mismatches = 0

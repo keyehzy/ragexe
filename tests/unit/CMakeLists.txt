@@ -168,6 +168,12 @@ if(RAGEXE_ARCHIVES)
     add_test(NAME ground_oracle_sample
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/ground_oracle.py"
         --sample 12 --ragres $<TARGET_FILE:ragres> --archive "${RAGEXE_INSTALL_DIR}/data.grf")
+    # Three frames of each of 4 maps, every call and vertex, against the original CView::DrawWorld
+    # (tools/frame_oracle.py; its textures and models are extracted on the first run).
+    add_test(NAME frame_oracle_sample
+      COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/frame_oracle.py"
+        --sample 4 --ragres $<TARGET_FILE:ragres> --install "${RAGEXE_INSTALL_DIR}"
+        --cache "${CMAKE_BINARY_DIR}/oracle-data")
     # Every palette, against the original conversion (tools/palette_oracle.py).
     add_test(NAME palette_oracle
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/palette_oracle.py"

@@ -22,6 +22,11 @@
 //                                          player in that cell, from data.grf with the
 //                                          .gpf patches over it, as hashes (--raw: each
 //                                          model's fields and nodes)
+//   ragres draw-frame [--raw] INSTALL MAP CELL_X CELL_Y
+//                                          draws three frames of a world as CGameMode::OnFrame
+//                                          does, the player and the cell cursor in that
+//                                          cell, and prints the device calls (--raw: each
+//                                          draw's vertices, not their hash)
 //   ragres decode-rsms [--single] FILE...  decodes .rsm files as C3dModelRes does, with
 //                                          --single at the x87's single precision
 //   ragres decode-rsxs FILE...             decodes .rsx files as C3dAnimModelRes does
@@ -81,6 +86,7 @@
 #include <vector>
 
 #include "render/ground.h"
+#include "render/world_frame.h"
 #include "render/world_load.h"
 #include "render/world_scene.h"
 #include "res/act.h"
@@ -327,6 +333,57 @@ std::uint64_t Fnv1a64(std::span<const std::uint32_t> values) {
   return h;
 }
 
+// data.grf with the install's .gpf patches over it: the patcher merges each .gpf into data.grf
+// in name order, so the last one's files win.
+bool OpenInstall(const std::filesystem::path& install,
+                 std::vector<std::unique_ptr<ragexe::res::GrfArchive>>& archives,
+                 ragexe::res::DataFiles& files) {
+  std::vector<std::filesystem::path> paths;
+  for (const auto& entry : std::filesystem::directory_iterator(install))
+    if (entry.path().extension() == ".gpf") paths.push_back(entry.path());
+  std::sort(paths.begin(), paths.end());
+  paths.insert(paths.begin(), install / "data.grf");
+  std::string error;
+  std::vector<const ragexe::res::GrfArchive*> layers;
+  for (const std::filesystem::path& path : paths) {
+    archives.push_back(ragexe::res::GrfArchive::Open(path, &error));
+    if (!archives.back()) {
+      std::fprintf(stderr, "%s: %s\n", path.string().c_str(), error.c_str());
+      return false;
+    }
+    layers.insert(layers.begin(), archives.back().get());
+  }
+  files.set_layers(std::move(layers));
+  return true;
+}
+
+// LoadWorldScene with the player in the centre of the attribute cell given; the point it stands
+// on in world x and z.
+bool LoadSceneAtCell(const ragexe::res::DataFiles& files, const std::string& map,
+                     const std::string& cell_x, const std::string& cell_y,
+                     ragexe::render::WorldScene& scene, std::array<float, 2>& point) {
+  std::string error;
+  ragexe::res::World world;
+  ragexe::res::AttrMap attr;
+  auto bytes = files.Load("data\\" + map + ".rsw");
+  if (!bytes || !ragexe::res::DecodeWorld(*bytes, true, world, &error)) {
+    std::fprintf(stderr, "%s.rsw: %s\n", map.c_str(), error.c_str());
+    return false;
+  }
+  bytes = files.Load("data\\" + world.attr);
+  if (!bytes || !ragexe::res::DecodeAttrMap(*bytes, attr, &error)) {
+    std::fprintf(stderr, "%s: %s\n", world.attr.c_str(), error.c_str());
+    return false;
+  }
+  point = ragexe::render::CellCentre(attr, static_cast<std::int32_t>(std::stol(cell_x)),
+                                     static_cast<std::int32_t>(std::stol(cell_y)));
+  if (!ragexe::render::LoadWorldScene(files, map, point[0], point[1], scene, &error)) {
+    std::fprintf(stderr, "%s\n", error.c_str());
+    return false;
+  }
+  return true;
+}
+
 // Loads a world as CWorld::LoadWorld leaves it, the player in the centre of the cell given,
 // and prints "instances n" and "near n", the models placed at once, then per model of CWorld+0x48
 // "I k record fields nodes": its .rsw model, the FNV-1a hashes of its fields +0xc0 to +0x1e4 and of
@@ -345,47 +402,14 @@ int LoadWorld(std::vector<std::string> args) {
     std::fprintf(stderr, "usage: ragres load-world [--raw] INSTALL MAP CELL_X CELL_Y\n");
     return 2;
   }
-  // The patcher merges each .gpf into data.grf in name order, so the last one's files win.
   const std::filesystem::path install = args[0];
-  std::vector<std::filesystem::path> paths;
-  for (const auto& entry : std::filesystem::directory_iterator(install))
-    if (entry.path().extension() == ".gpf") paths.push_back(entry.path());
-  std::sort(paths.begin(), paths.end());
-  paths.insert(paths.begin(), install / "data.grf");
-  std::string error;
   std::vector<std::unique_ptr<ragexe::res::GrfArchive>> archives;
-  std::vector<const ragexe::res::GrfArchive*> layers;
-  for (const std::filesystem::path& path : paths) {
-    archives.push_back(ragexe::res::GrfArchive::Open(path, &error));
-    if (!archives.back()) {
-      std::fprintf(stderr, "%s: %s\n", path.string().c_str(), error.c_str());
-      return 1;
-    }
-    layers.insert(layers.begin(), archives.back().get());
-  }
   ragexe::res::DataFiles files(install);
-  files.set_layers(std::move(layers));
+  if (!OpenInstall(install, archives, files)) return 1;
   const std::string& map = args[1];
-  const auto cell_x = static_cast<std::int32_t>(std::stol(args[2]));
-  const auto cell_y = static_cast<std::int32_t>(std::stol(args[3]));
-  ragexe::res::World world;
-  ragexe::res::AttrMap attr;
-  auto bytes = files.Load("data\\" + map + ".rsw");
-  if (!bytes || !ragexe::res::DecodeWorld(*bytes, true, world, &error)) {
-    std::fprintf(stderr, "%s.rsw: %s\n", map.c_str(), error.c_str());
-    return 1;
-  }
-  bytes = files.Load("data\\" + world.attr);
-  if (!bytes || !ragexe::res::DecodeAttrMap(*bytes, attr, &error)) {
-    std::fprintf(stderr, "%s: %s\n", world.attr.c_str(), error.c_str());
-    return 1;
-  }
-  const auto point = ragexe::render::CellCentre(attr, cell_x, cell_y);
   ragexe::render::WorldScene scene;
-  if (!ragexe::render::LoadWorldScene(files, map, point[0], point[1], scene, &error)) {
-    std::fprintf(stderr, "%s\n", error.c_str());
-    return 1;
-  }
+  std::array<float, 2> point{};
+  if (!LoadSceneAtCell(files, map, args[2], args[3], scene, point)) return 1;
   const auto bits = [](float f) { return std::bit_cast<std::uint32_t>(f); };
   std::printf("instances %zu\nnear %zu\n", scene.models.size(), scene.near_count);
   for (std::size_t k = 0; k < scene.models.size(); ++k) {
@@ -813,6 +837,112 @@ int DecodeRsws(std::vector<std::string> files) {
 // parent children textures-hash fields-hash vertices tex-coords faces face-normals
 // corner-normals translation-keys rotation-keys", each a count:hash of the values' bytes
 // (names with a NUL each); or "n failed error".
+// A CP949 name as the oracles print it: bytes above 0x7f as %XX.
+std::string ArchiveName(std::string_view name) {
+  std::string out;
+  for (const char c : name) {
+    const auto b = static_cast<unsigned char>(c);
+    if (b < 0x80) {
+      out += c;
+    } else {
+      char hex[4];
+      std::snprintf(hex, sizeof hex, "%%%02X", b);
+      out += hex;
+    }
+  }
+  return out;
+}
+
+// Draws three frames of a world as CGameMode::OnFrame draws them (docs/render/frame.md), the
+// player in the centre of the cell given and the cell cursor over that cell: the camera as
+// PlaceCamera places it, then turned by 120 and 240 degrees. Prints "X k name" for each texture
+// in the order made (an unnamed one, a lightmap page, as "#k"), then per frame "frame k" and
+// each call DrawScene makes on the device: "R state value", "S stage state value", "T stage
+// texture" and "D type fvf count" with the FNV-1a hash of the vertices' dwords (--raw: the
+// dwords).
+int DrawFrame(std::vector<std::string> args) {
+  bool raw = false;
+  if (!args.empty() && args.front() == "--raw") {
+    raw = true;
+    args.erase(args.begin());
+  }
+  if (args.size() != 4) {
+    std::fprintf(stderr, "usage: ragres draw-frame [--raw] INSTALL MAP CELL_X CELL_Y\n");
+    return 2;
+  }
+  const std::filesystem::path install = args[0];
+  std::vector<std::unique_ptr<ragexe::res::GrfArchive>> archives;
+  ragexe::res::DataFiles files(install);
+  if (!OpenInstall(install, archives, files)) return 1;
+  const std::string& map = args[1];
+  ragexe::render::WorldScene scene;
+  std::array<float, 2> point{};
+  if (!LoadSceneAtCell(files, map, args[2], args[3], scene, point)) return 1;
+  std::vector<std::string> indoor_maps;
+  const bool indoor =
+      ragexe::res::LoadFields(files, ragexe::res::kIndoorRswTable, true, indoor_maps) &&
+      std::binary_search(indoor_maps.begin(), indoor_maps.end(), map + ".rsw");
+
+  ragexe::render::WorldFrameState state(files);
+  ragexe::render::EnterWorld(scene, point[0], point[1], indoor, state);
+  state.cursor = {static_cast<std::int32_t>(std::stol(args[2])),
+                  static_cast<std::int32_t>(std::stol(args[3])), false, 0x6600ffaa};
+  std::vector<std::vector<ragexe::render::SceneCall>> frames;
+  std::vector<std::vector<ragexe::render::FrameDraw>> frame_draws;
+  const float placed = state.camera.yaw;
+  for (const float turn : {0.0f, 120.0f, 240.0f}) {
+    if (turn != 0.0f) {
+      state.camera.yaw = placed + turn;
+      state.camera.target_yaw = state.camera.yaw;
+    }
+    frame_draws.emplace_back();
+    frames.push_back(ragexe::render::DrawWorldFrame(scene, state, 0, frame_draws.back()));
+  }
+
+  std::vector<std::uint32_t> unnamed;
+  for (std::size_t k = 0; k < state.textures.size(); ++k) {
+    const std::string& name = state.textures.at(static_cast<std::uint32_t>(k + 1)).name;
+    if (name.empty()) unnamed.push_back(static_cast<std::uint32_t>(k + 1));
+    std::printf("X %zu %s\n", k,
+                name.empty() ? ("#" + std::to_string(unnamed.size() - 1)).c_str()
+                             : ArchiveName(name).c_str());
+  }
+  const auto texture_name = [&](std::uint32_t id) -> std::string {
+    if (id == 0) return "-";
+    const std::string& name = state.textures.at(id).name;
+    if (!name.empty()) return ArchiveName(name);
+    return "#" + std::to_string(std::find(unnamed.begin(), unnamed.end(), id) - unnamed.begin());
+  };
+  using Kind = ragexe::render::SceneCall::Kind;
+  for (std::size_t f = 0; f < frames.size(); ++f) {
+    std::printf("frame %zu\n", f);
+    std::size_t draw = 0;
+    for (const ragexe::render::SceneCall& call : frames[f]) {
+      switch (call.kind) {
+        case Kind::kRenderState: std::printf("R %u %u\n", call.state, call.value); break;
+        case Kind::kStageState:
+          std::printf("S %d %u %u\n", call.stage, call.state, call.value);
+          break;
+        case Kind::kTexture:
+          std::printf("T %d %s\n", call.stage, texture_name(call.value).c_str());
+          break;
+        case Kind::kDraw: {
+          const ragexe::render::FrameDraw& d = frame_draws[f][draw++];
+          std::printf("D %u %#x %u", d.type, d.fvf, d.count);
+          if (raw) {
+            for (const std::uint32_t w : d.words) std::printf(" %08x", w);
+            std::printf("\n");
+          } else {
+            std::printf(" %016llx\n", static_cast<unsigned long long>(Fnv1a64(d.words)));
+          }
+          break;
+        }
+      }
+    }
+  }
+  return 0;
+}
+
 int DecodeRsms(std::vector<std::string> files) {
   auto precision = ragexe::res::FpuPrecision::kDouble;
   if (!files.empty() && files.front() == "--single") {
@@ -1623,6 +1753,7 @@ int Usage() {
                "       ragres decode-rsws [--no-lightmaps] FILE...\n"
                "       ragres decode-rsms [--single] FILE...\n"
                "       ragres load-world [--raw] INSTALL MAP CELL_X CELL_Y\n"
+               "       ragres draw-frame [--raw] INSTALL MAP CELL_X CELL_Y\n"
                "       ragres decode-rsxs FILE...\n"
                "       ragres decode-imfs FILE...\n"
                "       ragres decode-rmas FILE...\n"
@@ -1669,6 +1800,7 @@ int main(int argc, char** argv) {
     return BuildGrounds(std::vector<std::string>(argv + 2, argv + argc));
   }
   if (command == "load-world") return LoadWorld(std::vector<std::string>(argv + 2, argv + argc));
+  if (command == "draw-frame") return DrawFrame(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-rsms") return DecodeRsms(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-rsxs") return DecodeRsxs(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-imfs") return DecodeImfs(std::vector<std::string>(argv + 2, argv + argc));

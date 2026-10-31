@@ -319,7 +319,7 @@ entry	subsystem	rule	evidence
 004128e0	render	class	class SceneRenderer
 00412aa0	render	class	class SceneRenderer
 00412b40	render	class	class SceneRenderer
-00412be0	render	neighbours	between 00412b40 and 00412c80
+00412be0	render	class	class SceneRenderer
 00412c80	render	class	class SceneRenderer
 00412e70	render	class	class SceneRenderer
 00412f00	render	class	class SceneRenderer
