@@ -319,9 +319,9 @@ read `data.grf` with the `.gpf` patches over it, in name order, as the patcher m
   nodes' alpha, matrix, box, face colours and ground colours), and each scene graph node's
   box, cells and models.
 
-**On all 208 maps** every model's record, in order, every model's fields and nodes, near and
-far, and every scene graph node are equal. Run with `--sample 0`, the comparison takes about
-two hours.
+**On all 287 maps**, the 208 of `data.grf` and the 79 only in its patches, every model's
+record, in order, every model's fields and nodes, near and far, and every scene graph node
+are equal. Run with `--sample 0`, the comparison takes about three hours.
 
 In the oracle `LazyModelLoadThread` runs to its end before `UpdateGameObjects`. In the
 client the two threads overlap, so the main thread may insert the far models over several

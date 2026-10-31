@@ -69,8 +69,8 @@ On a software device both are cleared. Either way it sets:
 
 ## The device's states
 
-`SceneRenderer::SetupProjection` (`00411090`) runs at the start of `DrawScene` while +0x48
-is set, then clears it. With the fog on (+0x44) on a hardware device, it sets up the
+`SceneRenderer::SetupProjection` (`00411090`) runs in `DrawScene`, after its first stage
+state (`0040efe7`), and acts while +0x48 is set, then clears it. With the fog on (+0x44) on a hardware device, it sets up the
 following.
 
 **The transforms:**
@@ -111,11 +111,15 @@ transforms and the start and end above play no part. The shader does the same
 
 The `atof` it shares with the `.rma` reader is `res::AtoF` (`src/res/c_runtime.h`).
 
-**`ragview`:**
-- reads the map's record unless `--no-fog`;
-- gives every vertex of the ground and the models its fog factor;
-- puts `SetupFog`'s states before the first `DrawScene`, and turns `DrawScene`'s fog on
-  when a record was found.
+`src/render/world_frame` uses them as the client's frames do ([frame.md](frame.md#the-fog)):
+- `SetFogEnabled`, on a device with vertex fog;
+- `FrameLists` gives every vertex of every primitive its fog factor, as `AddPrimitive`
+  does;
+- `DrawWorldFrame` hands `SetupFog`'s states to the next `DrawScene`, which makes them after
+  its first stage state.
+
+`ragres draw-frame` and `ragview` read the map's record (`ragview` unless `--no-fog`) and
+call `SetFogEnabled` with whether one was found.
 
 ## Checks
 
@@ -131,7 +135,9 @@ precision, and writes `tests/unit/fog_vectors.inc`:
 - **`SetupProjection`** under 16 settings: the fog on and off, with and without vertex
   fog, linear and not, range fog on and off.
 
-`tests/unit/fog_test.cpp` matches all 3,719 values.
+`tests/unit/fog_test.cpp` matches all 3,719 values. The vectors keep `SetupProjection`'s
+render states only; the stage state `DrawScene` makes before it, and its calls in whole
+frames, are checked by `tools/frame_oracle.py` ([frame.md](frame.md#checks)).
 
 **Not ported:**
 - the transforms `SetupProjection` sets;

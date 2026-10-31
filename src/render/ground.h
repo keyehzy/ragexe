@@ -126,9 +126,10 @@ std::string StepWater(GroundWater& water);
 // the texture of the animation, 0 to 31.
 std::string WaterTextureName(std::int32_t type, std::int32_t index);
 
-// g_WorldColorFade's multipliers (00686598 + 0x2c and + 0x38).
+// g_WorldColorFade's multipliers (00686598 + 0x2c and + 0x38), as its constructor (00586400)
+// sets them. C3dWorldRes::Load copies a world's ambient colour to the first (00436918).
 struct GroundColorFade {
-  std::array<float, 3> water{1.0f, 1.0f, 1.0f};
+  std::array<float, 3> water{0.0f, 0.0f, 0.0f};
   std::array<float, 3> ground{1.0f, 1.0f, 1.0f};
 };
 

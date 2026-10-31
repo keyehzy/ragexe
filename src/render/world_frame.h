@@ -3,14 +3,17 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <optional>
+#include <span>
 #include <string>
 #include <vector>
 
 #include "core/crt_rand.h"
 #include "render/camera.h"
 #include "render/device.h"
+#include "render/fog.h"
 #include "render/ground.h"
 #include "render/model.h"
 #include "render/scene.h"
@@ -73,6 +76,9 @@ class PrimitivePools {
  public:
   std::uint32_t NewTriangleList() { return Take(lists_, lists_next_); }
   std::uint32_t NewQuad() { return Take(quads_, quads_next_); }
+  // A primitive an object makes and keeps, such as an effect's RenderQuads: above every node
+  // made so far.
+  std::uint32_t NewOwned() { return grown_++; }
   void Rewind() { lists_next_ = quads_next_ = 0; }
 
  private:
@@ -117,12 +123,15 @@ std::vector<FrameDraw> FrameDraws(const std::vector<SceneCall>& calls,
 // What CGameMode keeps of a world between frames, and the renderer's state that lasts.
 struct WorldFrameState {
   explicit WorldFrameState(const res::DataFiles& files) : textures(files) {}
+  WorldFrameState(const WorldFrameState&) = delete;
+  WorldFrameState& operator=(const WorldFrameState&) = delete;
 
   Projection projection = SetSize(800, 600);
   Camera camera;
   CameraControl control;
   ShakeSwing shake;
-  core::CrtRand rand;
+  core::CrtRand own_rand;
+  core::CrtRand* rand = &own_rand;  // the client's one CRT rand, which the effects share
   Vec3 player{};
   GroundDrawSettings ground;
   std::vector<ModelDrawSettings> models;  // per instance
@@ -133,19 +142,60 @@ struct WorldFrameState {
   FrameTextures textures;
   std::vector<std::uint32_t> lightmap_pages;  // the atlas pages' textures
   std::uint32_t frame = 1;                    // the renderer's frame count (+0x34)
+  FogState fog;                               // 00625ea0 to 00625eb4
+  bool vertex_fog = false;                    // +0x4c: AddPrimitive writes each vertex's fog
+  bool setup_projection = false;              // +0x48: the next DrawScene sets up the projection
 };
+
+// SceneRenderer::SetFogEnabled (00411010) on a hardware device with vertex fog, as
+// CGameMode::OnInit's 00516570 calls it (docs/render/fog.md#the-maps-fog): the fog linear
+// with range fog, the device's vertex fog (+0x4c), the fog on or off (+0x44), and the
+// projection to set up at the next DrawScene (+0x48).
+void SetFogEnabled(WorldFrameState& state, bool enabled);
+
+// A frame's scene lists and the primitives in them, as SceneRenderer::AddPrimitive (00412550)
+// fills them: each primitive's vertices kept for the draws, with its texture's uv scale, and
+// with the device's vertex fog each vertex's fog (ComputeVertexFog 0040c2e0).
+class FrameLists {
+ public:
+  explicit FrameLists(WorldFrameState& state) : state_(state) {}
+
+  // A primitive of s's id, textures, blends, stage mode and type.
+  void Add(ScenePrimitive s, std::vector<ScreenVertex> vertices,
+           std::vector<std::array<float, 2>> second, std::uint32_t flags);
+  // A RenderQuad from the pool (NewQuad), a triangle strip, as SceneRenderer::AddSpriteQuad
+  // (0040e980) takes one.
+  void AddQuad(ScenePrimitive s, std::span<const ScreenVertex> vertices, std::uint32_t flags);
+  // A RenderPrimitive from the pool (NewTriangleList), a triangle list.
+  void AddTriangleList(ScenePrimitive s, std::vector<ScreenVertex> vertices, std::uint32_t flags);
+
+  WorldFrameState& state() { return state_; }
+  SceneLists& lists() { return lists_; }
+  std::map<std::uint32_t, FramePrimitive>& primitives() { return primitives_; }
+
+ private:
+  WorldFrameState& state_;
+  SceneLists lists_;
+  std::map<std::uint32_t, FramePrimitive> primitives_;
+};
+
+// What the world's objects add to a frame (the list at CWorld+0xc, each through its slot 3).
+using WorldObjectsDraw = std::function<void(FrameLists&)>;
 
 // A world entered with the player standing at (x, z) on the attribute map's ground: the
 // world's textures made, the camera reset and placed (PlaceCamera, indoors when indoor), the
-// ground's and the models' draw settings at an 800 × 600 viewport, with the ground tint that
-// CGameMode::OnInit sets and g_WorldColorFade at its constructor's values.
+// ground's and the models' draw settings at the projection's viewport, with the ground tint that
+// CGameMode::OnInit sets and g_WorldColorFade at its constructor's values but the world's
+// ambient colour, which C3dWorldRes::Load copies to the water's multipliers (00436918).
 void EnterWorld(const WorldScene& scene, float x, float z, bool indoor, WorldFrameState& state);
 
 // One frame as CGameMode::OnFrame steps and draws it at time now: the water's step and the
 // view's (CView::Update), then CView::DrawWorld (004cf4d0): the visible scene graph's models
-// and cells and the cell cursor into the scene lists, and DrawScene. Then the frame counted,
-// as Present counts it, and the pools rewound. The calls DrawScene makes, and its draws.
+// and cells and the cell cursor into the scene lists, then the world's objects (objects), and
+// DrawScene, which first sets up the projection when SetFogEnabled asked. Then the frame
+// counted, as Present counts it, and the pools rewound. The calls DrawScene makes, and its draws.
 std::vector<SceneCall> DrawWorldFrame(WorldScene& scene, WorldFrameState& state, std::uint32_t now,
-                                      std::vector<FrameDraw>& draws);
+                                      std::vector<FrameDraw>& draws,
+                                      const WorldObjectsDraw& objects = {});
 
 }  // namespace ragexe::render

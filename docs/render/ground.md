@@ -273,7 +273,8 @@ in the y-down world, its `y` is greater.
 specular `0xff000000` and type `TRIANGLESTRIP`.
 - **Colour:**
   - **With `g_groundWaterFade`** (`00679f9c`): `0x90` alpha and `ftol(255·f)` of
-    `g_WorldColorFade`'s multipliers at +0x2c.
+    `g_WorldColorFade`'s multipliers at +0x2c, the world's ambient colour as the `.rsw`'s
+    load copies it ([frame.md](frame.md#the-worlds-colours)).
   - **Water type 4:** the same with alpha `0xff`.
   - **Otherwise:** `0x90ffffff`.
 - **Texture coordinates:** from `(x % 4, z % 4)` and one more, times

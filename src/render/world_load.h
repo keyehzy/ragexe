@@ -14,7 +14,7 @@ namespace ragexe::render {
 
 // How CWorld::LoadWorld (004c3ab0) brings a world's models in (docs/render/model.md#loading).
 
-// CGameMode::method_00511de0: the centre of an attribute cell in world x and z,
+// CGameMode::GetCellCentre (00511de0): the centre of an attribute cell in world x and z,
 // (cell - side × 0.5) × cell size + cell size × 0.5, each step in single precision.
 std::array<float, 2> CellCentre(const res::AttrMap& attr, std::int32_t cell_x, std::int32_t cell_y);
 

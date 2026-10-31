@@ -79,11 +79,12 @@ A larger `rhw` is nearer, so ascending keys draw back to front.
 
 ## DrawScene
 
-`0040efd0`. After setting up the projection and fog (`00411090`, when the renderer's
-+0x48 is set; [fog.md](fog.md#the-devices-states)), it makes these calls:
+`0040efd0`. It makes these calls:
 
-1. **Stage states:** stage 0 `MIPFILTER` `LINEAR`, `COLOROP` and `ALPHAOP` `MODULATE`;
-   stage 1 `ALPHAOP` `DISABLE`.
+1. **Stage states:** stage 0 `MIPFILTER` `LINEAR`; then the projection and fog set up
+   (`SetupProjection`, `00411090`, called at `0040efe7`, which acts while the renderer's
+   +0x48 is set; [fog.md](fog.md#the-devices-states)); then stage 0 `COLOROP` and `ALPHAOP`
+   `MODULATE`, stage 1 `ALPHAOP` `DISABLE`.
 2. **Render states:**
    - `FOGENABLE` the renderer's +0x44;
    - `ALPHAREF` `0xcf`;

@@ -1,16 +1,20 @@
 #include "render/scene.h"
 
 #include <algorithm>
+#include <array>
 #include <bit>
 #include <catch2/catch_test_macros.hpp>
 #include <cstddef>
 #include <cstdint>
+#include <filesystem>
 #include <iterator>
 #include <map>
 #include <optional>
 #include <vector>
 
+#include "render/fog.h"
 #include "render/world_frame.h"
+#include "res/data_files.h"
 
 using namespace ragexe::render;
 
@@ -197,4 +201,74 @@ TEST_CASE("the primitive pools hand out nodes in the order of the original's add
         std::lower_bound(sorted.begin(), sorted.end(), ids[k]) - sorted.begin());
     CHECK(rank == want[k]);
   }
+}
+
+TEST_CASE("DrawScene sets up the projection after its first stage state, as the original does") {
+  const std::vector<SceneCall> projection = {{SceneCall::Kind::kRenderState, -1, 34, 0x2275a9ff, 0},
+                                             {SceneCall::Kind::kRenderState, -1, 35, 0, 0}};
+  SceneLists lists;
+  BoundTextures bound;
+  const std::vector<SceneCall> plain = DrawScene(lists, {true, true, true}, bound);
+  BoundTextures bound_again;
+  const std::vector<SceneCall> calls =
+      DrawScene(lists, {true, true, true}, bound_again, projection);
+  REQUIRE(calls.size() == plain.size() + projection.size());
+  CHECK(calls[0] == plain[0]);
+  CHECK(calls[1] == projection[0]);
+  CHECK(calls[2] == projection[1]);
+  CHECK(std::equal(plain.begin() + 1, plain.end(), calls.begin() + 3));
+}
+
+TEST_CASE("a frame's lists take their primitives from the pools and give each vertex its fog") {
+  const ragexe::res::DataFiles files{std::filesystem::path{}};
+  WorldFrameState state(files);
+  SetFogEnabled(state, false);
+  CHECK(state.vertex_fog);
+  CHECK_FALSE(state.scene.fog);
+  CHECK(state.setup_projection);
+  CHECK(state.fog.mode == 3);
+  CHECK(state.fog.range == 1);
+  state.fog.start = 0.2f;
+  state.fog.end = 0.45f;
+  const std::uint32_t texture = state.textures.Create(100, 60, false);
+
+  std::array<ScreenVertex, 4> quad{};
+  for (std::size_t k = 0; k < quad.size(); ++k) {
+    quad[k].rhw = 1.0f / (100.0f + 150.0f * static_cast<float>(k));
+    quad[k].specular = 0x12345678;
+  }
+  FrameLists lists(state);
+  ScenePrimitive s;
+  s.texture = texture;
+  s.src_blend = 5;
+  lists.AddQuad(s, quad, scene_flags::kTranslucent);
+  lists.AddTriangleList(s, {quad.begin(), quad.begin() + 3}, 0);
+  lists.AddQuad(s, quad, scene_flags::kTranslucent);
+
+  PrimitivePools pools;
+  const std::array<std::uint32_t, 3> ids = {pools.NewQuad(), pools.NewTriangleList(),
+                                            pools.NewQuad()};
+  const std::vector<ScenePrimitive>& added = lists.lists().primitives();
+  REQUIRE(added.size() == ids.size());
+  for (std::size_t p = 0; p < ids.size(); ++p) {
+    INFO("primitive " << p);
+    CHECK(added[p].id == ids[p]);
+    CHECK(added[p].type == (p == 1 ? 4u : 5u));
+    CHECK(added[p].vertex_count == (p == 1 ? 3u : 4u));
+    CHECK(added[p].src_blend == 5);
+    CHECK(added[p].rhw0 == quad[0].rhw);
+    CHECK(added[p].rhw1 == quad[1].rhw);
+    const FramePrimitive& f = lists.primitives().at(ids[p]);
+    REQUIRE(f.uv.has_value());
+    CHECK(f.uv->u == state.textures.at(texture).uv.u);
+    for (std::size_t k = 0; k < f.vertices.size(); ++k)
+      CHECK(f.vertices[k].specular == VertexFog(quad[k].rhw, state.fog));
+  }
+
+  state.vertex_fog = false;
+  FrameLists unfogged(state);
+  unfogged.AddQuad({}, quad, 0);
+  const FramePrimitive& f = unfogged.primitives().begin()->second;
+  CHECK_FALSE(f.uv.has_value());
+  for (const ScreenVertex& v : f.vertices) CHECK(v.specular == 0x12345678);
 }

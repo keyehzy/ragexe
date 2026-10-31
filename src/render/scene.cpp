@@ -255,9 +255,10 @@ void AppendStageModeCalls(std::uint32_t mode, std::vector<SceneCall>& out) {
 }
 
 std::vector<SceneCall> DrawScene(SceneLists& lists, const SceneSettings& settings,
-                                 BoundTextures& bound) {
+                                 BoundTextures& bound, std::span<const SceneCall> projection) {
   Flush f{lists, bound, {}};
   f.StageState(0, kMipFilter, 3);
+  f.out.insert(f.out.end(), projection.begin(), projection.end());
   f.StageState(0, kColorOp, kModulate);
   f.StageState(0, kAlphaOp, kModulate);
   f.StageState(1, kAlphaOp, kDisable);

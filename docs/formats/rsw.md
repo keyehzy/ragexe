@@ -220,8 +220,9 @@ through a stack `DataFile` without checking a single read.
 5. **Without ISLIGHTMAP** (`0061ec60` not 1; it is 1 by default), each ambient
    component is multiplied by 1.5 (`005e2ad0`), and set to 1.0 when the product is
    above 1.0.
-6. **Copy the diffuse and ambient colours** into `g_WorldColorFade` (`00686598`), close
-   the file and succeed.
+6. **Copy the diffuse and ambient colours** into `g_WorldColorFade` (`00686598`): the
+   ambient to +0x2c (`00436918`), the diffuse to +0x14 and +0x20 (to `00436975`); then
+   close the file and succeed.
 
 `Reset` (slot 4, `00435c90`):
 - frees the model, effect and sound records and empties their lists;

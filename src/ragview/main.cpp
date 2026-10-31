@@ -1,10 +1,11 @@
 // ragview: a map's ground drawn as the client draws it (docs/render/gpu.md).
 //
-//   ragview [--install DIR] [--size W H] [--at X Z] [--yaw DEGREES] [--frames N]
+//   ragview [--install DIR] [--size W H] [--at X Z | --cell X Y] [--yaw DEGREES] [--frames N]
 //           [--no-fog] [--actor SPRITE | --job JOB | --player JOB SEX HAIR [--hair-color N]
 //           [--clothes-color N] [--headgear TOP MID BOTTOM] [--weapon KIND] [--shield ID]]
 //           [--action BASE] [--effect NAME | --effect-id ID [--minimal-effects]
-//           [--effect-level N]] [--effect-step N] [--fps] [--stamp] [--screenshot FILE.png] MAP
+//           [--effect-level N]] [--effect-step N] [--fps] [--stamp] [--screenshot FILE.png
+//           [--digest]] MAP
 //
 // MAP is a .rsw name such as prontera. The ground is built and drawn by the ported
 // C3dGround15, through the scene lists and DrawScene, and the calls are replayed on
@@ -28,12 +29,16 @@
 // --fps draws the frame rate as SceneRenderer 00410cf0 would, which the client never calls;
 // --stamp draws the date and time on the screenshot as the client stamps its own. Text is
 // drawn with FreeType in place of GDI (docs/render/text.md#the-glyphs).
+// --cell places the player in the centre of the attribute map's cell (X, Y) instead of at --at,
+// as CGameMode::GetCellCentre (00511de0) does.
 // --screenshot renders one frame offscreen to a PNG and exits; otherwise a window opens,
-// and Escape or --frames N closes it.
+// and Escape or --frames N closes it. --digest also prints the FNV-1a hashes of what the
+// frame gives the GPU: the textures' texels, and the draws' states and vertices.
 
 #include <SDL3/SDL.h>
 
 #include <algorithm>
+#include <array>
 #include <bit>
 #include <cmath>
 #include <cstdio>
@@ -41,9 +46,11 @@
 #include <cstring>
 #include <ctime>
 #include <filesystem>
+#include <functional>
 #include <list>
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
 #include <span>
 #include <string>
@@ -68,6 +75,8 @@
 #include "render/scene_graph.h"
 #include "render/text.h"
 #include "render/texture.h"
+#include "render/world_frame.h"
+#include "render/world_load.h"
 #include "render/world_scene.h"
 #include "res/act.h"
 #include "res/bitmap.h"
@@ -91,14 +100,7 @@ namespace {
 
 using namespace ragexe;
 
-constexpr std::uint32_t kLightmapIdBase = 0x10000;
-constexpr std::uint32_t kModelTextureIdBase = 0x20000;
-constexpr std::uint32_t kWaterTextureIdBase = 0x30000;
-constexpr std::uint32_t kActorTextureIdBase = 0x40000;
-constexpr std::uint32_t kShadowTextureIdBase = 0x48000;
-constexpr std::uint32_t kEffectTextureIdBase = 0x50000;
-constexpr std::uint32_t kPrimTextureIdBase = 0x58000;
-constexpr std::uint32_t kParticleTextureIdBase = 0x5c000;  // then 0x400 for each effect sprite
+// The scene's textures take FrameTextures' ids, from 1; the screen's draws take these.
 constexpr std::uint32_t kTextTextureId = 0x60000;
 constexpr std::uint32_t kCursorTextureIdBase = 0x61000;
 constexpr std::uint32_t kSpritePage = 256;  // the sprite texture cache's pages (0040e130)
@@ -110,6 +112,7 @@ struct Options {
   int height = 600;
   float at_x = 0.0f;
   float at_z = 0.0f;
+  std::optional<std::array<std::int32_t, 2>> cell;
   bool turned = false;
   float yaw = 0.0f;
   int frames = 0;
@@ -134,6 +137,19 @@ struct Options {
   bool fps = false;
   bool stamp = false;
   std::string screenshot;
+  bool digest = false;
+};
+
+// FNV-1a over 64 bits.
+struct Digest {
+  std::uint64_t h = 0xcbf29ce484222325;
+  void Add(std::uint32_t v) {
+    for (int i = 0; i < 4; ++i) {
+      h ^= (v >> (i * 8)) & 0xff;
+      h *= 0x100000001b3;
+    }
+  }
+  void Add(float f) { Add(std::bit_cast<std::uint32_t>(f)); }
 };
 
 // A whole decimal number, or fallback when the text is not one.
@@ -159,14 +175,15 @@ render::LocalTime LocalNow() {
 
 int Usage() {
   std::fprintf(stderr,
-               "usage: ragview [--install DIR] [--size W H] [--at X Z] [--yaw DEGREES]\n"
+               "usage: ragview [--install DIR] [--size W H] [--at X Z | --cell X Y]\n"
+               "               [--yaw DEGREES]\n"
                "               [--frames N] [--no-fog] [--actor SPRITE | --job JOB |\n"
                "               --player JOB SEX HAIR\n"
                "               [--hair-color N] [--clothes-color N] [--headgear TOP MID BOTTOM]\n"
                "               [--weapon KIND] [--shield ID]] [--action BASE]\n"
                "               [--effect NAME | --effect-id ID [--minimal-effects]\n"
                "               [--effect-level N]] [--effect-step N] [--fps] [--stamp]\n"
-               "               [--screenshot FILE.png] MAP\n");
+               "               [--screenshot FILE.png [--digest]] MAP\n");
   return 2;
 }
 
@@ -196,9 +213,6 @@ bool Load(const res::DataFiles& files, const std::string& path, std::vector<std:
   return true;
 }
 
-// A sprite and its actions, with each image uploaded as the texture cache would hold it:
-// an 8-bit image decoded through the palette into a slot at the corner of a 256 x 256
-// page (CTexture::DrawRleImage, index 0 clear), a 32-bit image in a texture of its own.
 // The launched effect's .str (EffectStr) through the StrPlayer, at the effect's frame, under
 // the view and projection of the frame being drawn; it leaves the actor's point on screen
 // in the effect, as AdvanceStr does.
@@ -223,6 +237,20 @@ class PlayerStr : public render::EffectStr {
   const render::Projection& projection_;
 };
 
+// A texture made for a sprite's image of width × height texels: its id, and the share of
+// the texture the image covers.
+struct SpriteTexture {
+  std::uint32_t id = 0;
+  float u = 1.0f;
+  float v = 1.0f;
+};
+using SpriteTextureMaker = std::function<SpriteTexture(std::uint32_t width, std::uint32_t height,
+                                                       std::vector<std::uint32_t> argb)>;
+
+// A sprite and its actions, with each image uploaded as the texture cache would hold it:
+// an 8-bit image decoded through the palette into a slot at the corner of a 256 x 256
+// page (CTexture::DrawRleImage, index 0 clear), a 32-bit image in a texture of its own,
+// spanning 0 to its uv scale (docs/render/actor.md#the-quad).
 struct ActorSprite {
   res::Sprite sprite;
   res::Act act;
@@ -231,7 +259,7 @@ struct ActorSprite {
 };
 
 bool LoadActorSprite(const res::DataFiles& files, const std::string& name,
-                     render::RenderDevice& device, std::uint32_t id_base, ActorSprite& out,
+                     const SpriteTextureMaker& make, ActorSprite& out,
                      const res::Palette* palette = nullptr) {
   std::vector<std::uint8_t> bytes;
   std::string ignored;
@@ -254,7 +282,6 @@ bool LoadActorSprite(const res::DataFiles& files, const std::string& name,
   if (!Load(files, "data\\sprite\\" + name + ".act", bytes) ||
       !res::DecodeAct(bytes, lookup, out.act, &ignored))
     return false;
-  std::uint32_t id = id_base;
   for (const res::SpriteImage& image : out.sprite.images) {
     const std::vector<std::uint8_t> indices = image.Decode();
     std::vector<std::uint32_t> page(static_cast<std::size_t>(kSpritePage) * kSpritePage, 0);
@@ -268,8 +295,7 @@ bool LoadActorSprite(const res::DataFiles& files, const std::string& name,
         page[y * kSpritePage + x] = render::ExpandTexel(render::TextureFormat::kArgb1555, texel);
       }
     }
-    device.SetTexture(id, kSpritePage, kSpritePage, page);
-    out.ids8.push_back(id++);
+    out.ids8.push_back(make(kSpritePage, kSpritePage, std::move(page)).id);
     const auto page_size = static_cast<float>(kSpritePage);
     out.rects8.push_back({0.0f, 0.0f, static_cast<float>(image.width) / page_size,
                           static_cast<float>(image.height) / page_size});
@@ -279,9 +305,9 @@ bool LoadActorSprite(const res::DataFiles& files, const std::string& name,
     const auto h = static_cast<std::uint32_t>(std::max<std::int16_t>(image.pixel_height, 1));
     std::vector<std::uint32_t> pixels = image.pixels;
     pixels.resize(static_cast<std::size_t>(w) * h, 0);
-    device.SetTexture(id, w, h, pixels);
-    out.ids32.push_back(id++);
-    out.rects32.push_back({0.0f, 0.0f, 1.0f, 1.0f});
+    const SpriteTexture t = make(w, h, std::move(pixels));
+    out.ids32.push_back(t.id);
+    out.rects32.push_back({0.0f, 0.0f, t.u, t.v});
   }
   return true;
 }
@@ -343,6 +369,11 @@ int main(int argc, char** argv) {
       o.fps = true;
     } else if (a == "--stamp") {
       o.stamp = true;
+    } else if (a == "--cell" && next(2)) {
+      const std::int32_t x = ParseInt(argv[++i], -1);
+      o.cell = {{x, ParseInt(argv[++i], -1)}};
+    } else if (a == "--digest") {
+      o.digest = true;
     } else if (a == "--screenshot" && next(1)) {
       o.screenshot = argv[++i];
     } else if (!a.starts_with("--") && o.map.empty()) {
@@ -356,13 +387,26 @@ int main(int argc, char** argv) {
   if (o.map.ends_with(".rsw")) o.map.resize(o.map.size() - 4);
 
   std::string error;
-  auto archive = res::GrfArchive::Open(o.install / "data.grf", &error);
-  if (!archive) {
+  std::vector<std::unique_ptr<res::GrfArchive>> archives;
+  res::DataFiles files(o.install);
+  if (!res::OpenInstallArchives(o.install, archives, files, &error)) {
     std::fprintf(stderr, "ragview: %s\n", error.c_str());
     return 1;
   }
-  const res::DataFiles files(o.install, std::move(archive));
   std::vector<std::uint8_t> bytes;
+  if (o.cell) {
+    res::World rsw;
+    res::AttrMap gat;
+    if (!Load(files, "data\\" + o.map + ".rsw", bytes) ||
+        !res::DecodeWorld(bytes, true, rsw, &error) || !Load(files, "data\\" + rsw.attr, bytes) ||
+        !res::DecodeAttrMap(bytes, gat, &error)) {
+      std::fprintf(stderr, "ragview: %s: %s\n", o.map.c_str(), error.c_str());
+      return 1;
+    }
+    const std::array<float, 2> centre = render::CellCentre(gat, (*o.cell)[0], (*o.cell)[1]);
+    o.at_x = centre[0];
+    o.at_z = centre[1];
+  }
   // The world as CWorld::LoadWorld leaves it, its models loaded from where the player stands
   // (docs/render/model.md#loading).
   render::WorldScene scene;
@@ -377,13 +421,26 @@ int main(int argc, char** argv) {
   std::vector<std::string> indoor_maps;
   const bool indoor = res::LoadFields(files, res::kIndoorRswTable, true, indoor_maps) &&
                       std::binary_search(indoor_maps.begin(), indoor_maps.end(), o.map + ".rsw");
+  // The world entered with the player standing on the ground at (X, Z) and the camera placed
+  // as CGameMode places it (docs/render/frame.md), at the window's size.
+  render::WorldFrameState frame_state(files);
+  frame_state.projection = render::SetSize(o.width, o.height);
+  render::EnterWorld(scene, o.at_x, o.at_z, indoor, frame_state);
+  if (o.turned) {
+    frame_state.camera.yaw = o.yaw;
+    frame_state.camera.target_yaw = o.yaw;
+  }
   // CGameMode::OnInit's fog (00516570): the map's fogParameterTable.txt record, when the
-  // fog flag is on. The device has vertex fog, so every primitive gets its fog factor.
+  // fog flag is on, then SetFogEnabled. The device has vertex fog, so every primitive gets its
+  // fog factor.
   res::LineRecords fog_table;
-  render::FogState fog;
   const bool fog_on = o.fog && res::LoadFogParameters(files, fog_table) &&
-                      render::FindMapFog(fog_table, o.map + ".rsw", fog);
-  render::GroundMesh& mesh = scene.mesh;
+                      render::FindMapFog(fog_table, o.map + ".rsw", frame_state.fog);
+  render::SetFogEnabled(frame_state, fog_on);
+  const render::GroundMesh& mesh = scene.mesh;
+  render::Camera& camera = frame_state.camera;
+  render::Vec3& player = frame_state.player;
+  const render::Projection& projection = frame_state.projection;
 
   if (!SDL_Init(SDL_INIT_VIDEO)) {
     std::fprintf(stderr, "ragview: SDL_Init: %s\n", SDL_GetError());
@@ -402,22 +459,38 @@ int main(int argc, char** argv) {
     std::fprintf(stderr, "ragview: %s\n", error.c_str());
     return 1;
   }
+  // Every texture the GPU is given, through the digest.
+  Digest texture_digest;
+  const auto set_texture = [&](std::uint32_t id, std::uint32_t w, std::uint32_t h,
+                               std::span<const std::uint32_t> argb) {
+    for (const std::uint32_t v : {id, w, h}) texture_digest.Add(v);
+    for (const std::uint32_t v : argb) texture_digest.Add(v);
+    device->SetTexture(id, w, h, argb);
+  };
   std::fprintf(stderr, "ragview: %s, %s (%d x %d cells, %s, %s), on %s\n", o.map.c_str(),
                world.ground.c_str(), ground.width, ground.height, indoor ? "indoor" : "outdoor",
                fog_on ? "fog" : "no fog", device->driver());
 
-  // The ground's textures (ids from 1, in the file's order) and the lightmap pages.
-  for (std::size_t t = 0; t < ground.textures.size(); ++t) {
-    res::Bitmap image;
-    std::string ignored;
-    std::uint32_t w = 1, h = 1;
-    std::vector<std::uint32_t> texels{0};
-    if (Load(files, "data\\texture\\" + ground.textures[t], bytes) &&
-        res::DecodeBitmap(ground.textures[t], bytes, image, &ignored)) {
-      texels = ClientTexels(image, w, h);
+  // The textures the world made as it was entered, in their order: each named one as
+  // TextureCache makes it, from data\texture\, and the lightmap pages. Those the frames make
+  // later, the water's, the cell cursor's and the effects', are uploaded after the frame
+  // that made them; the sprites' as they are made.
+  std::size_t uploaded = 0;
+  const auto upload_textures = [&] {
+    for (; uploaded < frame_state.textures.size(); ++uploaded) {
+      const auto id = static_cast<std::uint32_t>(uploaded + 1);
+      const std::string& name = frame_state.textures.at(id).name;
+      if (name.empty()) continue;
+      res::Bitmap image;
+      std::string ignored;
+      std::uint32_t w = 1, h = 1;
+      std::vector<std::uint32_t> texels{0};
+      if (Load(files, "data\\texture\\" + name, bytes) &&
+          res::DecodeBitmap(name, bytes, image, &ignored))
+        texels = ClientTexels(image, w, h);
+      set_texture(id, w, h, texels);
     }
-    device->SetTexture(static_cast<std::uint32_t>(t + 1), w, h, texels);
-  }
+  };
   for (std::size_t p = 0; p < mesh.atlas.pages.size(); ++p) {
     std::vector<std::uint32_t> page(mesh.atlas.pages[p].size());
     for (std::size_t i = 0; i < page.size(); ++i) {
@@ -425,52 +498,26 @@ int main(int argc, char** argv) {
           render::ConvertTexel(render::TextureFormat::kArgb4444, mesh.atlas.pages[p][i], false);
       page[i] = render::ExpandTexel(render::TextureFormat::kArgb4444, t.value_or(0));
     }
-    device->SetTexture(kLightmapIdBase + static_cast<std::uint32_t>(p), 256, 256, page);
+    set_texture(frame_state.lightmap_pages[p], 256, 256, page);
   }
-
-  // The player stands on the ground; the camera is placed as CGameMode places it.
-  render::Vec3 player = {o.at_x, res::AttrHeight(attr, o.at_x, o.at_z), o.at_z};
-  render::Camera camera;
-  render::ShakeSwing shake_swing;
-  render::ResetCamera(camera);
-  render::CameraControl control;
-  render::PlaceCamera(camera, control, player, indoor);
-  if (o.turned) {
-    camera.yaw = o.yaw;
-    camera.target_yaw = o.yaw;
-  }
-
-  // The world's models, as the scene placed them. Each texture is uploaded once, by name.
-  std::vector<render::ModelInstance>& models = scene.models;
-  std::map<std::string, std::pair<std::uint32_t, bool>> model_textures;  // id, ARGB 4444
-  std::vector<std::vector<std::uint32_t>> model_texture_ids;  // per instance, by model texture
-  std::vector<render::ModelDrawSettings> model_settings;
-  for (const render::ModelInstance& instance : models) {
-    std::vector<std::uint32_t> ids;
-    render::ModelDrawSettings draw;
-    for (const std::string& name : instance.model->textures) {
-      auto [it, added] = model_textures.try_emplace(
-          name, kModelTextureIdBase + static_cast<std::uint32_t>(model_textures.size()), false);
-      if (added) {
-        res::Bitmap image;
-        std::string ignored;
-        std::uint32_t w = 1, h = 1;
-        std::vector<std::uint32_t> texels{0};
-        if (Load(files, "data\\texture\\" + name, bytes) &&
-            res::DecodeBitmap(name, bytes, image, &ignored)) {
-          texels = ClientTexels(image, w, h);
-          it->second.second = image.has_alpha;
-        }
-        device->SetTexture(it->second.first, w, h, texels);
-      }
-      ids.push_back(it->second.first);
-      draw.texture_alpha.push_back(it->second.second);
-    }
-    model_texture_ids.push_back(std::move(ids));
-    model_settings.push_back(std::move(draw));
-  }
-  std::fprintf(stderr, "ragview: %zu of %zu models, %zu files, %zu textures\n", models.size(),
-               world.models.size(), scene.model_files.size(), model_textures.size());
+  upload_textures();
+  std::fprintf(stderr, "ragview: %zu of %zu models, %zu files, %zu textures\n", scene.models.size(),
+               world.models.size(), scene.model_files.size(), frame_state.textures.size());
+  // A sprite's texture, made as C3dDevice::CreateTexture makes one and filled at its corner.
+  const SpriteTextureMaker sprite_texture = [&](std::uint32_t w, std::uint32_t h,
+                                                std::vector<std::uint32_t> argb) {
+    const std::uint32_t id = frame_state.textures.Create(w, h, false);
+    const auto fitted = render::FitTextureSize(w, h, {});
+    const std::uint32_t fw = fitted ? fitted->width : 1;
+    const std::uint32_t fh = fitted ? fitted->height : 1;
+    std::vector<std::uint32_t> texels(static_cast<std::size_t>(fw) * fh, 0);
+    for (std::uint32_t y = 0; y < std::min(h, fh); ++y)
+      for (std::uint32_t x = 0; x < std::min(w, fw); ++x)
+        texels[static_cast<std::size_t>(y) * fw + x] = argb[static_cast<std::size_t>(y) * w + x];
+    set_texture(id, fw, fh, texels);
+    const render::UvScale uv = frame_state.textures.at(id).uv;
+    return SpriteTexture{id, uv.u, uv.v};
+  };
 
   // The actor, its shadow (shadow.spr and shadow.act), and the scales its sprites read. An
   // actor has one layer; a player has a body and a head, ordered by the job's .imf.
@@ -492,12 +539,9 @@ int main(int argc, char** argv) {
         palette(render::PlayerHeadPaletteName(o.hair, o.job, o.sex, o.hair_color), hair_palette);
     const bool clothes_colored =
         palette(render::PlayerBodyPaletteName(o.job, o.sex, o.clothes_color), clothes_palette);
-    const auto layer_id = [](int layer) {
-      return kActorTextureIdBase + static_cast<std::uint32_t>(layer) * 0x1000;
-    };
-    has_actor = LoadActorSprite(files, render::PlayerBodyName(o.job, o.sex), *device, layer_id(0),
-                                actor, clothes_colored ? &clothes_palette.palette() : nullptr) &&
-                LoadActorSprite(files, render::PlayerHeadName(o.hair, o.sex), *device, layer_id(1),
+    has_actor = LoadActorSprite(files, render::PlayerBodyName(o.job, o.sex), sprite_texture, actor,
+                                clothes_colored ? &clothes_palette.palette() : nullptr) &&
+                LoadActorSprite(files, render::PlayerHeadName(o.hair, o.sex), sprite_texture,
                                 layers[render::kPlayerHead],
                                 hair_colored ? &hair_palette.palette() : nullptr) &&
                 Load(files, "data\\imf\\" + render::PlayerImfName(o.job, o.sex), bytes) &&
@@ -507,7 +551,7 @@ int main(int argc, char** argv) {
     // stays empty and is not drawn.
     const auto dress = [&](int layer, const render::PlayerSpriteNames& names) {
       if (names.act.empty() || names.sprite.empty()) return;
-      if (!LoadActorSprite(files, names.sprite, *device, layer_id(layer),
+      if (!LoadActorSprite(files, names.sprite, sprite_texture,
                            layers[static_cast<std::size_t>(layer)]))
         layers[static_cast<std::size_t>(layer)] = {};
     };
@@ -521,14 +565,14 @@ int main(int argc, char** argv) {
   } else if (o.npc_job >= 0) {
     // iRO's service type, 1; the actor's own job is the one asked for.
     const render::PlayerSpriteNames names = render::NpcSpriteNames(o.npc_job, o.npc_job, 1);
-    has_actor = !names.sprite.empty() &&
-                LoadActorSprite(files, names.sprite, *device, kActorTextureIdBase, actor);
+    has_actor =
+        !names.sprite.empty() && LoadActorSprite(files, names.sprite, sprite_texture, actor);
     if (!has_actor) std::fprintf(stderr, "ragview: no sprite for job %d\n", o.npc_job);
   } else if (o.actor != "none") {
-    has_actor = LoadActorSprite(files, o.actor, *device, kActorTextureIdBase, actor);
+    has_actor = LoadActorSprite(files, o.actor, sprite_texture, actor);
     if (!has_actor) std::fprintf(stderr, "ragview: no sprite %s\n", o.actor.c_str());
   }
-  has_actor = has_actor && LoadActorSprite(files, "shadow", *device, kShadowTextureIdBase, shadow);
+  has_actor = has_actor && LoadActorSprite(files, "shadow", sprite_texture, shadow);
   render::PlayerHeadOffset head_offset;
   render::RenderObject actor_object;
   actor_object.shadow = true;
@@ -542,38 +586,23 @@ int main(int argc, char** argv) {
   if (actor_object.delay < 1.0f) actor_object.delay = 1.0f;
   actor_object.start_time = static_cast<std::uint32_t>(SDL_GetTicks());
 
-  render::GroundDrawSettings settings;
-  const render::Projection projection = render::SetSize(o.width, o.height);
   render::SpriteScales sprite_scales;
   render::SetSpriteScalesForSize(projection, sprite_scales);
-  settings.viewport = render::GroundViewportOf(projection);
-  // CWorld::BuildSceneGraph, with the .rsw's bounds when it has them (version 2.1).
-  render::SceneGraph& graph = scene.graph;
-  for (render::ModelDrawSettings& m : model_settings) {
-    m.viewport = settings.viewport;
-    m.fade = settings.fade;
-    // CGameMode::OnInit sets g_WorldColorFade+0xd on every map: the models' colours plus
-    // the ground's.
-    m.ground_tint = true;
-  }
-  settings.water = render::WaterOfWorld(world);
-  // The water's textures, uploaded as the steps first ask for them.
-  std::map<std::string, std::uint32_t> water_textures;
-  std::uint32_t water_texture = 0;
+  const render::SceneGraph& graph = scene.graph;
   render::FixedFunctionState state;
-  render::BoundTextures bound;
+  std::vector<render::FrameDraw> frame_draws;
   std::vector<render::GpuVertex> vertices;
   std::vector<std::pair<std::uint32_t, std::uint32_t>> spans;  // first vertex, count
-  // SetFogEnabled leaves SceneRenderer+0x48 set, so the first DrawScene sets up the fog.
-  bool setup_projection = true;
 
   // The effect: CRagEffect playing the .str, from the world steps the frame timer counts
-  // (ProcessGenericType's offset, 80 pixels up). Each texture is uploaded the first time a
+  // (ProcessGenericType's offset, 80 pixels up). Each texture is made the first time a
   // triangle asks for it: effect\ and its name, .bmp added when it has none, and "1.bmp"
   // past a layer's names (GetEffectEntryTexture, 004289a0).
   // --effect-id: the world's effect objects for the primitives, and the .str the id names,
   // which the effect plays as its case of vf01 does, if at all.
   render::EffectWorld prim_world;
+  // The client's one CRT rand serves the shake and the effects alike.
+  frame_state.rand = &prim_world.rand();
   const bool has_prims = o.effect_id >= 0;
   // The sprites effects load, the particle first; each drawn quad names the one it is of.
   std::list<ActorSprite> effect_sprites;
@@ -581,14 +610,13 @@ int main(int argc, char** argv) {
   if (has_prims) {
     std::vector<const char*> names = {render::kParticleSprite};
     names.insert(names.end(), render::kEffectSprites.begin(), render::kEffectSprites.end());
-    for (std::size_t k = 0; k < names.size(); ++k) {
+    for (const char* name : names) {
       ActorSprite& loaded = effect_sprites.emplace_back();
-      const auto first_id = kParticleTextureIdBase + static_cast<std::uint32_t>(k) * 0x400;
-      if (!LoadActorSprite(files, names[k], *device, first_id, loaded)) {
+      if (!LoadActorSprite(files, name, sprite_texture, loaded)) {
         effect_sprites.pop_back();
         continue;
       }
-      prim_world.SetSprite(names[k], {&loaded.act, &loaded.sprite});
+      prim_world.SetSprite(name, {&loaded.act, &loaded.sprite});
       sprite_of[&loaded.sprite] = &loaded;
     }
   }
@@ -610,162 +638,47 @@ int main(int argc, char** argv) {
   PlayerStr launched_str(effect_player, camera.view, projection);
   core::FrameTimer world_steps;
   world_steps.SetFrameRate(60, static_cast<std::uint32_t>(SDL_GetTicks()));
-  std::map<std::pair<std::size_t, std::int32_t>, std::uint32_t> effect_textures;
   const auto effect_texture = [&](std::size_t layer, std::int32_t index) {
-    auto [it, added] = effect_textures.try_emplace(
-        {layer, index}, kEffectTextureIdBase + static_cast<std::uint32_t>(effect_textures.size()));
-    if (added) {
-      const res::StrLayer& l = effect_str.layers[layer];
-      std::string name = static_cast<std::size_t>(index) < l.textures.size()
-                             ? l.textures[static_cast<std::size_t>(index)]
-                             : std::string("1.bmp");
-      if (name.find('.') == std::string::npos) name += ".bmp";
-      res::Bitmap image;
-      std::string ignored;
-      std::uint32_t w = 1, h = 1;
-      std::vector<std::uint32_t> texels{0};
-      if (Load(files, "data\\texture\\effect\\" + name, bytes) &&
-          res::DecodeBitmap(name, bytes, image, &ignored))
-        texels = ClientTexels(image, w, h);
-      device->SetTexture(it->second, w, h, texels);
-    }
-    return it->second;
+    const res::StrLayer& l = effect_str.layers[layer];
+    std::string name = static_cast<std::size_t>(index) < l.textures.size()
+                           ? l.textures[static_cast<std::size_t>(index)]
+                           : std::string("1.bmp");
+    if (name.find('.') == std::string::npos) name += ".bmp";
+    return frame_state.textures.Get("effect\\" + name);
   };
   bool effect_started = false;
-  std::map<std::string, std::uint32_t> prim_textures;
-  const auto prim_texture = [&](const std::string& name) {
-    auto [it, added] = prim_textures.try_emplace(
-        name, kPrimTextureIdBase + static_cast<std::uint32_t>(prim_textures.size()));
-    if (added) {
-      res::Bitmap image;
-      std::string ignored;
-      std::uint32_t w = 1, h = 1;
-      std::vector<std::uint32_t> texels{0};
-      if (Load(files, "data\\texture\\" + name, bytes) &&
-          res::DecodeBitmap(name, bytes, image, &ignored))
-        texels = ClientTexels(image, w, h);
-      device->SetTexture(it->second, w, h, texels);
-    }
-    return it->second;
-  };
 
   // The mouse's point for the cell cursor, none in a screenshot.
   bool has_mouse = false;
   std::int32_t mouse_cell_x = 0, mouse_cell_y = 0;
-  render::CellCursor cell_cursor;
 
-  const auto frame = [&](std::uint32_t number, std::uint32_t now,
-                         std::vector<render::DrawRecord>& draws) {
-    settings.frame = number;
-    // CGameMode::OnFrame's step: the water's frame and phase, and its texture.
-    const std::string water_name = render::StepWater(settings.water);
-    auto [water_it, water_added] = water_textures.try_emplace(
-        water_name, kWaterTextureIdBase + static_cast<std::uint32_t>(water_textures.size()));
-    if (water_added) {
-      res::Bitmap image;
-      std::string ignored;
-      std::uint32_t w = 1, h = 1;
-      std::vector<std::uint32_t> texels{0};
-      if (Load(files, "data\\texture\\" + water_name, bytes) &&
-          res::DecodeBitmap(water_name, bytes, image, &ignored))
-        texels = ClientTexels(image, w, h);
-      device->SetTexture(water_it->second, w, h, texels);
-    }
-    water_texture = water_it->second;
-    // The client's one CRT rand serves the shake and the effects alike.
-    render::UpdateCamera(camera, player, false, &attr, shake_swing, now, prim_world.rand());
+  // The world's objects, as CView::DrawWorld has each draw itself after the cell cursor: the
+  // actor and the effect.
+  const auto draw_objects = [&](render::FrameLists& lists, std::uint32_t now) {
     render::StepSpriteScales(camera.pitch, camera.distance, projection, sprite_scales);
-    // CView::DrawWorld leaves the next frame a shake step.
-    shake_swing.step_pending = true;
-    // CView::vf03: the scene graph's nodes the frustum keeps, their models and cells.
-    const render::Frustum frustum =
-        render::MakeFrustum(projection.slope_x, projection.slope_y, camera.view);
-    const render::VisibleNodes visible = render::CollectVisibleNodes(frustum, graph);
-    std::vector<render::VisiblePrimitive> primitives;
-    render::DrawVisible(visible, graph, frustum, camera.view, mesh, settings, models,
-                        model_settings, primitives);
-    render::SceneLists lists;
-    vertices.clear();
-    spans.clear();
-    for (const render::VisiblePrimitive& v : primitives) {
-      render::ScenePrimitive s;
-      s.id = static_cast<std::uint32_t>(spans.size());
-      if (v.model < 0) {
-        const render::GroundPrimitive& p = v.ground;
-        s.texture = p.texture >= 0 ? static_cast<std::uint32_t>(p.texture + 1) : water_texture;
-        s.lightmap = p.lightmap_page >= 0
-                         ? kLightmapIdBase + static_cast<std::uint32_t>(p.lightmap_page)
-                         : 0;
-        s.type = 5;
-        s.vertex_count = 4;
-        s.rhw0 = p.vertices[0].rhw;
-        s.rhw1 = p.vertices[1].rhw;
-        lists.Add(s, p.flags);
-        spans.emplace_back(static_cast<std::uint32_t>(vertices.size()), 4);
-        for (std::size_t k = 0; k < 4; ++k) {
-          const render::ScreenVertex& sv = p.vertices[k];
-          vertices.push_back({sv.x, sv.y, sv.z, sv.rhw, sv.diffuse, render::VertexFog(sv.rhw, fog),
-                              sv.u, sv.v, p.lightmap_uv[k * 2], p.lightmap_uv[k * 2 + 1]});
-        }
-        continue;
-      }
-      const render::ModelPrimitive& p = v.face;
-      const auto m = static_cast<std::size_t>(v.model);
-      s.texture = model_texture_ids[m][static_cast<std::size_t>(p.texture)];
-      s.type = 4;
-      s.vertex_count = static_cast<std::uint32_t>(p.vertices.size());
-      s.rhw0 = p.vertices[0].rhw;
-      s.rhw1 = p.vertices.size() > 1 ? p.vertices[1].rhw : 0.0f;
-      lists.Add(s, p.flags);
-      spans.emplace_back(static_cast<std::uint32_t>(vertices.size()), s.vertex_count);
-      for (const render::ScreenVertex& sv : p.vertices)
-        vertices.push_back({sv.x, sv.y, sv.z, sv.rhw, sv.diffuse, render::VertexFog(sv.rhw, fog),
-                            sv.u, sv.v, 0.0f, 0.0f});
-    }
-    // CGameMode::method_005159d0 keeps the attribute cell under the mouse, and
-    // CView::DrawWorld draws the cursor over it after the visible nodes.
-    std::int32_t picked_x = 0, picked_z = 0;
-    if (has_mouse && render::PickCell(projection, camera, mouse_cell_x, mouse_cell_y, graph, attr,
-                                      picked_x, picked_z))
-      render::PlaceCellCursor(cell_cursor, attr, picked_x, picked_z);
-    std::array<render::ScreenVertex, 4> cursor_quad{};
-    if (!cell_cursor.hidden &&
-        render::DrawCellCursor(mesh, attr, camera.view, settings.viewport, cell_cursor.x,
-                               cell_cursor.z, cell_cursor.color, cursor_quad)) {
-      render::ScenePrimitive s;
-      s.id = static_cast<std::uint32_t>(spans.size());
-      s.texture = prim_texture("grid.tga");
-      s.src_blend = 5;
-      s.dest_blend = 6;
-      s.type = 5;
-      s.vertex_count = 4;
-      s.rhw0 = cursor_quad[0].rhw;
-      s.rhw1 = cursor_quad[1].rhw;
-      lists.Add(s, render::scene_flags::kTranslucent);
-      spans.emplace_back(static_cast<std::uint32_t>(vertices.size()), 4);
-      for (const render::ScreenVertex& sv : cursor_quad)
-        vertices.push_back({sv.x, sv.y, sv.z, sv.rhw, sv.diffuse, render::VertexFog(sv.rhw, fog),
-                            sv.u, sv.v, 0.0f, 0.0f});
-    }
     // A sprite quad through SceneRenderer 0040e980.
     const auto add = [&](const render::SpriteQuad& q, const ActorSprite& from) {
       const bool is32 = q.image_type != 0;
       const auto i = static_cast<std::size_t>(q.image);
       if (i >= (is32 ? from.ids32.size() : from.ids8.size())) return;
-      const auto v = render::SpriteQuadVertices(q, is32 ? from.rects32[i] : from.rects8[i]);
       render::ScenePrimitive s;
-      s.id = static_cast<std::uint32_t>(spans.size());
       s.texture = is32 ? from.ids32[i] : from.ids8[i];
-      s.type = 5;
-      s.vertex_count = 4;
-      s.rhw0 = v[0].rhw;
-      s.rhw1 = v[1].rhw;
-      lists.Add(s, q.flags);
-      spans.emplace_back(static_cast<std::uint32_t>(vertices.size()), 4);
-      for (const render::ScreenVertex& sv : v)
-        vertices.push_back({sv.x, sv.y, sv.z, sv.rhw, sv.diffuse, render::VertexFog(sv.rhw, fog),
-                            sv.u, sv.v, 0.0f, 0.0f});
+      lists.AddQuad(s, render::SpriteQuadVertices(q, is32 ? from.rects32[i] : from.rects8[i]),
+                    q.flags);
     };
+    // An effect's triangle, in the primitives the effect keeps.
+    const auto add_triangle =
+        [&](std::uint32_t texture, std::uint32_t src_blend, std::uint32_t dest_blend,
+            std::uint32_t mode, const std::array<render::ScreenVertex, 3>& v, std::uint32_t flags) {
+          render::ScenePrimitive s;
+          s.id = frame_state.pools.NewOwned();
+          s.texture = texture;
+          s.src_blend = src_blend;
+          s.dest_blend = dest_blend;
+          s.mode = mode;
+          s.type = 4;
+          lists.Add(s, {v.begin(), v.end()}, {}, flags);
+        };
     // The actor's vf03: its shadow, then its body.
     if (has_actor) {
       actor_object.position = player;
@@ -843,23 +756,9 @@ int main(int argc, char** argv) {
         const auto it = sprite_of.find(drawing.quad_sprites[i]);
         if (it != sprite_of.end()) add(drawing.quads[i], *it->second);
       }
-      for (const render::PrimTriangle& t : drawing.triangles) {
-        render::ScenePrimitive s;
-        s.id = static_cast<std::uint32_t>(spans.size());
-        s.texture = prim_texture(t.texture);
-        s.src_blend = t.src_blend;
-        s.dest_blend = t.dest_blend;
-        s.mode = t.mode;
-        s.type = 4;
-        s.vertex_count = 3;
-        s.rhw0 = t.vertices[0].rhw;
-        s.rhw1 = t.vertices[1].rhw;
-        lists.Add(s, t.flags);
-        spans.emplace_back(static_cast<std::uint32_t>(vertices.size()), 3);
-        for (const render::ScreenVertex& sv : t.vertices)
-          vertices.push_back({sv.x, sv.y, sv.z, sv.rhw, sv.diffuse, render::VertexFog(sv.rhw, fog),
-                              sv.u, sv.v, 0.0f, 0.0f});
-      }
+      for (const render::PrimTriangle& t : drawing.triangles)
+        add_triangle(frame_state.textures.Get(t.texture), t.src_blend, t.dest_blend, t.mode,
+                     t.vertices, t.flags);
     }
     if (has_effect) {
       for (std::uint32_t i = 0; i < steps && !has_prims; ++i) {
@@ -869,32 +768,40 @@ int main(int argc, char** argv) {
         }
         effect_player.Step();
       }
-      for (const render::EffectTriangle& t : effect_player.Draw()) {
-        render::ScenePrimitive s;
-        s.id = static_cast<std::uint32_t>(spans.size());
-        s.texture = effect_texture(static_cast<std::size_t>(t.layer), t.texture);
-        s.src_blend = t.src_blend;
-        s.dest_blend = t.dest_blend;
-        s.mode = t.mode;
-        s.type = 4;
-        s.vertex_count = 3;
-        s.rhw0 = t.vertices[0].rhw;
-        s.rhw1 = t.vertices[1].rhw;
-        lists.Add(s, render::scene_flags::kTranslucent | render::scene_flags::kStageMode);
-        spans.emplace_back(static_cast<std::uint32_t>(vertices.size()), 3);
-        for (const render::ScreenVertex& sv : t.vertices)
-          vertices.push_back({sv.x, sv.y, sv.z, sv.rhw, sv.diffuse, render::VertexFog(sv.rhw, fog),
-                              sv.u, sv.v, 0.0f, 0.0f});
+      for (const render::EffectTriangle& t : effect_player.Draw())
+        add_triangle(effect_texture(static_cast<std::size_t>(t.layer), t.texture), t.src_blend,
+                     t.dest_blend, t.mode, t.vertices,
+                     render::scene_flags::kTranslucent | render::scene_flags::kStageMode);
+    }
+  };
+
+  const auto frame = [&](std::uint32_t now, std::vector<render::DrawRecord>& draws) {
+    // CGameMode::method_005159d0 keeps the attribute cell under the mouse, and
+    // CView::DrawWorld draws the cursor over it after the visible nodes.
+    std::int32_t picked_x = 0, picked_z = 0;
+    if (has_mouse && render::PickCell(projection, camera, mouse_cell_x, mouse_cell_y, graph, attr,
+                                      picked_x, picked_z))
+      render::PlaceCellCursor(frame_state.cursor, attr, picked_x, picked_z);
+    const std::vector<render::SceneCall> calls =
+        render::DrawWorldFrame(scene, frame_state, now, frame_draws,
+                               [&](render::FrameLists& lists) { draw_objects(lists, now); });
+    upload_textures();
+    // Each draw with the vertices it sent.
+    draws = render::RecordDraws(state, calls);
+    vertices.clear();
+    spans.clear();
+    for (std::size_t i = 0; i < draws.size(); ++i) {
+      const render::FrameDraw& d = frame_draws[i];
+      draws[i].primitive = static_cast<std::uint32_t>(spans.size());
+      spans.emplace_back(static_cast<std::uint32_t>(vertices.size()), d.count);
+      const std::size_t stride = d.count == 0 ? 0 : d.words.size() / d.count;
+      const auto f = [&](std::size_t k) { return std::bit_cast<float>(d.words[k]); };
+      for (std::size_t k = 0; k < d.words.size(); k += stride) {
+        const bool two = stride == 10;
+        vertices.push_back({f(k), f(k + 1), f(k + 2), f(k + 3), d.words[k + 4], d.words[k + 5],
+                            f(k + 6), f(k + 7), two ? f(k + 8) : 0.0f, two ? f(k + 9) : 0.0f});
       }
     }
-    std::vector<render::SceneCall> calls;
-    if (setup_projection) {
-      calls = render::SetupFog(fog, fog_on, true).calls;
-      setup_projection = false;
-    }
-    const auto scene = render::DrawScene(lists, {fog_on, true, true}, bound);
-    calls.insert(calls.end(), scene.begin(), scene.end());
-    draws = render::RecordDraws(state, calls);
   };
   // Text over the finished scene, as GDI drew it on the back buffer before Present: the runs
   // drawn into a layer the screen's size, then the layer as one last draw of only the texels
@@ -906,8 +813,8 @@ int main(int argc, char** argv) {
     if (runs.empty() || !glyphs) return;
     text_layer.assign(static_cast<std::size_t>(o.width) * static_cast<std::size_t>(o.height), 0);
     for (const render::TextRun& run : runs) glyphs->Draw(run, o.width, o.height, text_layer);
-    device->SetTexture(kTextTextureId, static_cast<std::uint32_t>(o.width),
-                       static_cast<std::uint32_t>(o.height), text_layer);
+    set_texture(kTextTextureId, static_cast<std::uint32_t>(o.width),
+                static_cast<std::uint32_t>(o.height), text_layer);
     render::DrawRecord d;
     d.primitive = static_cast<std::uint32_t>(spans.size());
     spans.emplace_back(static_cast<std::uint32_t>(vertices.size()), 4);
@@ -933,9 +840,14 @@ int main(int argc, char** argv) {
   // screen after the scene through the same device state. InitAudioAndDevice leaves the
   // device filtering by points (C3dDevice+0x1e4), so the draw sets no filters.
   ActorSprite cursor_sprite;
+  std::uint32_t cursor_texture = kCursorTextureIdBase;
+  const SpriteTextureMaker screen_texture = [&](std::uint32_t w, std::uint32_t h,
+                                                std::vector<std::uint32_t> argb) {
+    set_texture(cursor_texture, w, h, argb);
+    return SpriteTexture{cursor_texture++};
+  };
   const bool has_cursor =
-      o.screenshot.empty() &&
-      LoadActorSprite(files, "cursors", *device, kCursorTextureIdBase, cursor_sprite);
+      o.screenshot.empty() && LoadActorSprite(files, "cursors", screen_texture, cursor_sprite);
   render::Cursor cursor;
   const auto draw_cursor = [&](std::uint32_t now, bool button, std::int32_t mouse_x,
                                std::int32_t mouse_y, std::vector<render::DrawRecord>& draws) {
@@ -948,8 +860,8 @@ int main(int argc, char** argv) {
       return render::ActImageTexture{cursor_sprite.ids32[i], {}};
     };
     render::ScreenSprites sprites;
-    render::DrawActFrame(at, cursor_sprite.act, cursor_sprite.sprite, true, textures, bound,
-                         sprites);
+    render::DrawActFrame(at, cursor_sprite.act, cursor_sprite.sprite, true, textures,
+                         frame_state.bound, sprites);
     for (render::SceneCall& call : sprites.calls) {
       if (call.kind != render::SceneCall::Kind::kDraw) continue;
       const auto& quad = sprites.quads[call.value];
@@ -975,7 +887,7 @@ int main(int argc, char** argv) {
 
   if (!o.screenshot.empty()) {
     std::vector<render::DrawRecord> draws;
-    frame(1, actor_object.start_time, draws);
+    frame(actor_object.start_time, draws);
     std::vector<render::TextRun> runs;
     if (o.fps) {
       render::StartFrameCount(frame_count, actor_object.start_time);
@@ -1000,6 +912,36 @@ int main(int argc, char** argv) {
       return 1;
     }
     std::fprintf(stderr, "ragview: %zu draws to %s\n", draws.size(), o.screenshot.c_str());
+    if (o.digest) {
+      Digest d;
+      for (const render::DrawRecord& r : draws) {
+        const render::PipelineKey& k = r.pipeline;
+        for (const std::uint32_t v :
+             {std::uint32_t{k.blend}, k.src_blend, k.dest_blend, std::uint32_t{k.z_test},
+              std::uint32_t{k.z_write}, k.z_func, k.cull, k.primitive, std::uint32_t{k.two_coords}})
+          d.Add(v);
+        const render::StageUniforms& u = r.uniforms;
+        for (const auto* a :
+             {&u.stage0_color, &u.stage0_alpha, &u.stage1_color, &u.stage1_alpha, &u.alpha_test})
+          for (const std::int32_t v : *a) d.Add(static_cast<std::uint32_t>(v));
+        for (const float v : u.fog_color) d.Add(v);
+        for (std::size_t t = 0; t < 2; ++t) {
+          const render::SamplerKey& sk = r.samplers[t];
+          for (const std::uint32_t v :
+               {r.textures[t], sk.mag_filter, sk.min_filter, sk.address_u, sk.address_v})
+            d.Add(v);
+        }
+        for (const render::GpuVertex& v : lookup(r.primitive)) {
+          for (const float f : {v.x, v.y, v.z, v.rhw}) d.Add(f);
+          d.Add(v.diffuse);
+          d.Add(v.specular);
+          for (const float f : {v.u0, v.v0, v.u1, v.v1}) d.Add(f);
+        }
+      }
+      std::printf("draws %zu %016llx textures %016llx\n", draws.size(),
+                  static_cast<unsigned long long>(d.h),
+                  static_cast<unsigned long long>(texture_digest.h));
+    }
     return 0;
   }
 
@@ -1044,16 +986,16 @@ int main(int argc, char** argv) {
     drag.ctrl = (mods & SDL_KMOD_CTRL) != 0;
     if (reset) {
       drag.kind = render::CameraDrag::Kind::kReset;
-      render::DragCamera(camera, control, drag);
+      render::DragCamera(camera, frame_state.control, drag);
     } else if ((buttons & SDL_BUTTON_RMASK) != 0) {
       drag.kind = render::CameraDrag::Kind::kDrag;
-      render::DragCamera(camera, control, drag);
+      render::DragCamera(camera, frame_state.control, drag);
     }
     drag.last_x = drag.mouse_x;
     drag.last_y = drag.mouse_y;
     std::vector<render::DrawRecord> draws;
     const auto now = static_cast<std::uint32_t>(SDL_GetTicks());
-    frame(static_cast<std::uint32_t>(n), now, draws);
+    frame(now, draws);
     draw_cursor(now, (buttons & SDL_BUTTON_LMASK) != 0, drag.mouse_x, drag.mouse_y, draws);
     std::vector<render::TextRun> runs;
     // No textures wait to be deleted: ragview keeps them all.

@@ -111,4 +111,27 @@ bool DataFiles::Exists(std::string_view path) const {
   return ResolveLoose(path).has_value();
 }
 
+bool OpenInstallArchives(const std::filesystem::path& install,
+                         std::vector<std::unique_ptr<GrfArchive>>& archives, DataFiles& files,
+                         std::string* error) {
+  std::vector<std::filesystem::path> paths;
+  std::error_code ec;
+  for (const auto& entry : std::filesystem::directory_iterator(install, ec))
+    if (entry.path().extension() == ".gpf") paths.push_back(entry.path());
+  std::sort(paths.begin(), paths.end());
+  paths.insert(paths.begin(), install / "data.grf");
+  std::vector<const GrfArchive*> layers;
+  for (const std::filesystem::path& path : paths) {
+    std::string why;
+    archives.push_back(GrfArchive::Open(path, &why));
+    if (!archives.back()) {
+      if (error != nullptr) *error = path.string() + ": " + why;
+      return false;
+    }
+    layers.insert(layers.begin(), archives.back().get());
+  }
+  files.set_layers(std::move(layers));
+  return true;
+}
+
 }  // namespace ragexe::res

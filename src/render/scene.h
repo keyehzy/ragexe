@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdint>
+#include <span>
 #include <vector>
 
 namespace ragexe::render {
@@ -110,10 +111,11 @@ struct SceneSettings {
 // (docs/render/texture-stages.md). Modes above 15 set nothing.
 void AppendStageModeCalls(std::uint32_t mode, std::vector<SceneCall>& out);
 
-// DrawScene (0040efd0) after the projection (00411090): every pass in order, with the
-// states around it, then the lists emptied. The primitive lists the port does not hold
-// yet, the vertex-buffer ranges and the list at +0x174, are drawn empty.
+// DrawScene (0040efd0): every pass in order, with the states around it, then the lists
+// emptied. projection holds the calls SetupProjection (00411090) makes, which DrawScene makes
+// after its first stage state (0040efe7). The primitive lists the port does not hold yet, the
+// vertex-buffer ranges and the list at +0x174, are drawn empty.
 std::vector<SceneCall> DrawScene(SceneLists& lists, const SceneSettings& settings,
-                                 BoundTextures& bound);
+                                 BoundTextures& bound, std::span<const SceneCall> projection = {});
 
 }  // namespace ragexe::render

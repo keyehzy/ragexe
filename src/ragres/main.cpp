@@ -85,6 +85,7 @@
 #include <string_view>
 #include <vector>
 
+#include "render/fog.h"
 #include "render/ground.h"
 #include "render/world_frame.h"
 #include "render/world_load.h"
@@ -333,28 +334,14 @@ std::uint64_t Fnv1a64(std::span<const std::uint32_t> values) {
   return h;
 }
 
-// data.grf with the install's .gpf patches over it: the patcher merges each .gpf into data.grf
-// in name order, so the last one's files win.
+// OpenInstallArchives, reporting a failure.
 bool OpenInstall(const std::filesystem::path& install,
                  std::vector<std::unique_ptr<ragexe::res::GrfArchive>>& archives,
                  ragexe::res::DataFiles& files) {
-  std::vector<std::filesystem::path> paths;
-  for (const auto& entry : std::filesystem::directory_iterator(install))
-    if (entry.path().extension() == ".gpf") paths.push_back(entry.path());
-  std::sort(paths.begin(), paths.end());
-  paths.insert(paths.begin(), install / "data.grf");
   std::string error;
-  std::vector<const ragexe::res::GrfArchive*> layers;
-  for (const std::filesystem::path& path : paths) {
-    archives.push_back(ragexe::res::GrfArchive::Open(path, &error));
-    if (!archives.back()) {
-      std::fprintf(stderr, "%s: %s\n", path.string().c_str(), error.c_str());
-      return false;
-    }
-    layers.insert(layers.begin(), archives.back().get());
-  }
-  files.set_layers(std::move(layers));
-  return true;
+  if (ragexe::res::OpenInstallArchives(install, archives, files, &error)) return true;
+  std::fprintf(stderr, "%s\n", error.c_str());
+  return false;
 }
 
 // LoadWorldScene with the player in the centre of the attribute cell given; the point it stands
@@ -854,8 +841,9 @@ std::string ArchiveName(std::string_view name) {
 }
 
 // Draws three frames of a world as CGameMode::OnFrame draws them (docs/render/frame.md), the
-// player in the centre of the cell given and the cell cursor over that cell: the camera as
-// PlaceCamera places it, then turned by 120 and 240 degrees. Prints "X k name" for each texture
+// player in the centre of the cell given and the cell cursor over that cell, the map's fog on as
+// the client's FOG setting has it by default: the camera as PlaceCamera places it, then turned
+// by 120 and 240 degrees. Prints "X k name" for each texture
 // in the order made (an unnamed one, a lightmap page, as "#k"), then per frame "frame k" and
 // each call DrawScene makes on the device: "R state value", "S stage state value", "T stage
 // texture" and "D type fvf count" with the FNV-1a hash of the vertices' dwords (--raw: the
@@ -885,6 +873,10 @@ int DrawFrame(std::vector<std::string> args) {
 
   ragexe::render::WorldFrameState state(files);
   ragexe::render::EnterWorld(scene, point[0], point[1], indoor, state);
+  ragexe::res::LineRecords fog_table;
+  ragexe::render::SetFogEnabled(state,
+                                ragexe::res::LoadFogParameters(files, fog_table) &&
+                                    ragexe::render::FindMapFog(fog_table, map + ".rsw", state.fog));
   state.cursor = {static_cast<std::int32_t>(std::stol(args[2])),
                   static_cast<std::int32_t>(std::stol(args[3])), false, 0x6600ffaa};
   std::vector<std::vector<ragexe::render::SceneCall>> frames;

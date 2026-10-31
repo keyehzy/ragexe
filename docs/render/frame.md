@@ -34,6 +34,31 @@ by, and the vertices `DrawScene`'s draws send. The parts are in [scene_graph.md]
 6. **`SceneRenderer::DrawScene`** ([scene.md](scene.md#drawscene)), then the frustum's
    lists emptied (`ClearVisibleNodes`, `004cec80`).
 
+## The fog
+
+`CGameMode::OnInit` applies the map's fog (`00516570`, [fog.md](fog.md#the-maps-fog)), which
+ends in `SceneRenderer::SetFogEnabled` (`00411010`), the fog on or off. On a hardware device
+with vertex fog, as the client's would be, the frames then carry it in three places:
+- **Each vertex:** `AddPrimitive` writes every primitive's specular colour
+  (`ComputeVertexFog`, [fog.md](fog.md#each-vertex)), the fog on or off: `SetFogEnabled` sets
+  +0x4c either way.
+- **The first frame's `DrawScene`** sets up the projection and the fog's states
+  (`SetupProjection`, `00411090`): after its first stage state, stage 0's `MIPFILTER`, and
+  before the rest (`0040efe7`).
+- **Every `DrawScene`** sets `FOGENABLE` from +0x44.
+
+## The world's colours
+
+`C3dWorldRes::Load` copies the `.rsw`'s colours into `g_WorldColorFade` (`00436918` to
+`00436975`, [rsw.md](../formats/rsw.md#load)), over what its constructor (`00586400`) set:
+- **the ambient colour** to the multipliers at +0x2c, which colour water of type 4 (lava)
+  and, with `g_groundWaterFade`, the ground and the models
+  ([ground.md](ground.md#the-water), [model.md](model.md#drawing));
+- **the diffuse colour** to +0x14 and +0x20, which only `WorldColorFade::Update` reads.
+
+The constructor leaves +0x2c at 0 and +0x38, the multipliers the ground and the models
+take otherwise, at 1.
+
 ## Textures
 
 `DrawScene` sorts the opaque and ground lists by the `CTexture`s' addresses
@@ -108,8 +133,14 @@ the primitive's address ([scene.md](scene.md#sorting)). On a heap that only grow
 | `MakeWorldTextures` | the textures `LoadWorld` makes, in order |
 | `PrimitivePools` | the pools: ids ordered as the nodes' addresses |
 | `FramePrimitive`, `FrameDraws` | the vertices the draws send, after the in-place scaling |
-| `EnterWorld` | `PlaceCamera` and the draw settings `CGameMode::OnInit` leaves |
+| `EnterWorld` | `PlaceCamera`, the draw settings `CGameMode::OnInit` leaves, and the ambient colour `C3dWorldRes::Load` copies |
+| `SetFogEnabled` | `SceneRenderer::SetFogEnabled` on a device with vertex fog |
+| `FrameLists` | `AddPrimitive`: the lists, each primitive's vertices kept for the draws, each vertex's fog; quads and triangle lists from the pools |
 | `DrawWorldFrame` | one frame of `OnFrame`: the steps, `DrawWorld`, `Present`'s count, the pools rewound |
+
+**The world's objects.** `DrawWorldFrame` takes a function that adds what the objects of
+`CWorld`+0xc draw, after the cell cursor, as `DrawWorld` has them draw themselves. ragview
+adds its actor and its effects there ([gpu.md](gpu.md#ragview)).
 
 **The vertices** (`FrameDraws`). Each draw first multiplies the primitive's texture
 coordinates by its texture's uv scale, in place, at the x87's single precision
@@ -123,7 +154,8 @@ A primitive drawn twice is scaled twice.
 
 **`ragres draw-frame INSTALL MAP CELL_X CELL_Y`** loads the map as `load-world` does
 ([model.md](model.md#loading)), with the player and the cell cursor on that cell, and draws
-three frames. It prints the textures in the order made, then each frame's device calls.
+three frames, the map's fog on as the client's FOG setting has it by default. It prints the
+textures in the order made, then each frame's device calls.
 
 ## Checks
 
@@ -144,14 +176,28 @@ three frames. It prints the textures in the order made, then each frame's device
   - `CView` created and placed by `CGameMode::PlaceCamera`, with `IsIndoorMap` answered
     from `indoorRswTable.txt`;
   - the cell cursor shown over the player's cell;
+  - the fog as `CGameMode::OnInit` sets it with the FOG setting on (`00516570`, the table read
+    by `ClientState::LoadFogParameterTable`), the device reporting vertex fog;
   - the frame count at 1, as if the loading had presented one frame.
 - **Three frames,** as `OnFrame` draws them: the camera as placed, then turned by 120
   and by 240 degrees.
-- **The comparison:** every device call `DrawWorld` makes, every vertex bit for bit, and
-  the order the textures were made in. It is checked against `ragres draw-frame`.
-- **`ctest`** runs 4 maps (`frame_oracle_sample`); `--sample 0` runs every map.
-- **The result:** all 208 maps are equal, three frames each: 14,285 textures made, 199,753
-  device calls and 161,841 draws.
+- **The comparison:** every device call `DrawWorld` makes but `SetTransform`, every vertex
+  bit for bit, and the order the textures were made in. It is checked against `ragres
+  draw-frame`. The transforms `SetupProjection` sets are left out of the port, whose vertices
+  come transformed ([fog.md](fog.md#in-the-port)).
+- **The maps:** those of `data.grf` and of the patches, 287 in all.
+- **`ctest`** runs 4 maps (`frame_oracle_sample`): the smallest, an indoor map, a ship, and
+  `mag_dun01`, a patch's map with fog and lava. `--sample 0` runs every map.
+- **The result:** all 287 maps are equal, three frames each: 21,308 textures made, 267,611
+  device calls and 215,472 draws.
+- **Found by the patches' maps:**
+  - the lava of `mag_dun01` and `mag_dun02` is coloured by the ambient colour
+    `C3dWorldRes::Load` copies (above), which the port had left at 1.0. No map of `data.grf`
+    has lava;
+  - a map's `.rsw` may name another map's ground and attribute map: `job_sage`'s are
+    `job_wiz`'s, `job_cru`'s `job_prist`'s and `job_monk`'s `prt_monk`'s. The oracles now
+    extract the files the `.rsw` names, and pick the player's cell on that attribute map, as
+    `LoadWorld` loads it.
 
 **Vectors** in `tests/unit/scene_vectors.inc` (`tools/scene_vectors.py`):
 - **Four scaled scenes.** Textures with uv scales, and primitives with their own texture
@@ -167,6 +213,5 @@ three frames. It prints the textures in the order made, then each frame's device
 **What the frames leave out:**
 - **No player or other objects:** `CWorld::CreatePlayer` is stood in, so the list at
   `CWorld`+0xc is empty.
-- **No fog:** the renderer's +0x44 to +0x4c are clear, so `DrawScene` sets no projection.
 - **No sky, Granny models, effects, UI or cursor.**
-- **`WorldColorFade::Update`** is not run, so the fade keeps its constructor's values.
+- **`WorldColorFade::Update`** is not run, so the fade keeps the values the load left.

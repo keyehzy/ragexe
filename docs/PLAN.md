@@ -2719,10 +2719,32 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     textures made for real, and compares every call and vertex with `ragres draw-frame`:
     all 208 maps equal, three frames each (161,841 draws). New vectors cover the draws'
     scaling in four scenes and the pools taken past their first sizes.
-- [ ] Rendered frames reviewed and kept as regression baselines (the rest of the M4 exit):
-  ragview draws the world through `DrawWorldFrame`, its actors and effects added to the same
-  lists, and its screenshots of reference maps become baselines.
-- [ ] ragview reads the `.gpf` patches over `data.grf`, as `ragres load-world` does.
+- [x] Rendered frames reviewed and kept as regression baselines, the rest of the M4 exit
+  (`docs/render/gpu.md#baselines`, `docs/render/frame.md`):
+  - **ragview draws through `DrawWorldFrame`:** its textures take `FrameTextures`' ids, so its
+    draws scale texture coordinates as the original's do; its actor and effects go into the
+    same lists through `DrawWorldFrame`'s hook for the world's objects, the sprites' quads
+    from the renderer's quad pool. It reads the `.gpf` patches over `data.grf`
+    (`res::OpenInstallArchives`, shared with `ragres`), and takes `--cell X Y` and
+    `--digest`.
+  - **The fog in whole frames:** `SetFogEnabled` on a device with vertex fog, every vertex's
+    fog as `AddPrimitive` writes it, and `SetupProjection`'s states, which `DrawScene` makes
+    after its first stage state (`0040efe7`), not before it.
+  - **The world's colours:** `C3dWorldRes::Load` copies the ambient colour to
+    `g_WorldColorFade`+0x2c (`00436918`), which colours lava; the port had kept 1.0 there,
+    and the constructor's value is 0.
+  - **Baselines:** 15 reviewed scenes in `tests/baselines/frames.tsv` (cities, indoor maps,
+    dungeons, fog, lava, the sea, the clear colours, a player, a monster, both kinds of
+    effect): what each gives the GPU, as digests that do not depend on it, and its image's
+    hash. The images stay under `original/baselines/frames`; `tools/frame_baselines.py`
+    checks both, and `ctest` runs it where there is a GPU and the data.
+  - **Checks:** `tools/frame_oracle.py` now sets the map's fog as the client does and takes
+    the patches' maps too: all 287 maps equal, three frames each (215,472 draws). The oracles
+    now extract the ground and attribute map the `.rsw` names, which three patch maps take
+    from another map. New
+    unit tests cover the frame lists' pools and fog, `SetFogEnabled`, and where `DrawScene`
+    makes the projection's calls.
+- [x] ragview reads the `.gpf` patches over `data.grf`, as `ragres load-world` does (above).
 
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,

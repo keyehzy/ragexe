@@ -169,11 +169,18 @@ if(RAGEXE_ARCHIVES)
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/ground_oracle.py"
         --sample 12 --ragres $<TARGET_FILE:ragres> --archive "${RAGEXE_INSTALL_DIR}/data.grf")
     # Three frames of each of 4 maps, every call and vertex, against the original CView::DrawWorld
-    # (tools/frame_oracle.py; its textures and models are extracted on the first run).
+    # (tools/frame_oracle.py; its textures and models are extracted on the first run): the smallest,
+    # an indoor map, a ship, and a patch's map with fog and lava.
     add_test(NAME frame_oracle_sample
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/frame_oracle.py"
-        --sample 4 --ragres $<TARGET_FILE:ragres> --install "${RAGEXE_INSTALL_DIR}"
-        --cache "${CMAKE_BINARY_DIR}/oracle-data")
+        moc_pryd03 payon_in02 alb_ship mag_dun01 --ragres $<TARGET_FILE:ragres>
+        --install "${RAGEXE_INSTALL_DIR}" --cache "${CMAKE_BINARY_DIR}/oracle-data")
+    # ragview's reviewed frames (tools/frame_baselines.py): what each scene gives the GPU, and its
+    # image against the reviewed copy under original/baselines. Skipped without a GPU device.
+    add_test(NAME frame_baselines
+      COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/frame_baselines.py"
+        --ragview $<TARGET_FILE:ragview> --install "${RAGEXE_INSTALL_DIR}")
+    set_tests_properties(frame_baselines PROPERTIES SKIP_RETURN_CODE 77)
     # Every palette, against the original conversion (tools/palette_oracle.py).
     add_test(NAME palette_oracle
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/palette_oracle.py"

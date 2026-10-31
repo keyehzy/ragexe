@@ -83,11 +83,15 @@ def served(directory):
     return files
 
 
+def archives(install):
+    """data.grf, then the patches in the order the later override the earlier."""
+    return [os.path.join(install, "data.grf")] + sorted(
+        os.path.join(install, n) for n in os.listdir(install) if n.lower().endswith(".gpf"))
+
+
 def extract(ragres, install, directory, names):
     """`ragres extract` of the archive names (bytes), from data.grf and the patches."""
-    archives = [os.path.join(install, "data.grf")] + sorted(
-        os.path.join(install, n) for n in os.listdir(install) if n.lower().endswith(".gpf"))
-    for archive in archives:
+    for archive in archives(install):
         for name in names:
             subprocess.run([ragres.encode(), b"extract", archive.encode(), directory.encode(), name],
                            capture_output=True)
@@ -114,11 +118,20 @@ def boot():
     return emu
 
 
+def extract_world(ragres, install, directory, mapname):
+    """The map's .rsw, and the .gnd and .gat it names, which need not be the map's own."""
+    rsw = b"data\\" + mapname.encode() + b".rsw"
+    extract(ragres, install, directory, [rsw])
+    path = os.path.join(directory, "data", mapname + ".rsw")
+    fields = subprocess.run([ragres, "decode-rsws", path], capture_output=True, text=True).stdout.split()
+    names = [b"data\\" + bytes.fromhex(f) for f in fields[4:6]] if fields[1:2] == ["ok"] else []
+    extract(ragres, install, directory, names)
+
+
 def original(item):
     ragres, install, mapname = item
     with tempfile.TemporaryDirectory() as tmp:
-        base = mapname.encode()
-        extract(ragres, install, tmp, [b"data\\" + base + ext for ext in (b".rsw", b".gnd", b".gat")])
+        extract_world(ragres, install, tmp, mapname)
         emu = boot()
         emu.serve_data_files(served(tmp))
         manager = emu.call(GET_RESOURCE_MANAGER, emu.cstr("x")).eax
@@ -176,7 +189,10 @@ def load(emu, manager, mapname, place=None):
     emu.write_u32(world + 4, mode)
     emu.write_u32(mode + 0xB4, world)
     emu.replace_thiscall(GET_GAME_MODE, 0, lambda this: mode)
-    attr = emu.call(GET_RESOURCE, emu.cstr(f"{mapname}.gat"), this=manager).eax
+    # The attribute map the .rsw names (C3dWorldRes+0x148, a std::string), as LoadWorld loads it.
+    world_res = emu.call(GET_RESOURCE, emu.cstr(f"{mapname}.rsw"), this=manager).eax
+    attr_name = emu.mem_read(emu.read_u32(world_res + 0x14C), 256).split(b"\0")[0]
+    attr = emu.call(GET_RESOURCE, emu.cstr(attr_name), this=manager).eax
     cell = place(emu, attr) if place else (emu.read_u32(attr + 0x110) // 2, emu.read_u32(attr + 0x114) // 2)
     emu.mem_write(PLAYER_CELL, struct.pack("<ii", *cell))
     emu.call(LOAD_WORLD, this=world)
@@ -244,13 +260,16 @@ def dump(emu, world, records, near):
 
 
 def sample_maps(ragres, install, sample):
-    """The maps of data.grf by the size of their .rsw: the smallest half of the sample and a spread
-    of the rest, or every map for a sample of 0."""
-    listing = subprocess.run([ragres, "list", os.path.join(install, "data.grf")], capture_output=True,
-                             text=True).stdout
-    sized = sorted((int(line.split("\t")[0]), line.split("\t")[4][5:-4]) for line in listing.splitlines()
-                   if line.endswith(".rsw") and line.split("\t")[4].count("\\") == 1)
-    names = [n for _, n in sized]
+    """The maps of data.grf and the patches by the size of their .rsw (the last patch's): the smallest
+    half of the sample and a spread of the rest, or every map for a sample of 0."""
+    sizes = {}
+    for archive in archives(install):
+        listing = subprocess.run([ragres, "list", archive], capture_output=True, text=True).stdout
+        for line in listing.splitlines():
+            fields = line.split("\t")
+            if fields[4].endswith(".rsw") and fields[4].count("\\") == 1:
+                sizes[fields[4][5:-4]] = int(fields[0])
+    names = [n for _, n in sorted((size, n) for n, size in sizes.items())]
     if sample and sample < len(names):
         half = sample // 2
         step = max(1, (len(names) - half) // (sample - half))

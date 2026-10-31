@@ -134,6 +134,42 @@ std::vector<FrameDraw> FrameDraws(const std::vector<SceneCall>& calls,
   return out;
 }
 
+void SetFogEnabled(WorldFrameState& state, bool enabled) {
+  state.vertex_fog = true;
+  state.scene.fog = enabled;
+  state.setup_projection = true;
+  state.fog.mode = 3;  // D3DFOG_LINEAR
+  state.fog.range = 1;
+}
+
+void FrameLists::Add(ScenePrimitive s, std::vector<ScreenVertex> vertices,
+                     std::vector<std::array<float, 2>> second, std::uint32_t flags) {
+  s.vertex_count = static_cast<std::uint32_t>(vertices.size());
+  s.rhw0 = vertices.empty() ? 0.0f : vertices[0].rhw;
+  s.rhw1 = vertices.size() > 1 ? vertices[1].rhw : 0.0f;
+  if (state_.vertex_fog) {
+    for (ScreenVertex& v : vertices) v.specular = VertexFog(v.rhw, state_.fog);
+  }
+  std::optional<UvScale> uv;
+  if (s.texture != 0) uv = state_.textures.at(s.texture).uv;
+  primitives_[s.id] = {uv, std::move(vertices), std::move(second)};
+  lists_.Add(s, flags);
+}
+
+void FrameLists::AddQuad(ScenePrimitive s, std::span<const ScreenVertex> vertices,
+                         std::uint32_t flags) {
+  s.id = state_.pools.NewQuad();
+  s.type = kTriangleStrip;
+  Add(s, {vertices.begin(), vertices.end()}, {}, flags);
+}
+
+void FrameLists::AddTriangleList(ScenePrimitive s, std::vector<ScreenVertex> vertices,
+                                 std::uint32_t flags) {
+  s.id = state_.pools.NewTriangleList();
+  s.type = kTriangleList;
+  Add(s, std::move(vertices), {}, flags);
+}
+
 void EnterWorld(const WorldScene& scene, float x, float z, bool indoor, WorldFrameState& state) {
   state.lightmap_pages = MakeWorldTextures(scene, state.textures);
   state.player = {x, res::AttrHeight(scene.attr, x, z), z};
@@ -141,6 +177,7 @@ void EnterWorld(const WorldScene& scene, float x, float z, bool indoor, WorldFra
   PlaceCamera(state.camera, state.control, state.player, indoor);
   state.ground.viewport = GroundViewportOf(state.projection);
   state.ground.water = WaterOfWorld(scene.world);
+  state.ground.fade.water = scene.world.ambient;
   state.models.clear();
   for (const ModelInstance& instance : scene.models) {
     ModelDrawSettings m;
@@ -157,9 +194,10 @@ void EnterWorld(const WorldScene& scene, float x, float z, bool indoor, WorldFra
 }
 
 std::vector<SceneCall> DrawWorldFrame(WorldScene& scene, WorldFrameState& state, std::uint32_t now,
-                                      std::vector<FrameDraw>& draws) {
+                                      std::vector<FrameDraw>& draws,
+                                      const WorldObjectsDraw& objects) {
   const std::uint32_t water = state.textures.Get(StepWater(state.ground.water));
-  UpdateCamera(state.camera, state.player, false, &scene.attr, state.shake, now, state.rand);
+  UpdateCamera(state.camera, state.player, false, &scene.attr, state.shake, now, *state.rand);
   state.shake.step_pending = true;
   state.ground.frame = state.frame;
 
@@ -170,65 +208,51 @@ std::vector<SceneCall> DrawWorldFrame(WorldScene& scene, WorldFrameState& state,
   DrawVisible(visible, scene.graph, frustum, state.camera.view, scene.mesh, state.ground,
               scene.models, state.models, visible_primitives);
 
-  SceneLists lists;
-  std::map<std::uint32_t, FramePrimitive> primitives;
-  const auto add = [&](std::uint32_t id, std::uint32_t texture, std::uint32_t lightmap,
-                       std::uint32_t type, std::vector<ScreenVertex> vertices,
-                       std::vector<std::array<float, 2>> second) {
-    ScenePrimitive s;
-    s.id = id;
-    s.texture = texture;
-    s.lightmap = lightmap;
-    s.type = type;
-    s.vertex_count = static_cast<std::uint32_t>(vertices.size());
-    s.rhw0 = vertices[0].rhw;
-    s.rhw1 = vertices.size() > 1 ? vertices[1].rhw : 0.0f;
-    std::optional<UvScale> uv;
-    if (texture != 0) uv = state.textures.at(texture).uv;
-    primitives[id] = {uv, std::move(vertices), std::move(second)};
-    return s;
-  };
+  FrameLists lists(state);
   for (const VisiblePrimitive& v : visible_primitives) {
+    ScenePrimitive s;
     if (v.model < 0) {
       const GroundPrimitive& p = v.ground;
-      const std::uint32_t texture =
+      s.id = state.pools.NewQuad();
+      s.type = kTriangleStrip;
+      s.texture =
           p.texture >= 0
               ? state.textures.Get(scene.ground.textures[static_cast<std::size_t>(p.texture)])
               : water;
-      const std::uint32_t lightmap =
-          p.lightmap_page >= 0 ? state.lightmap_pages[static_cast<std::size_t>(p.lightmap_page)]
-                               : 0;
+      if (p.lightmap_page >= 0)
+        s.lightmap = state.lightmap_pages[static_cast<std::size_t>(p.lightmap_page)];
       std::vector<std::array<float, 2>> second;
       if (p.texture >= 0) {
         for (std::size_t k = 0; k < 4; ++k)
           second.push_back({p.lightmap_uv[k * 2], p.lightmap_uv[k * 2 + 1]});
       }
-      lists.Add(add(state.pools.NewQuad(), texture, lightmap, kTriangleStrip,
-                    {p.vertices.begin(), p.vertices.end()}, std::move(second)),
-                p.flags);
+      lists.Add(s, {p.vertices.begin(), p.vertices.end()}, std::move(second), p.flags);
       continue;
     }
     const ModelPrimitive& p = v.face;
     const ModelInstance& instance = scene.models[static_cast<std::size_t>(v.model)];
-    const std::uint32_t texture =
-        state.textures.Get(instance.model->textures[static_cast<std::size_t>(p.texture)]);
-    lists.Add(add(state.pools.NewTriangleList(), texture, 0, kTriangleList, p.vertices, {}),
-              p.flags);
+    s.texture = state.textures.Get(instance.model->textures[static_cast<std::size_t>(p.texture)]);
+    lists.AddTriangleList(s, p.vertices, p.flags);
   }
   std::array<ScreenVertex, 4> quad{};
   if (!state.cursor.hidden &&
       DrawCellCursor(scene.mesh, scene.attr, state.camera.view, state.ground.viewport,
                      state.cursor.x, state.cursor.z, state.cursor.color, quad)) {
-    const std::uint32_t texture = state.textures.Get(kCursorTexture);
-    ScenePrimitive s =
-        add(state.pools.NewQuad(), texture, 0, kTriangleStrip, {quad.begin(), quad.end()}, {});
+    ScenePrimitive s;
+    s.texture = state.textures.Get(kCursorTexture);
     s.src_blend = kSrcAlpha;
     s.dest_blend = kInvSrcAlpha;
-    lists.Add(s, scene_flags::kTranslucent);
+    lists.AddQuad(s, quad, scene_flags::kTranslucent);
   }
+  if (objects) objects(lists);
 
-  const std::vector<SceneCall> calls = DrawScene(lists, state.scene, state.bound);
-  draws = FrameDraws(calls, primitives);
+  std::vector<SceneCall> projection;
+  if (state.setup_projection) {
+    projection = SetupFog(state.fog, state.scene.fog, true).calls;
+    state.setup_projection = false;
+  }
+  std::vector<SceneCall> calls = DrawScene(lists.lists(), state.scene, state.bound, projection);
+  draws = FrameDraws(calls, lists.primitives());
   ++state.frame;
   state.pools.Rewind();
   return calls;

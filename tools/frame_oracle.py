@@ -16,9 +16,12 @@ into the scene lists and ends with SceneRenderer::DrawScene, then the frame coun
 counts it) and the primitive pools rewound (00412e70). The first frame looks as PlaceCamera
 places the camera; the second and third turn it by 120 and 240 degrees. The cell cursor is over
 the player's cell. The frame count is 1 at the first frame, as if the loading had presented one.
-IsIndoorMap is answered from indoorRswTable.txt.
+IsIndoorMap is answered from indoorRswTable.txt. The fog is set as CGameMode::OnInit sets it with
+the FOG setting on, the client's default (00516570, from fogParameterTable.txt read by
+ClientState::LoadFogParameterTable), on a device with vertex fog.
 
-Every call DrawWorld makes on the device is recorded and printed as `ragres draw-frame` prints the
+Every call DrawWorld makes on the device but SetTransform (SetupProjection's, which the port
+leaves out: its vertices come transformed) is recorded and printed as `ragres draw-frame` prints the
 port's: "R state value", "S stage state value", "T stage texture", "D type fvf count" and the
 vertices' hash (--raw: the vertices). A texture is named by the name it was asked for, or
 "#k" for the k-th unnamed one (the lightmap pages). Before the frames, "X k name" lists the
@@ -48,6 +51,8 @@ CBITMAPRES_LOAD_JPEG, CTEXTURE_CTOR = 0x4280D0, 0x4165E0
 CVIEW_SIZE, CVIEW_CTOR, CVIEW_RESET, CVIEW_UPDATE, DRAW_WORLD = 0x1C0, 0x4CEF80, 0x4CF1D0, 0x4CF260, 0x4CF4D0
 PLACE_CAMERA, IS_INDOOR_MAP, GET_CELL_CENTRE, GET_HEIGHT = 0x50D9E0, 0x598BA0, 0x511DE0, 0x427150
 STEP_WATER, REWIND_POOLS = 0x4BC450, 0x412E70
+LOAD_FOG_TABLE, APPLY_MAP_FOG, G_CLIENT_STATE = 0x598E10, 0x516570, 0x686670
+DEVICE_TRI_RASTER_CAPS, RASTERCAPS_FOGVERTEX = 0x623A5C, 0x80  # g_C3dDevice+0x8c
 CELL_CURSOR = 0x684E20  # x, z, hidden, colour
 CURSOR_COLOR = 0x6600FFAA
 TURNS = (None, 120.0, 240.0)
@@ -142,8 +147,7 @@ def walkable_cell(emu, attr):
 def frames(item):
     ragres, install, cache, mapname = item
     with tempfile.TemporaryDirectory() as tmp:
-        base = mapname.encode()
-        world_oracle.extract(ragres, install, tmp, [b"data\\" + base + ext for ext in (b".rsw", b".gnd", b".gat")])
+        world_oracle.extract_world(ragres, install, tmp, mapname)
         emu = world_oracle.boot()
         emu.serve_data_files({})
         emu.data_files = CachedFiles(cache, world_oracle.served(tmp))
@@ -175,6 +179,10 @@ def frames(item):
     emu.call(CVIEW_RESET, this=view)
     emu.replace_thiscall(IS_INDOOR_MAP, 1, lambda this, name: int(indoor))
     emu.call(PLACE_CAMERA, this=mode)
+    assert emu.call(LOAD_FOG_TABLE, this=G_CLIENT_STATE).eax == 1
+    emu.write_u32(DEVICE_TRI_RASTER_CAPS, emu.read_u32(DEVICE_TRI_RASTER_CAPS) | RASTERCAPS_FOGVERTEX)
+    emu.mem_write(mode + 0x50, f"{mapname}.rsw".encode() + b"\0")
+    emu.call(APPLY_MAP_FOG, 1, this=mode)
     emu.mem_write(CELL_CURSOR, struct.pack("<iiII", cell[0], cell[1], 0, CURSOR_COLOR))
     emu.write_u32(renderer + 0x34, 1)
 
@@ -190,7 +198,8 @@ def frames(item):
         emu.call(CVIEW_UPDATE, this=view)
         start = len(emu.directx.calls)
         emu.call(DRAW_WORLD, this=view)
-        calls.append([c for c in emu.directx.calls[start:] if c.interface == "IDirect3DDevice7"])
+        calls.append([c for c in emu.directx.calls[start:]
+                      if c.interface == "IDirect3DDevice7" and c.method != "SetTransform"])
         for offset in (0x34, 0x3C):
             emu.write_u32(renderer + offset, emu.read_u32(renderer + offset) + 1)
         emu.call(REWIND_POOLS, this=renderer)

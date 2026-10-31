@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <memory>
 #include <optional>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -40,5 +41,12 @@ class DataFiles {
   std::unique_ptr<GrfArchive> archive_;
   std::vector<const GrfArchive*> layers_;
 };
+
+// data.grf with the install's .gpf patches over it: the patcher merges each .gpf into data.grf
+// in name order, so the last one's files win. The archives opened go to archives, which must
+// outlive files. False, with error set, when one does not open.
+bool OpenInstallArchives(const std::filesystem::path& install,
+                         std::vector<std::unique_ptr<GrfArchive>>& archives, DataFiles& files,
+                         std::string* error);
 
 }  // namespace ragexe::res
