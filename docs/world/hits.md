@@ -165,6 +165,8 @@ the flinch by state, job, message and motion; +0x210 by the queue; 0x6c; the del
 and order); then `kHitSounds`, both sound functions by job and kind after five seeds, and
 `kLaunches`, `LaunchEffect` for ids -1 to 0xa5 and past, effects on and off.
 
-**Not ported:** what the effects do once made; the rest of the classes' `vf01` around the
-delivery (the key colour's end after 100 ms, `00507740`; `00503210` is
-[windows.md](windows.md)'s); hits of other messages, which are only taken off the queue.
+What runs around the delivery in `CNpc`'s and `CPc`'s updates, the key colour's end 100 ms
+after a hit among it, is in [update.md](update.md).
+
+**Not ported:** what the effects do once made; hits of other messages, which are only taken off
+the queue.

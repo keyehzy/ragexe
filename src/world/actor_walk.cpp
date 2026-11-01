@@ -62,20 +62,21 @@ void UpdateGameActorFrame(GameActor& actor, const res::Act& act, float camera_ya
                          GameActorDirection(actor, actor.object.facing, camera_yaw), now);
 }
 
+bool UpdateGameActorFade(GameActor& actor, std::uint32_t now) {
+  if (actor.fade_until == 0) return true;
+  if (now > actor.fade_until) return false;
+  std::uint32_t alpha = (actor.fade_until - now) >> 1;
+  if (alpha > 0xff) alpha = 0xff;
+  actor.object.color = (actor.object.color & 0x00ffffffu) | alpha << 24;
+  return true;
+}
+
 bool BeginGameActorUpdate(GameActor& actor, std::uint32_t now) {
-  render::RenderObject& object = actor.object;
   if (actor.hold_until != 0 && now > actor.hold_until) {
-    object.held = false;
+    actor.object.held = false;
     actor.hold_until = 0;
   }
-  // UpdateFade (00503830): the alpha falls with half the milliseconds left, from 255.
-  if (actor.fade_until != 0) {
-    if (now > actor.fade_until) return false;
-    std::uint32_t alpha = (actor.fade_until - now) >> 1;
-    if (alpha > 0xff) alpha = 0xff;
-    object.color = (object.color & 0x00ffffffu) | alpha << 24;
-  }
-  return true;
+  return UpdateGameActorFade(actor, now);
 }
 
 WalkResult ProcessWalk(GameActor& actor, const res::AttrMap& attr, const res::Act& act,

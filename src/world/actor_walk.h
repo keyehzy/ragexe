@@ -75,6 +75,7 @@ struct GameActor {
   std::int32_t field_0x224 = 0;    // +0x224 (SetField224, 00506be0)
   float target_x = 0.0f;           // +0x228, where state 4 puts the actor when it ends
   float target_z = 0.0f;           // +0x22c
+  std::uint32_t sight_ticks = 0;   // +0x230, updates since Sight's effect was last launched
   std::uint32_t fade_until = 0;    // +0x234: fading out until timeGetTime passes it
   std::int32_t guild = 0;          // +0x23c (vf39)
   std::int32_t emblem = 0;         // +0x240, the guild's emblem's version
@@ -82,6 +83,7 @@ struct GameActor {
                                                 // status, by number (ActorEffects), 0 none
   std::vector<std::int32_t> effects;            // +0x270: every effect made for the actor
                                                 // and not yet gone, by number
+  std::uint32_t repeated_at = 0;  // +0x290 (CNpc), when RepeatEffectPeriodically last launched
 };
 
 // CGameActor::GetJob (00503490): the job, 7 and 14 mounted (bit 5 of +0x21c) as 13 and 21.
@@ -97,6 +99,10 @@ std::int32_t GameActorDirection(const GameActor& actor, float facing, float came
 // direction of GameActorDirection, as the actor's vtable gives vf04.
 void UpdateGameActorFrame(GameActor& actor, const res::Act& act, float camera_yaw,
                           std::uint32_t now);
+
+// CGameActor::UpdateFade (00503830): while fading (+0x234), the alpha half the milliseconds left,
+// at most 255. False once timeGetTime has passed +0x234.
+bool UpdateGameActorFade(GameActor& actor, std::uint32_t now);
 
 // The start of CGameActor::ProcessState (005038c0) in every state: the hold (+0x1d0) and the
 // fade (UpdateFade, 00503830). False once the fade is over, when the update returns 0 at once.

@@ -190,6 +190,7 @@ struct StateContext {
 struct PlayerActor : GameActor {
   std::int32_t saved_frame = 0;  // +0x294: the frame standing goes back to
   std::int32_t weapon = 0;       // +0x2a0 (CPc::SetWeapon, 005464b0), a kind or an item's id
+  std::int32_t gauge = 0;        // +0x2dc, its gauge (UIPcGage), by number in ActorWindows
 };
 
 // CGameMode::GetAttrCell (00511d50): the attribute cell under world (x, z), floor(x / cell

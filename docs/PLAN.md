@@ -2977,6 +2977,24 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Labels:** `CGameActor::UpdateWindows`, `UIWindow::Create`, `UIWindowMgr::AddWindow`, and
     the statics `g_castGaugeRise` and `g_actorWindowRise`.
 
+- [x] The update (`docs/world/update.md`, `src/world/actor_update`): `CNpc::Update` (`005404d0`)
+  and `CPc::Update` (`00542e40`), the classes' `vf01`, whole. `CNpc`'s ends at once when the
+  fade is over, ends the key colour 100 ms after a hit, then goes by job: 0x2d and 0x8b nothing,
+  0x68 its effect repeated every +0x1ec seconds, 0x6f the hits, windows and state, the rest also
+  the hold of stone and ice, Sight's effect and the colour brightened. `CPc`'s has no fade, hold
+  or job, and moves its gauge (+0x2dc). Sight relaunches effect 0x16, or 0x21 for jobs 4, 8 and
+  15, as the last one ends (its duration, `g_effectDurations`), and sends it 0x2c. Both play
+  the frames' sounds since the last update (`PlayFrameSounds`: each event with ".wav" in its
+  name, from frame 0 again after the last, the empty frame's event 0 included).
+  - **Checks:** `tools/walk_oracle.py`'s `u` and `p` on all 287 maps, the launched effects,
+    windows and act's frames stand-ins: 11,480 actors and 11,480 players over 4,455,093 updates
+    equal, every sound, launch, message and window call hashed; 271,050 queries in all, the
+    older counts unchanged and the older vector files regenerate byte-identical.
+    `update_vectors.inc` keeps short ones about each job's way, period, edge and event.
+  - **Labels:** `CNpc::Update`, `CPc::Update`, `CPc::MoveGauge`, and `CGameActor`'s
+    `RepeatSightEffect`, `HoldWhileStoneOrFrozen` and `BrightenColor`,
+    `CRenderObject::PlayFrameSounds`.
+
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

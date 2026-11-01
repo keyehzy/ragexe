@@ -3499,7 +3499,7 @@ entry	subsystem	rule	evidence
 00506bf0	world	class	class CGameObject, base of CGameActor
 00506c80	world	class	class CGameObject, base of CGameActor
 00507740	world	class	class CGameObject, base of CGameActor
-00507860	world	class	class CGameObject, base of CPlayer
+00507860	world	class	class CGameObject, base of CGameActor
 00507880	world	neighbours	between 00507860 and 005078a0
 005078a0	world	class	class CGameObject, base of CGameActor
 005078e0	world	class	class CGameObject, base of CGameActor

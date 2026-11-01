@@ -39,6 +39,8 @@ struct RenderObject {
   std::int32_t base_action = 0;          // +0x20, the action facing the camera
   std::int32_t action = 0;               // +0x24, the action with its direction
   std::int32_t frame = 0;                // +0x28
+  std::int32_t sounded_action = 0;       // +0x2c and +0x30, the base action and frame whose
+  std::int32_t sounded_frame = 0;        // sounds were last played (PlayFrameSounds, 00500940)
   float facing = 0.0f;                   // +0x38, degrees
   float scale = 1.0f;                    // +0x3c
   float shadow_scale = 1.0f;             // +0x40

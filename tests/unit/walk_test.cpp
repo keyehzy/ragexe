@@ -14,6 +14,7 @@
 #include "world/actor_effects.h"
 #include "world/actor_hit.h"
 #include "world/actor_state.h"
+#include "world/actor_update.h"
 #include "world/actor_walk.h"
 #include "world/actor_window.h"
 #include "world/path_finder.h"
@@ -116,6 +117,7 @@ struct AttackChoiceVector {
 #include "player_state_vectors.inc"
 #include "stand_vectors.inc"
 #include "state_vectors.inc"
+#include "update_vectors.inc"
 
 // tools/walk_vectors.py's heights for the hilly maps.
 float Height(int x, int y, int corner) {
@@ -246,7 +248,7 @@ std::string Walk(const AttrMap& map, const MovePath& path, std::istringstream& f
 std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istringstream& fields,
                bool player, bool to = false, bool stand = false, bool enter = false,
                bool arrive = false, bool with_effects = false, bool die = false,
-               bool attack = false, bool land = false, bool cast = false) {
+               bool attack = false, bool land = false, bool cast = false, bool update = false) {
   std::vector<std::uint32_t> v;
   for (std::string token; fields >> token;)
     v.push_back(static_cast<std::uint32_t>(std::stoll(token, nullptr, 0)));
@@ -258,12 +260,13 @@ std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istr
   constexpr std::size_t kAttackFields = 17 + 10;  // and the record
   constexpr std::size_t kLandFields = 27;         // then 10 words a hit
   constexpr std::size_t kCastFields = 21;
+  constexpr std::size_t kUpdateFields = 30;
   const std::size_t hit_words = land ? 10 * std::size_t{v[base_fields + kLandFields - 1]} : 0;
   const std::size_t kFields = base_fields + (to ? 1 : 0) + (stand ? 7 : 0) + (enter ? 9 : 0) +
                               (arrive ? kArriveFields + kRecordWords : 0) +
                               (with_effects ? kEffectFields : 0) + (die ? kDeathFields : 0) +
                               (attack ? kAttackFields : 0) + (land ? kLandFields + hit_words : 0) +
-                              (cast ? kCastFields : 0);
+                              (cast ? kCastFields : 0) + (update ? kUpdateFields : 0);
   // B, X and K: EFFECT_FIELDS, after ARRIVE_FIELDS for B.
   const std::size_t effect_at =
       base_fields + (arrive ? kArriveFields : 0) + (die ? kDeathFields : 0);
@@ -748,6 +751,138 @@ std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istr
                   Bits(o.position[0]), Bits(o.position[1]), Bits(o.position[2]), Bits(o.facing),
                   o.action, o.frame, static_cast<std::uint32_t>(actor.state),
                   static_cast<unsigned long long>(h));
+    return line;
+  }
+  // u and p: the actor's whole update (CNpc::Update, CPc::Update) after +0x230, the key colour,
+  // +0x87, +0x1ec, +0x290, +0x1f4, +0x218, effects on, the act's frames' events, +0x2c, +0x30,
+  // +0x28, the world's player, the gauges, the point on screen, +0x48, the screen's height, the
+  // cast's times, +0xcc, +0x1bc, the weapon, +0x54 and +0x70, as tools/path_oracle.py's
+  // update().
+  if (update) {
+    auto& base = static_cast<ragexe::world::GameActor&>(actor);
+    const std::size_t b = base_fields;
+    actor.sight_ticks = v[b];
+    o.keyed = v[b + 1] != 0;
+    o.keyed_at = v[b + 2];
+    o.key_color = v[b + 3];
+    o.tinted = v[b + 4] != 0;
+    actor.field_0x1ec = static_cast<std::int32_t>(v[b + 5]);
+    actor.repeated_at = v[b + 6];
+    actor.field_0x1f4 = static_cast<std::int32_t>(v[b + 7]);
+    actor.body_state = static_cast<std::int32_t>(v[b + 8]);
+    context.effects_on = v[b + 9] != 0;
+    const std::uint32_t events = v[b + 10];
+    o.sounded_action = static_cast<std::int32_t>(v[b + 11]);
+    o.sounded_frame = static_cast<std::int32_t>(v[b + 12]);
+    o.frame = static_cast<std::int32_t>(v[b + 13]);
+    player_at = {std::bit_cast<float>(v[b + 14]), 0.0f, std::bit_cast<float>(v[b + 15])};
+    context.player = &player_at;
+    ragexe::world::ActorWindows actor_windows;
+    actor.cast_gauge = 0;
+    if (v[b + 21] != 0) {
+      actor_windows.sizes.push_back({0x3c, 6});
+      actor.cast_gauge = static_cast<std::int32_t>(actor_windows.sizes.size());
+    }
+    if (player && v[b + 16] != 0) {
+      actor_windows.sizes.push_back({0, 0});
+      actor.gauge = static_cast<std::int32_t>(actor_windows.sizes.size());
+    }
+    o.screen_x = static_cast<std::int32_t>(v[b + 17]);
+    o.screen_y = static_cast<std::int32_t>(v[b + 18]);
+    o.pixel_scale = std::bit_cast<float>(v[b + 19]);
+    context.windows = &actor_windows;
+    context.screen_height = static_cast<std::int32_t>(v[b + 20]);
+    actor.cast_end = v[b + 22];
+    actor.cast_start = v[b + 23];
+    actor.field_0xcc = static_cast<std::int32_t>(v[b + 24]);
+    actor.field_0x1bc = static_cast<std::int32_t>(v[b + 25]);
+    actor.weapon = static_cast<std::int32_t>(v[b + 26]);
+    o.play_mode = static_cast<std::int32_t>(v[b + 27]);
+    o.start_time = v[b + 28];
+    o.action = static_cast<std::int32_t>(v[b + 29]);
+    // Each frame's event by 3 bits of `events`, the first 10 frames, as the attacks' but named
+    // for sounds.
+    act.events = {"foot.wav", "a.wav.b", "a.wa", "X.WAV"};
+    for (auto& frames : act.actions) {
+      for (std::size_t k = 0; k < frames.size() && k < 10; ++k) {
+        const std::uint32_t code = events >> (3 * k) & 7;
+        frames[k].event = code == 0 || code == 7 ? -1
+                          : code == 5            ? 4
+                          : code == 6            ? 0x7fffffff
+                                                 : static_cast<std::int32_t>(code) - 1;
+      }
+    }
+    std::vector<std::int32_t> launched;
+    std::vector<ragexe::world::EffectMessage> launched_messages;
+    context.launched = &launched;
+    context.launched_messages = &launched_messages;
+    context.sounds = &sounds;
+    // What the whole update writes beyond the fields, as tools/path_oracle.py's updated().
+    const auto fold_updated = [&] {
+      for (const std::uint32_t x :
+           {actor.sight_ticks, actor.repeated_at, o.key_color, o.keyed_at,
+            static_cast<std::uint32_t>(o.sounded_action),
+            static_cast<std::uint32_t>(o.sounded_frame), actor.cast_end, actor.cast_start,
+            static_cast<std::uint32_t>(actor.field_0xcc), o.keyed ? 1u : 0u,
+            static_cast<std::uint32_t>(actor.cast_gauge)})
+        fold(x);
+      if (player) {
+        fold(static_cast<std::uint32_t>(actor.gauge));
+        fold(static_cast<std::uint32_t>(mode_field_0x2a0));
+        fold(static_cast<std::uint32_t>(actor.saved_frame));
+      }
+      fold(static_cast<std::uint32_t>(8 * sounds.size()));
+      for (const auto& sound : sounds) {
+        std::uint64_t n = 0xcbf29ce484222325ull;
+        for (const char c : sound.name) n = (n ^ static_cast<std::uint8_t>(c)) * 0x100000001b3ull;
+        fold(static_cast<std::uint32_t>(n));
+        fold(static_cast<std::uint32_t>(n >> 32));
+        for (const std::uint32_t x : {Bits(sound.x), 0u, Bits(sound.z), 250u, 40u, Bits(1.0f)})
+          fold(x);
+      }
+      sounds.clear();
+      fold(static_cast<std::uint32_t>(launched.size()));
+      for (const std::int32_t id : launched) fold(static_cast<std::uint32_t>(id));
+      launched.clear();
+      fold(static_cast<std::uint32_t>(6 * launched_messages.size()));
+      for (const auto& m : launched_messages) {
+        for (const std::int32_t x : {m.effect, 0, m.id, m.a, m.b, m.c})
+          fold(static_cast<std::uint32_t>(x));
+      }
+      launched_messages.clear();
+      fold(static_cast<std::uint32_t>(4 * actor_windows.calls.size()));
+      for (const auto& call : actor_windows.calls) {
+        for (const std::int32_t x :
+             {static_cast<std::int32_t>(call.kind), call.window, call.a, call.b})
+          fold(static_cast<std::uint32_t>(x));
+      }
+      actor_windows.calls.clear();
+      fold(static_cast<std::uint32_t>(windows.size()));
+      for (const std::int32_t x : windows) fold(static_cast<std::uint32_t>(x));
+      windows.clear();
+    };
+    int updates = 0;
+    const char* end = "staying";
+    for (std::size_t k = kFields; k + 1 < v.size(); k += 2) {
+      const auto r = player ? ragexe::world::UpdatePlayer(actor, context, v[k + 1], v[k])
+                            : ragexe::world::UpdateNpc(base, context, v[k + 1], v[k]);
+      ++updates;
+      const bool over =
+          r == ragexe::world::StateResult::kFaded || r == ragexe::world::StateResult::kGone;
+      fold(over ? 0u : 1u);
+      fold_fields();
+      fold_messages();
+      fold_updated();
+      if (over) {
+        end = "faded";
+        break;
+      }
+    }
+    char line[160];
+    std::snprintf(line, sizeof line, "%s %d %08x %08x %08x %08x %u %u %u %016llx", end, updates,
+                  Bits(o.position[0]), Bits(o.position[1]), Bits(o.position[2]), Bits(o.facing),
+                  static_cast<std::uint32_t>(o.action), static_cast<std::uint32_t>(o.frame),
+                  static_cast<std::uint32_t>(actor.state), static_cast<unsigned long long>(h));
     return line;
   }
   // L and O: the hits, queued and delivered or the first sent; the attacker, another or the
@@ -1733,6 +1868,33 @@ TEST_CASE(
     const std::string got = kind == 'F' ? Search(finder, path, fields)
                                         : Go(map, finder, path, fields, kind == 'R', false, false,
                                              false, false, false, false, false, false, true);
+    CHECK(got == v.result);
+  }
+}
+
+TEST_CASE(
+    "Actors and players update whole, as the original's CNpc::Update and CPc::Update: Sight, the "
+    "key colour, the colour, the frames' sounds and the gauge",
+    "[walk]") {
+  int current = -1;
+  AttrMap map;
+  PathFinder finder;
+  MovePath path;
+  for (const StateQueryVector& v : kUpdateQueries) {
+    if (v.map != current) {
+      current = v.map;
+      map = MakeMap(kWalkMaps[current]);
+      finder = PathFinder();
+      finder.SetAttrMap(&map);
+      path = MovePath();
+    }
+    INFO(kWalkMaps[current].name << ": " << v.query);
+    std::istringstream fields(v.query);
+    char kind = 0;
+    fields >> kind;
+    const std::string got = kind == 'F' ? Search(finder, path, fields)
+                                        : Go(map, finder, path, fields, kind == 'p', false, false,
+                                             false, false, false, false, false, false, false, true);
     CHECK(got == v.result);
   }
 }

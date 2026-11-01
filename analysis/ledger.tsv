@@ -4329,11 +4329,11 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00500560	76	code	0	world		named	CArrowEffect	method_00500560	
 005005b0	92	code	0	world		named	CRenderObject	TurnTowards	
 00500610	73	code	0	world		named	CRenderObject	GetAngleBetween	
-00500660	177	code	0	world		named	CGameActor	method_00500660	
+00500660	177	code	0	world		named	CGameActor	BrightenColor	
 00500720	51	code	0	world		named	CRenderObject	SetColorChannels	
 00500760	207	code	0	world		named	CArrowEffect	method_00500760	
 00500830	272	code	0	world		named	CRenderObject	UpdateFrame	
-00500940	1182	code	0	world		named	CRenderObject	method_00500940	
+00500940	1182	code	0	world		named	CRenderObject	PlayFrameSounds	
 00500de0	91	code	0	world		named	CRenderObject	SetAction	
 00500e40	32	code	0	world		named	CRenderObject	SendMsg	
 00500e60	111	code	0	world		named	CRenderObject	GetGroundColor	
@@ -4408,8 +4408,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00506be0	16	code	0	world		named	CGameActor	SetField224	
 00506bf0	143	code	0	world		named	CGameActor	EndShownEffects	
 00506c80	2709	code	0	world		named	CGameActor	SetStatus	
-00507740	258	code	0	world		named	CGameActor	method_00507740	
-00507860	23	code	0	world		named	CPlayer	method_00507860	
+00507740	258	code	0	world		named	CGameActor	RepeatSightEffect	
+00507860	23	code	0	world		named	CGameActor	HoldWhileStoneOrFrozen	
 00507880	21	code	0	world	unreferenced	raw	Global	FUN_00507880	
 005078a0	50	code	0	world		named	CGameActor	method_005078a0	
 005078e0	59	code	0	world		named	CGameActor	method_005078e0	
@@ -5106,7 +5106,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005402e0	63	code	0	world		named	CNpc	vf12	
 00540390	121	code	0	world		named	CNpc	RepeatEffectPeriodically	
 00540410	180	code	0	world	unreferenced	raw	Global	FUN_00540410	
-005404d0	198	code	0	world		named	CNpc	vf01	
+005404d0	198	code	0	world		named	CNpc	Update	
 00540610	708	code	0	world		named	CNpc	vf03	
 00540950	73	code	0	world	dead	named	CBlowEffect	CBlowEffect	
 005409a0	33	code	0	world		named	CBlowEffect	`scalar_deleting_destructor'	
@@ -5182,10 +5182,10 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00542c30	21	code	0	world		named	CPc	vf30	
 00542c50	205	code	0	world		named	CPc	vf14	
 00542d20	275	code	0	world		named	CPc	vf15	
-00542e40	112	code	0	world		named	CPc	vf01	
+00542e40	112	code	0	world		named	CPc	Update	
 00542eb0	327	code	0	world		named	CPc	ProcessState	
 00543020	944	code	0	world		named	CPc	SetState	
-00543400	97	code	0	world		named	CPc	method_00543400	
+00543400	97	code	0	world		named	CPc	MoveGauge	
 00543470	65	code	0	world		named	CPc	SetAttackMotion	
 005434c0	70	code	0	world		named	CPc	vf36	
 00543510	34	code	0	world		named	CPc	vf37	

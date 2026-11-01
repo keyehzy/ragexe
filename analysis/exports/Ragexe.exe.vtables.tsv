@@ -6033,7 +6033,7 @@ std::ctype<char>	005e8e80	0	3	004e5df0	std::ctype<char>::vf03
 std::ctype<char>	005e8e80	0	4	004e5dd0	std::ctype<char>::vf04	
 std::locale::facet	005e8e98	0	0	004e5d30	std::locale::facet::`scalar_deleting_destructor'	
 mg::CMGPc	005e8eac	0	0	004eb0a0	mg::CMGPc::`scalar_deleting_destructor'	
-mg::CMGPc	005e8eac	0	1	00542e40	CPc::vf01	
+mg::CMGPc	005e8eac	0	1	00542e40	CPc::Update	
 mg::CMGPc	005e8eac	0	2	00543540	CPc::vf02	
 mg::CMGPc	005e8eac	0	3	00544380	CPc::Render	
 mg::CMGPc	005e8eac	0	4	00502b00	CGameActor::GetDirection	
@@ -6074,7 +6074,7 @@ mg::CMGPc	005e8eac	0	38	00504390	CGameActor::SetEmblem
 mg::CMGPc	005e8eac	0	39	004eb070	CGameActor::GetGuild	
 mg::CMGPc	005e8eac	0	40	004eb080	CGameActor::vf40	
 mg::CMGNpc	005e8f54	0	0	004eb220	mg::CMGNpc::`scalar_deleting_destructor'	
-mg::CMGNpc	005e8f54	0	1	005404d0	CNpc::vf01	
+mg::CMGNpc	005e8f54	0	1	005404d0	CNpc::Update	
 mg::CMGNpc	005e8f54	0	2	0053fa60	CNpc::vf02	
 mg::CMGNpc	005e8f54	0	3	00540610	CNpc::vf03	
 mg::CMGNpc	005e8f54	0	4	00502b00	CGameActor::GetDirection	
@@ -6198,7 +6198,7 @@ mg::mgType1::CMapObj	005e918c	0	3	004efa30	mg::mgType1::CMapObj::vf03
 mg::mgType1::CMapObj	005e918c	0	4	004ed8d0	mg::CObject::vf04	
 mg::mgType1::CMapObj	005e918c	0	5	004ef9e0	mg::mgType1::CMapObj::`scalar_deleting_destructor'	
 mg::mgType1::CMonster	005e91d8	116	0	004f0f50	mg::mgType1::CMonster::vf00_for_CMGNpc	adjustor:-116
-mg::mgType1::CMonster	005e91d8	116	1	005404d0	CNpc::vf01	
+mg::mgType1::CMonster	005e91d8	116	1	005404d0	CNpc::Update	
 mg::mgType1::CMonster	005e91d8	116	2	0053fa60	CNpc::vf02	
 mg::mgType1::CMonster	005e91d8	116	3	00540610	CNpc::vf03	
 mg::mgType1::CMonster	005e91d8	116	4	00502b00	CGameActor::GetDirection	
@@ -6260,7 +6260,7 @@ mg::CEntity	005e92b4	0	3	004f13d0	mg::CEntity::vf03
 mg::CEntity	005e92b4	0	4	004ed8d0	mg::CObject::vf04	
 mg::CEntity	005e92b4	0	5	004f12f0	mg::CEntity::`scalar_deleting_destructor'	
 mg::mgType1::CPlayer	005e92e0	104	0	004f1870	mg::mgType1::CPlayer::vf00_for_CPc	adjustor:-104
-mg::mgType1::CPlayer	005e92e0	104	1	00542e40	CPc::vf01	
+mg::mgType1::CPlayer	005e92e0	104	1	00542e40	CPc::Update	
 mg::mgType1::CPlayer	005e92e0	104	2	00543540	CPc::vf02	
 mg::mgType1::CPlayer	005e92e0	104	3	00544380	CPc::Render	
 mg::mgType1::CPlayer	005e92e0	104	4	00502b00	CGameActor::GetDirection	
@@ -6545,7 +6545,7 @@ CLoginMode	005e98f0	0	4	0053b810	CLoginMode::OnFrame
 CLoginMode	005e98f0	0	5	0053d230	CLoginMode::SendMsg	
 CLoginMode	005e98f0	0	6	0053baa0	CLoginMode::OnChangeState	
 CNpc	005e991c	0	0	0053f9a0	CNpc::`scalar_deleting_destructor'	
-CNpc	005e991c	0	1	005404d0	CNpc::vf01	
+CNpc	005e991c	0	1	005404d0	CNpc::Update	
 CNpc	005e991c	0	2	0053fa60	CNpc::vf02	
 CNpc	005e991c	0	3	00540610	CNpc::vf03	
 CNpc	005e991c	0	4	00502b00	CGameActor::GetDirection	
@@ -6681,7 +6681,7 @@ CGndRiser	005e9b58	0	6	00501840	CRenderObject::SetScreenPosition
 CGndRiser	005e9b58	0	7	00500de0	CRenderObject::SetAction	
 CGndRiser	005e9b58	0	8	00500830	CRenderObject::UpdateFrame	
 CPc	005e9b94	0	0	00542130	CPc::`scalar_deleting_destructor'	
-CPc	005e9b94	0	1	00542e40	CPc::vf01	
+CPc	005e9b94	0	1	00542e40	CPc::Update	
 CPc	005e9b94	0	2	00543540	CPc::vf02	
 CPc	005e9b94	0	3	00544380	CPc::Render	
 CPc	005e9b94	0	4	00502b00	CGameActor::GetDirection	

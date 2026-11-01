@@ -207,7 +207,7 @@ ctype<char>	std	7	1
 CGameObject	Global	8	1
 CRenderObject	Global	27	1
 CAbleToMakeEffect	Global	9	1
-CGameActor	Global	69	1
+CGameActor	Global	70	1
 CPc	Global	44	1
 CMGPc	mg	3	1
 CNpc	Global	19	1
@@ -244,7 +244,7 @@ CNumEffect	Global	7	1
 CSoundMaker	Global	8	1
 CGndRiser	Global	8	1
 CGrannyPc	Global	35	1
-CPlayer	Global	15	1
+CPlayer	Global	14	1
 CRagEffect	Global	227	1
 CEffectPrim	Global	117	1
 CSkill	Global	12	1

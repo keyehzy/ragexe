@@ -38,8 +38,8 @@ then truncated (`__ftol`).
 
 ## Each update: `CGameActor::UpdateWindows`
 
-`00503210`, which the classes' `vf01` call each update (`CPc`'s `00542e40` after
-`DeliverDueHits` and before `ProcessState`):
+`00503210`, which the classes' `vf01` call each update ([update.md](update.md): `CPc`'s
+`00542e40` after `DeliverDueHits` and before `ProcessState`):
 1. **The balloon** while `timeGetTime` is below +0x1a4 (when it last spoke) plus 5000, unsigned:
    x is +0x90 less half its width (+0x1e0, halved toward 0), y the rise less its height (+0x1e4,
    `fisub`). Each is kept from 3 pixels before the screen's edge to 3 pixels past the far edge

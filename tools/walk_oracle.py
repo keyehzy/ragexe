@@ -666,12 +666,81 @@ def make_casts(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
     return lines
 
 
+def make_updates(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
+    """The script for a map: actors (u) and players (p) as make_goes and make_plays make them,
+    updated whole (docs/world/update.md): CNpc's way by job, Sight's effect about its periods,
+    the key colour about its 100 ms, the colour and its brightening, the effect an NPC of job
+    0x68 repeats about its period, the frames' sounds before and after a new action and past
+    the last frame, the gauges and the screen, a cast's end, and the states."""
+    rng = random.Random(zlib.crc32(b"update " + name.encode()))
+    lines = []
+    for kind, source in (("u", make_goes("update " + name, width, height, attrs, count, updates)),
+                         ("p", make_plays("update " + name, width, height, attrs, count, updates))):
+        for line in source:
+            if line[0] not in "GP":
+                continue
+            player = kind == "p"
+            tokens = line.split()[1:]
+            n = 44 if player else 39
+            fields, times = tokens[:n], tokens[n:]
+            fields[17] = str(rng.choice([0, 0, 0, 0, 13, 13, 8, 2, 4, 12, 3, 6]))
+            job = (rng.choice([rng.randint(0, 0x15), 4, 8, 15, 7, 14, 0x16, 0x2D]) if player else
+                   rng.choice([0x2D, 0x8B, 0x68, 0x68, 0x6F, 0x6F, rng.randint(0x2E, 0x8A), rng.randint(0, 0x15),
+                               4, 8, 15, 7, 14, rng.randint(46, 999), rng.randint(1001, 1400), -1]))
+            fields[7] = str(job)
+            fields[8] = str(rng.choice([0, 0, 1, 1, 1, 0x21, 0x20, 2, rng.getrandbits(11)]))
+            frames = rng.choice([1, 2, 3, 5, 8, 10, 12])
+            fields[10] = str(frames)
+            fields[13] = str(rng.choice([0xFFFFFFFF, 0xFFFFFFFF, 0xF8F8F8F8, 0x80404040, 0, 0x00FFFFFF,
+                                         rng.getrandbits(32)]))
+            if job == 0x68:
+                fields[18] = str(rng.choice([0x16, 0x23, 0x7F, 0x89, rng.randint(0, 0xA5), -1]))
+            if player:
+                fields[41] = "0"
+            tick = int(times[1])
+            x, z = (struct.unpack("<f", struct.pack("<I", int(fields[k], 0) & 0xFFFFFFFF))[0] for k in (0, 1))
+            screen = rng.choice([480, 480, 600, 768, 0, 1, rng.randint(0, 2000), 0x7FFFFFFF])
+            scale = rng.choice([1.0, 0.5, rng.uniform(0, 3), rng.uniform(0, 3), 0.0, -1.0, 1e30, 1e-40,
+                                float("inf"), float("nan")])
+            end = (tick + rng.choice([-100, 0, 1, 50, 500, 2000, rng.randint(0, 6000)])) & 0xFFFFFFFF
+            update_fields = [
+                rng.choice([0, 1, 199, 200, 201, 269, 270, 0x8CA0, rng.randint(0, 300), 0xFFFFFFFF]),
+                rng.choice([0, 1, 1]),
+                (tick - rng.choice([0, 50, 100, 101, 200, rng.randint(0, 5000), -10])) & 0xFFFFFFFF,
+                rng.choice([0xFFFF0000, 0xFFFF0000, 0, rng.getrandbits(32)]),
+                rng.choice([0, 0, 0, 1]),
+                rng.choice([0, 1, 2, 5, rng.randint(0, 10), 0x7FFFFFFF, 4294968]),
+                (tick - rng.choice([0, 999, 1000, 1001, 2000, 5000, rng.randint(0, 20000), -5])) & 0xFFFFFFFF,
+                rng.choice([0, 0, 0, 20, 21]),
+                rng.choice([0, 0, 0, 1, 2, 3, 6]),
+                rng.choice([0, 1]),
+                rng.getrandbits(30),
+                rng.choice([int(fields[6]), int(fields[6]), rng.randint(0, 16)]),
+                rng.choice([0, 0, 1, frames - 1, frames, rng.randint(0, 12), -1]),
+                rng.choice([0, 0, rng.randint(0, max(frames - 1, 0)), frames, frames + 2]),
+                f"0x{bits(f32(x + rng.uniform(-200, 200))):08x}", f"0x{bits(f32(z + rng.uniform(-200, 200))):08x}",
+                rng.choice([0, 1, 1]) if player else 0,
+                rng.choice([rng.randint(-50, 700), 0, 320, rng.randint(-0x80000000, 0x7FFFFFFF)]),
+                rng.choice([rng.randint(-50, 700), 0, 240, rng.randint(-0x80000000, 0x7FFFFFFF)]),
+                f"0x{bits(f32(scale)):08x}", screen,
+                rng.choice([0, 0, 1]), end,
+                (end - rng.choice([0, 1, 500, 2000, rng.randint(0, 6000), -300])) & 0xFFFFFFFF,
+                rng.choice([0, 0, 1, 7]), rng.choice([0, 0, 1, 2]),
+                rng.choice([-1, rng.randint(0, 0x16), 0xB, rng.randint(1001, 2100)]),
+                rng.choice([0, 1, 1, 2]), (tick - rng.choice([0, 0, 24, 100, rng.randint(0, 5000)])) & 0xFFFFFFFF,
+                rng.choice([0, 0, 0, 8 * int(fields[6]), rng.randint(0, 300), 255, 256]),
+            ]
+            lines.append(f"{kind} " + " ".join(fields + [str(f) for f in update_fields] + times))
+    return lines
+
+
 def main():
     args = path_oracle.arguments("walks per map", 40)
     ours, originals = path_oracle.run_maps(
         args, lambda *a: make_walks(*a) + make_goes(*a) + make_plays(*a) + make_tos(*a)
         + make_stands(*a) + make_enters(*a) + make_arrivals(*a) + make_effects(*a)
-        + make_deaths(*a) + make_attacks(*a) + make_landings(*a) + make_casts(*a), "walks")
+        + make_deaths(*a) + make_attacks(*a) + make_landings(*a) + make_casts(*a) + make_updates(*a),
+        "walks")
     totals = {}
     for (_, lines, _), want in zip(ours, originals):
         for line, result in zip(lines, want):
@@ -680,9 +749,9 @@ def main():
                    "Q": "player enter ", "A": "arrive ", "B": "arrive with effects ", "X": "effects ",
                    "K": "player effects ", "D": "death ", "H": "player death ", "V": "attack ",
                    "J": "player attack ", "L": "land ", "O": "player land ", "C": "cast ",
-                   "R": "player cast "}[line[0]] + result.split()[0]
+                   "R": "player cast ", "u": "update ", "p": "player update "}[line[0]] + result.split()[0]
             totals[key] = totals.get(key, 0) + 1
-            if line[0] in "WGPTUNYEQABDHVJLOCR" and result != "-":
+            if line[0] in "WGPTUNYEQABDHVJLOCRup" and result != "-":
                 totals["updates"] = totals.get("updates", 0) + int(result.split()[1])
             if line[0] in "XK":
                 totals["effect messages"] = totals.get("effect messages", 0) + int(result.split()[1])

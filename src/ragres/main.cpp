@@ -122,6 +122,7 @@
 #include "world/actor_effects.h"
 #include "world/actor_hit.h"
 #include "world/actor_state.h"
+#include "world/actor_update.h"
 #include "world/actor_walk.h"
 #include "world/actor_window.h"
 #include "world/path_finder.h"
@@ -669,6 +670,9 @@ int DecodeGats(const std::vector<std::string>& files) {
 //                                              G and P sent a message of the windows and given
 //                                              a state, then updated by 00503210 and
 //                                              ProcessState (CAST_FIELDS)
+//   u and p FIELDS... UPDATE... (SERVER TICK)...
+//                                              G and P updated whole by CNpc::Update and
+//                                              CPc::Update (UPDATE_FIELDS)
 // Prints for F and M "RESULT MOVE_TIME FIELD_0X10 START_X START_Y COUNT HASH" (the result
 // found, same, none or overflow; the move time "-" for F; the start as float bits; the
 // hash FNV-1a over each step's x, y, dir and time), for I the result, and for S "INDEX
@@ -679,8 +683,8 @@ int DecodeGats(const std::vector<std::string>& files) {
 // walking or faded; for E, Q, A, B, D, H, V, J, L and O the same with the end staying,
 // changed (the state did; not L and O, which run to the end), faded, gone (D and H, with a
 // corpse) or unported, the state unsigned; for C and R the same with the end staying, faded or
-// settled (out of state 13 with no window left); for X and K the same with "sent" and the
-// messages' count.
+// settled (out of state 13 with no window left); for u and p the same with the end staying or
+// faded, the action unsigned; for X and K the same with "sent" and the messages' count.
 int FindPaths(const std::string& gat, const std::string& queries) {
   ragexe::res::AttrMap map;
   std::string error;
@@ -822,9 +826,10 @@ int FindPaths(const std::string& gat, const std::string& queries) {
     } else if (kind == "G" || kind == "P" || kind == "T" || kind == "U" || kind == "N" ||
                kind == "Y" || kind == "E" || kind == "Q" || kind == "A" || kind == "B" ||
                kind == "X" || kind == "K" || kind == "D" || kind == "H" || kind == "V" ||
-               kind == "J" || kind == "L" || kind == "O" || kind == "C" || kind == "R") {
+               kind == "J" || kind == "L" || kind == "O" || kind == "C" || kind == "R" ||
+               kind == "u" || kind == "p") {
       const bool player = kind == "P" || kind == "U" || kind == "Y" || kind == "Q" || kind == "K" ||
-                          kind == "H" || kind == "J" || kind == "O" || kind == "R";
+                          kind == "H" || kind == "J" || kind == "O" || kind == "R" || kind == "p";
       const bool to = kind == "T" || kind == "U";
       const bool stand = kind == "N" || kind == "Y";
       const bool enter = kind == "E" || kind == "Q";
@@ -833,6 +838,7 @@ int FindPaths(const std::string& gat, const std::string& queries) {
       const bool attack = kind == "V" || kind == "J";
       const bool land = kind == "L" || kind == "O";
       const bool cast = kind == "C" || kind == "R";
+      const bool update = kind == "u" || kind == "p";
       const bool with_effects = kind == "B" || kind == "X" || kind == "K" || die;
       std::vector<std::uint32_t> v;
       for (std::string token; fields >> token;)
@@ -845,6 +851,7 @@ int FindPaths(const std::string& gat, const std::string& queries) {
       constexpr std::size_t kAttackFields = 17 + 10;  // and the record
       constexpr std::size_t kLandFields = 27;         // then 10 words a hit
       constexpr std::size_t kCastFields = 21;
+      constexpr std::size_t kUpdateFields = 30;
       if (land && v.size() < base_fields + kLandFields) {
         std::fprintf(stderr, "short go: %s\n", line.c_str());
         return 2;
@@ -854,7 +861,8 @@ int FindPaths(const std::string& gat, const std::string& queries) {
                                   (arrive ? kArriveFields + kRecordWords : 0) +
                                   (with_effects ? kEffectFields : 0) + (die ? kDeathFields : 0) +
                                   (attack ? kAttackFields : 0) +
-                                  (land ? kLandFields + hit_words : 0) + (cast ? kCastFields : 0);
+                                  (land ? kLandFields + hit_words : 0) + (cast ? kCastFields : 0) +
+                                  (update ? kUpdateFields : 0);
       // B, X and K: EFFECT_FIELDS, after ARRIVE_FIELDS for B.
       const std::size_t effect_at =
           base_fields + (arrive ? kArriveFields : 0) + (die ? kDeathFields : 0);
@@ -1592,6 +1600,139 @@ int FindPaths(const std::string& gat, const std::string& queries) {
                     FloatBits(o.position[0]), FloatBits(o.position[1]), FloatBits(o.position[2]),
                     FloatBits(o.facing), o.action, static_cast<std::uint32_t>(o.frame),
                     static_cast<std::uint32_t>(actor.state), static_cast<unsigned long long>(h));
+        continue;
+      }
+      // u and p: the actor's whole update (CNpc::Update, CPc::Update) after +0x230, the key colour,
+      // +0x87, +0x1ec, +0x290, +0x1f4, +0x218, effects on, the act's frames' events, +0x2c, +0x30,
+      // +0x28, the world's player, the gauges, the point on screen, +0x48, the screen's height, the
+      // cast's times, +0xcc, +0x1bc, the weapon, +0x54, +0x70 and +0x24, as
+      // tools/path_oracle.py's update().
+      if (update) {
+        auto& base = static_cast<ragexe::world::GameActor&>(actor);
+        const std::size_t b = base_fields;
+        actor.sight_ticks = v[b];
+        o.keyed = v[b + 1] != 0;
+        o.keyed_at = v[b + 2];
+        o.key_color = v[b + 3];
+        o.tinted = v[b + 4] != 0;
+        actor.field_0x1ec = static_cast<std::int32_t>(v[b + 5]);
+        actor.repeated_at = v[b + 6];
+        actor.field_0x1f4 = static_cast<std::int32_t>(v[b + 7]);
+        actor.body_state = static_cast<std::int32_t>(v[b + 8]);
+        context.effects_on = v[b + 9] != 0;
+        const std::uint32_t events = v[b + 10];
+        o.sounded_action = static_cast<std::int32_t>(v[b + 11]);
+        o.sounded_frame = static_cast<std::int32_t>(v[b + 12]);
+        o.frame = static_cast<std::int32_t>(v[b + 13]);
+        player_at = {std::bit_cast<float>(v[b + 14]), 0.0f, std::bit_cast<float>(v[b + 15])};
+        context.player = &player_at;
+        ragexe::world::ActorWindows actor_windows;
+        actor.cast_gauge = 0;
+        if (v[b + 21] != 0) {
+          actor_windows.sizes.push_back({0x3c, 6});
+          actor.cast_gauge = static_cast<std::int32_t>(actor_windows.sizes.size());
+        }
+        if (player && v[b + 16] != 0) {
+          actor_windows.sizes.push_back({0, 0});
+          actor.gauge = static_cast<std::int32_t>(actor_windows.sizes.size());
+        }
+        o.screen_x = static_cast<std::int32_t>(v[b + 17]);
+        o.screen_y = static_cast<std::int32_t>(v[b + 18]);
+        o.pixel_scale = std::bit_cast<float>(v[b + 19]);
+        context.windows = &actor_windows;
+        context.screen_height = static_cast<std::int32_t>(v[b + 20]);
+        actor.cast_end = v[b + 22];
+        actor.cast_start = v[b + 23];
+        actor.field_0xcc = static_cast<std::int32_t>(v[b + 24]);
+        actor.field_0x1bc = static_cast<std::int32_t>(v[b + 25]);
+        actor.weapon = static_cast<std::int32_t>(v[b + 26]);
+        o.play_mode = static_cast<std::int32_t>(v[b + 27]);
+        o.start_time = v[b + 28];
+        o.action = static_cast<std::int32_t>(v[b + 29]);
+        // Each frame's event by 3 bits of `events`, the first 10 frames, as the attacks' but named
+        // for sounds.
+        act.events = {"foot.wav", "a.wav.b", "a.wa", "X.WAV"};
+        for (auto& frames : act.actions) {
+          for (std::size_t k = 0; k < frames.size() && k < 10; ++k) {
+            const std::uint32_t code = events >> (3 * k) & 7;
+            frames[k].event = code == 0 || code == 7 ? -1
+                              : code == 5            ? 4
+                              : code == 6            ? 0x7fffffff
+                                                     : static_cast<std::int32_t>(code) - 1;
+          }
+        }
+        std::vector<std::int32_t> launched;
+        std::vector<ragexe::world::EffectMessage> launched_messages;
+        context.launched = &launched;
+        context.launched_messages = &launched_messages;
+        context.sounds = &sounds;
+        // What the whole update writes beyond the fields, as tools/path_oracle.py's updated().
+        const auto fold_updated = [&] {
+          for (const std::uint32_t x :
+               {actor.sight_ticks, actor.repeated_at, o.key_color, o.keyed_at,
+                static_cast<std::uint32_t>(o.sounded_action),
+                static_cast<std::uint32_t>(o.sounded_frame), actor.cast_end, actor.cast_start,
+                static_cast<std::uint32_t>(actor.field_0xcc), o.keyed ? 1u : 0u,
+                static_cast<std::uint32_t>(actor.cast_gauge)})
+            fold(x);
+          if (player) {
+            fold(static_cast<std::uint32_t>(actor.gauge));
+            fold(static_cast<std::uint32_t>(mode_field_0x2a0));
+            fold(static_cast<std::uint32_t>(actor.saved_frame));
+          }
+          fold(static_cast<std::uint32_t>(8 * sounds.size()));
+          for (const auto& sound : sounds) {
+            const std::uint64_t n = Fnv1a64(std::span(
+                reinterpret_cast<const std::uint8_t*>(sound.name.data()), sound.name.size()));
+            fold(static_cast<std::uint32_t>(n));
+            fold(static_cast<std::uint32_t>(n >> 32));
+            for (const std::uint32_t x :
+                 {FloatBits(sound.x), 0u, FloatBits(sound.z), 250u, 40u, FloatBits(1.0f)})
+              fold(x);
+          }
+          sounds.clear();
+          fold(static_cast<std::uint32_t>(launched.size()));
+          for (const std::int32_t id : launched) fold(static_cast<std::uint32_t>(id));
+          launched.clear();
+          fold(static_cast<std::uint32_t>(6 * launched_messages.size()));
+          for (const auto& m : launched_messages) {
+            for (const std::int32_t x : {m.effect, 0, m.id, m.a, m.b, m.c})
+              fold(static_cast<std::uint32_t>(x));
+          }
+          launched_messages.clear();
+          fold(static_cast<std::uint32_t>(4 * actor_windows.calls.size()));
+          for (const auto& call : actor_windows.calls) {
+            for (const std::int32_t x :
+                 {static_cast<std::int32_t>(call.kind), call.window, call.a, call.b})
+              fold(static_cast<std::uint32_t>(x));
+          }
+          actor_windows.calls.clear();
+          fold(static_cast<std::uint32_t>(windows.size()));
+          for (const std::int32_t x : windows) fold(static_cast<std::uint32_t>(x));
+          windows.clear();
+        };
+        int updates = 0;
+        const char* end = "staying";
+        for (std::size_t k = kFields; k + 1 < v.size(); k += 2) {
+          const auto r = player ? ragexe::world::UpdatePlayer(actor, context, v[k + 1], v[k])
+                                : ragexe::world::UpdateNpc(base, context, v[k + 1], v[k]);
+          ++updates;
+          const bool over =
+              r == ragexe::world::StateResult::kFaded || r == ragexe::world::StateResult::kGone;
+          fold(over ? 0u : 1u);
+          fold_fields();
+          fold_messages();
+          fold_updated();
+          if (over) {
+            end = "faded";
+            break;
+          }
+        }
+        std::printf("%s %d %08x %08x %08x %08x %u %u %u %016llx\n", end, updates,
+                    FloatBits(o.position[0]), FloatBits(o.position[1]), FloatBits(o.position[2]),
+                    FloatBits(o.facing), static_cast<std::uint32_t>(o.action),
+                    static_cast<std::uint32_t>(o.frame), static_cast<std::uint32_t>(actor.state),
+                    static_cast<unsigned long long>(h));
         continue;
       }
       // D and H: the death, by vf10 (0), 0xc or 0x1c, after +0x218, +0x20c, +0x210, a sprite or
