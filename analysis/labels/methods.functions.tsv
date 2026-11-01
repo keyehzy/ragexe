@@ -304,16 +304,6 @@ address	namespace	name	calling_convention	evidence
 004cb7a0	CMode	method_004cb7a0	__thiscall	__thiscall; called with this from 2 functions of CGameMode, CLoginMode, e.g. 00515d10
 004cb7e0	CMode	method_004cb7e0	__thiscall	__thiscall; called with this from 2 functions of CGameMode, CLoginMode, e.g. 00515d10
 004cb7f0	CGameMode	method_004cb7f0	__thiscall	__thiscall; called with this from 5 functions of CGameMode, e.g. 00513860
-004cc4e0	PathFinder	method_004cc4e0	__thiscall	__thiscall; called with this from 2 functions of PathFinder, e.g. 004cc290
-004cc9d0	PathFinder	method_004cc9d0	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004cc5c0
-004ccb80	PathFinder	method_004ccb80	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004ccba0
-004ccba0	PathFinder	method_004ccba0	__thiscall	__thiscall; called with this from 2 functions of PathFinder, e.g. 004cc5c0
-004ccc50	PathFinder	method_004ccc50	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 0050dc90
-004ccc60	PathFinder	method_004ccc60	__thiscall	__thiscall; called with this from 2 functions of PathFinder, e.g. 004ccba0
-004ccc70	PathFinder	method_004ccc70	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004ccc80
-004ccc80	PathFinder	method_004ccc80	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004cc5c0
-004ccda0	PathFinder	method_004ccda0	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004cc5c0
-004cced0	PathFinder	method_004cced0	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004ccda0
 004cd6a0	std::Tree	method_004cd6a0	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004ccba0
 004cdf60	std::Tree	method_004cdf60	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004cc4e0
 004ce570	CActorPickNode	method_004ce570	__thiscall	__thiscall; called with this from 3 functions of CActorPickNode, e.g. 00502cc0
@@ -688,7 +678,6 @@ address	namespace	name	calling_convention	evidence
 00593140	ClientState	method_00593140	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 00527940
 00593170	ClientState	method_00593170	__thiscall	__thiscall; called with this from 6 functions of ClientState, e.g. 004efc60
 005931d0	ClientState	method_005931d0	__thiscall	__thiscall; called with this from 4 functions of ClientState, e.g. 00527240
-00593200	ClientState	method_00593200	__thiscall	__thiscall; called with this from 7 functions of ClientState, e.g. 004efff0
 00593220	ClientState	method_00593220	__thiscall	__thiscall; called with this from 3 functions of ClientState, e.g. 0052bd10
 00593240	ClientState	method_00593240	__thiscall	__thiscall; called with this from 5 functions of ClientState, e.g. 0052a3d0
 00593660	ClientState	method_00593660	__thiscall	__thiscall; called with this from 6 functions of ClientState, e.g. 00460040

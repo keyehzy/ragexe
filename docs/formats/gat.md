@@ -74,6 +74,8 @@ code (M5), checked against the oracle there.
 - **Others:** `IntersectCellRay` (`00427230`) picks with the cell's two triangles, and
   `GetHeightRange` (`00427390`) gives the lowest and highest corner over a rectangle of
   cells.
+- **Walking:** the path finder reads the attributes directly; 1 and 5 can't be walked
+  ([path.md](../world/path.md#a-step)).
 
 ## In the port
 

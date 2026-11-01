@@ -1975,7 +1975,7 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     - `Resource::error()` is virtual;
     - `DataFiles::set_layers` reads archives under the main one.
 
-### M4: in progress
+### M4: done
 - [x] The device (`docs/render/device.md`, `src/render/device`, a new `ragexe_render`
   library):
   - **`C3dDevice::Init`:**
@@ -2745,6 +2745,32 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     unit tests cover the frame lists' pools and fog, `SetFogEnabled`, and where `DrawScene`
     makes the projection's calls.
 - [x] ragview reads the `.gpf` patches over `data.grf`, as `ragres load-world` does (above).
+- The minimap of the build order is a window (`UIMinimapZoomWnd`), and comes with the UI in
+  M7.
+
+### M5: in progress
+- [x] Path finding, the M5 exit's oracle (`docs/world/path.md`, `src/world/path_finder`, a new
+  `ragexe_world` library):
+  - **`PathFinder::FindPath`:** an A* search from 149 nodes, a side costing 10 and a diagonal
+    14, estimated as ten times the cells along x and y. The open list is a binary heap with
+    the library's pop and sift-up. A walker can't cut a corner, and attributes 1 and 5 can't
+    be walked.
+  - **Found on the way:**
+    - the estimate overestimates diagonals, so a closed cell can be reached more cheaply;
+      it is then marked open but never pushed again;
+    - a start off the map shares its node with the cell its key names;
+    - a start in cell 0 doesn't subtract the half cell.
+  - **The path:** `MovePath`'s steps with their directions and times (the second from the
+    start point's distance, a diagonal 1.414 times a side), `GetEndKey` and `FindSegment`.
+  - **The callers:** `CGameActor::FindMovePath`, which searches again at ten thirteenths of
+    the speed when the actor is late, and `CGameMode::IsPathFound`.
+  - **Checks:** `tools/path_oracle.py` runs the original's finder on every map's `.gat`
+    (287) with a script of 109,453 queries: every result, logged message and whole path
+    equal `ragres find-paths`. `tests/unit/path_vectors.inc` keeps six small maps' queries
+    and paths from the original, with queries that each hang on one detail (a heap tie, a
+    reopened cell, the 149th node, 1.414, an off-map start's key).
+  - **Labels:** the finder's methods (`004cc4e0` to `004cced0`) and
+    `ClientState::GetServerTime` (`00593200`).
 
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,

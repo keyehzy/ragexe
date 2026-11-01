@@ -11,6 +11,8 @@
 //                                          decodes .act files as CActRes does, every field
 //   ragres decode-gats FILE...             decodes .gat files as C3dAttr does, as hashes
 //   ragres decode-gnds FILE...             decodes .gnd files as CGndRes does, as hashes
+//   ragres find-paths GAT QUERIES          runs the path finder on a .gat's cells, one
+//                                          query of QUERIES a line, and prints each result
 //   ragres build-grounds [--lightmaps] LIGHT FILE...
 //                                          builds .gnd files as C3dGround15::Build does,
 //                                          with LIGHT nine floats: direction, diffuse,
@@ -81,6 +83,7 @@
 #include <optional>
 #include <set>
 #include <span>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -113,6 +116,7 @@
 #include "res/tips.h"
 #include "res/wav.h"
 #include "res/xml.h"
+#include "world/path_finder.h"
 
 namespace {
 
@@ -602,6 +606,91 @@ int DecodeGats(const std::vector<std::string>& files) {
                 map.cell_size, static_cast<unsigned long long>(Fnv1a64(values)));
   }
   return failed == 0 ? 0 : 1;
+}
+
+// Runs the path finder on a .gat's cells (docs/world/path.md), one query a line, all on one
+// PathFinder and one MovePath, as an actor's:
+//   F TIME SX SY SUB_X SUB_Y GX GY SPEED       FindPath
+//   M MOVE_TIME NOW SX SY SUB_X SUB_Y GX GY SPEED
+//                                              FindMovePath
+//   I NOW SX SY SUB_X SUB_Y GX GY              IsPathFound, into a path of its own
+//   S TIME                                     FindSegment
+//   Z VALUE                                    sets the path's +0x10
+// Prints for F and M "RESULT MOVE_TIME FIELD_0X10 START_X START_Y COUNT HASH" (the result
+// found, same, none or overflow; the move time "-" for F; the start as float bits; the
+// hash FNV-1a over each step's x, y, dir and time), for I the result, and for S "INDEX
+// TIME X Y", or "-" when the path has fewer than two steps; for Z the value.
+int FindPaths(const std::string& gat, const std::string& queries) {
+  ragexe::res::AttrMap map;
+  std::string error;
+  if (!ragexe::res::DecodeAttrMap(ReadFile(gat), map, &error)) {
+    std::fprintf(stderr, "%s: %s\n", gat.c_str(), error.c_str());
+    return 1;
+  }
+  ragexe::world::PathFinder finder;
+  finder.SetAttrMap(&map);
+  ragexe::world::MovePath path;
+  const auto name = [](ragexe::world::PathResult r) {
+    switch (r) {
+      case ragexe::world::PathResult::kFound: return "found";
+      case ragexe::world::PathResult::kSameCell: return "same";
+      case ragexe::world::PathResult::kNoPath: return "none";
+      case ragexe::world::PathResult::kOverflow: return "overflow";
+    }
+    return "?";
+  };
+  const auto print_path = [&](ragexe::world::PathResult r, const std::string& move_time) {
+    std::vector<std::uint32_t> values;
+    for (const auto& step : path.steps) {
+      values.push_back(static_cast<std::uint32_t>(step.x));
+      values.push_back(static_cast<std::uint32_t>(step.y));
+      values.push_back(static_cast<std::uint32_t>(step.dir));
+      values.push_back(step.time);
+    }
+    std::printf("%s %s %d %08x %08x %zu %016llx\n", name(r), move_time.c_str(), path.field_0x10,
+                FloatBits(path.start_x), FloatBits(path.start_y), path.steps.size(),
+                static_cast<unsigned long long>(Fnv1a64(values)));
+  };
+  std::ifstream in(queries);
+  std::string line;
+  while (std::getline(in, line)) {
+    std::istringstream fields(line);
+    std::string kind;
+    fields >> kind;
+    std::uint32_t time = 0;
+    std::uint32_t now = 0;
+    std::int32_t sx = 0, sy = 0, sub_x = 0, sub_y = 0, gx = 0, gy = 0, speed = 0;
+    if (kind == "F") {
+      fields >> time >> sx >> sy >> sub_x >> sub_y >> gx >> gy >> speed;
+      print_path(finder.FindPath(time, sx, sy, sub_x, sub_y, gx, gy, speed, path), "-");
+    } else if (kind == "M") {
+      fields >> time >> now >> sx >> sy >> sub_x >> sub_y >> gx >> gy >> speed;
+      const auto r =
+          ragexe::world::FindMovePath(finder, path, time, now, sx, sy, sub_x, sub_y, gx, gy, speed);
+      print_path(r, std::to_string(time));
+    } else if (kind == "I") {
+      fields >> now >> sx >> sy >> sub_x >> sub_y >> gx >> gy;
+      std::printf("%d\n",
+                  ragexe::world::IsPathFound(finder, now, sx, sy, sub_x, sub_y, gx, gy) ? 1 : 0);
+    } else if (kind == "S") {
+      fields >> time;
+      if (path.steps.size() < 2) {
+        std::printf("-\n");
+        continue;
+      }
+      std::uint32_t step_time = 0;
+      float x = 0.0f, y = 0.0f;
+      const int index = path.FindSegment(time, &step_time, &x, &y);
+      std::printf("%d %u %08x %08x\n", index, step_time, FloatBits(x), FloatBits(y));
+    } else if (kind == "Z") {
+      fields >> path.field_0x10;
+      std::printf("%d\n", path.field_0x10);
+    } else {
+      std::fprintf(stderr, "unknown query: %s\n", line.c_str());
+      return 2;
+    }
+  }
+  return 0;
 }
 
 // Decodes .gnd files as CGndRes does and prints, per file, "n ok major minor width height
@@ -1741,6 +1830,7 @@ int Usage() {
                "       ragres decode-acts [--halve-x] [--halve-y] FILE...\n"
                "       ragres decode-gats FILE...\n"
                "       ragres decode-gnds FILE...\n"
+               "       ragres find-paths GAT QUERIES\n"
                "       ragres build-grounds [--lightmaps] LIGHT FILE...\n"
                "       ragres decode-rsws [--no-lightmaps] FILE...\n"
                "       ragres decode-rsms [--single] FILE...\n"
@@ -1786,6 +1876,7 @@ int main(int argc, char** argv) {
     return DecodeActs(std::vector<std::string>(argv + 2, argv + argc));
   }
   if (command == "decode-gats") return DecodeGats(std::vector<std::string>(argv + 2, argv + argc));
+  if (command == "find-paths" && argc == 4) return FindPaths(argv[2], argv[3]);
   if (command == "decode-gnds") return DecodeGnds(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "decode-rsws") return DecodeRsws(std::vector<std::string>(argv + 2, argv + argc));
   if (command == "build-grounds") {

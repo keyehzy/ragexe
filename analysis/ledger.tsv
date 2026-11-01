@@ -3391,17 +3391,17 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004cc290	290	code	0	world		named	PathFinder	~PathFinder	
 004cc3c0	232	code	1	stl		named	std::Tree	~Tree	
 004cc4b0	38	code	1	stl		named	std::vector	~vector	
-004cc4e0	216	code	0	world		named	PathFinder	method_004cc4e0	
+004cc4e0	216	code	0	world		named	PathFinder	ClearSearch	
 004cc5c0	1034	code	0	world		named	PathFinder	FindPath	
-004cc9d0	427	code	0	world		named	PathFinder	method_004cc9d0	
-004ccb80	32	code	0	world		named	PathFinder	method_004ccb80	
-004ccba0	166	code	0	world		named	PathFinder	method_004ccba0	
-004ccc50	12	code	0	world		named	PathFinder	method_004ccc50	
-004ccc60	9	code	0	world		named	PathFinder	method_004ccc60	
-004ccc70	9	code	0	world		named	PathFinder	method_004ccc70	
-004ccc80	276	code	0	world		named	PathFinder	method_004ccc80	
-004ccda0	301	code	0	world		named	PathFinder	method_004ccda0	
-004cced0	62	code	0	world		named	PathFinder	method_004cced0	
+004cc9d0	427	code	0	world		named	PathFinder	VisitCell	
+004ccb80	32	code	0	world		named	PathFinder	NewNode	
+004ccba0	166	code	0	world		named	PathFinder	GetCellNode	
+004ccc50	12	code	0	world		named	PathFinder	SetAttrMap	
+004ccc60	9	code	0	world		named	PathFinder	GetMapWidth	
+004ccc70	9	code	0	world		named	PathFinder	GetMapHeight	
+004ccc80	276	code	0	world		named	PathFinder	CanStep	
+004ccda0	301	code	0	world		named	PathFinder	BuildPath	
+004cced0	62	code	0	world		named	PathFinder	GetFirstStepTime	
 004ccf10	74	code	0	world		named	MovePath	MovePath	
 004ccf60	8	code	0	world		named	MovePath	Reset	
 004ccf70	425	code	0	world	unreferenced	raw	Global	FUN_004ccf70	
@@ -5817,7 +5817,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00593140	34	code	0	game		named	ClientState	method_00593140	
 00593170	95	code	0	game		named	ClientState	method_00593170	
 005931d0	38	code	0	game		named	ClientState	method_005931d0	
-00593200	26	code	0	game		named	ClientState	method_00593200	
+00593200	26	code	0	game		named	ClientState	GetServerTime	
 00593220	20	code	0	game		named	ClientState	method_00593220	
 00593240	66	code	0	game		named	ClientState	method_00593240	
 00593290	10	code	0	game		named	ClientState	InvalidateAllWindows	

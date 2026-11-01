@@ -33,6 +33,7 @@ add_executable(ragexe_tests
   model_test.cpp
   name_tables_test.cpp
   palette_test.cpp
+  path_test.cpp
   player_test.cpp
   prim_test.cpp
   settings_test.cpp
@@ -48,7 +49,7 @@ add_executable(ragexe_tests
   x87_test.cpp
   xml_test.cpp)
 target_include_directories(ragexe_tests PRIVATE ${PROJECT_SOURCE_DIR}/tests)
-target_link_libraries(ragexe_tests PRIVATE ragexe_game ragexe_glyphs ragexe_render ragexe_res ragexe_stb_image ZLIB::ZLIB Catch2::Catch2WithMain ragexe_options)
+target_link_libraries(ragexe_tests PRIVATE ragexe_game ragexe_glyphs ragexe_render ragexe_res ragexe_stb_image ragexe_world ZLIB::ZLIB Catch2::Catch2WithMain ragexe_options)
 
 include(Catch)
 catch_discover_tests(ragexe_tests DISCOVERY_MODE PRE_TEST)

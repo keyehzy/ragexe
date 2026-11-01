@@ -112,6 +112,16 @@ address	namespace	name	calling_convention	evidence
 # PathFinder
 004cc1b0	PathFinder	PathFinder	__thiscall	static initializer 0050c1f0 constructs global 00684e30 with it
 004cc5c0	PathFinder	FindPath	__thiscall	searches between two cells, keeping the second at +4 / +8: "find path failed : no path found", "find path aborted : buffer overflow"
+004cc4e0	PathFinder	ClearSearch	__thiscall	empties the cell map +0x1078 and the open list +0x1088 (end = begin); FindPath before a search and ~PathFinder (docs/world/path.md)
+004cc9d0	PathFinder	VisitCell	__thiscall	(node, cost, x, y, dir), ret 0x14: opens an unseen cell with g = node g + cost and pushes it on the heap; a cell seen at a greater g takes the new parent and costs, moving up the heap if open, reopened without a push if closed; 0 only when 004ccb80 has no node left; FindPath's eight neighbours (docs/world/path.md)
+004ccb80	PathFinder	NewNode	__thiscall	the next 0x1c-byte node of the array at +0x10 by the count +0xc, null past 0x94 (149 nodes); 004ccba0
+004ccba0	PathFinder	GetCellNode	__thiscall	(x, y), ret 8: the cell's node from the map +0x1078 keyed width * y + x, else a new unseen one (004ccb80) inserted there; null when the nodes run out
+004ccc50	PathFinder	SetAttrMap	__thiscall	(C3dAttr*), ret 4: stores +0x0; CGameMode 0050de37 passes CWorld+0x40 after loading a world
+004ccc60	PathFinder	GetMapWidth	__thiscall	C3dAttr+0x110 of the map at +0x0
+004ccc70	PathFinder	GetMapHeight	__thiscall	C3dAttr+0x114 of the map at +0x0
+004ccc80	PathFinder	CanStep	__thiscall	(x, y, to_x, to_y), ret 0x10: the next cell on the map and its attribute (C3dAttr+0x120 cells, +0x10) neither 1 nor 5; for a diagonal, also (x, to_y) and (to_x, y) (docs/world/path.md#a-step)
+004ccda0	PathFinder	BuildPath	__thiscall	(time, goal node, speed, MovePath*), ret 0x10: sizes the path's vector to the goal's chain of parents and fills x, y, dir start first; times: the start's the time, the second's from 004cced0, then speed a side and __ftol(speed * 1.414) a diagonal
+004cced0	PathFinder	GetFirstStepTime	__thiscall	(time, MovePath*, speed), ret 0xc: time + __ftol(SqrtFloat(dx*dx + dy*dy) * speed), from the path's start point (+0x14, +0x18) to its second step's cell
 # SceneGraphNode
 004c5270	SceneGraphNode	SceneGraphNode	__thiscall	called on operator new(0x80) in C3dWorldRes::vf03 ("SceneGraphNode Load.") and for each child in 004c5340; returns this
 004c5340	SceneGraphNode	Subdivide	__thiscall	(depth): unless depth is 5, creates four SceneGraphNode children at +4..+0x10, each with this at +0, splitting the bounds at the midpoints
@@ -119,6 +129,7 @@ address	namespace	name	calling_convention	evidence
 00586400	WorldColorFade	WorldColorFade	__thiscall	static initializer 0057cf60 constructs global 00686598 with it; colours at +0x14..+0x1c and +0x38..+0x40 start at 1.0
 00586460	WorldColorFade	Update	__thiscall	moves the RGB floats at +0x14..+0x1c up or down towards the targets at +0x20..+0x28 depending on the flags at +8, +9 and +0xe
 # ClientState
+00593200	ClientState	GetServerTime	__thiscall	timeGetTime() - 72 - the offset at +0x504; CGameActor::FindMovePath 00506b76 compares a path's end time with it (docs/world/path.md#the-callers)
 00586860	ClientState	ClientState	__thiscall	static initializer 00586820 constructs global 00686670 with it; strings, lists, XML documents ("XMLDocument") and timeGetTime
 00588520	ClientState	SaveOptions	__thiscall	RegCreateKeyExA, then writes the option values ("SPRITEMODE", "TEXTUREMODE", "isSoundOn", ...); WinMain calls it at shutdown
 0058e310	ClientState	InitWhenServerMove	__thiscall	prints its own name, "InitWhenServerMove()"

@@ -60,6 +60,12 @@ add_library(ragexe_res STATIC
 target_include_directories(ragexe_res PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(ragexe_res PRIVATE ragexe_core ZLIB::ZLIB ragexe_stb_image ragexe_options)
 
+# The world's own code that draws nothing: path finding.
+add_library(ragexe_world STATIC
+  world/path_finder.cpp)
+target_include_directories(ragexe_world PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(ragexe_world PUBLIC ragexe_core ragexe_res PRIVATE ragexe_options)
+
 # The renderer: the original's Direct3D 7 state, and in time its SDL_GPU replacement.
 add_library(ragexe_render STATIC
   render/actor.cpp
@@ -159,7 +165,7 @@ add_executable(ragexe app/main.cpp)
 target_link_libraries(ragexe PRIVATE ragexe_game ragexe_options)
 
 add_executable(ragres ragres/main.cpp)
-target_link_libraries(ragres PRIVATE ragexe_render ragexe_res ragexe_options)
+target_link_libraries(ragres PRIVATE ragexe_render ragexe_res ragexe_world ragexe_options)
 
 add_executable(ragview ragview/main.cpp)
 target_include_directories(ragview SYSTEM PRIVATE ${stb_SOURCE_DIR})
