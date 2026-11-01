@@ -26,6 +26,18 @@ struct ModeMessage {
   bool operator==(const ModeMessage&) const = default;
 };
 
+// What the own player's message 0x42 asks for a skill on a cell (CPlayer::SendMsg, 0054c5d0):
+// the game mode's 0x4d, or for skill 0x7d window 0x54 (UIWindowMgr 004ad670) sent 0x44 (its
+// vf37), each with the address of this record.
+struct CellSkill {
+  bool window = false;
+  std::int32_t skill = 0;
+  std::int32_t x = 0;
+  std::int32_t y = 0;
+  std::int32_t level = 0;
+  bool operator==(const CellSkill&) const = default;
+};
+
 // A sound an actor plays (PlayWave, 004352a0): its file and where it is from the player, the
 // height 0 and the rest 250, 40 and 1.
 struct Sound {
@@ -207,6 +219,13 @@ struct StateContext {
   const GameActor* skill_object{};  // the skill's object CWorld::GetSkillById (004c4db0) finds
   std::vector<std::int32_t>* picked{};  // CGameMode+0x198 (its size +0x19c): the items asked to
                                         // be picked up, by id
+  std::int32_t own_speed{};    // ClientState+0xd94 (00687404), the player's speed (packet 0x00b0)
+  std::int32_t skill_range{};  // CGameMode+0x364, the range of the skill being aimed (its record's
+                               // +0x18, CGameMode::SendMsg 00521cde; 5 after packet 0x019e)
+  std::vector<CellSkill>* cell_skills{};  // what message 0x42 asks for, when kept
+  // CPlayer::SendMsg for the messages the own player sends itself, the id and two words; without
+  // it they are kept in actor_messages.
+  std::function<void(std::int32_t, std::int32_t, std::int32_t)> send_own{};
   // NOLINTEND(readability-redundant-member-init)
 };
 
@@ -214,25 +233,29 @@ struct StateContext {
 // (docs/world/pursuit.md). CPlayer::SendMsg (0054c5d0) sets them; the initial values are
 // 0054b4a0's. A CPlayer reports neither its cell nor its walking (GameActor::reports false).
 struct OwnPlayer {
-  std::int32_t goal_x = 0;       // +0x308 and +0x30c, the cell it last asked to walk to; -1
-  std::int32_t goal_y = 0;       // after SetState but to walking
-  std::uint32_t acted_at = 0;    // +0x310, timeGetTime when it last acted on its target
-  std::uint32_t premove_at = 0;  // +0x314, when message 9 set PreMove
-  std::int32_t pursuit = 0;      // +0x318, what it pursues: 1 and 5 an actor to attack (5
-                                 // one faster than it), 2 an item to pick up, 3 an actor and
-                                 // 4 a cell to cast a skill on, 6 a skill's object; 0 none
-  std::int32_t premove = 0;      // +0x31c, message 9's: a move sent ahead of the server's
-  std::int32_t attack_mode = 0;  // +0x320, message 0xa's second word: 2 attacks on
-  std::int32_t acted = 0;        // +0x324, set once it acts, until the next order
-  std::int32_t move_queued = 0;  // +0x32c: a move to +0x358, +0x35c waits for an attack, a
-                                 // flinch or a fall (states 2, 5 and 6) to end
-  std::int32_t target_id = 0;    // +0x330, the actor, item or skill's object pursued
-  std::int32_t acts = 0;         // +0x334, the times it acted on the target
-  std::uint32_t asked_at = 0;    // +0x338, when it last asked to walk toward an attack's
-                                 // target
-  std::int32_t skill = 0;        // +0x344, the skill to cast
-  std::int32_t range = 1;        // +0x348, its range in cells
-  std::int32_t cell_x = 0;       // +0x350 and +0x354, the cell to cast on
+  std::int32_t goal_x = 0;          // +0x308 and +0x30c, the cell it last asked to walk to; -1
+  std::int32_t goal_y = 0;          // after SetState but to walking
+  std::uint32_t acted_at = 0;       // +0x310, timeGetTime when it last acted on its target
+  std::uint32_t premove_at = 0;     // +0x314, when message 9 set PreMove
+  std::int32_t pursuit = 0;         // +0x318, what it pursues: 1 and 5 an actor to attack (5
+                                    // one faster than it), 2 an item to pick up, 3 an actor and
+                                    // 4 a cell to cast a skill on, 6 a skill's object; 0 none
+  std::int32_t premove = 0;         // +0x31c, message 9's: a move sent ahead of the server's
+  std::int32_t attack_mode = 0;     // +0x320, message 0xa's second word: 2 attacks once
+  std::int32_t acted = 0;           // +0x324, set once it acts, until the next order
+  std::int32_t walk_asked = 0;      // +0x328, set once message 0x5b asks the game mode to walk,
+                                    // cleared by a move (message 0)
+  std::int32_t move_queued = 0;     // +0x32c: a move to +0x358, +0x35c waits for an attack, a
+                                    // flinch or a fall (states 2, 5 and 6) to end
+  std::int32_t target_id = 0;       // +0x330, the actor, item or skill's object pursued
+  std::int32_t acts = 0;            // +0x334, the times it acted on the target
+  std::uint32_t asked_at = 0;       // +0x338, when it last asked to walk toward an attack's
+                                    // target
+  std::uint32_t walk_asked_at = 0;  // +0x33c, when message 0x5b last asked
+  std::int32_t skill = 0;           // +0x344, the skill to cast
+  std::int32_t range = 1;           // +0x348, its range in cells
+  std::int32_t level = 0;           // +0x34c, its level
+  std::int32_t cell_x = 0;          // +0x350 and +0x354, the cell to cast on
   std::int32_t cell_y = 0;
   std::int32_t queued_x = -1;  // +0x358 and +0x35c
   std::int32_t queued_y = -1;

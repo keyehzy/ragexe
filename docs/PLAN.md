@@ -1401,7 +1401,7 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     - all 245 game and CRT classes have a size and a destructor, and all but
       `type_info` (static data) have a constructor: out of line, or for 16 classes
       inlined where they are created (`C3dGround15` in `CWorld::LoadWorld`, five
-      windows in `UIWindowMgr::method_004ad670`, ...);
+      windows in `UIWindowMgr::MakeWindow`, ...);
     - of the 52 `std` classes, the five `*_base` tags have no functions at all, and
       `std::ios_base` is a virtual base its streams construct.
 
@@ -3010,13 +3010,36 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     loses it to the free cell; the cast's aim swaps y for its sectors from 205° and 295°.
   - **Checks:** `tools/walk_oracle.py`'s `o` on all 287 maps, a `CPlayer` whose own messages
     are recorded at `CPlayer::SendMsg`'s switch, the rest going on to `CPc`'s: 11,480 own
-    players over 2,252,355 updates equal; 282,530 queries in all, the older counts unchanged
+    players over 2,237,010 updates equal; 282,530 queries in all, the older counts unchanged
     and the older vector files regenerate byte-identical. `own_update_vectors.inc` (1,281) keeps
     short ones and each edge: the range a float either side, the sectors' edges, the roundings
     that decide the range and the free cell, the periods, the states.
   - **Labels:** `CPlayer`'s `Update`, `PursueTarget`, `SendQueuedMove`, `SendMsg`, `ReportCell`
     and `ReportWalking`; `CGameMode::IsCellBlocked`, `CRenderObject::GetDistanceTo` and
     `ClientState::AddPingSample`.
+
+- [x] The own player's messages (`docs/world/orders.md`, `src/world/player_orders`):
+  `CPlayer::SendMsg` (`0054c5d0`), the 21 messages it handles itself of its switch's 0 to 0x67,
+  the rest left to `CPc::SendMsg`. The move (0) at the player's speed (`ClientState`+0xd94),
+  again from the cell under the player when the order's finds no path; the attack (0xa, 5 past
+  four thirds of the speed) and again (0x3c); the pursuit's ends (0xd, 0xf); the look (0x10),
+  turning the head (+0x294) before the body by the sector of the turn; the walk (0x11) queued
+  while attacking and asked (0x5b) at most once a second (+0x328, +0x33c); the item, the casts on
+  an actor, a cell and an object (0x12, 0x29, 0x41, 0x67) and what they ask of the game mode
+  (0x1d, 0x1e, 0x28, 0x2a, 0x42, window 0x54 for skill 0x7d); the level (0x5a). What the player
+  sends itself, the pursuit's and `SetState`'s queued move included, is handled in turn.
+  - **Found on the way:** the move's second search keeps the segment and a move found neither
+    way leaves the state; four thirds wraps and is compared unsigned. `PathFinder::BuildPath`'s
+    times round the exact speed's products once (`fild`, `fimul`): the port had rounded the
+    speed to a float, different past 2^24 and undefined past 2^31.
+  - **Checks:** `tools/walk_oracle.py`'s `m` on all 287 maps, every message through the
+    original's switch and recorded there, the game mode's 0x4d and window 0x54's records read:
+    11,480 own players sent 71,024 messages equal; 294,010 queries in all, the older counts
+    unchanged and the older vector files regenerate byte-identical. `own_orders_vectors.inc`
+    (1,398) keeps short ones and each edge: each message in each state, hiding or not, four
+    thirds about its limit, the look's sector edges, head states and the angles 45° and 315°
+    exactly, the walk asked about its second, moves past 2^24.
+  - **Labels:** `CPlayer::SendMsg` described whole, `UIWindowMgr::MakeWindow`.
 
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,

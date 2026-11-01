@@ -179,12 +179,12 @@ UIMiniGameWnd	rtti	UIFrameWnd@0	144	estimated	1	004a2200		004a2260	004a2230	21	2
 UISelectMiniGameWnd	rtti	UIFrameWnd@0	128	new	1	004a2a90		004a2af0	004a2ac0	7	7	ui		
 UIMiniGameScoreWnd	rtti	UIFrameWnd@0	180	new	1	004a3220		004a32e0	004a32b0	9	9	ui		
 UIWindowMgr	rtti		1152	estimated	1	004a7660		004a7ab0	004a7890	93	93	ui		UIWindow@0x60 UIWindow@0x64 UIWindow@0x68 UIWindow@0x6c UIBasicInfoWnd@0x84
-UIMinimapZoomWnd	rtti	UIFrameWnd@0	100	new	1		UIWindowMgr::method_004ad670	004b12e0	004b12b0	5	5	ui		
-UIEmotionListWnd	rtti	UIFrameWnd@0	248	new	1		UIWindowMgr::method_004ad670	004b13e0	004b13b0	10	10	ui		UISpriteButton@0x7c
-UIEmotionWnd	rtti	UIFrameWnd@0	192	new	1		UIWindowMgr::method_004ad670	004b13a0	004b1370	9	9	ui		UIEditCtrl@0x68 UIStaticText@0x90 UIStaticText@0xb4 UIBitmapButton@0xb8
-UIWebBrowserWnd	rtti	UIFrameWnd@0	100	new	1		UIWindowMgr::method_004ad670		004b1420	1	1	ui		
-UINotifyLevelUpWnd	rtti	UIFrameWnd@0	100	new	1		UIWindowMgr::method_004ad670	004b1320	004b12f0	5	5	ui		
-UINotifyJobLevelUpWnd	rtti	UINotifyLevelUpWnd@0	100	new	1		UIWindowMgr::method_004ad670	004b1360	004b1330	3	3	ui		
+UIMinimapZoomWnd	rtti	UIFrameWnd@0	100	new	1		UIWindowMgr::MakeWindow	004b12e0	004b12b0	5	5	ui		
+UIEmotionListWnd	rtti	UIFrameWnd@0	248	new	1		UIWindowMgr::MakeWindow	004b13e0	004b13b0	10	10	ui		UISpriteButton@0x7c
+UIEmotionWnd	rtti	UIFrameWnd@0	192	new	1		UIWindowMgr::MakeWindow	004b13a0	004b1370	9	9	ui		UIEditCtrl@0x68 UIStaticText@0x90 UIStaticText@0xb4 UIBitmapButton@0xb8
+UIWebBrowserWnd	rtti	UIFrameWnd@0	100	new	1		UIWindowMgr::MakeWindow		004b1420	1	1	ui		
+UINotifyLevelUpWnd	rtti	UIFrameWnd@0	100	new	1		UIWindowMgr::MakeWindow	004b1320	004b12f0	5	5	ui		
+UINotifyJobLevelUpWnd	rtti	UINotifyLevelUpWnd@0	100	new	1		UIWindowMgr::MakeWindow	004b1360	004b1330	3	3	ui		
 C3dNode	rtti		336	new	1	004b6960		004b6ac0	004b6a90	12	12	world	Matrix@0xb4 TranslationKeys@0xe4 RotationKeys@0xf4 ScaleKeys@0x104	
 C3dNodeHAL	rtti	C3dNode@0	388	new	1		C3dNodeHAL::vf01	004b9260	004b9230	4	4	world	Matrix@0xb4 TranslationKeys@0xe4 RotationKeys@0xf4 ScaleKeys@0x104	
 C3dGround	rtti		236	new	1	004bc220		004bc3a0	004bc370	21	21	world	LightmapAtlas@0x14	

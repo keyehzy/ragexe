@@ -67,7 +67,10 @@ std::array<std::int32_t, 2> FirstFreeNeighbour(const res::AttrMap& attr, std::in
 }
 
 void Send(const StateContext& context, std::int32_t id, std::int32_t a = 0, std::int32_t b = 0) {
-  if (context.actor_messages != nullptr) context.actor_messages->push_back({id, a, b, 0});
+  if (context.send_own)
+    context.send_own(id, a, b);
+  else if (context.actor_messages != nullptr)
+    context.actor_messages->push_back({id, a, b, 0});
 }
 
 // Message 0x5b to a cell, kept as the goal.

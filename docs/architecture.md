@@ -461,7 +461,7 @@ counts, the subsystem and the typed members.
   a virtual base that its streams construct.
 - Sixteen game classes are only ever constructed inline, where they are created: for
   example `C3dGround15` in `CWorld::LoadWorld`, the emotion and level-up windows in
-  `UIWindowMgr::method_004ad670`, `CDummyEffectLauncher` in `CGameMode::LaunchEffectAt`.
+  `UIWindowMgr::MakeWindow`, `CDummyEffectLauncher` in `CGameMode::LaunchEffectAt`.
 - The curated classes without a constructor or destructor are plain records with no
   vtable (`Matrix`, the key vectors, `EdgeRect`): their trivial constructors leave no
   code of their own, or nothing destroys them.

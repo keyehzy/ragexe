@@ -125,7 +125,9 @@ node, always the first taken, is never written there. The times:
 - each after that: the step before, and the speed for a side (an even direction) or the
   speed times 1.414 (`005e8a80`), truncated, for a diagonal.
 
-The times are unsigned and wrap.
+The times are unsigned and wrap. Both products load the speed exactly (`fild`, `fimul`) and are
+rounded once to single precision, then `__ftol` keeps the low dword: past 2^24 this differs from
+the speed rounded to a float first ([orders.md](orders.md), whose moves reach such speeds).
 
 **`GetEndKey`** (`004cd1b0`) is the last step's time.
 

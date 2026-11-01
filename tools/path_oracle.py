@@ -221,6 +221,9 @@ OWN_OFFSETS = (0x308, 0x30C, 0x310, 0x314, 0x318, 0x31C, 0x320, 0x324, 0x32C, 0x
                0x350, 0x354, 0x358, 0x35C)
 PLAYER_VTABLE, OWN_SWITCH, OWN_SWITCH_INDICES, OWN_SWITCH_LAST, OWN_SWITCH_DEFAULT = 0x5E9CF4, 0x54C5FB, 0x54CF18, 0x67, 20
 GET_ITEM_BY_ID, PING, ATTACK_RANGE, PICKED_LIST = 0x4C4D20, 0x686B94, 0x686CB0, 0x198
+ORDER_FIELDS = ["walk_asked", "walk_asked_at", "level", "own_speed", "skill_range", "tspeed", "t1f4"]
+ORDER_RECORD, OWN_SPEED, SKILL_RANGE, OBJECT_SKILL_MESSAGE = 13, 0x687404, 0x364, 0x67
+MAKE_WINDOW, WINDOW_MANAGER, SKILL_WINDOW_SLOT, CELL_SKILL = 0x4AD670, 0x641FA8, 0x94 // 4, 0x4D
 SINGLE = 0x007F
 SPEEDS = [150, 150, 150, 100, 200, 75, 300, 120, 1, 7, 999]
 
@@ -352,8 +355,28 @@ class Oracle:
         mode_vtable = emu.scratch(size=0x100)
         emu.write_u32(mode_vtable + 4 * SEND_MESSAGE_SLOT, MESSAGE_STUB)
         emu.write_u32(self.mode, mode_vtable)
-        self.messages = []
-        emu.replace_thiscall(MESSAGE_STUB, 4, lambda this, *v: self.messages.extend(v))
+        self.messages, self.ordering, self.cell_skills = [], False, []
+
+        def mode_message(this, *v):
+            if self.ordering and v[0] == CELL_SKILL:
+                self.cell_skills.append([CELL_SKILL, *struct.unpack("<4I", emu.mem_read(v[1], 16)), *v[2:]])
+            else:
+                self.messages.extend(v)
+        emu.replace_thiscall(MESSAGE_STUB, 4, mode_message)
+        # For m: UIWindowMgr's window 0x54 (004ad670) a stand-in whose vf37 records what it is sent.
+        skill_window, skill_window_vtable = emu.scratch(size=0x10), emu.scratch(size=0x100)
+        emu.write_u32(skill_window, skill_window_vtable)
+        emu.write_u32(skill_window_vtable + 4 * SKILL_WINDOW_SLOT, MESSAGE_STUB + 0x50)
+        emu.mem_write(MESSAGE_STUB + 0x50, b"\xC3")
+        emu.replace_thiscall(MESSAGE_STUB + 0x50, 5, lambda this, sender, message, a, b, c: self.cell_skills.append(
+            [0x54, sender, message, *struct.unpack("<4I", emu.mem_read(a, 16)), b, c]))
+
+        def make_window(uc, address, size, _):
+            esp = emu.esp()
+            if not self.ordering or uc.reg_read(UC_X86_REG_ECX) != WINDOW_MANAGER or emu.read_u32(esp + 4) != 0x54:
+                return
+            emu.complete(skill_window, emu.read_u32(esp), esp + 8)
+        emu.hook_code(MAKE_WINDOW, MAKE_WINDOW, make_window)
         self.windows = []
         emu.replace_thiscall(CLOSE_WINDOW, 1, lambda this, window: self.windows.append(window))
         # The pet's lines (ClientState's tables): both levels 0, so the table's first record.
@@ -393,7 +416,9 @@ class Oracle:
                 self.own_messages += [0, 0, 0, 0]
                 self.own_moves += struct.unpack("<7I", emu.mem_read(a, 28))
             else:
-                self.own_messages += [message, a, b, c]
+                self.own_messages += [message, a, 0 if message == OBJECT_SKILL_MESSAGE else b, c]
+            if self.ordering:
+                return
             for reg, offset in ((UC_X86_REG_EBX, -0x14), (UC_X86_REG_ESI, -0x18), (UC_X86_REG_EDI, -0x1C)):
                 uc.reg_write(reg, emu.read_u32(ebp + offset))
             uc.reg_write(UC_X86_REG_EBP, emu.read_u32(ebp))
@@ -606,7 +631,7 @@ class Oracle:
             kind, *values = line.split()
             v = [int(x) for x in values] if kind not in ("W", "G", "P", "T", "U", "N", "Y", "E", "Q", "A", "B", "X",
                                                          "K", "D", "H", "V", "J", "L", "O", "C", "R", "u", "p",
-                                                         "o") else []
+                                                         "o", "m") else []
             self.logged = []
             if kind == "F":
                 found = emu.call(FIND_PATH, *v, self.actor + ACTOR_PATH, this=G_PATH_FINDER).eax & 0xFF
@@ -685,6 +710,8 @@ class Oracle:
                 out.append(self.go(values, player=True, update=True))
             elif kind == "o":
                 out.append(self.go(values, player=True, update=True, own=True))
+            elif kind == "m":
+                out.append(self.go(values, player=True, own=True, orders=True))
         emu.heap_release(mark)
         return out
 
@@ -738,7 +765,7 @@ class Oracle:
         self.frames = w["frames"]
 
     def go(self, values, player=False, to=False, stand=False, enter=False, arrive=False, effects=False,
-           die=False, attack=False, land=False, cast=False, update=False, own=False):
+           die=False, attack=False, land=False, cast=False, update=False, own=False, orders=False):
         """CGameActor::vf02's message 0 on the actor, then ProcessState update by update, with
         SetState run, until the actor stands again or has faded; for a player, a CPc's."""
         emu, actor = self.emu, self.actor
@@ -747,7 +774,7 @@ class Oracle:
                  + (ENTER_FIELDS if enter else []) + (ARRIVE_FIELDS if arrive else []) + (DEATH_FIELDS if die else [])
                  + (EFFECT_FIELDS if effects else []) + (ATTACK_FIELDS if attack else [])
                  + (LAND_FIELDS if land else []) + (CAST_FIELDS if cast else []) + (UPDATE_FIELDS if update else [])
-                 + (OWN_FIELDS if own else []))
+                 + (OWN_FIELDS if own else []) + (ORDER_FIELDS if orders else []))
         g = dict(zip(names, v))
         updates = v[len(names):]
         self.place(g)
@@ -811,6 +838,8 @@ class Oracle:
             return self.cast(g, updates, player)
         if update:
             return self.update(g, updates, player, own)
+        if orders:
+            return self.orders(g, updates, extra)
         if land:
             n = ATTACK_RECORD * g["count"]
             return self.land(g, updates[:n], updates[n:], extra, player)
@@ -1307,6 +1336,44 @@ class Oracle:
             emu.write_u32(head + 4, node)
             emu.write_u32(self.mode + PICKED_LIST + 4, 1)
         self.own_messages, self.own_moves = [], []
+
+    def orders(self, g, rest, extra):
+        """m's messages through CPlayer::SendMsg, one by one, each recorded at its switch and
+        handled, as are those it sends itself."""
+        emu, actor = self.emu, self.actor
+        self.ready_own(g)
+        own_speed = emu.read_u32(OWN_SPEED)
+        for offset, name in ((0x328, "walk_asked"), (0x33C, "walk_asked_at"), (0x34C, "level")):
+            emu.write_u32(actor + offset, g[name] & 0xFFFFFFFF)
+        emu.write_u32(OWN_SPEED, g["own_speed"] & 0xFFFFFFFF)
+        emu.write_u32(self.mode + SKILL_RANGE, g["skill_range"] & 0xFFFFFFFF)
+        emu.write_u32(self.pursued + 0xC8, g["tspeed"] & 0xFFFFFFFF)
+        emu.write_u32(self.pursued + 0x1F4, g["t1f4"] & 0xFFFFFFFF)
+        self.ordering, self.cell_skills = True, []
+        count, h = rest[0], 0xCBF29CE484222325
+        words = emu.scratch(size=28)
+        send = emu.read_u32(PLAYER_VTABLE + 4 * SEND_SELF_SLOT)
+        for k in range(count):
+            record = [x & 0xFFFFFFFF for x in rest[1 + ORDER_RECORD * k:1 + ORDER_RECORD * (k + 1)]]
+            message, a, b, c = record[:4]
+            emu.mem_write(words, struct.pack("<7I", *record[4:11]))
+            self.server, self.now = record[11], record[12]
+            self.messages, self.states = [], []
+            emu.call(send, 0, message, words if message == 0 else a,
+                     words if message == OBJECT_SKILL_MESSAGE else b, c, this=actor)
+            path_count, digest = self.path()[3:5]
+            h = fnv1a64([message, *self.fields(), path_count, digest, digest >> 32, *self.messages, *extra(),
+                         *self.own(), *(emu.read_u32(actor + o) for o in (0x328, 0x33C, 0x34C)),
+                         len(self.cell_skills), *(x for r in self.cell_skills for x in r)], h)
+            self.cell_skills = []
+        self.ordering = False
+        self.target, self.target_found = self.saved_target
+        self.found = 0
+        for address in (PING, ATTACK_RANGE, OWN_ID):
+            emu.write_u32(address, 0)
+        emu.write_u32(OWN_SPEED, own_speed)
+        r = [emu.read_u32(actor + o) for o in (0x4, 0x8, 0xC, 0x38, 0x24, 0x28, 0x58)]
+        return f"sent {count} {r[0]:08x} {r[1]:08x} {r[2]:08x} {r[3]:08x} {r[4]} {r[5]} {r[6]} {h:016x}"
 
     def own(self):
         """What o's update writes beyond p's: the CPlayer's fields, what it sent itself and the

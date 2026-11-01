@@ -2915,7 +2915,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004ac590	154	code	0	ui		named	UIWindowMgr	GetWindowById	
 004ac6c0	3362	code	0	ui		named	UIWindowMgr	method_004ac6c0	
 004ad580	230	code	0	ui		named	UIWindowMgr	method_004ad580	
-004ad670	14977	code	0	ui		named	UIWindowMgr	method_004ad670	
+004ad670	14977	code	0	ui		named	UIWindowMgr	MakeWindow	
 004b12b0	33	code	0	ui		named	UIMinimapZoomWnd	`scalar_deleting_destructor'	
 004b12e0	11	code	0	ui		named	UIMinimapZoomWnd	~UIMinimapZoomWnd	
 004b12f0	33	code	0	ui		named	UINotifyLevelUpWnd	`scalar_deleting_destructor'	

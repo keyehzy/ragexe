@@ -2915,7 +2915,7 @@ entry	size	namespace	name	source	fid	thunk	calling_convention	signature
 004ac590	154	UIWindowMgr	GetWindowById	USER_DEFINED	0	0	__thiscall	undefined GetWindowById(UIWindowMgr * this)
 004ac6c0	3362	UIWindowMgr	method_004ac6c0	USER_DEFINED	0	0	__thiscall	undefined method_004ac6c0(UIWindowMgr * this)
 004ad580	230	UIWindowMgr	method_004ad580	USER_DEFINED	0	0	__thiscall	undefined method_004ad580(UIWindowMgr * this)
-004ad670	14977	UIWindowMgr	method_004ad670	USER_DEFINED	0	0	__thiscall	undefined method_004ad670(UIWindowMgr * this)
+004ad670	14977	UIWindowMgr	MakeWindow	USER_DEFINED	0	0	__thiscall	undefined MakeWindow(UIWindowMgr * this)
 004b12b0	33	UIMinimapZoomWnd	`scalar_deleting_destructor'	USER_DEFINED	0	0	__thiscall	undefined `scalar_deleting_destructor'(UIMinimapZoomWnd * this)
 004b12e0	11	UIMinimapZoomWnd	~UIMinimapZoomWnd	USER_DEFINED	0	0	__thiscall	undefined ~UIMinimapZoomWnd(UIMinimapZoomWnd * this)
 004b12f0	33	UINotifyLevelUpWnd	`scalar_deleting_destructor'	USER_DEFINED	0	0	__thiscall	undefined `scalar_deleting_destructor'(UINotifyLevelUpWnd * this)

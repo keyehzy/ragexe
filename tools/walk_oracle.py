@@ -796,13 +796,104 @@ def make_own_updates(name, width, height, attrs, count, updates=(8, 40, 200, 600
     return lines
 
 
+def make_orders(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
+    """The script for a map: players as make_plays makes them, as the own player (m,
+    docs/world/orders.md), sent a few of the messages CPlayer::SendMsg handles itself: moves
+    from the player's cell, another or one off the map toward cells near and far, walkable or
+    not; looks at the cells about the player with the facing anywhere and the head each way;
+    attacks on targets about four thirds of the player's speed; the walk asked again about its
+    second; skills on actors, cells (0x7d among them) and objects; in each state, hiding or not."""
+    rng = random.Random(zlib.crc32(b"orders " + name.encode()))
+    walkable = [(k % width, k // width) for k, a in enumerate(attrs) if a not in (1, 5)] or [(0, 0)]
+    lines = []
+    half_w, half_h = width // 2, height // 2
+    for line in make_plays("orders " + name, width, height, attrs, count, updates):
+        if line[0] != "P":
+            continue
+        tokens = line.split()[1:]
+        fields, times = tokens[:44], tokens[44:]
+        server, tick = int(times[0]), int(times[1])
+        fields[2] = f"0x{bits(f32(rng.choice([rng.uniform(0, 360), rng.uniform(0, 360), rng.uniform(-720, 720), 0.0, 180.0, 359.9, -0.0, 3000.0, -3000.0]))):08x}"
+        fields[8] = str(rng.choice([0, 0, 0, 2, 0x22, 0x20, rng.getrandbits(11)]))
+        fields[17] = str(rng.choice([0, 0, 0, 1, 1, 2, 4, 5, 6, 6, 3, 7, 8]))
+        fields[19] = str(int(rng.random() < 0.15))
+        fields[40] = str(rng.choice([0, 0, 1, 1, 2, 2, 3]))
+        x, z = (struct.unpack("<f", struct.pack("<I", int(fields[k], 0) & 0xFFFFFFFF))[0] for k in (0, 1))
+        cx, cy = int(x // 5 + half_w), int(z // 5 + half_h)
+        near = lambda c, r=3: c + rng.randint(-r, r)
+        target = rng.choice([rng.randint(1, 0x7FFFFFFF), 110000 + rng.randint(0, 1000), 2000000 + rng.randint(0, 99)])
+        skill = rng.choice([0, 0x7D, 0x7D, 0x89, rng.randint(1, 400)])
+        own_fields = [
+            rng.choice([cx, -1, near(cx)]), rng.choice([cy, -1, near(cy)]),
+            tick - rng.randint(0, 5000), tick - rng.randint(0, 5000),
+            rng.choice([0, 1, 1, 5, 5, 2, 3, 3, 4, 6, 7, -1]),
+            rng.choice([0, 0, 1]), rng.choice([0, 0, 2, 1, 5]), rng.choice([0, 0, 1]), rng.choice([0, 0, 1]),
+            target, rng.choice([0, 0, 1, rng.randint(0, 9)]), tick - rng.randint(0, 5000),
+            skill, rng.choice([1, 1, 2, 9, 0, -1]),
+            near(cx, 10), near(cy, 10), rng.choice([-1, near(cx)]), rng.choice([-1, near(cy)]),
+            rng.choice([0, 100, rng.randint(0, 2000)]), rng.choice([1, 2, 9]),
+            rng.choice([target, rng.randint(1, 0x7FFFFFFF)]),
+            rng.choice([1, 1, 1, 0, 3, 7]),
+            f"0x{bits(f32(x + rng.uniform(-30, 30))):08x}", "0", f"0x{bits(f32(z + rng.uniform(-30, 30))):08x}",
+            rng.choice([0, 0, 1, 3]), near(cx), near(cy), 0, rng.choice([0, 7, 0x8D]),
+            rng.choice([0, 0, 0x20]), 0,
+        ]
+        own_speed = rng.choice([150, 150, 100, 200, 0, 1, 2, 3, 0x7FFFFFFF, 0x40000000, 0x60000000, -1, -3,
+                                rng.randint(0, 1000)])
+        limit = int(((own_speed * 4) & 0xFFFFFFFF) - (1 << 32 if (own_speed * 4) & 0x80000000 else 0))
+        limit = int(limit / 3)
+        order_fields = [
+            rng.choice([0, 0, 1]), tick - rng.choice([0, 999, 1000, 1001, rng.randint(0, 5000), -5]),
+            rng.choice([0, 1, 5, 10]), own_speed, rng.choice([5, 1, 9, 0, -1]),
+            rng.choice([limit, limit, limit + 1, limit - 1, 0, -1, 0x7FFFFFFF, rng.randint(0, 400)]),
+            rng.choice([0, 0, 0x14, 0x13]),
+        ]
+        script = []
+        for _ in range(rng.choice([1, 2, 4, 8, 16])):
+            message = rng.choice([0, 0, 0, 8, 9, 0xA, 0xA, 0xD, 0xF, 0xF, 0x10, 0x10, 0x10, 0x10, 0x11, 0x11, 0x12,
+                                  0x1D, 0x1E, 0x1F, 0x28, 0x28, 0x29, 0x2A, 0x3C, 0x41, 0x42, 0x42, 0x5A, 0x5B,
+                                  0x5B, 0x5B, 0x67])
+            a, b, c = rng.choice([target, rng.randint(1, 0x7FFFFFFF), 0]), 0, 0
+            words = [0] * 7
+            if message == 0:
+                sx, sy = rng.choice([(cx, cy), (cx, cy), rng.choice(walkable), (-5, cy), (cx, height + 3),
+                                     (near(cx), near(cy))])
+                gx, gy = rng.choice([(near(cx, 6), near(cy, 6)), rng.choice(walkable), (near(sx), near(sy)),
+                                     (-2, -2)])
+                words = [(server + rng.choice([0, -rng.randint(0, 3000), rng.randint(0, 200)])) & 0xFFFFFFFF,
+                         sx, sy, rng.choice([8, rng.randint(0, 15)]), rng.choice([8, rng.randint(0, 15)]), gx, gy]
+            elif message in (9, 0x11, 0x5B, 0x10):
+                a, b = (near(cx, 2), near(cy, 2)) if message == 0x10 else (near(cx, 8), near(cy, 8))
+            elif message == 0xA:
+                b = rng.choice([0, 1, 2])
+            elif message in (0x1D, 0x28):
+                b = rng.choice([0x8D, 0x8F, 0x98, 0x8E, 0, 7])
+            elif message == 0x29:
+                b, c = rng.choice([0x89, 0x89, skill, rng.randint(1, 400)]), rng.choice([1, 2, 9, 0])
+            elif message == 0x41:
+                a, b, c = rng.choice([skill, 0x7D, rng.randint(1, 400)]), near(cx, 9), near(cy, 9)
+            elif message == 0x5A:
+                a = rng.choice([1, 5, 10, 0, -1])
+            elif message == 0x67:
+                words = [rng.getrandbits(32), rng.choice([0, 0x7D, rng.randint(1, 400)]), rng.choice([1, 2, 9]),
+                         rng.choice([1, 5, 10])] + [0] * 3
+            step = rng.choice([0, 0, 1, 16, 450, 999, 1000, 1001, 1200, rng.randint(0, 5000)])
+            server, tick = (server + step) & 0xFFFFFFFF, (tick + step) & 0xFFFFFFFF
+            script += [message, a, b, c, *words, server, tick]
+        lines.append("m " + " ".join(fields + [str(f & 0xFFFFFFFF) if isinstance(f, int) else f
+                                               for f in own_fields + order_fields]
+                                     + [str(len(script) // path_oracle.ORDER_RECORD)]
+                                     + [str(v & 0xFFFFFFFF) for v in script]))
+    return lines
+
+
 def main():
     args = path_oracle.arguments("walks per map", 40)
     ours, originals = path_oracle.run_maps(
         args, lambda *a: make_walks(*a) + make_goes(*a) + make_plays(*a) + make_tos(*a)
         + make_stands(*a) + make_enters(*a) + make_arrivals(*a) + make_effects(*a)
         + make_deaths(*a) + make_attacks(*a) + make_landings(*a) + make_casts(*a) + make_updates(*a)
-        + make_own_updates(*a),
+        + make_own_updates(*a) + make_orders(*a),
         "walks")
     totals = {}
     for (_, lines, _), want in zip(ours, originals):
@@ -813,12 +904,14 @@ def main():
                    "K": "player effects ", "D": "death ", "H": "player death ", "V": "attack ",
                    "J": "player attack ", "L": "land ", "O": "player land ", "C": "cast ",
                    "R": "player cast ", "u": "update ", "p": "player update ",
-                   "o": "own update "}[line[0]] + result.split()[0]
+                   "o": "own update ", "m": "orders "}[line[0]] + result.split()[0]
             totals[key] = totals.get(key, 0) + 1
             if line[0] in "WGPTUNYEQABDHVJLOCRup" and result != "-":
                 totals["updates"] = totals.get("updates", 0) + int(result.split()[1])
             if line[0] == "o":
                 totals["own updates"] = totals.get("own updates", 0) + int(result.split()[1])
+            if line[0] == "m":
+                totals["own messages"] = totals.get("own messages", 0) + int(result.split()[1])
             if line[0] in "XK":
                 totals["effect messages"] = totals.get("effect messages", 0) + int(result.split()[1])
     return path_oracle.report(ours, originals, totals, "queries")

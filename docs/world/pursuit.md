@@ -42,9 +42,10 @@ Unlike `CPc`'s, it moves no gauge. It returns what the state's update returns.
 | +0x344, +0x348, +0x34c | the skill, its range in cells and its level |
 | +0x350, +0x354 | the cell to cast on |
 
-Message 0xa sets an attack's pursuit: 5 when the target's speed (+0xc8) is more than four
-thirds of the player's (`00687404`), 1 otherwise, with +0x338 1200 ms back so the first ask
-goes at once. Message 0xd ends the pursuit (+0x318 and +0x324 0) and tells the game mode 0x1c.
+The messages set them ([orders.md](orders.md)): 0xa an attack's pursuit, 5 when the target's
+speed (+0xc8) is past four thirds of the player's (`ClientState`+0xd94, `00687404`), 1
+otherwise; 0x3c the attack again, with +0x338 1200 ms back so the first ask goes at once.
+Message 0xd ends the pursuit (+0x318 and +0x324 0) and tells the game mode 0x1c.
 
 ## PreMove
 
@@ -64,13 +65,13 @@ distance is `CRenderObject::GetDistanceTo`'s (`00500560`): the root of the squar
 apart, then the root of its square and y apart's, each sum and root rounded to a float
 (`SqrtFloat`, `00409570`). For a big model (+0x238 1, which `C3dGrannyGameActor::vf13` sets
 for jobs 0x49d and 0x504) it is 20 less, and no less than 0, an unordered one 0. Each way sends
-the player messages it handles itself:
+the player messages it handles itself ([orders.md](orders.md)):
 
 | Message | `CPlayer::SendMsg` |
 |---------|--------------------|
 | 0xd | ends the pursuit |
-| 0x10 (x, y) | in states 0, 4 and 6, faces the cell (+0x38, +0x294), and more |
-| 0x1d | the game mode's 0x96 with 0 and +0x330 |
+| 0x10 (x, y) | in states 0, 4 and 6, looks at the cell (+0x38, +0x294) |
+| 0x1d | the game mode's 0x96 with 0 and +0x330 (the pursuit sends no job) |
 | 0x28 | the game mode's 0x96 with 7 and +0x330, unless that actor's +0x1f4 is 20 |
 | 0x2a | the game mode's 0x4c (+0x344, +0x330, +0x34c) |
 | 0x42 | the game mode's 0x4d with +0x344, the cell and +0x34c; for skill 0x7d a window |
@@ -147,7 +148,8 @@ empty: the own player tells the game mode neither the cell it stands on (0xc) no
 `PreMove` and `UpdateOwnPlayer` in `src/world/actor_update`. `PlayerActor::own` (an
 `OwnPlayer`) holds the fields and makes `SetPlayerState` `CPlayer`'s; `GameActor::reports`
 false keeps the reports back; `GameActor::model_kind` is +0x238. What the player sends itself
-goes to `StateContext::actor_messages`, a move's order to `own_moves`; the world's finds are
+goes to `StateContext::send_own` (`SendOwnPlayerMessage`, [orders.md](orders.md)) when it is
+set, otherwise to `actor_messages`, a move's order to `own_moves`; the world's finds are
 `target_actor`, `item` and `skill_object`, and the list `picked`.
 
 `ragres find-paths` takes `o`: a player updated whole as the own player.
@@ -166,9 +168,9 @@ goes to `StateContext::actor_messages`, a move's order to `own_moves`; the world
 - **What is hashed:** after each update, p's, the `CPlayer`'s fields, what it sent itself and
   the orders of its moves, and the list's size and ids.
 
-The hashes equal `ragres find-paths`: **11,480 own players** (`o`) over 2,252,355 updates, 892
-faded and 10,588 updated to the end. The full run, 282,530 queries on all 287 maps, keeps the older counts, and the older vector
-files regenerate byte-identical.
+The hashes equal `ragres find-paths`: **11,480 own players** (`o`) over 2,237,010 updates, 848
+faded and 10,632 updated to the end. The full run, 282,530 queries on all 287 maps, keeps the
+older counts, and the older vector files regenerate byte-identical.
 
 `tools/own_update_vectors.py` writes `tests/unit/own_update_vectors.inc` (1,281), which
 `tests/unit/walk_test.cpp` replays: the three maps' scripts, then updates that each hang on one
@@ -188,5 +190,5 @@ Walking (state 1) is not among them: the update needs a path for it. So a pursui
 the goal kept for walking, and `SetState` from states 3 and 6 (which no update sets a state
 from) are left unchecked.
 
-**Not ported:** `CPlayer::SendMsg` itself (what the messages above do), and `SetState`'s
-state 3 work, the game mode's 5 and effect 0x150.
+**Not ported:** `SetState`'s state 3 work, the game mode's 5 and effect 0x150. What the
+messages above do is `CPlayer::SendMsg`'s, [orders.md](orders.md).

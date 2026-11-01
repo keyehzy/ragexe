@@ -3,6 +3,8 @@
 #include <cmath>
 #include <cstddef>
 
+#include "core/x87.h"
+
 namespace ragexe::world {
 
 namespace {
@@ -21,9 +23,6 @@ std::int32_t Abs(std::int32_t v) {
 std::int32_t Wrap(std::int64_t v) {
   return static_cast<std::int32_t>(static_cast<std::uint32_t>(v));
 }
-
-// __ftol: toward zero.
-std::int32_t Truncate(float v) { return static_cast<std::int32_t>(v); }
 
 }  // namespace
 
@@ -192,13 +191,15 @@ void PathFinder::BuildPath(std::uint32_t time, Node* goal, std::int32_t speed,
     path.steps[i].y = n->y;
     path.steps[i].dir = n->dir;
   }
-  const std::int32_t diagonal = Truncate(static_cast<float>(speed) * kDiagonal);
+  // fild and fimul load the speed exactly; each product is rounded once, then __ftol.
+  const std::int32_t diagonal =
+      core::Ftol(core::RoundedProduct(kDiagonal, static_cast<double>(speed)));
   path.steps[0].time = time;
   const float dx = static_cast<float>(path.steps[1].x) - path.start_x;
   const float dy = static_cast<float>(path.steps[1].y) - path.start_y;
   const float distance = std::sqrt(dx * dx + dy * dy);
-  path.steps[1].time =
-      time + static_cast<std::uint32_t>(Truncate(distance * static_cast<float>(speed)));
+  path.steps[1].time = time + static_cast<std::uint32_t>(core::Ftol(
+                                  core::RoundedProduct(distance, static_cast<double>(speed))));
   for (std::size_t k = 2; k < count; ++k) {
     const std::int32_t step = path.steps[k].dir % 2 == 0 ? speed : diagonal;
     path.steps[k].time = path.steps[k - 1].time + static_cast<std::uint32_t>(step);

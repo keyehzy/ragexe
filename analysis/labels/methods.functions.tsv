@@ -245,7 +245,6 @@ address	namespace	name	calling_convention	evidence
 004ac360	UIWindowMgr	method_004ac360	__thiscall	__thiscall; called with this from 1 functions of UIWindowMgr, e.g. 0050d630
 004ac6c0	UIWindowMgr	method_004ac6c0	__thiscall	__thiscall; called with this from 103 functions of UIWindowMgr, e.g. 004440d0
 004ad580	UIWindowMgr	method_004ad580	__thiscall	__thiscall; called with this from 16 functions of UIWindowMgr, e.g. 0045d540
-004ad670	UIWindowMgr	method_004ad670	__thiscall	__thiscall; called with this from 95 functions of UIWindowMgr, e.g. 00440980
 004b25f0	UIWindowMgr	method_004b25f0	__thiscall	__thiscall; called with this from 1 functions of UIWindowMgr, e.g. 005b1130
 004b3970	UIWindowMgr	method_004b3970	__thiscall	__thiscall; called with this from 89 functions of UIWindowMgr, e.g. 004522f0
 004b4010	UIWindowMgr	method_004b4010	__thiscall	__thiscall; called with this from 1 functions of UIWindowMgr, e.g. 0049e6d0

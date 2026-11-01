@@ -19,6 +19,7 @@
 #include "world/actor_walk.h"
 #include "world/actor_window.h"
 #include "world/path_finder.h"
+#include "world/player_orders.h"
 #include "world/player_pursuit.h"
 
 using ragexe::res::AttrMap;
@@ -116,6 +117,7 @@ struct AttackChoiceVector {
 #include "enter_vectors.inc"
 #include "land_vectors.inc"
 #include "move_to_vectors.inc"
+#include "own_orders_vectors.inc"
 #include "own_update_vectors.inc"
 #include "player_state_vectors.inc"
 #include "stand_vectors.inc"
@@ -252,7 +254,7 @@ std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istr
                bool player, bool to = false, bool stand = false, bool enter = false,
                bool arrive = false, bool with_effects = false, bool die = false,
                bool attack = false, bool land = false, bool cast = false, bool update = false,
-               bool own = false) {
+               bool own = false, bool orders = false) {
   std::vector<std::uint32_t> v;
   for (std::string token; fields >> token;)
     v.push_back(static_cast<std::uint32_t>(std::stoll(token, nullptr, 0)));
@@ -266,13 +268,14 @@ std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istr
   constexpr std::size_t kCastFields = 21;
   constexpr std::size_t kUpdateFields = 30;
   constexpr std::size_t kOwnFields = 32;
+  constexpr std::size_t kOrderFields = 7;
   const std::size_t hit_words = land ? 10 * std::size_t{v[base_fields + kLandFields - 1]} : 0;
   const std::size_t kFields = base_fields + (to ? 1 : 0) + (stand ? 7 : 0) + (enter ? 9 : 0) +
                               (arrive ? kArriveFields + kRecordWords : 0) +
                               (with_effects ? kEffectFields : 0) + (die ? kDeathFields : 0) +
                               (attack ? kAttackFields : 0) + (land ? kLandFields + hit_words : 0) +
                               (cast ? kCastFields : 0) + (update ? kUpdateFields : 0) +
-                              (own ? kOwnFields : 0);
+                              (own ? kOwnFields : 0) + (orders ? kOrderFields : 0);
   // B, X and K: EFFECT_FIELDS, after ARRIVE_FIELDS for B.
   const std::size_t effect_at =
       base_fields + (arrive ? kArriveFields : 0) + (die ? kDeathFields : 0);
@@ -759,6 +762,157 @@ std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istr
                   static_cast<unsigned long long>(h));
     return line;
   }
+  // o and m: the CPlayer's fields, the ping, the attack range, the player's id, what CWorld finds
+  // of the one pursued (found's bits) and where it stands, its state, cell, +0x238, job and
+  // +0x21c, and CGameMode+0x198's list before, as tools/path_oracle.py's ready_own().
+  ragexe::world::GameActor pursued;
+  std::vector<std::int32_t> picked;
+  std::vector<ragexe::world::MoveOrder> own_moves;
+  if (own) {
+    const std::size_t w = base_fields + (update ? kUpdateFields : 0);
+    const auto i = [&](std::size_t k) { return static_cast<std::int32_t>(v[w + k]); };
+    ragexe::world::OwnPlayer& p = actor.own.emplace();
+    actor.reports = false;
+    p.goal_x = i(0);
+    p.goal_y = i(1);
+    p.acted_at = v[w + 2];
+    p.premove_at = v[w + 3];
+    p.pursuit = i(4);
+    p.premove = i(5);
+    p.attack_mode = i(6);
+    p.acted = i(7);
+    p.move_queued = i(8);
+    p.target_id = i(9);
+    p.acts = i(10);
+    p.asked_at = v[w + 11];
+    p.skill = i(12);
+    p.range = i(13);
+    p.cell_x = i(14);
+    p.cell_y = i(15);
+    p.queued_x = i(16);
+    p.queued_y = i(17);
+    context.ping = v[w + 18];
+    context.attack_range = i(19);
+    context.own_id = i(20);
+    const std::uint32_t found = v[w + 21];
+    pursued.object.position = {std::bit_cast<float>(v[w + 22]), std::bit_cast<float>(v[w + 23]),
+                               std::bit_cast<float>(v[w + 24])};
+    pursued.state = i(25);
+    pursued.goal_x = i(26);
+    pursued.goal_y = i(27);
+    pursued.model_kind = i(28);
+    pursued.job = i(29);
+    pursued.effect_state = v[w + 30];
+    if ((found & 1) != 0) {
+      context.target_actor = &pursued;
+      context.target = &pursued.object.position;
+    }
+    if ((found & 2) != 0) context.item = &pursued.object.position;
+    if ((found & 4) != 0) context.skill_object = &pursued;
+    if (v[w + 31] != 0) picked.push_back(p.target_id + (v[w + 31] == 2 ? 1 : 0));
+    context.picked = &picked;
+    context.own_moves = &own_moves;
+    context.actor_messages = &actor_messages;
+  }
+  // What the own player's update writes beyond p's, as tools/path_oracle.py's own().
+  const auto fold_own = [&] {
+    if (!own) return;
+    const ragexe::world::OwnPlayer& p = *actor.own;
+    for (const std::int32_t x :
+         {p.goal_x, p.goal_y, static_cast<std::int32_t>(p.acted_at),
+          static_cast<std::int32_t>(p.premove_at), p.pursuit, p.premove, p.attack_mode, p.acted,
+          p.move_queued, p.target_id, p.acts, static_cast<std::int32_t>(p.asked_at), p.skill,
+          p.range, p.cell_x, p.cell_y, p.queued_x, p.queued_y})
+      fold(static_cast<std::uint32_t>(x));
+    fold(static_cast<std::uint32_t>(4 * actor_messages.size()));
+    for (const auto& m : actor_messages) {
+      for (const std::int32_t x : {m.id, m.a, m.b, m.c}) fold(static_cast<std::uint32_t>(x));
+    }
+    actor_messages.clear();
+    fold(static_cast<std::uint32_t>(7 * own_moves.size()));
+    for (const auto& m : own_moves) {
+      for (const std::int32_t x : {static_cast<std::int32_t>(m.time), m.start_x, m.start_y, m.sub_x,
+                                   m.sub_y, m.goal_x, m.goal_y})
+        fold(static_cast<std::uint32_t>(x));
+    }
+    own_moves.clear();
+    fold(static_cast<std::uint32_t>(picked.size()));
+    fold(static_cast<std::uint32_t>(std::min<std::size_t>(picked.size(), 16)));
+    for (std::size_t k = 0; k < picked.size() && k < 16; ++k)
+      fold(static_cast<std::uint32_t>(picked[k]));
+  };
+  // m: after the own fields +0x328, +0x33c and +0x34c, the player's speed, CGameMode+0x364, and
+  // the one pursued's speed and +0x1f4, the messages through CPlayer::SendMsg, as
+  // tools/path_oracle.py's orders().
+  if (orders) {
+    const std::size_t r = base_fields + kOwnFields;
+    ragexe::world::OwnPlayer& p = *actor.own;
+    p.walk_asked = static_cast<std::int32_t>(v[r]);
+    p.walk_asked_at = v[r + 1];
+    p.level = static_cast<std::int32_t>(v[r + 2]);
+    context.own_speed = static_cast<std::int32_t>(v[r + 3]);
+    context.skill_range = static_cast<std::int32_t>(v[r + 4]);
+    pursued.speed = static_cast<std::int32_t>(v[r + 5]);
+    pursued.field_0x1f4 = static_cast<std::int32_t>(v[r + 6]);
+    std::vector<ragexe::world::CellSkill> cell_skills;
+    context.cell_skills = &cell_skills;
+    std::uint32_t tick = 0;
+    std::uint32_t server = 0;
+    context.send_own = [&](std::int32_t id, std::int32_t a, std::int32_t b) {
+      ragexe::world::SendOwnPlayerMessage(actor, finder, {id, a, b}, context, tick, server);
+    };
+    const std::uint32_t count = v[kFields];
+    constexpr std::size_t kRecord = 13;
+    REQUIRE(v.size() >= kFields + 1 + kRecord * std::size_t{count});
+    for (std::uint32_t n = 0; n < count; ++n) {
+      const std::size_t k = kFields + 1 + kRecord * n;
+      const auto i = [&](std::size_t j) { return static_cast<std::int32_t>(v[k + j]); };
+      ragexe::world::OwnMessage message{i(0), i(1), i(2), i(3)};
+      message.order = {v[k + 4], i(5), i(6), i(7), i(8), i(9), i(10)};
+      message.object_skill = {i(5), i(6), i(7)};
+      server = v[k + 11];
+      tick = v[k + 12];
+      ragexe::world::SendOwnPlayerMessage(actor, finder, message, context, tick, server);
+      std::uint64_t digest = 0xcbf29ce484222325ull;
+      for (const auto& step : actor.path.steps) {
+        for (const std::uint32_t x :
+             {static_cast<std::uint32_t>(step.x), static_cast<std::uint32_t>(step.y),
+              static_cast<std::uint32_t>(step.dir), step.time})
+          digest = Fold(digest, x);
+      }
+      fold(v[k]);
+      fold_fields();
+      fold(static_cast<std::uint32_t>(actor.path.steps.size()));
+      fold(static_cast<std::uint32_t>(digest));
+      fold(static_cast<std::uint32_t>(digest >> 32));
+      fold_messages();
+      fold_player();
+      fold_own();
+      for (const std::int32_t x :
+           {p.walk_asked, static_cast<std::int32_t>(p.walk_asked_at), p.level})
+        fold(static_cast<std::uint32_t>(x));
+      fold(static_cast<std::uint32_t>(cell_skills.size()));
+      for (const auto& asked_for : cell_skills) {
+        if (asked_for.window) {
+          for (const std::int32_t x :
+               {0x54, 0, 0x44, asked_for.skill, asked_for.x, asked_for.y, asked_for.level, 0, 0})
+            fold(static_cast<std::uint32_t>(x));
+        } else {
+          for (const std::int32_t x :
+               {0x4d, asked_for.skill, asked_for.x, asked_for.y, asked_for.level, 0, 0})
+            fold(static_cast<std::uint32_t>(x));
+        }
+      }
+      cell_skills.clear();
+    }
+    path = actor.path;
+    char line[160];
+    std::snprintf(line, sizeof line, "sent %u %08x %08x %08x %08x %d %d %u %016llx", count,
+                  Bits(o.position[0]), Bits(o.position[1]), Bits(o.position[2]), Bits(o.facing),
+                  o.action, o.frame, static_cast<std::uint32_t>(actor.state),
+                  static_cast<unsigned long long>(h));
+    return line;
+  }
   // u and p: the actor's whole update (CNpc::Update, CPc::Update) after +0x230, the key colour,
   // +0x87, +0x1ec, +0x290, +0x1f4, +0x218, effects on, the act's frames' events, +0x2c, +0x30,
   // +0x28, the world's player, the gauges, the point on screen, +0x48, the screen's height, the
@@ -823,85 +977,6 @@ std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istr
     context.launched = &launched;
     context.launched_messages = &launched_messages;
     context.sounds = &sounds;
-    // o: the CPlayer's fields, the ping, the attack range, the player's id, what CWorld finds
-    // of the one pursued (found's bits) and where it stands, its state, cell, +0x238, job and
-    // +0x21c, and CGameMode+0x198's list before, as tools/path_oracle.py's ready_own().
-    ragexe::world::GameActor pursued;
-    std::vector<std::int32_t> picked;
-    std::vector<ragexe::world::MoveOrder> own_moves;
-    if (own) {
-      const std::size_t w = b + kUpdateFields;
-      const auto i = [&](std::size_t k) { return static_cast<std::int32_t>(v[w + k]); };
-      ragexe::world::OwnPlayer& p = actor.own.emplace();
-      actor.reports = false;
-      p.goal_x = i(0);
-      p.goal_y = i(1);
-      p.acted_at = v[w + 2];
-      p.premove_at = v[w + 3];
-      p.pursuit = i(4);
-      p.premove = i(5);
-      p.attack_mode = i(6);
-      p.acted = i(7);
-      p.move_queued = i(8);
-      p.target_id = i(9);
-      p.acts = i(10);
-      p.asked_at = v[w + 11];
-      p.skill = i(12);
-      p.range = i(13);
-      p.cell_x = i(14);
-      p.cell_y = i(15);
-      p.queued_x = i(16);
-      p.queued_y = i(17);
-      context.ping = v[w + 18];
-      context.attack_range = i(19);
-      context.own_id = i(20);
-      const std::uint32_t found = v[w + 21];
-      pursued.object.position = {std::bit_cast<float>(v[w + 22]), std::bit_cast<float>(v[w + 23]),
-                                 std::bit_cast<float>(v[w + 24])};
-      pursued.state = i(25);
-      pursued.goal_x = i(26);
-      pursued.goal_y = i(27);
-      pursued.model_kind = i(28);
-      pursued.job = i(29);
-      pursued.effect_state = v[w + 30];
-      if ((found & 1) != 0) {
-        context.target_actor = &pursued;
-        context.target = &pursued.object.position;
-      }
-      if ((found & 2) != 0) context.item = &pursued.object.position;
-      if ((found & 4) != 0) context.skill_object = &pursued;
-      if (v[w + 31] != 0) picked.push_back(p.target_id + (v[w + 31] == 2 ? 1 : 0));
-      context.picked = &picked;
-      context.own_moves = &own_moves;
-      context.actor_messages = &actor_messages;
-    }
-    // What the own player's update writes beyond p's, as tools/path_oracle.py's own().
-    const auto fold_own = [&] {
-      if (!own) return;
-      const ragexe::world::OwnPlayer& p = *actor.own;
-      for (const std::int32_t x :
-           {p.goal_x, p.goal_y, static_cast<std::int32_t>(p.acted_at),
-            static_cast<std::int32_t>(p.premove_at), p.pursuit, p.premove, p.attack_mode, p.acted,
-            p.move_queued, p.target_id, p.acts, static_cast<std::int32_t>(p.asked_at), p.skill,
-            p.range, p.cell_x, p.cell_y, p.queued_x, p.queued_y})
-        fold(static_cast<std::uint32_t>(x));
-      fold(static_cast<std::uint32_t>(4 * actor_messages.size()));
-      for (const auto& m : actor_messages) {
-        for (const std::int32_t x : {m.id, m.a, m.b, m.c}) fold(static_cast<std::uint32_t>(x));
-      }
-      actor_messages.clear();
-      fold(static_cast<std::uint32_t>(7 * own_moves.size()));
-      for (const auto& m : own_moves) {
-        for (const std::int32_t x : {static_cast<std::int32_t>(m.time), m.start_x, m.start_y,
-                                     m.sub_x, m.sub_y, m.goal_x, m.goal_y})
-          fold(static_cast<std::uint32_t>(x));
-      }
-      own_moves.clear();
-      fold(static_cast<std::uint32_t>(picked.size()));
-      fold(static_cast<std::uint32_t>(std::min<std::size_t>(picked.size(), 16)));
-      for (std::size_t k = 0; k < picked.size() && k < 16; ++k)
-        fold(static_cast<std::uint32_t>(picked[k]));
-    };
     // What the whole update writes beyond the fields, as tools/path_oracle.py's updated().
     const auto fold_updated = [&] {
       for (const std::uint32_t x :
@@ -2009,6 +2084,32 @@ TEST_CASE(
     const std::string got = kind == 'F' ? Search(finder, path, fields)
                                         : Go(map, finder, path, fields, true, false, false, false,
                                              false, false, false, false, false, false, true, true);
+    CHECK(got == v.result);
+  }
+}
+
+TEST_CASE(
+    "The own player's messages are the original's CPlayer::SendMsg: its orders, the look, the "
+    "walk asked and the moves",
+    "[walk]") {
+  int current = -1;
+  AttrMap map;
+  PathFinder finder;
+  MovePath path;
+  for (const StateQueryVector& v : kOwnOrderQueries) {
+    if (v.map != current) {
+      current = v.map;
+      map = MakeMap(kWalkMaps[current]);
+      finder = PathFinder();
+      finder.SetAttrMap(&map);
+      path = MovePath();
+    }
+    INFO(kWalkMaps[current].name << ": " << v.query);
+    std::istringstream fields(v.query);
+    char kind = 0;
+    fields >> kind;
+    const std::string got = Go(map, finder, path, fields, true, false, false, false, false, false,
+                               false, false, false, false, false, true, true);
     CHECK(got == v.result);
   }
 }
