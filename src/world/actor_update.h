@@ -55,4 +55,18 @@ StateResult UpdateNpc(GameActor& actor, const StateContext& context, std::uint32
 StateResult UpdatePlayer(PlayerActor& player, const StateContext& context, std::uint32_t now,
                          std::uint32_t server_time);
 
+// PreMove, the own player's (CPlayer::Update, 0054b7e0): with message 9's move set (+0x31c) and
+// timeGetTime past half the ping (context.ping) after it (+0x314), unsigned, message 0 to
+// itself with the server's time, the cell and sixteenths under it (CGameMode::GetCellPoint)
+// and the goal (+0x308, +0x30c), kept in context.own_moves. The original logs "PreMove".
+void PreMove(PlayerActor& player, const StateContext& context, std::uint32_t now,
+             std::uint32_t server_time);
+
+// CPlayer::Update (0054b770, vf01), the own player's (`own`, docs/world/pursuit.md):
+// HoldWhileStoneOrFrozen, RepeatSightEffect, the hits due, the windows, the key colour's end,
+// the colour brightened 8 while it is not white, PreMove, PursueTarget, the state (CPlayer's
+// vf09, CPc::ProcessState) and PlayFrameSounds. The state's result.
+StateResult UpdateOwnPlayer(PlayerActor& player, const StateContext& context, std::uint32_t now,
+                            std::uint32_t server_time);
+
 }  // namespace ragexe::world

@@ -1,8 +1,8 @@
 # The update
 
-An actor's `vf01` is its update. `CGameActor`'s is pure; each class has its own, and two are
-ported: **`CNpc::Update`** (`005404d0`) and **`CPc::Update`** (`00542e40`); `CPlayer`, the
-player's own, has its own. Each runs pieces in an order of its own and returns what the state's
+An actor's `vf01` is its update. `CGameActor`'s is pure; each class has its own, and three are
+ported: **`CNpc::Update`** (`005404d0`) and **`CPc::Update`** (`00542e40`) here, and the own
+player's, `CPlayer::Update` (`0054b770`), in [pursuit.md](pursuit.md). Each runs pieces in an order of its own and returns what the state's
 update (`vf09`, `ProcessState`, [states.md](states.md)) returns. The port is `src/world/actor_update`.
 
 | Piece | `CNpc` | `CPc` |
@@ -125,5 +125,4 @@ effect; the frames' sounds by event, a new action, the frame ahead, behind and p
 an action the act lacks; the gauge by the screen's height, +0x48 and the point; a cast's gauge ending in state 8; the
 fade).
 
-**Not ported:** the other classes' `vf01`, `CPlayer`'s (`0054b770`, which also moves the player
-ahead of the server, "PreMove") among them; `CPc::vf02`'s messages that make and fill its gauge.
+**Not ported:** the other classes' `vf01`; `CPc::vf02`'s messages that make and fill its gauge.

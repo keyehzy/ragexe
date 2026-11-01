@@ -3,6 +3,7 @@
 #include <array>
 #include <cstdint>
 #include <functional>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -129,6 +130,19 @@ struct ActorWindows {
   std::vector<WindowCall> calls;
 };
 
+// The order message 0 carries (CGameActor::vf02): when, and from which cell (with the
+// sixteenths in it) to which.
+struct MoveOrder {
+  std::uint32_t time = 0;
+  std::int32_t start_x = 0;
+  std::int32_t start_y = 0;
+  std::int32_t sub_x = 0;
+  std::int32_t sub_y = 0;
+  std::int32_t goal_x = 0;
+  std::int32_t goal_y = 0;
+  bool operator==(const MoveOrder&) const = default;
+};
+
 // What the actors' states read beyond the actor (docs/world/states.md).
 struct StateContext {
   const res::AttrMap* attr = nullptr;                   // CWorld+0x40
@@ -160,8 +174,8 @@ struct StateContext {
   std::string_view act_name{};     // the names of the body's act (+0x9c) and sprite (+0x98),
   std::string_view sprite_name{};  // which a corpse takes
   GameActor* target_actor{};       // the actor CWorld::GetActorById finds for +0x1a8, which an
-                                   // attack's hits are queued on, or for a hit's attacker;
-                                   // `target` is its position
+                                   // attack's hits are queued on, for a hit's attacker, or for
+                                   // the own player's pursuit; `target` is its position
   GameActor* player_actor{};       // the player (CWorld+0x3c) as an actor, which the hits aimed
                                    // at own_id are queued on and whom own_id's hits are from;
                                    // `player` is its position
@@ -183,7 +197,45 @@ struct StateContext {
                                    // none is made and those an actor has are not told
   std::int32_t screen_width{640};  // g_pSceneRenderer (00625e98) +0x24 and +0x28
   std::int32_t screen_height{480};
+  // The world's own player's (docs/world/pursuit.md):
+  std::vector<MoveOrder>* own_moves{};  // the orders of the moves (message 0) it sends itself,
+                                        // when kept; actor_messages has each as 0 with 0s
+  std::uint32_t ping{};             // ClientState+0x524, the mean of the last three round trips of
+                                    // packet 0x007f (ClientState::AddPingSample, 0058e280)
+  std::int32_t attack_range{};      // ClientState+0x640, in cells (packets 0x0139 and 0x013a)
+  const render::Vec3* item{};       // where the item CWorld::GetItemById (004c4d20) finds lies
+  const GameActor* skill_object{};  // the skill's object CWorld::GetSkillById (004c4db0) finds
+  std::vector<std::int32_t>* picked{};  // CGameMode+0x198 (its size +0x19c): the items asked to
+                                        // be picked up, by id
   // NOLINTEND(readability-redundant-member-init)
+};
+
+// The CPlayer fields beyond a CPc's: the world's own player's, whom the user moves
+// (docs/world/pursuit.md). CPlayer::SendMsg (0054c5d0) sets them; the initial values are
+// 0054b4a0's. A CPlayer reports neither its cell nor its walking (GameActor::reports false).
+struct OwnPlayer {
+  std::int32_t goal_x = 0;       // +0x308 and +0x30c, the cell it last asked to walk to; -1
+  std::int32_t goal_y = 0;       // after SetState but to walking
+  std::uint32_t acted_at = 0;    // +0x310, timeGetTime when it last acted on its target
+  std::uint32_t premove_at = 0;  // +0x314, when message 9 set PreMove
+  std::int32_t pursuit = 0;      // +0x318, what it pursues: 1 and 5 an actor to attack (5
+                                 // one faster than it), 2 an item to pick up, 3 an actor and
+                                 // 4 a cell to cast a skill on, 6 a skill's object; 0 none
+  std::int32_t premove = 0;      // +0x31c, message 9's: a move sent ahead of the server's
+  std::int32_t attack_mode = 0;  // +0x320, message 0xa's second word: 2 attacks on
+  std::int32_t acted = 0;        // +0x324, set once it acts, until the next order
+  std::int32_t move_queued = 0;  // +0x32c: a move to +0x358, +0x35c waits for an attack, a
+                                 // flinch or a fall (states 2, 5 and 6) to end
+  std::int32_t target_id = 0;    // +0x330, the actor, item or skill's object pursued
+  std::int32_t acts = 0;         // +0x334, the times it acted on the target
+  std::uint32_t asked_at = 0;    // +0x338, when it last asked to walk toward an attack's
+                                 // target
+  std::int32_t skill = 0;        // +0x344, the skill to cast
+  std::int32_t range = 1;        // +0x348, its range in cells
+  std::int32_t cell_x = 0;       // +0x350 and +0x354, the cell to cast on
+  std::int32_t cell_y = 0;
+  std::int32_t queued_x = -1;  // +0x358 and +0x35c
+  std::int32_t queued_y = -1;
 };
 
 // The CPc fields a player's states read and write beyond a CGameActor's.
@@ -191,6 +243,8 @@ struct PlayerActor : GameActor {
   std::int32_t saved_frame = 0;  // +0x294: the frame standing goes back to
   std::int32_t weapon = 0;       // +0x2a0 (CPc::SetWeapon, 005464b0), a kind or an item's id
   std::int32_t gauge = 0;        // +0x2dc, its gauge (UIPcGage), by number in ActorWindows
+  std::optional<OwnPlayer> own;  // a CPlayer's fields: the world's own player, whose vf10 is
+                                 // CPlayer::SetState (0054c550)
 };
 
 // CGameMode::GetAttrCell (00511d50): the attribute cell under world (x, z), floor(x / cell
@@ -247,6 +301,9 @@ void SetGameActorState(GameActor& actor, std::int32_t state, const StateContext&
 // one asked for. 7 plays action 0x20 (jobs 0x13, 0x14, 0xe, and 0xf with +0x1bc 0) or 0x60
 // once and sets +0x1ac to 6. The rest are CGameActor's, after leaving state 4 puts the player
 // on its target.
+// For the own player (`own`), CPlayer::SetState (0054c550) first: nothing while dying; but for
+// walking, the goal (+0x308, +0x30c) forgotten (-1); then SendQueuedMove. Its state 3's game
+// mode message 5 and effect 0x150 (CGameMode::LaunchEffectAt, 0050ff10) are not ported.
 void SetPlayerState(PlayerActor& player, std::int32_t state, const StateContext& context,
                     std::uint32_t now);
 
@@ -303,18 +360,6 @@ void KillGameActor(PlayerActor& player, const StateContext& context, std::uint32
 // dying, unless it already is.
 void KillGameActorAfterQueue(GameActor& actor, const StateContext& context, std::uint32_t now);
 void KillGameActorAfterQueue(PlayerActor& player, const StateContext& context, std::uint32_t now);
-
-// The order message 0 carries (CGameActor::vf02): when, and from which cell (with the
-// sixteenths in it) to which.
-struct MoveOrder {
-  std::uint32_t time = 0;
-  std::int32_t start_x = 0;
-  std::int32_t start_y = 0;
-  std::int32_t sub_x = 0;
-  std::int32_t sub_y = 0;
-  std::int32_t goal_x = 0;
-  std::int32_t goal_y = 0;
-};
 
 // CGameActor::vf02's message 0 (00505dd3): the move time from the order, FindMovePath at
 // the actor's speed; found, the goal kept and walking (segment 0), otherwise standing.

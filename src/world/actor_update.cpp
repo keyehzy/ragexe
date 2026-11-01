@@ -10,6 +10,7 @@
 #include "res/act.h"
 #include "world/actor_hit.h"
 #include "world/actor_window.h"
+#include "world/player_pursuit.h"
 
 namespace ragexe::world {
 
@@ -196,6 +197,35 @@ StateResult UpdatePlayer(PlayerActor& player, const StateContext& context, std::
   MovePlayerGauge(player, context);
   EndKey(player.object, now);
   BrightenUnlessWhite(player.object);
+  const StateResult result = ProcessGameActorState(player, context, now, server_time);
+  PlayFrameSounds(player, context);
+  return result;
+}
+
+void PreMove(PlayerActor& player, const StateContext& context, std::uint32_t now,
+             std::uint32_t server_time) {
+  if (!player.own) return;
+  const OwnPlayer& own = *player.own;
+  if (own.premove == 0 || !(now > own.premove_at + (context.ping >> 1))) return;
+  const render::Vec3& at = player.object.position;
+  const CellPoint p = CellPointAt(*context.attr, at[0], at[2]);
+  if (context.actor_messages != nullptr) context.actor_messages->push_back({});
+  if (context.own_moves != nullptr) {
+    context.own_moves->push_back(
+        {server_time, p.cell_x, p.cell_y, p.sub_x, p.sub_y, own.goal_x, own.goal_y});
+  }
+}
+
+StateResult UpdateOwnPlayer(PlayerActor& player, const StateContext& context, std::uint32_t now,
+                            std::uint32_t server_time) {
+  HoldWhileStoneOrFrozen(player);
+  RepeatSightEffect(player, context, now);
+  DeliverGameActorHits(player, context, now);
+  StepGameActorWindows(player, context, now);
+  EndKey(player.object, now);
+  BrightenUnlessWhite(player.object);
+  PreMove(player, context, now, server_time);
+  PursueTarget(player, context, now);
   const StateResult result = ProcessGameActorState(player, context, now, server_time);
   PlayFrameSounds(player, context);
   return result;

@@ -30,6 +30,9 @@ struct QueuedHit {
 // The CGameActor fields the walk reads and writes (docs/world/walk.md).
 struct GameActor {
   render::RenderObject object;
+  bool reports = true;             // vf11 and vf12 tell the game mode the cell the actor stands
+                                   // on and that it walks; a CPlayer's (0054b3d0, 0054b3e0) are
+                                   // empty
   std::int32_t state = 0;          // +0x58: 0 standing, 1 walking, docs/world/states.md
   std::int32_t field_0xa8 = 0;     // +0xa8 (CAbleToMakeEffect): 1 once effect 0x7f is launched
   std::int32_t goal_x = 0;         // +0xc0, the cell a move heads for
@@ -77,6 +80,9 @@ struct GameActor {
   float target_z = 0.0f;           // +0x22c
   std::uint32_t sight_ticks = 0;   // +0x230, updates since Sight's effect was last launched
   std::uint32_t fade_until = 0;    // +0x234: fading out until timeGetTime passes it
+  std::int32_t model_kind = 0;     // +0x238, which a 3D actor's model sets
+                                   // (C3dGrannyGameActor::vf13, 00508000): 1 for jobs 0x49d
+                                   // and 0x504, 2 for 0x2d2
   std::int32_t guild = 0;          // +0x23c (vf39)
   std::int32_t emblem = 0;         // +0x240, the guild's emblem's version
   std::array<std::int32_t, 11> effect_slots{};  // +0x244 to +0x26c: the effects that show a

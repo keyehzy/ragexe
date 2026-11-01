@@ -734,12 +734,75 @@ def make_updates(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
     return lines
 
 
+def make_own_updates(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
+    """The script for a map: players updated whole as the own player (o, docs/world/pursuit.md),
+    p's queries made afresh with the CPlayer's fields: each pursuit, its target near or far, in
+    range or not, a big model or not, found or not; the goal at the cell under the player or
+    not; the times about each period; PreMove about half the ping; a queued move; the items
+    asked for."""
+    rng = random.Random(zlib.crc32(b"own update " + name.encode()))
+    lines = []
+    half_w, half_h = width // 2, height // 2
+    for line in make_updates("own " + name, width, height, attrs, count, updates):
+        if line[0] != "p":
+            continue
+        tokens = line.split()[1:]
+        n = 44 + len(path_oracle.UPDATE_FIELDS)
+        fields, times = tokens[:n], tokens[n:]
+        tick = int(times[1])
+        x, z = (struct.unpack("<f", struct.pack("<I", int(fields[k], 0) & 0xFFFFFFFF))[0] for k in (0, 1))
+        cx, cy = int(x // 5 + half_w), int(z // 5 + half_h)
+        reach = rng.choice([0, 3, 8, 20, 60, 200])
+        tx = f32(x + rng.uniform(-reach, reach))
+        tz = f32(z + rng.uniform(-reach, reach))
+        if rng.random() < 0.05:
+            tx = rng.choice([float("inf"), float("nan"), x])
+        tcx, tcy = int(tx // 5 + half_w) if tx == tx and abs(tx) < 1e9 else 0, \
+            int(tz // 5 + half_h) if abs(tz) < 1e9 else 0
+        near = lambda c: c + rng.randint(-3, 3)
+        goal = rng.choice([(cx, cy), (cx, cy), (near(cx), near(cy)), (-1, -1), (tcx, tcy), (near(tcx), near(tcy))])
+        target = rng.choice([rng.randint(1, 0x7FFFFFFF), 110000 + rng.randint(0, 1000), 2000000 + rng.randint(0, 99)])
+        ping = rng.choice([0, 1, 100, 301, rng.randint(0, 2000), 0xFFFFFFFF])
+        own_fields = [
+            goal[0], goal[1],
+            tick - rng.choice([0, 1199, 1200, 1201, 5000, rng.randint(0, 10000), -5]),
+            tick - rng.choice([0, ping // 2, ping // 2 + 1, rng.randint(0, 3000), -5]),
+            rng.choice([0, 1, 1, 5, 5, 2, 2, 3, 3, 4, 4, 6, 6, 7, -1]),
+            rng.choice([0, 0, 1]),
+            rng.choice([0, 0, 2, 1]),
+            rng.choice([0, 0, 1]),
+            rng.choice([0, 0, 1]),
+            target,
+            rng.choice([0, 0, 1, rng.randint(0, 9)]),
+            tick - rng.choice([0, 449, 450, 451, 1199, 1200, 1201, rng.randint(0, 5000), -5]),
+            rng.choice([0, 0, rng.randint(1, 400)]),
+            rng.choice([1, 1, 2, 3, 5, 9, 14, 0, -1, rng.randint(0, 20)]),
+            near(cx + rng.randint(-10, 10)), near(cy + rng.randint(-10, 10)),
+            rng.choice([-1, near(cx), 0]), rng.choice([-1, near(cy), 0]),
+            ping,
+            rng.choice([1, 1, 2, 9, 14, 0, -1, rng.randint(0, 20), 0x7FFFFFFF]),
+            rng.choice([target, rng.randint(1, 0x7FFFFFFF), 0]),
+            rng.choice([7, 7, 7, 0, 1, 2, 4, 6, 5, 3]),
+            f"0x{bits(tx):08x}", f"0x{bits(f32(rng.choice([0.0, 0.0, 3.5, -7.0]))):08x}", f"0x{bits(tz):08x}",
+            rng.choice([0, 0, 1, 3, 2, 4]),
+            rng.choice([tcx, tcx, near(tcx)]), rng.choice([tcy, tcy, near(tcy)]),
+            rng.choice([0, 0, 1, 1, 2]),
+            rng.choice([0x8D, 0x8F, 0x98, 0x8E, 0x7E, 7, 14, rng.randint(0, 2000)]),
+            rng.choice([0, 0, 0x20]),
+            rng.choice([0, 0, 1, 2]),
+        ]
+        lines.append("o " + " ".join(fields + [str(f & 0xFFFFFFFF) if isinstance(f, int) else f for f in own_fields]
+                                     + times))
+    return lines
+
+
 def main():
     args = path_oracle.arguments("walks per map", 40)
     ours, originals = path_oracle.run_maps(
         args, lambda *a: make_walks(*a) + make_goes(*a) + make_plays(*a) + make_tos(*a)
         + make_stands(*a) + make_enters(*a) + make_arrivals(*a) + make_effects(*a)
-        + make_deaths(*a) + make_attacks(*a) + make_landings(*a) + make_casts(*a) + make_updates(*a),
+        + make_deaths(*a) + make_attacks(*a) + make_landings(*a) + make_casts(*a) + make_updates(*a)
+        + make_own_updates(*a),
         "walks")
     totals = {}
     for (_, lines, _), want in zip(ours, originals):
@@ -749,10 +812,13 @@ def main():
                    "Q": "player enter ", "A": "arrive ", "B": "arrive with effects ", "X": "effects ",
                    "K": "player effects ", "D": "death ", "H": "player death ", "V": "attack ",
                    "J": "player attack ", "L": "land ", "O": "player land ", "C": "cast ",
-                   "R": "player cast ", "u": "update ", "p": "player update "}[line[0]] + result.split()[0]
+                   "R": "player cast ", "u": "update ", "p": "player update ",
+                   "o": "own update "}[line[0]] + result.split()[0]
             totals[key] = totals.get(key, 0) + 1
             if line[0] in "WGPTUNYEQABDHVJLOCRup" and result != "-":
                 totals["updates"] = totals.get("updates", 0) + int(result.split()[1])
+            if line[0] == "o":
+                totals["own updates"] = totals.get("own updates", 0) + int(result.split()[1])
             if line[0] in "XK":
                 totals["effect messages"] = totals.get("effect messages", 0) + int(result.split()[1])
     return path_oracle.report(ours, originals, totals, "queries")

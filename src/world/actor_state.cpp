@@ -6,6 +6,7 @@
 #include "render/actor.h"
 #include "world/actor_attack.h"
 #include "world/actor_effects.h"
+#include "world/player_pursuit.h"
 
 namespace ragexe::world {
 
@@ -75,6 +76,7 @@ std::int32_t CastAction(const Actor& actor) {
 
 // vf11 (00503110): the cell under the actor, to the game mode.
 void ReportCell(const GameActor& actor, const StateContext& context) {
+  if (!actor.reports) return;
   const render::Vec3& at = actor.object.position;
   const auto [cx, cz] = AttrCellAt(*context.attr, at[0], at[2]);
   Send(context, {kStandsMessage, actor.id, cx, cz});
@@ -192,7 +194,7 @@ void SetBaseState(Actor& actor, std::int32_t state, const StateContext& context,
     case kWalk:
       if (actor.field_0xd8 == 0) SetGameActorAction(actor, *context.act, kWalkAction, 0);
       // vf12 (00503160).
-      Send(context, {kWalksMessage, actor.id, 0, 0});
+      if (actor.reports) Send(context, {kWalksMessage, actor.id, 0, 0});
       break;
     case 2:
     case 7:
@@ -448,6 +450,11 @@ void SetGameActorState(GameActor& actor, std::int32_t state, const StateContext&
 void SetPlayerState(PlayerActor& player, std::int32_t state, const StateContext& context,
                     std::uint32_t now) {
   const std::int32_t before = player.state;
+  if (player.own) {
+    if (before == kDying) return;
+    if (state != kWalk) player.own->goal_x = player.own->goal_y = -1;
+    SendQueuedMove(player, context);
+  }
   if (before == 3 || player.field_0xd0 != 0) return;
   if (state == 7 && before == 6) return;
   render::RenderObject& o = player.object;

@@ -204,7 +204,7 @@ std::locale::facet	rtti		8	estimated	1		FUN_005b42bc; FUN_005b432e; FUN_005b5163
 std::ctype_base	rtti				0					0	0			
 std::ctype<char>	rtti	std::ctype_base@0 std::locale::facet@0	24	new	1		FUN_005b4e8f; std::ctype<char>::ctype<char>; std::use_facet		004e5e30	7	7	stl		
 CGameObject	rtti		4	estimated	1	00500030		00500090	00500060	8	8	world		
-CRenderObject	rtti	CGameObject@0	160	estimated	1	005002b0		00500350	00500320	27	27	world		CRes@0x98 CRes@0x9c
+CRenderObject	rtti	CGameObject@0	160	estimated	1	005002b0		00500350	00500320	28	28	world		CRes@0x98 CRes@0x9c
 CAbleToMakeEffect	rtti	CRenderObject@0	192	estimated	1	00501be0		00501c90	00501c60	9	9	world		CRes@0x98 CRes@0x9c
 CGameActor	rtti	CAbleToMakeEffect@0	636	estimated	1	00502570		00502700	005026a0	70	70	world	MovePath@0x170	CRes@0x98 CRes@0x9c
 CPc	rtti	CGameActor@0	776	new	1	00541fb0		00542160	00542130	44	44	world	MovePath@0x170	CRes@0x98 CRes@0x9c
@@ -222,7 +222,7 @@ mg::CTile	rtti		36	new	1	004ee4e0		004ee540	004ee510	5	5	game
 std::logic_error	rtti	exception@0	28	estimated	1	004eedc0		004eef60	004eefb0	5	5	stl		
 std::out_of_range	rtti	std::logic_error@0	28	estimated	1	004ef1e0 004f98b0		004ef140	004ef1b0	5	5	stl		
 mg::mgType1::CMapObj	rtti	mg::CEntity@0	140	new	1	004ef9b0		004efa10	004ef9e0	8	8	game		mg::CObject@0x58 mg::CObject@0x5c mg::CObject@0x64 CRes@0x84 CRes@0x88
-CArrowEffect	rtti	CRenderObject@0	208	new	1	005afa80		005afb00	005afad0	10	10	world		CRes@0x98 CRes@0x9c
+CArrowEffect	rtti	CRenderObject@0	208	new	1	005afa80		005afb00	005afad0	9	9	world		CRes@0x98 CRes@0x9c
 mg::CArrow	rtti	CArrowEffect@0	236	new	1		mg::mgType1::CMonster::ShootArrow		004f0ee0	3	3	game		CRes@0x98 CRes@0x9c
 mg::CScript	rtti		676	estimated	1	004f1880		004f1b70	004f1aa0	16	16	game		ScriptRecord@0x8
 mg::mgType1::CWorld	rtti		104	estimated	1	004fcfc0		004fd1b0	004fd180	18	18	game		mg::CObject@0x4 mg::CObject@0x28

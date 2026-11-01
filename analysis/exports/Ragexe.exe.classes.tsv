@@ -205,7 +205,7 @@ facet	std::locale	4	1
 ctype_base	std	0	0
 ctype<char>	std	7	1
 CGameObject	Global	8	1
-CRenderObject	Global	27	1
+CRenderObject	Global	28	1
 CAbleToMakeEffect	Global	9	1
 CGameActor	Global	70	1
 CPc	Global	44	1
@@ -223,7 +223,7 @@ CTile	mg	5	1
 logic_error	std	5	1
 out_of_range	std	5	1
 CMapObj	mg::mgType1	9	1
-CArrowEffect	Global	10	1
+CArrowEffect	Global	9	1
 CArrow	mg	4	1
 CScript	mg	16	1
 CWorld	mg::mgType1	18	1

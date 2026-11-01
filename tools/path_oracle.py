@@ -34,7 +34,8 @@ import world_oracle  # noqa: E402
 from emu import Emulator  # noqa: E402
 from emu.winapi import Stub  # noqa: E402
 from unicorn import UC_PROT_ALL  # noqa: E402
-from unicorn.x86_const import UC_X86_REG_EAX, UC_X86_REG_ECX, UC_X86_REG_EIP, UC_X86_REG_FPCW  # noqa: E402
+from unicorn.x86_const import (UC_X86_REG_EAX, UC_X86_REG_EBP, UC_X86_REG_EBX, UC_X86_REG_ECX, UC_X86_REG_EDI,  # noqa: E402
+                                UC_X86_REG_EIP, UC_X86_REG_ESI, UC_X86_REG_FPCW)
 
 C3DATTR_CTOR, C3DATTR_LOAD = 0x426BA0, 0x426EC0
 PATH_FINDER_CTOR, SET_ATTR_MAP, FIND_PATH = 0x4CC1B0, 0x4CCC50, 0x4CC5C0
@@ -201,6 +202,25 @@ UPDATE_FIELDS = ["f230", "keyed", "keyed_at", "key", "tinted", "f1ec", "f290", "
                  "cast", "end", "begin", "f0cc", "f1bc", "weapon", "play", "start", "action"]
 UPDATE_EVENT_NAMES = ["foot.wav", "a.wav.b", "a.wa", "X.WAV"]
 NPC_UPDATE, GAUGE_OFFSET, ACT_ACTIONS = 0x5404D0, 0x2DC, 256
+# o: a P updated whole as the own player (docs/world/pursuit.md): CPlayer::Update (0054b770) on a
+# CPlayer, update by update until it returns 0, the messages to itself CPlayer::SendMsg (0054c5d0)
+# handles recorded at its switch instead (the rest go on to CPc::SendMsg), a move's (0) with its
+# order's seven words. After p's: +0x308, +0x30c,
+# +0x310, +0x314, +0x318, +0x31c, +0x320, +0x324, +0x32c, +0x330, +0x334, +0x338, +0x344,
+# +0x348, +0x350, +0x354, +0x358, +0x35c; the ping (ClientState+0x524) and the attack range
+# (+0x640); the player's id; which of CWorld::GetActorById, GetItemById and GetSkillById find
+# the one stand-in pursued (bits 0 to 2 of `found`; GetActorById's finds it for +0x1a8 too);
+# where it stands (float bits), its state, cell (+0xc0, +0xc4), +0x238, job and +0x21c; and
+# CGameMode+0x198's list before (0 empty, 1 with +0x330's id, 2 with another). The hash takes,
+# after each update, p's and own().
+OWN_FIELDS = ["goal_x", "goal_y", "acted_at", "premove_at", "pursuit", "premove", "attack_mode", "acted", "queued",
+              "target", "acts", "asked_at", "skill", "range", "cell_x", "cell_y", "queued_x", "queued_y", "ping",
+              "attack_range", "own", "found", "tx", "ty", "tz", "tstate", "tcx", "tcy", "tmodel", "tjob", "teffect",
+              "listed"]
+OWN_OFFSETS = (0x308, 0x30C, 0x310, 0x314, 0x318, 0x31C, 0x320, 0x324, 0x32C, 0x330, 0x334, 0x338, 0x344, 0x348,
+               0x350, 0x354, 0x358, 0x35C)
+PLAYER_VTABLE, OWN_SWITCH, OWN_SWITCH_INDICES, OWN_SWITCH_LAST, OWN_SWITCH_DEFAULT = 0x5E9CF4, 0x54C5FB, 0x54CF18, 0x67, 20
+GET_ITEM_BY_ID, PING, ATTACK_RANGE, PICKED_LIST = 0x4C4D20, 0x686B94, 0x686CB0, 0x198
 SINGLE = 0x007F
 SPEEDS = [150, 150, 150, 100, 200, 75, 300, 120, 1, 7, 999]
 
@@ -356,6 +376,30 @@ class Oracle:
         emu.write_u32(self.actor_vtable + 4 * SEND_SELF_SLOT, SELF_MESSAGE_STUB)
         self.self_messages, self.sounds, self.asked, self.emblem_exists = [], [], [], 0
         emu.replace_thiscall(SELF_MESSAGE_STUB, 5, lambda this, *v: self.self_messages.extend(v))
+        # For o: the messages CPlayer::SendMsg handles itself are recorded at its switch and it
+        # returns, a move's (0) with its order; the rest go on to CPc::SendMsg. What CWorld finds
+        # of items and skills' objects.
+        self.own_messages, self.own_moves, self.pursued, self.found = [], [], emu.scratch(size=0x400), 0
+        own_cases = {m for m in range(OWN_SWITCH_LAST + 1)
+                     if emu.mem_read(OWN_SWITCH_INDICES + m, 1)[0] != OWN_SWITCH_DEFAULT}
+
+        def own_switch(uc, address, size, _):
+            message = uc.reg_read(UC_X86_REG_EAX)
+            if message not in own_cases:
+                return
+            ebp = uc.reg_read(UC_X86_REG_EBP)
+            a, b, c = (emu.read_u32(ebp + 0x10 + 4 * k) for k in range(3))
+            if message == 0:
+                self.own_messages += [0, 0, 0, 0]
+                self.own_moves += struct.unpack("<7I", emu.mem_read(a, 28))
+            else:
+                self.own_messages += [message, a, b, c]
+            for reg, offset in ((UC_X86_REG_EBX, -0x14), (UC_X86_REG_ESI, -0x18), (UC_X86_REG_EDI, -0x1C)):
+                uc.reg_write(reg, emu.read_u32(ebp + offset))
+            uc.reg_write(UC_X86_REG_EBP, emu.read_u32(ebp))
+            emu.complete(0, emu.read_u32(ebp + 4), ebp + 8 + 0x14)
+        emu.hook_code(OWN_SWITCH, OWN_SWITCH, own_switch)
+        emu.replace_thiscall(GET_ITEM_BY_ID, 1, lambda this, v: self.pursued if self.found & 2 else 0)
 
         def play_wave(uc, address, size, _):
             esp = emu.esp()
@@ -403,7 +447,7 @@ class Oracle:
         # and the act's frames' events, only while attacking.
         self.foe, self.pc = emu.scratch(size=ACTOR_SIZE), emu.scratch(size=ACTOR_SIZE)
         self.attacking, self.events, self.launched, self.arrows = False, 0, [], []
-        emu.replace_thiscall(GET_SKILL_BY_ID, 1, lambda this, skill_id: 0)
+        emu.replace_thiscall(GET_SKILL_BY_ID, 1, lambda this, skill_id: self.pursued if self.found & 4 else 0)
 
         def add_arrow(this, at, target, speed):
             if target:
@@ -561,7 +605,8 @@ class Oracle:
         for line in lines:
             kind, *values = line.split()
             v = [int(x) for x in values] if kind not in ("W", "G", "P", "T", "U", "N", "Y", "E", "Q", "A", "B", "X",
-                                                         "K", "D", "H", "V", "J", "L", "O", "C", "R", "u", "p") else []
+                                                         "K", "D", "H", "V", "J", "L", "O", "C", "R", "u", "p",
+                                                         "o") else []
             self.logged = []
             if kind == "F":
                 found = emu.call(FIND_PATH, *v, self.actor + ACTOR_PATH, this=G_PATH_FINDER).eax & 0xFF
@@ -638,6 +683,8 @@ class Oracle:
                 out.append(self.go(values, update=True))
             elif kind == "p":
                 out.append(self.go(values, player=True, update=True))
+            elif kind == "o":
+                out.append(self.go(values, player=True, update=True, own=True))
         emu.heap_release(mark)
         return out
 
@@ -691,7 +738,7 @@ class Oracle:
         self.frames = w["frames"]
 
     def go(self, values, player=False, to=False, stand=False, enter=False, arrive=False, effects=False,
-           die=False, attack=False, land=False, cast=False, update=False):
+           die=False, attack=False, land=False, cast=False, update=False, own=False):
         """CGameActor::vf02's message 0 on the actor, then ProcessState update by update, with
         SetState run, until the actor stands again or has faded; for a player, a CPc's."""
         emu, actor = self.emu, self.actor
@@ -699,7 +746,8 @@ class Oracle:
         names = ((PLAYER_FIELDS if player else GO_FIELDS) + (TO_SPEED if to else []) + (STAND_FIELDS if stand else [])
                  + (ENTER_FIELDS if enter else []) + (ARRIVE_FIELDS if arrive else []) + (DEATH_FIELDS if die else [])
                  + (EFFECT_FIELDS if effects else []) + (ATTACK_FIELDS if attack else [])
-                 + (LAND_FIELDS if land else []) + (CAST_FIELDS if cast else []) + (UPDATE_FIELDS if update else []))
+                 + (LAND_FIELDS if land else []) + (CAST_FIELDS if cast else []) + (UPDATE_FIELDS if update else [])
+                 + (OWN_FIELDS if own else []))
         g = dict(zip(names, v))
         updates = v[len(names):]
         self.place(g)
@@ -762,7 +810,7 @@ class Oracle:
         if cast:
             return self.cast(g, updates, player)
         if update:
-            return self.update(g, updates, player)
+            return self.update(g, updates, player, own)
         if land:
             n = ATTACK_RECORD * g["count"]
             return self.land(g, updates[:n], updates[n:], extra, player)
@@ -1142,9 +1190,12 @@ class Oracle:
         r = [emu.read_u32(actor + o) for o in (0x4, 0x8, 0xC, 0x38, 0x24, 0x28, 0x58)]
         return f"{last} {calls} {r[0]:08x} {r[1]:08x} {r[2]:08x} {r[3]:08x} {r[4]} {r[5]} {r[6]} {h:016x}"
 
-    def update(self, g, updates, player):
-        """The actor's whole update, CNpc's or CPc's vf01, update by update until it returns 0."""
+    def update(self, g, updates, player, own=False):
+        """The actor's whole update, CNpc's, CPc's or CPlayer's vf01, update by update until it
+        returns 0."""
         emu, actor = self.emu, self.actor
+        if own:
+            self.ready_own(g)
         for offset, name in ((0x230, "f230"), (0x6C, "keyed_at"), (0x68, "key"), (0x1EC, "f1ec"), (0x290, "f290"),
                              (0x1F4, "f1f4"), (0x218, "body"), (0x2C, "f2c"), (0x30, "f30"), (0x28, "frame"),
                              (0x90, "screen_x"), (0x94, "screen_y"), (0x48, "pixels"), (0x1D8, "end"),
@@ -1190,10 +1241,16 @@ class Oracle:
             self.messages, self.states = [], []
             ret = emu.call(update, this=actor).eax & 0xFF
             calls += 1
-            h = fnv1a64([ret, *self.fields(), *self.messages, *self.updated(player)], h)
+            h = fnv1a64([ret, *self.fields(), *self.messages, *self.updated(player),
+                         *(self.own() if own else ())], h)
             if ret == 0:
                 last = "faded"
                 break
+        if own:
+            self.target, self.target_found = self.saved_target
+            self.found = 0
+            for address in (PING, ATTACK_RANGE, OWN_ID):
+                emu.write_u32(address, 0)
         self.attacking = self.landing = self.casting = self.updating = False
         self.event_names = self.attack_names
         emu.write_u32(self.world + 0x3C, 0)
@@ -1220,6 +1277,50 @@ class Oracle:
                   len(self.windows), *(self.window_number(w) for w in self.windows)]
         self.sounds, self.launched, self.launched_messages, self.window_calls, self.windows = [], [], [], [], []
         return words
+
+    def ready_own(self, g):
+        """o's CPlayer: its vtable and fields, what is pursued and what CWorld finds, the
+        ClientState words and CGameMode+0x198's list."""
+        emu, actor, t = self.emu, self.actor, self.pursued
+        emu.write_u32(actor, PLAYER_VTABLE)
+        names = OWN_FIELDS[:len(OWN_OFFSETS)]
+        for offset, name in zip(OWN_OFFSETS, names):
+            emu.write_u32(actor + offset, g[name] & 0xFFFFFFFF)
+        emu.write_u32(PING, g["ping"] & 0xFFFFFFFF)
+        emu.write_u32(ATTACK_RANGE, g["attack_range"] & 0xFFFFFFFF)
+        emu.write_u32(OWN_ID, g["own"] & 0xFFFFFFFF)
+        emu.mem_write(t, bytes(0x400))
+        for offset, name in ((0x4, "tx"), (0x8, "ty"), (0xC, "tz"), (0x58, "tstate"), (0xC0, "tcx"), (0xC4, "tcy"),
+                             (0x238, "tmodel"), (0x1B8, "tjob"), (0x21C, "teffect")):
+            emu.write_u32(t + offset, g[name] & 0xFFFFFFFF)
+        self.found = g["found"]
+        self.saved_target = self.target, self.target_found
+        self.target, self.target_found = t, g["found"] & 1 != 0
+        head = emu.scratch(size=12)
+        emu.write_u32(head, head)
+        emu.write_u32(head + 4, head)
+        emu.write_u32(self.mode + PICKED_LIST, head)
+        emu.write_u32(self.mode + PICKED_LIST + 4, 0)
+        if g["listed"]:
+            node = emu.scratch(struct.pack("<3I", head, head, (g["target"] + (g["listed"] == 2)) & 0xFFFFFFFF))
+            emu.write_u32(head, node)
+            emu.write_u32(head + 4, node)
+            emu.write_u32(self.mode + PICKED_LIST + 4, 1)
+        self.own_messages, self.own_moves = [], []
+
+    def own(self):
+        """What o's update writes beyond p's: the CPlayer's fields, what it sent itself and the
+        orders of its moves, and CGameMode+0x198's list, its size and ids."""
+        emu = self.emu
+        words = [emu.read_u32(self.actor + o) for o in OWN_OFFSETS]
+        words += [len(self.own_messages), *self.own_messages, len(self.own_moves), *self.own_moves]
+        head = emu.read_u32(self.mode + PICKED_LIST)
+        ids, node = [], emu.read_u32(head)
+        while node != head and len(ids) < 16:
+            ids.append(emu.read_u32(node + 8))
+            node = emu.read_u32(node)
+        self.own_messages, self.own_moves = [], []
+        return words + [emu.read_u32(self.mode + PICKED_LIST + 4), len(ids), *ids]
 
     def new_window(self, window):
         """A stand-in window, numbered next."""

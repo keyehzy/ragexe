@@ -2995,6 +2995,29 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     `RepeatSightEffect`, `HoldWhileStoneOrFrozen` and `BrightenColor`,
     `CRenderObject::PlayFrameSounds`.
 
+- [x] The own player's update and pursuit (`docs/world/pursuit.md`, `src/world/player_pursuit`):
+  `CPlayer::Update` (`0054b770`), the own player's vf01: `CPc`'s pieces with the hold, no gauge,
+  PreMove (message 0 to itself with its cell and goal once half the ping, `ClientState`+0x524,
+  has passed message 9's time) and `CPlayer::PursueTarget` (`0054b8e0`). The pursuit attacks an
+  actor in range (+0x320 2 once and ending), or asks to walk (0x5b) to the free cell toward it
+  every 450 ms, or 1200 for a target faster than the player; picks up an item a cell away,
+  adding it to `CGameMode`+0x198's list; casts on an actor, a cell or a skill's object, attacking
+  jobs 0x8d, 0x8f and 0x98's without a skill. `CPlayer::SetState` forgets the goal and sends a
+  queued move as an attack, flinch or fall ends; its vf11 and vf12 are empty, so it reports
+  neither its cell nor its walking. `GetFreeCellToward`, `StepCellToward`, `IsCellBlocked`,
+  `IsWithinCellRange` and `CRenderObject::GetDistanceTo` are ported with it.
+  - **Found on the way:** an attack on a big model (+0x238 1) works out the aim beside it and
+    loses it to the free cell; the cast's aim swaps y for its sectors from 205° and 295°.
+  - **Checks:** `tools/walk_oracle.py`'s `o` on all 287 maps, a `CPlayer` whose own messages
+    are recorded at `CPlayer::SendMsg`'s switch, the rest going on to `CPc`'s: 11,480 own
+    players over 2,252,355 updates equal; 282,530 queries in all, the older counts unchanged
+    and the older vector files regenerate byte-identical. `own_update_vectors.inc` (1,281) keeps
+    short ones and each edge: the range a float either side, the sectors' edges, the roundings
+    that decide the range and the free cell, the periods, the states.
+  - **Labels:** `CPlayer`'s `Update`, `PursueTarget`, `SendQueuedMove`, `SendMsg`, `ReportCell`
+    and `ReportWalking`; `CGameMode::IsCellBlocked`, `CRenderObject::GetDistanceTo` and
+    `ClientState::AddPingSample`.
+
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

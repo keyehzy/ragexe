@@ -6763,8 +6763,8 @@ CGrannyPc	005e9c40	0	38	00504390	CGameActor::SetEmblem
 CGrannyPc	005e9c40	0	39	004eb070	CGameActor::GetGuild	
 CGrannyPc	005e9c40	0	40	004eb080	CGameActor::vf40	
 CPlayer	005e9cf4	0	0	0054b3f0	CPlayer::`scalar_deleting_destructor'	
-CPlayer	005e9cf4	0	1	0054b770	CPlayer::vf01	
-CPlayer	005e9cf4	0	2	0054c5d0	CPlayer::vf02	
+CPlayer	005e9cf4	0	1	0054b770	CPlayer::Update	
+CPlayer	005e9cf4	0	2	0054c5d0	CPlayer::SendMsg	
 CPlayer	005e9cf4	0	3	00544380	CPc::Render	
 CPlayer	005e9cf4	0	4	00502b00	CGameActor::GetDirection	
 CPlayer	005e9cf4	0	5	00502cc0	CGameActor::OnScreenBounds	
@@ -6773,8 +6773,8 @@ CPlayer	005e9cf4	0	7	00502ff0	CGameActor::SetAction
 CPlayer	005e9cf4	0	8	00500830	CRenderObject::UpdateFrame	
 CPlayer	005e9cf4	0	9	0054c540	CPlayer::ProcessState	
 CPlayer	005e9cf4	0	10	0054c550	CPlayer::SetState	
-CPlayer	005e9cf4	0	11	0054b3d0	CPlayer::vf11	
-CPlayer	005e9cf4	0	12	0054b3e0	CPlayer::vf12	
+CPlayer	005e9cf4	0	11	0054b3d0	CPlayer::ReportCell	
+CPlayer	005e9cf4	0	12	0054b3e0	CPlayer::ReportWalking	
 CPlayer	005e9cf4	0	13	004eb060	CGameActor::vf13	
 CPlayer	005e9cf4	0	14	00542c50	CPc::vf14	
 CPlayer	005e9cf4	0	15	00542d20	CPc::vf15	

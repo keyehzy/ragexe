@@ -355,4 +355,5 @@ corpse, with a sprite or none, held through the updates, +0xcc before, and playe
 
 **Not ported:** the other messages but 3 to 6 ([arrival.md](arrival.md)), 0xb and 0x1b
 ([attack.md](attack.md)), those that make and end effects ([effects.md](effects.md)) and those of
-the windows ([windows.md](windows.md)); and `CPlayer::SetState`'s own work before `CPc`'s.
+the windows ([windows.md](windows.md)); and `CPlayer::SetState`'s for state 3
+([pursuit.md](pursuit.md#its-states-and-reports)).

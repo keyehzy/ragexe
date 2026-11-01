@@ -361,7 +361,6 @@ address	namespace	name	calling_convention	evidence
 00500210	CArrowEffect	method_00500210	__thiscall	__thiscall; called with this from 1 functions of CArrowEffect, e.g. 005afbc0
 00500400	CRenderObject	method_00500400	__thiscall	__thiscall; called with this from 1 functions of CRenderObject, e.g. 005002b0
 00500520	CRenderObject	method_00500520	__thiscall	__thiscall; called with this from 1 functions of CRenderObject, e.g. 00500350
-00500560	CArrowEffect	method_00500560	__thiscall	__thiscall; called with this from 1 functions of CArrowEffect, e.g. 005afbc0
 00500760	CArrowEffect	method_00500760	__thiscall	__thiscall; called with this from 1 functions of CArrowEffect, e.g. 005afbc0
 00501a50	CMousePointer	method_00501a50	__thiscall	__thiscall; called with this from 1 functions of CMousePointer, e.g. 00501980
 00501d40	CAbleToMakeEffect	method_00501d40	__thiscall	__thiscall; called with this from 1 functions of CAbleToMakeEffect, e.g. 00501be0
@@ -404,7 +403,6 @@ address	namespace	name	calling_convention	evidence
 0050fdf0	CGameMode	method_0050fdf0	__thiscall	__thiscall; called with this from 2 functions of CGameMode, e.g. 0050cfb0
 00511940	CGameMode	method_00511940	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0052a070
 00511f40	CGameMode	method_00511f40	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 005159d0
-00512230	CGameMode	method_00512230	__thiscall	__thiscall; called with this from 4 functions of CGameMode, e.g. 00511a40
 005122a0	CGameMode	method_005122a0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 00511f40
 00512310	CGameMode	method_00512310	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 005159d0
 005123c0	CGameMode	method_005123c0	__thiscall	__thiscall; called with this from 2 functions of CGameMode, e.g. 0050d400
@@ -507,8 +505,6 @@ address	namespace	name	calling_convention	evidence
 0054a910	CGrannyPc	method_0054a910	__thiscall	__thiscall; called with this from 1 functions of CGrannyPc, e.g. 00549660
 0054ac00	CGrannyPc	method_0054ac00	__thiscall	__thiscall; called with this from 1 functions of CGrannyPc, e.g. 0054aa90
 0054b4a0	CPlayer	method_0054b4a0	__thiscall	__thiscall; called with this from 1 functions of CPlayer, e.g. 0054b1d0
-0054b880	CPlayer	method_0054b880	__thiscall	__thiscall; called with this from 1 functions of CPlayer, e.g. 0054c550
-0054b8e0	CPlayer	method_0054b8e0	__thiscall	__thiscall; called with this from 1 functions of CPlayer, e.g. 0054b770
 0054cf80	CPlayer	method_0054cf80	__thiscall	__thiscall; called with this from 1 functions of CPlayer, e.g. 0054b4a0
 0056cfb0	WorldColorFade	method_0056cfb0	__thiscall	__thiscall; called with this from 2 functions of WorldColorFade, e.g. 0050dc90
 0056d0b0	WorldColorFade	method_0056d0b0	__thiscall	__thiscall; called with this from 1 functions of WorldColorFade, e.g. 0050dc90
@@ -529,7 +525,6 @@ address	namespace	name	calling_convention	evidence
 0058df90	ClientState	method_0058df90	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 004aaa00
 0058e060	ClientState	method_0058e060	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 0045e6b0
 0058e260	ClientState	method_0058e260	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 0045ee00
-0058e280	ClientState	method_0058e280	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00527240
 0058e3e0	ClientState	method_0058e3e0	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 0045ee00
 0058e3f0	ClientState	method_0058e3f0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0048ac20
 0058e400	ClientState	method_0058e400	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 0048cd50
