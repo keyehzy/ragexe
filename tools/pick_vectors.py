@@ -22,9 +22,9 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from unicorn.x86_const import UC_X86_REG_FPCW  # noqa: E402
+from unicorn.x86_const import UC_X86_REG_FPCW
 
-from emu import Emulator  # noqa: E402
+from emu import Emulator
 
 ON_SCREEN_BOUNDS, ITEM_PICK, SKILL_PICK = 0x502CC0, 0x53AE40, 0x5AC5B0
 NODE_CTOR, NODE_BUILD, NODE_INSERT, NODE_FIND, NODE_CLEAR = 0x4CE4F0, 0x4CE8E0, 0x4CE570, 0x4CE5F0, 0x4CE710

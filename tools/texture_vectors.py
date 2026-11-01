@@ -19,8 +19,8 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from emu import Emulator  # noqa: E402
-from emu.directx import DDSCAPS_TEXTURE, PF_565, PF_555, PF_1555, PF_4444, PF_8888, PF_X888, Surface  # noqa: E402
+from emu import Emulator
+from emu.directx import DDSCAPS_TEXTURE, PF_565, PF_555, PF_1555, PF_4444, PF_8888, PF_X888, Surface
 
 TEXTURE_UPDATE, DRAW_RLE, SURFACE_UPDATE, FILL_COLOR = 0x416990, 0x416D80, 0x416130, 0x416750
 G_C3DDEVICE = 0x6239D0

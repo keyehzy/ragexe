@@ -16,10 +16,10 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from unicorn import UC_PROT_ALL  # noqa: E402
-from unicorn.x86_const import UC_X86_REG_FPCW  # noqa: E402
+from unicorn import UC_PROT_ALL
+from unicorn.x86_const import UC_X86_REG_FPCW
 
-from emu import Emulator  # noqa: E402
+from emu import Emulator
 
 CODE = 0x7F000000
 # mov eax, [esp + out]; fld [esp + 4]; op [esp + b]; fstp [eax]; ret

@@ -18,7 +18,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from emu import Emulator  # noqa: E402
+from emu import Emulator
 
 INIT_NAMES, INIT_SHADOWS, GET_SHADOW, SERVICE = 0x58AC70, 0x59A5E0, 0x59B750, 0x67C9D4
 NPC_VF16, GET_JOB, SET_SPRITE, SET_ACT, CLIENT_STATE = 0x53FAE0, 0x503490, 0x5018A0, 0x501910, 0x686670

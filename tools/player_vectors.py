@@ -25,10 +25,8 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from unicorn.x86_const import UC_X86_REG_FPCW  # noqa: E402
-
-from actor_vectors import Oracle, bits, f32, hexs  # noqa: E402
-from emu import Emulator  # noqa: E402
+from actor_vectors import Oracle, bits, f32, hexs
+from emu import Emulator
 
 INIT_NAMES, CLIENT_STATE = 0x588BA0, 0x686670
 BODY_ACT, BODY_SPR, HEAD_ACT, HEAD_SPR, IMF_NAME = 0x593920, 0x593960, 0x5939A0, 0x593A20, 0x593B70
@@ -338,7 +336,7 @@ def main():
     imf_name = emu.cstr("imf")
     spr_table = emu.scratch(size=40)
     act_table = emu.scratch(size=40)
-    from actor_vectors import ADD_SPRITE_QUAD, SCALES  # noqa: E402
+    from actor_vectors import ADD_SPRITE_QUAD, SCALES
     emu.replace_thiscall(ADD_SPRITE_QUAD, 3, o.add_quad)
     lines.append("// Players {set, view, position, base action, direction, frame, scale, x offset, angle,")
     lines.append("// depth index, key colour, colour, flags 0x80 0x83 0x86, ground colour, head offset before},")
@@ -419,7 +417,7 @@ def player_points(emu, rng, o, player, views, layer_sets, sprs, acts, spr_table,
     calls."""
     from unicorn import UC_HOOK_CODE
     from unicorn.x86_const import UC_X86_REG_ESP
-    from actor_vectors import SCALES  # noqa: E402
+    from actor_vectors import SCALES
     calls = []
 
     def record(slot, nargs):

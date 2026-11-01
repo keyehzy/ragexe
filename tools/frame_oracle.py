@@ -242,7 +242,7 @@ def init():
 def work(_, item):
     try:
         return frames(item)
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         return f"error: {e}"
 
 

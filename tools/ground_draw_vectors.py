@@ -25,8 +25,8 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from emu.winapi import WINDOW  # noqa: E402
-from ground_vectors import PAGE_BASE, TEXTURE_BASE, build, ground_file  # noqa: E402
+from emu.winapi import WINDOW
+from ground_vectors import PAGE_BASE, TEXTURE_BASE, build, ground_file
 
 SCENE_RENDERER_CTOR, SCENE_RENDERER_SIZE, SET_SIZE = 0x40D1A0, 0x2A0, 0x40DB70
 G_C3DDEVICE, C3DDEVICE_CTOR, C3DDEVICE_INIT, IID_HAL_DEVICE = 0x6239D0, 0x404240, 0x404410, 0x5EC118
@@ -215,7 +215,7 @@ def cursors(rng, light, views, lines):
     emu.write_u32(attr + 0x118, 5)
     emu.write_u32(attr + 0x120, emu.scratch(b"".join(struct.pack("<4fi", *hs, t) for hs, t in cells)))
     emu.write_u32(g + 4, attr)
-    lines.append(f"static const char* const kCursorGround[] = {{")
+    lines.append("static const char* const kCursorGround[] = {")
     hexed = data.hex()
     lines += [f'    "{hexed[i:i + 96]}",' for i in range(0, len(hexed), 96)]
     lines += ["    nullptr,", "};"]

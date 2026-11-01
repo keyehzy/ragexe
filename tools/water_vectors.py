@@ -14,7 +14,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from emu import Emulator  # noqa: E402
+from emu import Emulator
 
 SET_WATER_PARAMS, STEP_WATER, GET_TEXTURE = 0x4BC410, 0x4BC450, 0x40CC00
 STEPS = 200
@@ -44,7 +44,7 @@ def main():
     cases = []
     for k, (level, kind, height, phase_step, step, interval) in enumerate(CASES):
         ground = emu.scratch(size=0x100)
-        bits = lambda f: struct.unpack("<I", struct.pack("<f", f))[0]  # noqa: E731
+        bits = lambda f: struct.unpack("<I", struct.pack("<f", f))[0]
         emu.call(SET_WATER_PARAMS, bits(level), kind & 0xFFFFFFFF, interval, int(step) & 0xFFFFFFFF,
                  int(phase_step) & 0xFFFFFFFF, bits(height), this=ground)
         names.clear()

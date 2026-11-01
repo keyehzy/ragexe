@@ -20,6 +20,7 @@
 # Local tooling.
 /.venv/
 __pycache__/
+.ruff_cache/
 *.pyc
 /build/
 .DS_Store

@@ -42,9 +42,12 @@ from unicorn.x86_const import (UC_X86_REG_CS, UC_X86_REG_DS, UC_X86_REG_EAX, UC_
                                UC_X86_REG_FP0, UC_X86_REG_FS, UC_X86_REG_GDTR, UC_X86_REG_GS, UC_X86_REG_SS)
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from binindex import EXE, ROOT  # noqa: E402
+from binindex import EXE, ROOT
 
-from . import directx, winapi  # noqa: E402
+from . import directx, winapi
+
+# The installed client, whose data files the emulated file API reads.
+INSTALL = os.path.join(ROOT, "original", "install")
 
 GDT = 0x7FFC0000
 TEB = 0x7FFD0000
@@ -95,7 +98,7 @@ def _gdt_entry(base, limit, access, flags):
 
 
 class Emulator:
-    def __init__(self, exe=EXE, files_root=os.path.join(ROOT, "original", "install"), max_instructions=50_000_000):
+    def __init__(self, exe=EXE, files_root=INSTALL, max_instructions=50_000_000):
         if not os.path.exists(exe):
             raise FileNotFoundError(f"{exe} (the original executable is not in the repository; see docs/PLAN.md, M0)")
         self.pe = pefile.PE(exe)

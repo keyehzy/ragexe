@@ -25,10 +25,10 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from unicorn.x86_const import UC_X86_REG_FPCW  # noqa: E402
+from unicorn.x86_const import UC_X86_REG_FPCW
 
-from emu import Emulator  # noqa: E402
-from emu.winapi import Stub  # noqa: E402
+from emu import Emulator
+from emu.winapi import Stub
 
 DRAW_ACT_FRAME, DRAW_CURSOR, INIT_ANGLE_TABLES = 0x410620, 0x4CB830, 0x40B2F0
 FIND_CACHED, CACHE_IMAGE = 0x40E540, 0x40E130

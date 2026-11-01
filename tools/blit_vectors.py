@@ -19,9 +19,9 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from unicorn.x86_const import UC_X86_REG_FPCW  # noqa: E402
+from unicorn.x86_const import UC_X86_REG_FPCW
 
-from emu import Emulator  # noqa: E402
+from emu import Emulator
 
 DRAW_REGION, DRAW_IMAGE, SURFACE_SLOT3, SURFACE_SLOT4 = 0x416F10, 0x416FC0, 0x4163C0, 0x4163F0
 SCENE_RENDERER_SIZE, G_PSCENE_RENDERER, TEXEL_OFFSET = 0x2A0, 0x625E98, 0x6053F4

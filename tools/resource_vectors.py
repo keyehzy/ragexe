@@ -6,7 +6,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from emu import Emulator  # noqa: E402
+from emu import Emulator
 
 MAKE_DATA_PATH = 0x4DD5A0  # analysis/labels/inferred.functions.tsv
 

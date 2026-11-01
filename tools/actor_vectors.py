@@ -28,11 +28,11 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from unicorn import UC_HOOK_CODE  # noqa: E402
-from unicorn.x86_const import UC_X86_REG_ESP, UC_X86_REG_FPCW  # noqa: E402
+from unicorn import UC_HOOK_CODE
+from unicorn.x86_const import UC_X86_REG_ESP, UC_X86_REG_FPCW
 
-from emu import Emulator  # noqa: E402
-from emu.winapi import Stub  # noqa: E402
+from emu import Emulator
+from emu.winapi import Stub
 
 SET_SIZE, SCENE_RENDERER_SIZE, G_PSCENE_RENDERER = 0x40DB70, 0x2A0, 0x625E98
 INIT_ANGLE_TABLES, GET_GAME_MODE = 0x40B2F0, 0x4CBF30

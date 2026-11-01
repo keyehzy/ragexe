@@ -6,7 +6,7 @@ on:
 
 jobs:
   format:
-    name: Format
+    name: Format and Python lint
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -16,6 +16,9 @@ jobs:
           python3 -m venv .lint
           .lint/bin/pip install -q -r tools/requirements-lint.txt
           git ls-files -z '*.cpp' '*.h' | xargs -0 .lint/bin/clang-format --dry-run --Werror
+
+      - name: ruff (pinned)
+        run: git ls-files -z '*.py' | xargs -0 .lint/bin/ruff check --output-format github
 
   fuzz:
     name: Fuzz (60 s per target)

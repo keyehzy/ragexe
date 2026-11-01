@@ -35,8 +35,8 @@ from bisect import bisect_left
 from collections import Counter, defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from binindex import BinIndex, ROOT  # noqa: E402
-from capstone import x86  # noqa: E402
+from binindex import BinIndex, ROOT
+from capstone import x86
 
 LABELS = os.path.join(ROOT, "analysis", "labels")
 EXPORTS = os.path.join(ROOT, "analysis", "exports")

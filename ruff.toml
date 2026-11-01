@@ -1,0 +1,15 @@
+# Checks that find bugs and dead code in the Python tools: pyflakes, the import and statement
+# checks of pycodestyle, bugbear, and noqa comments that no longer suppress anything. Run the
+# pinned version (tools/requirements-lint.txt):
+# .venv/bin/ruff check
+target-version = "py312"
+
+[lint]
+select = ["E4", "E7", "E9", "F", "B", "RUF100"]
+ignore = [
+  "B007",  # unpacking names every field, used or not, documents the record
+  "B023",  # the closures are called within the iteration that made them
+  "B905",  # the zipped sequences have one length by construction
+  "E731",  # a one-line helper may be a named lambda
+  "E741",  # `l` is a length or a line in short comprehensions
+]

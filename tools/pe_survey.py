@@ -1,5 +1,8 @@
 """Print a triage summary of a PE file: headers, sections, entropy, imports, rich header."""
-import sys, math, datetime, collections
+import sys
+import math
+import datetime
+import collections
 import pefile
 
 

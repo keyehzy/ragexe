@@ -49,8 +49,8 @@ import sys
 from collections import Counter, defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from binindex import CHKSTK, BinIndex, ROOT  # noqa: E402
-from capstone import x86  # noqa: E402
+from binindex import CHKSTK, BinIndex, ROOT
+from capstone import x86
 
 EXPORTS = os.path.join(ROOT, "analysis", "exports")
 LABELS = os.path.join(ROOT, "analysis", "labels")

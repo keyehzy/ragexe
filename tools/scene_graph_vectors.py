@@ -28,8 +28,8 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from ground_vectors import build, ground_file  # noqa: E402
-from model_vectors import look_at  # noqa: E402
+from ground_vectors import build, ground_file
+from model_vectors import look_at
 
 BUILD_SCENE_GRAPH, NODE_CTOR, NODE_SIZE, SUBDIVIDE = 0x4C4F10, 0x4C5270, 0x80, 0x4C5340
 FRUSTUM_CTOR, FRUSTUM_SIZE, CULL, CLASSIFY_OBB, CLEAR_VISIBLE = 0x4CEA70, 0xC0, 0x4CEB00, 0x4CED90, 0x4CEC80
@@ -168,7 +168,7 @@ def main():
             if members:
                 model_lines.append(f"    {k}, {len(members)}, {', '.join(map(str, members))},")
         lines.append("};")
-        lines.append(f"// {{node, count, models...}}, then -1.")
+        lines.append("// {node, count, models...}, then -1.")
         lines.append(f"static const std::int32_t kSceneMembers{copied}[] = {{")
         lines += model_lines
         lines += ["    -1,", "};"]

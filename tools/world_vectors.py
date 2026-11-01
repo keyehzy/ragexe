@@ -24,10 +24,10 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from unicorn.x86_const import UC_X86_REG_FPCW  # noqa: E402
+from unicorn.x86_const import UC_X86_REG_FPCW
 
-from emu import Emulator  # noqa: E402
-from emu.winapi import Stub  # noqa: E402
+from emu import Emulator
+from emu.winapi import Stub
 
 LOAD_WORLD, CELL_CENTRE = 0x4C3AB0, 0x511DE0
 GET_RESOURCE_MANAGER, GET_RESOURCE, UNLOAD_RESOURCE, FIND_NODE = 0x4DFA10, 0x4DFF60, 0x4E0280, 0x42CBD0

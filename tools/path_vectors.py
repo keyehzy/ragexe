@@ -16,7 +16,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import path_oracle  # noqa: E402
+import path_oracle
 
 ATTRIBUTES = {".": 0, "#": 1, "o": 5, "3": 3, "6": 6}
 

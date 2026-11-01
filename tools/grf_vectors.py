@@ -9,7 +9,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from emu import Emulator  # noqa: E402
+from emu import Emulator
 
 # analysis/labels/inferred.functions.tsv
 DES_CIPHER, SET_KEY = 0x4DC0C0, 0x4DC1A0

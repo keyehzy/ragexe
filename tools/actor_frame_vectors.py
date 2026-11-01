@@ -20,10 +20,10 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from unicorn.x86_const import UC_X86_REG_FPCW  # noqa: E402
+from unicorn.x86_const import UC_X86_REG_FPCW
 
-from emu import Emulator  # noqa: E402
-from emu.winapi import Stub  # noqa: E402
+from emu import Emulator
+from emu.winapi import Stub
 
 GET_DIRECTION, UPDATE_FRAME, GET_FRAME_COUNT, GET_GAME_MODE = 0x502B00, 0x500830, 0x421A80, 0x4CBF30
 GAME_ACTOR_VTABLE, CVIEW_SIZE = 0x5E95C0, 0x1C0

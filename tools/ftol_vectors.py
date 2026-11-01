@@ -15,9 +15,9 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from unicorn import UC_PROT_ALL  # noqa: E402
+from unicorn import UC_PROT_ALL
 
-from emu import Emulator  # noqa: E402
+from emu import Emulator
 
 FTOL = 0x5C2084
 # A page mapped for the stub alone, executable where the scratch memory is not.

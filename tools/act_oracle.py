@@ -69,7 +69,6 @@ def dump(emu, obj):
     actions_begin, actions_end = u32(emu, obj + 0x114), u32(emu, obj + 0x118)
     events_begin, events_end = u32(emu, obj + 0x128), u32(emu, obj + 0x12C)
     delays_begin, delays_end = u32(emu, obj + 0x138), u32(emu, obj + 0x13C)
-    version = None
     lines = []
     actions = range(actions_begin, actions_end, 16) if actions_begin else []
     for a in actions:

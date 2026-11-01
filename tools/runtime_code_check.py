@@ -23,9 +23,9 @@ import sys
 from collections import defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from binindex import BinIndex, ROOT  # noqa: E402
-from capstone import x86  # noqa: E402
-import capstone  # noqa: E402
+from binindex import BinIndex, ROOT
+from capstone import x86
+import capstone
 
 DEFAULT_OUT = os.path.join(ROOT, "analysis", "exports", "Ragexe.exe.runtime_code.txt")
 

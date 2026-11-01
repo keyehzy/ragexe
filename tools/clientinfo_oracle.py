@@ -134,7 +134,7 @@ def work(state, item):
         emu.heap_release(mark)
         return "faults"
     u = emu.read_u32
-    byte = lambda a: emu.mem_read(a, 1)[0]  # noqa: E731
+    byte = lambda a: emu.mem_read(a, 1)[0]
 
     def ids(vector):
         first, last = u(vector + 4), u(vector + 8)

@@ -17,9 +17,9 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from emu import Emulator  # noqa: E402
-from emu.directx import PF_555, PF_565, PF_8888, PF_X888  # noqa: E402
-from emu.winapi import WINDOW  # noqa: E402
+from emu import Emulator
+from emu.directx import PF_555, PF_565, PF_8888, PF_X888
+from emu.winapi import WINDOW
 
 CTOR, INIT, SIZE = 0x404240, 0x404410, 0x268
 EXPAND_RED, EXPAND_GREEN, EXPAND_BLUE = 0x405DF0, 0x405E20, 0x405E50

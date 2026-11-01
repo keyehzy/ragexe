@@ -18,7 +18,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from actor_vectors import GET_GAME_MODE, Oracle, bits, f32, hexs  # noqa: E402
+from actor_vectors import GET_GAME_MODE, Oracle, bits, f32, hexs
 
 RESET, ADVANCE, DRAW = 0x54FB40, 0x54FBA0, 0x54EE50
 ADD_PRIMITIVE, ENTRY_TEXTURE = 0x412550, 0x4289A0

@@ -23,7 +23,7 @@ import sys
 from collections import Counter, defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from binindex import LEDGER, ROOT  # noqa: E402
+from binindex import LEDGER, ROOT
 
 EXPORTS = os.path.join(ROOT, "analysis", "exports")
 LABELS = os.path.join(ROOT, "analysis", "labels")

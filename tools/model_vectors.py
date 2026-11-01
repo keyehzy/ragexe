@@ -31,11 +31,11 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from unicorn.x86_const import UC_X86_REG_FPCW  # noqa: E402
+from unicorn.x86_const import UC_X86_REG_FPCW
 
-from emu import Emulator  # noqa: E402
-from emu.winapi import WINDOW  # noqa: E402
-from rsm_oracle import model as synthetic_model  # noqa: E402
+from emu import Emulator
+from emu.winapi import WINDOW
+from rsm_oracle import model as synthetic_model
 
 C3DMODELRES_CTOR, C3DMODELRES_LOAD, C3DMODELRES_SIZE = 0x42BB00, 0x42BE00, 0x1A8
 GET_TEXTURE, GET_CELL_COLOR, GET_GAME_MODE, GET_CELL_COORDS = 0x40CC00, 0x4C03B0, 0x4CBF30, 0x4BC3B0

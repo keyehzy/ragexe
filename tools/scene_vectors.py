@@ -24,10 +24,10 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from unicorn.x86_const import UC_X86_REG_FPCW  # noqa: E402
+from unicorn.x86_const import UC_X86_REG_FPCW
 
-from emu import Emulator  # noqa: E402
-from model_vectors import C3DDEVICE_CTOR, C3DDEVICE_INIT, G_C3DDEVICE, IID_HAL_DEVICE, WINDOW  # noqa: E402
+from emu import Emulator
+from model_vectors import C3DDEVICE_CTOR, C3DDEVICE_INIT, G_C3DDEVICE, IID_HAL_DEVICE, WINDOW
 
 ADD_PRIMITIVE, DRAW_SCENE, SET_STAGE_MODE = 0x412550, 0x40EFD0, 0x4112D0
 SCENE_RENDERER_CTOR, NEW_TRIANGLE_LIST, NEW_QUAD, REWIND_POOLS = 0x40D1A0, 0x412AA0, 0x412B40, 0x412E70

@@ -17,11 +17,11 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import path_oracle  # noqa: E402
-import path_vectors  # noqa: E402
-import state_vectors  # noqa: E402
-import walk_oracle  # noqa: E402
-import walk_vectors  # noqa: E402
+import path_oracle
+import path_vectors
+import state_vectors
+import walk_oracle
+import walk_vectors
 
 CELL_POINT = 0x511C30
 

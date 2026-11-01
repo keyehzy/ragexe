@@ -21,9 +21,9 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from unicorn.x86_const import UC_X86_REG_FPCW  # noqa: E402
+from unicorn.x86_const import UC_X86_REG_FPCW
 
-from emu import Emulator  # noqa: E402
+from emu import Emulator
 
 PARSE_HEX, LOAD_FOG_TABLE, APPLY_MAP_FOG = 0x4E4CC0, 0x598E10, 0x516570
 SET_FOG_ENABLED, VERTEX_FOG, SETUP_PROJECTION = 0x411010, 0x40C2E0, 0x411090

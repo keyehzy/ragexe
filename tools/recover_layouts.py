@@ -81,9 +81,9 @@ from bisect import bisect_right
 from collections import Counter, defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from binindex import CHKSTK, BinIndex, ROOT  # noqa: E402
-import capstone  # noqa: E402
-from capstone import x86  # noqa: E402
+from binindex import CHKSTK, BinIndex, ROOT
+import capstone
+from capstone import x86
 
 EXPORTS = os.path.join(ROOT, "analysis", "exports")
 LABELS = os.path.join(ROOT, "analysis", "labels")
@@ -775,7 +775,7 @@ class Layouts:
         of the calls made through it, and code casts such pointers down (typing them made
         UIWindow take methods of its window classes)."""
         out = []
-        EBP, EAX, ECX, EDX = x86.X86_REG_EBP, x86.X86_REG_EAX, x86.X86_REG_ECX, x86.X86_REG_EDX
+        EBP, EAX, ECX = x86.X86_REG_EBP, x86.X86_REG_EAX, x86.X86_REG_ECX
         for fn in self.bx.functions.values():
             if fn.kind != "code" or fn.library:
                 continue

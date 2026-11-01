@@ -42,9 +42,9 @@ from bisect import bisect_left
 from collections import Counter, defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from binindex import BinIndex, LEDGER, ROOT  # noqa: E402
-from capstone import x86  # noqa: E402
-import ledger  # noqa: E402
+from binindex import BinIndex, LEDGER, ROOT
+from capstone import x86
+import ledger
 
 RULES = os.path.join(ROOT, "analysis", "subsystems.tsv")
 OUT = os.path.join(ROOT, "analysis", "exports", "Ragexe.exe.subsystems.tsv")

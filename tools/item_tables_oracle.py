@@ -152,7 +152,7 @@ def nodes(emu, tree, nil_slot):
 def item_line(emu, key, p):
     params = read_ints(emu, p + 0x68)
     blob = b"".join((v & 0xFFFFFFFF).to_bytes(4, "little") for v in params)
-    h = lambda b: f"{fnv1a64(b):016x}"  # noqa: E731
+    h = lambda b: f"{fnv1a64(b):016x}"
     slot = int.from_bytes(emu.mem_read(p + 0x60, 4), "little", signed=True)
     count = int.from_bytes(emu.mem_read(p + 0x64, 4), "little", signed=True)
     return (f"I {key} {h(read_string(emu, p))} {h(read_string(emu, p + 0x10))} "
@@ -162,7 +162,7 @@ def item_line(emu, key, p):
 
 
 def card_line(emu, key, p):
-    h = lambda b: f"{fnv1a64(b):016x}"  # noqa: E731
+    h = lambda b: f"{fnv1a64(b):016x}"
     return f"C {key} {h(read_string(emu, p))} {h(read_string(emu, p + 0x10))} {h(read_string(emu, p + 0x20))}"
 
 

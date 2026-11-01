@@ -39,12 +39,12 @@ import sys
 from collections import defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from binindex import BinIndex, ROOT  # noqa: E402
-from capstone import x86  # noqa: E402
-from emu import Emulator  # noqa: E402
-from emu.emulator import STACK_BASE  # noqa: E402
-from unicorn import UC_HOOK_CODE  # noqa: E402
-from unicorn.x86_const import (UC_X86_REG_EAX, UC_X86_REG_EBP, UC_X86_REG_ECX, UC_X86_REG_ESI,  # noqa: E402
+from binindex import BinIndex, ROOT
+from capstone import x86
+from emu import Emulator
+from emu.emulator import STACK_BASE
+from unicorn import UC_HOOK_CODE
+from unicorn.x86_const import (UC_X86_REG_EAX, UC_X86_REG_EBP, UC_X86_REG_ECX, UC_X86_REG_ESI,
                                UC_X86_REG_ESP)
 
 LABELS = os.path.join(ROOT, "analysis", "labels")

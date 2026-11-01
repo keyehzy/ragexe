@@ -31,7 +31,7 @@ import sys
 from unicorn import UC_HOOK_CODE
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from actor_vectors import (ADD_SPRITE_QUAD, G_PSCENE_RENDERER, GET_FRAME_COUNT, GET_GAME_MODE,  # noqa: E402
+from actor_vectors import (ADD_SPRITE_QUAD, G_PSCENE_RENDERER, GET_FRAME_COUNT, GET_GAME_MODE,
                            SCALES, Oracle, bits, f32)
 
 RAG_EFFECT_CTOR, INIT_EFFECT, RAG_EFFECT_VF01 = 0x54D220, 0x54EEE0, 0x54D4C0
@@ -242,8 +242,8 @@ def random_prim(rng, o, owner, pid):
     emu.call(PRIM_CTOR, this=prim)
     offset = [f32(rng.uniform(-30, 30)) for _ in range(3)]
     emu.call(INIT_PRIMITIVE, owner, pid, *(bits(v) for v in offset), this=prim)
-    w = lambda f, v: emu.write_u32(prim + f, v & 0xFFFFFFFF)  # noqa: E731
-    wf = lambda f, v: emu.write_u32(prim + f, bits(f32(v)))  # noqa: E731
+    w = lambda f, v: emu.write_u32(prim + f, v & 0xFFFFFFFF)
+    wf = lambda f, v: emu.write_u32(prim + f, bits(f32(v)))
     sets = {}
     flags = 0
     for bit in (1, 2, 4, 8, 0x80):

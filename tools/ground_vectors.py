@@ -20,9 +20,9 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from unicorn.x86_const import UC_X86_REG_FPCW  # noqa: E402
+from unicorn.x86_const import UC_X86_REG_FPCW
 
-from emu import Emulator  # noqa: E402
+from emu import Emulator
 
 CGNDRES_CTOR, CGNDRES_LOAD, CGNDRES_SIZE = 0x429170, 0x429200, 0x1E8
 GROUND_CTOR, GROUND15_VTABLE, GROUND_SIZE, GROUND_BUILD = 0x4BC220, 0x5E897C, 0xEC, 0x4BCC30

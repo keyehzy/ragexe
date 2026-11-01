@@ -22,12 +22,12 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from unicorn import UC_HOOK_CODE  # noqa: E402
-from unicorn.x86_const import UC_X86_REG_EBP, UC_X86_REG_EIP, UC_X86_REG_ESP, UC_X86_REG_FPCW  # noqa: E402
+from unicorn import UC_HOOK_CODE
+from unicorn.x86_const import UC_X86_REG_EBP, UC_X86_REG_EIP, UC_X86_REG_ESP, UC_X86_REG_FPCW
 
-from emu import Emulator  # noqa: E402
-from emu.emulator import TEB  # noqa: E402
-from emu.winapi import Stub  # noqa: E402
+from emu import Emulator
+from emu.emulator import TEB
+from emu.winapi import Stub
 
 FONT_ENTRY, CREATE_FONT = 0x4077D0, 0x407870
 SERVICE, CODE_PAGE = 0x67C9D8, 0x67C998

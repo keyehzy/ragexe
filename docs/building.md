@@ -72,8 +72,8 @@ into the object files (`/Z7`), which ccache can cache. CI keeps a cache per plat
 
 ## Formatting and lint
 
-`clang-format` and `clang-tidy` are pinned in `tools/requirements-lint.txt`. Install
-them into the project's virtual environment:
+`clang-format`, `clang-tidy` and, for the Python tools, `ruff` are pinned in
+`tools/requirements-lint.txt`. Install them into the project's virtual environment:
 
 ```bash
 .venv/bin/pip install -r tools/requirements-lint.txt
@@ -99,8 +99,16 @@ directory, make it first:
 cmake --build --preset dev --target src/shaders/scene_shaders.h
 ```
 
-CI runs both: the format check as its own job, and clang-tidy in the Linux job after
-configuring.
+Lint the Python tools and their tests. The checks are in `ruff.toml`: pyflakes, bugbear
+and the import and statement checks of pycodestyle, not the style; `--fix` applies the
+fixes that cannot change behavior:
+
+```bash
+.venv/bin/ruff check
+```
+
+CI runs all three: the format check and ruff as their own job, and clang-tidy in the Linux
+job after configuring.
 
 ## Fuzzing
 
