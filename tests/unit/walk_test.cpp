@@ -10,6 +10,7 @@
 #include "res/act.h"
 #include "res/gat.h"
 #include "world/actor_arrival.h"
+#include "world/actor_effects.h"
 #include "world/actor_state.h"
 #include "world/actor_walk.h"
 #include "world/path_finder.h"
@@ -77,6 +78,7 @@ struct CellPointVector {
   int cell_x, cell_z, sub_x, sub_z;
 };
 
+#include "actor_effect_vectors.inc"
 #include "arrival_vectors.inc"
 #include "enter_vectors.inc"
 #include "move_to_vectors.inc"
@@ -200,15 +202,20 @@ std::string Walk(const AttrMap& map, const MovePath& path, std::istringstream& f
 // Replays a G query as ragres find-paths does: message 0, then the walk to standing.
 std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istringstream& fields,
                bool player, bool to = false, bool stand = false, bool enter = false,
-               bool arrive = false) {
+               bool arrive = false, bool with_effects = false) {
   std::vector<std::uint32_t> v;
   for (std::string token; fields >> token;)
     v.push_back(static_cast<std::uint32_t>(std::stoll(token, nullptr, 0)));
   const std::size_t base_fields = player ? 44 : 39;
   constexpr std::size_t kArriveFields = 12;
   constexpr std::size_t kRecordWords = 28;
+  constexpr std::size_t kEffectFields = 3;
   const std::size_t kFields = base_fields + (to ? 1 : 0) + (stand ? 7 : 0) + (enter ? 9 : 0) +
-                              (arrive ? kArriveFields + kRecordWords : 0);
+                              (arrive ? kArriveFields + kRecordWords : 0) +
+                              (with_effects ? kEffectFields : 0);
+  // B, X and K: EFFECT_FIELDS, after ARRIVE_FIELDS for B.
+  const std::size_t effect_at = base_fields + (arrive ? kArriveFields : 0);
+  const std::size_t record_at = base_fields + kArriveFields + (with_effects ? kEffectFields : 0);
   ragexe::world::PlayerActor actor;
   actor.path = path;
   auto& o = actor.object;
@@ -319,12 +326,35 @@ std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istr
     };
     player_at = {std::bit_cast<float>(v[b + 10]), 0.0f, std::bit_cast<float>(v[b + 11])};
     context.player = v[b + 9] != 0 ? &player_at : nullptr;
-    context.actor_messages = &actor_messages;
+    context.actor_messages = with_effects ? nullptr : &actor_messages;
     context.sounds = &sounds;
     context.ground_water_fade = &ground_water_fade;
     context.server_name = "Chaos";
     for (std::size_t k = 0; k < kRecordWords; ++k)
-      record[k] = static_cast<std::int32_t>(v[b + kArriveFields + k]);
+      record[k] = static_cast<std::int32_t>(v[record_at + k]);
+  }
+  // The effects before: one in each slot of `slots`' bits (one for all with `same`), each in
+  // the list in that order, then `listed` more.
+  ragexe::world::ActorEffects effects;
+  std::size_t made_before = 0;
+  if (with_effects) {
+    const std::uint32_t slots = v[effect_at];
+    std::int32_t shared = 0;
+    for (std::size_t k = 0; k < actor.effect_slots.size(); ++k) {
+      if ((slots >> k & 1) == 0) continue;
+      if (v[effect_at + 2] == 0 || shared == 0) {
+        effects.made.emplace_back();
+        shared = static_cast<std::int32_t>(effects.made.size());
+        actor.effects.push_back(shared);
+      }
+      actor.effect_slots[k] = shared;
+    }
+    for (std::uint32_t k = 0; k < v[effect_at + 1]; ++k) {
+      effects.made.emplace_back();
+      actor.effects.push_back(static_cast<std::int32_t>(effects.made.size()));
+    }
+    made_before = effects.made.size();
+    context.effects = &effects;
   }
   std::uint64_t h = 0xcbf29ce484222325ull;
   const auto fold = [&h](std::uint32_t x) {
@@ -377,6 +407,58 @@ std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istr
     }
     messages.clear();
   };
+  // The slots and the list by number, the effects made and what they were sent since, as
+  // tools/path_oracle.py's effects().
+  const auto fold_effects = [&] {
+    if (!with_effects) return;
+    for (const std::int32_t number : actor.effect_slots) fold(static_cast<std::uint32_t>(number));
+    fold(static_cast<std::uint32_t>(actor.effects.size()));
+    fold(static_cast<std::uint32_t>(actor.effects.size()));
+    for (const std::int32_t number : actor.effects) fold(static_cast<std::uint32_t>(number));
+    fold(static_cast<std::uint32_t>(effects.made.size()));
+    for (std::size_t k = 0; k < effects.made.size(); ++k) {
+      const auto& e = effects.made[k];
+      for (const std::uint32_t x :
+           {k < made_before ? 2u
+            : e.emotion     ? 1u
+                            : 0u,
+            static_cast<std::uint32_t>(e.type), e.position == &o.position ? 1u : 0u,
+            static_cast<std::uint32_t>(e.actor_id), Bits(e.field_0x44)}) {
+        fold(x);
+      }
+    }
+    fold(static_cast<std::uint32_t>(6 * effects.messages.size()));
+    for (const auto& m : effects.messages) {
+      for (const std::int32_t x : {m.effect, m.id == 0x32 ? 1 : 0, m.id, 0, 0, 0})
+        fold(static_cast<std::uint32_t>(x));
+    }
+    effects.messages.clear();
+  };
+  if (with_effects && !arrive) {
+    const std::size_t count = v[kFields];
+    const std::uint32_t now = v[kFields + 3 * count + 2];
+    for (std::size_t k = 0; k < count; ++k) {
+      const auto message = static_cast<std::int32_t>(v[kFields + 1 + 3 * k]);
+      const auto arg = static_cast<std::int32_t>(v[kFields + 2 + 3 * k]);
+      const auto sender = static_cast<std::int32_t>(v[kFields + 3 + 3 * k]);
+      if (player)
+        ragexe::world::SendGameActorEffectMessage(actor, message, sender, arg, context, now);
+      else
+        ragexe::world::SendGameActorEffectMessage(static_cast<ragexe::world::GameActor&>(actor),
+                                                  message, sender, arg, context, now);
+      fold(static_cast<std::uint32_t>(message));
+      fold_fields();
+      fold_messages();
+      fold_player();
+      fold_effects();
+    }
+    char line[160];
+    std::snprintf(line, sizeof line, "sent %zu %08x %08x %08x %08x %d %d %u %016llx", count,
+                  Bits(o.position[0]), Bits(o.position[1]), Bits(o.position[2]), Bits(o.facing),
+                  o.action, o.frame, static_cast<std::uint32_t>(actor.state),
+                  static_cast<unsigned long long>(h));
+    return line;
+  }
   if (stand) {
     int updates = 0;
     const char* end = "standing";
@@ -501,6 +583,7 @@ std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istr
     fold(static_cast<std::uint32_t>(digest >> 32));
     fold_messages();
     fold_arrival();
+    fold_effects();
     const std::int32_t state = actor.state;
     int updates = 0;
     const char* end = ported ? "staying" : "unported";
@@ -515,6 +598,7 @@ std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istr
       fold_fields();
       fold_messages();
       fold_arrival();
+      fold_effects();
       if (result == ragexe::world::StateResult::kFaded) {
         end = "faded";
         break;
@@ -890,6 +974,31 @@ TEST_CASE("Actors come into view as the original's messages 3 to 6 bring them", 
     const std::string got =
         kind == 'F' ? Search(finder, path, fields)
                     : Go(map, finder, path, fields, false, false, false, false, kind == 'A');
+    CHECK(got == v.result);
+  }
+}
+
+TEST_CASE("Actors' effects are made and ended as the original's messages make and end them",
+          "[walk]") {
+  int current = -1;
+  AttrMap map;
+  PathFinder finder;
+  MovePath path;
+  for (const StateQueryVector& v : kActorEffectQueries) {
+    if (v.map != current) {
+      current = v.map;
+      map = MakeMap(kWalkMaps[current]);
+      finder = PathFinder();
+      finder.SetAttrMap(&map);
+      path = MovePath();
+    }
+    INFO(kWalkMaps[current].name << ": " << v.query);
+    std::istringstream fields(v.query);
+    char kind = 0;
+    fields >> kind;
+    const std::string got = kind == 'F' ? Search(finder, path, fields)
+                                        : Go(map, finder, path, fields, kind == 'K', false, false,
+                                             false, kind == 'B', true);
     CHECK(got == v.result);
   }
 }

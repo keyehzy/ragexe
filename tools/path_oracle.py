@@ -97,6 +97,22 @@ SERVER_NAME = "Chaos"
 OWN_ID, SERVER_NAME_BUFFER, GROUND_WATER_FADE, G_MODE = 0x68734C, 0x686B58, 0x679F9C, 0x67C9EC
 PLAY_WAVE, GET_RESOURCE_MANAGER, RESOURCE_EXISTS = 0x4352A0, 0x4DFA10, 0x4E0190
 SELF_MESSAGE_STUB, SEND_SELF_SLOT, VTABLE_SIZE = MESSAGE_STUB + 0x10, 2, 0x100
+# X and K: a G and a P whose actor is sent messages that make and end its effects
+# (CGameActor::SendMsg through its vf02, docs/world/effects.md): EFFECT_FIELDS, then how many
+# messages and each one's id, argument and sender (0 none, k the k-th effect made, from 1, or
+# past them one the actor never had), then their server time and timeGetTime. Before them the
+# slots +0x244 to +0x26c of `slots`' bits hold effects made before, each its own (one for all
+# with `same`) and in the list +0x270 in that order, and `listed` more are in the list.
+# CGameMode::AddSpriteEffectByType and AddEmotionEffect make effects whose vf02 is recorded.
+# The hash takes, after each message, fields(), the game mode's messages, the slots and the
+# list by the effects' numbers, what made each effect (2 before, 0 AddSpriteEffectByType, 1
+# AddEmotionEffect), its type, whether it follows the actor's position and its id, its +0x44,
+# and what each was sent and by whom (0 none, 1 the actor).
+# B: an A whose actor's messages to itself go through its own vf02, EFFECT_FIELDS after
+# ARRIVE_FIELDS, and the effects hashed too after arrival()'s words.
+EFFECT_FIELDS = ["slots", "listed", "same"]
+ADD_SPRITE_EFFECT, ADD_EMOTION_EFFECT, EFFECT_MESSAGE_STUB = 0x5106A0, 0x5111B0, MESSAGE_STUB + 0x20
+EFFECT_SLOTS, EFFECT_SLOT_COUNT, EFFECT_LIST, LAUNCHED_LIST = 0x244, 11, 0x270, 0xAC
 SRAND, PET_ID, PET_TABLE = 0x5C2546, 0x686E40, 0x686E94
 PET_LEVEL_A, PET_LEVEL_B, PET_LINE = 0x5A9F40, 0x5A9FA0, 0x5AA3E0
 SINGLE = 0x007F
@@ -269,6 +285,17 @@ class Oracle:
         emu.write_u32(SERVER_NAME_BUFFER, emu.cstr(SERVER_NAME))
         emu.write_u32(G_MODE, self.mode)
         self.player = emu.scratch(size=0x10)
+        # For X, K and B: the effects the game mode makes, their messages (vf02) recorded.
+        self.effect_vtable = emu.scratch(size=0x40)
+        emu.mem_write(EFFECT_MESSAGE_STUB, b"\xC3")
+        emu.write_u32(self.effect_vtable + 4 * SEND_SELF_SLOT, EFFECT_MESSAGE_STUB)
+        self.made, self.made_by, self.effect_messages = [], [], []
+
+        def effect_message(this, sender, message, a, b, c):
+            self.effect_messages += [self.number(this), {0: 0, self.actor: 1}.get(sender, 2), message, a, b, c]
+        emu.replace_thiscall(EFFECT_MESSAGE_STUB, 5, effect_message)
+        emu.replace_thiscall(ADD_SPRITE_EFFECT, 3, lambda this, kind, at, actor_id: self.make_effect(0, kind, at, actor_id))
+        emu.replace_thiscall(ADD_EMOTION_EFFECT, 3, lambda this, at, kind, actor_id: self.make_effect(1, kind, at, actor_id))
 
     def result(self, found):
         if found:
@@ -300,7 +327,8 @@ class Oracle:
         self.paths = []
         for line in lines:
             kind, *values = line.split()
-            v = [int(x) for x in values] if kind not in ("W", "G", "P", "T", "U", "N", "Y", "E", "Q", "A") else []
+            v = [int(x) for x in values] if kind not in ("W", "G", "P", "T", "U", "N", "Y", "E", "Q", "A", "B", "X",
+                                                         "K") else []
             self.logged = []
             if kind == "F":
                 found = emu.call(FIND_PATH, *v, self.actor + ACTOR_PATH, this=G_PATH_FINDER).eax & 0xFF
@@ -351,6 +379,12 @@ class Oracle:
                 out.append(self.go(values, player=True, enter=True))
             elif kind == "A":
                 out.append(self.go(values, arrive=True))
+            elif kind == "B":
+                out.append(self.go(values, arrive=True, effects=True))
+            elif kind == "X":
+                out.append(self.go(values, effects=True))
+            elif kind == "K":
+                out.append(self.go(values, player=True, effects=True))
         emu.heap_release(mark)
         return out
 
@@ -403,13 +437,13 @@ class Oracle:
         emu.write_u32(self.view + 0x20, w["yaw"])
         self.frames = w["frames"]
 
-    def go(self, values, player=False, to=False, stand=False, enter=False, arrive=False):
+    def go(self, values, player=False, to=False, stand=False, enter=False, arrive=False, effects=False):
         """CGameActor::vf02's message 0 on the actor, then ProcessState update by update, with
         SetState run, until the actor stands again or has faded; for a player, a CPc's."""
         emu, actor = self.emu, self.actor
         v = [int(x, 0) for x in values]
         names = ((PLAYER_FIELDS if player else GO_FIELDS) + (TO_SPEED if to else []) + (STAND_FIELDS if stand else [])
-                 + (ENTER_FIELDS if enter else []) + (ARRIVE_FIELDS if arrive else []))
+                 + (ENTER_FIELDS if enter else []) + (ARRIVE_FIELDS if arrive else []) + (EFFECT_FIELDS if effects else []))
         g = dict(zip(names, v))
         updates = v[len(names):]
         self.place(g)
@@ -467,8 +501,12 @@ class Oracle:
             emu.write_u32(self.target + 0xC, g["tz"])
             self.target_found = g["found"] != 0
             return self.enter(g, updates, extra)
+        if effects:
+            self.ready_effects(g)
         if arrive:
-            return self.arrive(g, updates[:ARRIVE_RECORD], updates[ARRIVE_RECORD:])
+            return self.arrive(g, updates[:ARRIVE_RECORD], updates[ARRIVE_RECORD:], effects)
+        if effects:
+            return self.send(updates, extra)
         h = 0xCBF29CE484222325
         self.messages, self.states = [], []
         self.server, self.now = updates[0], updates[1]
@@ -541,11 +579,12 @@ class Oracle:
         r = [emu.read_u32(actor + o) for o in (0x4, 0x8, 0xC, 0x38, 0x24, 0x28, 0x58)]
         return f"{last} {calls} {r[0]:08x} {r[1]:08x} {r[2]:08x} {r[3]:08x} {r[4]} {r[5]} {r[6]} {h:016x}"
 
-    def arrive(self, g, record, updates):
+    def arrive(self, g, record, updates, effects=False):
         """The message, then ProcessState update by update, until the state changes or the fade
-        ends."""
+        ends. With effects the actor's messages to itself go through its own vf02."""
         emu, actor = self.emu, self.actor
-        emu.write_u32(actor, self.actor_vtable)
+        emu.write_u32(actor, GAME_ACTOR_VTABLE if effects else self.actor_vtable)
+        made = self.effects if effects else lambda: []
         for offset, name in ((0x218, "body0"), (0x220, "health0"), (0x23C, "guild0"), (0x240, "emblem0")):
             emu.write_u32(actor + offset, g[name] & 0xFFFFFFFF)
         for k, offset in enumerate((0x84, 0x85, 0x87, 0x88)):
@@ -564,7 +603,7 @@ class Oracle:
         self.server, self.now = updates[0], updates[1]
         emu.call(MESSAGE, 0, g["message"], message, g["how"] & 0xFFFFFFFF, 0, this=actor)
         count, digest = self.path()[3:5]
-        h = fnv1a64([4, *self.fields(), count, digest, digest >> 32, *self.messages, *self.arrival()])
+        h = fnv1a64([4, *self.fields(), count, digest, digest >> 32, *self.messages, *self.arrival(), *made()])
         state = emu.read_u32(actor + 0x58)
         last, calls = "staying", 0
         for server, tick in zip(updates[2::2], updates[3::2]):
@@ -572,7 +611,7 @@ class Oracle:
             self.now, self.server = tick, server
             ret = emu.call(PROCESS, this=actor).eax & 0xFF
             calls += 1
-            h = fnv1a64([ret, *self.fields(), *self.messages, *self.arrival()], h)
+            h = fnv1a64([ret, *self.fields(), *self.messages, *self.arrival(), *made()], h)
             if ret == 0:
                 last = "faded"
                 break
@@ -582,6 +621,88 @@ class Oracle:
         emu.write_u32(self.world + 0x3C, 0)
         r = [emu.read_u32(actor + o) for o in (0x4, 0x8, 0xC, 0x38, 0x24, 0x28, 0x58)]
         return f"{last} {calls} {r[0]:08x} {r[1]:08x} {r[2]:08x} {r[3]:08x} {r[4]} {r[5]} {r[6]} {h:016x}"
+
+    def send(self, rest, extra):
+        """The messages through the actor's vf02, one by one."""
+        emu, actor = self.emu, self.actor
+        count = rest[0]
+        script = rest[1:1 + 3 * count]
+        self.server, self.now = rest[1 + 3 * count], rest[2 + 3 * count]
+        stranger = emu.scratch(size=0x10)
+        h = 0xCBF29CE484222325
+        for message, arg, sender in zip(script[::3], script[1::3], script[2::3]):
+            self.messages, self.states = [], []
+            sender = self.made[sender - 1] if 0 < sender <= len(self.made) else stranger if sender else 0
+            emu.call(emu.read_u32(emu.read_u32(actor) + 4 * 2), sender, message & 0xFFFFFFFF, arg & 0xFFFFFFFF, 0,
+                     0, this=actor)
+            h = fnv1a64([message, *self.fields(), *self.messages, *extra(), *self.effects()], h)
+        r = [emu.read_u32(actor + o) for o in (0x4, 0x8, 0xC, 0x38, 0x24, 0x28, 0x58)]
+        return f"sent {count} {r[0]:08x} {r[1]:08x} {r[2]:08x} {r[3]:08x} {r[4]} {r[5]} {r[6]} {h:016x}"
+
+    def make_effect(self, by, kind, at, actor_id):
+        """An effect as the game mode makes one: its vtable, the rest 0."""
+        effect = self.emu.scratch(size=0x120)
+        self.emu.write_u32(effect, self.effect_vtable)
+        self.made.append(effect)
+        self.made_by.append([by, kind, int(at == self.actor + 4), actor_id])
+        return effect
+
+    def number(self, effect):
+        if effect in self.made:
+            return self.made.index(effect) + 1
+        return 0 if effect == 0 else 0xFFFFFFFF
+
+    def empty_list(self, at):
+        """A std::list at `at` with no nodes: its head links to itself."""
+        head = self.emu.scratch(size=12)
+        self.emu.write_u32(head, head)
+        self.emu.write_u32(head + 4, head)
+        self.emu.write_u32(at + 4, head)
+        self.emu.write_u32(at + 8, 0)
+
+    def link(self, effect):
+        """The effect at the end of the actor's list, as std::list::push_back."""
+        emu, at = self.emu, self.actor + EFFECT_LIST
+        head = emu.read_u32(at + 4)
+        last = emu.read_u32(head + 4)
+        node = emu.scratch(struct.pack("<3I", head, last, effect))
+        emu.write_u32(last, node)
+        emu.write_u32(head + 4, node)
+        emu.write_u32(at + 8, emu.read_u32(at + 8) + 1)
+
+    def ready_effects(self, g):
+        """The effects of X, K and B before the messages, and the launched effects' list empty."""
+        emu, actor = self.emu, self.actor
+        self.made, self.made_by, self.effect_messages = [], [], []
+        self.empty_list(actor + EFFECT_LIST)
+        self.empty_list(actor + LAUNCHED_LIST)
+        shared = 0
+        for k in range(EFFECT_SLOT_COUNT):
+            effect = 0
+            if g["slots"] >> k & 1:
+                effect = shared if g["same"] and shared else self.make_effect(2, 0, 0, 0)
+                if effect != shared:
+                    self.link(effect)
+                shared = effect
+            emu.write_u32(actor + EFFECT_SLOTS + 4 * k, effect)
+        for _ in range(g["listed"]):
+            self.link(self.make_effect(2, 0, 0, 0))
+
+    def effects(self):
+        """The slots and the list by number, the effects made, and what they were sent since."""
+        emu, actor = self.emu, self.actor
+        words = [self.number(emu.read_u32(actor + EFFECT_SLOTS + 4 * k)) for k in range(EFFECT_SLOT_COUNT)]
+        head = emu.read_u32(actor + EFFECT_LIST + 4)
+        listed, node = [], emu.read_u32(head)
+        while node != head:
+            listed.append(self.number(emu.read_u32(node + 8)))
+            node = emu.read_u32(node)
+        words += [emu.read_u32(actor + EFFECT_LIST + 8), len(listed), *listed, len(self.made)]
+        for effect, by in zip(self.made, self.made_by):
+            words += [*by, emu.read_u32(effect + 0x44)]
+        words += [len(self.effect_messages), *self.effect_messages]
+        self.effect_messages = []
+        return words
 
     def arrival(self):
         """What arriving writes beyond fields(), and what it sent, played and asked for since."""

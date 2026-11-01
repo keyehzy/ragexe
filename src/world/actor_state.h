@@ -33,6 +33,31 @@ struct Sound {
   float z = 0.0f;
 };
 
+// An effect the game mode makes for an actor (a CMsgEffect: CGameMode::AddSpriteEffectByType,
+// 005106a0, or AddEmotionEffect, 005111b0), as the actor's messages see it.
+struct ActorEffect {
+  bool emotion = false;   // made by AddEmotionEffect
+  std::int32_t type = 0;  // AddSpriteEffectByType's type, which picks the sprite, or the emotion
+  std::int32_t actor_id = 0;               // the actor's id (+0x1b4) when it was made
+  const render::Vec3* position = nullptr;  // the actor's position, which it is drawn at
+  float field_0x44 = 0.0f;                 // +0x44
+};
+
+// A message to an effect (its vf02): 0x32 from the actor, to follow it, or 0x35 from none, to
+// end.
+struct EffectMessage {
+  std::int32_t effect = 0;  // its number
+  std::int32_t id = 0;
+  bool operator==(const EffectMessage&) const = default;
+};
+
+// The effects made for actors, which they name by number, their place in `made` from 1, and
+// what they were sent, in order.
+struct ActorEffects {
+  std::vector<ActorEffect> made;
+  std::vector<EffectMessage> messages;
+};
+
 // What a pet says when it talks (CGameActor::ProcessState, standing): ClientState's pet
 // (+0x7d0) and the two lines of its tables the game mode hears, the first from 005aa3e0, the
 // second from the table at +0x824 by 005a9f40's and 005a9fa0's levels.
@@ -67,6 +92,8 @@ struct StateContext {
   std::function<bool(const std::string&)> resource_exists{};  // ResourceManager::Exists
                                                               // (004e0190); without it every
                                                               // file is there
+  ActorEffects* effects{};  // the effects made; without it the messages that make and end
+                            // them do nothing
   // NOLINTEND(readability-redundant-member-init)
 };
 

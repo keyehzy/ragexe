@@ -1,6 +1,8 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
+#include <vector>
 
 #include "render/actor.h"
 #include "res/act.h"
@@ -46,6 +48,10 @@ struct GameActor {
   std::uint32_t fade_until = 0;    // +0x234: fading out until timeGetTime passes it
   std::int32_t guild = 0;          // +0x23c (vf39)
   std::int32_t emblem = 0;         // +0x240, the guild's emblem's version
+  std::array<std::int32_t, 11> effect_slots{};  // +0x244 to +0x26c: the effects that show a
+                                                // status, by number (ActorEffects), 0 none
+  std::vector<std::int32_t> effects;            // +0x270: every effect made for the actor
+                                                // and not yet gone, by number
 };
 
 // CGameActor::GetJob (00503490): the job, 7 and 14 mounted (bit 5 of +0x21c) as 13 and 21.

@@ -4319,7 +4319,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005000d0	118	code	0	world		named	CGameObject	GetDirection	
 00500150	184	code	0	world		named	CRagEffect	method_00500150	
 00500210	137	code	0	world		named	CArrowEffect	method_00500210	
-005002a0	3	code	0	world		named	CGameObject	vf02	
+005002a0	3	code	0	world		named	CGameObject	SendMsg	
 005002b0	104	code	0	world		named	CRenderObject	CRenderObject	
 00500320	33	code	0	world		named	CRenderObject	`scalar_deleting_destructor'	
 00500350	167	code	0	world		named	CRenderObject	~CRenderObject	
@@ -4335,7 +4335,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00500830	272	code	0	world		named	CRenderObject	UpdateFrame	
 00500940	1182	code	0	world		named	CRenderObject	method_00500940	
 00500de0	91	code	0	world		named	CRenderObject	SetAction	
-00500e40	32	code	0	world		named	CRenderObject	vf02	
+00500e40	32	code	0	world		named	CRenderObject	SendMsg	
 00500e60	111	code	0	world		named	CRenderObject	GetGroundColor	
 00500ed0	159	code	0	world		named	CRenderObject	ProjectToScreen	
 00500f70	1501	code	0	world		named	CRenderObject	DrawBody	
@@ -4363,7 +4363,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00501d70	150	code	0	world		named	CAbleToMakeEffect	method_00501d70	
 00501e10	492	code	0	world		named	CAbleToMakeEffect	LaunchEffect	
 00502090	51	code	0	world		named	CAbleToMakeEffect	ContainsEffect	
-005020d0	928	code	0	world		named	CAbleToMakeEffect	vf02	
+005020d0	928	code	0	world		named	CAbleToMakeEffect	SendMsg	
 00502500	110	code	0	world		named	CAbleToMakeEffect	HasEffectWithId	
 00502570	204	code	0	world		named	CGameActor	CGameActor	
 00502640	3	code	0	world		named	CGameActor	vf16	

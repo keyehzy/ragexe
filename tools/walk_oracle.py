@@ -15,7 +15,8 @@ After each update the result, the actor's position, facing, action, frame, segme
 distance, times, colour, +0x82 and +0x190, and whether it stood, are hashed; the hash and
 the end compare with `ragres find-paths` on the same script. Then moves (G, P, T, U), standing
 (N, Y) and states given (E, Q), as their makers below describe (docs/world/states.md), and
-actors coming into view (A, docs/world/arrival.md).
+actors coming into view (A, docs/world/arrival.md), and the actors' effects (X, K and B,
+docs/world/effects.md).
 """
 import os
 import random
@@ -352,20 +353,91 @@ def make_arrivals(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
     return lines
 
 
+EFFECT_STARTS = [0x33, 0x65, 0x38, 0x3A, 0x43, 0x45, 0x47, 0x49, 0x4B, 0x4E, 0x3E, 0x3F, 0x5C, 0x5F, 0x7D]
+EFFECT_ENDS = [0x34, 0x66, 0x39, 0x3B, 0x6B, 0x44, 0x46, 0x48, 0x4A, 0x4C, 0x4F]
+CARTS = [8, 0x80, 0x100, 0x200, 0x400]
+
+
+def make_effects(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
+    """The script for a map: actors (X) and players (K) as make_goes and make_plays make them,
+    sent messages that make and end their effects (docs/world/effects.md): the slots full or
+    empty before, sometimes one effect in many, more in the list; each slot's start and end,
+    the effects without a slot, emotions (0x22 among them), effects gone (0x30) that the actor
+    has, had or never had, and for actors the other messages SetStatus sends; effect states of
+    the carts, hiding and cloaked. Then arrivals as make_arrivals makes them (B) with the
+    actor's messages to itself through its own vf02 and the carts' effect states."""
+    rng = random.Random(zlib.crc32(b"effects " + name.encode()))
+
+    def effect_fields():
+        slots = rng.choice([0, 0, rng.getrandbits(11), 0x7FF, 1 << rng.randint(0, 10)])
+        return [str(slots), str(rng.choice([0, 0, 1, 3])), str(rng.choice([0, 0, 0, 1]))]
+
+    def effect_state():
+        return rng.choice(CARTS + [0, 0, 2, 4, 6, 0x10, 0x88, 0x18, rng.getrandbits(11)])
+
+    def script(player):
+        others = [] if player else [0x6D, 0x23, 0x69, 0x6A]
+        messages = []
+        for _ in range(rng.choice([1, 3, 8, 20, 40])):
+            message = rng.choice(EFFECT_STARTS * 2 + EFFECT_ENDS * 2 + [0x15, 0x15, 0x30, 0x30] + others)
+            arg, sender = 0, 0
+            if message == 0x15:
+                arg = rng.choice([0x22, 0x22, rng.randint(0, 0x40), -1])
+            elif message == 0x30:
+                sender = rng.choice([rng.randint(1, 8), rng.randint(1, 30), 0, 999])
+            elif message in (0x33, 0x6D):
+                arg = rng.choice([0, rng.getrandbits(11), 0xC8])
+            messages += [message, arg, sender]
+        return [str(len(messages) // 3), *(str(m) for m in messages)]
+
+    lines = []
+    for kind, source in (("X", make_goes("effects " + name, width, height, attrs, count, updates)),
+                         ("K", make_plays("effects " + name, width, height, attrs, count, updates))):
+        for line in source:
+            if line[0] not in "GP":
+                lines.append(line)
+                continue
+            tokens = line.split()[1:]
+            n = 39 if kind == "X" else 44
+            fields, times = tokens[:n], tokens[n:]
+            fields[8] = str(effect_state())
+            if kind == "X":
+                fields[17] = str(rng.choice([0, 0, 1, 3, 6, 10, 2]))
+            lines.append(f"{kind} " + " ".join(fields + effect_fields() + script(kind == "K") + times[:2]))
+    for line in make_arrivals("effects " + name, width, height, attrs, count, updates):
+        if line[0] != "A":
+            lines.append(line)
+            continue
+        tokens = line.split()[1:]
+        fields, arrive, rest = tokens[:39], tokens[39:51], tokens[51:]
+        record = rest[:path_oracle.ARRIVE_RECORD]
+        if rng.random() < 0.4:
+            # Message 4 with `how` 2 launches effect 6 unless bit 6 is set.
+            hidden = 0x40 if arrive[:2] == ["4", "2"] else 0
+            record[15 if arrive[0] in ("3", "4") else 16] = str(effect_state() | hidden)
+        if rng.random() < 0.3:
+            fields[8] = str(effect_state())
+        lines.append("B " + " ".join(fields + arrive + effect_fields() + record + rest[path_oracle.ARRIVE_RECORD:]))
+    return lines
+
+
 def main():
     args = path_oracle.arguments("walks per map", 40)
     ours, originals = path_oracle.run_maps(
         args, lambda *a: make_walks(*a) + make_goes(*a) + make_plays(*a) + make_tos(*a)
-        + make_stands(*a) + make_enters(*a) + make_arrivals(*a), "walks")
+        + make_stands(*a) + make_enters(*a) + make_arrivals(*a) + make_effects(*a), "walks")
     totals = {}
     for (_, lines, _), want in zip(ours, originals):
         for line, result in zip(lines, want):
             key = result.split()[0] if line[0] == "F" else {"W": "walk ", "G": "go ", "P": "player ", "T": "to ", "U": "player to ", "N": "stand ",
                    "Y": "player stand ", "E": "enter ",
-                   "Q": "player enter ", "A": "arrive "}[line[0]] + result.split()[0]
+                   "Q": "player enter ", "A": "arrive ", "B": "arrive with effects ", "X": "effects ",
+                   "K": "player effects "}[line[0]] + result.split()[0]
             totals[key] = totals.get(key, 0) + 1
-            if line[0] in "WGPTUNYEQA" and result != "-":
+            if line[0] in "WGPTUNYEQAB" and result != "-":
                 totals["updates"] = totals.get("updates", 0) + int(result.split()[1])
+            if line[0] in "XK":
+                totals["effect messages"] = totals.get("effect messages", 0) + int(result.split()[1])
     return path_oracle.report(ours, originals, totals, "queries")
 
 

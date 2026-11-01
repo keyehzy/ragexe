@@ -4,6 +4,7 @@
 
 #include "core/x87.h"
 #include "render/world_load.h"
+#include "world/actor_effects.h"
 
 namespace ragexe::world {
 
@@ -32,9 +33,11 @@ void Send(const StateContext& context, const ModeMessage& message) {
   if (context.messages != nullptr) context.messages->push_back(message);
 }
 
-// vf02 to itself, from no sender.
-void SendSelf(const StateContext& context, std::int32_t id, std::int32_t a = 0) {
+// vf02 to itself, from no sender: kept, and made and ended the effects of.
+void SendSelf(GameActor& actor, const StateContext& context, std::uint32_t now, std::int32_t id,
+              std::int32_t a = 0) {
   if (context.actor_messages != nullptr) context.actor_messages->push_back({id, a, 0, 0});
+  SendGameActorEffectMessage(actor, id, 0, a, context, now);
 }
 
 // PlayWave where the actor stands, as the player hears it.
@@ -59,36 +62,37 @@ void SetColorChannels(render::RenderObject& o, std::int32_t alpha, std::int32_t 
 }
 
 // 00506bf0: the effects of the shown actor ended (0x6d with 0xc8, 0xc9, then 0xca five times).
-void EndShownEffects(const StateContext& context) {
-  SendSelf(context, 0x6d, 0xc8);
-  SendSelf(context, 0x6d, 0xc9);
-  for (int k = 0; k < 5; ++k) SendSelf(context, 0x6d, 0xca);
+void EndShownEffects(GameActor& actor, const StateContext& context, std::uint32_t now) {
+  SendSelf(actor, context, now, 0x6d, 0xc8);
+  SendSelf(actor, context, now, 0x6d, 0xc9);
+  for (int k = 0; k < 5; ++k) SendSelf(actor, context, now, 0x6d, 0xca);
 }
 
 // What hiding and showing again end with: the grouped bits' and bit 4's effects, put away
 // (0x34, 0x66) or back (0x33, 0x65).
-void EndHiding(const GameActor& actor, const StateContext& context, bool hidden) {
-  if ((actor.effect_state & kGroupedBits) != 0) SendSelf(context, hidden ? 0x34 : 0x33);
-  if ((actor.effect_state & kBit4) != 0) SendSelf(context, hidden ? 0x66 : 0x65);
+void EndHiding(GameActor& actor, const StateContext& context, std::uint32_t now, bool hidden) {
+  if ((actor.effect_state & kGroupedBits) != 0) SendSelf(actor, context, now, hidden ? 0x34 : 0x33);
+  if ((actor.effect_state & kBit4) != 0) SendSelf(actor, context, now, hidden ? 0x66 : 0x65);
 }
 
 // Bits 1 and 2: hidden, the body (and for bit 2 the whole object) not drawn, and to others
 // than the player without the shadow either; or shown again.
-void Hide(GameActor& actor, const StateContext& context, bool whole, bool hidden) {
+void Hide(GameActor& actor, const StateContext& context, std::uint32_t now, bool whole,
+          bool hidden) {
   render::RenderObject& o = actor.object;
   const bool own = actor.id == context.own_id;
-  EndShownEffects(context);
+  EndShownEffects(actor, context, now);
   if (hidden) {
     o.body_shown = false;
     if (whole) o.visible = false;
     if (!own && !SeesHiddenActors(context.service_type, context.own_id)) {
       o.shadow = false;
       if (whole) {
-        SendSelf(context, 0x23);
-        SendSelf(context, 0x6d, 0x9f);
+        SendSelf(actor, context, now, 0x23);
+        SendSelf(actor, context, now, 0x6d, 0x9f);
       } else {
-        SendSelf(context, 0x6d, 0x9f);
-        SendSelf(context, 0x23);
+        SendSelf(actor, context, now, 0x6d, 0x9f);
+        SendSelf(actor, context, now, 0x23);
       }
     }
   } else {
@@ -96,13 +100,13 @@ void Hide(GameActor& actor, const StateContext& context, bool whole, bool hidden
     if (whole) o.visible = true;
     if (!own) o.shadow = true;
   }
-  EndHiding(actor, context, hidden);
+  EndHiding(actor, context, now, hidden);
 }
 
 // Bit 6: hidden from all but those who see hidden actors, the player too; or shown again.
-void HideFromAll(GameActor& actor, const StateContext& context, bool hidden) {
+void HideFromAll(GameActor& actor, const StateContext& context, std::uint32_t now, bool hidden) {
   render::RenderObject& o = actor.object;
-  EndShownEffects(context);
+  EndShownEffects(actor, context, now);
   if (!hidden) {
     o.body_shown = o.visible = o.shadow = true;
   } else if (SeesHiddenActors(context.service_type, context.own_id)) {
@@ -110,34 +114,36 @@ void HideFromAll(GameActor& actor, const StateContext& context, bool hidden) {
     o.shadow = false;
   } else {
     o.body_shown = o.visible = o.shadow = false;
-    SendSelf(context, 0x6d, 0x9f);
+    SendSelf(actor, context, now, 0x6d, 0x9f);
   }
-  EndHiding(actor, context, hidden);
+  EndHiding(actor, context, now, hidden);
 }
 
 // The body state the actor leaves: its effects ended and CGameMode+0x2a0 cleared.
-void LeaveBodyState(GameActor& actor, std::int32_t state, const StateContext& context) {
+void LeaveBodyState(GameActor& actor, std::int32_t state, const StateContext& context,
+                    std::uint32_t now) {
   render::RenderObject& o = actor.object;
   switch (state) {
     case 1: Play(actor, context, "_stone_explosion.wav"); break;
     case 2:
-      SendSelf(context, 0x3b);
-      SendSelf(context, 0x3e);
+      SendSelf(actor, context, now, 0x3b);
+      SendSelf(actor, context, now, 0x3e);
       Play(actor, context, "_frozen_explosion.wav");
       o.held = false;
       o.tinted = false;
       o.finished = true;
       SetColorChannels(o, kKeep, 0xff, 0xff, 0xff);
       break;
-    case 3: SendSelf(context, 0x48); break;
-    case 4: SendSelf(context, 0x46); break;
+    case 3: SendSelf(actor, context, now, 0x48); break;
+    case 4: SendSelf(actor, context, now, 0x46); break;
     default: return;
   }
   if (context.mode_field_0x2a0 != nullptr) *context.mode_field_0x2a0 = 0;
 }
 
 // The body state the actor takes.
-void TakeBodyState(GameActor& actor, std::int32_t state, const StateContext& context) {
+void TakeBodyState(GameActor& actor, std::int32_t state, const StateContext& context,
+                   std::uint32_t now) {
   render::RenderObject& o = actor.object;
   switch (state) {
     case 1:
@@ -145,12 +151,12 @@ void TakeBodyState(GameActor& actor, std::int32_t state, const StateContext& con
       SetColorChannels(o, kKeep, 0x40, 0x40, 0x40);
       break;
     case 2:
-      SendSelf(context, 0x3a);
+      SendSelf(actor, context, now, 0x3a);
       o.held = o.tinted = o.finished = true;
       SetColorChannels(o, kKeep, 0, 0x80, 0xff);
       break;
-    case 3: SendSelf(context, 0x47); break;
-    case 4: SendSelf(context, 0x45); break;
+    case 3: SendSelf(actor, context, now, 0x47); break;
+    case 4: SendSelf(actor, context, now, 0x45); break;
     case 6:
       o.tinted = true;
       SetColorChannels(o, kKeep, 0x80, 0x80, 0x80);
@@ -160,7 +166,7 @@ void TakeBodyState(GameActor& actor, std::int32_t state, const StateContext& con
 }
 
 // The health state's bits, each time.
-void ShowHealthState(GameActor& actor, const StateContext& context) {
+void ShowHealthState(GameActor& actor, const StateContext& context, std::uint32_t now) {
   render::RenderObject& o = actor.object;
   const std::uint32_t health = actor.health_state;
   if ((health & 1) != 0) {
@@ -168,15 +174,15 @@ void ShowHealthState(GameActor& actor, const StateContext& context) {
     SetColorChannels(o, kKeep, 0xff, 0x80, 0xff);
   }
   if ((health & 2) != 0) {
-    SendSelf(context, 0x43);
+    SendSelf(actor, context, now, 0x43);
     o.tinted = true;
     SetColorChannels(o, kKeep, 0xc8, 0x32, 0x32);
   } else {
-    SendSelf(context, 0x44);
+    SendSelf(actor, context, now, 0x44);
   }
-  SendSelf(context, (health & 4) != 0 ? 0x49 : 0x4a);
-  SendSelf(context, (health & 0x20) != 0 ? 0x4b : 0x4c);
-  SendSelf(context, (health & 0x40) != 0 ? 0x4e : 0x4f);
+  SendSelf(actor, context, now, (health & 4) != 0 ? 0x49 : 0x4a);
+  SendSelf(actor, context, now, (health & 0x20) != 0 ? 0x4b : 0x4c);
+  SendSelf(actor, context, now, (health & 0x40) != 0 ? 0x4e : 0x4f);
   if (actor.id == context.own_id && context.ground_water_fade != nullptr)
     *context.ground_water_fade = (health & 0x10) != 0 ? 1 : 0;
 }
@@ -218,7 +224,8 @@ void SetGameActorEmblem(GameActor& actor, std::int32_t guild, std::int32_t emble
 }
 
 void SetGameActorStatus(GameActor& actor, std::int32_t body_state, std::uint32_t effect_state,
-                        std::uint32_t health_state, const StateContext& context) {
+                        std::uint32_t health_state, const StateContext& context,
+                        std::uint32_t now) {
   const std::int32_t old_body = actor.body_state;
   const std::uint32_t old_effect = actor.effect_state;
   actor.body_state = body_state;
@@ -227,21 +234,23 @@ void SetGameActorStatus(GameActor& actor, std::int32_t body_state, std::uint32_t
   const std::uint32_t changed = effect_state ^ old_effect;
   if ((changed & kSighted) != 0 && (effect_state & kSighted) != 0)
     Play(actor, context, "effect\\EF_Sight.wav");
-  if ((changed & kHiding) != 0) Hide(actor, context, false, (effect_state & kHiding) != 0);
-  if ((changed & kCloaked) != 0) Hide(actor, context, true, (effect_state & kCloaked) != 0);
+  if ((changed & kHiding) != 0) Hide(actor, context, now, false, (effect_state & kHiding) != 0);
+  if ((changed & kCloaked) != 0) Hide(actor, context, now, true, (effect_state & kCloaked) != 0);
   if ((changed & kGroupedBits) != 0) {
-    SendSelf(context, 0x34);
+    SendSelf(actor, context, now, 0x34);
     if ((effect_state & kGroupedBits) != 0)
-      SendSelf(context, 0x33, static_cast<std::int32_t>(effect_state));
+      SendSelf(actor, context, now, 0x33, static_cast<std::int32_t>(effect_state));
   }
-  if ((changed & kBit4) != 0) SendSelf(context, (effect_state & kBit4) != 0 ? 0x65 : 0x66);
-  if ((changed & kBit5) != 0) SendSelf(context, (effect_state & kBit5) != 0 ? 0x69 : 0x6a);
-  if ((changed & kHidden) != 0) HideFromAll(actor, context, (effect_state & kHidden) != 0);
+  if ((changed & kBit4) != 0)
+    SendSelf(actor, context, now, (effect_state & kBit4) != 0 ? 0x65 : 0x66);
+  if ((changed & kBit5) != 0)
+    SendSelf(actor, context, now, (effect_state & kBit5) != 0 ? 0x69 : 0x6a);
+  if ((changed & kHidden) != 0) HideFromAll(actor, context, now, (effect_state & kHidden) != 0);
   if (old_body != body_state) {
-    LeaveBodyState(actor, old_body, context);
-    TakeBodyState(actor, body_state, context);
+    LeaveBodyState(actor, old_body, context, now);
+    TakeBodyState(actor, body_state, context, now);
   }
-  ShowHealthState(actor, context);
+  ShowHealthState(actor, context, now);
   if (health_state == 0 && body_state == 0) {
     render::RenderObject& o = actor.object;
     o.tinted = false;
@@ -265,7 +274,8 @@ bool ArriveGameActor(GameActor& actor, std::int32_t message, StandingArrival rec
   actor.goal_y = record.cell_y;
   if (message == 4) actor.speed = record.speed;
   actor.field_0x1f4 = record.field_0x1f4;
-  SetGameActorStatus(actor, record.body_state, record.effect_state, record.health_state, context);
+  SetGameActorStatus(actor, record.body_state, record.effect_state, record.health_state, context,
+                     now);
   SetGameActorState(actor, kStand, context, now);
   if (message == 3) {
     SetGameActorEmblem(actor, record.guild, record.emblem, context);
@@ -296,7 +306,8 @@ PathResult ArriveWalkingGameActor(GameActor& actor, PathFinder& finder, std::int
     actor.move_time = record.order.time;
   }
   actor.field_0x1f4 = record.field_0x1f4;
-  SetGameActorStatus(actor, record.body_state, record.effect_state, record.health_state, context);
+  SetGameActorStatus(actor, record.body_state, record.effect_state, record.health_state, context,
+                     now);
   actor.field_0x224 = record.field_0x224;
   SetGameActorEmblem(actor, record.guild, record.emblem, context);
   const MoveOrder& order = record.order;

@@ -6159,7 +6159,7 @@ mg::CMGEngine	005e9014	0	41	005c195a	_purecall	shared:7-unrelated-classes
 mg::CMGEngine	005e9014	0	42	005c195a	_purecall	shared:7-unrelated-classes
 mg::mgType1::CItemObj	005e90ec	116	0	004ee4d0	mg::mgType1::CItemObj::vf00_for_CRenderObject	adjustor:-116
 mg::mgType1::CItemObj	005e90ec	116	1	004ed8e0	CRenderObject::vf01	
-mg::mgType1::CItemObj	005e90ec	116	2	00500e40	CRenderObject::vf02	
+mg::mgType1::CItemObj	005e90ec	116	2	00500e40	CRenderObject::SendMsg	
 mg::mgType1::CItemObj	005e90ec	116	3	00501870	CRenderObject::Render	
 mg::mgType1::CItemObj	005e90ec	116	4	005000d0	CGameObject::GetDirection	
 mg::mgType1::CItemObj	005e90ec	116	5	00501830	CRenderObject::OnScreenBounds	
@@ -6353,12 +6353,12 @@ mg::mgType1::CMiniGame001	005e9434	0	41	004fed20	mg::mgType1::CMiniGame001::vf41
 mg::mgType1::CMiniGame001	005e9434	0	42	004fede0	mg::mgType1::CMiniGame001::vf42	
 CGameObject	005e9504	0	0	00500060	CGameObject::`scalar_deleting_destructor'	
 CGameObject	005e9504	0	1	005000c0	CGameObject::vf01	
-CGameObject	005e9504	0	2	005002a0	CGameObject::vf02	
+CGameObject	005e9504	0	2	005002a0	CGameObject::SendMsg	
 CGameObject	005e9504	0	3	00500050	CGameObject::vf03	
 CGameObject	005e9504	0	4	005000d0	CGameObject::GetDirection	
 CRenderObject	005e953c	0	0	00500320	CRenderObject::`scalar_deleting_destructor'	
 CRenderObject	005e953c	0	1	004ed8e0	CRenderObject::vf01	
-CRenderObject	005e953c	0	2	00500e40	CRenderObject::vf02	
+CRenderObject	005e953c	0	2	00500e40	CRenderObject::SendMsg	
 CRenderObject	005e953c	0	3	00501870	CRenderObject::Render	
 CRenderObject	005e953c	0	4	005000d0	CGameObject::GetDirection	
 CRenderObject	005e953c	0	5	00501830	CRenderObject::OnScreenBounds	
@@ -6376,7 +6376,7 @@ CMousePointer	005e9570	0	7	00500de0	CRenderObject::SetAction
 CMousePointer	005e9570	0	8	00500830	CRenderObject::UpdateFrame	
 CAbleToMakeEffect	005e9598	0	0	00501c60	CAbleToMakeEffect::`scalar_deleting_destructor'	
 CAbleToMakeEffect	005e9598	0	1	004ed8e0	CRenderObject::vf01	
-CAbleToMakeEffect	005e9598	0	2	005020d0	CAbleToMakeEffect::vf02	
+CAbleToMakeEffect	005e9598	0	2	005020d0	CAbleToMakeEffect::SendMsg	
 CAbleToMakeEffect	005e9598	0	3	00501870	CRenderObject::Render	
 CAbleToMakeEffect	005e9598	0	4	005000d0	CGameObject::GetDirection	
 CAbleToMakeEffect	005e9598	0	5	00501830	CRenderObject::OnScreenBounds	
@@ -6467,7 +6467,7 @@ C3dGrannyGameActor	005e967c	0	39	004eb070	CGameActor::GetGuild
 C3dGrannyGameActor	005e967c	0	40	004eb080	CGameActor::vf40	
 CGrannyCorpse3d	005e9734	0	0	00509fe0	CGrannyCorpse3d::`scalar_deleting_destructor'	
 CGrannyCorpse3d	005e9734	0	1	0050a2b0	CGrannyCorpse3d::vf01	
-CGrannyCorpse3d	005e9734	0	2	005002a0	CGameObject::vf02	
+CGrannyCorpse3d	005e9734	0	2	005002a0	CGameObject::SendMsg	
 CGrannyCorpse3d	005e9734	0	3	0050a380	CGrannyCorpse3d::vf03	
 CGrannyCorpse3d	005e9734	0	4	005000d0	CGameObject::GetDirection	
 CGameMode	005e9770	0	0	0050c5f0	CGameMode::`scalar_deleting_destructor'	
@@ -6479,7 +6479,7 @@ CGameMode	005e9770	0	5	0051d990	CGameMode::SendMsg
 CGameMode	005e9770	0	6	00515f60	CGameMode::OnChangeState	
 CDummyEffectLauncher	005e97a4	0	0	0050ffe0	CDummyEffectLauncher::`scalar_deleting_destructor'	
 CDummyEffectLauncher	005e97a4	0	1	005affc0	CDummyEffectLauncher::vf01	
-CDummyEffectLauncher	005e97a4	0	2	005020d0	CAbleToMakeEffect::vf02	
+CDummyEffectLauncher	005e97a4	0	2	005020d0	CAbleToMakeEffect::SendMsg	
 CDummyEffectLauncher	005e97a4	0	3	00501870	CRenderObject::Render	
 CDummyEffectLauncher	005e97a4	0	4	005000d0	CGameObject::GetDirection	
 CDummyEffectLauncher	005e97a4	0	5	00501830	CRenderObject::OnScreenBounds	
@@ -6646,7 +6646,7 @@ CBlurPC	005e9a18	0	39	004eb070	CGameActor::GetGuild
 CBlurPC	005e9a18	0	40	004eb080	CGameActor::vf40	
 CMasterChaser	005e9ac0	0	0	00541370	CMasterChaser::`scalar_deleting_destructor'	
 CMasterChaser	005e9ac0	0	1	004ed8e0	CRenderObject::vf01	
-CMasterChaser	005e9ac0	0	2	00500e40	CRenderObject::vf02	
+CMasterChaser	005e9ac0	0	2	00500e40	CRenderObject::SendMsg	
 CMasterChaser	005e9ac0	0	3	00501870	CRenderObject::Render	
 CMasterChaser	005e9ac0	0	4	005000d0	CGameObject::GetDirection	
 CMasterChaser	005e9ac0	0	5	00501830	CRenderObject::OnScreenBounds	

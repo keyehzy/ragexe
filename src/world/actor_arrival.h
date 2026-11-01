@@ -72,11 +72,12 @@ std::string EmblemFileName(std::string_view server_name, std::int32_t guild, std
 void SetGameActorEmblem(GameActor& actor, std::int32_t guild, std::int32_t emblem,
                         const StateContext& context);
 
-// CGameActor 00506c80 with its fourth argument 0, as messages 3 to 6 call it: the three status
-// words (+0x218, +0x21c, +0x220) and what changing them shows (docs/world/arrival.md): the
-// actor hidden or shown, its tint, the messages it sends itself and the sounds it plays.
+// CGameActor 00506c80 with its fourth argument 0, as messages 3 to 6 call it, at timeGetTime
+// `now`: the three status words (+0x218, +0x21c, +0x220) and what changing them shows
+// (docs/world/arrival.md): the actor hidden or shown, its tint, the messages it sends itself
+// and the sounds it plays. The messages make and end its effects (SendGameActorEffectMessage).
 void SetGameActorStatus(GameActor& actor, std::int32_t body_state, std::uint32_t effect_state,
-                        std::uint32_t health_state, const StateContext& context);
+                        std::uint32_t health_state, const StateContext& context, std::uint32_t now);
 
 // CGameActor::SendMsg's messages 3 (0050597b) and 4 (00505a33), `how` the message's next
 // argument: the actor stands on the record's cell, facing its direction, with its status and

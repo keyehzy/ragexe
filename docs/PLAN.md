@@ -2888,6 +2888,22 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     status bit, body state, health bit and emblem case.
   - **Labels:** `CGameActor::SetStatus`, `EndShownEffects` and `SetEmblem`;
     `ClientState::HasAccountPrivilege` and `IsKoreaService`.
+- [x] Actors' effects (`docs/world/effects.md`, `src/world/actor_effects`): `CGameActor::SendMsg`'s
+  messages that make and end the effects showing an actor's statuses. The game mode makes each
+  (`AddSpriteEffectByType`, `AddEmotionEffect`), the actor keeps it in one of eleven slots and in
+  its list, and tells it to follow (0x32) or end (0x35):
+  - the cart by the whole effect state, not while hiding or cloaked; the falcon's +0x44;
+  - sleep's state 10, through `CPc::SetState` for a player;
+  - the effects without a slot, the emotions, and 0x30 from an effect that has gone
+    (`ClearSlotHolding`'s order).
+
+  `SetStatus`'s messages to the actor now make and end them as an arrival goes.
+  - **Checks:** `tools/walk_oracle.py`'s `X`, `K` and `B` on all 287 maps, the effects stand-ins
+    whose `vf02` is recorded: 11,480 actors and 11,480 players sent 332,568 messages, and 11,480
+    arrivals over 1,453,200 updates; every slot, the list, what made each effect and what it
+    was sent equal. `actor_effect_vectors.inc` keeps short ones, every slot's start and end, the carts,
+    each step of `ClearSlotHolding` and the arrivals of `arrival_vectors.inc` with their effects.
+  - **Labels:** `CAbleToMakeEffect::SendMsg`, `CRenderObject::SendMsg` and `CGameObject::SendMsg`.
 
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,

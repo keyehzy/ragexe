@@ -72,9 +72,9 @@ version is +0x44. The message's next argument (`how`) then counts:
 3 to 6 pass `announce` 0. With 1, other callers also launch effect 0x10 and play a sound for
 each health bit; that is not ported.
 
-The actor sends itself messages through `vf02`, from no sender. Their handlers start and end
-the actor's sprite effects (`CGameMode::AddSpriteEffectByType`, `005106a0`). The port only lists
-them. "The player" below is `ClientState`+0xcdc, the player's id.
+The actor sends itself messages through `vf02`, from no sender. Their handlers make and end the
+actor's effects ([effects.md](effects.md)), and the port's do too. "The player" below is
+`ClientState`+0xcdc, the player's id.
 
 **A seer** sees hidden actors. `ClientState` `00597950` asked about 7 says so: on the Korean
 service (`g_serviceType` 0) only, for the ids 0x186b4, 0x2933c9 and 0x326b70.
@@ -169,7 +169,8 @@ Then:
 `src/world/actor_arrival.{h,cpp}`, in `ragexe_world`:
 - `StandingArrival` and `WalkingArrival`, the records, with the offsets above;
 - `ArriveGameActor` for messages 3 and 4, and `ArriveWalkingGameActor` for 5 and 6;
-- `SetGameActorStatus`, `SetStatus` with `announce` 0;
+- `SetGameActorStatus`, `SetStatus` with `announce` 0, which also sends its messages through
+  `SendGameActorEffectMessage`;
 - `SetGameActorEmblem` (`vf38`), `EmblemFileName` and `SeesHiddenActors`.
 
 `StateContext` gained what these read or write:
@@ -231,4 +232,4 @@ changed state (a walker that stood), 639 faded and 8,742 stayed.
 - `SetStatus` with `announce` set;
 - the guild war map's work: `005078e0` and `005078a0`, run when `ClientState::IsGuildWarMap`
   (`CWorld`+0x60) is set;
-- what the messages the actor sends itself do.
+- the launched effects that 0x6d ends ([effects.md](effects.md#the-rest)).

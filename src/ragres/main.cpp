@@ -118,6 +118,7 @@
 #include "res/wav.h"
 #include "res/xml.h"
 #include "world/actor_arrival.h"
+#include "world/actor_effects.h"
 #include "world/actor_state.h"
 #include "world/actor_walk.h"
 #include "world/path_finder.h"
@@ -634,6 +635,12 @@ int DecodeGats(const std::vector<std::string>& files) {
 //   A FIELDS... ARRIVE... RECORD... (SERVER TICK)...
 //                                              G coming into view through message 3, 4, 5 or
 //                                              6 with its record, then updated (ARRIVE_FIELDS)
+//   B FIELDS... ARRIVE... EFFECTS... RECORD... (SERVER TICK)...
+//                                              A with the effects its messages to itself make
+//                                              and end (EFFECT_FIELDS)
+//   X and K FIELDS... EFFECTS... COUNT (MESSAGE ARG SENDER)... SERVER TICK
+//                                              G and P sent messages that make and end their
+//                                              effects
 // Prints for F and M "RESULT MOVE_TIME FIELD_0X10 START_X START_Y COUNT HASH" (the result
 // found, same, none or overflow; the move time "-" for F; the start as float bits; the
 // hash FNV-1a over each step's x, y, dir and time), for I the result, and for S "INDEX
@@ -641,8 +648,9 @@ int DecodeGats(const std::vector<std::string>& files) {
 // UPDATES X Y Z FACING ACTION FRAME TRAVELLED HASH" (the end walking, arrived or faded, the
 // floats as bits, the hash FNV-1a over each update's result and fields), or "-"; for G "END
 // UPDATES X Y Z FACING ACTION FRAME STATE HASH", the end standing (no path), arrived,
-// walking or faded; for E, Q and A the same with the end staying, changed (the state did),
-// faded or unported, the state unsigned.
+// walking or faded; for E, Q, A and B the same with the end staying, changed (the state did),
+// faded or unported, the state unsigned; for X and K the same with "sent" and the messages'
+// count.
 int FindPaths(const std::string& gat, const std::string& queries) {
   ragexe::res::AttrMap map;
   std::string error;
@@ -782,20 +790,28 @@ int FindPaths(const std::string& gat, const std::string& queries) {
                   FloatBits(o.facing), o.action, o.frame, FloatBits(actor.travelled),
                   static_cast<unsigned long long>(h));
     } else if (kind == "G" || kind == "P" || kind == "T" || kind == "U" || kind == "N" ||
-               kind == "Y" || kind == "E" || kind == "Q" || kind == "A") {
-      const bool player = kind == "P" || kind == "U" || kind == "Y" || kind == "Q";
+               kind == "Y" || kind == "E" || kind == "Q" || kind == "A" || kind == "B" ||
+               kind == "X" || kind == "K") {
+      const bool player = kind == "P" || kind == "U" || kind == "Y" || kind == "Q" || kind == "K";
       const bool to = kind == "T" || kind == "U";
       const bool stand = kind == "N" || kind == "Y";
       const bool enter = kind == "E" || kind == "Q";
-      const bool arrive = kind == "A";
+      const bool arrive = kind == "A" || kind == "B";
+      const bool with_effects = kind == "B" || kind == "X" || kind == "K";
       std::vector<std::uint32_t> v;
       for (std::string token; fields >> token;)
         v.push_back(static_cast<std::uint32_t>(std::stoll(token, nullptr, 0)));
       const std::size_t base_fields = player ? 44 : 39;
       constexpr std::size_t kArriveFields = 12;
       constexpr std::size_t kRecordWords = 28;
+      constexpr std::size_t kEffectFields = 3;
       const std::size_t kFields = base_fields + (to ? 1 : 0) + (stand ? 7 : 0) + (enter ? 9 : 0) +
-                                  (arrive ? kArriveFields + kRecordWords : 0);
+                                  (arrive ? kArriveFields + kRecordWords : 0) +
+                                  (with_effects ? kEffectFields : 0);
+      // B, X and K: EFFECT_FIELDS, after ARRIVE_FIELDS for B.
+      const std::size_t effect_at = base_fields + (arrive ? kArriveFields : 0);
+      const std::size_t record_at =
+          base_fields + kArriveFields + (with_effects ? kEffectFields : 0);
       if (v.size() < kFields + 2) {
         std::fprintf(stderr, "short go: %s\n", line.c_str());
         return 2;
@@ -910,12 +926,35 @@ int FindPaths(const std::string& gat, const std::string& queries) {
         };
         player_at = {std::bit_cast<float>(v[b + 10]), 0.0f, std::bit_cast<float>(v[b + 11])};
         context.player = v[b + 9] != 0 ? &player_at : nullptr;
-        context.actor_messages = &actor_messages;
+        context.actor_messages = with_effects ? nullptr : &actor_messages;
         context.sounds = &sounds;
         context.ground_water_fade = &ground_water_fade;
         context.server_name = "Chaos";
         for (std::size_t k = 0; k < kRecordWords; ++k)
-          record[k] = static_cast<std::int32_t>(v[b + kArriveFields + k]);
+          record[k] = static_cast<std::int32_t>(v[record_at + k]);
+      }
+      // The effects before: one in each slot of `slots`' bits (one for all with `same`), each
+      // in the list in that order, then `listed` more.
+      ragexe::world::ActorEffects effects;
+      std::size_t made_before = 0;
+      if (with_effects) {
+        const std::uint32_t slots = v[effect_at];
+        std::int32_t shared = 0;
+        for (std::size_t k = 0; k < actor.effect_slots.size(); ++k) {
+          if ((slots >> k & 1) == 0) continue;
+          if (v[effect_at + 2] == 0 || shared == 0) {
+            effects.made.emplace_back();
+            shared = static_cast<std::int32_t>(effects.made.size());
+            actor.effects.push_back(shared);
+          }
+          actor.effect_slots[k] = shared;
+        }
+        for (std::uint32_t k = 0; k < v[effect_at + 1]; ++k) {
+          effects.made.emplace_back();
+          actor.effects.push_back(static_cast<std::int32_t>(effects.made.size()));
+        }
+        made_before = effects.made.size();
+        context.effects = &effects;
       }
       std::uint64_t h = 0xcbf29ce484222325ull;
       const auto fold = [&h](std::uint32_t x) {
@@ -968,6 +1007,62 @@ int FindPaths(const std::string& gat, const std::string& queries) {
         }
         messages.clear();
       };
+      // The slots and the list by number, the effects made and what they were sent since, as
+      // tools/path_oracle.py's effects().
+      const auto fold_effects = [&] {
+        if (!with_effects) return;
+        for (const std::int32_t number : actor.effect_slots)
+          fold(static_cast<std::uint32_t>(number));
+        fold(static_cast<std::uint32_t>(actor.effects.size()));
+        fold(static_cast<std::uint32_t>(actor.effects.size()));
+        for (const std::int32_t number : actor.effects) fold(static_cast<std::uint32_t>(number));
+        fold(static_cast<std::uint32_t>(effects.made.size()));
+        for (std::size_t k = 0; k < effects.made.size(); ++k) {
+          const auto& e = effects.made[k];
+          for (const std::uint32_t x :
+               {k < made_before ? 2u
+                : e.emotion     ? 1u
+                                : 0u,
+                static_cast<std::uint32_t>(e.type), e.position == &o.position ? 1u : 0u,
+                static_cast<std::uint32_t>(e.actor_id), FloatBits(e.field_0x44)}) {
+            fold(x);
+          }
+        }
+        fold(static_cast<std::uint32_t>(6 * effects.messages.size()));
+        for (const auto& m : effects.messages) {
+          for (const std::int32_t x : {m.effect, m.id == 0x32 ? 1 : 0, m.id, 0, 0, 0})
+            fold(static_cast<std::uint32_t>(x));
+        }
+        effects.messages.clear();
+      };
+      if (with_effects && !arrive) {
+        const std::size_t count = v[kFields];
+        if (v.size() < kFields + 3 * count + 3) {
+          std::fprintf(stderr, "short effects: %s\n", line.c_str());
+          return 2;
+        }
+        now = v[kFields + 3 * count + 2];
+        for (std::size_t k = 0; k < count; ++k) {
+          const auto message = static_cast<std::int32_t>(v[kFields + 1 + 3 * k]);
+          const auto arg = static_cast<std::int32_t>(v[kFields + 2 + 3 * k]);
+          const auto sender = static_cast<std::int32_t>(v[kFields + 3 + 3 * k]);
+          if (player)
+            ragexe::world::SendGameActorEffectMessage(actor, message, sender, arg, context, now);
+          else
+            ragexe::world::SendGameActorEffectMessage(static_cast<ragexe::world::GameActor&>(actor),
+                                                      message, sender, arg, context, now);
+          fold(static_cast<std::uint32_t>(message));
+          fold_fields();
+          fold_messages();
+          fold_player();
+          fold_effects();
+        }
+        std::printf("sent %zu %08x %08x %08x %08x %d %d %u %016llx\n", count,
+                    FloatBits(o.position[0]), FloatBits(o.position[1]), FloatBits(o.position[2]),
+                    FloatBits(o.facing), o.action, o.frame, static_cast<std::uint32_t>(actor.state),
+                    static_cast<unsigned long long>(h));
+        continue;
+      }
       if (stand) {
         int updates = 0;
         const char* end = "standing";
@@ -1097,6 +1192,7 @@ int FindPaths(const std::string& gat, const std::string& queries) {
         fold(static_cast<std::uint32_t>(digest >> 32));
         fold_messages();
         fold_arrival();
+        fold_effects();
         const std::int32_t state = actor.state;
         int updates = 0;
         const char* end = ported ? "staying" : "unported";
@@ -1111,6 +1207,7 @@ int FindPaths(const std::string& gat, const std::string& queries) {
           fold_fields();
           fold_messages();
           fold_arrival();
+          fold_effects();
           if (result == ragexe::world::StateResult::kFaded) {
             end = "faded";
             break;
