@@ -83,3 +83,8 @@ address	namespace	name	evidence	type
 0067bf70	Global	g_worldDiffuse	the world's diffuse colour (r, g, b): CWorld::LoadWorld copies it from C3dWorldRes+0x194 for the same calls	float
 0067bf80	Global	g_worldLightVector	the world's light vector (x, y, z): CWorld::LoadWorld copies it from C3dWorldRes+0x188 for the same calls	float
 0067bf90	Global	g_modelLoadThread	CreateThread's handle for LazyModelLoadThread; JoinModelLoadThread waits on it and clears it	pointer
+0067cf20	Global	g_actorPickMinimum	CGameActor::OnScreenBounds: __ftol(SceneRenderer+0x14 * 40 (005e8ff8)) the first time (guard bit 0 of 0067cf24); a pick record's least width and height	int
+0068602c	Global	g_itemPickMinimum	CItem::OnScreenBounds: __ftol(SceneRenderer+0x14 * 34 (005e98d8)) the first time (guard 00686030)	int
+00687fa8	Global	g_skillPickMinimum	CSkill::OnScreenBounds: __ftol(SceneRenderer+0x14 * 34) the first time (guard 00687fac)	int
+00685fec	Global	g_shiftHeld	CGameMode 00515d10: the high byte of GetAsyncKeyState(VK_SHIFT) each frame before CActorPickNode::Find; CGameActor::OnScreenBounds puts players first when it and 00686020 differ	int
+00686020	Global	g_aimingPlayerSkill	CGameMode::SendMsg: IsSkillIdInFlagList of the aimed skill +0x360, cleared when the aim ends; CGameActor::OnScreenBounds puts players first when it and 00685fec differ	int

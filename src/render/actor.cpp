@@ -174,6 +174,7 @@ ActorBody DrawActorBody(const RenderObject& object, const res::Act& act, const r
   out.screen_y = sy;
   out.bounds = {static_cast<float>(projection.width), static_cast<float>(projection.height), 0.0f,
                 0.0f};
+  out.inverse_z = inverse;
   const float pixel = (inverse * projection.scale_x) * kPixel;
   out.pixel_scale = pixel / scales.size;
   const float offset =

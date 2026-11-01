@@ -6071,7 +6071,7 @@ mg::CMGPc	005e8eac	0	35	00543470	CPc::vf35
 mg::CMGPc	005e8eac	0	36	005434c0	CPc::vf36	
 mg::CMGPc	005e8eac	0	37	00543510	CPc::vf37	
 mg::CMGPc	005e8eac	0	38	00504390	CGameActor::vf38	
-mg::CMGPc	005e8eac	0	39	004eb070	CGameActor::vf39	
+mg::CMGPc	005e8eac	0	39	004eb070	CGameActor::GetGuild	
 mg::CMGPc	005e8eac	0	40	004eb080	CGameActor::vf40	
 mg::CMGNpc	005e8f54	0	0	004eb220	mg::CMGNpc::`scalar_deleting_destructor'	
 mg::CMGNpc	005e8f54	0	1	005404d0	CNpc::vf01	
@@ -6112,7 +6112,7 @@ mg::CMGNpc	005e8f54	0	35	0050ad50	CGameActor::vf35
 mg::CMGNpc	005e8f54	0	36	004eb1c0	CGameActor::vf36	
 mg::CMGNpc	005e8f54	0	37	004eb1d0	CGameActor::vf37	
 mg::CMGNpc	005e8f54	0	38	00504390	CGameActor::vf38	
-mg::CMGNpc	005e8f54	0	39	004eb070	CGameActor::vf39	
+mg::CMGNpc	005e8f54	0	39	004eb070	CGameActor::GetGuild	
 mg::CMGNpc	005e8f54	0	40	004eb080	CGameActor::vf40	
 mg::CMGEngine	005e9014	0	0	004eb6e0	mg::CMGEngine::`scalar_deleting_destructor'	
 mg::CMGEngine	005e9014	0	1	004a5b40	UIWindow::vf01	
@@ -6236,7 +6236,7 @@ mg::mgType1::CMonster	005e91d8	116	35	0050ad50	CGameActor::vf35
 mg::mgType1::CMonster	005e91d8	116	36	004eb1c0	CGameActor::vf36	
 mg::mgType1::CMonster	005e91d8	116	37	004eb1d0	CGameActor::vf37	
 mg::mgType1::CMonster	005e91d8	116	38	00504390	CGameActor::vf38	
-mg::mgType1::CMonster	005e91d8	116	39	004eb070	CGameActor::vf39	
+mg::mgType1::CMonster	005e91d8	116	39	004eb070	CGameActor::GetGuild	
 mg::mgType1::CMonster	005e91d8	116	40	004eb080	CGameActor::vf40	
 mg::mgType1::CMonster	005e91bc	0	0	004f0790	mg::mgType1::CMonster::vf00	
 mg::mgType1::CMonster	005e91bc	0	1	004f0b30	mg::mgType1::CMonster::vf01	
@@ -6298,7 +6298,7 @@ mg::mgType1::CPlayer	005e92e0	104	35	00543470	CPc::vf35
 mg::mgType1::CPlayer	005e92e0	104	36	005434c0	CPc::vf36	
 mg::mgType1::CPlayer	005e92e0	104	37	00543510	CPc::vf37	
 mg::mgType1::CPlayer	005e92e0	104	38	00504390	CGameActor::vf38	
-mg::mgType1::CPlayer	005e92e0	104	39	004eb070	CGameActor::vf39	
+mg::mgType1::CPlayer	005e92e0	104	39	004eb070	CGameActor::GetGuild	
 mg::mgType1::CPlayer	005e92e0	104	40	004eb080	CGameActor::vf40	
 mg::mgType1::CPlayer	005e9388	0	0	004f16c0	mg::mgType1::CPlayer::vf00	
 mg::mgType1::CPlayer	005e9388	0	1	004f1740	mg::mgType1::CPlayer::vf01	
@@ -6422,7 +6422,7 @@ CGameActor	005e95c0	0	35	0050ad50	CGameActor::vf35
 CGameActor	005e95c0	0	36	004eb1c0	CGameActor::vf36	
 CGameActor	005e95c0	0	37	004eb1d0	CGameActor::vf37	
 CGameActor	005e95c0	0	38	00504390	CGameActor::vf38	
-CGameActor	005e95c0	0	39	004eb070	CGameActor::vf39	
+CGameActor	005e95c0	0	39	004eb070	CGameActor::GetGuild	
 CGameActor	005e95c0	0	40	004eb080	CGameActor::vf40	
 C3dGrannyGameActor	005e967c	0	0	00507ea0	C3dGrannyGameActor::`scalar_deleting_destructor'	
 C3dGrannyGameActor	005e967c	0	1	00508250	C3dGrannyGameActor::vf01	
@@ -6463,7 +6463,7 @@ C3dGrannyGameActor	005e967c	0	35	0050ad50	CGameActor::vf35
 C3dGrannyGameActor	005e967c	0	36	004eb1c0	CGameActor::vf36	
 C3dGrannyGameActor	005e967c	0	37	004eb1d0	CGameActor::vf37	
 C3dGrannyGameActor	005e967c	0	38	00504390	CGameActor::vf38	
-C3dGrannyGameActor	005e967c	0	39	004eb070	CGameActor::vf39	
+C3dGrannyGameActor	005e967c	0	39	004eb070	CGameActor::GetGuild	
 C3dGrannyGameActor	005e967c	0	40	004eb080	CGameActor::vf40	
 CGrannyCorpse3d	005e9734	0	0	00509fe0	CGrannyCorpse3d::`scalar_deleting_destructor'	
 CGrannyCorpse3d	005e9734	0	1	0050a2b0	CGrannyCorpse3d::vf01	
@@ -6533,7 +6533,7 @@ CItem	005e98ac	0	1	0053ad60	CItem::vf01
 CItem	005e98ac	0	2	0053afb0	CItem::vf02	
 CItem	005e98ac	0	3	0053ad20	CItem::vf03	
 CItem	005e98ac	0	4	005000d0	CGameObject::GetDirection	
-CItem	005e98ac	0	5	0053ae40	CItem::vf05	
+CItem	005e98ac	0	5	0053ae40	CItem::OnScreenBounds	
 CItem	005e98ac	0	6	00501840	CRenderObject::SetScreenPosition	
 CItem	005e98ac	0	7	00500de0	CRenderObject::SetAction	
 CItem	005e98ac	0	8	00500830	CRenderObject::UpdateFrame	
@@ -6583,7 +6583,7 @@ CNpc	005e991c	0	35	0050ad50	CGameActor::vf35
 CNpc	005e991c	0	36	004eb1c0	CGameActor::vf36	
 CNpc	005e991c	0	37	004eb1d0	CGameActor::vf37	
 CNpc	005e991c	0	38	00504390	CGameActor::vf38	
-CNpc	005e991c	0	39	004eb070	CGameActor::vf39	
+CNpc	005e991c	0	39	004eb070	CGameActor::GetGuild	
 CNpc	005e991c	0	40	004eb080	CGameActor::vf40	
 CBlowEffect	005e99c8	0	0	005409a0	CBlowEffect::`scalar_deleting_destructor'	
 CBlowEffect	005e99c8	0	1	00540a60	CBlowEffect::vf01	
@@ -6642,7 +6642,7 @@ CBlurPC	005e9a18	0	35	00543470	CPc::vf35
 CBlurPC	005e9a18	0	36	005434c0	CPc::vf36	
 CBlurPC	005e9a18	0	37	00543510	CPc::vf37	
 CBlurPC	005e9a18	0	38	00504390	CGameActor::vf38	
-CBlurPC	005e9a18	0	39	004eb070	CGameActor::vf39	
+CBlurPC	005e9a18	0	39	004eb070	CGameActor::GetGuild	
 CBlurPC	005e9a18	0	40	004eb080	CGameActor::vf40	
 CMasterChaser	005e9ac0	0	0	00541370	CMasterChaser::`scalar_deleting_destructor'	
 CMasterChaser	005e9ac0	0	1	004ed8e0	CRenderObject::vf01	
@@ -6719,7 +6719,7 @@ CPc	005e9b94	0	35	00543470	CPc::vf35
 CPc	005e9b94	0	36	005434c0	CPc::vf36	
 CPc	005e9b94	0	37	00543510	CPc::vf37	
 CPc	005e9b94	0	38	00504390	CGameActor::vf38	
-CPc	005e9b94	0	39	004eb070	CGameActor::vf39	
+CPc	005e9b94	0	39	004eb070	CGameActor::GetGuild	
 CPc	005e9b94	0	40	004eb080	CGameActor::vf40	
 CGrannyPc	005e9c40	0	0	00546d20	CGrannyPc::`scalar_deleting_destructor'	
 CGrannyPc	005e9c40	0	1	00547ea0	CGrannyPc::vf01	
@@ -6760,7 +6760,7 @@ CGrannyPc	005e9c40	0	35	005485f0	CGrannyPc::vf35
 CGrannyPc	005e9c40	0	36	00548620	CGrannyPc::vf36	
 CGrannyPc	005e9c40	0	37	00548670	CGrannyPc::vf37	
 CGrannyPc	005e9c40	0	38	00504390	CGameActor::vf38	
-CGrannyPc	005e9c40	0	39	004eb070	CGameActor::vf39	
+CGrannyPc	005e9c40	0	39	004eb070	CGameActor::GetGuild	
 CGrannyPc	005e9c40	0	40	004eb080	CGameActor::vf40	
 CPlayer	005e9cf4	0	0	0054b3f0	CPlayer::`scalar_deleting_destructor'	
 CPlayer	005e9cf4	0	1	0054b770	CPlayer::vf01	
@@ -6801,7 +6801,7 @@ CPlayer	005e9cf4	0	35	00543470	CPc::vf35
 CPlayer	005e9cf4	0	36	005434c0	CPc::vf36	
 CPlayer	005e9cf4	0	37	00543510	CPc::vf37	
 CPlayer	005e9cf4	0	38	00504390	CGameActor::vf38	
-CPlayer	005e9cf4	0	39	004eb070	CGameActor::vf39	
+CPlayer	005e9cf4	0	39	004eb070	CGameActor::GetGuild	
 CPlayer	005e9cf4	0	40	004eb080	CGameActor::vf40	
 CRagEffect	005e9dc8	0	0	0054d340	CRagEffect::`scalar_deleting_destructor'	
 CRagEffect	005e9dc8	0	1	0054d4c0	CRagEffect::vf01	
@@ -6826,7 +6826,7 @@ CSkill	005e9fe0	0	1	005abaa0	CSkill::vf01
 CSkill	005e9fe0	0	2	005ac830	CSkill::vf02	
 CSkill	005e9fe0	0	3	005ac720	CSkill::vf03	
 CSkill	005e9fe0	0	4	00502b00	CGameActor::GetDirection	
-CSkill	005e9fe0	0	5	005ac5b0	CSkill::vf05	
+CSkill	005e9fe0	0	5	005ac5b0	CSkill::OnScreenBounds	
 CSkill	005e9fe0	0	6	00501840	CRenderObject::SetScreenPosition	
 CSkill	005e9fe0	0	7	00502ff0	CGameActor::vf07	
 CSkill	005e9fe0	0	8	00500830	CRenderObject::UpdateFrame	
@@ -6860,14 +6860,14 @@ CSkill	005e9fe0	0	35	0050ad50	CGameActor::vf35
 CSkill	005e9fe0	0	36	004eb1c0	CGameActor::vf36	
 CSkill	005e9fe0	0	37	004eb1d0	CGameActor::vf37	
 CSkill	005e9fe0	0	38	00504390	CGameActor::vf38	
-CSkill	005e9fe0	0	39	004eb070	CGameActor::vf39	
+CSkill	005e9fe0	0	39	004eb070	CGameActor::GetGuild	
 CSkill	005e9fe0	0	40	004eb080	CGameActor::vf40	
 CGraffiSkill	005ea08c	0	0	005ad330	CGraffiSkill::`scalar_deleting_destructor'	
 CGraffiSkill	005ea08c	0	1	005ad610	CGraffiSkill::vf01	
 CGraffiSkill	005ea08c	0	2	005ad870	CGraffiSkill::vf02	
 CGraffiSkill	005ea08c	0	3	005ad620	CGraffiSkill::vf03	
 CGraffiSkill	005ea08c	0	4	00502b00	CGameActor::GetDirection	
-CGraffiSkill	005ea08c	0	5	005ac5b0	CSkill::vf05	
+CGraffiSkill	005ea08c	0	5	005ac5b0	CSkill::OnScreenBounds	
 CGraffiSkill	005ea08c	0	6	00501840	CRenderObject::SetScreenPosition	
 CGraffiSkill	005ea08c	0	7	00502ff0	CGameActor::vf07	
 CGraffiSkill	005ea08c	0	8	00500830	CRenderObject::UpdateFrame	
@@ -6901,7 +6901,7 @@ CGraffiSkill	005ea08c	0	35	0050ad50	CGameActor::vf35
 CGraffiSkill	005ea08c	0	36	004eb1c0	CGameActor::vf36	
 CGraffiSkill	005ea08c	0	37	004eb1d0	CGameActor::vf37	
 CGraffiSkill	005ea08c	0	38	00504390	CGameActor::vf38	
-CGraffiSkill	005ea08c	0	39	004eb070	CGameActor::vf39	
+CGraffiSkill	005ea08c	0	39	004eb070	CGameActor::GetGuild	
 CGraffiSkill	005ea08c	0	40	004eb080	CGameActor::vf40	
 CGraffiSkill	005ea08c	0	41	005ad3b0	CGraffiSkill::vf41	
 CGraffiSkill	005ea08c	0	42	005ad5f0	CGraffiSkill::vf42	

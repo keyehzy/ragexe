@@ -99,6 +99,8 @@ struct ActorBody {
   // ExpandBounds (004fffb0): left, top, right and bottom, from the screen's width, its height,
   // 0 and 0, widened by each kept item's quad while +0x89 is set.
   std::array<float, 4> bounds{};
+  // The point's 1/z, which vf05 takes after the bounds (docs/world/pick.md).
+  float inverse_z = 0.0f;
 };
 
 // ProjectToScreen (00500ed0): the point on screen of an object that is not drawn, as the

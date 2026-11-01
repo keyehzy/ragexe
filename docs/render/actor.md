@@ -105,10 +105,12 @@ above). It passes it on with one of two virtual calls:
 **`vf05` depends on the class:**
 - **A bare `CRenderObject`'s** (`00501830`) returns at once, so it keeps its old +0x90 and
   +0x94.
-- **`CGameActor`'s** (`00502cc0`) turns the bounds into the actor's pick rectangle when
-  +0x89 is set, then calls `vf06` too. The rectangle carries a value of 50 to 400 by job
-  and settings, and is grown to a minimum size (`0067cf20`). It is registered with
-  `CActorPickNode`.
+- **`CGameActor`'s** (`00502cc0`, `OnScreenBounds`) turns the bounds into the actor's pick
+  record when +0x89 is set, then calls `vf06` too. The record carries a bias of 0 to 400 by
+  job and settings, and is grown to a minimum size (`0067cf20`). It goes to
+  `CActorPickNode` ([pick.md](../world/pick.md)). `CItem`'s and `CSkill`'s do the same.
+
+`vf05` takes a fifth float after the bounds: the 1/z of the point.
 
 **The bounds** start at the screen's width and height and 0, 0: left, top, right and
 bottom. While +0x89 is set, each kept item's quad widens them with `ExpandBounds`
@@ -296,7 +298,6 @@ the original's. It records:
 image is skipped.
 
 **Not ported:**
-- `CGameActor::vf05`'s pick rectangle, which comes with the actors (M5);
 - `vf08`'s play modes beyond 0 and 1, which it leaves alone too;
 - the texture cache's slots and pages, which change only where in a texture an image lies;
 - the palettes of other resources (+0x34).

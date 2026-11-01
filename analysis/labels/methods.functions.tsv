@@ -306,12 +306,6 @@ address	namespace	name	calling_convention	evidence
 004cb7f0	CGameMode	method_004cb7f0	__thiscall	__thiscall; called with this from 5 functions of CGameMode, e.g. 00513860
 004cd6a0	std::Tree	method_004cd6a0	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004ccba0
 004cdf60	std::Tree	method_004cdf60	__thiscall	__thiscall; called with this from 1 functions of PathFinder, e.g. 004cc4e0
-004ce570	CActorPickNode	method_004ce570	__thiscall	__thiscall; called with this from 3 functions of CActorPickNode, e.g. 00502cc0
-004ce5f0	CActorPickNode	method_004ce5f0	__thiscall	__thiscall; called with this from 1 functions of CActorPickNode, e.g. 00515d10
-004ce6c0	CActorPickNode	method_004ce6c0	__thiscall	__thiscall; called with this from 1 functions of CActorPickNode, e.g. 004ce570
-004ce710	CActorPickNode	method_004ce710	__thiscall	__thiscall; called with this from 4 functions of CActorPickNode, e.g. 004ce790
-004ce820	CActorPickNode	method_004ce820	__thiscall	__thiscall; called with this from 1 functions of CActorPickNode, e.g. 004ce8e0
-004ce8e0	CActorPickNode	method_004ce8e0	__thiscall	__thiscall; called with this from 1 functions of CActorPickNode, e.g. 0050dc90
 004d02f0	GuildInfo	method_004d02f0	__thiscall	__thiscall; called with this from 1 functions of GuildInfo, e.g. 0050dc90
 004d0640	GuildInfo	method_004d0640	__thiscall	__thiscall; called with this from 2 functions of GuildInfo, e.g. 00532c40
 004d07a0	GuildInfo	method_004d07a0	__thiscall	__thiscall; called with this from 2 functions of GuildInfo, e.g. 00532c40
@@ -773,9 +767,7 @@ address	namespace	name	calling_convention	evidence
 005aa4e0	ClientState	method_005aa4e0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 004682a0
 005aa5a0	ClientState	method_005aa5a0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0046f8c0
 005aa610	ClientState	method_005aa610	__thiscall	__thiscall; called with this from 9 functions of ClientState, e.g. 005034e0
-005aa630	ClientState	method_005aa630	__thiscall	__thiscall; called with this from 14 functions of ClientState, e.g. 00441570
 005aa650	ClientState	method_005aa650	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 004416e0
-005aa680	ClientState	method_005aa680	__thiscall	__thiscall; called with this from 4 functions of ClientState, e.g. 00502cc0
 005aa6d0	ClientState	method_005aa6d0	__thiscall	__thiscall; called with this from 7 functions of ClientState, e.g. 00504390
 005aa700	ClientState	method_005aa700	__thiscall	__thiscall; called with this from 16 functions of ClientState, e.g. 004682a0
 005aa730	ClientState	method_005aa730	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00526e10

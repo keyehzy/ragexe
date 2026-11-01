@@ -21,10 +21,14 @@ struct GameActor {
   float travelled = 0.0f;          // +0x198, the distance walked, which steps the frames
   std::uint32_t processed_at = 0;  // +0x19c, timeGetTime at the last update
   std::uint32_t server_at = 0;     // +0x1a0, the server's time at the last update
+  std::int32_t id = 0;             // +0x1b4, the server's id
   std::int32_t job = 0;            // +0x1b8
   std::uint32_t hold_until = 0;    // +0x1d0: held (+0x82) until timeGetTime passes it
+  std::int32_t field_0x1f4 = 0;    // +0x1f4, from the packets that bring it in
   std::uint32_t effect_state = 0;  // +0x21c; bit 5 mounts jobs 7 and 14
+  std::int32_t field_0x224 = 0;    // +0x224 (SetField224, 00506be0)
   std::uint32_t fade_until = 0;    // +0x234: fading out until timeGetTime passes it
+  std::int32_t guild = 0;          // +0x23c (vf39)
 };
 
 // CGameActor::GetJob (00503490): the job, 7 and 14 mounted (bit 5 of +0x21c) as 13 and 21.

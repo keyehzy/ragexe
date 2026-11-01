@@ -2788,6 +2788,23 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     `tests/unit/walk_vectors.inc` keeps three small maps' walks, one of them hilly.
   - **Labels:** `CGameActor::ProcessState`, `GetDirection`, `UpdateFade`,
     `UpdateWalkFrame` and `SetState`, and `CPc`'s and `CPlayer`'s overrides.
+- [x] Picking objects (`docs/world/pick.md`, `src/world/actor_pick`):
+  - **The records:** `CGameActor::OnScreenBounds`, `CItem`'s and `CSkill`'s `vf05`. Each
+    turns its drawing's bounds into a rectangle, grown to a least size (40 or 34 times the
+    width over 640). Its depth is the point's 1/z plus a bias that ranks the classes:
+    monsters first, or players first with Shift or a skill aimed at them, and on a
+    guild-war map by the player's guild.
+  - **The tree:** `CActorPickNode`'s build, insert, find (the greatest depth under the
+    point) and clear. Its children split at half the right and the bottom, but the frame's
+    clear deletes them, so in the game it is one list.
+  - **Found on the way:** `__ftol` keeps the low dword of a 64-bit result, so beyond 2³¹ it
+    wraps and NaN gives 0, where the port's copies gave `INT_MIN`. Fixed for the walk and
+    picking; the renderer's copies remain.
+  - **Checks:** `tools/pick_vectors.py`: 400 objects' records and 41 tree scripts (1,267
+    finds) from the original.
+  - **Labels:** `CActorPickNode`'s methods, the items' and skills' `OnScreenBounds`,
+    `ClientState::IsGuildWarMap` and `IsPlayerGuild`, `CGameActor::GetGuild`, and the
+    minimums and switches.
 
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,

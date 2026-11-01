@@ -187,3 +187,28 @@ TEST_CASE("A walker's direction rounds to the nearest for players' and NPCs' sta
   actor.object.base_action = 0;
   CHECK(ragexe::world::GameActorDirection(actor, -30.0f, 0.0f) == 0);
 }
+
+// From the original in the emulation oracle: __ftol keeps the low dword of its 64-bit
+// result, so an infinite frame count (a delay of 0) gives frame 0.
+TEST_CASE("A walker with no delay stays on frame 0", "[walk]") {
+  AttrMap map;
+  map.width = 12;
+  map.height = 10;
+  map.cells.resize(120);
+  PathFinder finder;
+  finder.SetAttrMap(&map);
+  GameActor actor;
+  REQUIRE(finder.FindPath(1000, 1, 1, 8, 8, 4, 1, 150, actor.path) ==
+          ragexe::world::PathResult::kFound);
+  actor.object.position = {-22.5f, 0.0f, -17.5f};
+  actor.object.delay = 0.0f;
+  actor.object.base_action = 24;
+  actor.job = 1001;
+  actor.server_at = 1000;
+  ragexe::res::Act act;
+  act.actions.assign(64, std::vector<ragexe::res::ActFrame>(13));
+  CHECK(ProcessWalk(actor, map, act, 0.0f, 1172, 1100) == WalkResult::kWalking);
+  CHECK(ProcessWalk(actor, map, act, 0.0f, 1272, 1200) == WalkResult::kWalking);
+  CHECK(actor.object.action == 29);
+  CHECK(actor.object.frame == 0);
+}

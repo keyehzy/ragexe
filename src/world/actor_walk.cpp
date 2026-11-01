@@ -4,7 +4,6 @@
 #include <bit>
 #include <cmath>
 #include <cstddef>
-#include <limits>
 
 #include "render/world_load.h"
 
@@ -20,11 +19,11 @@ constexpr double kNearestStep = 1.0 / 45.0;                          // 005e9520
 // 005e9664: frames per unit walked, times the delay.
 constexpr float kStepsPerDistance = 1.48f;
 
-// __ftol: toward zero, the integer indefinite out of range.
+// __ftol (005c2084): fistp qword toward zero, then the low dword. NaN and values beyond 2^63
+// give the integer indefinite 0x8000000000000000, whose low dword is 0.
 std::int32_t Ftol(float f) {
-  if (std::isnan(f) || f <= -2147483904.0f || f >= 2147483648.0f)
-    return std::numeric_limits<std::int32_t>::min();
-  return static_cast<std::int32_t>(f);
+  if (std::isnan(f) || f >= 9223372036854775808.0f || f < -9223372036854775808.0f) return 0;
+  return static_cast<std::int32_t>(static_cast<std::uint32_t>(static_cast<std::int64_t>(f)));
 }
 
 // CActRes::GetFrameCount (00421a80): 1 for an action of fewer than two frames.
