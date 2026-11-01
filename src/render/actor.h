@@ -46,6 +46,7 @@ struct RenderObject {
   std::int32_t angle = 0;                // +0x60, added to each item's
   std::int32_t depth_index = 0;          // +0x64, which layers' depth steps it takes
   float delay = 1.0f;                    // +0x44, ticks of 24 ms per frame
+  float delay_scale = 1.0f;              // +0x50, times the action's delay, reset by SetAction
   float repeats = 1.0f;                  // +0x4c, how many times a play-once action runs
   std::int32_t play_mode = 0;            // +0x54: 0 loops, 1 plays once, others hold
   std::uint32_t key_color = 0xffff0000;  // +0x68
@@ -59,6 +60,15 @@ struct RenderObject {
   bool pickable = false;                 // +0x89, its drawing widens the bounds
   bool shadow = false;                   // +0x88
 };
+
+// CActRes::GetActionDelay (00421990): the action's delay in ticks, 4 beyond the .act's.
+float ActionDelay(const res::Act& act, std::int32_t action);
+
+// CRenderObject::SetAction (00500de0, vf07): the action and its delay (at least 1, times
+// +0x50), frame 0, the play mode, not finished, and +0x4c and +0x50 back to 1. Its second
+// argument is never read.
+void SetAction(RenderObject& object, const res::Act& act, std::int32_t action,
+               std::int32_t play_mode);
 
 // CGameObject::vf04 (005000d0): which of eight directions a facing shows from the camera,
 // the turn from it to the camera's yaw in [0, 360) over 45°.

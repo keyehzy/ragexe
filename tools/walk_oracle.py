@@ -90,15 +90,75 @@ def make_walks(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
     return lines
 
 
+def make_goes(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
+    """The script for a map: count moves (CGameActor::vf02's message 0) each walked to
+    standing, now and then after a search, from actors in assorted states."""
+    rng = random.Random(zlib.crc32(b"go " + name.encode()))
+    walkable = [(k % width, k // width) for k, a in enumerate(attrs) if a not in (1, 5)] or [(0, 0)]
+    lines = []
+    for _ in range(count):
+        if rng.random() < 0.2:
+            sx, sy = rng.choice(walkable)
+            lines.append(f"F {rng.randint(0, 100000)} {sx} {sy} 8 8 {sx + rng.randint(-4, 4)} {sy + rng.randint(-4, 4)} 150")
+        sx, sy = rng.choice(walkable)
+        r = rng.choice([0, 1, 2, 3, 5, 8, 12])
+        gx, gy = sx + rng.randint(-r, r), sy + rng.randint(-r, r)
+        if rng.random() < 0.15:
+            gx, gy = rng.choice(walkable)
+        sub_x, sub_y = rng.choice([8, rng.randint(0, 15)]), rng.choice([8, rng.randint(0, 15)])
+        x = f32(centre(sx, width) + f32(f32(CELL_SIZE * 0.0625) * (sub_x - 8)))
+        z = f32(centre(sy, height) + f32(f32(CELL_SIZE * 0.0625) * (sub_y - 8)))
+        server = rng.choice([rng.randint(0, 100000), rng.getrandbits(32), 0xFFFFFFFF - rng.randint(0, 5000)])
+        time = (server + rng.choice([0, 0, -rng.randint(0, 3000), rng.randint(0, 200), -rng.randint(0, 60000)])) & 0xFFFFFFFF
+        tick = (server + rng.choice([72, 72 + rng.randint(0, 5000), rng.getrandbits(32)])) & 0xFFFFFFFF
+        job = rng.choice([rng.randint(0, 44), 45, rng.randint(46, 999), rng.randint(1000, 1400), 7, 14])
+        hold = rng.choice([0, 0, 0, (tick + rng.randint(0, 800)) & 0xFFFFFFFF])
+        fade = rng.choice([0] * 10 + [(tick + rng.randint(0, 3000)) & 0xFFFFFFFF])
+        delay = lambda: f32(rng.choice([4.0, 4.0, 0.5, 1.0, 6.0, 12.0, 0.0]))
+        fields = [
+            f"0x{bits(x):08x}", f"0x{bits(z):08x}",
+            f"0x{bits(f32(rng.choice([0.0, 45.0, 180.0, 359.5, rng.uniform(0, 360)]))):08x}",
+            f"0x{bits(f32(rng.choice([0.0, 45.0, 135.0, 270.0, rng.uniform(0, 360)]))):08x}",
+            f"0x{bits(f32(rng.choice([1.0, 4.0, 6.5]))):08x}",
+            f"0x{bits(f32(rng.choice([0.0, 0.0, rng.uniform(0, 500)]))):08x}",
+            str(rng.choice([0, 0, 8, 16, 24, 3])), str(job), str(rng.choice([0, 0, 0x20])),
+            str(int(rng.random() < 0.1)), str(rng.choice([1, 2, 4, 8, 13])), str(hold), str(fade),
+            str(rng.getrandbits(32)), str(int(rng.random() < 0.2)),
+            str((server - rng.choice([0, 16, rng.randint(0, 400)])) & 0xFFFFFFFF),
+            str((tick - rng.randint(0, 40)) & 0xFFFFFFFF),
+            # the state before, the speed, +0xd0, +0xd8, the service type
+            str(rng.choice([0, 0, 0, 1, 1, 4, 3])), str(rng.choice([150, 150, 100, 200, 75, 300, 7, 999])),
+            str(int(rng.random() < 0.05)), str(int(rng.random() < 0.1)), str(rng.choice([1, 1, 0])),
+            f"0x{bits(delay()):08x}", f"0x{bits(delay()):08x}",
+            f"0x{bits(f32(rng.choice([1.0, 1.0, 0.5, 2.0]))):08x}",
+            f"0x{bits(f32(x + rng.uniform(-10, 10))):08x}", f"0x{bits(f32(z + rng.uniform(-10, 10))):08x}",
+            str(time), str(sx), str(sy), str(sub_x), str(sub_y), str(gx), str(gy),
+            str(rng.choice([rng.getrandbits(31), 0x2C8C7D, 0x2C8C80, 0x2C8C81, 0x2C8C82, 0])),
+            # +0x4c, +0x81, how many delays the .act has, +0x194
+            f"0x{bits(f32(rng.choice([1.0, 1.0, 2.0, 3.5]))):08x}", str(int(rng.random() < 0.3)),
+            str(rng.choice([9, 9, 9, 0, 1, 8])), str(rng.choice([0, 0, 3, -1])),
+            str(server), str(tick),
+        ]
+        steps = []
+        for _ in range(rng.choice(updates)):
+            step = rng.choice([0, 1, 7, 16, 24, 24, 33, 50, 100, 250, rng.randint(0, 3000), -5])
+            server = (server + step) & 0xFFFFFFFF
+            tick = (tick + step + rng.choice([0, 0, 0, 1, 10])) & 0xFFFFFFFF
+            steps += [str(server), str(tick)]
+        lines.append("G " + " ".join(fields + steps))
+    return lines
+
+
 def main():
     args = path_oracle.arguments("walks per map", 40)
-    ours, originals = path_oracle.run_maps(args, make_walks, "walks")
+    ours, originals = path_oracle.run_maps(
+        args, lambda *a: make_walks(*a) + make_goes(*a), "walks")
     totals = {}
     for (_, lines, _), want in zip(ours, originals):
         for line, result in zip(lines, want):
-            key = result.split()[0] if line[0] == "F" else "walk " + result.split()[0]
+            key = result.split()[0] if line[0] == "F" else {"W": "walk ", "G": "go "}[line[0]] + result.split()[0]
             totals[key] = totals.get(key, 0) + 1
-            if line[0] == "W" and result != "-":
+            if line[0] in "WG" and result != "-":
                 totals["updates"] = totals.get("updates", 0) + int(result.split()[1])
     return path_oracle.report(ours, originals, totals, "queries")
 

@@ -12,7 +12,12 @@ namespace ragexe::world {
 // The CGameActor fields the walk reads and writes (docs/world/walk.md).
 struct GameActor {
   render::RenderObject object;
-  std::int32_t state = 0;          // +0x58: 1 walking
+  std::int32_t state = 0;          // +0x58: 0 standing, 1 walking
+  std::int32_t goal_x = 0;         // +0xc0, the cell a move heads for
+  std::int32_t goal_y = 0;         // +0xc4
+  std::int32_t speed = 150;        // +0xc8, milliseconds a cell
+  std::int32_t field_0xd0 = 0;     // +0xd0: while set, SetState does nothing
+  std::int32_t field_0xd8 = 0;     // +0xd8: while set, walking keeps the action it has
   MovePath path;                   // +0x170
   std::uint32_t move_time = 0;     // +0x18c, where FindMovePath times the path from
   bool pushed = false;             // +0x190: moved by message 0x13 without a speed; it
@@ -21,12 +26,15 @@ struct GameActor {
   float travelled = 0.0f;          // +0x198, the distance walked, which steps the frames
   std::uint32_t processed_at = 0;  // +0x19c, timeGetTime at the last update
   std::uint32_t server_at = 0;     // +0x1a0, the server's time at the last update
+  float field_0x1ac = 0.0f;        // +0x1ac, -1 after vf07
   std::int32_t id = 0;             // +0x1b4, the server's id
   std::int32_t job = 0;            // +0x1b8
   std::uint32_t hold_until = 0;    // +0x1d0: held (+0x82) until timeGetTime passes it
   std::int32_t field_0x1f4 = 0;    // +0x1f4, from the packets that bring it in
   std::uint32_t effect_state = 0;  // +0x21c; bit 5 mounts jobs 7 and 14
   std::int32_t field_0x224 = 0;    // +0x224 (SetField224, 00506be0)
+  float target_x = 0.0f;           // +0x228, where state 4 puts the actor when it ends
+  float target_z = 0.0f;           // +0x22c
   std::uint32_t fade_until = 0;    // +0x234: fading out until timeGetTime passes it
   std::int32_t guild = 0;          // +0x23c (vf39)
 };

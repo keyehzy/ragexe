@@ -8,6 +8,7 @@
 
 #include "res/act.h"
 #include "res/gat.h"
+#include "world/actor_state.h"
 #include "world/actor_walk.h"
 #include "world/path_finder.h"
 
@@ -55,6 +56,20 @@ struct ActorFrameVector {
 };
 
 #include "actor_frame_vectors.inc"
+
+struct StateQueryVector {
+  int map;  // in kWalkMaps
+  const char* query;
+  const char* result;
+};
+
+struct AttrCellVector {
+  int width, height;
+  std::uint32_t x, z;
+  int cell_x, cell_z;
+};
+
+#include "state_vectors.inc"
 
 // tools/walk_vectors.py's heights for the hilly maps.
 float Height(int x, int y, int corner) {
@@ -169,6 +184,143 @@ std::string Walk(const AttrMap& map, const MovePath& path, std::istringstream& f
   return line;
 }
 
+// Replays a G query as ragres find-paths does: message 0, then the walk to standing.
+std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istringstream& fields) {
+  std::vector<std::uint32_t> v;
+  for (std::string token; fields >> token;)
+    v.push_back(static_cast<std::uint32_t>(std::stoll(token, nullptr, 0)));
+  constexpr std::size_t kFields = 39;
+  ragexe::world::GameActor actor;
+  actor.path = path;
+  auto& o = actor.object;
+  o.position = {std::bit_cast<float>(v[0]), 0.0f, std::bit_cast<float>(v[1])};
+  o.facing = std::bit_cast<float>(v[2]);
+  const float yaw = std::bit_cast<float>(v[3]);
+  o.delay = std::bit_cast<float>(v[4]);
+  actor.travelled = std::bit_cast<float>(v[5]);
+  o.base_action = static_cast<std::int32_t>(v[6]);
+  actor.job = static_cast<std::int32_t>(v[7]);
+  actor.effect_state = v[8];
+  actor.pushed = v[9] != 0;
+  ragexe::res::Act act;
+  act.actions.assign(64, std::vector<ragexe::res::ActFrame>(v[10]));
+  actor.hold_until = v[11];
+  actor.fade_until = v[12];
+  o.color = v[13];
+  o.held = v[14] != 0;
+  actor.server_at = v[15];
+  actor.processed_at = v[16];
+  actor.state = static_cast<std::int32_t>(v[17]);
+  actor.speed = static_cast<std::int32_t>(v[18]);
+  actor.field_0xd0 = static_cast<std::int32_t>(v[19]);
+  actor.field_0xd8 = static_cast<std::int32_t>(v[20]);
+  act.delays.assign(9, 4.0f);
+  act.delays[0] = std::bit_cast<float>(v[22]);
+  act.delays[8] = std::bit_cast<float>(v[23]);
+  act.delays.resize(v[37]);
+  o.delay_scale = std::bit_cast<float>(v[24]);
+  actor.target_x = std::bit_cast<float>(v[25]);
+  actor.target_z = std::bit_cast<float>(v[26]);
+  actor.id = static_cast<std::int32_t>(v[34]);
+  o.repeats = std::bit_cast<float>(v[35]);
+  o.finished = v[36] != 0;
+  actor.segment = static_cast<std::int32_t>(v[38]);
+  const ragexe::world::MoveOrder order{v[27],
+                                       static_cast<std::int32_t>(v[28]),
+                                       static_cast<std::int32_t>(v[29]),
+                                       static_cast<std::int32_t>(v[30]),
+                                       static_cast<std::int32_t>(v[31]),
+                                       static_cast<std::int32_t>(v[32]),
+                                       static_cast<std::int32_t>(v[33])};
+  std::vector<ragexe::world::ModeMessage> messages;
+  const ragexe::world::StateContext context{&map, &act, yaw, static_cast<std::int32_t>(v[21]),
+                                            &messages};
+  std::uint64_t h = 0xcbf29ce484222325ull;
+  const auto fold = [&h](std::uint32_t x) {
+    const std::uint8_t le[4] = {static_cast<std::uint8_t>(x), static_cast<std::uint8_t>(x >> 8),
+                                static_cast<std::uint8_t>(x >> 16),
+                                static_cast<std::uint8_t>(x >> 24)};
+    for (const std::uint8_t b : le) h = (h ^ b) * 0x100000001b3ull;
+  };
+  // What the move, the walk and the states write, as tools/path_oracle.py's fields().
+  const auto fold_fields = [&] {
+    for (const std::uint32_t x : {static_cast<std::uint32_t>(actor.state),
+                                  Bits(o.position[0]),
+                                  Bits(o.position[1]),
+                                  Bits(o.position[2]),
+                                  Bits(o.facing),
+                                  static_cast<std::uint32_t>(o.base_action),
+                                  static_cast<std::uint32_t>(o.action),
+                                  static_cast<std::uint32_t>(o.frame),
+                                  Bits(o.delay),
+                                  Bits(o.repeats),
+                                  Bits(o.delay_scale),
+                                  static_cast<std::uint32_t>(o.play_mode),
+                                  o.start_time,
+                                  Bits(actor.field_0x1ac),
+                                  static_cast<std::uint32_t>(actor.goal_x),
+                                  static_cast<std::uint32_t>(actor.goal_y),
+                                  static_cast<std::uint32_t>(actor.segment),
+                                  Bits(actor.travelled),
+                                  actor.processed_at,
+                                  actor.server_at,
+                                  o.color,
+                                  actor.move_time,
+                                  o.finished ? 1u : 0u,
+                                  o.held ? 1u : 0u,
+                                  actor.pushed ? 1u : 0u}) {
+      fold(x);
+    }
+  };
+  const auto fold_messages = [&] {
+    for (const auto& m : messages) {
+      for (const std::int32_t x : {m.id, m.a, m.b, m.c}) fold(static_cast<std::uint32_t>(x));
+    }
+    messages.clear();
+  };
+  ragexe::world::MoveGameActor(actor, finder, order, v[kFields], context, v[kFields + 1]);
+  std::vector<std::uint32_t> steps;
+  for (const auto& step : actor.path.steps) {
+    steps.push_back(static_cast<std::uint32_t>(step.x));
+    steps.push_back(static_cast<std::uint32_t>(step.y));
+    steps.push_back(static_cast<std::uint32_t>(step.dir));
+    steps.push_back(step.time);
+  }
+  std::uint64_t digest = 0xcbf29ce484222325ull;
+  for (const std::uint32_t x : steps) digest = Fold(digest, x);
+  fold(2);
+  fold_fields();
+  fold(static_cast<std::uint32_t>(actor.path.steps.size()));
+  fold(static_cast<std::uint32_t>(digest));
+  fold(static_cast<std::uint32_t>(digest >> 32));
+  fold_messages();
+  int updates = 0;
+  const char* end = actor.state == 1 ? "walking" : "standing";
+  for (std::size_t k = kFields + 2; actor.state == 1 && k + 1 < v.size(); k += 2) {
+    const auto r = ragexe::world::ProcessWalk(actor, map, act, yaw, v[k + 1], v[k]);
+    if (r == ragexe::world::WalkResult::kArrived)
+      ragexe::world::SetGameActorState(actor, 0, context, v[k + 1]);
+    ++updates;
+    fold(r == ragexe::world::WalkResult::kFaded ? 0u : 1u);
+    fold_fields();
+    fold_messages();
+    if (r == ragexe::world::WalkResult::kFaded) {
+      end = "faded";
+      break;
+    }
+    if (actor.state != 1) {
+      end = "arrived";
+      break;
+    }
+  }
+  path = actor.path;
+  char line[160];
+  std::snprintf(line, sizeof line, "%s %d %08x %08x %08x %08x %d %d %d %016llx", end, updates,
+                Bits(o.position[0]), Bits(o.position[1]), Bits(o.position[2]), Bits(o.facing),
+                o.action, o.frame, actor.state, static_cast<unsigned long long>(h));
+  return line;
+}
+
 }  // namespace
 
 TEST_CASE("Actors walk their paths as the original's CGameActor::ProcessState does", "[walk]") {
@@ -270,5 +422,41 @@ TEST_CASE("An actor's frame steps as CRenderObject::UpdateFrame on a CGameActor"
     CHECK(o.action == v.action_after);
     CHECK(o.frame == v.frame_after);
     CHECK(o.finished == (v.finished_after != 0));
+  }
+}
+
+TEST_CASE("Actors move, walk and stand as the original's message 0 and states", "[walk]") {
+  int current = -1;
+  AttrMap map;
+  PathFinder finder;
+  MovePath path;
+  for (const StateQueryVector& v : kStateQueries) {
+    if (v.map != current) {
+      current = v.map;
+      map = MakeMap(kWalkMaps[current]);
+      finder = PathFinder();
+      finder.SetAttrMap(&map);
+      path = MovePath();
+    }
+    INFO(kWalkMaps[current].name << ": " << v.query);
+    std::istringstream fields(v.query);
+    char kind = 0;
+    fields >> kind;
+    const std::string got =
+        kind == 'F' ? Search(finder, path, fields) : Go(map, finder, path, fields);
+    CHECK(got == v.result);
+  }
+}
+
+TEST_CASE("The cell under a point is CGameMode::GetAttrCell's", "[walk]") {
+  for (const auto& v : kAttrCells) {
+    INFO(v.width << "x" << v.height << " " << std::hex << v.x << " " << v.z);
+    AttrMap map;
+    map.width = v.width;
+    map.height = v.height;
+    const auto cell =
+        ragexe::world::AttrCellAt(map, std::bit_cast<float>(v.x), std::bit_cast<float>(v.z));
+    CHECK(cell[0] == v.cell_x);
+    CHECK(cell[1] == v.cell_z);
   }
 }

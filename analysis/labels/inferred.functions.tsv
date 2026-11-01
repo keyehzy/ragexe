@@ -2540,6 +2540,10 @@ address	namespace	name	calling_convention	evidence
 00503830	CGameActor	UpdateFade	__thiscall	with +0x234 set: returns 0 once timeGetTime passes it, else SetColorChannels alpha (+0x234 - timeGetTime) / 2, at most 255; returns 1 (docs/world/walk.md)
 005031d0	CGameActor	UpdateWalkFrame	__thiscall	vf32: the frame +0x28 = (the distance +0x198 * 1.48 (005e9664) / the delay +0x44) truncated, modulo CActRes::GetFrameCount of the action +0x24 (docs/world/walk.md)
 005034e0	CGameActor	SetState	__thiscall	vf10 (state), ret 4: nothing in state 3 or with +0xd0 set; the state's action (vf07) and side effects, then +0x58 = state, +0x24 = +0x20 plus vf04, +0x70 = timeGetTime
+00504460	CGameActor	SendMsg	__thiscall	vf02 (sender, message, a, b, c), ret 0x14: the actor's message switch (a byte table at 00506a24 into 0050692c); message 0 (00505dd3) keeps the move time +0x18c from its order, FindMovePath to the goal at the speed +0xc8, then keeps the goal +0xc0/+0xc4, SetState(1) and +0x194 = 0, or SetState(0) (docs/world/states.md)
+00502ff0	CGameActor	SetAction	__thiscall	vf07 (action, unused, play mode), ret 0xc: CRenderObject::SetAction, then +0x190 cleared and +0x1ac = -1.0
+00503110	CGameActor	ReportCell	__thiscall	vf11: CGameMode::GetAttrCell of the position +4/+0xc, then the game mode's SendMsg (vf05) 0xc with the id +0x1b4 and the cell; SetState(0) calls it
+00503160	CGameActor	ReportWalking	__thiscall	vf12: the game mode's SendMsg (vf05) 0xd with the id +0x1b4, 0, 0; SetState(1) calls it
 00542eb0	CPc	ProcessState	__thiscall	vf09: its own work for states 2, 3, 6, 7 and 8 after the hold and UpdateFade, CGameActor::ProcessState for the rest (walking among them)
 00543020	CPc	SetState	__thiscall	vf10 (state), ret 4: its own work for states 0, 1, 2, 6, 7, 8 and 9, calling CGameActor::SetState in 0, 1, 2 and 9 and for every other state; in 6, 7 and 8 it sets +0x58 and +0x70 itself
 0054c540	CPlayer	ProcessState	__thiscall	vf09: jumps to CPc::ProcessState

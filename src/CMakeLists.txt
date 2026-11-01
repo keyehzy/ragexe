@@ -134,9 +134,10 @@ add_custom_command(OUTPUT "${RAGEXE_FONT_DIR}/embedded_fonts.h"
     "${liberation_fonts_SOURCE_DIR}/LiberationSans-Bold.ttf"
     "${PROJECT_SOURCE_DIR}/cmake/embed_files.cmake"
   VERBATIM)
-# The world's own code that draws nothing: path finding, the actors' walk and picking.
+# The world's own code that draws nothing: path finding, the actors' walk, states and picking.
 add_library(ragexe_world STATIC
   world/actor_pick.cpp
+  world/actor_state.cpp
   world/actor_walk.cpp
   world/path_finder.cpp)
 target_include_directories(ragexe_world PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

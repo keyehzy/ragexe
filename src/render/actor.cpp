@@ -93,6 +93,25 @@ std::int32_t ActorDirection(float facing, float camera_yaw) {
   return Ftol(d * kDirectionStep);
 }
 
+float ActionDelay(const res::Act& act, std::int32_t action) {
+  const auto i = static_cast<std::uint32_t>(action);
+  return i < act.delays.size() ? act.delays[i] : 4.0f;
+}
+
+void SetAction(RenderObject& object, const res::Act& act, std::int32_t action,
+               std::int32_t play_mode) {
+  object.delay = ActionDelay(act, action);
+  if (!(object.delay >= 1.0f)) object.delay = 1.0f;  // a NaN too, by fcom
+  object.delay = object.delay_scale * object.delay;
+  object.base_action = action;
+  object.action = action;
+  object.frame = 0;
+  object.play_mode = play_mode;
+  object.finished = false;
+  object.repeats = 1.0f;
+  object.delay_scale = 1.0f;
+}
+
 float AngleBetween(float x1, float y1, float x2, float y2) {
   const float dx = x2 - x1;
   const float dy = -(y2 - y1);

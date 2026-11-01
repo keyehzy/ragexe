@@ -94,8 +94,8 @@ an actor's frames take this direction too. Every sprite actor (`CGameActor`, `CP
   a given direction, with `GameActorDirection`'s;
 - `ProcessWalk`, the update of a walking actor, at a given `timeGetTime` and server's time.
   It returns `kFaded`, `kWalking` or `kArrived`. At `kArrived`, standing (`SetState(0)`,
-  `vf10`) is the caller's. The original stands first, but standing touches none of the
-  fields the update writes after it.
+  `vf10`, `SetGameActorState` in [states.md](states.md)) is the caller's. The original stands
+  first, but standing touches none of the fields the update writes after it.
 
 `CRenderObject::GetAngleBetween` is `render::AngleBetween` (`src/render/actor`), which the
 effects use too.
@@ -136,6 +136,6 @@ end, and the server's time just at the path's end. `tests/unit/walk_test.cpp` re
 
 **Not ported:**
 - the other states of `ProcessState` and `CPc::ProcessState` (standing, sitting, attacking,
-  dying and the rest), and `SetState`, which changes state;
-- the messages that start a walk (`vf02` 0, 5, 6 and 0x13), which come with the actors'
-  messages;
+  dying and the rest);
+- the messages that start a walk but message 0 ([states.md](states.md)): 5, 6 and 0x13,
+  which come with the actors' messages;

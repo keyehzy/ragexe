@@ -57,6 +57,7 @@
 #include <vector>
 
 #include "core/frame_timer.h"
+#include "core/x87.h"
 #include "render/actor.h"
 #include "render/camera.h"
 #include "render/cursor.h"
@@ -92,7 +93,9 @@
 #include "res/rsw.h"
 #include "res/sprite.h"
 #include "res/str.h"
+#include "world/actor_state.h"
 #include "world/actor_walk.h"
+#include "world/path_finder.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
@@ -655,6 +658,9 @@ int main(int argc, char** argv) {
   // The mouse's point for the cell cursor, none in a screenshot.
   bool has_mouse = false;
   std::int32_t mouse_cell_x = 0, mouse_cell_y = 0;
+  // The cell the mouse picked last frame, where a left click sends the actor.
+  bool has_pick = false;
+  std::int32_t pick_x = 0, pick_z = 0;
 
   // The world's objects, as CView::DrawWorld has each draw itself after the cell cursor: the
   // actor and the effect.
@@ -783,9 +789,13 @@ int main(int argc, char** argv) {
     // CGameMode::method_005159d0 keeps the attribute cell under the mouse, and
     // CView::DrawWorld draws the cursor over it after the visible nodes.
     std::int32_t picked_x = 0, picked_z = 0;
-    if (has_mouse && render::PickCell(projection, camera, mouse_cell_x, mouse_cell_y, graph, attr,
-                                      picked_x, picked_z))
+    has_pick = has_mouse && render::PickCell(projection, camera, mouse_cell_x, mouse_cell_y, graph,
+                                             attr, picked_x, picked_z);
+    if (has_pick) {
       render::PlaceCellCursor(frame_state.cursor, attr, picked_x, picked_z);
+      pick_x = picked_x;
+      pick_z = picked_z;
+    }
     const std::vector<render::SceneCall> calls =
         render::DrawWorldFrame(scene, frame_state, now, frame_draws,
                                [&](render::FrameLists& lists) { draw_objects(lists, now); });
@@ -949,9 +959,41 @@ int main(int argc, char** argv) {
     return 0;
   }
 
+  // The actor's moves: a left click on a cell gives it message 0 from where it stands, the
+  // timeGetTime standing in for the server's time; each frame walks it until it stands.
+  world::PathFinder finder;
+  finder.SetAttrMap(&attr);
+  const world::StateContext state_context{&attr, &actor.act, 0.0f, 1, nullptr};
+  const auto move_actor = [&](std::uint32_t now) {
+    const auto [cell_x, cell_z] = world::AttrCellAt(attr, player[0], player[2]);
+    // The sixteenths of the cell the actor stands in.
+    const auto [centre_x, centre_z] = render::CellCentre(attr, cell_x, cell_z);
+    const float cs = static_cast<float>(attr.cell_size);
+    const auto sixteenth = [&](float at, float centre) {
+      return std::clamp(core::Ftol((at - centre + cs * 0.5f) / cs * 16.0f), 0, 15);
+    };
+    world::StateContext context = state_context;
+    context.camera_yaw = camera.yaw;
+    actor_object.position = player;
+    world::MoveGameActor(actor_state, finder,
+                         {now, cell_x, cell_z, sixteenth(player[0], centre_x),
+                          sixteenth(player[2], centre_z), pick_x, pick_z},
+                         now, context, now);
+  };
+  const auto walk_actor = [&](std::uint32_t now) {
+    if (actor_state.state != 1) return;
+    world::StateContext context = state_context;
+    context.camera_yaw = camera.yaw;
+    if (world::ProcessWalk(actor_state, attr, actor.act, camera.yaw, now, now) ==
+        world::WalkResult::kArrived)
+      world::SetGameActorState(actor_state, 0, context, now);
+    player = actor_object.position;
+  };
+
   // The client's camera input, once a frame: holding the right button is its drag state,
   // which turns, with Shift pitches and with Ctrl zooms; a right double-click is its reset
-  // state. The arrow keys walk the player a cell.
+  // state. The arrow keys walk the player a cell, and a left click walks the actor to the
+  // cell under the mouse.
   bool running = true;
   float mouse_x = 0.0f, mouse_y = 0.0f;
   SDL_GetMouseState(&mouse_x, &mouse_y);
@@ -970,6 +1012,9 @@ int main(int argc, char** argv) {
       if (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN && e.button.button == SDL_BUTTON_RIGHT &&
           e.button.clicks == 2)
         reset = true;
+      if (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN && e.button.button == SDL_BUTTON_LEFT &&
+          has_actor && has_pick)
+        move_actor(static_cast<std::uint32_t>(SDL_GetTicks()));
       if (e.type == SDL_EVENT_KEY_DOWN) {
         const float step = static_cast<float>(attr.cell_size);
         if (e.key.key == SDLK_LEFT) player[0] -= step;
@@ -999,6 +1044,7 @@ int main(int argc, char** argv) {
     drag.last_y = drag.mouse_y;
     std::vector<render::DrawRecord> draws;
     const auto now = static_cast<std::uint32_t>(SDL_GetTicks());
+    walk_actor(now);
     frame(now, draws);
     draw_cursor(now, (buttons & SDL_BUTTON_LMASK) != 0, drag.mouse_x, drag.mouse_y, draws);
     std::vector<render::TextRun> runs;

@@ -4381,12 +4381,12 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00502c20	62	code	0	world	unreferenced	raw	Global	FUN_00502c20	
 00502c60	95	code	0	world	unreferenced	raw	Global	FUN_00502c60	
 00502cc0	808	code	0	world		named	CGameActor	OnScreenBounds	
-00502ff0	47	code	0	world		named	CGameActor	vf07	
+00502ff0	47	code	0	world		named	CGameActor	SetAction	
 00503020	37	code	0	world		named	CGameActor	method_00503020	
 00503050	22	code	0	world		named	CGameActor	UpdateDirectionalIndex	
 00503070	152	code	0	world		named	CGameActor	vf33	
-00503110	75	code	0	world		named	CGameActor	vf11	
-00503160	35	code	0	world		named	CGameActor	vf12	
+00503110	75	code	0	world		named	CGameActor	ReportCell	
+00503160	35	code	0	world		named	CGameActor	ReportWalking	
 00503190	63	code	0	world		named	CGameActor	AddTravelledDistance	
 005031d0	51	code	0	world		named	CGameActor	UpdateWalkFrame	
 00503210	557	code	0	world		named	CGameActor	method_00503210	
@@ -4403,7 +4403,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00504190	71	code	0	world		named	CGameActor	RemapValueByFlagBit5	
 005041e0	427	code	0	world		named	CGameActor	LaunchEffectA0IfIdListed	
 00504390	196	code	0	world		named	CGameActor	vf38	
-00504460	9420	code	0	world		named	CGameActor	vf02	
+00504460	9420	code	0	world		named	CGameActor	SendMsg	
 00506b20	190	code	0	world		named	CGameActor	FindMovePath	
 00506be0	16	code	0	world		named	CGameActor	SetField224	
 00506bf0	143	code	0	world		named	CPlayer	method_00506bf0	

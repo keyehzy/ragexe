@@ -2822,6 +2822,19 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Checks:** `tools/actor_frame_vectors.py`: `GetDirection` on 616 actors (the rounding
     edges a step or two either side) and `vf08` on 300 `CGameActor`s through their vtable. The
     frame baselines are unchanged.
+- [x] Moves and the stand and walk states (`docs/world/states.md`, `src/world/actor_state`):
+  - **Message 0** (`CGameActor::SendMsg`): the move time from the order, `FindMovePath` at the
+    actor's speed, then walking toward the goal, or standing without a path.
+  - **`SetState`** for standing and walking: each state's action through `CGameActor::SetAction`
+    (`CRenderObject::SetAction`: the `.act`'s delay, at least 1, times +0x50). Standing holds
+    its frame and reports its cell (`GetAttrCell`); walking reports itself. Then the action's
+    direction, the state and its time.
+  - **`ragview`** walks its actor to the cell clicked: the M5 exit's click-to-move.
+  - **Checks:** `tools/walk_oracle.py` moves actors on all 287 maps through the original's
+    `SendMsg`, `ProcessState` and `SetState`, the game mode's messages recorded: 11,480 moves
+    and 165,490 updates, every field, the path and the messages equal. `state_vectors.inc`
+    keeps short moves and `GetAttrCell` at the cells' edges.
+  - **Labels:** `CGameActor::SendMsg`, `SetAction`, `ReportCell` and `ReportWalking`.
 
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
