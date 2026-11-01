@@ -35,6 +35,27 @@ struct WalkQueryVector {
 
 #include "walk_vectors.inc"
 
+struct ActorDirectionVector {
+  std::int32_t job;
+  std::uint32_t effect;
+  std::int32_t base;
+  std::uint32_t facing, yaw;
+  std::int32_t direction;
+};
+
+struct ActorFrameVector {
+  std::int32_t job;
+  std::uint32_t effect;
+  std::int32_t base;
+  std::uint32_t facing, yaw, delay, repeats;
+  std::int32_t play;
+  std::uint32_t start, now;
+  int finished, held, frame, count;
+  int action_after, frame_after, finished_after;
+};
+
+#include "actor_frame_vectors.inc"
+
 // tools/walk_vectors.py's heights for the hilly maps.
 float Height(int x, int y, int corner) {
   return static_cast<float>((x * 7 + y * 13 + corner * 5) % 11 - 5);
@@ -211,4 +232,43 @@ TEST_CASE("A walker with no delay stays on frame 0", "[walk]") {
   CHECK(ProcessWalk(actor, map, act, 0.0f, 1272, 1200) == WalkResult::kWalking);
   CHECK(actor.object.action == 29);
   CHECK(actor.object.frame == 0);
+}
+
+TEST_CASE("An actor's direction is CGameActor::GetDirection's", "[walk]") {
+  for (const auto& v : kActorDirections) {
+    INFO(v.job << " " << v.base << " " << std::hex << v.facing << " " << v.yaw);
+    GameActor actor;
+    actor.job = v.job;
+    actor.effect_state = v.effect;
+    actor.object.base_action = v.base;
+    CHECK(ragexe::world::GameActorDirection(actor, std::bit_cast<float>(v.facing),
+                                            std::bit_cast<float>(v.yaw)) == v.direction);
+  }
+}
+
+TEST_CASE("An actor's frame steps as CRenderObject::UpdateFrame on a CGameActor", "[walk]") {
+  for (const auto& v : kActorFrames) {
+    INFO(v.job << " " << v.base << " " << std::hex << v.facing << " " << v.now);
+    GameActor actor;
+    actor.job = v.job;
+    actor.effect_state = v.effect;
+    auto& o = actor.object;
+    o.base_action = v.base;
+    o.facing = std::bit_cast<float>(v.facing);
+    o.delay = std::bit_cast<float>(v.delay);
+    o.repeats = std::bit_cast<float>(v.repeats);
+    o.play_mode = v.play;
+    o.start_time = v.start;
+    o.finished = v.finished != 0;
+    o.held = v.held != 0;
+    o.frame = v.frame;
+    ragexe::res::Act act;
+    // A turn of just 337.5 rounds to direction 8, past the eight.
+    act.actions.assign(static_cast<std::size_t>(v.base) + 9,
+                       std::vector<ragexe::res::ActFrame>(static_cast<std::size_t>(v.count)));
+    ragexe::world::UpdateGameActorFrame(actor, act, std::bit_cast<float>(v.yaw), v.now);
+    CHECK(o.action == v.action_after);
+    CHECK(o.frame == v.frame_after);
+    CHECK(o.finished == (v.finished_after != 0));
+  }
 }

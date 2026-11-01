@@ -92,6 +92,7 @@
 #include "res/rsw.h"
 #include "res/sprite.h"
 #include "res/str.h"
+#include "world/actor_walk.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
@@ -574,7 +575,10 @@ int main(int argc, char** argv) {
   }
   has_actor = has_actor && LoadActorSprite(files, "shadow", sprite_texture, shadow);
   render::PlayerHeadOffset head_offset;
-  render::RenderObject actor_object;
+  // The actor, a CGameActor: its job picks how its vf04 rounds the direction.
+  world::GameActor actor_state;
+  actor_state.job = o.player ? o.job : o.npc_job;
+  render::RenderObject& actor_object = actor_state.object;
   actor_object.shadow = true;
   // CPc::UpdateBody and CNpc::vf16: the job's shadow scale.
   if (o.player) actor_object.shadow_scale = res::JobShadowScale(o.job);
@@ -682,7 +686,7 @@ int main(int argc, char** argv) {
     // The actor's vf03: its shadow, then its body.
     if (has_actor) {
       actor_object.position = player;
-      render::UpdateActorFrame(actor_object, actor.act, camera.yaw, now);
+      world::UpdateGameActorFrame(actor_state, actor.act, camera.yaw, now);
       const float ground_height = res::AttrHeight(attr, player[0], player[2]);
       if (const auto q =
               render::DrawActorShadow(actor_object, ground_height, actor_object.scale, shadow.act,

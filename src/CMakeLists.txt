@@ -172,4 +172,5 @@ target_link_libraries(ragres PRIVATE ragexe_render ragexe_res ragexe_world ragex
 
 add_executable(ragview ragview/main.cpp)
 target_include_directories(ragview SYSTEM PRIVATE ${stb_SOURCE_DIR})
-target_link_libraries(ragview PRIVATE ragexe_glyphs ragexe_gpu ragexe_render ragexe_res ragexe_options)
+target_link_libraries(ragview PRIVATE ragexe_glyphs ragexe_gpu ragexe_render ragexe_res ragexe_world
+                      ragexe_options)

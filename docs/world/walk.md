@@ -72,7 +72,8 @@ It is the same turn d = −(the camera's yaw) − facing, wrapped into [0, 360).
 - **Rounded** for a player's standing, walking and sitting (jobs below 45, base actions 0, 8
   and 16) and an NPC's standing (jobs 46 to 999, base action 0). Below 22.5 (`005e9530`) or
   above 337.5 (`005e9528`) it is 0. Otherwise it is ⌊(d + 22.5) × 1/45 (`005e9520`, a
-  double)⌋.
+  double)⌋. So a turn of just 337.5 gives 8, past the eight directions: the first of the
+  next action (a player standing there shows walking toward 0).
 - **Otherwise truncated:** ⌊d × 1/45⌋ (`005e9518`, a float), as `CGameObject::vf04`.
 
 The job is `GetJob` (`00503490`): +0x1b8, but 7 is 13 and 14 is 21 when bit 5 of +0x21c is
@@ -80,13 +81,17 @@ set (`IsBit5Set`, `0059d3d0`). Both stay below 45, so the remap never changes a 
 Job 45, the warp portal, is never rounded.
 
 `CRenderObject::vf08`, which steps an animation's frames, calls slot 4 through the vtable, so
-an actor's frames take this direction too.
+an actor's frames take this direction too. Every sprite actor (`CGameActor`, `CPc`,
+`CPlayer`, `CNpc`, `CSkill` and the rest) keeps `CGameActor::GetDirection` in slot 4 and
+`CRenderObject`'s `vf08` in slot 8; items, corpses and effects keep `CGameObject`'s.
 
 ## In the port
 
 `src/world/actor_walk.{h,cpp}`, in `ragexe_world`:
 - `GameActor`: the fields above, with the sprite's `RenderObject` and the `MovePath`;
 - `GameActorJob` and `GameActorDirection`;
+- `UpdateGameActorFrame`, `vf08` on an actor: `render::StepActorFrame`, the frame step with
+  a given direction, with `GameActorDirection`'s;
 - `ProcessWalk`, the update of a walking actor, at a given `timeGetTime` and server's time.
   It returns `kFaded`, `kWalking` or `kArrived`. At `kArrived`, standing (`SetState(0)`,
   `vf10`) is the caller's. The original stands first, but standing touches none of the
@@ -122,10 +127,15 @@ whose corners' heights follow a formula, each with the oracle's mix of short wal
 walks that each hang on one value: a turn of exactly 22.5°, `timeGetTime` just at the fade's
 end, and the server's time just at the path's end. `tests/unit/walk_test.cpp` replays them.
 
+`tools/actor_frame_vectors.py` writes `tests/unit/actor_frame_vectors.inc`:
+- **`GetDirection`** on 616 actors: the jobs (players, the portal, NPCs, 1000, monsters, the
+  mounted 7 and 14), +0x21c, base actions, yaws and facings, with turns just on and either
+  side of 22.5 and 337.5, and a player standing at every edge between two directions;
+- **`vf08`** on 300 `CGameActor`s through their vtable, with delays, repeats, play modes,
+  times and frame counts.
+
 **Not ported:**
 - the other states of `ProcessState` and `CPc::ProcessState` (standing, sitting, attacking,
   dying and the rest), and `SetState`, which changes state;
 - the messages that start a walk (`vf02` 0, 5, 6 and 0x13), which come with the actors'
   messages;
-- `CGameActor::GetDirection` in `CRenderObject::vf08` for actors. The port's
-  `UpdateActorFrame` takes `CGameObject::vf04`'s direction.

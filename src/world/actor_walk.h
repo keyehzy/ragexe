@@ -40,6 +40,11 @@ std::int32_t GameActorJob(const GameActor& actor);
 // action 0).
 std::int32_t GameActorDirection(const GameActor& actor, float facing, float camera_yaw);
 
+// CRenderObject::UpdateFrame (00500830, vf08) on an actor: render::StepActorFrame with the
+// direction of GameActorDirection, as the actor's vtable gives vf04.
+void UpdateGameActorFrame(GameActor& actor, const res::Act& act, float camera_yaw,
+                          std::uint32_t now);
+
 // What CGameActor::ProcessState came to.
 enum class WalkResult {
   kFaded,    // returned 0: the fade (+0x234) is over

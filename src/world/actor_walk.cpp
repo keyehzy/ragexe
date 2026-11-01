@@ -56,6 +56,12 @@ std::int32_t GameActorDirection(const GameActor& actor, float facing, float came
   return Ftol(static_cast<float>(static_cast<double>(shifted) * kNearestStep));
 }
 
+void UpdateGameActorFrame(GameActor& actor, const res::Act& act, float camera_yaw,
+                          std::uint32_t now) {
+  render::StepActorFrame(actor.object, act,
+                         GameActorDirection(actor, actor.object.facing, camera_yaw), now);
+}
+
 WalkResult ProcessWalk(GameActor& actor, const res::AttrMap& attr, const res::Act& act,
                        float camera_yaw, std::uint32_t now, std::uint32_t server_time) {
   render::RenderObject& object = actor.object;

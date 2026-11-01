@@ -2813,6 +2813,15 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Checks:** `tools/ftol_vectors.py` runs the original's `__ftol` on 165 doubles: the edges
     of 32 and 64 bits on both sides, the infinities, NaNs, denormals and assorted values, as
     doubles and as widened floats (`tests/unit/ftol_vectors.inc`, in the x87 test).
+- [x] Actors' frames by their own direction (`docs/world/walk.md#the-direction`):
+  `CRenderObject::vf08` calls slot 4, which for every sprite actor is
+  `CGameActor::GetDirection`. `world::UpdateGameActorFrame` steps an actor's frame with it
+  (`render::StepActorFrame`), and `ragview`'s actor is a `GameActor` of its job.
+  - **Found on the way:** a turn of just 337.5 rounds to 8, past the eight directions, so the
+    actor shows the next action's first.
+  - **Checks:** `tools/actor_frame_vectors.py`: `GetDirection` on 616 actors (the rounding
+    edges a step or two either side) and `vf08` on 300 `CGameActor`s through their vtable. The
+    frame baselines are unchanged.
 
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,

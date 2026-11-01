@@ -106,7 +106,12 @@ float AngleBetween(float x1, float y1, float x2, float y2) {
 
 void UpdateActorFrame(RenderObject& object, const res::Act& act, float camera_yaw,
                       std::uint32_t now) {
-  object.action = object.base_action + ActorDirection(object.facing, camera_yaw);
+  StepActorFrame(object, act, ActorDirection(object.facing, camera_yaw), now);
+}
+
+void StepActorFrame(RenderObject& object, const res::Act& act, std::int32_t direction,
+                    std::uint32_t now) {
+  object.action = object.base_action + direction;
   // The milliseconds, exact on the x87, times 1/24 rounded once to single precision.
   const std::uint64_t product = static_cast<std::uint64_t>(now - object.start_time) * kTickMantissa;
   const float ticks = std::ldexp(static_cast<float>(product), kTickExponent);

@@ -69,10 +69,15 @@ std::int32_t ActorDirection(float facing, float camera_yaw);
 // 360.
 float AngleBetween(float x1, float y1, float x2, float y2);
 
-// CRenderObject::vf08 (00500830) at time now (ms): the action becomes the base action
-// plus the direction, and the frame follows the time since start over the delay, looping
-// or, playing once, stopping at the last frame and finishing after the repeats. A
-// finished or held action only keeps its frame within the action.
+// CRenderObject::vf08 (00500830) at time now (ms), with the direction its vf04 gave: the
+// action becomes the base action plus the direction, and the frame follows the time since
+// start over the delay, looping or, playing once, stopping at the last frame and finishing
+// after the repeats. A finished or held action only keeps its frame within the action.
+void StepActorFrame(RenderObject& object, const res::Act& act, std::int32_t direction,
+                    std::uint32_t now);
+
+// vf08 on a plain object, whose vf04 is CGameObject's (ActorDirection). Actors take theirs
+// from CGameActor::GetDirection (world::UpdateGameActorFrame).
 void UpdateActorFrame(RenderObject& object, const res::Act& act, float camera_yaw,
                       std::uint32_t now);
 
