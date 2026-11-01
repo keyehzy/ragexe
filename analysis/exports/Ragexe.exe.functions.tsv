@@ -2896,7 +2896,7 @@ entry	size	namespace	name	source	fid	thunk	calling_convention	signature
 004a8f60	208	UIWindowMgr	SendEnterKey	USER_DEFINED	0	0	__thiscall	undefined SendEnterKey(UIWindowMgr * this)
 004a9030	71	UIWindowMgr	method_004a9030	USER_DEFINED	0	0	__thiscall	undefined method_004a9030(UIWindowMgr * this)
 004a9080	61	UIWindowMgr	GetAbsolutePos	USER_DEFINED	0	0	__thiscall	undefined GetAbsolutePos(UIWindowMgr * this)
-004a90c0	79	UIWindowMgr	method_004a90c0	USER_DEFINED	0	0	__thiscall	undefined method_004a90c0(UIWindowMgr * this)
+004a90c0	79	UIWindowMgr	QueueRemoval	USER_DEFINED	0	0	__thiscall	undefined QueueRemoval(UIWindowMgr * this)
 004a9110	97	UIWindowMgr	RunModalLoop	USER_DEFINED	0	0	__thiscall	undefined RunModalLoop(UIWindowMgr * this)
 004a9180	355	UIWindowMgr	method_004a9180	USER_DEFINED	0	0	__thiscall	undefined method_004a9180(UIWindowMgr * this)
 004a92f0	296	UIWindowMgr	method_004a92f0	USER_DEFINED	0	0	__thiscall	undefined method_004a92f0(UIWindowMgr * this)

@@ -2896,7 +2896,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004a8f60	208	code	0	ui		named	UIWindowMgr	SendEnterKey	
 004a9030	71	code	0	ui		named	UIWindowMgr	method_004a9030	
 004a9080	61	code	0	ui		named	UIWindowMgr	GetAbsolutePos	
-004a90c0	79	code	0	ui		named	UIWindowMgr	method_004a90c0	
+004a90c0	79	code	0	ui		named	UIWindowMgr	QueueRemoval	
 004a9110	97	code	0	ui		named	UIWindowMgr	RunModalLoop	
 004a9180	355	code	0	ui		named	UIWindowMgr	method_004a9180	
 004a92f0	296	code	0	ui		named	UIWindowMgr	method_004a92f0	

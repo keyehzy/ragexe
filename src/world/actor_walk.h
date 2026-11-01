@@ -16,6 +16,7 @@ struct GameActor {
   std::int32_t goal_x = 0;         // +0xc0, the cell a move heads for
   std::int32_t goal_y = 0;         // +0xc4
   std::int32_t speed = 150;        // +0xc8, milliseconds a cell
+  std::int32_t field_0xcc = 0;     // +0xcc
   std::int32_t field_0xd0 = 0;     // +0xd0: while set, SetState does nothing
   std::int32_t field_0xd8 = 0;     // +0xd8: while set, walking keeps the action it has
   MovePath path;                   // +0x170
@@ -29,6 +30,7 @@ struct GameActor {
   float field_0x1ac = 0.0f;        // +0x1ac, -1 after vf07
   std::int32_t id = 0;             // +0x1b4, the server's id
   std::int32_t job = 0;            // +0x1b8
+  std::int32_t window = 0;         // +0x1cc, a window of the actor's, closed when it walks
   std::uint32_t hold_until = 0;    // +0x1d0: held (+0x82) until timeGetTime passes it
   std::int32_t field_0x1f4 = 0;    // +0x1f4, from the packets that bring it in
   std::uint32_t effect_state = 0;  // +0x21c; bit 5 mounts jobs 7 and 14

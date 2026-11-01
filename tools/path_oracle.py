@@ -43,10 +43,11 @@ MOVE_PATH_CTOR, FIND_SEGMENT = 0x4CCF10, 0x4CD1F0
 FIND_MOVE_PATH, SERVER_TIME, IS_PATH_FOUND = 0x506B20, 0x593200, 0x511EC0
 DEBUG_LOG = 0x4060F0
 NO_PATH, OVERFLOW = 0x60C1D0, 0x60C1F4
-ACTOR_PATH, ACTOR_MOVE_TIME, ACTOR_SIZE = 0x170, 0x18C, 0x300
+ACTOR_PATH, ACTOR_MOVE_TIME, ACTOR_SIZE = 0x170, 0x18C, 0x400
 GAME_ACTOR_VTABLE, PROCESS, SET_STATE = 0x5E95C0, 0x5038C0, 0x5034E0
 GET_GAME_MODE, GET_FRAME_COUNT = 0x4CBF30, 0x421A80
 SEND_MESSAGE_SLOT, MESSAGE_STUB, SERVICE_TYPE, MESSAGE = 5, 0x7E000000, 0x67C9D4, 0x504460
+PC_VTABLE, CLOSE_WINDOW, MODE_FIELD_2A0 = 0x5E9B94, 0x4A90C0, 0x2A0
 # W: the CGameActor fields a walk starts from, in order: +4 and +0xc (float bits), +0x38,
 # the camera's yaw, +0x44 and +0x198 (float bits), +0x20, +0x1b8, +0x21c, +0x190, the frames
 # of every action, +0x1d0, +0x234, +0x7c, +0x82, +0x1a0 and +0x19c; then the updates, each
@@ -61,6 +62,9 @@ WALK_FIELDS = ["x", "z", "facing", "yaw", "delay", "travelled", "base", "job", "
 GO_FIELDS = WALK_FIELDS + ["state", "speed", "f_d0", "f_d8", "service", "delay0", "delay8", "scale",
                            "target_x", "target_z", "time", "sx", "sy", "subx", "suby", "gx", "gy", "id",
                            "repeats", "finished", "delay_count", "segment"]
+# P: a G for a CPc, then its +0x218, +0x294, +0x1cc, +0x224 and +0xcc; the hash also takes,
+# each step, CGameMode+0x2a0 (0x5a5a5a5a before), +0x1cc, +0x294, +0xcc and the windows closed.
+PLAYER_FIELDS = GO_FIELDS + ["f218", "f294", "f1cc", "f224", "fcc"]
 SINGLE = 0x007F
 SPEEDS = [150, 150, 150, 100, 200, 75, 300, 120, 1, 7, 999]
 
@@ -160,7 +164,7 @@ class Oracle:
         emu.hook_code(DEBUG_LOG, DEBUG_LOG, debug_log)
         # CGameActor::ProcessState reads the world through the game mode (+0xb4, its attribute map
         # at +0x40) and the camera's yaw through its view (+0xb8, +0x20).
-        self.mode, self.world, self.view = (emu.scratch(size=0x100) for _ in range(3))
+        self.mode, self.world, self.view = (emu.scratch(size=0x400) for _ in range(3))
         emu.write_u32(self.mode + 0xB4, self.world)
         emu.write_u32(self.mode + 0xB8, self.view)
         emu.write_u32(self.world + 0x40, self.attr)
@@ -184,6 +188,8 @@ class Oracle:
         emu.write_u32(self.mode, mode_vtable)
         self.messages = []
         emu.replace_thiscall(MESSAGE_STUB, 4, lambda this, *v: self.messages.extend(v))
+        self.windows = []
+        emu.replace_thiscall(CLOSE_WINDOW, 1, lambda this, window: self.windows.append(window))
         # The body's CActRes: GetActionDelay reads the delays at +0x138..+0x13c.
         self.act = emu.scratch(size=0x144)
         self.delays = emu.scratch(size=4 * 9)
@@ -220,7 +226,7 @@ class Oracle:
         self.paths = []
         for line in lines:
             kind, *values = line.split()
-            v = [int(x) for x in values] if kind not in ("W", "G") else []
+            v = [int(x) for x in values] if kind not in ("W", "G", "P") else []
             self.logged = []
             if kind == "F":
                 found = emu.call(FIND_PATH, *v, self.actor + ACTOR_PATH, this=G_PATH_FINDER).eax & 0xFF
@@ -255,6 +261,8 @@ class Oracle:
                 out.append(self.walk(values))
             elif kind == "G":
                 out.append(self.go(values))
+            elif kind == "P":
+                out.append(self.go(values, player=True))
         emu.heap_release(mark)
         return out
 
@@ -307,15 +315,29 @@ class Oracle:
         emu.write_u32(self.view + 0x20, w["yaw"])
         self.frames = w["frames"]
 
-    def go(self, values):
+    def go(self, values, player=False):
         """CGameActor::vf02's message 0 on the actor, then ProcessState update by update, with
-        SetState run, until the actor stands again or has faded."""
+        SetState run, until the actor stands again or has faded; for a player, a CPc's."""
         emu, actor = self.emu, self.actor
         v = [int(x, 0) for x in values]
-        g = dict(zip(GO_FIELDS, v))
-        updates = v[len(GO_FIELDS):]
+        names = PLAYER_FIELDS if player else GO_FIELDS
+        g = dict(zip(names, v))
+        updates = v[len(names):]
         self.place(g)
         self.skip_states = False
+        extra = lambda: []
+        if player:
+            emu.write_u32(actor, PC_VTABLE)
+            for offset, name in ((0x218, "f218"), (0x294, "f294"), (0x1CC, "f1cc"), (0x224, "f224"), (0xCC, "fcc")):
+                emu.write_u32(actor + offset, g[name] & 0xFFFFFFFF)
+            emu.write_u32(self.mode + MODE_FIELD_2A0, 0x5A5A5A5A)
+            self.windows = []
+
+            def extra():
+                out = [emu.read_u32(self.mode + MODE_FIELD_2A0),
+                       *(emu.read_u32(actor + o) for o in (0x1CC, 0x294, 0xCC)), *self.windows]
+                self.windows = []
+                return out
         # Fields no query writes, at the port's defaults, 0.
         for offset in (0x54, 0x70, 0xC0, 0xC4, 0x18C, 0x1AC):
             emu.write_u32(actor + offset, 0)
@@ -344,7 +366,7 @@ class Oracle:
         updates = updates[2:]
         emu.call(MESSAGE, 0, 0, order, 0, 0, this=actor)
         count, digest = self.path()[3:5]
-        h = fnv1a64([2, *self.fields(), count, digest, digest >> 32, *self.messages], h)
+        h = fnv1a64([2, *self.fields(), count, digest, digest >> 32, *self.messages, *extra()], h)
         last, calls = "walking", 0
         if emu.read_u32(actor + 0x58) != 1:
             last = "standing"
@@ -354,7 +376,7 @@ class Oracle:
             self.now, self.server = tick, server
             ret = emu.call(PROCESS, this=actor).eax & 0xFF
             calls += 1
-            h = fnv1a64([ret, *self.fields(), *self.messages], h)
+            h = fnv1a64([ret, *self.fields(), *self.messages, *extra()], h)
             if ret == 0:
                 last = "faded"
                 break

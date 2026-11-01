@@ -2544,6 +2544,7 @@ address	namespace	name	calling_convention	evidence
 00502ff0	CGameActor	SetAction	__thiscall	vf07 (action, unused, play mode), ret 0xc: CRenderObject::SetAction, then +0x190 cleared and +0x1ac = -1.0
 00503110	CGameActor	ReportCell	__thiscall	vf11: CGameMode::GetAttrCell of the position +4/+0xc, then the game mode's SendMsg (vf05) 0xc with the id +0x1b4 and the cell; SetState(0) calls it
 00503160	CGameActor	ReportWalking	__thiscall	vf12: the game mode's SendMsg (vf05) 0xd with the id +0x1b4, 0, 0; SetState(1) calls it
+004a90c0	UIWindowMgr	QueueRemoval	__thiscall	(window), ret 4: push_back of the window into the list +0x3c (count +0x40); CGameActor::SendMsg's message 0x53 queues the actor's window +0x1cc there when it walks
 00542eb0	CPc	ProcessState	__thiscall	vf09: its own work for states 2, 3, 6, 7 and 8 after the hold and UpdateFade, CGameActor::ProcessState for the rest (walking among them)
 00543020	CPc	SetState	__thiscall	vf10 (state), ret 4: its own work for states 0, 1, 2, 6, 7, 8 and 9, calling CGameActor::SetState in 0, 1, 2 and 9 and for every other state; in 6, 7 and 8 it sets +0x58 and +0x70 itself
 0054c540	CPlayer	ProcessState	__thiscall	vf09: jumps to CPc::ProcessState

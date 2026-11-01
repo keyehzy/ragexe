@@ -13,11 +13,39 @@ constexpr std::int32_t kStand = 0;
 constexpr std::int32_t kWalk = 1;
 constexpr std::int32_t kStandAction = 0;
 constexpr std::int32_t kWalkAction = 8;
+constexpr std::int32_t kReadyAction = 32;
 constexpr std::int32_t kStandsMessage = 0xc;  // the actor's id and the cell it stands on
 constexpr std::int32_t kWalksMessage = 0xd;   // the actor's id
 
 void Send(const StateContext& context, const ModeMessage& message) {
   if (context.messages != nullptr) context.messages->push_back(message);
+}
+
+// The direction, the state and its start: the end of both SetStates.
+void FinishState(GameActor& actor, std::int32_t state, const StateContext& context,
+                 std::uint32_t now) {
+  render::RenderObject& o = actor.object;
+  o.action = GameActorDirection(actor, o.facing, context.camera_yaw) + o.base_action;
+  actor.state = state;
+  o.start_time = now;
+}
+
+template <typename Actor, typename SetState>
+PathResult Move(Actor& actor, PathFinder& finder, const MoveOrder& order, std::uint32_t server_time,
+                SetState set_state) {
+  actor.move_time = order.time;
+  const PathResult found =
+      FindMovePath(finder, actor.path, actor.move_time, server_time, order.start_x, order.start_y,
+                   order.sub_x, order.sub_y, order.goal_x, order.goal_y, actor.speed);
+  if (found != PathResult::kFound) {
+    set_state(kStand);
+    return found;
+  }
+  actor.goal_x = order.goal_x;
+  actor.goal_y = order.goal_y;
+  set_state(kWalk);
+  actor.segment = 0;
+  return found;
 }
 
 }  // namespace
@@ -67,28 +95,53 @@ bool SetGameActorState(GameActor& actor, std::int32_t state, const StateContext&
     // vf12 (00503160).
     Send(context, {kWalksMessage, actor.id, 0, 0});
   }
-  o.action = GameActorDirection(actor, o.facing, context.camera_yaw) + o.base_action;
-  actor.state = state;
-  o.start_time = now;
+  FinishState(actor, state, context, now);
+  return true;
+}
+
+bool SetPlayerState(PlayerActor& player, std::int32_t state, const StateContext& context,
+                    std::uint32_t now) {
+  const std::int32_t before = player.state;
+  if (before == 3 || player.field_0xd0 != 0) return true;
+  if (state != kStand && state != kWalk) return false;
+  render::RenderObject& o = player.object;
+  if (before == 4) {
+    o.position[0] = player.target_x;
+    o.position[2] = player.target_z;
+  }
+  if (state == kStand) {
+    SetGameActorState(player, kStand, context, now);
+    o.frame = player.saved_frame;
+    if (before == 4 || before == 2 || player.field_0x224 != 0 || before == 8)
+      SetGameActorAction(player, *context.act, kReadyAction, 0);
+    if (context.mode_field_0x2a0 != nullptr) *context.mode_field_0x2a0 = 0;
+  } else {
+    player.field_0xcc = 0;
+    if (player.field_0x218 != 1 && player.field_0x218 != 2) o.held = false;
+    // SendMsg(0x53) to itself.
+    if (player.window != 0) {
+      if (context.closed_windows != nullptr) context.closed_windows->push_back(player.window);
+      player.window = 0;
+    }
+    player.saved_frame = 0;
+    SetGameActorState(player, kWalk, context, now);
+  }
+  FinishState(player, state, context, now);
   return true;
 }
 
 PathResult MoveGameActor(GameActor& actor, PathFinder& finder, const MoveOrder& order,
                          std::uint32_t server_time, const StateContext& context,
                          std::uint32_t now) {
-  actor.move_time = order.time;
-  const PathResult found =
-      FindMovePath(finder, actor.path, actor.move_time, server_time, order.start_x, order.start_y,
-                   order.sub_x, order.sub_y, order.goal_x, order.goal_y, actor.speed);
-  if (found != PathResult::kFound) {
-    SetGameActorState(actor, kStand, context, now);
-    return found;
-  }
-  actor.goal_x = order.goal_x;
-  actor.goal_y = order.goal_y;
-  SetGameActorState(actor, kWalk, context, now);
-  actor.segment = 0;
-  return found;
+  return Move(actor, finder, order, server_time,
+              [&](std::int32_t state) { SetGameActorState(actor, state, context, now); });
+}
+
+PathResult MoveGameActor(PlayerActor& player, PathFinder& finder, const MoveOrder& order,
+                         std::uint32_t server_time, const StateContext& context,
+                         std::uint32_t now) {
+  return Move(player, finder, order, server_time,
+              [&](std::int32_t state) { SetPlayerState(player, state, context, now); });
 }
 
 }  // namespace ragexe::world

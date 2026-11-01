@@ -578,8 +578,9 @@ int main(int argc, char** argv) {
   }
   has_actor = has_actor && LoadActorSprite(files, "shadow", sprite_texture, shadow);
   render::PlayerHeadOffset head_offset;
-  // The actor, a CGameActor: its job picks how its vf04 rounds the direction.
-  world::GameActor actor_state;
+  // The actor, a CGameActor, or a CPc for a player: its job picks how its vf04 rounds the
+  // direction, and a player's states are CPc's.
+  world::PlayerActor actor_state;
   actor_state.job = o.player ? o.job : o.npc_job;
   render::RenderObject& actor_object = actor_state.object;
   actor_object.shadow = true;
@@ -975,18 +976,26 @@ int main(int argc, char** argv) {
     world::StateContext context = state_context;
     context.camera_yaw = camera.yaw;
     actor_object.position = player;
-    world::MoveGameActor(actor_state, finder,
-                         {now, cell_x, cell_z, sixteenth(player[0], centre_x),
-                          sixteenth(player[2], centre_z), pick_x, pick_z},
-                         now, context, now);
+    const world::MoveOrder order{
+        now,    cell_x, cell_z, sixteenth(player[0], centre_x), sixteenth(player[2], centre_z),
+        pick_x, pick_z};
+    if (o.player)
+      world::MoveGameActor(actor_state, finder, order, now, context, now);
+    else
+      world::MoveGameActor(static_cast<world::GameActor&>(actor_state), finder, order, now, context,
+                           now);
   };
   const auto walk_actor = [&](std::uint32_t now) {
     if (actor_state.state != 1) return;
     world::StateContext context = state_context;
     context.camera_yaw = camera.yaw;
     if (world::ProcessWalk(actor_state, attr, actor.act, camera.yaw, now, now) ==
-        world::WalkResult::kArrived)
-      world::SetGameActorState(actor_state, 0, context, now);
+        world::WalkResult::kArrived) {
+      if (o.player)
+        world::SetPlayerState(actor_state, 0, context, now);
+      else
+        world::SetGameActorState(actor_state, 0, context, now);
+    }
     player = actor_object.position;
   };
 

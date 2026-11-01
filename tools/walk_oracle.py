@@ -149,16 +149,36 @@ def make_goes(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
     return lines
 
 
+def make_plays(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
+    """The script for a map: moves as make_goes makes them, for players (CPc): a player's job,
+    the state before among 2 and 8 too, and CPc's +0x218, +0x294, +0x1cc, +0x224 and +0xcc."""
+    rng = random.Random(zlib.crc32(b"play " + name.encode()))
+    lines = []
+    for line in make_goes("player " + name, width, height, attrs, count, updates):
+        if line[0] != "G":
+            lines.append(line)
+            continue
+        tokens = line.split()[1:]
+        fields, times = tokens[:39], tokens[39:]
+        fields[7] = str(rng.choice([rng.randint(0, 44), 0, 7, 14, 23]))
+        fields[17] = str(rng.choice([0, 0, 1, 2, 4, 8, 3]))
+        extras = [str(rng.choice([0, 0, 1, 2, 3])), str(rng.choice([0, 0, 2, 5])),
+                  str(rng.choice([0, 0, rng.randint(1, 1 << 20)])), str(rng.choice([0, 0, 1])),
+                  str(rng.choice([0, 1, rng.getrandbits(16)]))]
+        lines.append("P " + " ".join(fields + extras + times))
+    return lines
+
+
 def main():
     args = path_oracle.arguments("walks per map", 40)
     ours, originals = path_oracle.run_maps(
-        args, lambda *a: make_walks(*a) + make_goes(*a), "walks")
+        args, lambda *a: make_walks(*a) + make_goes(*a) + make_plays(*a), "walks")
     totals = {}
     for (_, lines, _), want in zip(ours, originals):
         for line, result in zip(lines, want):
-            key = result.split()[0] if line[0] == "F" else {"W": "walk ", "G": "go "}[line[0]] + result.split()[0]
+            key = result.split()[0] if line[0] == "F" else {"W": "walk ", "G": "go ", "P": "player "}[line[0]] + result.split()[0]
             totals[key] = totals.get(key, 0) + 1
-            if line[0] in "WG" and result != "-":
+            if line[0] in "WGP" and result != "-":
                 totals["updates"] = totals.get("updates", 0) + int(result.split()[1])
     return path_oracle.report(ours, originals, totals, "queries")
 

@@ -2835,6 +2835,13 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     and 165,490 updates, every field, the path and the messages equal. `state_vectors.inc`
     keeps short moves and `GetAttrCell` at the cells' edges.
   - **Labels:** `CGameActor::SendMsg`, `SetAction`, `ReportCell` and `ReportWalking`.
+- [x] Players' stand and walk states (`docs/world/states.md#players`): `CPc::SetState` around
+  `CGameActor`'s. Standing goes back to the saved frame, takes the ready stance (action 32)
+  after states 2, 4 and 8 or with +0x224, and clears `CGameMode`+0x2a0. Walking clears +0xcc
+  and +0x82 (but for +0x218 1 and 2), queues the player's window for removal (message 0x53,
+  `UIWindowMgr::QueueRemoval`) and forgets the saved frame. `ragview`'s player takes them.
+  - **Checks:** `tools/walk_oracle.py`'s player moves on all 287 maps through a `CPc`: 11,480
+    moves and 146,134 updates equal; `player_state_vectors.inc` keeps short ones.
 
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,

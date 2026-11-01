@@ -38,8 +38,23 @@ of a cell, and the goal cell. `SendMsg` (`00505dd3`):
 - the action 8 in a loop, unless +0xd8 is set;
 - `vf12` (`00503160`): the game mode hears message 0xd with the actor's id.
 
-The other states, their actions and side effects are not ported. `CPc` overrides
-`SetState` (`00543020`) around `CGameActor`'s.
+The other states, their actions and side effects are not ported.
+
+## Players
+
+`CPc` (and `CPlayer`, which calls it) overrides `SetState` (`00543020`) around `CGameActor`'s,
+with the same guard and the move onto state 4's target (without the height, which `CGameActor`'s
+then sets):
+- **Standing:** `CGameActor`'s, then the frame comes back from +0x294. After states 2, 4 and 8,
+  or with +0x224 set, the action becomes 32, which reads as the ready stance by the action
+  numbering, in a loop and not held. `CGameMode`+0x2a0 is cleared.
+- **Walking:** +0xcc is cleared, and +0x82 too unless +0x218 is 1 or 2. Message 0x53 goes to
+  the player itself: `CGameActor::SendMsg` queues the window at +0x1cc for removal
+  (`UIWindowMgr::QueueRemoval`, `004a90c0`) and clears it. +0x294 is cleared, then
+  `CGameActor`'s.
+
+Both end as `CGameActor`'s does: the direction of the action, which may now be 32's, the state
+and its time. Message 0 goes to `CGameActor::SendMsg`, which calls the player's `SetState`.
 
 **An action** (`CGameActor::vf07`, `00502ff0`) is `CRenderObject::SetAction` (`00500de0`),
 then pushed (+0x190) cleared and +0x1ac −1. `SetAction`:
@@ -67,14 +82,16 @@ the walk put it, at the goal's centre.
 - `SetGameActorState` for 0 and 1 (others return false having done nothing), and
   `SetGameActorAction`;
 - `AttrCellAt` and `IsSpecialActorIdOnKoreaService`;
-- `ModeMessage`: what the game mode hears, kept in the `StateContext`'s list when there is one.
+- `ModeMessage`: what the game mode hears, kept in the `StateContext`'s list when there is one,
+  with the windows queued for removal and `CGameMode`+0x2a0;
+- `PlayerActor`, `CPc`'s fields, with `SetPlayerState` and a `MoveGameActor` that calls it.
 
 `render::SetAction` and `render::ActionDelay` (`src/render/actor`) are `CRenderObject`'s;
 `RenderObject` gained +0x50, the delay's scale.
 
 `GameActor` gained the goal, the speed, +0xd0, +0xd8, +0x1ac and the target of state 4.
 
-**`ragview`** walks its actor: a left click on the cell under the mouse sends it message 0 from
+**`ragview`** walks its actor, a player with `CPc`'s states: a left click on the cell under the mouse sends it message 0 from
 where it stands, with `timeGetTime` for the server's time. Each frame walks it until it stands.
 
 `ragres find-paths` takes moves: `G`, the actor's fields, the order, then the message's and each
@@ -93,13 +110,18 @@ messages are hashed, and equal `ragres find-paths`:
 - **11,480 moves** and 165,490 updates;
 - **the moves:** 4,090 arrived, 982 still walking at their last update, 224 faded, and 6,184
   never walked (the start the goal, no path, state 3 or +0xd0).
+- **11,480 player moves** (`P`, a `CPc` with its +0x218, +0x294, the window, +0x224 and +0xcc,
+  a player's job, states 2 and 8 before too) and 146,134 updates, `CGameMode`+0x2a0 and the
+  windows queued hashed too: 4,037 arrived, 952 still walking, 192 faded and 6,299 never
+  walked.
 
 `tools/state_vectors.py` writes `tests/unit/state_vectors.inc`:
 - **moves** on `tools/walk_vectors.py`'s three maps, with short walks;
 - **`GetAttrCell`** at points on and either side of the cells' edges, both sides of 0 and
   beyond the map.
 
-`tests/unit/walk_test.cpp` replays them.
+`tools/player_state_vectors.py` writes `tests/unit/player_state_vectors.inc`, player moves on
+the same maps. `tests/unit/walk_test.cpp` replays them.
 
 **Not ported:** the other messages and states (sitting, attacking, dying and the rest), and
-`CPc`'s and `CPlayer`'s `SetState`.
+`CPlayer::SetState`'s own work before `CPc`'s.
