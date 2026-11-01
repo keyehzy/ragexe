@@ -2771,6 +2771,23 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     reopened cell, the 149th node, 1.414, an off-map start's key).
   - **Labels:** the finder's methods (`004cc4e0` to `004cced0`) and
     `ClientState::GetServerTime` (`00593200`).
+- [x] The walk (`docs/world/walk.md`, `src/world/actor_walk`):
+  - **`CGameActor::ProcessState`** for an actor walking (state 1). Each update moves it
+    toward the cell centre of the step `FindSegment` gives at the server's time, the
+    fraction of the way that the time since the last update is of the time left to the
+    step. It turns, steps its frame by the distance walked (× 1.48 over the delay,
+    `UpdateWalkFrame`), sets it on the ground, and stands it at the end. Also the hold and
+    the fade that every state runs first.
+  - **Found on the way:** an actor's direction is `CGameActor::GetDirection`, not
+    `CGameObject::vf04`. It rounds to the nearest direction for a player's standing,
+    walking and sitting and an NPC's standing, where the rest truncate. A pushed actor
+    (+0x190) neither turns nor steps its frames.
+  - **Checks:** `tools/walk_oracle.py` walks paths of every map's `.gat` (287) with the
+    original's `ProcessState`: in 11,480 walks and 510,630 updates, every update's fields
+    equal `ragres find-paths`.
+    `tests/unit/walk_vectors.inc` keeps three small maps' walks, one of them hilly.
+  - **Labels:** `CGameActor::ProcessState`, `GetDirection`, `UpdateFade`,
+    `UpdateWalkFrame` and `SetState`, and `CPc`'s and `CPlayer`'s overrides.
 
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,

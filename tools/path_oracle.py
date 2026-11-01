@@ -13,7 +13,8 @@ seed of its name, then runs on that finder and one actor's MovePath (CGameActor+
     both before and after the path would have ended;
   - CGameMode::IsPathFound (00511ec0), timeGetTime given;
   - MovePath::FindSegment (004cd1f0) at times before, along and after the path.
-Oracle.run also takes "Z value", which sets the path's +0x10, for tools/path_vectors.py.
+Oracle.run also takes "Z value", which sets the path's +0x10, for tools/path_vectors.py, and
+"W ...", a walk of the path with CGameActor::ProcessState, for tools/walk_oracle.py.
 Every result, the message logged (no path, or the nodes run out), and the whole path after
 each search are compared with `ragres find-paths` on the same script.
 """
@@ -41,7 +42,15 @@ MOVE_PATH_CTOR, FIND_SEGMENT = 0x4CCF10, 0x4CD1F0
 FIND_MOVE_PATH, SERVER_TIME, IS_PATH_FOUND = 0x506B20, 0x593200, 0x511EC0
 DEBUG_LOG = 0x4060F0
 NO_PATH, OVERFLOW = 0x60C1D0, 0x60C1F4
-ACTOR_PATH, ACTOR_MOVE_TIME, ACTOR_SIZE = 0x170, 0x18C, 0x200
+ACTOR_PATH, ACTOR_MOVE_TIME, ACTOR_SIZE = 0x170, 0x18C, 0x300
+GAME_ACTOR_VTABLE, PROCESS, SET_STATE = 0x5E95C0, 0x5038C0, 0x5034E0
+GET_GAME_MODE, GET_FRAME_COUNT = 0x4CBF30, 0x421A80
+# W: the CGameActor fields a walk starts from, in order: +4 and +0xc (float bits), +0x38,
+# the camera's yaw, +0x44 and +0x198 (float bits), +0x20, +0x1b8, +0x21c, +0x190, the frames
+# of every action, +0x1d0, +0x234, +0x7c, +0x82, +0x1a0 and +0x19c; then the updates, each
+# the server's time and timeGetTime.
+WALK_FIELDS = ["x", "z", "facing", "yaw", "delay", "travelled", "base", "job", "effect", "pushed",
+               "frames", "hold", "fade", "color", "held", "server_at", "processed_at"]
 SINGLE = 0x007F
 SPEEDS = [150, 150, 150, 100, 200, 75, 300, 120, 1, 7, 999]
 
@@ -130,7 +139,8 @@ class Oracle:
         self.logged = []
         emu.mem_write(G_PATH_FINDER, bytes(PATH_FINDER_SIZE))
         emu.call(PATH_FINDER_CTOR, this=G_PATH_FINDER)
-        emu.replace_thiscall(SERVER_TIME, 0, lambda this: self.now)
+        self.server = 0
+        emu.replace_thiscall(SERVER_TIME, 0, lambda this: self.server)
         emu.api.stubs["WINMM.DLL!timeGetTime"] = Stub(0, lambda: self.now)
 
         def debug_log(uc, address, size, _):
@@ -138,6 +148,17 @@ class Oracle:
             self.logged.append(emu.read_u32(esp + 4))
             emu.complete(0, emu.read_u32(esp), esp + 4)
         emu.hook_code(DEBUG_LOG, DEBUG_LOG, debug_log)
+        # CGameActor::ProcessState reads the world through the game mode (+0xb4, its attribute map
+        # at +0x40) and the camera's yaw through its view (+0xb8, +0x20).
+        self.mode, self.world, self.view = (emu.scratch(size=0x100) for _ in range(3))
+        emu.write_u32(self.mode + 0xB4, self.world)
+        emu.write_u32(self.mode + 0xB8, self.view)
+        emu.write_u32(self.world + 0x40, self.attr)
+        emu.replace_thiscall(GET_GAME_MODE, 0, lambda this: self.mode)
+        self.frames = 1
+        emu.replace_thiscall(GET_FRAME_COUNT, 1, lambda this, action: self.frames if self.frames > 1 else 1)
+        self.states = []
+        emu.replace_thiscall(SET_STATE, 1, lambda this, state: self.states.append(state))
 
     def result(self, found):
         if found:
@@ -169,7 +190,7 @@ class Oracle:
         self.paths = []
         for line in lines:
             kind, *values = line.split()
-            v = [int(x) for x in values]
+            v = [int(x) for x in values] if kind != "W" else []
             self.logged = []
             if kind == "F":
                 found = emu.call(FIND_PATH, *v, self.actor + ACTOR_PATH, this=G_PATH_FINDER).eax & 0xFF
@@ -178,7 +199,7 @@ class Oracle:
                 out.append(f"{self.result(found)} - {field} {sx:08x} {sy:08x} {count} {digest:016x}")
             elif kind == "M":
                 emu.write_u32(self.actor + ACTOR_MOVE_TIME, v[0])
-                self.now = v[1]
+                self.server = v[1]
                 found = emu.call(FIND_MOVE_PATH, *v[2:], this=self.actor).eax & 0xFF
                 field, sx, sy, count, digest, steps = self.path()
                 self.paths.append(steps)
@@ -200,8 +221,53 @@ class Oracle:
             elif kind == "Z":
                 emu.write_u32(self.actor + ACTOR_PATH + 0x10, v[0] & 0xFFFFFFFF)
                 out.append(f"{v[0]}")
+            elif kind == "W":
+                out.append(self.walk(values))
         emu.heap_release(mark)
         return out
+
+    def walk(self, values):
+        """CGameActor::ProcessState on the actor walking its path, update by update until it arrives
+        or has faded."""
+        emu, actor = self.emu, self.actor
+        if self.path()[3] < 2:
+            return "-"
+        v = [int(x, 0) for x in values]
+        w = dict(zip(WALK_FIELDS, v))
+        updates = v[len(WALK_FIELDS):]
+        emu.write_u32(actor, GAME_ACTOR_VTABLE)
+        for offset, name in [(0x4, "x"), (0xC, "z"), (0x38, "facing"), (0x44, "delay"), (0x198, "travelled"),
+                             (0x20, "base"), (0x1B8, "job"), (0x21C, "effect"), (0x1D0, "hold"),
+                             (0x234, "fade"), (0x7C, "color"), (0x1A0, "server_at"), (0x19C, "processed_at")]:
+            emu.write_u32(actor + offset, w[name] & 0xFFFFFFFF)
+        for offset in (0x8, 0x24, 0x28, 0x194):
+            emu.write_u32(actor + offset, 0)
+        emu.write_u32(actor + 0x58, 1)
+        emu.write_u32(actor + 0x9C, actor)
+        emu.mem_write(actor + 0x190, bytes([w["pushed"]]))
+        emu.mem_write(actor + 0x82, bytes([w["held"]]))
+        emu.write_u32(self.view + 0x20, w["yaw"])
+        self.frames = w["frames"]
+        h, calls, last = 0xCBF29CE484222325, 0, "walking"
+        for server, tick in zip(updates[::2], updates[1::2]):
+            self.states = []
+            self.now, self.server = tick, server
+            ret = emu.call(PROCESS, this=actor).eax & 0xFF
+            calls += 1
+            state = self.states[0] if self.states else 0xFFFFFFFF
+            fields = [ret, *(emu.read_u32(actor + o) for o in (0x4, 0x8, 0xC, 0x38, 0x24, 0x28, 0x194, 0x198,
+                                                                0x19C, 0x1A0, 0x7C)),
+                      emu.mem_read(actor + 0x82, 1)[0], emu.mem_read(actor + 0x190, 1)[0], state]
+            h = fnv1a64(fields, h)
+            if ret == 0:
+                last = "faded"
+                break
+            if self.states:
+                last = "arrived"
+                break
+        r = [emu.read_u32(actor + o) for o in (0x4, 0x8, 0xC, 0x38, 0x24, 0x28, 0x198)]
+        return (f"{last} {calls} {r[0]:08x} {r[1]:08x} {r[2]:08x} {r[3]:08x} {r[4]} {r[5]} {r[6]:08x} "
+                f"{h:016x}")
 
 
 def init():
@@ -214,14 +280,19 @@ def work(oracle, item):
         return oracle.run(f.read(), lines)
 
 
-def main():
+def arguments(queries_help, queries=200):
     ap = argparse.ArgumentParser()
     ap.add_argument("names", nargs="*", help="maps to check (all by default)")
     ap.add_argument("--install", default=os.path.join(ROOT, "original", "install"))
     ap.add_argument("--ragres", default=os.path.join(ROOT, "build", "dev", "src", "ragres"))
-    ap.add_argument("--queries", type=int, default=200, help="searches per map")
+    ap.add_argument("--queries", type=int, default=queries, help=queries_help)
     ap.add_argument("--jobs", type=int, default=0, help="worker processes (0: one per core but one)")
-    args = ap.parse_args()
+    return ap.parse_args()
+
+
+def run_maps(args, make_script, label):
+    """Each map's script, from make_script(name, width, height, attrs, count), run by ragres
+    and by the original: [(name, lines, port's results)] and the original's results."""
     with tempfile.TemporaryDirectory() as tmp:
         for archive in world_oracle.archives(args.install):
             subprocess.run([args.ragres, "extract", archive, tmp, "*.gat"], check=True, capture_output=True)
@@ -237,32 +308,45 @@ def main():
                 decoded = cells(f.read())
             if decoded is None:
                 continue
-            lines = make_queries(name, *decoded, args.queries)
+            lines = make_script(name, *decoded, args.queries)
             script = os.path.join(tmp, name + ".queries")
             with open(script, "w") as f:
                 f.write("\n".join(lines) + "\n")
             result = subprocess.run([args.ragres, "find-paths", gats[name], script], capture_output=True, text=True)
             items.append((gats[name], lines))
             ours.append((name, lines, result.stdout.splitlines()))
-        originals = oracle_pool.run(items, init, work, args.jobs or None, label="paths")
-    differing, totals = [], {}
+        originals = oracle_pool.run(items, init, work, args.jobs or None, label=label)
+    return ours, originals
+
+
+def report(ours, originals, totals, what):
+    """Prints the maps whose results differ; 0 when none do."""
+    differing = []
+    for (name, lines, got), want in zip(ours, originals):
+        bad = [(line, g, w) for line, g, w in zip(lines, got + [None] * len(lines), want) if g != w]
+        if bad or len(got) != len(want):
+            differing.append((name, bad))
+    queries = sum(len(w) for w in originals)
+    print(f"{len(ours)} maps, {queries} {what}: " + ", ".join(f"{k} {v}" for k, v in sorted(totals.items())))
+    for name, bad in differing[:20]:
+        print(f"MISMATCH {name}: {len(bad)} queries differ")
+        for line, g, w in bad[:3]:
+            print(f"    {line[:300]}\n        port     {g}\n        original {w}")
+    print(f"{len(differing)} maps differ")
+    print("FAILED" if differing else "OK")
+    return 1 if differing else 0
+
+
+def main():
+    args = arguments("searches per map")
+    ours, originals = run_maps(args, make_queries, "paths")
+    totals = {}
     for (name, lines, got), want in zip(ours, originals):
         for line, result in zip(lines, want):
             kind = line[0]
             key = result.split()[0] if kind in "FM" else {"I": "IsPathFound", "S": "FindSegment"}[kind]
             totals[key] = totals.get(key, 0) + 1
-        bad = [(line, g, w) for line, g, w in zip(lines, got + [None] * len(lines), want) if g != w]
-        if bad or len(got) != len(want):
-            differing.append((name, bad))
-    queries = sum(len(w) for w in originals)
-    print(f"{len(ours)} maps, {queries} queries: " + ", ".join(f"{k} {v}" for k, v in sorted(totals.items())))
-    for name, bad in differing[:20]:
-        print(f"MISMATCH {name}: {len(bad)} queries differ")
-        for line, g, w in bad[:3]:
-            print(f"    {line}\n        port     {g}\n        original {w}")
-    print(f"{len(differing)} maps differ")
-    print("FAILED" if differing else "OK")
-    return 1 if differing else 0
+    return report(ours, originals, totals, "queries")
 
 
 if __name__ == "__main__":

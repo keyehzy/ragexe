@@ -10,6 +10,7 @@
 
 #include "core/angles.h"
 #include "core/x87.h"
+#include "render/actor.h"
 #include "render/effect_table.h"
 #include "res/act.h"
 #include "res/gat.h"
@@ -1692,20 +1693,6 @@ Matrix MakeAxisRotation(const Vec3& axis, float radians) {
   const float half = radians * 0.5f;
   const float s = SinFloat(half);
   return MakeRotationFromKey({s * axis[0], s * axis[1], s * axis[2], CosFloat(half)});
-}
-
-// CRenderObject::GetAngleBetween (00500610): the angle from (x1, y1) to (x2, y2): fpatan of
-// the x and the negated y apart, over π (005e94f4, as a float) and times 180, within 0 to
-// 360.
-float AngleBetween(float x1, float y1, float x2, float y2) {
-  const float dx = x2 - x1;
-  const float dy = -(y2 - y1);
-  const double turns = std::atan2(static_cast<double>(dx), static_cast<double>(dy)) /
-                       static_cast<double>(std::bit_cast<float>(0x40490fd8u));
-  const float angle = static_cast<float>(turns) * 180.0f;
-  float out = angle < 360.0f ? angle : angle - 360.0f;
-  if (out < 0.0f) out = out + 360.0f;
-  return out;
 }
 
 // CRenderObject::TurnTowards (005005b0): the facing that looks at (x, z) from where it

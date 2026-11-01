@@ -4377,7 +4377,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00502700	327	code	0	world		named	CGameActor	~CGameActor	
 00502850	453	code	0	world		named	CGameActor	method_00502850	
 00502a20	221	code	0	world		named	CGameActor	method_00502a20	
-00502b00	273	code	0	world		named	CGameActor	vf04	
+00502b00	273	code	0	world		named	CGameActor	GetDirection	
 00502c20	62	code	0	world	unreferenced	raw	Global	FUN_00502c20	
 00502c60	95	code	0	world	unreferenced	raw	Global	FUN_00502c60	
 00502cc0	808	code	0	world		named	CGameActor	OnScreenBounds	
@@ -4388,14 +4388,14 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00503110	75	code	0	world		named	CGameActor	vf11	
 00503160	35	code	0	world		named	CGameActor	vf12	
 00503190	63	code	0	world		named	CGameActor	AddTravelledDistance	
-005031d0	51	code	0	world		named	CGameActor	vf32	
+005031d0	51	code	0	world		named	CGameActor	UpdateWalkFrame	
 00503210	557	code	0	world		named	CGameActor	method_00503210	
 00503440	69	code	0	world		named	CGameActor	method_00503440	
 00503490	79	code	0	world		named	CGameActor	GetJob	
-005034e0	784	code	0	world		named	CGameActor	vf10	
-00503830	68	code	0	world		named	CGameActor	method_00503830	
+005034e0	784	code	0	world		named	CGameActor	SetState	
+00503830	68	code	0	world		named	CGameActor	UpdateFade	
 00503880	53	code	0	world		named	CGameActor	ResetIdAndStartDelay	
-005038c0	1575	code	0	world		named	CGameActor	vf09	
+005038c0	1575	code	0	world		named	CGameActor	ProcessState	
 00503f30	66	code	0	world		named	CGameActor	vf34	
 00503f80	118	code	0	world		named	CGameActor	method_00503f80	
 00504000	133	code	0	world		named	CGameActor	method_00504000	
@@ -5183,8 +5183,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00542c50	205	code	0	world		named	CPc	vf14	
 00542d20	275	code	0	world		named	CPc	vf15	
 00542e40	112	code	0	world		named	CPc	vf01	
-00542eb0	327	code	0	world		named	CPc	vf09	
-00543020	944	code	0	world		named	CPc	vf10	
+00542eb0	327	code	0	world		named	CPc	ProcessState	
+00543020	944	code	0	world		named	CPc	SetState	
 00543400	97	code	0	world		named	CPc	method_00543400	
 00543470	65	code	0	world		named	CPc	vf35	
 005434c0	70	code	0	world		named	CPc	vf36	
@@ -5262,8 +5262,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0054b770	270	code	0	world		named	CPlayer	vf01	
 0054b880	81	code	0	world		named	CPlayer	method_0054b880	
 0054b8e0	3139	code	0	world		named	CPlayer	method_0054b8e0	
-0054c540	5	thunk	0	world		-	CPlayer	vf09	
-0054c550	114	code	0	world		named	CPlayer	vf10	
+0054c540	5	thunk	0	world		-	CPlayer	ProcessState	
+0054c550	114	code	0	world		named	CPlayer	SetState	
 0054c5d0	2291	code	0	world		named	CPlayer	vf02	
 0054cf80	585	code	0	world		named	CPlayer	method_0054cf80	
 0054d1d0	37	code	0	world		named	Global	static_init_182	

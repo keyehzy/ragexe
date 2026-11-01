@@ -168,7 +168,8 @@ map's cells then runs on the finder and one actor's path:
 - **`FindMovePath`**, both on time and late;
 - **`IsPathFound`**;
 - **`FindSegment`** at times before, along and after the path;
-- **`Z value`**, setting the path's +0x10 (the vectors only).
+- **`Z value`**, setting the path's +0x10 (the vectors only);
+- **`W …`**, a walk of the path ([walk.md](walk.md#checks), `tools/walk_oracle.py` only).
 
 The sub-cell points, speeds and times vary, wrapping included. Every result, the message
 logged and the whole path after each query match `ragres find-paths`:
@@ -194,4 +195,4 @@ logged and the whole path after each query match `ragres find-paths`:
 
 `tests/unit/path_test.cpp` replays them.
 
-**Not ported:** the actors' walking along the path, which comes with the actors.
+The actors walk the path in [walk.md](walk.md).

@@ -34,6 +34,7 @@ add_executable(ragexe_tests
   name_tables_test.cpp
   palette_test.cpp
   path_test.cpp
+  walk_test.cpp
   player_test.cpp
   prim_test.cpp
   settings_test.cpp

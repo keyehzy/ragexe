@@ -64,6 +64,11 @@ struct RenderObject {
 // the turn from it to the camera's yaw in [0, 360) over 45°.
 std::int32_t ActorDirection(float facing, float camera_yaw);
 
+// CRenderObject::GetAngleBetween (00500610): the angle from (x1, y1) to (x2, y2): fpatan of
+// the x and the negated y apart, over π (005e94f4, as a float) and times 180, within 0 to
+// 360.
+float AngleBetween(float x1, float y1, float x2, float y2);
+
 // CRenderObject::vf08 (00500830) at time now (ms): the action becomes the base action
 // plus the direction, and the frame follows the time since start over the delay, looping
 // or, playing once, stopping at the last frame and finishing after the repeats. A

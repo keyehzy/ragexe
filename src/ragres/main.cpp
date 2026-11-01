@@ -116,6 +116,7 @@
 #include "res/tips.h"
 #include "res/wav.h"
 #include "res/xml.h"
+#include "world/actor_walk.h"
 #include "world/path_finder.h"
 
 namespace {
@@ -616,10 +617,14 @@ int DecodeGats(const std::vector<std::string>& files) {
 //   I NOW SX SY SUB_X SUB_Y GX GY              IsPathFound, into a path of its own
 //   S TIME                                     FindSegment
 //   Z VALUE                                    sets the path's +0x10
+//   W FIELDS... (SERVER TICK)...               CGameActor::ProcessState walking the path, update by
+//                                              update (tools/path_oracle.py's WALK_FIELDS)
 // Prints for F and M "RESULT MOVE_TIME FIELD_0X10 START_X START_Y COUNT HASH" (the result
 // found, same, none or overflow; the move time "-" for F; the start as float bits; the
 // hash FNV-1a over each step's x, y, dir and time), for I the result, and for S "INDEX
-// TIME X Y", or "-" when the path has fewer than two steps; for Z the value.
+// TIME X Y", or "-" when the path has fewer than two steps; for Z the value; for W "END
+// UPDATES X Y Z FACING ACTION FRAME TRAVELLED HASH" (the end walking, arrived or faded, the
+// floats as bits, the hash FNV-1a over each update's result and fields), or "-".
 int FindPaths(const std::string& gat, const std::string& queries) {
   ragexe::res::AttrMap map;
   std::string error;
@@ -682,6 +687,82 @@ int FindPaths(const std::string& gat, const std::string& queries) {
       float x = 0.0f, y = 0.0f;
       const int index = path.FindSegment(time, &step_time, &x, &y);
       std::printf("%d %u %08x %08x\n", index, step_time, FloatBits(x), FloatBits(y));
+    } else if (kind == "W") {
+      if (path.steps.size() < 2) {
+        std::printf("-\n");
+        continue;
+      }
+      std::vector<std::uint32_t> v;
+      for (std::string token; fields >> token;)
+        v.push_back(static_cast<std::uint32_t>(std::stoll(token, nullptr, 0)));
+      constexpr std::size_t kFields = 17;
+      if (v.size() < kFields) {
+        std::fprintf(stderr, "short walk: %s\n", line.c_str());
+        return 2;
+      }
+      ragexe::world::GameActor actor;
+      actor.path = path;
+      actor.state = 1;
+      auto& o = actor.object;
+      o.position = {std::bit_cast<float>(v[0]), 0.0f, std::bit_cast<float>(v[1])};
+      o.facing = std::bit_cast<float>(v[2]);
+      const float yaw = std::bit_cast<float>(v[3]);
+      o.delay = std::bit_cast<float>(v[4]);
+      actor.travelled = std::bit_cast<float>(v[5]);
+      o.base_action = static_cast<std::int32_t>(v[6]);
+      actor.job = static_cast<std::int32_t>(v[7]);
+      actor.effect_state = v[8];
+      actor.pushed = v[9] != 0;
+      ragexe::res::Act act;
+      act.actions.assign(64, std::vector<ragexe::res::ActFrame>(v[10]));
+      actor.hold_until = v[11];
+      actor.fade_until = v[12];
+      o.color = v[13];
+      o.held = v[14] != 0;
+      actor.server_at = v[15];
+      actor.processed_at = v[16];
+      std::uint64_t h = 0xcbf29ce484222325ull;
+      int updates = 0;
+      const char* end = "walking";
+      for (std::size_t k = kFields; k + 1 < v.size(); k += 2) {
+        const auto r = ragexe::world::ProcessWalk(actor, map, act, yaw, v[k + 1], v[k]);
+        ++updates;
+        const std::uint32_t ret = r == ragexe::world::WalkResult::kFaded ? 0 : 1;
+        const std::uint32_t state = r == ragexe::world::WalkResult::kArrived ? 0 : 0xffffffffu;
+        const std::uint32_t values[] = {ret,
+                                        FloatBits(o.position[0]),
+                                        FloatBits(o.position[1]),
+                                        FloatBits(o.position[2]),
+                                        FloatBits(o.facing),
+                                        static_cast<std::uint32_t>(o.action),
+                                        static_cast<std::uint32_t>(o.frame),
+                                        static_cast<std::uint32_t>(actor.segment),
+                                        FloatBits(actor.travelled),
+                                        actor.processed_at,
+                                        actor.server_at,
+                                        o.color,
+                                        o.held ? 1u : 0u,
+                                        actor.pushed ? 1u : 0u,
+                                        state};
+        for (const std::uint32_t x : values) {
+          const std::uint8_t le[4] = {
+              static_cast<std::uint8_t>(x), static_cast<std::uint8_t>(x >> 8),
+              static_cast<std::uint8_t>(x >> 16), static_cast<std::uint8_t>(x >> 24)};
+          h = Fnv1a64(le, h);
+        }
+        if (r == ragexe::world::WalkResult::kFaded) {
+          end = "faded";
+          break;
+        }
+        if (r == ragexe::world::WalkResult::kArrived) {
+          end = "arrived";
+          break;
+        }
+      }
+      std::printf("%s %d %08x %08x %08x %08x %d %d %08x %016llx\n", end, updates,
+                  FloatBits(o.position[0]), FloatBits(o.position[1]), FloatBits(o.position[2]),
+                  FloatBits(o.facing), o.action, o.frame, FloatBits(actor.travelled),
+                  static_cast<unsigned long long>(h));
     } else if (kind == "Z") {
       fields >> path.field_0x10;
       std::printf("%d\n", path.field_0x10);

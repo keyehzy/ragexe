@@ -98,6 +98,17 @@ std::int32_t ActorDirection(float facing, float camera_yaw) {
   return Ftol(d * kDirectionStep);
 }
 
+float AngleBetween(float x1, float y1, float x2, float y2) {
+  const float dx = x2 - x1;
+  const float dy = -(y2 - y1);
+  const double turns = std::atan2(static_cast<double>(dx), static_cast<double>(dy)) /
+                       static_cast<double>(std::bit_cast<float>(0x40490fd8u));
+  const float angle = static_cast<float>(turns) * 180.0f;
+  float out = angle < 360.0f ? angle : angle - 360.0f;
+  if (out < 0.0f) out = out + 360.0f;
+  return out;
+}
+
 void UpdateActorFrame(RenderObject& object, const res::Act& act, float camera_yaw,
                       std::uint32_t now) {
   object.action = object.base_action + ActorDirection(object.facing, camera_yaw);

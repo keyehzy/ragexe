@@ -60,11 +60,6 @@ add_library(ragexe_res STATIC
 target_include_directories(ragexe_res PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(ragexe_res PRIVATE ragexe_core ZLIB::ZLIB ragexe_stb_image ragexe_options)
 
-# The world's own code that draws nothing: path finding.
-add_library(ragexe_world STATIC
-  world/path_finder.cpp)
-target_include_directories(ragexe_world PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(ragexe_world PUBLIC ragexe_core ragexe_res PRIVATE ragexe_options)
 
 # The renderer: the original's Direct3D 7 state, and in time its SDL_GPU replacement.
 add_library(ragexe_render STATIC
@@ -139,6 +134,13 @@ add_custom_command(OUTPUT "${RAGEXE_FONT_DIR}/embedded_fonts.h"
     "${liberation_fonts_SOURCE_DIR}/LiberationSans-Bold.ttf"
     "${PROJECT_SOURCE_DIR}/cmake/embed_files.cmake"
   VERBATIM)
+# The world's own code that draws nothing: path finding and the actors' walk.
+add_library(ragexe_world STATIC
+  world/actor_walk.cpp
+  world/path_finder.cpp)
+target_include_directories(ragexe_world PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(ragexe_world PUBLIC ragexe_core ragexe_render ragexe_res PRIVATE ragexe_options)
+
 add_library(ragexe_glyphs STATIC
   render/glyphs.cpp
   "${RAGEXE_FONT_DIR}/embedded_fonts.h")

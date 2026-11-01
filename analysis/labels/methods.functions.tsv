@@ -384,7 +384,6 @@ address	namespace	name	calling_convention	evidence
 00503020	CGameActor	method_00503020	__thiscall	__thiscall; called with this from 7 functions of C3dGrannyGameActor, CBlurPC, CGrannyPc, CNpc and more, e.g. 00508000
 00503210	CGameActor	method_00503210	__thiscall	__thiscall; called with this from 4 functions of CGrannyPc, CPc, CPlayer, CSkill, e.g. 00542e40
 00503440	CGameActor	method_00503440	__thiscall	__thiscall; called with this from 8 functions of C3dGrannyGameActor, CBlurPC, CGrannyPc, CNpc and more, e.g. 00508000
-00503830	CGameActor	method_00503830	__thiscall	__thiscall; called with this from 4 functions of CGameActor, CGrannyPc, CNpc, CPc, e.g. 005038c0
 00503f80	CGameActor	method_00503f80	__thiscall	__thiscall; called with this from 5 functions of C3dGrannyGameActor, CGrannyPc, CPc, CPlayer and more, e.g. 00508250
 00504000	CGameActor	method_00504000	__thiscall	__thiscall; called with this from 2 functions of CGameActor, CNpc, e.g. 005034e0
 00506bf0	CPlayer	method_00506bf0	__thiscall	__thiscall; called with this from 1 functions of CPlayer, e.g. 00506c80
