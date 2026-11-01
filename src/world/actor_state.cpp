@@ -14,8 +14,11 @@ constexpr std::int32_t kWalk = 1;
 constexpr std::int32_t kStandAction = 0;
 constexpr std::int32_t kWalkAction = 8;
 constexpr std::int32_t kReadyAction = 32;
-constexpr std::int32_t kStandsMessage = 0xc;  // the actor's id and the cell it stands on
-constexpr std::int32_t kWalksMessage = 0xd;   // the actor's id
+constexpr float kSixteenths = 16.0f;  // 005e2728
+constexpr std::int32_t kPushSpeed = 2;
+constexpr std::int32_t kPushSpeedAlone = 0x37;  // with +0xd8 set
+constexpr std::int32_t kStandsMessage = 0xc;    // the actor's id and the cell it stands on
+constexpr std::int32_t kWalksMessage = 0xd;     // the actor's id
 
 void Send(const StateContext& context, const ModeMessage& message) {
   if (context.messages != nullptr) context.messages->push_back(message);
@@ -48,6 +51,35 @@ PathResult Move(Actor& actor, PathFinder& finder, const MoveOrder& order, std::u
   return found;
 }
 
+template <typename Actor, typename SetState>
+PathResult MoveTo(Actor& actor, PathFinder& finder, std::int32_t goal_x, std::int32_t goal_y,
+                  std::int32_t speed, std::uint32_t server_time, const StateContext& context,
+                  SetState set_state) {
+  actor.move_time = server_time;
+  const render::Vec3& at = actor.object.position;
+  const CellPoint from = CellPointAt(*context.attr, at[0], at[2]);
+  std::int32_t pace = speed;
+  if (pace == 0) pace = actor.field_0xd8 != 0 ? kPushSpeedAlone : kPushSpeed;
+  const PathResult found =
+      FindMovePath(finder, actor.path, actor.move_time, server_time, from.cell_x, from.cell_y,
+                   from.sub_x, from.sub_y, goal_x, goal_y, pace);
+  if (found != PathResult::kFound) {
+    set_state(kStand);
+    return found;
+  }
+  actor.goal_x = goal_x;
+  actor.goal_y = goal_y;
+  set_state(kWalk);
+  actor.segment = 0;
+  if (speed == 0) {
+    actor.pushed = true;
+  } else {
+    actor.pushed = false;
+    actor.object.held = true;
+  }
+  return found;
+}
+
 }  // namespace
 
 std::array<std::int32_t, 2> AttrCellAt(const res::AttrMap& attr, float x, float z) {
@@ -58,6 +90,22 @@ std::array<std::int32_t, 2> AttrCellAt(const res::AttrMap& attr, float x, float 
   const float cz = (z / cell) + static_cast<float>(half_height);
   return {core::Ftol(std::floor(static_cast<double>(cx))),
           core::Ftol(std::floor(static_cast<double>(cz)))};
+}
+
+CellPoint CellPointAt(const res::AttrMap& attr, float x, float z) {
+  const auto cell = static_cast<float>(attr.cell_size);
+  const std::int32_t half_width = attr.width / 2;
+  const std::int32_t half_height = attr.height / 2;
+  const float across = static_cast<float>(half_width) + (x / cell);
+  const float down = static_cast<float>(half_height) + (z / cell);
+  CellPoint p;
+  p.cell_x = core::Ftol(std::floor(static_cast<double>(across)));
+  p.cell_y = core::Ftol(std::floor(static_cast<double>(down)));
+  const float in_x = (across - static_cast<float>(p.cell_x)) * kSixteenths;
+  const float in_y = (down - static_cast<float>(p.cell_y)) * kSixteenths;
+  p.sub_x = core::Ftol(std::floor(static_cast<double>(in_x))) % 16;
+  p.sub_y = core::Ftol(std::floor(static_cast<double>(in_y))) % 16;
+  return p;
 }
 
 bool IsSpecialActorIdOnKoreaService(std::int32_t service_type, std::int32_t id) {
@@ -142,6 +190,20 @@ PathResult MoveGameActor(PlayerActor& player, PathFinder& finder, const MoveOrde
                          std::uint32_t now) {
   return Move(player, finder, order, server_time,
               [&](std::int32_t state) { SetPlayerState(player, state, context, now); });
+}
+
+PathResult MoveGameActorTo(GameActor& actor, PathFinder& finder, std::int32_t goal_x,
+                           std::int32_t goal_y, std::int32_t speed, std::uint32_t server_time,
+                           const StateContext& context, std::uint32_t now) {
+  return MoveTo(actor, finder, goal_x, goal_y, speed, server_time, context,
+                [&](std::int32_t state) { SetGameActorState(actor, state, context, now); });
+}
+
+PathResult MoveGameActorTo(PlayerActor& player, PathFinder& finder, std::int32_t goal_x,
+                           std::int32_t goal_y, std::int32_t speed, std::uint32_t server_time,
+                           const StateContext& context, std::uint32_t now) {
+  return MoveTo(player, finder, goal_x, goal_y, speed, server_time, context,
+                [&](std::int32_t state) { SetPlayerState(player, state, context, now); });
 }
 
 }  // namespace ragexe::world

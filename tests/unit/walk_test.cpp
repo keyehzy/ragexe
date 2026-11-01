@@ -69,6 +69,13 @@ struct AttrCellVector {
   int cell_x, cell_z;
 };
 
+struct CellPointVector {
+  int width, height;
+  std::uint32_t x, z;
+  int cell_x, cell_z, sub_x, sub_z;
+};
+
+#include "move_to_vectors.inc"
 #include "player_state_vectors.inc"
 #include "state_vectors.inc"
 
@@ -187,11 +194,11 @@ std::string Walk(const AttrMap& map, const MovePath& path, std::istringstream& f
 
 // Replays a G query as ragres find-paths does: message 0, then the walk to standing.
 std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istringstream& fields,
-               bool player) {
+               bool player, bool to = false) {
   std::vector<std::uint32_t> v;
   for (std::string token; fields >> token;)
     v.push_back(static_cast<std::uint32_t>(std::stoll(token, nullptr, 0)));
-  const std::size_t kFields = player ? 44 : 39;
+  const std::size_t kFields = (player ? 44 : 39) + (to ? 1 : 0);
   ragexe::world::PlayerActor actor;
   actor.path = path;
   auto& o = actor.object;
@@ -297,11 +304,18 @@ std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istr
     }
     messages.clear();
   };
-  if (player)
+  const auto to_speed = static_cast<std::int32_t>(v[kFields - 1]);
+  auto& base = static_cast<ragexe::world::GameActor&>(actor);
+  if (to && player)
+    ragexe::world::MoveGameActorTo(actor, finder, order.goal_x, order.goal_y, to_speed, v[kFields],
+                                   context, v[kFields + 1]);
+  else if (to)
+    ragexe::world::MoveGameActorTo(base, finder, order.goal_x, order.goal_y, to_speed, v[kFields],
+                                   context, v[kFields + 1]);
+  else if (player)
     ragexe::world::MoveGameActor(actor, finder, order, v[kFields], context, v[kFields + 1]);
   else
-    ragexe::world::MoveGameActor(static_cast<ragexe::world::GameActor&>(actor), finder, order,
-                                 v[kFields], context, v[kFields + 1]);
+    ragexe::world::MoveGameActor(base, finder, order, v[kFields], context, v[kFields + 1]);
   std::vector<std::uint32_t> steps;
   for (const auto& step : actor.path.steps) {
     steps.push_back(static_cast<std::uint32_t>(step.x));
@@ -497,6 +511,45 @@ TEST_CASE("Players move, walk and stand as the original's message 0 and CPc's st
     const std::string got =
         kind == 'F' ? Search(finder, path, fields) : Go(map, finder, path, fields, kind == 'P');
     CHECK(got == v.result);
+  }
+}
+
+TEST_CASE("Actors and players move from where they stand as the original's message 0x13",
+          "[walk]") {
+  int current = -1;
+  AttrMap map;
+  PathFinder finder;
+  MovePath path;
+  for (const StateQueryVector& v : kMoveToQueries) {
+    if (v.map != current) {
+      current = v.map;
+      map = MakeMap(kWalkMaps[current]);
+      finder = PathFinder();
+      finder.SetAttrMap(&map);
+      path = MovePath();
+    }
+    INFO(kWalkMaps[current].name << ": " << v.query);
+    std::istringstream fields(v.query);
+    char kind = 0;
+    fields >> kind;
+    const std::string got = kind == 'F' ? Search(finder, path, fields)
+                                        : Go(map, finder, path, fields, kind == 'U', true);
+    CHECK(got == v.result);
+  }
+}
+
+TEST_CASE("The cell and sixteenths under a point are CGameMode 00511c30's", "[walk]") {
+  for (const auto& v : kCellPoints) {
+    INFO(v.width << "x" << v.height << " " << std::hex << v.x << " " << v.z);
+    AttrMap map;
+    map.width = v.width;
+    map.height = v.height;
+    const auto p =
+        ragexe::world::CellPointAt(map, std::bit_cast<float>(v.x), std::bit_cast<float>(v.z));
+    CHECK(p.cell_x == v.cell_x);
+    CHECK(p.cell_y == v.cell_z);
+    CHECK(p.sub_x == v.sub_x);
+    CHECK(p.sub_y == v.sub_z);
   }
 }
 

@@ -65,6 +65,9 @@ GO_FIELDS = WALK_FIELDS + ["state", "speed", "f_d0", "f_d8", "service", "delay0"
 # P: a G for a CPc, then its +0x218, +0x294, +0x1cc, +0x224 and +0xcc; the hash also takes,
 # each step, CGameMode+0x2a0 (0x5a5a5a5a before), +0x1cc, +0x294, +0xcc and the windows closed.
 PLAYER_FIELDS = GO_FIELDS + ["f218", "f294", "f1cc", "f224", "fcc"]
+# T and U: a G and a P whose move is message 0x13 from where the actor stands, to the goal
+# (gx, gy) at the speed given last (the order's time and start unread).
+TO_SPEED = ["to_speed"]
 SINGLE = 0x007F
 SPEEDS = [150, 150, 150, 100, 200, 75, 300, 120, 1, 7, 999]
 
@@ -226,7 +229,7 @@ class Oracle:
         self.paths = []
         for line in lines:
             kind, *values = line.split()
-            v = [int(x) for x in values] if kind not in ("W", "G", "P") else []
+            v = [int(x) for x in values] if kind not in ("W", "G", "P", "T", "U") else []
             self.logged = []
             if kind == "F":
                 found = emu.call(FIND_PATH, *v, self.actor + ACTOR_PATH, this=G_PATH_FINDER).eax & 0xFF
@@ -263,6 +266,10 @@ class Oracle:
                 out.append(self.go(values))
             elif kind == "P":
                 out.append(self.go(values, player=True))
+            elif kind == "T":
+                out.append(self.go(values, to=True))
+            elif kind == "U":
+                out.append(self.go(values, player=True, to=True))
         emu.heap_release(mark)
         return out
 
@@ -315,12 +322,12 @@ class Oracle:
         emu.write_u32(self.view + 0x20, w["yaw"])
         self.frames = w["frames"]
 
-    def go(self, values, player=False):
+    def go(self, values, player=False, to=False):
         """CGameActor::vf02's message 0 on the actor, then ProcessState update by update, with
         SetState run, until the actor stands again or has faded; for a player, a CPc's."""
         emu, actor = self.emu, self.actor
         v = [int(x, 0) for x in values]
-        names = PLAYER_FIELDS if player else GO_FIELDS
+        names = (PLAYER_FIELDS if player else GO_FIELDS) + (TO_SPEED if to else [])
         g = dict(zip(names, v))
         updates = v[len(names):]
         self.place(g)
@@ -364,7 +371,11 @@ class Oracle:
         self.messages, self.states = [], []
         self.server, self.now = updates[0], updates[1]
         updates = updates[2:]
-        emu.call(MESSAGE, 0, 0, order, 0, 0, this=actor)
+        if to:
+            emu.call(MESSAGE, 0, 0x13, g["gx"] & 0xFFFFFFFF, g["gy"] & 0xFFFFFFFF, g["to_speed"] & 0xFFFFFFFF,
+                     this=actor)
+        else:
+            emu.call(MESSAGE, 0, 0, order, 0, 0, this=actor)
         count, digest = self.path()[3:5]
         h = fnv1a64([2, *self.fields(), count, digest, digest >> 32, *self.messages, *extra()], h)
         last, calls = "walking", 0

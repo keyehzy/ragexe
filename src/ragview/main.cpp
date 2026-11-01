@@ -57,7 +57,6 @@
 #include <vector>
 
 #include "core/frame_timer.h"
-#include "core/x87.h"
 #include "render/actor.h"
 #include "render/camera.h"
 #include "render/cursor.h"
@@ -966,19 +965,13 @@ int main(int argc, char** argv) {
   finder.SetAttrMap(&attr);
   const world::StateContext state_context{&attr, &actor.act, 0.0f, 1, nullptr};
   const auto move_actor = [&](std::uint32_t now) {
-    const auto [cell_x, cell_z] = world::AttrCellAt(attr, player[0], player[2]);
-    // The sixteenths of the cell the actor stands in.
-    const auto [centre_x, centre_z] = render::CellCentre(attr, cell_x, cell_z);
-    const float cs = static_cast<float>(attr.cell_size);
-    const auto sixteenth = [&](float at, float centre) {
-      return std::clamp(core::Ftol((at - centre + cs * 0.5f) / cs * 16.0f), 0, 15);
-    };
+    // The order a server would send: from the cell the actor stands in and where in it.
+    const world::CellPoint from = world::CellPointAt(attr, player[0], player[2]);
     world::StateContext context = state_context;
     context.camera_yaw = camera.yaw;
     actor_object.position = player;
-    const world::MoveOrder order{
-        now,    cell_x, cell_z, sixteenth(player[0], centre_x), sixteenth(player[2], centre_z),
-        pick_x, pick_z};
+    const world::MoveOrder order{now,        from.cell_x, from.cell_y, from.sub_x,
+                                 from.sub_y, pick_x,      pick_z};
     if (o.player)
       world::MoveGameActor(actor_state, finder, order, now, context, now);
     else

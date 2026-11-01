@@ -622,6 +622,9 @@ int DecodeGats(const std::vector<std::string>& files) {
 //                                              update (tools/path_oracle.py's WALK_FIELDS)
 //   G FIELDS... (SERVER TICK)...               CGameActor::vf02's message 0, then the walk to
 //                                              standing (GO_FIELDS)
+//   P FIELDS... (SERVER TICK)...               G for a CPc (PLAYER_FIELDS)
+//   T and U FIELDS... SPEED (SERVER TICK)...   G and P with message 0x13 from where the actor
+//                                              stands to the goal at the speed
 // Prints for F and M "RESULT MOVE_TIME FIELD_0X10 START_X START_Y COUNT HASH" (the result
 // found, same, none or overflow; the move time "-" for F; the start as float bits; the
 // hash FNV-1a over each step's x, y, dir and time), for I the result, and for S "INDEX
@@ -768,12 +771,13 @@ int FindPaths(const std::string& gat, const std::string& queries) {
                   FloatBits(o.position[0]), FloatBits(o.position[1]), FloatBits(o.position[2]),
                   FloatBits(o.facing), o.action, o.frame, FloatBits(actor.travelled),
                   static_cast<unsigned long long>(h));
-    } else if (kind == "G" || kind == "P") {
-      const bool player = kind == "P";
+    } else if (kind == "G" || kind == "P" || kind == "T" || kind == "U") {
+      const bool player = kind == "P" || kind == "U";
+      const bool to = kind == "T" || kind == "U";
       std::vector<std::uint32_t> v;
       for (std::string token; fields >> token;)
         v.push_back(static_cast<std::uint32_t>(std::stoll(token, nullptr, 0)));
-      const std::size_t kFields = player ? 44 : 39;
+      const std::size_t kFields = (player ? 44 : 39) + (to ? 1 : 0);
       if (v.size() < kFields + 2) {
         std::fprintf(stderr, "short go: %s\n", line.c_str());
         return 2;
@@ -888,11 +892,18 @@ int FindPaths(const std::string& gat, const std::string& queries) {
         }
         messages.clear();
       };
-      if (player)
+      const auto to_speed = static_cast<std::int32_t>(v[kFields - 1]);
+      auto& base = static_cast<ragexe::world::GameActor&>(actor);
+      if (to && player)
+        ragexe::world::MoveGameActorTo(actor, finder, order.goal_x, order.goal_y, to_speed,
+                                       v[kFields], context, v[kFields + 1]);
+      else if (to)
+        ragexe::world::MoveGameActorTo(base, finder, order.goal_x, order.goal_y, to_speed,
+                                       v[kFields], context, v[kFields + 1]);
+      else if (player)
         ragexe::world::MoveGameActor(actor, finder, order, v[kFields], context, v[kFields + 1]);
       else
-        ragexe::world::MoveGameActor(static_cast<ragexe::world::GameActor&>(actor), finder, order,
-                                     v[kFields], context, v[kFields + 1]);
+        ragexe::world::MoveGameActor(base, finder, order, v[kFields], context, v[kFields + 1]);
       std::vector<std::uint32_t> steps;
       for (const auto& step : actor.path.steps) {
         steps.push_back(static_cast<std::uint32_t>(step.x));

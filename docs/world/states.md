@@ -16,6 +16,19 @@ of a cell, and the goal cell. `SendMsg` (`00505dd3`):
    (+0x194) to 0;
 4. **not found,** or the start is the goal: stands (`SetState(0)`).
 
+**Message 0x13** (`005062b3`) moves the actor from where it stands. It carries the goal cell and
+a speed:
+1. the move time (+0x18c) is the server's time;
+2. the start is the cell and the sixteenths under the actor's position (`CGameMode::GetCellPoint`,
+   below);
+3. a speed of 0 becomes 2, or 0x37 with +0xd8 set;
+4. `FindMovePath` from there, then as message 0: the goal kept, walking and the step left 0, or
+   standing;
+5. **found,** with no speed given, the actor is pushed (+0x190: it neither turns nor steps its
+   frames, [walk.md](walk.md#the-actor)); with one, pushed is cleared and +0x82 set.
+
+`CPc` keeps `CGameActor`'s message 0x13, which calls the player's `SetState`.
+
 ## The states
 
 `SetState` (`005034e0`, `vf10`), with the new state:
@@ -66,6 +79,12 @@ then pushed (+0x190) cleared and +0x1ac −1. `SetAction`:
 
 Its second argument (4 for standing, 6 for walking) is never read.
 
+**The cell and sixteenths under a point** (`CGameMode::GetCellPoint`, `00511c30`): the cell as
+`GetAttrCell` finds it, and in it ⌊(the width / 2 + x / the cell size − the cell) × 16
+(`005e2728`)⌋, then C's remainder by 16; the same for z. Each sum and product rounds to single
+precision, and the floors and `__ftol` go through doubles. Left of 0 the cell is negative and
+the sixteenths count from its own left.
+
 **The cell under a point** (`CGameMode::GetAttrCell`, `00511d50`): floor(x / the cell size +
 the width / 2) and the same for z with the height. The halves are C's (toward zero), the sum
 single precision, and the floor and `__ftol` through doubles.
@@ -78,10 +97,10 @@ the walk put it, at the goal's centre.
 ## In the port
 
 `src/world/actor_state.{h,cpp}`, in `ragexe_world`:
-- `MoveGameActor`, message 0, with a `MoveOrder`;
+- `MoveGameActor`, message 0, with a `MoveOrder`, and `MoveGameActorTo`, message 0x13;
 - `SetGameActorState` for 0 and 1 (others return false having done nothing), and
   `SetGameActorAction`;
-- `AttrCellAt` and `IsSpecialActorIdOnKoreaService`;
+- `AttrCellAt`, `CellPointAt` (`GetCellPoint`) and `IsSpecialActorIdOnKoreaService`;
 - `ModeMessage`: what the game mode hears, kept in the `StateContext`'s list when there is one,
   with the windows queued for removal and `CGameMode`+0x2a0;
 - `PlayerActor`, `CPc`'s fields, with `SetPlayerState` and a `MoveGameActor` that calls it.
@@ -91,11 +110,12 @@ the walk put it, at the goal's centre.
 
 `GameActor` gained the goal, the speed, +0xd0, +0xd8, +0x1ac and the target of state 4.
 
-**`ragview`** walks its actor, a player with `CPc`'s states: a left click on the cell under the mouse sends it message 0 from
-where it stands, with `timeGetTime` for the server's time. Each frame walks it until it stands.
+**`ragview`** walks its actor, a player with `CPc`'s states: a left click on the cell under the
+mouse sends it message 0 from the cell and sixteenths it stands in (`CellPointAt`), as a server
+would, with `timeGetTime` for the server's time. Each frame walks it until it stands.
 
 `ragres find-paths` takes moves: `G`, the actor's fields, the order, then the message's and each
-update's times.
+update's times; `P`, the same for a player; `T` and `U`, message 0x13 for both.
 
 ## Checks
 
@@ -114,6 +134,9 @@ messages are hashed, and equal `ragres find-paths`:
   a player's job, states 2 and 8 before too) and 146,134 updates, `CGameMode`+0x2a0 and the
   windows queued hashed too: 4,037 arrived, 952 still walking, 192 faded and 6,299 never
   walked.
+- **11,480 moves from where the actor stands** (`T` and, for players, `U`: message 0x13 at
+  speeds of 0 too) and 127,516 updates: 4,359 arrived, 805 still walking, 186 faded and 6,130
+  never walked.
 
 `tools/state_vectors.py` writes `tests/unit/state_vectors.inc`:
 - **moves** on `tools/walk_vectors.py`'s three maps, with short walks;
@@ -121,7 +144,8 @@ messages are hashed, and equal `ragres find-paths`:
   beyond the map.
 
 `tools/player_state_vectors.py` writes `tests/unit/player_state_vectors.inc`, player moves on
-the same maps. `tests/unit/walk_test.cpp` replays them.
+the same maps, and `tools/move_to_vectors.py` writes `tests/unit/move_to_vectors.inc`: moves from
+where the actor stands on them, and `GetCellPoint` at the cells' and the sixteenths' edges. `tests/unit/walk_test.cpp` replays them.
 
 **Not ported:** the other messages and states (sitting, attacking, dying and the rest), and
 `CPlayer::SetState`'s own work before `CPc`'s.

@@ -169,16 +169,35 @@ def make_plays(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
     return lines
 
 
+def make_tos(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
+    """The script for a map: moves as make_goes and make_plays make them, as message 0x13 from
+    where the actor stands (T, and U for players), at a speed of their own, often 0 (pushed)."""
+    rng = random.Random(zlib.crc32(b"to " + name.encode()))
+    lines = []
+    goes = make_goes("to " + name, width, height, attrs, count // 2, updates)
+    plays = make_plays("to " + name, width, height, attrs, count - count // 2, updates)
+    for line in goes + plays:
+        if line[0] not in "GP":
+            lines.append(line)
+            continue
+        tokens = line.split()
+        n = 39 if line[0] == "G" else 44
+        fields, times = tokens[1:1 + n], tokens[1 + n:]
+        speed = str(rng.choice([0, 0, 150, 150, 7, 300, 999]))
+        lines.append({"G": "T ", "P": "U "}[line[0]] + " ".join(fields + [speed] + times))
+    return lines
+
+
 def main():
     args = path_oracle.arguments("walks per map", 40)
     ours, originals = path_oracle.run_maps(
-        args, lambda *a: make_walks(*a) + make_goes(*a) + make_plays(*a), "walks")
+        args, lambda *a: make_walks(*a) + make_goes(*a) + make_plays(*a) + make_tos(*a), "walks")
     totals = {}
     for (_, lines, _), want in zip(ours, originals):
         for line, result in zip(lines, want):
-            key = result.split()[0] if line[0] == "F" else {"W": "walk ", "G": "go ", "P": "player "}[line[0]] + result.split()[0]
+            key = result.split()[0] if line[0] == "F" else {"W": "walk ", "G": "go ", "P": "player ", "T": "to ", "U": "player to "}[line[0]] + result.split()[0]
             totals[key] = totals.get(key, 0) + 1
-            if line[0] in "WGP" and result != "-":
+            if line[0] in "WGPTU" and result != "-":
                 totals["updates"] = totals.get("updates", 0) + int(result.split()[1])
     return path_oracle.report(ours, originals, totals, "queries")
 

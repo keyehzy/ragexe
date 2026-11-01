@@ -4550,7 +4550,7 @@ entry	size	namespace	name	source	fid	thunk	calling_convention	signature
 005119f0	67	Global	FUN_005119f0	DEFAULT	0	0	unknown	undefined FUN_005119f0()
 00511a40	276	CGameMode	GetFreeCellToward	USER_DEFINED	0	0	__thiscall	undefined GetFreeCellToward(CGameMode * this)
 00511b60	203	CGameMode	StepCellToward	USER_DEFINED	0	0	__thiscall	undefined StepCellToward(CGameMode * this)
-00511c30	281	CGameMode	method_00511c30	USER_DEFINED	0	0	__thiscall	undefined method_00511c30(CGameMode * this)
+00511c30	281	CGameMode	GetCellPoint	USER_DEFINED	0	0	__thiscall	undefined GetCellPoint(CGameMode * this)
 00511d50	135	CGameMode	GetAttrCell	USER_DEFINED	0	0	__thiscall	undefined GetAttrCell(CGameMode * this)
 00511de0	105	CGameMode	GetCellCentre	USER_DEFINED	0	0	__thiscall	undefined GetCellCentre(CGameMode * this)
 00511e50	103	CGameMode	CellToWorld	USER_DEFINED	0	0	__thiscall	undefined CellToWorld(CGameMode * this)

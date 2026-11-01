@@ -41,6 +41,18 @@ struct PlayerActor : GameActor {
 // size + width / 2) and floor(z / cell size + height / 2), the halves C's.
 std::array<std::int32_t, 2> AttrCellAt(const res::AttrMap& attr, float x, float z);
 
+// A cell and where in it, in sixteenths of a cell.
+struct CellPoint {
+  std::int32_t cell_x = 0;
+  std::int32_t cell_y = 0;
+  std::int32_t sub_x = 0;
+  std::int32_t sub_y = 0;
+};
+
+// CGameMode 00511c30: the cell under world (x, z) as AttrCellAt finds it, and the sixteenths
+// of it, floor((width / 2 + x / cell size - cell) * 16) modulo 16, C's remainder.
+CellPoint CellPointAt(const res::AttrMap& attr, float x, float z);
+
 // IsSpecialActorIdOnKoreaService (004d8e10): on the Korean service (0), ids 0x2c8c7d to
 // 0x2c8c80 and 0x2c8c82.
 bool IsSpecialActorIdOnKoreaService(std::int32_t service_type, std::int32_t id);
@@ -80,6 +92,16 @@ struct MoveOrder {
 // the actor's speed; found, the goal kept and walking (segment 0), otherwise standing.
 PathResult MoveGameActor(GameActor& actor, PathFinder& finder, const MoveOrder& order,
                          std::uint32_t server_time, const StateContext& context, std::uint32_t now);
+
+// CGameActor::SendMsg's message 0x13 (005062b3): a move from where the actor stands, at the
+// server's time, to (goal_x, goal_y). A speed of 0 is 2 (0x37 with +0xd8) and pushes the
+// actor; any other holds it (+0x82).
+PathResult MoveGameActorTo(GameActor& actor, PathFinder& finder, std::int32_t goal_x,
+                           std::int32_t goal_y, std::int32_t speed, std::uint32_t server_time,
+                           const StateContext& context, std::uint32_t now);
+PathResult MoveGameActorTo(PlayerActor& player, PathFinder& finder, std::int32_t goal_x,
+                           std::int32_t goal_y, std::int32_t speed, std::uint32_t server_time,
+                           const StateContext& context, std::uint32_t now);
 
 // Message 0 to a player, whose vf10 is CPc::SetState.
 PathResult MoveGameActor(PlayerActor& player, PathFinder& finder, const MoveOrder& order,

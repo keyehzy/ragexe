@@ -2842,6 +2842,13 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   `UIWindowMgr::QueueRemoval`) and forgets the saved frame. `ragview`'s player takes them.
   - **Checks:** `tools/walk_oracle.py`'s player moves on all 287 maps through a `CPc`: 11,480
     moves and 146,134 updates equal; `player_state_vectors.inc` keeps short ones.
+- [x] Moves from where the actor stands (message 0x13, `docs/world/states.md`): the start the cell
+  and sixteenths under the actor (`CGameMode::GetCellPoint`), a speed of 0 the push speed 2
+  (0x37 with +0xd8) and pushed, any other held. Players take it with their own states, and
+  `ragview`'s click sends message 0 from `GetCellPoint`'s cell, as a server would.
+  - **Checks:** `tools/walk_oracle.py`'s `T` and `U` moves on all 287 maps: 11,480 moves and
+    127,516 updates equal; `move_to_vectors.inc` keeps short ones and `GetCellPoint` at the
+    edges.
 
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
