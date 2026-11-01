@@ -2913,6 +2913,27 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     players dying over 3,774,271 updates equal, the corpses recorded. `death_vectors.inc` keeps
     short ones and each edge of the jobs, the ids and the queue.
   - **Labels:** `CGameActor::LeaveCorpse`, `CRenderObject::GetActName` and `GetSpriteName`.
+- [x] Attacks (`docs/world/attack.md`, `src/world/actor_attack`): message 0xb
+  (`ProcessActionOnTarget`), which turns the actor to its target (or away from the player without
+  one), starts its attack and queues the hits on the target with message 0x1b: the damage shared
+  out among up to 36, the first after the attack's frame (+0x1ac × +0x44 × 24 ms, later for a few
+  monsters), the others 200 ms apart, a player's second damage 350 ms after the first; types 1 to
+  3 set states 5, 6 and 0. `SetState` is now whole: 2, 7 and 9 play the attack and turn to the
+  target, +0x1ac the first frame whose event is "atk" (`vf33`), job 0x505 an arrow; 4 and 13.
+  `CPc`'s 2 and 9 choose the action by job, +0x1bc and weapon (`ClientState` `0059a440`), take
+  `0059a3e0`'s frame and shoot a bow's arrows; its 7 plays an action by job.
+  - **Found on the way:** the frame step took 0 / 0 (no time yet and no delay, after a motion of 0)
+    as finished, where the original's `fcom` does not; fixed in `render::StepActorFrame`.
+  - **Checks:** `tools/walk_oracle.py`'s `V` and `J` on all 287 maps, the target and the player
+    `CGameActor`s, `LaunchEffect` and `AddArrowEffect` recorded and the act's events answered:
+    11,480 actors and 11,480 players over 2,364,672 updates equal, every hit queued hashed; the
+    older counts unchanged and the older vector files regenerate byte-identical.
+    `attack_vectors.inc` keeps short ones, each edge of the counts, damages, jobs and motions,
+    every state for actors and players, and `ClientState`'s three weapon functions by job,
+    +0x1bc and weapon.
+  - **Labels:** `CGameActor::GetAttackFrame`, `SetAttackMotion`, `GetWeapon` and
+    `LaunchRangedAttack`, `CPc`'s `SetAttackMotion` and `GetWeapon`, and `ClientState`'s
+    `UsesSecondAttack`, `GetAttackFrame` and `IsPlayerJob`.
 
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,

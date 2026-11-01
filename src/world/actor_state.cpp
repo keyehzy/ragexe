@@ -4,6 +4,7 @@
 
 #include "core/x87.h"
 #include "render/actor.h"
+#include "world/actor_attack.h"
 #include "world/actor_effects.h"
 
 namespace ragexe::world {
@@ -32,18 +33,16 @@ constexpr std::int32_t kPetTalkChance = 25;      // in 100
 constexpr std::int32_t kOnce = 1;                // the play mode of an action played once
 constexpr std::int32_t kSlideTime = 200;         // ms from state 4's start
 constexpr std::int32_t kFaceEvery = 34;          // ticks, state 8's turn toward its target
-
-// Whether CGameActor::SetState's work for a state is ported.
-bool SetsGameActorState(std::int32_t state) {
-  switch (state) {
-    case 2:
-    case 4:
-    case 7:
-    case 9:
-    case 13: return false;
-    default: return true;
-  }
-}
+constexpr std::int32_t kAttackAction = 0x50;
+constexpr std::int32_t kSecondAttackAction = 0x58;
+constexpr std::int32_t kSlideAction = 0x30;
+constexpr std::int32_t kWaitAction = 0x10;  // state 13's for jobs from 0x16
+constexpr std::int32_t kPlayerJobs = 0x16;  // ClientState 005aa610: jobs 0 to 0x15
+constexpr std::int32_t kArrowJob = 0x505;   // shoots an arrow as it attacks
+constexpr float kArrowSpeed = 28.0f;        // 0x41e00000, CGameActor 00504000's
+constexpr float kPlayerArrowTime = 8.0f;    // 005e972c, over +0x44 added to +0x1ac
+constexpr std::int32_t kBowKind = 0xb;
+constexpr float kPlayerHitFrame = 6.0f;  // 0x40c00000, CPc's state 7
 
 // The action CGameActor::SetState plays once for a state, or -1 for none.
 std::int32_t GameActorStateAction(std::int32_t state) {
@@ -54,6 +53,10 @@ std::int32_t GameActorStateAction(std::int32_t state) {
     default: return -1;
   }
 }
+
+// vf31: CGameActor's (004eb1b0) -1, CPc's (004eb090) the weapon.
+std::int32_t Weapon(const GameActor&) { return -1; }
+std::int32_t Weapon(const PlayerActor& player) { return player.weapon; }
 
 void Send(const StateContext& context, const ModeMessage& message) {
   if (context.messages != nullptr) context.messages->push_back(message);
@@ -70,6 +73,29 @@ void ReportCell(const GameActor& actor, const StateContext& context) {
 void SendSelf(GameActor& actor, const StateContext& context, std::uint32_t now, std::int32_t id) {
   if (context.actor_messages != nullptr) context.actor_messages->push_back({id, 0, 0, 0});
   SendGameActorEffectMessage(actor, id, 0, 0, context, now);
+}
+
+// Message 0x53 to itself (00506175): the actor's window queued for removal.
+void CloseWindow(GameActor& actor, const StateContext& context) {
+  if (actor.window == 0) return;
+  if (context.closed_windows != nullptr) context.closed_windows->push_back(actor.window);
+  actor.window = 0;
+}
+
+// CGameMode::AddArrowEffect (005101f0), which makes one only for a target.
+void Shoot(const StateContext& context, const render::Vec3& from, std::int32_t target_id,
+           float speed) {
+  if (target_id != 0 && context.arrows != nullptr)
+    context.arrows->push_back({&from, target_id, speed});
+}
+
+// The turn toward the actor +0x1a8 names as states 2, 7 and 9 begin: the player (CWorld+0x3c)
+// for own_id, otherwise the actor the world finds.
+void FaceActionTarget(GameActor& actor, const StateContext& context) {
+  const render::Vec3* at = actor.target_id == context.own_id ? context.player : context.target;
+  if (at == nullptr) return;
+  render::RenderObject& o = actor.object;
+  o.facing = render::TurnTowards(o.position, (*at)[0], (*at)[2]);
 }
 
 // vf34 (00503f30): the corpse, at the actor's position, of its body and how it stands.
@@ -124,6 +150,92 @@ void FinishState(GameActor& actor, std::int32_t state, const StateContext& conte
   o.action = GameActorDirection(actor, o.facing, context.camera_yaw) + o.base_action;
   actor.state = state;
   o.start_time = now;
+}
+
+// CPc::SetState's start of walking and attacking: +0xcc cleared and, but for body states 1
+// and 2, +0x82.
+void Ready(PlayerActor& player) {
+  player.field_0xcc = 0;
+  if (player.body_state != 1 && player.body_state != 2) player.object.held = false;
+}
+
+// CGameActor::SetState (005034e0), on an actor or a player, whose vf31 state 13 reads.
+template <typename Actor>
+void SetBaseState(Actor& actor, std::int32_t state, const StateContext& context,
+                  std::uint32_t now) {
+  if (actor.state == 3 || actor.field_0xd0 != 0) return;
+  if (state == 7 && actor.state == 6) return;
+  render::RenderObject& o = actor.object;
+  if (actor.state == 4) {
+    o.position[0] = actor.target_x;
+    o.position[2] = actor.target_z;
+    o.position[1] = res::AttrHeight(*context.attr, actor.target_x, actor.target_z);
+  }
+  switch (state) {
+    case kStand:
+      SetGameActorAction(actor, *context.act, kStandAction, 0);
+      // A standing actor holds its frame, but for a few ids on the Korean service.
+      if (!IsSpecialActorIdOnKoreaService(context.service_type, actor.id)) o.finished = true;
+      ReportCell(actor, context);
+      break;
+    case kWalk:
+      if (actor.field_0xd8 == 0) SetGameActorAction(actor, *context.act, kWalkAction, 0);
+      // vf12 (00503160).
+      Send(context, {kWalksMessage, actor.id, 0, 0});
+      break;
+    case 2:
+    case 7:
+    case 9:
+      SetGameActorAction(actor, *context.act, state == 9 ? kSecondAttackAction : kAttackAction,
+                         kOnce);
+      FaceActionTarget(actor, context);
+      // CGameActor 00504000, which for this job is an arrow.
+      if (GameActorJob(actor) == kArrowJob)
+        Shoot(context, o.position, actor.target_id, kArrowSpeed);
+      actor.field_0x1ac = static_cast<float>(AttackFrame(*context.act, o.action));
+      ReportCell(actor, context);
+      break;
+    case kDying:
+      o.held = false;
+      if (actor.body_state == kFrozen) {
+        SendSelf(actor, context, now, 0x3b);
+        SendSelf(actor, context, now, 0x3e);
+      }
+      o.depth_up = true;
+      o.finished = false;
+      SetGameActorAction(actor, *context.act, kDyingAction, kOnce);
+      break;
+    case 4:
+      // Messages 0x57 to the target and 0x54 to itself end effects they launched, which the
+      // port doesn't launch.
+      CloseWindow(actor, context);
+      SetGameActorAction(actor, *context.act, kSlideAction, kOnce);
+      ReportCell(actor, context);
+      break;
+    case 13: {
+      const std::int32_t job = GameActorJob(actor);
+      std::int32_t action = kWaitAction;
+      if (job >= 0 && job < kPlayerJobs) {
+        action = AttacksWithSecondAction(job, actor.field_0x1bc, Weapon(actor))
+                     ? kSecondAttackAction
+                     : kAttackAction;
+      }
+      SetGameActorAction(actor, *context.act, action, kOnce);
+      o.held = true;
+      break;
+    }
+    default:
+      if (const std::int32_t action = GameActorStateAction(state); action >= 0) {
+        if (state == 5) {
+          actor.field_0xcc = 0;
+          o.held = false;
+        }
+        SetGameActorAction(actor, *context.act, action, kOnce);
+        if (state == 12) ReportCell(actor, context);
+      }
+      break;
+  }
+  FinishState(actor, state, context, now);
 }
 
 template <typename Actor, typename SetState>
@@ -211,7 +323,7 @@ StateResult Update(Actor& actor, const StateContext& context, std::uint32_t now,
       o.held = false;
       actor.field_0xcc = 0;
       frame();
-      if (o.finished && actor.field_0x20c == 0) {
+      if (o.finished && actor.hits.empty()) {
         Send(context, {kWalksMessage, actor.id, 0, 0});
         if (GameActorJob(actor) >= kCorpseJobsFrom) {
           LeaveCorpse(actor, context);
@@ -235,7 +347,7 @@ void Kill(Actor& actor, SetState set_state) {
   const std::int32_t job = GameActorJob(actor);
   if (job > 1000 && job < 0x580)
     actor.id = static_cast<std::int32_t>(kMonsterIdBase - static_cast<std::uint32_t>(actor.id));
-  if (actor.field_0x20c != 0 && GameActorJob(actor) >= kQueueDelaysFrom) {
+  if (!actor.hits.empty() && GameActorJob(actor) >= kQueueDelaysFrom) {
     actor.field_0x210 = 1;
     return;
   }
@@ -312,84 +424,70 @@ void SetGameActorAction(GameActor& actor, const res::Act& act, std::int32_t acti
   actor.field_0x1ac = -1.0f;
 }
 
-bool SetGameActorState(GameActor& actor, std::int32_t state, const StateContext& context,
+void SetGameActorState(GameActor& actor, std::int32_t state, const StateContext& context,
                        std::uint32_t now) {
-  if (actor.state == 3 || actor.field_0xd0 != 0) return true;
-  if (state == 7 && actor.state == 6) return true;
-  if (!SetsGameActorState(state)) return false;
-  render::RenderObject& o = actor.object;
-  if (actor.state == 4) {
-    o.position[0] = actor.target_x;
-    o.position[2] = actor.target_z;
-    o.position[1] = res::AttrHeight(*context.attr, actor.target_x, actor.target_z);
-  }
-  if (state == kStand) {
-    SetGameActorAction(actor, *context.act, kStandAction, 0);
-    // A standing actor holds its frame, but for a few ids on the Korean service.
-    if (!IsSpecialActorIdOnKoreaService(context.service_type, actor.id)) o.finished = true;
-    ReportCell(actor, context);
-  } else if (state == kWalk) {
-    if (actor.field_0xd8 == 0) SetGameActorAction(actor, *context.act, kWalkAction, 0);
-    // vf12 (00503160).
-    Send(context, {kWalksMessage, actor.id, 0, 0});
-  } else if (state == kDying) {
-    o.held = false;
-    if (actor.body_state == kFrozen) {
-      SendSelf(actor, context, now, 0x3b);
-      SendSelf(actor, context, now, 0x3e);
-    }
-    o.depth_up = true;
-    o.finished = false;
-    SetGameActorAction(actor, *context.act, kDyingAction, kOnce);
-  } else if (const std::int32_t action = GameActorStateAction(state); action >= 0) {
-    if (state == 5) {
-      actor.field_0xcc = 0;
-      o.held = false;
-    }
-    SetGameActorAction(actor, *context.act, action, kOnce);
-    if (state == 12) ReportCell(actor, context);
-  }
-  FinishState(actor, state, context, now);
-  return true;
+  SetBaseState(actor, state, context, now);
 }
 
-bool SetPlayerState(PlayerActor& player, std::int32_t state, const StateContext& context,
+void SetPlayerState(PlayerActor& player, std::int32_t state, const StateContext& context,
                     std::uint32_t now) {
   const std::int32_t before = player.state;
-  if (before == 3 || player.field_0xd0 != 0) return true;
-  if (state == 7 && before == 6) return true;
-  const bool own = state == kStand || state == kWalk || state == 6 || state == 8;
-  if (state == 2 || state == 7 || state == 9 || (!own && !SetsGameActorState(state))) return false;
+  if (before == 3 || player.field_0xd0 != 0) return;
+  if (state == 7 && before == 6) return;
   render::RenderObject& o = player.object;
   if (before == 4) {
     o.position[0] = player.target_x;
     o.position[2] = player.target_z;
   }
-  if (!own) return SetGameActorState(player, state, context, now);
-  if (state == 6 || state == 8) {
-    ReportCell(player, context);
-    SetGameActorAction(player, *context.act, state == 6 ? 0x10 : 0x60, kOnce);
-    o.finished = true;
-    if (state == 6) o.frame = player.saved_frame;
-  } else if (state == kStand) {
-    SetGameActorState(player, kStand, context, now);
-    o.frame = player.saved_frame;
-    if (before == 4 || before == 2 || player.field_0x224 != 0 || before == 8)
-      SetGameActorAction(player, *context.act, kReadyAction, 0);
-    if (context.mode_field_0x2a0 != nullptr) *context.mode_field_0x2a0 = 0;
-  } else {
-    player.field_0xcc = 0;
-    if (player.body_state != 1 && player.body_state != 2) o.held = false;
-    // SendMsg(0x53) to itself.
-    if (player.window != 0) {
-      if (context.closed_windows != nullptr) context.closed_windows->push_back(player.window);
-      player.window = 0;
+  switch (state) {
+    case 6:
+    case 8:
+      ReportCell(player, context);
+      SetGameActorAction(player, *context.act, state == 6 ? 0x10 : 0x60, kOnce);
+      o.finished = true;
+      if (state == 6) o.frame = player.saved_frame;
+      break;
+    case kStand:
+      SetBaseState(player, kStand, context, now);
+      o.frame = player.saved_frame;
+      if (before == 4 || before == 2 || player.field_0x224 != 0 || before == 8)
+        SetGameActorAction(player, *context.act, kReadyAction, 0);
+      if (context.mode_field_0x2a0 != nullptr) *context.mode_field_0x2a0 = 0;
+      break;
+    case kWalk:
+      Ready(player);
+      CloseWindow(player, context);
+      player.saved_frame = 0;
+      SetBaseState(player, kWalk, context, now);
+      break;
+    case 2:
+    case 9: {
+      Ready(player);
+      CloseWindow(player, context);
+      const std::int32_t job = GameActorJob(player);
+      const bool second = AttacksWithSecondAction(job, player.field_0x1bc, player.weapon);
+      SetBaseState(player, second ? 9 : 2, context, now);
+      player.field_0x1ac = PlayerAttackFrame(job, player.field_0x1bc, player.weapon, second);
+      std::int32_t kind = player.weapon;
+      if (state == 2 && kind > 0x17) kind = WeaponKind(kind);
+      // State 2 shoots for a bow's kind, 9 for the weapons 0xd and 0xe as they are.
+      if (state == 2 ? kind == kBowKind : (kind == 0xd || kind == 0xe)) {
+        Shoot(context, o.position, player.target_id, o.delay * player.field_0x1ac);
+        player.field_0x1ac = (kPlayerArrowTime / o.delay) + player.field_0x1ac;
+      }
+      break;
     }
-    player.saved_frame = 0;
-    SetGameActorState(player, kWalk, context, now);
+    case 7: {
+      const std::int32_t job = GameActorJob(player);
+      const bool low =
+          job == 0x13 || job == 0x14 || job == 0xe || (job == 0xf && player.field_0x1bc == 0);
+      SetGameActorAction(player, *context.act, low ? 0x20 : 0x60, kOnce);
+      player.field_0x1ac = kPlayerHitFrame;
+      break;
+    }
+    default: SetBaseState(player, state, context, now); return;
   }
   FinishState(player, state, context, now);
-  return true;
 }
 
 void KillGameActor(GameActor& actor, const StateContext& context, std::uint32_t now) {

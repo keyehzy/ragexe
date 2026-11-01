@@ -152,9 +152,11 @@ void StepActorFrame(RenderObject& object, const res::Act& act, std::int32_t dire
   } else if (object.play_mode == 1) {
     object.frame = Ftol(f) % count;
     const float runs = f / static_cast<float>(count);
-    if (!(runs < 1.0f)) {
+    // fcom sets C0 for "below" and for unordered, so a NaN (0 / 0, no time and no delay) runs
+    // on.
+    if (runs >= 1.0f) {
       object.frame = count - 1;
-      if (!(runs < object.repeats)) object.finished = true;
+      if (runs >= object.repeats) object.finished = true;
     }
   }
 }

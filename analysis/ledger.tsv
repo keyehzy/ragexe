@@ -3974,7 +3974,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004eb060	3	code	0	world		named	CGameActor	vf13	
 004eb070	7	code	0	world		named	CGameActor	GetGuild	
 004eb080	7	code	0	world		named	CGameActor	vf40	
-004eb090	7	code	0	world		named	CPc	vf31	
+004eb090	7	code	0	world		named	CPc	GetWeapon	
 004eb0a0	33	code	0	game		named	mg::CMGPc	`scalar_deleting_destructor'	
 004eb0d0	11	code	0	game		named	mg::CMGPc	~CMGPc	
 004eb0e0	18	code	0	game		named	mg::CMGNpc	CMGNpc	
@@ -3989,7 +3989,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004eb180	1	code	0	world		named	CGameActor	vf28	
 004eb190	3	code	0	world		named	CGameActor	vf29	
 004eb1a0	3	code	0	world		named	CGameActor	vf30	
-004eb1b0	4	code	0	world		named	CGameActor	vf31	
+004eb1b0	4	code	0	world		named	CGameActor	GetWeapon	
 004eb1c0	3	code	0	world		named	CGameActor	vf36	
 004eb1d0	3	code	0	world		named	CGameActor	vf37	
 004eb1e0	3	code	0	world		named	CNpc	vf17	
@@ -4384,7 +4384,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00502ff0	47	code	0	world		named	CGameActor	SetAction	
 00503020	37	code	0	world		named	CGameActor	method_00503020	
 00503050	22	code	0	world		named	CGameActor	UpdateDirectionalIndex	
-00503070	152	code	0	world		named	CGameActor	vf33	
+00503070	152	code	0	world		named	CGameActor	GetAttackFrame	
 00503110	75	code	0	world		named	CGameActor	ReportCell	
 00503160	35	code	0	world		named	CGameActor	ReportWalking	
 00503190	63	code	0	world		named	CGameActor	AddTravelledDistance	
@@ -4398,7 +4398,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005038c0	1575	code	0	world		named	CGameActor	ProcessState	
 00503f30	66	code	0	world		named	CGameActor	LeaveCorpse	
 00503f80	118	code	0	world		named	CGameActor	method_00503f80	
-00504000	133	code	0	world		named	CGameActor	method_00504000	
+00504000	133	code	0	world		named	CGameActor	LaunchRangedAttack	
 00504090	250	code	0	world		named	CGameActor	ClearSlotHolding	
 00504190	71	code	0	world		named	CGameActor	RemapValueByFlagBit5	
 005041e0	427	code	0	world		named	CGameActor	LaunchEffectA0IfIdListed	
@@ -4464,7 +4464,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0050ad00	11	code	0	world		named	Global	static_init_162_body	
 0050ad10	45	code	0	world		named	Global	InitCountValueRecord	
 0050ad40	3	code	0	world		named	Global	ReturnZero	
-0050ad50	34	code	0	world		named	CGameActor	vf35	
+0050ad50	34	code	0	world		named	CGameActor	SetAttackMotion	
 0050ad80	1255	code	0	world		named	CGameActor	ProcessActionOnTarget	
 0050b2c0	1576	code	0	world		named	CGameActor	ProcessIdActionOnTarget	
 0050b9d0	1055	code	0	world		named	CGameActor	ProcessIdActionAtPosition	
@@ -5186,7 +5186,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00542eb0	327	code	0	world		named	CPc	ProcessState	
 00543020	944	code	0	world		named	CPc	SetState	
 00543400	97	code	0	world		named	CPc	method_00543400	
-00543470	65	code	0	world		named	CPc	vf35	
+00543470	65	code	0	world		named	CPc	SetAttackMotion	
 005434c0	70	code	0	world		named	CPc	vf36	
 00543510	34	code	0	world		named	CPc	vf37	
 00543540	3440	code	0	world		named	CPc	vf02	
@@ -5880,8 +5880,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00599ee0	939	code	0	game		named	ClientState	method_00599ee0	
 0059a290	165	code	0	game		named	ClientState	method_0059a290	
 0059a350	117	code	0	game	unreferenced	raw	Global	FUN_0059a350	
-0059a3e0	96	code	0	game		named	ClientState	method_0059a3e0	
-0059a440	300	code	0	game		named	ClientState	method_0059a440	
+0059a3e0	96	code	0	game		named	ClientState	GetAttackFrame	
+0059a440	300	code	0	game		named	ClientState	UsesSecondAttack	
 0059a5e0	4456	code	0	game		named	ClientState	InitShadowScales	
 0059b750	19	code	0	game		named	ClientState	GetShadowScale	
 0059b770	68	code	0	game		named	ClientState	method_0059b770	
@@ -6102,7 +6102,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005aa4e0	181	code	0	game		named	ClientState	method_005aa4e0	
 005aa5a0	49	code	0	game		named	ClientState	method_005aa5a0	
 005aa5e0	35	code	0	game	unreferenced	raw	Global	FUN_005aa5e0	
-005aa610	30	code	0	game		named	ClientState	method_005aa610	
+005aa610	30	code	0	game		named	ClientState	IsPlayerJob	
 005aa630	20	code	0	game		named	ClientState	IsGuildWarMap	
 005aa650	40	code	0	game		named	ClientState	method_005aa650	
 005aa680	70	code	0	game		named	ClientState	IsPlayerGuild	

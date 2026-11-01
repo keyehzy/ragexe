@@ -70,6 +70,15 @@ struct Corpse {
   float facing = 0.0f;
 };
 
+// An arrow the game mode shoots from an actor (CGameMode::AddArrowEffect, 005101f0, which makes
+// a CArrowEffect only for a target): the position it leaves from, the target's id and its
+// speed.
+struct Arrow {
+  const render::Vec3* from = nullptr;
+  std::int32_t target_id = 0;
+  float speed = 0.0f;
+};
+
 // What a pet says when it talks (CGameActor::ProcessState, standing): ClientState's pet
 // (+0x7d0) and the two lines of its tables the game mode hears, the first from 005aa3e0, the
 // second from the table at +0x824 by 005a9f40's and 005a9fa0's levels.
@@ -109,12 +118,21 @@ struct StateContext {
   std::vector<Corpse>* corpses{};  // the corpses left, when kept
   std::string_view act_name{};     // the names of the body's act (+0x9c) and sprite (+0x98),
   std::string_view sprite_name{};  // which a corpse takes
+  GameActor* target_actor{};       // the actor CWorld::GetActorById finds for +0x1a8, which an
+                                   // attack's hits are queued on; `target` is its position
+  GameActor* player_actor{};       // the player (CWorld+0x3c) as an actor, which the hits aimed
+                                   // at own_id are queued on; `player` is its position
+  std::vector<Arrow>* arrows{};    // the arrows shot, when kept
+  std::vector<std::int32_t>* launched{};  // the effects CAbleToMakeEffect::LaunchEffect
+                                          // (00501e10) is asked for, by id, which the port
+                                          // doesn't make, when kept
   // NOLINTEND(readability-redundant-member-init)
 };
 
 // The CPc fields a player's states read and write beyond a CGameActor's.
 struct PlayerActor : GameActor {
   std::int32_t saved_frame = 0;  // +0x294: the frame standing goes back to
+  std::int32_t weapon = 0;       // +0x2a0 (CPc::SetWeapon, 005464b0), a kind or an item's id
 };
 
 // CGameMode::GetAttrCell (00511d50): the attribute cell under world (x, z), floor(x / cell
@@ -143,13 +161,21 @@ void SetGameActorAction(GameActor& actor, const res::Act& act, std::int32_t acti
 
 // CGameActor::SetState (005034e0, vf10) at timeGetTime `now`. Nothing happens in state 3 or
 // with +0xd0 set, nor for 7 in state 6; leaving state 4 puts the actor on its target. Then
-// the state's work: standing (0) and walking (1) their actions and messages; dying (3) lies
-// down (+0x80), ends a frozen body's ice (0x3b and 0x3e to itself) and plays action 0x40
-// once; 5 action 0x18 played once, clearing +0xcc and +0x82; 11 action 0x20 and 12 action
-// 0x28 played once, 12 reporting the cell; 6, 8, 10 and those past 13 none. Last the action's
-// direction, the state and its time. States 2, 4, 7 (but in state 6), 9 and 13 are not
-// ported, and return false having done nothing.
-bool SetGameActorState(GameActor& actor, std::int32_t state, const StateContext& context,
+// the state's work (docs/world/states.md):
+//  - standing (0) and walking (1): their actions and messages;
+//  - attacking (2, 7 and 9): action 0x50 (0x58 for 9) played once, the turn toward the actor
+//    +0x1a8 names, an arrow for job 0x505, +0x1ac the action's attack frame (vf33), and the
+//    cell reported;
+//  - dying (3): lies down (+0x80), ends a frozen body's ice (0x3b and 0x3e to itself) and
+//    plays action 0x40 once;
+//  - 4: closes the actor's window (0x53), plays action 0x30 once and reports the cell;
+//  - 5: action 0x18 played once, clearing +0xcc and +0x82; 11 action 0x20 and 12 action 0x28
+//    played once, 12 reporting the cell;
+//  - 13: held, action 0x58 or 0x50 by AttacksWithSecondAction for jobs below 0x16, otherwise
+//    0x10, played once;
+//  - 6, 8, 10 and those past 13: none.
+// Last the action's direction, the state and its time.
+void SetGameActorState(GameActor& actor, std::int32_t state, const StateContext& context,
                        std::uint32_t now);
 
 // CPc::SetState (00543020, vf10), around CGameActor's: standing goes back to the saved frame,
@@ -157,9 +183,13 @@ bool SetGameActorState(GameActor& actor, std::int32_t state, const StateContext&
 // CGameMode+0x2a0; walking clears +0xcc and, but for +0x218 1 and 2, +0x82, closes the
 // actor's window (message 0x53, CGameActor::SendMsg) and forgets the saved frame. 6 reports
 // the cell and plays action 0x10 once, finished at once, on the saved frame; 8 reports it and
-// plays action 0x60 once, finished at once. The rest are CGameActor's, after leaving state 4
-// puts the player on its target. States 2, 7 and 9 and CGameActor's unported are not ported.
-bool SetPlayerState(PlayerActor& player, std::int32_t state, const StateContext& context,
+// plays action 0x60 once, finished at once. 2 and 9 start as walking does, then are
+// CGameActor's 9 or 2 by AttacksWithSecondAction, +0x1ac PlayerAttackFrame's, and for a bow
+// (2) or weapons 0xd and 0xe (9) an arrow and 8 / +0x44 more on +0x1ac; the state stays the
+// one asked for. 7 plays action 0x20 (jobs 0x13, 0x14, 0xe, and 0xf with +0x1bc 0) or 0x60
+// once and sets +0x1ac to 6. The rest are CGameActor's, after leaving state 4 puts the player
+// on its target.
+void SetPlayerState(PlayerActor& player, std::int32_t state, const StateContext& context,
                     std::uint32_t now);
 
 // What an update of an actor's state came to.

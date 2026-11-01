@@ -43,7 +43,8 @@ directions:
   n is the action's frame count, at least 1:
   - **0, looping:** ⌊f⌋ mod n.
   - **1, once:** ⌊f⌋ mod n. When f / n reaches 1, the last frame; when it also reaches
-    +0x4c, finished (+0x81).
+    +0x4c, finished (+0x81). Both are `fcom` tests of C0, so a NaN (0 / 0: no time yet and no
+    delay, after a motion of 0, [attack.md](../world/attack.md)) reaches neither.
   - **Any other:** the frame is left alone.
 - **Finished or held** (+0x81, +0x82): the frame is only kept within the action.
 

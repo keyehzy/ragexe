@@ -123,6 +123,26 @@ EFFECT_SLOTS, EFFECT_SLOT_COUNT, EFFECT_LIST, LAUNCHED_LIST = 0x244, 11, 0x270, 
 # +0x210, +0x80, +0xcc and the corpses (their position, names, action, frame and facing).
 DEATH_FIELDS = ["how", "body", "queued", "f210", "sprite", "f0cc"]
 ADD_CORPSE, ACT_NAME, SPRITE_NAME = 0x510030, "poring.act", "poring.spr"
+# V and J: a G and a P that act on a target (docs/world/attack.md): by `how`, vf10's
+# SetState(`enter`) (0), CGameActor::SendMsg's 0xb with the record (ProcessActionOnTarget), or
+# its 0x1b with the record as a hit and `enter` its total. Before it +0xcc, +0x1a8, whether
+# CWorld::GetActorById finds an actor (1 another at tx, tz; 2 the actor itself), the player's
+# id, the world's player (1 another at px, pz; 2 the actor itself), +0x1bc, +0x2a0, the act's
+# frames' events (3 bits a frame: 1 to 4 the events "atk", "atk2", "at" and "", 5 one past
+# them, 6 0x7fffffff, the rest none), +0x54, +0x70 and how many hits each of the three has
+# queued (+0x204). Then the record, ATTACK_RECORD words, and the server's time and
+# timeGetTime of the message and of each update, until the state changes or the fade ends.
+# The other two are CGameActors with only their position, their effects launched and their
+# queue. CAbleToMakeEffect::LaunchEffect and CGameMode::AddArrowEffect are recorded, the world
+# has no skills (GetSkillById), and the hash takes, after the message and each update,
+# fields(), the game mode's messages, extra() and attacked(): +0x1a8, +0xcc, the messages
+# logged, the effects launched, the arrows shot and the three queues.
+ATTACK_FIELDS = ["how", "enter", "f0cc", "f1a8", "found", "tx", "tz", "own", "player", "px", "pz", "f1bc",
+                 "weapon", "events", "play", "start", "queued"]
+ATTACK_RECORD = 10
+GET_SKILL_BY_ID, LAUNCH_EFFECT, ADD_ARROW = 0x4C4DB0, 0x501E10, 0x5101F0
+GET_FRAME, GET_EVENT_NAME, HIT_QUEUE = 0x421A60, 0x420F20, 0x204
+EVENT_NAMES = ["atk", "atk2", "at", ""]
 SRAND, PET_ID, PET_TABLE = 0x5C2546, 0x686E40, 0x686E94
 PET_LEVEL_A, PET_LEVEL_B, PET_LINE = 0x5A9F40, 0x5A9FA0, 0x5AA3E0
 SINGLE = 0x007F
@@ -316,6 +336,46 @@ class Oracle:
             name = lambda a: name_hash(emu.mem_read(a, len(emu.read_cstr(a)))) if a else [0, 0]
             self.corpses += [*v[:3], *name(v[3]), *name(v[4]), *v[5:]]
         emu.replace_thiscall(ADD_CORPSE, 8, add_corpse)
+        # For V and J: the other actor and the player, the effects launched, the arrows shot
+        # and the act's frames' events, only while attacking.
+        self.foe, self.pc = emu.scratch(size=ACTOR_SIZE), emu.scratch(size=ACTOR_SIZE)
+        self.attacking, self.events, self.launched, self.arrows = False, 0, [], []
+        emu.replace_thiscall(GET_SKILL_BY_ID, 1, lambda this, skill_id: 0)
+
+        def add_arrow(this, at, target, speed):
+            if target:
+                self.arrows += [int(at == self.actor + 4), target, speed]
+        emu.replace_thiscall(ADD_ARROW, 3, add_arrow)
+
+        def launch(uc, address, size, _):
+            if self.attacking:
+                esp = emu.esp()
+                self.launched.append(emu.read_u32(esp + 4))
+                emu.complete(0, emu.read_u32(esp), esp + 4 + 0x14)
+        emu.hook_code(LAUNCH_EFFECT, LAUNCH_EFFECT, launch)
+        self.frame_records = emu.scratch(size=0x40 * 64)
+        self.event_names = [emu.cstr(name) for name in EVENT_NAMES]
+        no_name = emu.cstr("")
+
+        def get_frame(uc, address, size, _):
+            if self.attacking:
+                esp = emu.esp()
+                frame = emu.read_u32(esp + 8)
+                record = self.frame_records + 0x40 * min(frame, 63)
+                code = self.events >> 3 * frame & 7 if frame < min(self.frames, 10) else 0
+                event = {0: 0xFFFFFFFF, 5: len(EVENT_NAMES), 6: 0x7FFFFFFF, 7: 0xFFFFFFFF}.get(code, code - 1)
+                # CActRes::GetFrame's empty frame past the action's (g_ActFrame) has event 0.
+                emu.write_u32(record + 0x34, event if frame < self.frames else 0)
+                emu.complete(record, emu.read_u32(esp), esp + 12)
+        emu.hook_code(GET_FRAME, GET_FRAME, get_frame)
+
+        def get_event_name(uc, address, size, _):
+            if self.attacking:
+                esp = emu.esp()
+                event = emu.read_u32(esp + 4)
+                emu.complete(self.event_names[event] if event < len(EVENT_NAMES) else no_name,
+                             emu.read_u32(esp), esp + 8)
+        emu.hook_code(GET_EVENT_NAME, GET_EVENT_NAME, get_event_name)
 
     def result(self, found):
         if found:
@@ -348,7 +408,7 @@ class Oracle:
         for line in lines:
             kind, *values = line.split()
             v = [int(x) for x in values] if kind not in ("W", "G", "P", "T", "U", "N", "Y", "E", "Q", "A", "B", "X",
-                                                         "K", "D", "H") else []
+                                                         "K", "D", "H", "V", "J") else []
             self.logged = []
             if kind == "F":
                 found = emu.call(FIND_PATH, *v, self.actor + ACTOR_PATH, this=G_PATH_FINDER).eax & 0xFF
@@ -409,6 +469,10 @@ class Oracle:
                 out.append(self.go(values, die=True, effects=True))
             elif kind == "H":
                 out.append(self.go(values, player=True, die=True, effects=True))
+            elif kind == "V":
+                out.append(self.go(values, attack=True))
+            elif kind == "J":
+                out.append(self.go(values, player=True, attack=True))
         emu.heap_release(mark)
         return out
 
@@ -462,14 +526,14 @@ class Oracle:
         self.frames = w["frames"]
 
     def go(self, values, player=False, to=False, stand=False, enter=False, arrive=False, effects=False,
-           die=False):
+           die=False, attack=False):
         """CGameActor::vf02's message 0 on the actor, then ProcessState update by update, with
         SetState run, until the actor stands again or has faded; for a player, a CPc's."""
         emu, actor = self.emu, self.actor
         v = [int(x, 0) for x in values]
         names = ((PLAYER_FIELDS if player else GO_FIELDS) + (TO_SPEED if to else []) + (STAND_FIELDS if stand else [])
                  + (ENTER_FIELDS if enter else []) + (ARRIVE_FIELDS if arrive else []) + (DEATH_FIELDS if die else [])
-                 + (EFFECT_FIELDS if effects else []))
+                 + (EFFECT_FIELDS if effects else []) + (ATTACK_FIELDS if attack else []))
         g = dict(zip(names, v))
         updates = v[len(names):]
         self.place(g)
@@ -527,6 +591,8 @@ class Oracle:
             emu.write_u32(self.target + 0xC, g["tz"])
             self.target_found = g["found"] != 0
             return self.enter(g, updates, extra)
+        if attack:
+            return self.attack(g, updates[:ATTACK_RECORD], updates[ATTACK_RECORD:], extra, player)
         if effects:
             self.ready_effects(g)
         if die:
@@ -712,6 +778,90 @@ class Oracle:
             emu.write_u32(actor + offset, 0)
         emu.mem_write(actor + 0x80, b"\0")
         return f"{last} {calls} {r[0]:08x} {r[1]:08x} {r[2]:08x} {r[3]:08x} {r[4]} {r[5]} {r[6]} {h:016x}"
+
+    def attack(self, g, record, updates, extra, player):
+        """The message, then ProcessState update by update, until the state changes or the fade
+        ends."""
+        emu, actor, foe, pc = self.emu, self.actor, self.foe, self.pc
+        for offset, name in ((0xCC, "f0cc"), (0x1A8, "f1a8"), (0x54, "play"), (0x70, "start"), (0x1BC, "f1bc"),
+                             (0x2A0, "weapon")):
+            emu.write_u32(actor + offset, g[name] & 0xFFFFFFFF)
+        for offset in (0x1D4, 0x1F4, 0xB8, 0xBC) + (() if player else (0x1CC, 0x218)):
+            emu.write_u32(actor + offset, 0)
+        self.empty_list(actor + LAUNCHED_LIST)
+        self.empty_list(actor + HIT_QUEUE)
+        for other, x, z in ((foe, g["tx"], g["tz"]), (pc, g["px"], g["pz"])):
+            emu.mem_write(other, bytes(ACTOR_SIZE))
+            emu.write_u32(other, GAME_ACTOR_VTABLE)
+            emu.write_u32(other + 4, x)
+            emu.write_u32(other + 0xC, z)
+            self.empty_list(other + LAUNCHED_LIST)
+            self.empty_list(other + HIT_QUEUE)
+        for at in (actor, foe, pc):
+            for k in range(g["queued"]):
+                self.push(at + HIT_QUEUE, [(k + 1) << 16 | j for j in range(ATTACK_RECORD)])
+        emu.write_u32(OWN_ID, g["own"] & 0xFFFFFFFF)
+        emu.write_u32(self.world + 0x3C, {1: pc, 2: actor}.get(g["player"], 0))
+        saved = self.target
+        self.target, self.target_found = (actor if g["found"] == 2 else foe), g["found"] != 0
+        self.events, self.launched, self.arrows, self.attacking = g["events"], [], [], True
+        message = emu.scratch(struct.pack(f"<{ATTACK_RECORD}I", *(r & 0xFFFFFFFF for r in record)))
+        self.messages, self.states = [], []
+        self.server, self.now = updates[0], updates[1]
+        if g["how"] == 0:
+            emu.call(emu.read_u32(emu.read_u32(actor) + 4 * 10), g["enter"] & 0xFFFFFFFF, this=actor)
+        else:
+            emu.call(emu.read_u32(emu.read_u32(actor) + 4 * 2), 0, g["how"], message,
+                     g["enter"] & 0xFFFFFFFF if g["how"] == 0x1B else 0, 0, this=actor)
+        h = fnv1a64([6, *self.fields(), *self.messages, *extra(), *self.attacked()])
+        state = emu.read_u32(actor + 0x58)
+        last, calls = "staying", 0
+        for server, tick in zip(updates[2::2], updates[3::2]):
+            self.messages, self.states = [], []
+            self.now, self.server = tick, server
+            ret = emu.call(emu.read_u32(emu.read_u32(actor) + 4 * 9), this=actor).eax & 0xFF
+            calls += 1
+            h = fnv1a64([ret, *self.fields(), *self.messages, *extra(), *self.attacked()], h)
+            if ret == 0:
+                last = "faded"
+                break
+            if emu.read_u32(actor + 0x58) != state:
+                last = "changed"
+                break
+        self.attacking, self.target, self.target_found = False, saved, False
+        emu.write_u32(self.world + 0x3C, 0)
+        r = [emu.read_u32(actor + o) for o in (0x4, 0x8, 0xC, 0x38, 0x24, 0x28, 0x58)]
+        return f"{last} {calls} {r[0]:08x} {r[1]:08x} {r[2]:08x} {r[3]:08x} {r[4]} {r[5]} {r[6]} {h:016x}"
+
+    def push(self, at, words):
+        """A node at the end of the std::list at `at`, as push_back."""
+        emu = self.emu
+        head = emu.read_u32(at + 4)
+        last = emu.read_u32(head + 4)
+        node = emu.scratch(struct.pack(f"<2I{len(words)}I", head, last, *words))
+        emu.write_u32(last, node)
+        emu.write_u32(head + 4, node)
+        emu.write_u32(at + 8, emu.read_u32(at + 8) + 1)
+
+    def queue(self, at):
+        """An actor's hits (+0x204): its size, then each node's words."""
+        emu = self.emu
+        head = emu.read_u32(at + HIT_QUEUE + 4)
+        words, node = [emu.read_u32(at + HIT_QUEUE + 8)], emu.read_u32(head)
+        while node != head:
+            words += struct.unpack(f"<{ATTACK_RECORD}I", emu.mem_read(node + 8, 4 * ATTACK_RECORD))
+            node = emu.read_u32(node)
+        return words
+
+    def attacked(self):
+        """+0x1a8, +0xcc, and what was logged, launched and shot since, and the three queues."""
+        emu, actor = self.emu, self.actor
+        words = [emu.read_u32(actor + 0x1A8), emu.read_u32(actor + 0xCC), len(self.logged),
+                 len(self.launched), *self.launched, len(self.arrows), *self.arrows]
+        self.logged, self.launched, self.arrows = [], [], []
+        for at in (actor, self.foe, self.pc):
+            words += self.queue(at)
+        return words
 
     def make_effect(self, by, kind, at, actor_id):
         """An effect as the game mode makes one: its vtable, the rest 0."""

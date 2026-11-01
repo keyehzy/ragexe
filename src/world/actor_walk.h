@@ -11,6 +11,22 @@
 
 namespace ragexe::world {
 
+// A hit queued on an actor (message 0x1b, 00505829): a node of the list at +0x204, which
+// the actor sends itself as a message when its time comes (docs/world/attack.md).
+struct QueuedHit {
+  std::int32_t message = 0;      // +0: 0x1a, 0x27, 0x5d or 0x5e, or 0x6f for one of many
+  std::int32_t damage = 0;       // +4
+  std::uint32_t time = 0;        // +8, timeGetTime when it lands
+  std::int32_t attacker_id = 0;  // +0xc
+  std::int32_t cell_x = 0;       // +0x10 and +0x14, the attack's cell
+  std::int32_t cell_y = 0;
+  std::int32_t field_0x18 = 0;  // +0x18: -1, or 1 for an attack of type 10
+  std::int32_t field_0x1c = 0;  // +0x1c: 0, or -2 for an attack on the attacker itself
+  std::int32_t field_0x20 = 0;  // +0x20: 1, or the damage so far of one of many
+  float field_0x24 = 0.0f;      // +0x24, the attack's last word over 288
+  bool operator==(const QueuedHit&) const = default;
+};
+
 // The CGameActor fields the walk reads and writes (docs/world/walk.md).
 struct GameActor {
   render::RenderObject object;
@@ -33,14 +49,15 @@ struct GameActor {
   float field_0x1ac = 0.0f;        // +0x1ac, -1 after vf07
   std::int32_t id = 0;             // +0x1b4, the server's id
   std::int32_t job = 0;            // +0x1b8
+  std::int32_t field_0x1bc = 0;    // +0x1bc, which with the job picks a player's attack
   std::int32_t window = 0;         // +0x1cc, a window of the actor's, closed when it walks
   std::uint32_t hold_until = 0;    // +0x1d0: held (+0x82) until timeGetTime passes it
   std::uint32_t pet_talk_at = 0;   // +0x1d4: a pet may talk 3 s after it, then it is 0
   std::int32_t field_0x1ec = 0;    // +0x1ec, from the records that bring it in
   std::int32_t field_0x1f0 = 0;    // +0x1f0
   std::int32_t field_0x1f4 = 0;    // +0x1f4
-  std::int32_t field_0x20c = 0;    // +0x20c, the size of the list at +0x204 that message 0x1b
-                                   // queues to; an actor dies only once it is empty
+  std::vector<QueuedHit> hits;     // +0x204, what message 0x1b queues (its size +0x20c); an
+                                   // actor dies only once it is empty
   std::int32_t field_0x210 = 0;    // +0x210: told it died (0x1c) before that, it dies after
   std::int32_t body_state = 0;     // +0x218, the first status word (docs/world/arrival.md)
   std::uint32_t effect_state = 0;  // +0x21c, the second; bit 5 mounts jobs 7 and 14
