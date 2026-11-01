@@ -270,5 +270,5 @@ and none named, state 4's slide with 200 ms, 1 ms and none left, played once and
 past a tie of single precision; 7 asked in state 6, 5, 11 and 12 played to the end, and 2 and 7
 left in and played to the end. `tests/unit/walk_test.cpp` replays them.
 
-**Not ported:** the other messages; the states above that aren't; and `CPlayer::SetState`'s
-own work before `CPc`'s.
+**Not ported:** the other messages but 3 to 6 ([arrival.md](arrival.md)); the states above that
+aren't; and `CPlayer::SetState`'s own work before `CPc`'s.

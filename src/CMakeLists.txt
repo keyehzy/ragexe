@@ -136,6 +136,7 @@ add_custom_command(OUTPUT "${RAGEXE_FONT_DIR}/embedded_fonts.h"
   VERBATIM)
 # The world's own code that draws nothing: path finding, the actors' walk, states and picking.
 add_library(ragexe_world STATIC
+  world/actor_arrival.cpp
   world/actor_pick.cpp
   world/actor_state.cpp
   world/actor_walk.cpp

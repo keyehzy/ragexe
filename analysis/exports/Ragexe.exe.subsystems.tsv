@@ -3496,13 +3496,13 @@ entry	subsystem	rule	evidence
 00504460	world	class	class CGameObject, base of CGameActor
 00506b20	world	class	class CGameObject, base of CGameActor
 00506be0	world	class	class CGameObject, base of CGameActor
-00506bf0	world	class	class CGameObject, base of CPlayer
-00506c80	world	class	class CGameObject, base of CPlayer
+00506bf0	world	class	class CGameObject, base of CGameActor
+00506c80	world	class	class CGameObject, base of CGameActor
 00507740	world	class	class CGameObject, base of CGameActor
 00507860	world	class	class CGameObject, base of CPlayer
 00507880	world	neighbours	between 00507860 and 005078a0
 005078a0	world	class	class CGameObject, base of CGameActor
-005078e0	world	class	class CGameObject, base of CPlayer
+005078e0	world	class	class CGameObject, base of CGameActor
 00507ac0	world	neighbours	between 005078e0 and 00507b10
 00507af0	world	stub	jumps to 00507b00
 00507b00	world	neighbours	between 005078e0 and 00507b10

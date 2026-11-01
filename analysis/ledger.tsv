@@ -4402,17 +4402,17 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00504090	250	code	0	world		named	CGameActor	ClearSlotHolding	
 00504190	71	code	0	world		named	CGameActor	RemapValueByFlagBit5	
 005041e0	427	code	0	world		named	CGameActor	LaunchEffectA0IfIdListed	
-00504390	196	code	0	world		named	CGameActor	vf38	
+00504390	196	code	0	world		named	CGameActor	SetEmblem	
 00504460	9420	code	0	world		named	CGameActor	SendMsg	
 00506b20	190	code	0	world		named	CGameActor	FindMovePath	
 00506be0	16	code	0	world		named	CGameActor	SetField224	
-00506bf0	143	code	0	world		named	CPlayer	method_00506bf0	
-00506c80	2709	code	0	world		named	CPlayer	method_00506c80	
+00506bf0	143	code	0	world		named	CGameActor	EndShownEffects	
+00506c80	2709	code	0	world		named	CGameActor	SetStatus	
 00507740	258	code	0	world		named	CGameActor	method_00507740	
 00507860	23	code	0	world		named	CPlayer	method_00507860	
 00507880	21	code	0	world	unreferenced	raw	Global	FUN_00507880	
 005078a0	50	code	0	world		named	CGameActor	method_005078a0	
-005078e0	59	code	0	world		named	CPlayer	method_005078e0	
+005078e0	59	code	0	world		named	CGameActor	method_005078e0	
 00507930	77	code	1	stl		named	std::list	~list	
 00507980	77	code	1	stl		named	std::list	~list	
 005079d0	54	code	1	stl		named	std::list	method_005079d0	
@@ -5849,8 +5849,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00597890	38	code	0	game		named	ClientState	method_00597890	
 005978c0	84	code	0	game		named	ClientState	GetItemInfoString	
 00597920	27	code	0	game		named	ClientState	method_00597920	
-00597940	14	code	0	game		named	ClientState	method_00597940	
-00597950	97	code	0	game		named	ClientState	method_00597950	
+00597940	14	code	0	game		named	ClientState	IsKoreaService	
+00597950	97	code	0	game		named	ClientState	HasAccountPrivilege	
 005979d0	914	code	0	game		named	ClientState	LoadMapNameTable	
 00597d70	154	code	0	game		named	ClientState	method_00597d70	
 00597e10	914	code	0	game		named	ClientState	LoadMapObjLightTable	

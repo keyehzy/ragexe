@@ -56,7 +56,10 @@ struct RenderObject {
   bool finished = false;                 // +0x81, a play-once action has ended
   bool held = false;                     // +0x82
   bool keyed = false;                    // +0x83, drawn in red while key_color is set
+  bool visible = true;                   // +0x84, drawn at all (Render, vf03)
+  bool body_shown = true;                // +0x85, a CPc's body drawn
   bool flat = false;                     // +0x86, every layer at one depth
+  bool tinted = false;                   // +0x87, coloured by a status (docs/world/arrival.md)
   bool pickable = false;                 // +0x89, its drawing widens the bounds
   bool shadow = false;                   // +0x88
 };

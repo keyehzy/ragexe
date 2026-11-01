@@ -34,13 +34,18 @@ struct GameActor {
   std::int32_t window = 0;         // +0x1cc, a window of the actor's, closed when it walks
   std::uint32_t hold_until = 0;    // +0x1d0: held (+0x82) until timeGetTime passes it
   std::uint32_t pet_talk_at = 0;   // +0x1d4: a pet may talk 3 s after it, then it is 0
-  std::int32_t field_0x1f4 = 0;    // +0x1f4, from the packets that bring it in
-  std::uint32_t effect_state = 0;  // +0x21c; bit 5 mounts jobs 7 and 14
+  std::int32_t field_0x1ec = 0;    // +0x1ec, from the records that bring it in
+  std::int32_t field_0x1f0 = 0;    // +0x1f0
+  std::int32_t field_0x1f4 = 0;    // +0x1f4
+  std::int32_t body_state = 0;     // +0x218, the first status word (docs/world/arrival.md)
+  std::uint32_t effect_state = 0;  // +0x21c, the second; bit 5 mounts jobs 7 and 14
+  std::uint32_t health_state = 0;  // +0x220, the third
   std::int32_t field_0x224 = 0;    // +0x224 (SetField224, 00506be0)
   float target_x = 0.0f;           // +0x228, where state 4 puts the actor when it ends
   float target_z = 0.0f;           // +0x22c
   std::uint32_t fade_until = 0;    // +0x234: fading out until timeGetTime passes it
   std::int32_t guild = 0;          // +0x23c (vf39)
+  std::int32_t emblem = 0;         // +0x240, the guild's emblem's version
 };
 
 // CGameActor::GetJob (00503490): the job, 7 and 14 mounted (bit 5 of +0x21c) as 13 and 21.

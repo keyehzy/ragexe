@@ -14,7 +14,8 @@ start cell, update by update until it arrives (SetState(0), recorded) or its fad
 After each update the result, the actor's position, facing, action, frame, segment,
 distance, times, colour, +0x82 and +0x190, and whether it stood, are hashed; the hash and
 the end compare with `ragres find-paths` on the same script. Then moves (G, P, T, U), standing
-(N, Y) and states given (E, Q), as their makers below describe (docs/world/states.md).
+(N, Y) and states given (E, Q), as their makers below describe (docs/world/states.md), and
+actors coming into view (A, docs/world/arrival.md).
 """
 import os
 import random
@@ -272,19 +273,98 @@ def make_enters(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
     return lines
 
 
+def make_arrivals(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
+    """The script for a map: actors as make_goes makes them coming into view (A) through
+    CGameActor::SendMsg's messages 3 and 4, standing on a cell, and 5 and 6, walking from one:
+    each with status words before and in the record that differ or not, bit by bit (hiding,
+    cloaking, the grouped bits, hidden from all) and in the body states 0 to 7; the player's id
+    the actor's now and then, or one of those who see hidden actors; jobs whose guilds show an
+    emblem, the emblem's file there or not; a player in the world or none; message 4 fading in
+    (1) or launching its effect only when hidden (2). Then ProcessState as G's, from states that
+    keep a path to walk."""
+    rng = random.Random(zlib.crc32(b"arrive " + name.encode()))
+    lines = []
+    walkable = [(k % width, k // width) for k, a in enumerate(attrs) if a not in (1, 5)] or [(0, 0)]
+    effects = [0, 0, 1, 2, 4, 6, 8, 0x10, 0x20, 0x40, 0x42, 0x80, 0x400, 0x788]
+
+    def effect():
+        return rng.choice(effects + [rng.getrandbits(11), rng.getrandbits(32)])
+
+    def health():
+        return rng.choice([0, 0, 0, 1, 2, 4, 8, 0x10, 0x20, 0x40, 0x13, rng.getrandbits(7), rng.getrandbits(32)])
+
+    def body():
+        return rng.choice([0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, -1])
+
+    for line in make_goes("arrive " + name, width, height, attrs, count, updates):
+        if line[0] != "G":
+            lines.append(line)
+            continue
+        tokens = line.split()
+        fields, times = tokens[1:40], tokens[40:]
+        message = rng.choice([3, 4, 4, 5, 6, 6])
+        fields[7] = str(rng.choice([rng.randint(0, 0x15), 7, 14, 0x16, 0x505, 0x507, 0x508, 0x2D2,
+                                    rng.randint(1000, 1400)]))
+        effect0 = effect()
+        fields[8] = str(effect0)
+        new_effect = rng.choice([effect0, effect0 ^ (1 << rng.randint(0, 10)), effect()])
+        body0 = body()
+        new_body = rng.choice([body0, body0, body()])
+        guild = rng.choice([0, 1, rng.randint(1, 1 << 20), -1])
+        emblem = rng.choice([0, 0, 1, rng.randint(2, 50), -1])
+        old_id = int(fields[34])
+        new_id = rng.choice([old_id, rng.getrandbits(31)]) if message in (4, 6) else old_id
+        own = rng.choice([rng.getrandbits(31), new_id, new_id, 0x186B4, 0x2933C9, 0x326B70, 0x2100E])
+        how = rng.choice([0, 0, 1, 2])
+        if message == 4 and how == 2:
+            new_effect |= 0x40
+        junk = lambda: rng.choice([0, rng.getrandbits(32)])
+        if message in (3, 4):
+            cx, cy = rng.choice(walkable) if rng.random() < 0.9 else (rng.randint(-3, width + 3),
+                                                                      rng.randint(-3, height + 3))
+            job = rng.choice([0x2D2, 0x2D2, int(fields[7]), 7])
+            record = [new_id, job, junk(), cx, cy, rng.choice([0, 1, 2, 3, 4, 5, 6, 7, -1, 9]),
+                      rng.choice(path_oracle.SPEEDS), junk(), junk(), junk(), junk(), junk(), junk(),
+                      new_body, health(), new_effect, junk(), rng.choice([0, 1, rng.randint(2, 50), -1]),
+                      rng.choice([0, 1, rng.getrandbits(16)]), rng.choice([0, 7, rng.getrandbits(16)]),
+                      junk(), junk(), junk(), guild, emblem, junk(), junk(), junk()]
+        else:
+            order = [int(fields[k]) for k in range(27, 34)]
+            record = [new_id, rng.choice([int(fields[7]), 7, 14]), junk(), *order,
+                      rng.choice(path_oracle.SPEEDS), junk(), junk(), junk(), new_body, health(),
+                      new_effect, junk(), junk(), junk(), junk(), junk(), junk(), junk(), guild, emblem,
+                      junk(), junk()]
+        x, z = (struct.unpack("<f", struct.pack("<I", int(fields[k], 0)))[0] for k in (0, 1))
+        arrive = [str(message), str(how), str(body0), str(health()),
+                  str(rng.choice([0b1011, 0b1011, 0b0011, rng.getrandbits(4)])),
+                  str(rng.choice([0, rng.getrandbits(20)])), str(rng.choice([0, rng.randint(1, 9)])),
+                  str(own), str(int(rng.random() < 0.5)),
+                  # Leaving body states 1 and 2 plays a sound by the player, read without a check.
+                  str(int(rng.random() < 0.85 or (body0 != new_body and body0 in (1, 2)))),
+                  f"0x{bits(f32(x + rng.uniform(-40, 40))):08x}", f"0x{bits(f32(z + rng.uniform(-40, 40))):08x}"]
+        # Message 5 without a path, or a change of state blocked (+0xd0), would leave a walker
+        # walking a path it may not have.
+        if fields[17] == "1" and (message == 5 or fields[19] != "0"):
+            fields[17] = "0"
+        if fields[17] == "3":
+            times = times[:2]
+        lines.append("A " + " ".join(fields + arrive + [str(r) for r in record] + times))
+    return lines
+
+
 def main():
     args = path_oracle.arguments("walks per map", 40)
     ours, originals = path_oracle.run_maps(
         args, lambda *a: make_walks(*a) + make_goes(*a) + make_plays(*a) + make_tos(*a)
-        + make_stands(*a) + make_enters(*a), "walks")
+        + make_stands(*a) + make_enters(*a) + make_arrivals(*a), "walks")
     totals = {}
     for (_, lines, _), want in zip(ours, originals):
         for line, result in zip(lines, want):
             key = result.split()[0] if line[0] == "F" else {"W": "walk ", "G": "go ", "P": "player ", "T": "to ", "U": "player to ", "N": "stand ",
                    "Y": "player stand ", "E": "enter ",
-                   "Q": "player enter "}[line[0]] + result.split()[0]
+                   "Q": "player enter ", "A": "arrive "}[line[0]] + result.split()[0]
             totals[key] = totals.get(key, 0) + 1
-            if line[0] in "WGPTUNYEQ" and result != "-":
+            if line[0] in "WGPTUNYEQA" and result != "-":
                 totals["updates"] = totals.get("updates", 0) + int(result.split()[1])
     return path_oracle.report(ours, originals, totals, "queries")
 

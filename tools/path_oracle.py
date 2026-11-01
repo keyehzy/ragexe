@@ -81,6 +81,22 @@ STAND_FIELDS = ["seed", "pet_id", "pet_first", "pet_second", "talk_at", "play", 
 # too.
 ENTER_FIELDS = ["set", "enter", "f0cc", "f1a8", "found", "tx", "tz", "play", "start"]
 GET_ACTOR_BY_ID = 0x4C4CF0
+# A: a G whose actor comes into view through CGameActor::SendMsg's message 3, 4, 5 or 6 with
+# `how` its next argument, then ProcessState update by update until its state changes or its
+# fade ends. Before the message: +0x218 and +0x220, +0x84, +0x85, +0x87 and +0x88 (bits 0 to 3
+# of `flags`), +0x23c and +0x240; the player's id (ClientState+0xcdc), whether the emblem's file
+# is there, and whether the world has a player (CWorld+0x3c) and where (float bits). Then the
+# message's record, ARRIVE_RECORD words. The actor's messages to itself (vf02, through a copy of
+# its vtable), the sounds (PlayWave) and the files asked for (ResourceManager::Exists) are
+# recorded, and the hash takes them with +0x1b4, +0x1ec to +0x240's fields, the four flags,
+# g_groundWaterFade and CGameMode+0x2a0 (both 0x5a5a5a5a before).
+ARRIVE_FIELDS = ["message", "how", "body0", "health0", "flags", "guild0", "emblem0", "own", "exists",
+                 "player", "px", "pz"]
+ARRIVE_RECORD = 28
+SERVER_NAME = "Chaos"
+OWN_ID, SERVER_NAME_BUFFER, GROUND_WATER_FADE, G_MODE = 0x68734C, 0x686B58, 0x679F9C, 0x67C9EC
+PLAY_WAVE, GET_RESOURCE_MANAGER, RESOURCE_EXISTS = 0x4352A0, 0x4DFA10, 0x4E0190
+SELF_MESSAGE_STUB, SEND_SELF_SLOT, VTABLE_SIZE = MESSAGE_STUB + 0x10, 2, 0x100
 SRAND, PET_ID, PET_TABLE = 0x5C2546, 0x686E40, 0x686E94
 PET_LEVEL_A, PET_LEVEL_B, PET_LINE = 0x5A9F40, 0x5A9FA0, 0x5AA3E0
 SINGLE = 0x007F
@@ -92,6 +108,14 @@ def fnv1a64(values, h=0xCBF29CE484222325):
         for b in struct.pack("<I", v & 0xFFFFFFFF):
             h = ((h ^ b) * 0x100000001B3) & 0xFFFFFFFFFFFFFFFF
     return h
+
+
+def name_hash(name):
+    """FNV-1a over a name's bytes, as its two halves."""
+    h = 0xCBF29CE484222325
+    for b in name:
+        h = ((h ^ b) * 0x100000001B3) & 0xFFFFFFFFFFFFFFFF
+    return [h & 0xFFFFFFFF, h >> 32]
 
 
 def cells(data):
@@ -221,6 +245,30 @@ class Oracle:
         self.delays = emu.scratch(size=4 * 9)
         emu.write_u32(self.act + 0x138, self.delays)
         emu.write_u32(self.act + 0x13C, self.delays + 4 * 9)
+        # For A: the actor's vtable with its own messages (vf02) recorded, the sounds, and the
+        # emblems' files, there or not.
+        self.actor_vtable = emu.scratch(emu.mem_read(GAME_ACTOR_VTABLE, VTABLE_SIZE))
+        emu.mem_write(SELF_MESSAGE_STUB, b"\xC3")
+        emu.write_u32(self.actor_vtable + 4 * SEND_SELF_SLOT, SELF_MESSAGE_STUB)
+        self.self_messages, self.sounds, self.asked, self.emblem_exists = [], [], [], 0
+        emu.replace_thiscall(SELF_MESSAGE_STUB, 5, lambda this, *v: self.self_messages.extend(v))
+
+        def play_wave(uc, address, size, _):
+            esp = emu.esp()
+            name, *rest = (emu.read_u32(esp + 4 + 4 * k) for k in range(7))
+            self.sounds += [*name_hash(emu.mem_read(name, len(emu.read_cstr(name)))), *rest]
+            emu.complete(0, emu.read_u32(esp), esp + 4)
+        emu.hook_code(PLAY_WAVE, PLAY_WAVE, play_wave)
+        resources = emu.scratch(size=0x10)
+        emu.replace_thiscall(GET_RESOURCE_MANAGER, 0, lambda this: resources)
+
+        def exists(this, name):
+            self.asked += name_hash(emu.mem_read(name, len(emu.read_cstr(name))))
+            return self.emblem_exists
+        emu.replace_thiscall(RESOURCE_EXISTS, 1, exists)
+        emu.write_u32(SERVER_NAME_BUFFER, emu.cstr(SERVER_NAME))
+        emu.write_u32(G_MODE, self.mode)
+        self.player = emu.scratch(size=0x10)
 
     def result(self, found):
         if found:
@@ -252,7 +300,7 @@ class Oracle:
         self.paths = []
         for line in lines:
             kind, *values = line.split()
-            v = [int(x) for x in values] if kind not in ("W", "G", "P", "T", "U", "N", "Y", "E", "Q") else []
+            v = [int(x) for x in values] if kind not in ("W", "G", "P", "T", "U", "N", "Y", "E", "Q", "A") else []
             self.logged = []
             if kind == "F":
                 found = emu.call(FIND_PATH, *v, self.actor + ACTOR_PATH, this=G_PATH_FINDER).eax & 0xFF
@@ -301,6 +349,8 @@ class Oracle:
                 out.append(self.go(values, enter=True))
             elif kind == "Q":
                 out.append(self.go(values, player=True, enter=True))
+            elif kind == "A":
+                out.append(self.go(values, arrive=True))
         emu.heap_release(mark)
         return out
 
@@ -353,13 +403,13 @@ class Oracle:
         emu.write_u32(self.view + 0x20, w["yaw"])
         self.frames = w["frames"]
 
-    def go(self, values, player=False, to=False, stand=False, enter=False):
+    def go(self, values, player=False, to=False, stand=False, enter=False, arrive=False):
         """CGameActor::vf02's message 0 on the actor, then ProcessState update by update, with
         SetState run, until the actor stands again or has faded; for a player, a CPc's."""
         emu, actor = self.emu, self.actor
         v = [int(x, 0) for x in values]
         names = ((PLAYER_FIELDS if player else GO_FIELDS) + (TO_SPEED if to else []) + (STAND_FIELDS if stand else [])
-                 + (ENTER_FIELDS if enter else []))
+                 + (ENTER_FIELDS if enter else []) + (ARRIVE_FIELDS if arrive else []))
         g = dict(zip(names, v))
         updates = v[len(names):]
         self.place(g)
@@ -417,6 +467,8 @@ class Oracle:
             emu.write_u32(self.target + 0xC, g["tz"])
             self.target_found = g["found"] != 0
             return self.enter(g, updates, extra)
+        if arrive:
+            return self.arrive(g, updates[:ARRIVE_RECORD], updates[ARRIVE_RECORD:])
         h = 0xCBF29CE484222325
         self.messages, self.states = [], []
         self.server, self.now = updates[0], updates[1]
@@ -488,6 +540,60 @@ class Oracle:
                 break
         r = [emu.read_u32(actor + o) for o in (0x4, 0x8, 0xC, 0x38, 0x24, 0x28, 0x58)]
         return f"{last} {calls} {r[0]:08x} {r[1]:08x} {r[2]:08x} {r[3]:08x} {r[4]} {r[5]} {r[6]} {h:016x}"
+
+    def arrive(self, g, record, updates):
+        """The message, then ProcessState update by update, until the state changes or the fade
+        ends."""
+        emu, actor = self.emu, self.actor
+        emu.write_u32(actor, self.actor_vtable)
+        for offset, name in ((0x218, "body0"), (0x220, "health0"), (0x23C, "guild0"), (0x240, "emblem0")):
+            emu.write_u32(actor + offset, g[name] & 0xFFFFFFFF)
+        for k, offset in enumerate((0x84, 0x85, 0x87, 0x88)):
+            emu.mem_write(actor + offset, bytes([g["flags"] >> k & 1]))
+        for offset in (0x1D4, 0x1EC, 0x1F0, 0x1F4, 0x224):
+            emu.write_u32(actor + offset, 0)
+        emu.write_u32(OWN_ID, g["own"] & 0xFFFFFFFF)
+        self.emblem_exists = g["exists"]
+        emu.write_u32(self.player + 4, g["px"])
+        emu.write_u32(self.player + 0xC, g["pz"])
+        emu.write_u32(self.world + 0x3C, self.player if g["player"] else 0)
+        emu.write_u32(GROUND_WATER_FADE, 0x5A5A5A5A)
+        emu.write_u32(self.mode + MODE_FIELD_2A0, 0x5A5A5A5A)
+        message = emu.scratch(struct.pack(f"<{ARRIVE_RECORD}I", *(r & 0xFFFFFFFF for r in record)))
+        self.messages, self.states, self.self_messages, self.sounds, self.asked = [], [], [], [], []
+        self.server, self.now = updates[0], updates[1]
+        emu.call(MESSAGE, 0, g["message"], message, g["how"] & 0xFFFFFFFF, 0, this=actor)
+        count, digest = self.path()[3:5]
+        h = fnv1a64([4, *self.fields(), count, digest, digest >> 32, *self.messages, *self.arrival()])
+        state = emu.read_u32(actor + 0x58)
+        last, calls = "staying", 0
+        for server, tick in zip(updates[2::2], updates[3::2]):
+            self.messages, self.states = [], []
+            self.now, self.server = tick, server
+            ret = emu.call(PROCESS, this=actor).eax & 0xFF
+            calls += 1
+            h = fnv1a64([ret, *self.fields(), *self.messages, *self.arrival()], h)
+            if ret == 0:
+                last = "faded"
+                break
+            if emu.read_u32(actor + 0x58) != state:
+                last = "changed"
+                break
+        emu.write_u32(self.world + 0x3C, 0)
+        r = [emu.read_u32(actor + o) for o in (0x4, 0x8, 0xC, 0x38, 0x24, 0x28, 0x58)]
+        return f"{last} {calls} {r[0]:08x} {r[1]:08x} {r[2]:08x} {r[3]:08x} {r[4]} {r[5]} {r[6]} {h:016x}"
+
+    def arrival(self):
+        """What arriving writes beyond fields(), and what it sent, played and asked for since."""
+        emu, a = self.emu, self.actor
+        words = [emu.read_u32(a + o) for o in (0x1B4, 0x1EC, 0x1F0, 0x1F4, 0x218, 0x21C, 0x220, 0x224, 0x23C,
+                                               0x240, 0xC8)]
+        words += [emu.mem_read(a + o, 1)[0] for o in (0x84, 0x85, 0x87, 0x88)]
+        words += [emu.read_u32(GROUND_WATER_FADE), emu.read_u32(self.mode + MODE_FIELD_2A0)]
+        words += [len(self.self_messages), *self.self_messages, len(self.sounds), *self.sounds,
+                  len(self.asked), *self.asked]
+        self.self_messages, self.sounds, self.asked = [], [], []
+        return words
 
     def fields(self):
         """What the move, the walk and the states write, for G's hash."""

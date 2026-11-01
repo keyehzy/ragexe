@@ -2871,6 +2871,23 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     over 1,891,384 updates equal, `CWorld::GetActorById` answered by the oracle;
     `enter_vectors.inc` keeps short ones and the 34th tick, the slide's edges (a product just
     past a single-precision tie among them) and 7 in 6.
+- [x] Actors coming into view (`docs/world/arrival.md`, `src/world/actor_arrival`):
+  `CGameActor::SendMsg`'s messages 3 and 4 stand the actor on the record's cell, facing its
+  direction; 5 and 6 walk it from the record's start, 6 placing it there first. Each takes the
+  record's status words through `SetStatus` (`00506c80`):
+  - the actor hidden, cloaked or hidden from all, and shown again, by who the player is;
+  - the tints of the body and health words;
+  - the messages the actor sends itself, and the sounds;
+  - `g_groundWaterFade` and `CGameMode`+0x2a0.
+
+  The guild's emblem (`vf38`, `SetEmblem`) asks for its file and tells the game mode when it
+  is missing.
+  - **Checks:** `tools/walk_oracle.py`'s `A` on all 287 maps: 11,480 arrivals over 1,462,447
+    updates equal, with the actor's own messages (through a copy of its vtable), `PlayWave`
+    and `ResourceManager::Exists` recorded. `arrival_vectors.inc` keeps short ones and every
+    status bit, body state, health bit and emblem case.
+  - **Labels:** `CGameActor::SetStatus`, `EndShownEffects` and `SetEmblem`;
+    `ClientState::HasAccountPrivilege` and `IsKoreaService`.
 
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,

@@ -136,5 +136,5 @@ end, and the server's time just at the path's end. `tests/unit/walk_test.cpp` re
 
 **Not ported:**
 - `ProcessState`'s states 3 and 13 ([states.md](states.md#each-update)); the rest are ported;
-- the messages that start a walk but 0 and 0x13 ([states.md](states.md)): 5 and 6, which
-  come with the actors' messages;
+- `CPc`'s own messages 5 and 6, which start a walk as `CGameActor`'s do
+  ([arrival.md](arrival.md));

@@ -1971,7 +1971,7 @@ address	namespace	name	calling_convention	evidence
 00504190	CGameActor	RemapValueByFlagBit5	__thiscall	(value, flags), ret 8: returns 0xd for 7 and 0x15 for 0xe when bit 5 of flags is set (0059d3d0 shr 5 / and 1), otherwise value; 19 sites in CGameActor::vf02, CPc::vf02 and CGrannyPc::vf02 store the result back into the message +4 before vtable slot 13 (00505a59).
 005041e0	CGameActor	LaunchEffectA0IfIdListed	__thiscall	(id), ret 4: when the game mode's +0xb4 object has +0x5c or +0x64 set, looks id up among the records of g_ClientState (count method_005928d0, record method_00592bf0, id at record +4) and, if found and HasEffectWithId(0xa0) 00502500 is false, creates effect 0xa0 with CAbleToMakeEffect::method_00501e10; CPc::vf02 and CGrannyPc::vf02.
 00506b20	CGameActor	FindMovePath	__thiscall	(7 args), ret 0x1c: PathFinder::FindPath from the start time +0x18c into the MovePath at +0x170; when the path's end key (MovePath::GetEndKey) is not after ClientState::method_00593200, restarts from that time with the speed scaled by 10/13; CGameActor::vf02, CPc::vf02, CGrannyPc::vf02, CPlayer::vf02.
-00506be0	CGameActor	SetField224	__thiscall	(value), ret 4: stores value at +0x224; 21 sites in CGameActor::vf02, CPc::vf02, CGrannyPc::vf02 (after CPlayer::method_00506c80) and CGameMode::HandlePacket_01A4 00536415.
+00506be0	CGameActor	SetField224	__thiscall	(value), ret 4: stores value at +0x224; 21 sites in CGameActor::vf02, CPc::vf02, CGrannyPc::vf02 (after CGameActor::SetStatus) and CGameMode::HandlePacket_01A4 00536415.
 00507930	std::list	~list	__thiscall	Same code as std::list::~list 004040c0: unlinks and frees every node after the head +4, then the head, zeroing +4 and the count +8; unwind funclets of CAbleToMakeEffect::CAbleToMakeEffect and ~CAbleToMakeEffect.
 00507980	std::list	~list	__thiscall	Same code as std::list::~list 004040c0: frees every node and the head +4 and zeroes +4/+8; unwind funclets of CGameActor::CGameActor and ~CGameActor.
 00507a10	std::list	IncrementIterator	__thiscall	(out*, int), ret 8: postfix increment, stores the current node in out and advances the iterator to node->next; same code as std::list::IncrementIterator 00404150; CGameActor::~CGameActor 005027db.
@@ -2356,20 +2356,20 @@ address	namespace	name	calling_convention	evidence
 0059cd60	std::pair	~pair	__thiscall	Frees the vector buffer at +0x14 (elements need no destruction) and zeroes +0x14..+0x1c, then releases the std::string at +0 (buffer +4): the destructor of a {std::string, vector} pair; called by 0059da00, 0059e1b0, 0059e8a0, 005a0d40 and 14 unwind funclets.
 0059d1d0	Global	destroy_global_006865f8	__cdecl	atexit handler pushed at 0059d119 by ClientState::method_0059d0d0: operator delete of the vector buffer 006865fc and zeroing of 006865fc..00686604.
 0059d330	Global	IsZero	__cdecl	(flags): returns flags == 0 (sete); called once by CGameActor::method_00507740 (00507752).
-0059d340	Global	IsBit0Set	__cdecl	(flags): returns bit 0; called by CPlayer::method_00506c80 and CGameActor::method_00507740.
+0059d340	Global	IsBit0Set	__cdecl	(flags): returns bit 0; called by CGameActor::SetStatus and CGameActor::method_00507740.
 0059d350	Global	IsBit1Set	__cdecl	(flags): returns bit 1 (shr 1, and 1); 13 calls from CGameActor::vf02, CPlayer::vf02, CGameMode::HandlePacket_019A, CBlurPC::vf03 and others.
-0059d360	Global	IsBit2Set	__cdecl	(flags): returns bit 2; called by CGameActor::vf02, CPlayer::method_00506c80, CGameMode::method_00516a80 and others.
+0059d360	Global	IsBit2Set	__cdecl	(flags): returns bit 2; called by CGameActor::vf02, CGameActor::SetStatus, CGameMode::method_00516a80 and others.
 0059d370	Global	IsAnyOfBits3And7To10Set	__cdecl	(flags): returns 1 when any of bits 3, 7, 8, 9 or 10 is set; UIEquipWnd::AreStateFlagsClear, GetStateFlagButtonText and SendStateFlagCommand use it on g_ClientState+0x61c.
 0059d3c0	Global	IsBit4Set	__cdecl	(flags): returns bit 4; used with 0059d370 by UIEquipWnd::AreStateFlagsClear, GetStateFlagButtonText and SendStateFlagCommand.
 0059d3d0	Global	IsBit5Set	__cdecl	(flags): returns bit 5; used by UIEquipWnd::AreStateFlagsClear, CGameActor::method_00503490, ClientState::method_0059d2e0 and others.
 0059d3e0	Global	IsBit6Set	__cdecl	(flags): returns bit 6; 12 calls from CGameActor::vf02, CPc::vf02, CGrannyPc::vf02, CGameMode::HandlePacket_0079/0080 and others.
-0059d400	Global	DoBit0sDiffer	__cdecl	(a, b): returns (a xor b) & 1; called once by CPlayer::method_00506c80 (00506cd0).
-0059d410	Global	DoBit1sDiffer	__cdecl	(a, b): returns ((a xor b) >> 1) & 1; plain ret, called once by CPlayer::method_00506c80 (00506d35); one of the bit helpers with DoBit0sDiffer 0059d400.
-0059d430	Global	DoBit2sDiffer	__cdecl	(a, b): returns ((a xor b) >> 2) & 1; called once by CPlayer::method_00506c80 (00506ecc).
-0059d450	Global	DoBits3And7To10Differ	__cdecl	(a, b): returns 0 when a == b, else 1 when any of bits 3, 7, 8, 9 or 10 differs (the bit group IsAnyOfBits3And7To10Set 0059d370 tests); called by CPlayer::method_00506c80 (00507006).
-0059d4d0	Global	DoBit4sDiffer	__cdecl	(a, b): returns ((a xor b) >> 4) & 1; called once by CPlayer::method_00506c80 (00507052).
-0059d4f0	Global	DoBit5sDiffer	__cdecl	(a, b): returns ((a xor b) >> 5) & 1; called once by CPlayer::method_00506c80 (00507095).
-0059d510	Global	DoBit6sDiffer	__cdecl	(a, b): returns ((a xor b) >> 6) & 1; called once by CPlayer::method_00506c80 (005070d8).
+0059d400	Global	DoBit0sDiffer	__cdecl	(a, b): returns (a xor b) & 1; called once by CGameActor::SetStatus (00506cd0).
+0059d410	Global	DoBit1sDiffer	__cdecl	(a, b): returns ((a xor b) >> 1) & 1; plain ret, called once by CGameActor::SetStatus (00506d35); one of the bit helpers with DoBit0sDiffer 0059d400.
+0059d430	Global	DoBit2sDiffer	__cdecl	(a, b): returns ((a xor b) >> 2) & 1; called once by CGameActor::SetStatus (00506ecc).
+0059d450	Global	DoBits3And7To10Differ	__cdecl	(a, b): returns 0 when a == b, else 1 when any of bits 3, 7, 8, 9 or 10 differs (the bit group IsAnyOfBits3And7To10Set 0059d370 tests); called by CGameActor::SetStatus (00507006).
+0059d4d0	Global	DoBit4sDiffer	__cdecl	(a, b): returns ((a xor b) >> 4) & 1; called once by CGameActor::SetStatus (00507052).
+0059d4f0	Global	DoBit5sDiffer	__cdecl	(a, b): returns ((a xor b) >> 5) & 1; called once by CGameActor::SetStatus (00507095).
+0059d510	Global	DoBit6sDiffer	__cdecl	(a, b): returns ((a xor b) >> 6) & 1; called once by CGameActor::SetStatus (005070d8).
 0059d550	Global	SetBit6	__cdecl	(uint* flags): ORs 0x40 into *flags; called by CGameMode::method_00516a80 (00518bc6).
 0059d560	Global	ClearBit6	__cdecl	(uint* flags): ANDs *flags with ~0x40 (0xffffffbf); called by CGameMode::method_00516a80 (00518bbb).
 0059d570	std::vector	resize	__thiscall	(n, value*): grows a vector of 4-byte elements to n copies of value (reallocating with operator new, std::vector::CopyUninitialized and FillUninitialized) or shrinks its end +8; ret 8, called three times by ClientState::method_0058ac70 (0058d2c2).
@@ -2859,3 +2859,8 @@ address	namespace	name	calling_convention	evidence
 0059a5e0	ClientState	InitShadowScales	__thiscall	sizes the float vector +0x16b0 to 0x580 entries of 1 and sets each job's shadow scale that differs (1.5 for 13 and 21, 0 for the plants 1078..1085 and others); ClientState::method_00588a00
 0059b750	ClientState	GetShadowScale	__thiscall	(job), ret 4: the float at +0x16b4 + job * 4, unchecked; CPc::UpdateBody, CNpc::vf16 and CGrannyPc::vf16 keep it at +0x40
 00511de0	CGameMode	GetCellCentre	__thiscall	(cell x, cell y, float* x, float* z), ret 0x10: the centre of an attribute cell of the world's (+0xb4) map (+0x40) in world x and z, (cell - side * 0.5) * cell size + cell size * 0.5; CWorld::LoadWorld for the player's cell
+00506c80	CGameActor	SetStatus	__thiscall	(body, effect, health, announce), ret 0x10: keeps the three status words at +0x218, +0x21c and +0x220; for each changed bit of +0x21c hides or shows the actor (+0x84, +0x85, +0x88) and sends itself vf02 messages (0x23, 0x33, 0x34, 0x65, 0x66, 0x69, 0x6a, 0x6d); a changed body word plays _stone_explosion.wav (006147c8) or tints the colour (SetColorChannels 00500720); CGameActor::SendMsg's messages 3 to 6 call it with announce 0 (00505a00, docs/world/arrival.md)
+00506bf0	CGameActor	EndShownEffects	__thiscall	sends itself vf02 message 0x6d with 0xc8, 0xc9 and then 0xca five times (00506bf9 to 00506c7a); SetStatus (00506c80) calls it when bit 1, 2 or 6 of the effect word changes
+00504390	CGameActor	SetEmblem	__thiscall	vf38 (guild, version), ret 8: for a guild above 0, a version above 0 or GetJob 0x2d2, and GetJob below 0x16 (005aa610), 0x505 to 0x507 (005aa6d0) or 0x2d2: keeps both at +0x23c and +0x240 and, when ResourceManager::Exists (004e0190) misses GetEmblemFileName's file (0059c9f0), sends the game mode (0067c9ec) message 0x8b with the guild
+00597950	ClientState	HasAccountPrivilege	__thiscall	(kind), ret 4: 0 unless the service is Korea's (00597940); then 1 for the player's id +0xcdc 0x186b4, 0x2933c9 or 0x326b70 and any kind but 10, and for 0x2100e and kinds 5, 6, 8, 9 and 10; kind 7 lets the player see hidden actors (CGameActor::SetStatus 00506dc7), kind 8 the effect test (EffectTestThread)
+00597940	ClientState	IsKoreaService	__thiscall	returns 1 when g_serviceType (0067c9d4) is 0, the Korean service, as IsSpecialActorIdOnKoreaService tests (00597940); HasAccountPrivilege (00597950) asks it first

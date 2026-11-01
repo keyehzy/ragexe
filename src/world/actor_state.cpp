@@ -327,7 +327,7 @@ bool SetPlayerState(PlayerActor& player, std::int32_t state, const StateContext&
     if (context.mode_field_0x2a0 != nullptr) *context.mode_field_0x2a0 = 0;
   } else {
     player.field_0xcc = 0;
-    if (player.field_0x218 != 1 && player.field_0x218 != 2) o.held = false;
+    if (player.body_state != 1 && player.body_state != 2) o.held = false;
     // SendMsg(0x53) to itself.
     if (player.window != 0) {
       if (context.closed_windows != nullptr) context.closed_windows->push_back(player.window);

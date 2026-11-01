@@ -2,6 +2,9 @@
 
 #include <array>
 #include <cstdint>
+#include <functional>
+#include <string>
+#include <string_view>
 #include <vector>
 
 #include "core/crt_rand.h"
@@ -12,13 +15,22 @@
 
 namespace ragexe::world {
 
-// A message an actor sends the game mode (CGameMode::SendMsg, vf05): its id and three values.
+// A message an actor sends the game mode (CGameMode::SendMsg, vf05), or itself
+// (CGameActor::SendMsg, vf02, from no sender): its id and three values.
 struct ModeMessage {
   std::int32_t id = 0;
   std::int32_t a = 0;
   std::int32_t b = 0;
   std::int32_t c = 0;
   bool operator==(const ModeMessage&) const = default;
+};
+
+// A sound an actor plays (PlayWave, 004352a0): its file and where it is from the player, the
+// height 0 and the rest 250, 40 and 1.
+struct Sound {
+  std::string_view name;
+  float x = 0.0f;
+  float z = 0.0f;
 };
 
 // What a pet says when it talks (CGameActor::ProcessState, standing): ClientState's pet
@@ -43,11 +55,23 @@ struct StateContext {
   core::CrtRand* rand = nullptr;             // the C runtime's rand, which a pet's talk draws on
   const render::Vec3* target = nullptr;      // where CWorld::GetActorById finds the actor
                                              // +0x1a8 names, when it does
+  std::vector<ModeMessage>* actor_messages = nullptr;  // what the actor sends itself, when kept
+  std::vector<Sound>* sounds = nullptr;                // what it plays, when kept
+  const render::Vec3* player = nullptr;  // CWorld+0x3c, the player, whom the sounds are heard by
+  std::int32_t own_id = 0;               // ClientState+0xcdc, the player's id
+  std::int32_t* ground_water_fade = nullptr;  // g_groundWaterFade (00679f9c)
+  // The braces let contexts be brace-initialized short of these without
+  // -Wmissing-field-initializers.
+  // NOLINTBEGIN(readability-redundant-member-init)
+  std::string_view server_name{};  // ClientState+0x4e4, the character server chosen at login
+  std::function<bool(const std::string&)> resource_exists{};  // ResourceManager::Exists
+                                                              // (004e0190); without it every
+                                                              // file is there
+  // NOLINTEND(readability-redundant-member-init)
 };
 
 // The CPc fields a player's states read and write beyond a CGameActor's.
 struct PlayerActor : GameActor {
-  std::int32_t field_0x218 = 0;  // +0x218: 1 or 2 keeps +0x82 when the player walks
   std::int32_t saved_frame = 0;  // +0x294: the frame standing goes back to
 };
 

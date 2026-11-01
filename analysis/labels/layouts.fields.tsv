@@ -3891,7 +3891,7 @@ ClientState	0xc60	40	class:XmlElement	field_0xc60	own field; 2 uses (0 writes) i
 ClientState	0xc88	40	class:XmlElement	field_0xc88	own field; 1 uses (0 writes) in 1 functions, e.g. 00587aac in 00587370
 ClientState	0xcb0	40	class:XmlElement	field_0xcb0	own field; 1 uses (0 writes) in 1 functions, e.g. 00587a9d in 00587370
 ClientState	0xcd8	4	dword	field_0xcd8	own field; 2 uses (1 writes) in 1 functions, e.g. 00536f98 in 00536f80
-ClientState	0xcdc	4	dword	field_0xcdc	own field; 74 uses (1 writes) in 54 functions, e.g. 00523ae0 in 00523ae0
+ClientState	0xcdc	4	dword	field_0xcdc	own field; 74 uses (1 writes) in 54 functions, e.g. 00597964 in 00597950
 ClientState	0xce0	4	dword	field_0xce0	own field; 5 uses (2 writes) in 5 functions, e.g. 00523af0 in 00523af0
 ClientState	0xce8	4	float	field_0xce8	own field; 1 uses (1 writes) in 1 functions, e.g. 0058dd35 in 0058dd20
 ClientState	0xcec	4	dword	field_0xcec	own field; 4 uses (3 writes) in 4 functions, e.g. 0059d2e3 in 0059d2e0
