@@ -73,6 +73,14 @@ TO_SPEED = ["to_speed"]
 # lines its tables give (005aa3e0's, then the table +0x824's), +0x1d4, the play mode +0x54 and
 # +0x1f4. The hash takes +0x1d4 too.
 STAND_FIELDS = ["seed", "pet_id", "pet_first", "pet_second", "talk_at", "play", "f1f4"]
+# E and Q: a G and a P whose actor, from the state before, is given a state through its vf10
+# (CGameActor::SetState, CPc::SetState) when `set` is 1, and then updated by ProcessState: the
+# state, +0xcc, +0x1a8, whether CWorld::GetActorById finds that actor and where it stands
+# (+4, +0xc, float bits), the play mode +0x54 and the state's start +0x70; then the state's
+# server time and timeGetTime, and the updates'. +0x1d4 and +0x1f4 are 0. The hash takes +0xcc
+# too.
+ENTER_FIELDS = ["set", "enter", "f0cc", "f1a8", "found", "tx", "tz", "play", "start"]
+GET_ACTOR_BY_ID = 0x4C4CF0
 SRAND, PET_ID, PET_TABLE = 0x5C2546, 0x686E40, 0x686E94
 PET_LEVEL_A, PET_LEVEL_B, PET_LINE = 0x5A9F40, 0x5A9FA0, 0x5AA3E0
 SINGLE = 0x007F
@@ -205,6 +213,9 @@ class Oracle:
         emu.replace_thiscall(PET_LEVEL_A, 1, lambda this, v: 0)
         emu.replace_thiscall(PET_LEVEL_B, 1, lambda this, v: 0)
         emu.replace_thiscall(PET_LINE, 3, lambda this, a, b, c: self.pet_line)
+        # The actor +0x1a8 names, which CWorld::GetActorById finds or not.
+        self.target, self.target_found = emu.scratch(size=0x10), False
+        emu.replace_thiscall(GET_ACTOR_BY_ID, 1, lambda this, actor_id: self.target if self.target_found else 0)
         # The body's CActRes: GetActionDelay reads the delays at +0x138..+0x13c.
         self.act = emu.scratch(size=0x144)
         self.delays = emu.scratch(size=4 * 9)
@@ -241,7 +252,7 @@ class Oracle:
         self.paths = []
         for line in lines:
             kind, *values = line.split()
-            v = [int(x) for x in values] if kind not in ("W", "G", "P", "T", "U", "N", "Y") else []
+            v = [int(x) for x in values] if kind not in ("W", "G", "P", "T", "U", "N", "Y", "E", "Q") else []
             self.logged = []
             if kind == "F":
                 found = emu.call(FIND_PATH, *v, self.actor + ACTOR_PATH, this=G_PATH_FINDER).eax & 0xFF
@@ -286,6 +297,10 @@ class Oracle:
                 out.append(self.go(values, stand=True))
             elif kind == "Y":
                 out.append(self.go(values, player=True, stand=True))
+            elif kind == "E":
+                out.append(self.go(values, enter=True))
+            elif kind == "Q":
+                out.append(self.go(values, player=True, enter=True))
         emu.heap_release(mark)
         return out
 
@@ -338,12 +353,13 @@ class Oracle:
         emu.write_u32(self.view + 0x20, w["yaw"])
         self.frames = w["frames"]
 
-    def go(self, values, player=False, to=False, stand=False):
+    def go(self, values, player=False, to=False, stand=False, enter=False):
         """CGameActor::vf02's message 0 on the actor, then ProcessState update by update, with
         SetState run, until the actor stands again or has faded; for a player, a CPc's."""
         emu, actor = self.emu, self.actor
         v = [int(x, 0) for x in values]
-        names = (PLAYER_FIELDS if player else GO_FIELDS) + (TO_SPEED if to else []) + (STAND_FIELDS if stand else [])
+        names = ((PLAYER_FIELDS if player else GO_FIELDS) + (TO_SPEED if to else []) + (STAND_FIELDS if stand else [])
+                 + (ENTER_FIELDS if enter else []))
         g = dict(zip(names, v))
         updates = v[len(names):]
         self.place(g)
@@ -392,6 +408,15 @@ class Oracle:
             emu.write_u32(actor + 0x54, g["play"])
             emu.write_u32(actor + 0x1F4, g["f1f4"] & 0xFFFFFFFF)
             return self.stand(updates, extra)
+        if enter:
+            for offset, name in ((0xCC, "f0cc"), (0x1A8, "f1a8"), (0x54, "play"), (0x70, "start")):
+                emu.write_u32(actor + offset, g[name] & 0xFFFFFFFF)
+            emu.write_u32(actor + 0x1D4, 0)
+            emu.write_u32(actor + 0x1F4, 0)
+            emu.write_u32(self.target + 4, g["tx"])
+            emu.write_u32(self.target + 0xC, g["tz"])
+            self.target_found = g["found"] != 0
+            return self.enter(g, updates, extra)
         h = 0xCBF29CE484222325
         self.messages, self.states = [], []
         self.server, self.now = updates[0], updates[1]
@@ -434,6 +459,32 @@ class Oracle:
             h = fnv1a64([ret, *self.fields(), *self.messages, *extra(), emu.read_u32(actor + 0x1D4)], h)
             if ret == 0:
                 last = "faded"
+                break
+        r = [emu.read_u32(actor + o) for o in (0x4, 0x8, 0xC, 0x38, 0x24, 0x28, 0x58)]
+        return f"{last} {calls} {r[0]:08x} {r[1]:08x} {r[2]:08x} {r[3]:08x} {r[4]} {r[5]} {r[6]} {h:016x}"
+
+    def enter(self, g, updates, extra):
+        """The state through the actor's vf10, then ProcessState update by update, until the state
+        changes or the fade ends."""
+        emu, actor = self.emu, self.actor
+        self.messages, self.states = [], []
+        self.server, self.now = updates[0], updates[1]
+        if g["set"]:
+            emu.call(emu.read_u32(emu.read_u32(actor) + 4 * 10), g["enter"] & 0xFFFFFFFF, this=actor)
+        h = fnv1a64([3, *self.fields(), *self.messages, *extra(), emu.read_u32(actor + 0xCC)])
+        state = emu.read_u32(actor + 0x58)
+        last, calls = "staying", 0
+        for server, tick in zip(updates[2::2], updates[3::2]):
+            self.messages, self.states = [], []
+            self.now, self.server = tick, server
+            ret = emu.call(emu.read_u32(emu.read_u32(actor) + 4 * 9), this=actor).eax & 0xFF
+            calls += 1
+            h = fnv1a64([ret, *self.fields(), *self.messages, *extra(), emu.read_u32(actor + 0xCC)], h)
+            if ret == 0:
+                last = "faded"
+                break
+            if emu.read_u32(actor + 0x58) != state:
+                last = "changed"
                 break
         r = [emu.read_u32(actor + o) for o in (0x4, 0x8, 0xC, 0x38, 0x24, 0x28, 0x58)]
         return f"{last} {calls} {r[0]:08x} {r[1]:08x} {r[2]:08x} {r[3]:08x} {r[4]} {r[5]} {r[6]} {h:016x}"

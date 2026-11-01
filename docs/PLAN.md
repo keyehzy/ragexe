@@ -2856,6 +2856,21 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Checks:** `tools/walk_oracle.py`'s `N` and `Y` on all 287 maps: 11,480 standing actors and
     players over 2,232,775 updates equal, `srand` seeded alike and `ClientState`'s pet lines
     given; `stand_vectors.inc` keeps short ones and a pet that talks.
+- [x] The other states (`docs/world/states.md#each-update`): `SetState` for 5, 11 and 12 (actions
+  0x18, 0x20 and 0x28 played once; 5 clears +0xcc and +0x82, 12 reports the cell), 6, 8, 10 and
+  those past 13 (the state alone) and 7 in state 6 (nothing). `CPc`'s 6 and 8 report the cell and
+  play 0x10 or 0x60 once, finished at once, 6 on the saved frame. `world::ProcessGameActorState`
+  is `ProcessState` in every state but 3 and 13:
+  - one-shot actions stand again when finished (2, 5, 7, 9, 12);
+  - state 4 slides onto its target over what is left of 200 ms;
+  - state 8 faces the actor +0x1a8 names on every 34th tick;
+  - `CPc`'s 2, 3, 6, 7 and 8 skip the update's times.
+
+  `ragview`, the walk replays and the standing replays go through it.
+  - **Checks:** `tools/walk_oracle.py`'s `E` and `Q` on all 287 maps: 11,480 actors and players
+    over 1,891,384 updates equal, `CWorld::GetActorById` answered by the oracle;
+    `enter_vectors.inc` keeps short ones and the 34th tick, the slide's edges (a product just
+    past a single-precision tie among them) and 7 in 6.
 
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,

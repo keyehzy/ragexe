@@ -41,6 +41,8 @@ struct StateContext {
   std::int32_t* mode_field_0x2a0 = nullptr;  // CGameMode+0x2a0, which a player standing clears
   const PetTalk* pet = nullptr;              // the player's pet, when there is one
   core::CrtRand* rand = nullptr;             // the C runtime's rand, which a pet's talk draws on
+  const render::Vec3* target = nullptr;      // where CWorld::GetActorById finds the actor
+                                             // +0x1a8 names, when it does
 };
 
 // The CPc fields a player's states read and write beyond a CGameActor's.
@@ -73,36 +75,58 @@ bool IsSpecialActorIdOnKoreaService(std::int32_t service_type, std::int32_t id);
 void SetGameActorAction(GameActor& actor, const res::Act& act, std::int32_t action,
                         std::int32_t play_mode);
 
-// CGameActor::SetState (005034e0, vf10) at timeGetTime `now`, for standing (0) and walking
-// (1); the original's other states are not ported, and return false having done nothing.
-// Nothing happens in state 3 or with +0xd0 set; leaving state 4 puts the actor on its target.
-// Then the state's action and message, and the action's direction, the state and its time.
+// CGameActor::SetState (005034e0, vf10) at timeGetTime `now`. Nothing happens in state 3 or
+// with +0xd0 set, nor for 7 in state 6; leaving state 4 puts the actor on its target. Then
+// the state's work: standing (0) and walking (1) their actions and messages; 5 action 0x18
+// played once, clearing +0xcc and +0x82; 11 action 0x20 and 12 action 0x28 played once, 12
+// reporting the cell; 6, 8, 10 and those past 13 none. Last the action's direction, the state
+// and its time. States 2, 3, 4, 7 (but in state 6), 9 and 13 are not ported, and return false
+// having done nothing.
 bool SetGameActorState(GameActor& actor, std::int32_t state, const StateContext& context,
                        std::uint32_t now);
 
-// CPc::SetState (00543020, vf10) for standing and walking, around CGameActor's: standing
-// goes back to the saved frame, takes the ready stance (action 32) after states 2, 4 and 8
-// or with +0x224 set, and clears CGameMode+0x2a0; walking clears +0xcc and, but for +0x218 1
-// and 2, +0x82, closes the actor's window (message 0x53, CGameActor::SendMsg) and forgets
-// the saved frame.
+// CPc::SetState (00543020, vf10), around CGameActor's: standing goes back to the saved frame,
+// takes the ready stance (action 32) after states 2, 4 and 8 or with +0x224 set, and clears
+// CGameMode+0x2a0; walking clears +0xcc and, but for +0x218 1 and 2, +0x82, closes the
+// actor's window (message 0x53, CGameActor::SendMsg) and forgets the saved frame. 6 reports
+// the cell and plays action 0x10 once, finished at once, on the saved frame; 8 reports it and
+// plays action 0x60 once, finished at once. The rest are CGameActor's, after leaving state 4
+// puts the player on its target. States 2, 7 and 9 and CGameActor's unported are not ported.
 bool SetPlayerState(PlayerActor& player, std::int32_t state, const StateContext& context,
                     std::uint32_t now);
 
-// What CGameActor::ProcessState came to for a standing actor.
-enum class StandResult {
-  kFaded,     // returned 0: the fade (+0x234) is over
-  kStanding,  // returned 1
+// What an update of an actor's state came to.
+enum class StateResult {
+  kFaded,      // returned 0: the fade (+0x234) is over
+  kDone,       // returned 1
+  kNotPorted,  // a state whose update is not ported; nothing was done
 };
 
-// CGameActor::ProcessState (005038c0) for an actor standing (state 0), at timeGetTime `now`
-// and the server's time: the hold and the fade, then an action played once and finished
-// stands again (SetState(0)), or the player's pet (jobs 1000 to 0x57f, +0x1f4 20, its id the
-// pet's) may talk: 3 s after +0x1d4, a rand() % 100 below 25 sends the game mode 0xa1 with
-// each of its lines, and +0x1d4 is cleared. Then the frame (vf08) and the times.
-StandResult ProcessStand(GameActor& actor, const StateContext& context, std::uint32_t now,
-                         std::uint32_t server_time);
-StandResult ProcessStand(PlayerActor& player, const StateContext& context, std::uint32_t now,
-                         std::uint32_t server_time);
+// CGameActor::ProcessState (005038c0, vf09) in the actor's state, at timeGetTime `now` and the
+// server's time. Walking is ProcessWalk, standing at the path's end. Otherwise the hold and the
+// fade, then the state's work, and the times:
+//  - 0: an action played once and finished stands again (SetState(0)), or the player's pet
+//    (jobs 1000 to 0x57f, +0x1f4 20, its id the pet's) may talk: 3 s after +0x1d4, a
+//    rand() % 100 below 25 sends the game mode 0xa1 with each of its lines, and +0x1d4 is
+//    cleared. Then the frame (vf08).
+//  - 2, 5, 7, 9 and 12: the frame and, the action finished, standing again; 5 and 7 clear
+//    +0xcc first.
+//  - 4: clears +0xcc, steps the frame, and slides toward the target (+0x228, +0x22c) by the
+//    time since the last update over what is left of 200 ms from the state's start; the
+//    action finished, it is on the target and stands. Set on the ground when it moved.
+//  - 8: clears +0xcc, steps the frame, and faces the actor +0x1a8 names (context.target) on
+//    every 34th tick since the state began.
+//  - 10: clears +0xcc; 16 and 17: the frame; the rest nothing.
+// States 3 and 13 are not ported.
+StateResult ProcessGameActorState(GameActor& actor, const StateContext& context, std::uint32_t now,
+                                  std::uint32_t server_time);
+
+// CPc::ProcessState (00542eb0, vf09): the hold and the fade, then, without the times, 2 and 7
+// the frame and, the action finished, standing again; 3 the frame, clearing +0x82 first; 6 the
+// frame; 8 the frame and facing the target as CGameActor's state 8, keeping +0xcc. The rest
+// are CGameActor's, standing again through CPc::SetState; 13 is not ported.
+StateResult ProcessGameActorState(PlayerActor& player, const StateContext& context,
+                                  std::uint32_t now, std::uint32_t server_time);
 
 // The order message 0 carries (CGameActor::vf02): when, and from which cell (with the
 // sixteenths in it) to which.

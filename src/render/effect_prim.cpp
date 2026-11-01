@@ -1690,12 +1690,6 @@ Matrix MakeAxisRotation(const Vec3& axis, float radians) {
   return MakeRotationFromKey({s * axis[0], s * axis[1], s * axis[2], CosFloat(half)});
 }
 
-// CRenderObject::TurnTowards (005005b0): the facing that looks at (x, z) from where it
-// stands, as GetAngleBetween.
-float TurnTowards(const Vec3& from, float x, float z) {
-  return AngleBetween(from[0], from[2], x, z);
-}
-
 // CEffectPrim::UpdatePrim_9 (0057f8c0), id 9: along its matrix's z at the speed, taking the
 // speed and acceleration of changes 2 and 5 at change_at; with kHalts stopping at age
 // period; with kSinks taking step changes 1 and 4 30 frames before its life instead of

@@ -12,7 +12,7 @@ namespace ragexe::world {
 // The CGameActor fields the walk reads and writes (docs/world/walk.md).
 struct GameActor {
   render::RenderObject object;
-  std::int32_t state = 0;          // +0x58: 0 standing, 1 walking
+  std::int32_t state = 0;          // +0x58: 0 standing, 1 walking, docs/world/states.md
   std::int32_t goal_x = 0;         // +0xc0, the cell a move heads for
   std::int32_t goal_y = 0;         // +0xc4
   std::int32_t speed = 150;        // +0xc8, milliseconds a cell
@@ -27,6 +27,7 @@ struct GameActor {
   float travelled = 0.0f;          // +0x198, the distance walked, which steps the frames
   std::uint32_t processed_at = 0;  // +0x19c, timeGetTime at the last update
   std::uint32_t server_at = 0;     // +0x1a0, the server's time at the last update
+  std::int32_t target_id = 0;      // +0x1a8, the id of the actor its action is aimed at
   float field_0x1ac = 0.0f;        // +0x1ac, -1 after vf07
   std::int32_t id = 0;             // +0x1b4, the server's id
   std::int32_t job = 0;            // +0x1b8

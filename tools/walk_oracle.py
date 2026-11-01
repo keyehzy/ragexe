@@ -13,7 +13,8 @@ start cell, update by update until it arrives (SetState(0), recorded) or its fad
     of the actions, the hold (+0x1d0), the fade (+0x234) and the colour vary.
 After each update the result, the actor's position, facing, action, frame, segment,
 distance, times, colour, +0x82 and +0x190, and whether it stood, are hashed; the hash and
-the end compare with `ragres find-paths` on the same script.
+the end compare with `ragres find-paths` on the same script. Then moves (G, P, T, U), standing
+(N, Y) and states given (E, Q), as their makers below describe (docs/world/states.md).
 """
 import os
 import random
@@ -218,18 +219,72 @@ def make_stands(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
     return lines
 
 
+def make_enters(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
+    """The script for a map: actors (E) and players (Q) as make_goes and make_plays make them,
+    given a state through their vf10 from assorted states, or left in the state they are in,
+    and updated by ProcessState: the states 0 and 2 to 17 and some past them (not walking,
+    which needs a path), each now and then from state 4 or blocked by state 3 or +0xd0; with a
+    start of the state near the first update's time, +0xcc, and for state 8 an actor it faces,
+    found or not."""
+    rng = random.Random(zlib.crc32(b"enter " + name.encode()))
+    lines = []
+    goes = make_goes("enter " + name, width, height, attrs, count // 2, updates)
+    plays = make_plays("enter " + name, width, height, attrs, count - count // 2, updates)
+    states = [0, 2, 3, 4, 5, 6, 7, 8, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 0x7FFFFFFF, 0xFFFFFFFF]
+    for line in goes + plays:
+        if line[0] not in "GP":
+            lines.append(line)
+            continue
+        player = line[0] == "P"
+        tokens = line.split()
+        n = 44 if player else 39
+        fields, times = tokens[1:1 + n], tokens[1 + n:]
+        # The states whose entry (vf10) and update are ported.
+        unported_set = {2, 3, 4, 7, 9, 13}
+        unported_update = {13} if player else {3, 13}
+        before = rng.choice(states)
+        while before in unported_update:
+            before = rng.choice(states)
+        set_state = int(rng.random() < 0.75)
+        enter = rng.choice(states)
+        while enter in unported_set and not (enter == 7 and before == 6):
+            enter = rng.choice(states)
+        if rng.random() < 0.08:
+            before = 3
+        blocked = before == 3 or fields[19] != "0" or (enter == 7 and before == 6)
+        if not set_state or blocked:
+            state = before
+        else:
+            state = enter
+        if state in unported_update:
+            times = times[:2]
+        fields[17] = str(before)
+        x, z = (struct.unpack("<f", struct.pack("<I", int(fields[k], 0)))[0] for k in (0, 1))
+        tick = int(times[1])
+        enter_fields = [
+            str(set_state), str(enter), str(rng.choice([0, 1, 1, 7])),
+            str(rng.choice([0, rng.getrandbits(31), rng.getrandbits(31)])), str(int(rng.random() < 0.7)),
+            f"0x{bits(f32(x + rng.uniform(-60, 60))):08x}", f"0x{bits(f32(z + rng.uniform(-60, 60))):08x}",
+            str(rng.choice([0, 1, 1, 2])),
+            str((tick - rng.choice([0, 0, 24, 100, 199, 200, 201, 816, rng.randint(0, 5000)])) & 0xFFFFFFFF),
+        ]
+        lines.append({"G": "E ", "P": "Q "}[line[0]] + " ".join(fields + enter_fields + times))
+    return lines
+
+
 def main():
     args = path_oracle.arguments("walks per map", 40)
     ours, originals = path_oracle.run_maps(
         args, lambda *a: make_walks(*a) + make_goes(*a) + make_plays(*a) + make_tos(*a)
-        + make_stands(*a), "walks")
+        + make_stands(*a) + make_enters(*a), "walks")
     totals = {}
     for (_, lines, _), want in zip(ours, originals):
         for line, result in zip(lines, want):
             key = result.split()[0] if line[0] == "F" else {"W": "walk ", "G": "go ", "P": "player ", "T": "to ", "U": "player to ", "N": "stand ",
-                   "Y": "player stand "}[line[0]] + result.split()[0]
+                   "Y": "player stand ", "E": "enter ",
+                   "Q": "player enter "}[line[0]] + result.split()[0]
             totals[key] = totals.get(key, 0) + 1
-            if line[0] in "WGPTUNY" and result != "-":
+            if line[0] in "WGPTUNYEQ" and result != "-":
                 totals["updates"] = totals.get("updates", 0) + int(result.split()[1])
     return path_oracle.report(ours, originals, totals, "queries")
 

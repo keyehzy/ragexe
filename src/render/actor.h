@@ -79,6 +79,14 @@ std::int32_t ActorDirection(float facing, float camera_yaw);
 // 360.
 float AngleBetween(float x1, float y1, float x2, float y2);
 
+// CRenderObject::TurnTowards (005005b0): the facing (+0x38) that looks at (x, z) from where
+// the object stands, as GetAngleBetween.
+float TurnTowards(const Vec3& from, float x, float z);
+
+// The ticks in a span of milliseconds, as the frame step and state 8 count them: the span,
+// loaded as an unsigned 64-bit integer, times 1/24 (005e9000) rounded once to single precision.
+float SpanTicks(std::uint32_t milliseconds);
+
 // CRenderObject::vf08 (00500830) at time now (ms), with the direction its vf04 gave: the
 // action becomes the base action plus the direction, and the frame follows the time since
 // start over the delay, looping or, playing once, stopping at the last frame and finishing

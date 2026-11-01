@@ -22,9 +22,79 @@ constexpr std::int32_t kWalksMessage = 0xd;      // the actor's id
 constexpr std::int32_t kPetTalksMessage = 0xa1;  // a line of the pet's
 constexpr std::uint32_t kPetTalkDelay = 3000;    // ms after +0x1d4
 constexpr std::int32_t kPetTalkChance = 25;      // in 100
+constexpr std::int32_t kOnce = 1;                // the play mode of an action played once
+constexpr std::int32_t kSlideTime = 200;         // ms from state 4's start
+constexpr std::int32_t kFaceEvery = 34;          // ticks, state 8's turn toward its target
+
+// Whether CGameActor::SetState's work for a state is ported.
+bool SetsGameActorState(std::int32_t state) {
+  switch (state) {
+    case 2:
+    case 3:
+    case 4:
+    case 7:
+    case 9:
+    case 13: return false;
+    default: return true;
+  }
+}
+
+// The action CGameActor::SetState plays once for a state, or -1 for none.
+std::int32_t GameActorStateAction(std::int32_t state) {
+  switch (state) {
+    case 5: return 0x18;
+    case 11: return 0x20;
+    case 12: return 0x28;
+    default: return -1;
+  }
+}
 
 void Send(const StateContext& context, const ModeMessage& message) {
   if (context.messages != nullptr) context.messages->push_back(message);
+}
+
+// vf11 (00503110): the cell under the actor, to the game mode.
+void ReportCell(const GameActor& actor, const StateContext& context) {
+  const render::Vec3& at = actor.object.position;
+  const auto [cx, cz] = AttrCellAt(*context.attr, at[0], at[2]);
+  Send(context, {kStandsMessage, actor.id, cx, cz});
+}
+
+// State 8's turn toward the actor +0x1a8 names: while it names one, on every 34th tick since
+// the state began, when the world has it.
+void FaceTarget(GameActor& actor, const StateContext& context, std::uint32_t now) {
+  render::RenderObject& o = actor.object;
+  if (actor.target_id == 0) return;
+  if (core::Ftol(render::SpanTicks(now - o.start_time)) % kFaceEvery != 0) return;
+  if (context.target == nullptr) return;
+  o.facing = render::TurnTowards(o.position, (*context.target)[0], (*context.target)[2]);
+}
+
+// State 4's slide toward the target: true when the actor moved.
+template <typename SetState>
+bool Slide(GameActor& actor, std::uint32_t now, SetState set_state) {
+  render::RenderObject& o = actor.object;
+  const render::Vec3 from = o.position;
+  const float dx = actor.target_x - from[0];
+  const float dz = actor.target_z - from[2];
+  const std::uint32_t left = o.start_time - now + kSlideTime;
+  std::int32_t gone = static_cast<std::int32_t>(now - actor.processed_at);
+  if (gone < 0) gone = 0;
+  bool moved = false;
+  if (left != 0) {
+    moved = true;
+    const auto g = static_cast<double>(gone);
+    const auto l = static_cast<double>(left);
+    o.position[0] = core::RoundedQuotient(core::RoundedProduct(dx, g), l) + from[0];
+    o.position[2] = core::RoundedQuotient(core::RoundedProduct(dz, g), l) + from[2];
+  }
+  if (o.finished) {
+    o.position[0] = actor.target_x;
+    o.position[2] = actor.target_z;
+    moved = true;
+    set_state(kStand);
+  }
+  return moved;
 }
 
 // The direction, the state and its start: the end of both SetStates.
@@ -55,9 +125,9 @@ PathResult Move(Actor& actor, PathFinder& finder, const MoveOrder& order, std::u
 }
 
 template <typename Actor, typename SetState>
-StandResult Stand(Actor& actor, const StateContext& context, std::uint32_t now,
+StateResult Stand(Actor& actor, const StateContext& context, std::uint32_t now,
                   std::uint32_t server_time, SetState set_state) {
-  if (!BeginGameActorUpdate(actor, now)) return StandResult::kFaded;
+  if (!BeginGameActorUpdate(actor, now)) return StateResult::kFaded;
   render::RenderObject& o = actor.object;
   if (o.play_mode == 1 && o.finished) {
     set_state(kStand);
@@ -76,7 +146,57 @@ StandResult Stand(Actor& actor, const StateContext& context, std::uint32_t now,
   UpdateGameActorFrame(actor, *context.act, context.camera_yaw, now);
   actor.processed_at = now;
   actor.server_at = server_time;
-  return StandResult::kStanding;
+  return StateResult::kDone;
+}
+
+template <typename Actor, typename SetState>
+StateResult Update(Actor& actor, const StateContext& context, std::uint32_t now,
+                   std::uint32_t server_time, SetState set_state) {
+  render::RenderObject& o = actor.object;
+  switch (actor.state) {
+    case kStand: return Stand(actor, context, now, server_time, set_state);
+    case kWalk: {
+      const WalkResult r =
+          ProcessWalk(actor, *context.attr, *context.act, context.camera_yaw, now, server_time);
+      if (r == WalkResult::kFaded) return StateResult::kFaded;
+      if (r == WalkResult::kArrived) set_state(kStand);
+      return StateResult::kDone;
+    }
+    case 3:
+    case 13: return StateResult::kNotPorted;
+    default: break;
+  }
+  if (!BeginGameActorUpdate(actor, now)) return StateResult::kFaded;
+  const auto frame = [&] { UpdateGameActorFrame(actor, *context.act, context.camera_yaw, now); };
+  bool moved = false;
+  switch (actor.state) {
+    case 5:
+    case 7: actor.field_0xcc = 0; [[fallthrough]];
+    case 2:
+    case 9:
+    case 12:
+      frame();
+      if (o.finished) set_state(kStand);
+      break;
+    case 4:
+      actor.field_0xcc = 0;
+      frame();
+      moved = Slide(actor, now, set_state);
+      break;
+    case 8:
+      actor.field_0xcc = 0;
+      frame();
+      FaceTarget(actor, context, now);
+      break;
+    case 10: actor.field_0xcc = 0; break;
+    case 16:
+    case 17: frame(); break;
+    default: break;
+  }
+  actor.processed_at = now;
+  actor.server_at = server_time;
+  if (moved) o.position[1] = res::AttrHeight(*context.attr, o.position[0], o.position[2]);
+  return StateResult::kDone;
 }
 
 template <typename Actor, typename SetState>
@@ -152,7 +272,8 @@ void SetGameActorAction(GameActor& actor, const res::Act& act, std::int32_t acti
 bool SetGameActorState(GameActor& actor, std::int32_t state, const StateContext& context,
                        std::uint32_t now) {
   if (actor.state == 3 || actor.field_0xd0 != 0) return true;
-  if (state != kStand && state != kWalk) return false;
+  if (state == 7 && actor.state == 6) return true;
+  if (!SetsGameActorState(state)) return false;
   render::RenderObject& o = actor.object;
   if (actor.state == 4) {
     o.position[0] = actor.target_x;
@@ -163,13 +284,18 @@ bool SetGameActorState(GameActor& actor, std::int32_t state, const StateContext&
     SetGameActorAction(actor, *context.act, kStandAction, 0);
     // A standing actor holds its frame, but for a few ids on the Korean service.
     if (!IsSpecialActorIdOnKoreaService(context.service_type, actor.id)) o.finished = true;
-    // vf11 (00503110).
-    const auto [cx, cz] = AttrCellAt(*context.attr, o.position[0], o.position[2]);
-    Send(context, {kStandsMessage, actor.id, cx, cz});
-  } else {
+    ReportCell(actor, context);
+  } else if (state == kWalk) {
     if (actor.field_0xd8 == 0) SetGameActorAction(actor, *context.act, kWalkAction, 0);
     // vf12 (00503160).
     Send(context, {kWalksMessage, actor.id, 0, 0});
+  } else if (const std::int32_t action = GameActorStateAction(state); action >= 0) {
+    if (state == 5) {
+      actor.field_0xcc = 0;
+      o.held = false;
+    }
+    SetGameActorAction(actor, *context.act, action, kOnce);
+    if (state == 12) ReportCell(actor, context);
   }
   FinishState(actor, state, context, now);
   return true;
@@ -179,13 +305,21 @@ bool SetPlayerState(PlayerActor& player, std::int32_t state, const StateContext&
                     std::uint32_t now) {
   const std::int32_t before = player.state;
   if (before == 3 || player.field_0xd0 != 0) return true;
-  if (state != kStand && state != kWalk) return false;
+  if (state == 7 && before == 6) return true;
+  const bool own = state == kStand || state == kWalk || state == 6 || state == 8;
+  if (state == 2 || state == 7 || state == 9 || (!own && !SetsGameActorState(state))) return false;
   render::RenderObject& o = player.object;
   if (before == 4) {
     o.position[0] = player.target_x;
     o.position[2] = player.target_z;
   }
-  if (state == kStand) {
+  if (!own) return SetGameActorState(player, state, context, now);
+  if (state == 6 || state == 8) {
+    ReportCell(player, context);
+    SetGameActorAction(player, *context.act, state == 6 ? 0x10 : 0x60, kOnce);
+    o.finished = true;
+    if (state == 6) o.frame = player.saved_frame;
+  } else if (state == kStand) {
     SetGameActorState(player, kStand, context, now);
     o.frame = player.saved_frame;
     if (before == 4 || before == 2 || player.field_0x224 != 0 || before == 8)
@@ -234,16 +368,33 @@ PathResult MoveGameActorTo(PlayerActor& player, PathFinder& finder, std::int32_t
                 [&](std::int32_t state) { SetPlayerState(player, state, context, now); });
 }
 
-StandResult ProcessStand(GameActor& actor, const StateContext& context, std::uint32_t now,
-                         std::uint32_t server_time) {
-  return Stand(actor, context, now, server_time,
-               [&](std::int32_t state) { SetGameActorState(actor, state, context, now); });
+StateResult ProcessGameActorState(GameActor& actor, const StateContext& context, std::uint32_t now,
+                                  std::uint32_t server_time) {
+  return Update(actor, context, now, server_time,
+                [&](std::int32_t state) { SetGameActorState(actor, state, context, now); });
 }
 
-StandResult ProcessStand(PlayerActor& player, const StateContext& context, std::uint32_t now,
-                         std::uint32_t server_time) {
-  return Stand(player, context, now, server_time,
-               [&](std::int32_t state) { SetPlayerState(player, state, context, now); });
+StateResult ProcessGameActorState(PlayerActor& player, const StateContext& context,
+                                  std::uint32_t now, std::uint32_t server_time) {
+  const auto set_state = [&](std::int32_t state) { SetPlayerState(player, state, context, now); };
+  switch (player.state) {
+    case 2:
+    case 3:
+    case 6:
+    case 7:
+    case 8: break;
+    default: return Update(player, context, now, server_time, set_state);
+  }
+  if (!BeginGameActorUpdate(player, now)) return StateResult::kFaded;
+  render::RenderObject& o = player.object;
+  if (player.state == 3) o.held = false;
+  UpdateGameActorFrame(player, *context.act, context.camera_yaw, now);
+  if (player.state == 8) {
+    FaceTarget(player, context, now);
+  } else if ((player.state == 2 || player.state == 7) && o.finished) {
+    set_state(kStand);
+  }
+  return StateResult::kDone;
 }
 
 }  // namespace ragexe::world

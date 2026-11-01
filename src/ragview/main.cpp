@@ -984,13 +984,10 @@ int main(int argc, char** argv) {
     if (actor_state.state != 1) return;
     world::StateContext context = state_context;
     context.camera_yaw = camera.yaw;
-    if (world::ProcessWalk(actor_state, attr, actor.act, camera.yaw, now, now) ==
-        world::WalkResult::kArrived) {
-      if (o.player)
-        world::SetPlayerState(actor_state, 0, context, now);
-      else
-        world::SetGameActorState(actor_state, 0, context, now);
-    }
+    if (o.player)
+      world::ProcessGameActorState(actor_state, context, now, now);
+    else
+      world::ProcessGameActorState(static_cast<world::GameActor&>(actor_state), context, now, now);
     player = actor_object.position;
   };
 

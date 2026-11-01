@@ -32,7 +32,7 @@ a speed:
 ## The states
 
 `SetState` (`005034e0`, `vf10`), with the new state:
-1. **Nothing** in state 3, or while +0xd0 is set.
+1. **Nothing** in state 3, or while +0xd0 is set; nor for state 7 in state 6.
 2. **Leaving state 4,** the actor is put on its target (+0x228, +0x22c) and set on the ground.
 3. **The state's own work** (below).
 4. **The direction:** the action (+0x24) becomes the base action (+0x20) plus `GetDirection`
@@ -51,7 +51,62 @@ a speed:
 - the action 8 in a loop, unless +0xd8 is set;
 - `vf12` (`00503160`): the game mode hears message 0xd with the actor's id.
 
-The other states, their actions and side effects are not ported.
+**The states played once** (a byte of `SetState`'s jump table at `005037f0` for each state to
+13; past 13 straight to the end). Each action is played once (play mode 1) through `vf07`, its
+second argument again never read:
+
+| State | Its work |
+|---|---|
+| 5 (`00503787`) | +0xcc and +0x82 cleared, then the action 0x18 |
+| 11 (`005037a2`) | the action 0x20 |
+| 12 (`005037b1`) | the action 0x28, then `vf11`, the cell to the game mode |
+| 6, 8, 10 and past 13 (`005037c5`) | none: only the direction, the state and its time |
+
+**Not ported:** the other states' work:
+- 2, 7 and 9 face the actor +0x1a8 names through the world (`CWorld::GetActorById`), with
+  their own actions and `vf33`;
+- 3 plays the action 0x40 and, for +0x218 2, sends the actor messages 0x3b and 0x3e;
+- 4 sends that actor message 0x57, sends itself 0x54 and 0x53, plays 0x30 and reports the cell;
+- 13 reads `ClientState`'s tables by the job.
+
+## Each update
+
+`CGameActor::ProcessState` (`005038c0`, `vf09`) begins with the hold and the fade in every
+state ([walk.md](walk.md#an-update)), then does the state's work (its jump table is at
+`00503ee8`, to state 17), and ends with the update's times (+0x19c, +0x1a0) and, if the actor
+moved, its height. Standing and walking are below and in [walk.md](walk.md#walking).
+
+| State | Its work |
+|---|---|
+| 2, 9 (`00503cd1`) | `vf08`, the frame by the time; the action finished (+0x81), `SetState(0)` |
+| 5, 7 (`00503d70`) | +0xcc cleared, then as 12 |
+| 12 (`00503d76`) | `vf08`; the action finished, `SetState(0)` |
+| 4 (`00503d98`) | +0xcc cleared, `vf08`, then the slide (below) |
+| 8 (`00503cec`) | +0xcc cleared, `vf08`, then the turn toward the target (below) |
+| 10 (`00503ed5`) | +0xcc cleared |
+| 16, 17 (`00503ec9`) | `vf08` |
+| 6, 11, 14, 15 and past 17 (`00503c96`) | none |
+
+**The slide (state 4):**
+1. The time left is 200 ms past the state's start (+0x70), less `timeGetTime`, unsigned. The
+   time gone is `timeGetTime` less the last update's (+0x19c), signed and at least 0.
+2. While some time is left, each of x and z becomes its own plus the way to the target (+0x228,
+   +0x22c) times the time gone over the time left. Both times are loaded whole as integers, so
+   the product and the quotient each round once to single precision. The actor has moved.
+3. Once the action is finished, the actor is put on the target and stands (`SetState(0)`,
+   which puts it there again).
+
+**The turn toward the target (state 8):** with +0x1a8 set, `__ftol` of the milliseconds since
+the state's start times 1/24 (`005e9000`, as the frame step counts them) is a tick. When a
+tick's remainder by 34 is 0, `CWorld::GetActorById` looks the actor up. If it is found,
+`CRenderObject::TurnTowards` (`005005b0`) sets the facing (+0x38) toward its x and z (+4, +0xc),
+as `GetAngleBetween` would. The action (+0x24) isn't recomputed there; the next `vf08` takes the
+new facing.
+
+**Not ported:** state 3's update. It clears +0x82 and +0xcc and runs `vf08`. Once the action is
+finished, with the list at +0x20c empty, the game mode hears message 0xd with the actor's id. A
+job past 0x16 then calls `vf34`, and the update returns 0. Also not ported: state 13's, which
+reads `ClientState`'s tables by the job, and its time at +0x1d8.
 
 ## Players
 
@@ -66,8 +121,27 @@ then sets):
   (`UIWindowMgr::QueueRemoval`, `004a90c0`) and clears it. +0x294 is cleared, then
   `CGameActor`'s.
 
+- **6** (`0054308f`): `vf11`, the cell to the game mode; the action 0x10 played once, finished
+  (+0x81) at once; the frame from +0x294.
+- **8** (`0054306f`): `vf11`; the action 0x60 played once, finished at once.
+- **3, 4, 5 and past 9** (`005433bf`) are `CGameActor`'s, called with the state, and end there.
+
 Both end as `CGameActor`'s does: the direction of the action, which may now be 32's, the state
 and its time. Message 0 goes to `CGameActor::SendMsg`, which calls the player's `SetState`.
+
+**Not ported:** `CPc`'s own 2, 7 and 9. States 2 and 9 choose between 2 and 9 by `ClientState`
+`0059a440`, take +0x1ac from `0059a3e0`, and may add an arrow effect. State 7 plays an action
+by the job and sets +0x1ac to 6.
+
+**Each update** (`CPc::ProcessState`, `00542eb0`) has the same hold and fade, then for states 2
+to 8 its own table (`00542ff8`). Its own states return 1 without the times:
+- **2** (`00542f96`) and **7** (`00542f8d`): `vf08`; the action finished, `SetState(0)`, the
+  player's.
+- **3** (`00542fc8`): +0x82 cleared, then `vf08`. A dying player stays.
+- **6** (`00542fb8`): `vf08`.
+- **8** (`00542f13`): `vf08`, then the turn toward the target as `CGameActor`'s, keeping +0xcc.
+- **4, 5 and the rest** (`00542fe9`) are `CGameActor::ProcessState`, whose `SetState(0)` is the
+  player's.
 
 **An action** (`CGameActor::vf07`, `00502ff0`) is `CRenderObject::SetAction` (`00500de0`),
 then pushed (+0x190) cleared and +0x1ac −1. `SetAction`:
@@ -118,29 +192,35 @@ the walk put it, at the goal's centre.
 
 `src/world/actor_state.{h,cpp}`, in `ragexe_world`:
 - `MoveGameActor`, message 0, with a `MoveOrder`, and `MoveGameActorTo`, message 0x13;
-- `SetGameActorState` for 0 and 1 (others return false having done nothing), and
-  `SetGameActorAction`;
+- `SetGameActorState` for 0, 1, 5, 6, 8, 10, 11, 12, those past 13, and 7 in state 6 (others
+  return false having done nothing), and `SetGameActorAction`;
 - `AttrCellAt`, `CellPointAt` (`GetCellPoint`) and `IsSpecialActorIdOnKoreaService`;
 - `ModeMessage`: what the game mode hears, kept in the `StateContext`'s list when there is one,
   with the windows queued for removal and `CGameMode`+0x2a0;
 - `PlayerActor`, `CPc`'s fields, with `SetPlayerState` and a `MoveGameActor` that calls it;
-- `ProcessStand`, a standing actor's update, for actors and players. `ClientState`'s pet tables
-  aren't ported: the caller gives the pet and its two lines (`PetTalk`), and the C runtime's
-  `rand` (`core::CrtRand`).
+- `ProcessGameActorState`, an update in any state but 3 and 13 for actors and 13 for players
+  (`StateResult::kNotPorted`, having done nothing): walking as `ProcessWalk`, standing at the
+  end, standing with the pet's talk, and the rest above. `ClientState`'s pet tables aren't
+  ported: the caller gives the pet and its two lines (`PetTalk`), and the C runtime's `rand`
+  (`core::CrtRand`). Nor is the world: the caller gives where the actor +0x1a8 names stands
+  (`StateContext::target`) when the world has it.
 
 `render::SetAction` and `render::ActionDelay` (`src/render/actor`) are `CRenderObject`'s;
 `RenderObject` gained +0x50, the delay's scale.
 
-`GameActor` gained the goal, the speed, +0xd0, +0xd8, +0x1ac and the target of state 4.
+`GameActor` gained the goal, the speed, +0xd0, +0xd8, +0x1ac, +0x1a8 and the target of
+state 4. `render::TurnTowards` and `render::SpanTicks` (the 1/24 ms ticks) are shared with the
+effects and the frame step.
 
 **`ragview`** walks its actor, a player with `CPc`'s states: a left click on the cell under the
 mouse sends it message 0 from the cell and sixteenths it stands in (`CellPointAt`), as a server
-would, with `timeGetTime` for the server's time. Each frame walks it until it stands, and steps a
-standing actor's frame.
+would, with `timeGetTime` for the server's time. Each frame walks it (`ProcessGameActorState`)
+until it stands, and steps a standing actor's frame.
 
 `ragres find-paths` takes moves: `G`, the actor's fields, the order, then the message's and each
 update's times; `P`, the same for a player; `T` and `U`, message 0x13 for both; `N` and `Y`, a
-standing actor and player, with `srand`'s seed, the pet and its lines.
+standing actor and player, with `srand`'s seed, the pet and its lines; `E` and `Q`, an actor
+and a player given a state or left in theirs, then updated.
 
 ## Checks
 
@@ -165,6 +245,14 @@ messages are hashed, and equal `ragres find-paths`:
 - **11,480 standing actors and players** (`N` and `Y`: `ProcessState` update by update, often
   a pet whose talk is due, with `srand`'s seed and the pet's lines given; actions played once,
   finished or not) and 2,232,775 updates, +0x1d4 hashed too: 866 faded, the rest standing.
+- **11,480 actors and players given states** (`E` and `Q`: `vf10`, `CGameActor::SetState` or
+  `CPc::SetState`, from assorted states, or left in theirs; then `ProcessState` update by
+  update) and 1,891,384 updates, +0xcc hashed too:
+  - the states before and asked for are 0, 2 to 18, 0x7fffffff and −1, now and then blocked by
+    state 3 or +0xd0, or 7 asked in state 6;
+  - +0x1a8 named or not, the world finding it (`CWorld::GetActorById`, answered by the oracle)
+    or not; the state's start near the first update;
+  - 1,219 changed state (stood), 766 faded, 9,495 stayed.
 
 `tools/state_vectors.py` writes `tests/unit/state_vectors.inc`:
 - **moves** on `tools/walk_vectors.py`'s three maps, with short walks;
@@ -174,7 +262,13 @@ messages are hashed, and equal `ragres find-paths`:
 `tools/player_state_vectors.py` writes `tests/unit/player_state_vectors.inc`, player moves on
 the same maps, and `tools/move_to_vectors.py` writes `tests/unit/move_to_vectors.inc`: moves from
 where the actor stands on them, and `GetCellPoint` at the cells' and the sixteenths' edges. `tools/stand_vectors.py` writes `tests/unit/stand_vectors.inc`: standing actors on them, then
-a pet that talks, one that doesn't, and an action played once and finished. `tests/unit/walk_test.cpp` replays them.
+a pet that talks, one that doesn't, and an action played once and finished.
+`tools/enter_vectors.py` writes `tests/unit/enter_vectors.inc`: actors and players given states
+on them, then state 8 on its 34th tick, a tick either side and on tick 0, its target not found
+and none named, state 4's slide with 200 ms, 1 ms and none left, played once and finished (with
++0xd0 too, so that only the slide puts it on the target), and a way times the time gone just
+past a tie of single precision; 7 asked in state 6, 5, 11 and 12 played to the end, and 2 and 7
+left in and played to the end. `tests/unit/walk_test.cpp` replays them.
 
-**Not ported:** the other messages and states (sitting, attacking, dying and the rest), and
-`CPlayer::SetState`'s own work before `CPc`'s.
+**Not ported:** the other messages; the states above that aren't; and `CPlayer::SetState`'s
+own work before `CPc`'s.
