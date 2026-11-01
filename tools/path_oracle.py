@@ -68,6 +68,13 @@ PLAYER_FIELDS = GO_FIELDS + ["f218", "f294", "f1cc", "f224", "fcc"]
 # T and U: a G and a P whose move is message 0x13 from where the actor stands, to the goal
 # (gx, gy) at the speed given last (the order's time and start unread).
 TO_SPEED = ["to_speed"]
+# N and Y: a G and a P whose actor stands (state 0) with no message, its updates
+# CGameActor::ProcessState's standing: then srand's seed, ClientState's pet (+0x7d0) and the two
+# lines its tables give (005aa3e0's, then the table +0x824's), +0x1d4, the play mode +0x54 and
+# +0x1f4. The hash takes +0x1d4 too.
+STAND_FIELDS = ["seed", "pet_id", "pet_first", "pet_second", "talk_at", "play", "f1f4"]
+SRAND, PET_ID, PET_TABLE = 0x5C2546, 0x686E40, 0x686E94
+PET_LEVEL_A, PET_LEVEL_B, PET_LINE = 0x5A9F40, 0x5A9FA0, 0x5AA3E0
 SINGLE = 0x007F
 SPEEDS = [150, 150, 150, 100, 200, 75, 300, 120, 1, 7, 999]
 
@@ -193,6 +200,11 @@ class Oracle:
         emu.replace_thiscall(MESSAGE_STUB, 4, lambda this, *v: self.messages.extend(v))
         self.windows = []
         emu.replace_thiscall(CLOSE_WINDOW, 1, lambda this, window: self.windows.append(window))
+        # The pet's lines (ClientState's tables): both levels 0, so the table's first record.
+        self.pet_line = 0
+        emu.replace_thiscall(PET_LEVEL_A, 1, lambda this, v: 0)
+        emu.replace_thiscall(PET_LEVEL_B, 1, lambda this, v: 0)
+        emu.replace_thiscall(PET_LINE, 3, lambda this, a, b, c: self.pet_line)
         # The body's CActRes: GetActionDelay reads the delays at +0x138..+0x13c.
         self.act = emu.scratch(size=0x144)
         self.delays = emu.scratch(size=4 * 9)
@@ -229,7 +241,7 @@ class Oracle:
         self.paths = []
         for line in lines:
             kind, *values = line.split()
-            v = [int(x) for x in values] if kind not in ("W", "G", "P", "T", "U") else []
+            v = [int(x) for x in values] if kind not in ("W", "G", "P", "T", "U", "N", "Y") else []
             self.logged = []
             if kind == "F":
                 found = emu.call(FIND_PATH, *v, self.actor + ACTOR_PATH, this=G_PATH_FINDER).eax & 0xFF
@@ -270,6 +282,10 @@ class Oracle:
                 out.append(self.go(values, to=True))
             elif kind == "U":
                 out.append(self.go(values, player=True, to=True))
+            elif kind == "N":
+                out.append(self.go(values, stand=True))
+            elif kind == "Y":
+                out.append(self.go(values, player=True, stand=True))
         emu.heap_release(mark)
         return out
 
@@ -322,12 +338,12 @@ class Oracle:
         emu.write_u32(self.view + 0x20, w["yaw"])
         self.frames = w["frames"]
 
-    def go(self, values, player=False, to=False):
+    def go(self, values, player=False, to=False, stand=False):
         """CGameActor::vf02's message 0 on the actor, then ProcessState update by update, with
         SetState run, until the actor stands again or has faded; for a player, a CPc's."""
         emu, actor = self.emu, self.actor
         v = [int(x, 0) for x in values]
-        names = (PLAYER_FIELDS if player else GO_FIELDS) + (TO_SPEED if to else [])
+        names = (PLAYER_FIELDS if player else GO_FIELDS) + (TO_SPEED if to else []) + (STAND_FIELDS if stand else [])
         g = dict(zip(names, v))
         updates = v[len(names):]
         self.place(g)
@@ -367,6 +383,15 @@ class Oracle:
         emu.write_u32(self.act + 0x13C, self.delays + 4 * g["delay_count"])
         order = emu.scratch(struct.pack("<I6i", g["time"] & 0xFFFFFFFF, g["sx"], g["sy"], g["subx"], g["suby"],
                                         g["gx"], g["gy"]))
+        if stand:
+            emu.call(SRAND, g["seed"] & 0xFFFFFFFF)
+            emu.write_u32(PET_ID, g["pet_id"] & 0xFFFFFFFF)
+            self.pet_line = g["pet_first"] & 0xFFFFFFFF
+            emu.write_u32(PET_TABLE, g["pet_second"] & 0xFFFFFFFF)
+            emu.write_u32(actor + 0x1D4, g["talk_at"] & 0xFFFFFFFF)
+            emu.write_u32(actor + 0x54, g["play"])
+            emu.write_u32(actor + 0x1F4, g["f1f4"] & 0xFFFFFFFF)
+            return self.stand(updates, extra)
         h = 0xCBF29CE484222325
         self.messages, self.states = [], []
         self.server, self.now = updates[0], updates[1]
@@ -393,6 +418,22 @@ class Oracle:
                 break
             if emu.read_u32(actor + 0x58) != 1:
                 last = "arrived"
+                break
+        r = [emu.read_u32(actor + o) for o in (0x4, 0x8, 0xC, 0x38, 0x24, 0x28, 0x58)]
+        return f"{last} {calls} {r[0]:08x} {r[1]:08x} {r[2]:08x} {r[3]:08x} {r[4]} {r[5]} {r[6]} {h:016x}"
+
+    def stand(self, updates, extra):
+        """ProcessState update by update on a standing actor, until its fade ends."""
+        emu, actor = self.emu, self.actor
+        h, calls, last = 0xCBF29CE484222325, 0, "standing"
+        for server, tick in zip(updates[::2], updates[1::2]):
+            self.messages, self.states = [], []
+            self.now, self.server = tick, server
+            ret = emu.call(PROCESS, this=actor).eax & 0xFF
+            calls += 1
+            h = fnv1a64([ret, *self.fields(), *self.messages, *extra(), emu.read_u32(actor + 0x1D4)], h)
+            if ret == 0:
+                last = "faded"
                 break
         r = [emu.read_u32(actor + o) for o in (0x4, 0x8, 0xC, 0x38, 0x24, 0x28, 0x58)]
         return f"{last} {calls} {r[0]:08x} {r[1]:08x} {r[2]:08x} {r[3]:08x} {r[4]} {r[5]} {r[6]} {h:016x}"

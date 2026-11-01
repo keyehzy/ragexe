@@ -32,6 +32,7 @@ struct GameActor {
   std::int32_t job = 0;            // +0x1b8
   std::int32_t window = 0;         // +0x1cc, a window of the actor's, closed when it walks
   std::uint32_t hold_until = 0;    // +0x1d0: held (+0x82) until timeGetTime passes it
+  std::uint32_t pet_talk_at = 0;   // +0x1d4: a pet may talk 3 s after it, then it is 0
   std::int32_t field_0x1f4 = 0;    // +0x1f4, from the packets that bring it in
   std::uint32_t effect_state = 0;  // +0x21c; bit 5 mounts jobs 7 and 14
   std::int32_t field_0x224 = 0;    // +0x224 (SetField224, 00506be0)
@@ -54,6 +55,10 @@ std::int32_t GameActorDirection(const GameActor& actor, float facing, float came
 // direction of GameActorDirection, as the actor's vtable gives vf04.
 void UpdateGameActorFrame(GameActor& actor, const res::Act& act, float camera_yaw,
                           std::uint32_t now);
+
+// The start of CGameActor::ProcessState (005038c0) in every state: the hold (+0x1d0) and the
+// fade (UpdateFade, 00503830). False once the fade is over, when the update returns 0 at once.
+bool BeginGameActorUpdate(GameActor& actor, std::uint32_t now);
 
 // What CGameActor::ProcessState came to.
 enum class WalkResult {

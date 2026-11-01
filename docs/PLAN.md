@@ -2849,6 +2849,13 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Checks:** `tools/walk_oracle.py`'s `T` and `U` moves on all 287 maps: 11,480 moves and
     127,516 updates equal; `move_to_vectors.inc` keeps short ones and `GetCellPoint` at the
     edges.
+- [x] Standing, each update (`docs/world/states.md#standing-each-update`): `ProcessState` for
+  state 0. A finished action played once stands again; the player's pet talks (message 0xa1
+  twice, 25 in 100 by `rand`, 3 s after +0x1d4); then the frame by the time. `ragview` steps a
+  standing actor's frame only, as the original never steps a walking one's by the time.
+  - **Checks:** `tools/walk_oracle.py`'s `N` and `Y` on all 287 maps: 11,480 standing actors and
+    players over 2,232,775 updates equal, `srand` seeded alike and `ClientState`'s pet lines
+    given; `stand_vectors.inc` keeps short ones and a pet that talks.
 
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,

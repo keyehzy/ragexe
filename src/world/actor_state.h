@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <vector>
 
+#include "core/crt_rand.h"
 #include "res/act.h"
 #include "res/gat.h"
 #include "world/actor_walk.h"
@@ -20,6 +21,15 @@ struct ModeMessage {
   bool operator==(const ModeMessage&) const = default;
 };
 
+// What a pet says when it talks (CGameActor::ProcessState, standing): ClientState's pet
+// (+0x7d0) and the two lines of its tables the game mode hears, the first from 005aa3e0, the
+// second from the table at +0x824 by 005a9f40's and 005a9fa0's levels.
+struct PetTalk {
+  std::int32_t pet_id = 0;
+  std::int32_t first = 0;
+  std::int32_t second = 0;
+};
+
 // What the actors' states read beyond the actor (docs/world/states.md).
 struct StateContext {
   const res::AttrMap* attr = nullptr;                   // CWorld+0x40
@@ -29,6 +39,8 @@ struct StateContext {
   std::vector<ModeMessage>* messages = nullptr;         // what goes to the game mode, when kept
   std::vector<std::int32_t>* closed_windows = nullptr;  // UIWindowMgr 004a90c0's, when kept
   std::int32_t* mode_field_0x2a0 = nullptr;  // CGameMode+0x2a0, which a player standing clears
+  const PetTalk* pet = nullptr;              // the player's pet, when there is one
+  core::CrtRand* rand = nullptr;             // the C runtime's rand, which a pet's talk draws on
 };
 
 // The CPc fields a player's states read and write beyond a CGameActor's.
@@ -75,6 +87,22 @@ bool SetGameActorState(GameActor& actor, std::int32_t state, const StateContext&
 // the saved frame.
 bool SetPlayerState(PlayerActor& player, std::int32_t state, const StateContext& context,
                     std::uint32_t now);
+
+// What CGameActor::ProcessState came to for a standing actor.
+enum class StandResult {
+  kFaded,     // returned 0: the fade (+0x234) is over
+  kStanding,  // returned 1
+};
+
+// CGameActor::ProcessState (005038c0) for an actor standing (state 0), at timeGetTime `now`
+// and the server's time: the hold and the fade, then an action played once and finished
+// stands again (SetState(0)), or the player's pet (jobs 1000 to 0x57f, +0x1f4 20, its id the
+// pet's) may talk: 3 s after +0x1d4, a rand() % 100 below 25 sends the game mode 0xa1 with
+// each of its lines, and +0x1d4 is cleared. Then the frame (vf08) and the times.
+StandResult ProcessStand(GameActor& actor, const StateContext& context, std::uint32_t now,
+                         std::uint32_t server_time);
+StandResult ProcessStand(PlayerActor& player, const StateContext& context, std::uint32_t now,
+                         std::uint32_t server_time);
 
 // The order message 0 carries (CGameActor::vf02): when, and from which cell (with the
 // sixteenths in it) to which.

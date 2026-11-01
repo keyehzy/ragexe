@@ -77,6 +77,7 @@ struct CellPointVector {
 
 #include "move_to_vectors.inc"
 #include "player_state_vectors.inc"
+#include "stand_vectors.inc"
 #include "state_vectors.inc"
 
 // tools/walk_vectors.py's heights for the hilly maps.
@@ -194,11 +195,12 @@ std::string Walk(const AttrMap& map, const MovePath& path, std::istringstream& f
 
 // Replays a G query as ragres find-paths does: message 0, then the walk to standing.
 std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istringstream& fields,
-               bool player, bool to = false) {
+               bool player, bool to = false, bool stand = false) {
   std::vector<std::uint32_t> v;
   for (std::string token; fields >> token;)
     v.push_back(static_cast<std::uint32_t>(std::stoll(token, nullptr, 0)));
-  const std::size_t kFields = (player ? 44 : 39) + (to ? 1 : 0);
+  const std::size_t base_fields = player ? 44 : 39;
+  const std::size_t kFields = base_fields + (to ? 1 : 0) + (stand ? 7 : 0);
   ragexe::world::PlayerActor actor;
   actor.path = path;
   auto& o = actor.object;
@@ -248,11 +250,29 @@ std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istr
                                        static_cast<std::int32_t>(v[31]),
                                        static_cast<std::int32_t>(v[32]),
                                        static_cast<std::int32_t>(v[33])};
+  // N and Y: srand's seed, the pet and its lines, +0x1d4, +0x54 and +0x1f4.
+  ragexe::core::CrtRand rand(stand ? v[base_fields] : 1);
+  ragexe::world::PetTalk pet;
+  if (stand) {
+    pet = {static_cast<std::int32_t>(v[base_fields + 1]),
+           static_cast<std::int32_t>(v[base_fields + 2]),
+           static_cast<std::int32_t>(v[base_fields + 3])};
+    actor.pet_talk_at = v[base_fields + 4];
+    o.play_mode = static_cast<std::int32_t>(v[base_fields + 5]);
+    actor.field_0x1f4 = static_cast<std::int32_t>(v[base_fields + 6]);
+  }
   std::vector<ragexe::world::ModeMessage> messages;
   std::vector<std::int32_t> windows;
   std::int32_t mode_field_0x2a0 = 0x5a5a5a5a;
-  const ragexe::world::StateContext context{
-      &map, &act, yaw, static_cast<std::int32_t>(v[21]), &messages, &windows, &mode_field_0x2a0};
+  const ragexe::world::StateContext context{&map,
+                                            &act,
+                                            yaw,
+                                            static_cast<std::int32_t>(v[21]),
+                                            &messages,
+                                            &windows,
+                                            &mode_field_0x2a0,
+                                            stand ? &pet : nullptr,
+                                            &rand};
   std::uint64_t h = 0xcbf29ce484222325ull;
   const auto fold = [&h](std::uint32_t x) {
     const std::uint8_t le[4] = {static_cast<std::uint8_t>(x), static_cast<std::uint8_t>(x >> 8),
@@ -304,6 +324,31 @@ std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istr
     }
     messages.clear();
   };
+  if (stand) {
+    int updates = 0;
+    const char* end = "standing";
+    for (std::size_t k = kFields; k + 1 < v.size(); k += 2) {
+      const auto r =
+          player ? ragexe::world::ProcessStand(actor, context, v[k + 1], v[k])
+                 : ragexe::world::ProcessStand(static_cast<ragexe::world::GameActor&>(actor),
+                                               context, v[k + 1], v[k]);
+      ++updates;
+      fold(r == ragexe::world::StandResult::kFaded ? 0u : 1u);
+      fold_fields();
+      fold_messages();
+      fold_player();
+      fold(actor.pet_talk_at);
+      if (r == ragexe::world::StandResult::kFaded) {
+        end = "faded";
+        break;
+      }
+    }
+    char line[160];
+    std::snprintf(line, sizeof line, "%s %d %08x %08x %08x %08x %d %d %d %016llx", end, updates,
+                  Bits(o.position[0]), Bits(o.position[1]), Bits(o.position[2]), Bits(o.facing),
+                  o.action, o.frame, actor.state, static_cast<unsigned long long>(h));
+    return line;
+  }
   const auto to_speed = static_cast<std::int32_t>(v[kFields - 1]);
   auto& base = static_cast<ragexe::world::GameActor&>(actor);
   if (to && player)
@@ -550,6 +595,29 @@ TEST_CASE("The cell and sixteenths under a point are CGameMode 00511c30's", "[wa
     CHECK(p.cell_y == v.cell_z);
     CHECK(p.sub_x == v.sub_x);
     CHECK(p.sub_y == v.sub_z);
+  }
+}
+
+TEST_CASE("Actors and players stand as the original's ProcessState", "[walk]") {
+  int current = -1;
+  AttrMap map;
+  PathFinder finder;
+  MovePath path;
+  for (const StateQueryVector& v : kStandQueries) {
+    if (v.map != current) {
+      current = v.map;
+      map = MakeMap(kWalkMaps[current]);
+      finder = PathFinder();
+      finder.SetAttrMap(&map);
+      path = MovePath();
+    }
+    INFO(kWalkMaps[current].name << ": " << v.query);
+    std::istringstream fields(v.query);
+    char kind = 0;
+    fields >> kind;
+    const std::string got = kind == 'F' ? Search(finder, path, fields)
+                                        : Go(map, finder, path, fields, kind == 'Y', false, true);
+    CHECK(got == v.result);
   }
 }
 

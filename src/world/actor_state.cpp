@@ -16,9 +16,12 @@ constexpr std::int32_t kWalkAction = 8;
 constexpr std::int32_t kReadyAction = 32;
 constexpr float kSixteenths = 16.0f;  // 005e2728
 constexpr std::int32_t kPushSpeed = 2;
-constexpr std::int32_t kPushSpeedAlone = 0x37;  // with +0xd8 set
-constexpr std::int32_t kStandsMessage = 0xc;    // the actor's id and the cell it stands on
-constexpr std::int32_t kWalksMessage = 0xd;     // the actor's id
+constexpr std::int32_t kPushSpeedAlone = 0x37;   // with +0xd8 set
+constexpr std::int32_t kStandsMessage = 0xc;     // the actor's id and the cell it stands on
+constexpr std::int32_t kWalksMessage = 0xd;      // the actor's id
+constexpr std::int32_t kPetTalksMessage = 0xa1;  // a line of the pet's
+constexpr std::uint32_t kPetTalkDelay = 3000;    // ms after +0x1d4
+constexpr std::int32_t kPetTalkChance = 25;      // in 100
 
 void Send(const StateContext& context, const ModeMessage& message) {
   if (context.messages != nullptr) context.messages->push_back(message);
@@ -49,6 +52,31 @@ PathResult Move(Actor& actor, PathFinder& finder, const MoveOrder& order, std::u
   set_state(kWalk);
   actor.segment = 0;
   return found;
+}
+
+template <typename Actor, typename SetState>
+StandResult Stand(Actor& actor, const StateContext& context, std::uint32_t now,
+                  std::uint32_t server_time, SetState set_state) {
+  if (!BeginGameActorUpdate(actor, now)) return StandResult::kFaded;
+  render::RenderObject& o = actor.object;
+  if (o.play_mode == 1 && o.finished) {
+    set_state(kStand);
+  } else {
+    const std::int32_t job = GameActorJob(actor);
+    if (job >= 1000 && job < 0x580 && actor.field_0x1f4 == 20 && context.pet != nullptr &&
+        actor.id == context.pet->pet_id && actor.pet_talk_at != 0 &&
+        now - actor.pet_talk_at > kPetTalkDelay) {
+      if (context.rand != nullptr && context.rand->Next() % 100 < kPetTalkChance) {
+        Send(context, {kPetTalksMessage, context.pet->first, 0, 0});
+        Send(context, {kPetTalksMessage, context.pet->second, 0, 0});
+      }
+      actor.pet_talk_at = 0;
+    }
+  }
+  UpdateGameActorFrame(actor, *context.act, context.camera_yaw, now);
+  actor.processed_at = now;
+  actor.server_at = server_time;
+  return StandResult::kStanding;
 }
 
 template <typename Actor, typename SetState>
@@ -204,6 +232,18 @@ PathResult MoveGameActorTo(PlayerActor& player, PathFinder& finder, std::int32_t
                            const StateContext& context, std::uint32_t now) {
   return MoveTo(player, finder, goal_x, goal_y, speed, server_time, context,
                 [&](std::int32_t state) { SetPlayerState(player, state, context, now); });
+}
+
+StandResult ProcessStand(GameActor& actor, const StateContext& context, std::uint32_t now,
+                         std::uint32_t server_time) {
+  return Stand(actor, context, now, server_time,
+               [&](std::int32_t state) { SetGameActorState(actor, state, context, now); });
+}
+
+StandResult ProcessStand(PlayerActor& player, const StateContext& context, std::uint32_t now,
+                         std::uint32_t server_time) {
+  return Stand(player, context, now, server_time,
+               [&](std::int32_t state) { SetPlayerState(player, state, context, now); });
 }
 
 }  // namespace ragexe::world

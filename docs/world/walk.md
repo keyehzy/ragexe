@@ -135,7 +135,7 @@ end, and the server's time just at the path's end. `tests/unit/walk_test.cpp` re
   times and frame counts.
 
 **Not ported:**
-- the other states of `ProcessState` and `CPc::ProcessState` (standing, sitting, attacking,
-  dying and the rest);
+- the other states of `ProcessState` and `CPc::ProcessState` but standing
+  ([states.md](states.md#standing-each-update)): sitting, attacking, dying and the rest;
 - the messages that start a walk but 0 and 0x13 ([states.md](states.md)): 5 and 6, which
   come with the actors' messages;

@@ -188,16 +188,48 @@ def make_tos(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
     return lines
 
 
+def make_stands(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
+    """The script for a map: standing actors (N) and players (Y) as make_goes and make_plays
+    make them, but in state 0, updated by ProcessState: often a pet (a monster's job, +0x1f4 20,
+    its id the pet's) whose talk is due, with srand's seed and its lines, and actions played
+    once and finished."""
+    rng = random.Random(zlib.crc32(b"stand " + name.encode()))
+    lines = []
+    goes = make_goes("stand " + name, width, height, attrs, count // 2, updates)
+    plays = make_plays("stand " + name, width, height, attrs, count - count // 2, updates)
+    for line in goes + plays:
+        if line[0] not in "GP":
+            lines.append(line)
+            continue
+        tokens = line.split()
+        n = 39 if line[0] == "G" else 44
+        fields, times = tokens[1:1 + n], tokens[1 + n:]
+        fields[17] = "0"
+        if line[0] == "G" and rng.random() < 0.6:
+            fields[7] = str(rng.choice([1000, 1002, rng.randint(1000, 1407), 1407, 1408, 999]))
+        actor_id = int(fields[34])
+        tick = int(times[1])
+        stand = [str(rng.getrandbits(31)), str(actor_id if rng.random() < 0.7 else rng.getrandbits(31)),
+                 str(rng.getrandbits(16)), str(rng.getrandbits(16)),
+                 str(rng.choice([0, (tick - rng.choice([0, 2999, 3000, 3001, 5000])) & 0xFFFFFFFF,
+                                 (tick - rng.randint(0, 9000)) & 0xFFFFFFFF])),
+                 str(rng.choice([0, 0, 1, 1, 2])), str(rng.choice([20, 20, 20, 0, 19]))]
+        lines.append({"G": "N ", "P": "Y "}[line[0]] + " ".join(fields + stand + times))
+    return lines
+
+
 def main():
     args = path_oracle.arguments("walks per map", 40)
     ours, originals = path_oracle.run_maps(
-        args, lambda *a: make_walks(*a) + make_goes(*a) + make_plays(*a) + make_tos(*a), "walks")
+        args, lambda *a: make_walks(*a) + make_goes(*a) + make_plays(*a) + make_tos(*a)
+        + make_stands(*a), "walks")
     totals = {}
     for (_, lines, _), want in zip(ours, originals):
         for line, result in zip(lines, want):
-            key = result.split()[0] if line[0] == "F" else {"W": "walk ", "G": "go ", "P": "player ", "T": "to ", "U": "player to "}[line[0]] + result.split()[0]
+            key = result.split()[0] if line[0] == "F" else {"W": "walk ", "G": "go ", "P": "player ", "T": "to ", "U": "player to ", "N": "stand ",
+                   "Y": "player stand "}[line[0]] + result.split()[0]
             totals[key] = totals.get(key, 0) + 1
-            if line[0] in "WGPTU" and result != "-":
+            if line[0] in "WGPTUNY" and result != "-":
                 totals["updates"] = totals.get("updates", 0) + int(result.split()[1])
     return path_oracle.report(ours, originals, totals, "queries")
 

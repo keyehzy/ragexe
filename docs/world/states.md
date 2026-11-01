@@ -89,6 +89,26 @@ the sixteenths count from its own left.
 the width / 2) and the same for z with the height. The halves are C's (toward zero), the sum
 single precision, and the floor and `__ftol` through doubles.
 
+## Standing, each update
+
+`CGameActor::ProcessState` (`005038c0`) for state 0 (`005039f3`), after the hold and the fade
+([walk.md](walk.md#an-update)):
+- **An action played once (+0x54 1) and finished** (+0x81) stands the actor again
+  (`SetState(0)`: `CGameActor`'s, or `CPc`'s for a player).
+- **Otherwise the player's pet may talk:** a monster (jobs 1000 to 0x57f) whose +0x1f4 is 20
+  and whose id is the pet's (`ClientState`+0x7d0). Once +0x1d4 is set and `timeGetTime` is
+  more than 3,000 ms past it:
+  - `rand() % 100` below 25 sends the game mode message 0xa1 twice. The first carries
+    `ClientState` `005aa3e0`'s line (with +0x7fc, 4 and the first level). The second carries
+    the first value of the 7-dword record of the table at `ClientState`+0x824, by levels
+    `005a9f40` and `005a9fa0` (+0x804, +0x808), at 5 × the first plus the second;
+  - +0x1d4 is cleared, whether it talked or not.
+- **Then** `vf08`, the frame by the time ([walk.md](walk.md#the-direction)), and the update's
+  times. A standing actor doesn't move, so its height isn't read.
+
+`vf08` runs only here: walking steps the frame by the distance (`UpdateWalkFrame`), and drawing
+steps nothing.
+
 ## Arriving
 
 The walk's last update ([walk.md](walk.md#walking)) calls `SetState(0)`. The actor stands where
@@ -103,7 +123,10 @@ the walk put it, at the goal's centre.
 - `AttrCellAt`, `CellPointAt` (`GetCellPoint`) and `IsSpecialActorIdOnKoreaService`;
 - `ModeMessage`: what the game mode hears, kept in the `StateContext`'s list when there is one,
   with the windows queued for removal and `CGameMode`+0x2a0;
-- `PlayerActor`, `CPc`'s fields, with `SetPlayerState` and a `MoveGameActor` that calls it.
+- `PlayerActor`, `CPc`'s fields, with `SetPlayerState` and a `MoveGameActor` that calls it;
+- `ProcessStand`, a standing actor's update, for actors and players. `ClientState`'s pet tables
+  aren't ported: the caller gives the pet and its two lines (`PetTalk`), and the C runtime's
+  `rand` (`core::CrtRand`).
 
 `render::SetAction` and `render::ActionDelay` (`src/render/actor`) are `CRenderObject`'s;
 `RenderObject` gained +0x50, the delay's scale.
@@ -112,10 +135,12 @@ the walk put it, at the goal's centre.
 
 **`ragview`** walks its actor, a player with `CPc`'s states: a left click on the cell under the
 mouse sends it message 0 from the cell and sixteenths it stands in (`CellPointAt`), as a server
-would, with `timeGetTime` for the server's time. Each frame walks it until it stands.
+would, with `timeGetTime` for the server's time. Each frame walks it until it stands, and steps a
+standing actor's frame.
 
 `ragres find-paths` takes moves: `G`, the actor's fields, the order, then the message's and each
-update's times; `P`, the same for a player; `T` and `U`, message 0x13 for both.
+update's times; `P`, the same for a player; `T` and `U`, message 0x13 for both; `N` and `Y`, a
+standing actor and player, with `srand`'s seed, the pet and its lines.
 
 ## Checks
 
@@ -137,6 +162,9 @@ messages are hashed, and equal `ragres find-paths`:
 - **11,480 moves from where the actor stands** (`T` and, for players, `U`: message 0x13 at
   speeds of 0 too) and 127,516 updates: 4,359 arrived, 805 still walking, 186 faded and 6,130
   never walked.
+- **11,480 standing actors and players** (`N` and `Y`: `ProcessState` update by update, often
+  a pet whose talk is due, with `srand`'s seed and the pet's lines given; actions played once,
+  finished or not) and 2,232,775 updates, +0x1d4 hashed too: 866 faded, the rest standing.
 
 `tools/state_vectors.py` writes `tests/unit/state_vectors.inc`:
 - **moves** on `tools/walk_vectors.py`'s three maps, with short walks;
@@ -145,7 +173,8 @@ messages are hashed, and equal `ragres find-paths`:
 
 `tools/player_state_vectors.py` writes `tests/unit/player_state_vectors.inc`, player moves on
 the same maps, and `tools/move_to_vectors.py` writes `tests/unit/move_to_vectors.inc`: moves from
-where the actor stands on them, and `GetCellPoint` at the cells' and the sixteenths' edges. `tests/unit/walk_test.cpp` replays them.
+where the actor stands on them, and `GetCellPoint` at the cells' and the sixteenths' edges. `tools/stand_vectors.py` writes `tests/unit/stand_vectors.inc`: standing actors on them, then
+a pet that talks, one that doesn't, and an action played once and finished. `tests/unit/walk_test.cpp` replays them.
 
 **Not ported:** the other messages and states (sitting, attacking, dying and the rest), and
 `CPlayer::SetState`'s own work before `CPc`'s.

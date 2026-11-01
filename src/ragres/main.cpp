@@ -625,6 +625,8 @@ int DecodeGats(const std::vector<std::string>& files) {
 //   P FIELDS... (SERVER TICK)...               G for a CPc (PLAYER_FIELDS)
 //   T and U FIELDS... SPEED (SERVER TICK)...   G and P with message 0x13 from where the actor
 //                                              stands to the goal at the speed
+//   N and Y FIELDS... STAND... (SERVER TICK)... G and P standing, CGameActor::ProcessState
+//                                              update by update (STAND_FIELDS)
 // Prints for F and M "RESULT MOVE_TIME FIELD_0X10 START_X START_Y COUNT HASH" (the result
 // found, same, none or overflow; the move time "-" for F; the start as float bits; the
 // hash FNV-1a over each step's x, y, dir and time), for I the result, and for S "INDEX
@@ -771,13 +773,16 @@ int FindPaths(const std::string& gat, const std::string& queries) {
                   FloatBits(o.position[0]), FloatBits(o.position[1]), FloatBits(o.position[2]),
                   FloatBits(o.facing), o.action, o.frame, FloatBits(actor.travelled),
                   static_cast<unsigned long long>(h));
-    } else if (kind == "G" || kind == "P" || kind == "T" || kind == "U") {
-      const bool player = kind == "P" || kind == "U";
+    } else if (kind == "G" || kind == "P" || kind == "T" || kind == "U" || kind == "N" ||
+               kind == "Y") {
+      const bool player = kind == "P" || kind == "U" || kind == "Y";
       const bool to = kind == "T" || kind == "U";
+      const bool stand = kind == "N" || kind == "Y";
       std::vector<std::uint32_t> v;
       for (std::string token; fields >> token;)
         v.push_back(static_cast<std::uint32_t>(std::stoll(token, nullptr, 0)));
-      const std::size_t kFields = (player ? 44 : 39) + (to ? 1 : 0);
+      const std::size_t base_fields = player ? 44 : 39;
+      const std::size_t kFields = base_fields + (to ? 1 : 0) + (stand ? 7 : 0);
       if (v.size() < kFields + 2) {
         std::fprintf(stderr, "short go: %s\n", line.c_str());
         return 2;
@@ -831,6 +836,17 @@ int FindPaths(const std::string& gat, const std::string& queries) {
                                            static_cast<std::int32_t>(v[31]),
                                            static_cast<std::int32_t>(v[32]),
                                            static_cast<std::int32_t>(v[33])};
+      // N and Y: srand's seed, the pet and its lines, +0x1d4, +0x54 and +0x1f4.
+      ragexe::core::CrtRand rand(stand ? v[base_fields] : 1);
+      ragexe::world::PetTalk pet;
+      if (stand) {
+        pet = {static_cast<std::int32_t>(v[base_fields + 1]),
+               static_cast<std::int32_t>(v[base_fields + 2]),
+               static_cast<std::int32_t>(v[base_fields + 3])};
+        actor.pet_talk_at = v[base_fields + 4];
+        o.play_mode = static_cast<std::int32_t>(v[base_fields + 5]);
+        actor.field_0x1f4 = static_cast<std::int32_t>(v[base_fields + 6]);
+      }
       std::vector<ragexe::world::ModeMessage> messages;
       std::vector<std::int32_t> windows;
       std::int32_t mode_field_0x2a0 = 0x5a5a5a5a;
@@ -840,7 +856,9 @@ int FindPaths(const std::string& gat, const std::string& queries) {
                                                 static_cast<std::int32_t>(v[21]),
                                                 &messages,
                                                 &windows,
-                                                &mode_field_0x2a0};
+                                                &mode_field_0x2a0,
+                                                stand ? &pet : nullptr,
+                                                &rand};
       std::uint64_t h = 0xcbf29ce484222325ull;
       const auto fold = [&h](std::uint32_t x) {
         const std::uint8_t le[4] = {static_cast<std::uint8_t>(x), static_cast<std::uint8_t>(x >> 8),
@@ -892,6 +910,31 @@ int FindPaths(const std::string& gat, const std::string& queries) {
         }
         messages.clear();
       };
+      if (stand) {
+        int updates = 0;
+        const char* end = "standing";
+        for (std::size_t k = kFields; k + 1 < v.size(); k += 2) {
+          const auto r =
+              player ? ragexe::world::ProcessStand(actor, context, v[k + 1], v[k])
+                     : ragexe::world::ProcessStand(static_cast<ragexe::world::GameActor&>(actor),
+                                                   context, v[k + 1], v[k]);
+          ++updates;
+          fold(r == ragexe::world::StandResult::kFaded ? 0u : 1u);
+          fold_fields();
+          fold_messages();
+          fold_player();
+          fold(actor.pet_talk_at);
+          if (r == ragexe::world::StandResult::kFaded) {
+            end = "faded";
+            break;
+          }
+        }
+        std::printf("%s %d %08x %08x %08x %08x %d %d %d %016llx\n", end, updates,
+                    FloatBits(o.position[0]), FloatBits(o.position[1]), FloatBits(o.position[2]),
+                    FloatBits(o.facing), o.action, o.frame, actor.state,
+                    static_cast<unsigned long long>(h));
+        continue;
+      }
       const auto to_speed = static_cast<std::int32_t>(v[kFields - 1]);
       auto& base = static_cast<ragexe::world::GameActor&>(actor);
       if (to && player)

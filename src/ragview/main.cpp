@@ -692,7 +692,9 @@ int main(int argc, char** argv) {
     // The actor's vf03: its shadow, then its body.
     if (has_actor) {
       actor_object.position = player;
-      world::UpdateGameActorFrame(actor_state, actor.act, camera.yaw, now);
+      // vf08 steps a standing actor's frame by the time; walking steps it by the distance.
+      if (actor_state.state != 1)
+        world::UpdateGameActorFrame(actor_state, actor.act, camera.yaw, now);
       const float ground_height = res::AttrHeight(attr, player[0], player[2]);
       if (const auto q =
               render::DrawActorShadow(actor_object, ground_height, actor_object.scale, shadow.act,
