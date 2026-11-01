@@ -46,6 +46,7 @@ struct RenderObject {
   std::int32_t angle = 0;                // +0x60, added to each item's
   std::int32_t depth_index = 0;          // +0x64, which layers' depth steps it takes
   float delay = 1.0f;                    // +0x44, ticks of 24 ms per frame
+  float pixel_scale = 0.0f;              // +0x48, the drawing's ActorBody::pixel_scale
   float delay_scale = 1.0f;              // +0x50, times the action's delay, reset by SetAction
   float repeats = 1.0f;                  // +0x4c, how many times a play-once action runs
   std::int32_t play_mode = 0;            // +0x54: 0 loops, 1 plays once, others hold
@@ -63,6 +64,8 @@ struct RenderObject {
   bool tinted = false;                   // +0x87, coloured by a status (docs/world/arrival.md)
   bool pickable = false;                 // +0x89, its drawing widens the bounds
   bool shadow = false;                   // +0x88
+  std::int32_t screen_x = 0;             // +0x90 and +0x94, the point on screen vf06 keeps
+  std::int32_t screen_y = 0;             // (ScreenPosition)
 };
 
 // CActRes::GetActionDelay (00421990): the action's delay in ticks, 4 beyond the .act's.

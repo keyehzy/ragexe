@@ -169,6 +169,22 @@ CLIENT_STATE, PLAYER_HIT_SOUNDS, WEAPON_HIT_SOUNDS = 0x686670, 0x599620, 0x599A4
 OWN_STATUSES, EFFECTS_ON, MSG_SPRITES, WORLD_GUILD_WAR = 0x641F98, 0x687EA8, 0x687EC0, 0x60
 SRAND, PET_ID, PET_TABLE = 0x5C2546, 0x686E40, 0x686E94
 PET_LEVEL_A, PET_LEVEL_B, PET_LINE = 0x5A9F40, 0x5A9FA0, 0x5AA3E0
+# C and R: a G and a P casting (docs/world/windows.md): by `how`, CGameActor::SendMsg's message
+# 0x52 with `duration`, 0x53, 0x21 or 0x36 through vf02, or none; then vf10's SetState(`enter`)
+# unless it is 0; then, update by update, CGameActor 00503210 and ProcessState, until the update
+# returns 0 or, out of state 13, no window is left. Before it: +0xcc, the windows the actor has
+# (bits 0 to 3 of `windows`: +0x1c0 the balloon, of size bw by bh, +0x1c4, +0x1c8 and +0x1cc),
+# +0x1e0, +0x1e4, +0x1a4, +0x1d8, +0x1dc, the point on screen (+0x90, +0x94), +0x48 (float
+# bits), the screen's size (g_pSceneRenderer +0x24, +0x28), +0x1bc, the weapon (+0x2a0), +0x54
+# and +0x70. The windows are stand-ins: UIRechargeGage's constructor, UIWindow 004a58e0,
+# UIWindowMgr 004a7d60, UIRechargeGage::SetAmount and their vf18 are recorded, by the windows'
+# numbers, those before from 1 in order, then those made. The statics 0067cf18 and 0067cf10 are
+# worked out again for each query. The hash takes, after the message and after each of the two
+# calls an update, fields(), the game mode's messages and cast().
+CAST_FIELDS = ["how", "duration", "enter", "f0cc", "windows", "bw", "bh", "f1e0", "f1e4", "spoke", "end",
+               "begin", "screen_x", "screen_y", "pixels", "width", "height", "f1bc", "weapon", "play", "start"]
+STEP_WINDOWS, GAUGE_CTOR, CREATE_WINDOW, ADD_WINDOW, SET_AMOUNT = 0x503210, 0x442D00, 0x4A58E0, 0x4A7D60, 0x442E40
+SCENE_RENDERER, WINDOW_STATICS, WINDOW_OFFSETS = 0x625E98, (0x67CF14, 0x67CF1C), (0x1C0, 0x1C4, 0x1C8, 0x1CC)
 SINGLE = 0x007F
 SPEEDS = [150, 150, 150, 100, 200, 75, 300, 120, 1, 7, 999]
 
@@ -431,6 +447,38 @@ class Oracle:
             emu.write_u32(effect + 0x7C, value)
             return effect
         conditional(ADD_MSG_SPRITE, 3, msg_sprite)
+        # For C and R: the windows, stand-ins whose calls are recorded by number.
+        self.casting, self.window_numbers, self.window_calls = False, {}, []
+        self.window_vtable = emu.scratch(size=0x40)
+        move_stub = MESSAGE_STUB + 0x40
+        emu.mem_write(move_stub, b"\xC3")
+        emu.write_u32(self.window_vtable + 0x18, move_stub)
+        self.renderer = emu.scratch(size=0x40)
+
+        def casting_only(address, nargs, fn):
+            def hook(uc, _address, _size, _):
+                if self.casting:
+                    esp = emu.esp()
+                    args = [emu.read_u32(esp + 4 + 4 * k) for k in range(nargs)]
+                    emu.complete(fn(uc.reg_read(UC_X86_REG_ECX), *args), emu.read_u32(esp), esp + 4 + 4 * nargs)
+            emu.hook_code(address, address, hook)
+
+        def call(kind, window, a=0, b=0):
+            self.window_calls += [kind, self.window_number(window), a, b]
+
+        def gauge(this):
+            self.new_window(this)
+            return this
+
+        def create(this, width, height):
+            emu.write_u32(this + 0x1C, width)
+            emu.write_u32(this + 0x20, height)
+            call(0, this, width, height)
+        casting_only(GAUGE_CTOR, 0, gauge)
+        casting_only(CREATE_WINDOW, 2, create)
+        casting_only(move_stub, 2, lambda this, x, y: call(1, this, x, y))
+        casting_only(ADD_WINDOW, 1, lambda this, window: call(2, window))
+        casting_only(SET_AMOUNT, 2, lambda this, done, whole: call(3, this, done, whole))
         # The C runtime's thread data, which srand and rand keep their state in, made on first
         # use: made here, below every run's heap, which each run releases.
         emu.call(SRAND, 1)
@@ -493,7 +541,7 @@ class Oracle:
         for line in lines:
             kind, *values = line.split()
             v = [int(x) for x in values] if kind not in ("W", "G", "P", "T", "U", "N", "Y", "E", "Q", "A", "B", "X",
-                                                         "K", "D", "H", "V", "J", "L", "O") else []
+                                                         "K", "D", "H", "V", "J", "L", "O", "C", "R") else []
             self.logged = []
             if kind == "F":
                 found = emu.call(FIND_PATH, *v, self.actor + ACTOR_PATH, this=G_PATH_FINDER).eax & 0xFF
@@ -562,6 +610,10 @@ class Oracle:
                 out.append(self.go(values, land=True))
             elif kind == "O":
                 out.append(self.go(values, player=True, land=True))
+            elif kind == "C":
+                out.append(self.go(values, cast=True))
+            elif kind == "R":
+                out.append(self.go(values, player=True, cast=True))
         emu.heap_release(mark)
         return out
 
@@ -615,7 +667,7 @@ class Oracle:
         self.frames = w["frames"]
 
     def go(self, values, player=False, to=False, stand=False, enter=False, arrive=False, effects=False,
-           die=False, attack=False, land=False):
+           die=False, attack=False, land=False, cast=False):
         """CGameActor::vf02's message 0 on the actor, then ProcessState update by update, with
         SetState run, until the actor stands again or has faded; for a player, a CPc's."""
         emu, actor = self.emu, self.actor
@@ -623,7 +675,7 @@ class Oracle:
         names = ((PLAYER_FIELDS if player else GO_FIELDS) + (TO_SPEED if to else []) + (STAND_FIELDS if stand else [])
                  + (ENTER_FIELDS if enter else []) + (ARRIVE_FIELDS if arrive else []) + (DEATH_FIELDS if die else [])
                  + (EFFECT_FIELDS if effects else []) + (ATTACK_FIELDS if attack else [])
-                 + (LAND_FIELDS if land else []))
+                 + (LAND_FIELDS if land else []) + (CAST_FIELDS if cast else []))
         g = dict(zip(names, v))
         updates = v[len(names):]
         self.place(g)
@@ -683,6 +735,8 @@ class Oracle:
             return self.enter(g, updates, extra)
         if attack:
             return self.attack(g, updates[:ATTACK_RECORD], updates[ATTACK_RECORD:], extra, player)
+        if cast:
+            return self.cast(g, updates, player)
         if land:
             n = ATTACK_RECORD * g["count"]
             return self.land(g, updates[:n], updates[n:], extra, player)
@@ -1005,6 +1059,86 @@ class Oracle:
         for offset in (0x210, 0x20C):
             emu.write_u32(actor + offset, 0)
         return f"{last} {calls} {r[0]:08x} {r[1]:08x} {r[2]:08x} {r[3]:08x} {r[4]} {r[5]} {r[6]} {h:016x}"
+
+    def cast(self, g, updates, player):
+        """The message and the state, then 00503210 and ProcessState update by update, until the
+        update returns 0 or, out of state 13, no window is left."""
+        emu, actor = self.emu, self.actor
+        for offset, name in ((0xCC, "f0cc"), (0x1E0, "f1e0"), (0x1E4, "f1e4"), (0x1A4, "spoke"), (0x1D8, "end"),
+                             (0x1DC, "begin"), (0x90, "screen_x"), (0x94, "screen_y"), (0x48, "pixels"), (0x1BC, "f1bc"),
+                             (0x2A0, "weapon"), (0x54, "play"), (0x70, "start")):
+            emu.write_u32(actor + offset, g[name] & 0xFFFFFFFF)
+        for offset in (0x1D4, 0x1F4, 0x1A8) + (() if player else (0x218,)):
+            emu.write_u32(actor + offset, 0)
+        self.window_numbers, self.window_calls, self.windows = {}, [], []
+        for k, offset in enumerate(WINDOW_OFFSETS):
+            window = 0
+            if g["windows"] >> k & 1:
+                window = self.new_window(emu.scratch(size=0x90))
+                size = (g["bw"], g["bh"]) if k == 0 else ((0x3C, 6) if k == 3 else (0x8C, 0x22))
+                emu.write_u32(window + 0x1C, size[0] & 0xFFFFFFFF)
+                emu.write_u32(window + 0x20, size[1] & 0xFFFFFFFF)
+            emu.write_u32(actor + offset, window)
+        emu.write_u32(SCENE_RENDERER, self.renderer)
+        emu.write_u32(self.renderer + 0x24, g["width"] & 0xFFFFFFFF)
+        emu.write_u32(self.renderer + 0x28, g["height"] & 0xFFFFFFFF)
+        for address in WINDOW_STATICS:
+            emu.mem_write(address, bytes([emu.mem_read(address, 1)[0] & 0xFE]))
+        self.casting = True
+        self.messages, self.states = [], []
+        self.server, self.now = updates[0], updates[1]
+        if g["how"]:
+            emu.call(emu.read_u32(emu.read_u32(actor) + 4 * 2), 0, g["how"], g["duration"] & 0xFFFFFFFF, 0, 0,
+                     this=actor)
+        if g["enter"]:
+            emu.call(emu.read_u32(emu.read_u32(actor) + 4 * 10), g["enter"], this=actor)
+        h = fnv1a64([8, *self.fields(), *self.messages, *self.casted(player)])
+        last, calls = "staying", 0
+        for server, tick in zip(updates[2::2], updates[3::2]):
+            self.now, self.server = tick, server
+            self.messages, self.states = [], []
+            emu.call(STEP_WINDOWS, this=actor)
+            h = fnv1a64([9, *self.fields(), *self.messages, *self.casted(player)], h)
+            self.messages, self.states = [], []
+            ret = emu.call(emu.read_u32(emu.read_u32(actor) + 4 * 9), this=actor).eax & 0xFF
+            calls += 1
+            h = fnv1a64([ret, *self.fields(), *self.messages, *self.casted(player)], h)
+            if ret == 0:
+                last = "faded"
+                break
+            if emu.read_u32(actor + 0x58) != 13 and not any(emu.read_u32(actor + o) for o in WINDOW_OFFSETS):
+                last = "settled"
+                break
+        self.casting = False
+        emu.write_u32(SCENE_RENDERER, 0)
+        for offset in WINDOW_OFFSETS:
+            emu.write_u32(actor + offset, 0)
+        r = [emu.read_u32(actor + o) for o in (0x4, 0x8, 0xC, 0x38, 0x24, 0x28, 0x58)]
+        return f"{last} {calls} {r[0]:08x} {r[1]:08x} {r[2]:08x} {r[3]:08x} {r[4]} {r[5]} {r[6]} {h:016x}"
+
+    def new_window(self, window):
+        """A stand-in window, numbered next."""
+        self.emu.mem_write(window, bytes(0x90))
+        self.emu.write_u32(window, self.window_vtable)
+        self.window_numbers[window] = len(self.window_numbers) + 1
+        return window
+
+    def window_number(self, window):
+        return self.window_numbers.get(window, 0 if window == 0 else 0xFFFFFFFF)
+
+    def casted(self, player):
+        """The windows by number, the cast's times, +0x1a4 and +0xcc; for a player
+        CGameMode+0x2a0 and +0x294; what the windows were told and which were queued for
+        removal since."""
+        emu, a = self.emu, self.actor
+        words = [self.window_number(emu.read_u32(a + o)) for o in WINDOW_OFFSETS]
+        words += [emu.read_u32(a + o) for o in (0x1A4, 0x1D8, 0x1DC, 0xCC)]
+        if player:
+            words += [emu.read_u32(self.mode + MODE_FIELD_2A0), emu.read_u32(a + 0x294)]
+        words += [len(self.window_calls), *self.window_calls, len(self.windows)]
+        words += [self.window_number(w) for w in self.windows]
+        self.window_calls, self.windows = [], []
+        return words
 
     def listed(self, at):
         """The effects in the list at `at` by number."""

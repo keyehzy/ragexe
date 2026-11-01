@@ -14,6 +14,7 @@ namespace {
 constexpr std::int32_t kStand = 0;
 constexpr std::int32_t kWalk = 1;
 constexpr std::int32_t kDying = 3;
+constexpr std::int32_t kCast = 13;
 constexpr std::int32_t kDyingAction = 0x40;
 constexpr std::int32_t kFrozen = 2;               // the body state whose ice dying ends
 constexpr std::int32_t kCorpseJobsFrom = 0x17;    // jobs past 0x16 leave a corpse
@@ -36,7 +37,7 @@ constexpr std::int32_t kFaceEvery = 34;          // ticks, state 8's turn toward
 constexpr std::int32_t kAttackAction = 0x50;
 constexpr std::int32_t kSecondAttackAction = 0x58;
 constexpr std::int32_t kSlideAction = 0x30;
-constexpr std::int32_t kWaitAction = 0x10;  // state 13's for jobs from 0x16
+constexpr std::int32_t kWaitAction = 0x10;  // a cast's for jobs from 0x16
 constexpr std::int32_t kPlayerJobs = 0x16;  // ClientState 005aa610: jobs 0 to 0x15
 constexpr std::int32_t kArrowJob = 0x505;   // shoots an arrow as it attacks
 constexpr float kArrowSpeed = 28.0f;        // 0x41e00000, CGameActor 00504000's
@@ -62,6 +63,16 @@ void Send(const StateContext& context, const ModeMessage& message) {
   if (context.messages != nullptr) context.messages->push_back(message);
 }
 
+// State 13's action, which SetState and its first update play once: 0x58 or 0x50 by
+// AttacksWithSecondAction for jobs 0 to 0x15, otherwise 0x10.
+template <typename Actor>
+std::int32_t CastAction(const Actor& actor) {
+  const std::int32_t job = GameActorJob(actor);
+  if (job < 0 || job >= kPlayerJobs) return kWaitAction;
+  return AttacksWithSecondAction(job, actor.field_0x1bc, Weapon(actor)) ? kSecondAttackAction
+                                                                        : kAttackAction;
+}
+
 // vf11 (00503110): the cell under the actor, to the game mode.
 void ReportCell(const GameActor& actor, const StateContext& context) {
   const render::Vec3& at = actor.object.position;
@@ -75,11 +86,11 @@ void SendSelf(GameActor& actor, const StateContext& context, std::uint32_t now, 
   SendGameActorEffectMessage(actor, id, 0, 0, context, now);
 }
 
-// Message 0x53 to itself (00506175): the actor's window queued for removal.
+// Message 0x53 to itself (00506175): the cast's gauge queued for removal.
 void CloseWindow(GameActor& actor, const StateContext& context) {
-  if (actor.window == 0) return;
-  if (context.closed_windows != nullptr) context.closed_windows->push_back(actor.window);
-  actor.window = 0;
+  if (actor.cast_gauge == 0) return;
+  if (context.closed_windows != nullptr) context.closed_windows->push_back(actor.cast_gauge);
+  actor.cast_gauge = 0;
 }
 
 // CGameMode::AddArrowEffect (005101f0), which makes one only for a target.
@@ -212,18 +223,10 @@ void SetBaseState(Actor& actor, std::int32_t state, const StateContext& context,
       SetGameActorAction(actor, *context.act, kSlideAction, kOnce);
       ReportCell(actor, context);
       break;
-    case 13: {
-      const std::int32_t job = GameActorJob(actor);
-      std::int32_t action = kWaitAction;
-      if (job >= 0 && job < kPlayerJobs) {
-        action = AttacksWithSecondAction(job, actor.field_0x1bc, Weapon(actor))
-                     ? kSecondAttackAction
-                     : kAttackAction;
-      }
-      SetGameActorAction(actor, *context.act, action, kOnce);
+    case kCast:
+      SetGameActorAction(actor, *context.act, CastAction(actor), kOnce);
       o.held = true;
       break;
-    }
     default:
       if (const std::int32_t action = GameActorStateAction(state); action >= 0) {
         if (state == 5) {
@@ -294,7 +297,6 @@ StateResult Update(Actor& actor, const StateContext& context, std::uint32_t now,
       if (r == WalkResult::kArrived) set_state(kStand);
       return StateResult::kDone;
     }
-    case 13: return StateResult::kNotPorted;
     default: break;
   }
   if (!BeginGameActorUpdate(actor, now)) return StateResult::kFaded;
@@ -332,6 +334,20 @@ StateResult Update(Actor& actor, const StateContext& context, std::uint32_t now,
       }
       break;
     case 10: actor.field_0xcc = 0; break;
+    case kCast:
+      if (actor.field_0xcc == 0) {
+        actor.field_0xcc = 1;
+        SetGameActorAction(actor, *context.act, CastAction(actor), kOnce);
+        o.held = true;
+      }
+      if (now >= actor.cast_end) {
+        actor.field_0xcc = 0;
+        o.held = false;
+        set_state(kStand);
+        CloseWindow(actor, context);
+      }
+      frame();
+      break;
     case 16:
     case 17: frame(); break;
     default: break;

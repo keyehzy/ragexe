@@ -68,7 +68,8 @@ second argument again never read:
 
 State 4's 0x57 and 0x54 end the effects the actor and its target launched
 (`CAbleToMakeEffect::SendMsg`, [effects.md](effects.md#the-rest)), of which the port has none;
-0x53 queues the actor's window (+0x1cc) for removal (`UIWindowMgr::QueueRemoval`). State 13's
+0x53 queues the cast's gauge (+0x1cc, [windows.md](windows.md)) for removal
+(`UIWindowMgr::QueueRemoval`). State 13's
 jobs are `ClientState` `005aa610`'s (0 to 0x15), and its action
 [AttacksWithSecondAction](attack.md#a-players-attack)'s with the job, +0x1bc and `vf31`
 (`004eb1b0`, -1; `CPc`'s `004eb090`, the weapon +0x2a0).
@@ -103,6 +104,7 @@ moved, its height. Standing and walking are below and in [walk.md](walk.md#walki
 | 8 (`00503cec`) | +0xcc cleared, `vf08`, then the turn toward the target (below) |
 | 10 (`00503ed5`) | +0xcc cleared |
 | 16, 17 (`00503ec9`) | `vf08` |
+| 13 (`00503939`) | the action again with +0xcc clear; at the cast's end (+0x1d8) standing and 0x53 ([windows.md](windows.md#state-13-casting)); `vf08` |
 | 6, 11, 14, 15 and past 17 (`00503c96`) | none |
 
 **The slide (state 4):**
@@ -121,8 +123,9 @@ tick's remainder by 34 is 0, `CWorld::GetActorById` looks the actor up. If it is
 as `GetAngleBetween` would. The action (+0x24) isn't recomputed there; the next `vf08` takes the
 new facing.
 
-**Not ported:** state 13's update, which reads `ClientState`'s tables by the job, and its time
-at +0x1d8. State 3's is [below](#dying).
+**Casting (13)** (`00503939`) plays `SetState`'s action again while +0xcc is clear, and ends at
+the cast's end (+0x1d8, which message 0x52 sets): [windows.md](windows.md#state-13-casting).
+State 3's is [below](#dying).
 
 ## Dying
 
@@ -351,5 +354,5 @@ corpse, with a sprite or none, held through the updates, +0xcc before, and playe
 ([attack.md](attack.md#checks)).
 
 **Not ported:** the other messages but 3 to 6 ([arrival.md](arrival.md)), 0xb and 0x1b
-([attack.md](attack.md)) and those that make and end effects ([effects.md](effects.md)); state
-13's update; and `CPlayer::SetState`'s own work before `CPc`'s.
+([attack.md](attack.md)), those that make and end effects ([effects.md](effects.md)) and those of
+the windows ([windows.md](windows.md)); and `CPlayer::SetState`'s own work before `CPc`'s.

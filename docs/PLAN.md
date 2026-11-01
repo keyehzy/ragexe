@@ -2960,6 +2960,23 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Labels:** `CGameActor::DeliverDueHits`; `ClientState`'s `FillPlayerHitSounds`,
     `FillWeaponHitSounds`, `GetPlayerHitSound`, `GetWeaponHitSound` and `HasOwnStatus`.
 
+- [x] Casting and the windows over actors (`docs/world/windows.md`, `src/world/actor_window`):
+  message 0x52, which packets 0x011a and 0x013e send, makes the cast's gauge (0x3c by 6, 0x1e
+  left of the actor's point on screen and the rise above it: the screen's height × 81 / 480
+  times +0x48) and sets the cast's end and start (+0x1d8, +0x1dc); 0x53, 0x21 and 0x36 close the
+  gauge and the two titles. `CGameActor::UpdateWindows` (`00503210`), which the classes' `vf01`
+  call each update, moves the balloon (until 5 s after it spoke, kept on screen), the titles
+  and the gauge, fills the gauge with the time gone and, once the end has passed, closes it and
+  stands an actor in state 8. `ProcessState`'s state 13 replays `SetState`'s action while +0xcc
+  is clear and stands at the end, closing the gauge; every state's update is now ported.
+  - **Checks:** `tools/walk_oracle.py`'s `C` and `R` on all 287 maps, the windows,
+    `g_pSceneRenderer` and the two statics stand-ins: 11,480 actors and 11,480 players over
+    3,238,417 updates equal, every window's calls hashed; 248,090 queries in all, the older
+    counts unchanged and the older vector files regenerate byte-identical. `cast_vectors.inc`
+    keeps short ones, each edge of the times, the screen and the rise, and state 13 by job.
+  - **Labels:** `CGameActor::UpdateWindows`, `UIWindow::Create`, `UIWindowMgr::AddWindow`, and
+    the statics `g_castGaugeRise` and `g_actorWindowRise`.
+
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

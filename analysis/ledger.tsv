@@ -2789,7 +2789,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004a57f0	83	code	0	ui		named	UISelectCharWnd	method_004a57f0	
 004a5850	88	code	0	ui		named	UIWindow	method_004a5850	
 004a58b0	45	code	0	ui	dead	raw	Global	FUN_004a58b0	
-004a58e0	46	code	0	ui		named	UIWindow	method_004a58e0	
+004a58e0	46	code	0	ui		named	UIWindow	Create	
 004a5910	62	code	0	ui		named	UIWindow	vf03	
 004a5950	37	code	0	ui		named	UIWindow	method_004a5950	
 004a5980	71	code	0	ui	unreferenced	raw	Global	FUN_004a5980	
@@ -2856,7 +2856,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004a7ca0	40	code	0	ui		named	UIWindowMgr	method_004a7ca0	
 004a7ce0	31	code	0	ui		named	UIWindowMgr	method_004a7ce0	
 004a7d10	79	code	0	ui		named	UIWindowMgr	method_004a7d10	
-004a7d60	81	code	0	ui		named	UIWindowMgr	method_004a7d60	
+004a7d60	81	code	0	ui		named	UIWindowMgr	AddWindow	
 004a7dc0	116	code	0	ui		named	UIWindowMgr	method_004a7dc0	
 004a7e40	15	code	0	ui		named	UIWindowMgr	method_004a7e40	
 004a7e50	296	code	0	ui		named	UIWindowMgr	method_004a7e50	
@@ -4389,7 +4389,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00503160	35	code	0	world		named	CGameActor	ReportWalking	
 00503190	63	code	0	world		named	CGameActor	AddTravelledDistance	
 005031d0	51	code	0	world		named	CGameActor	UpdateWalkFrame	
-00503210	557	code	0	world		named	CGameActor	method_00503210	
+00503210	557	code	0	world		named	CGameActor	UpdateWindows	
 00503440	69	code	0	world		named	CGameActor	method_00503440	
 00503490	79	code	0	world		named	CGameActor	GetJob	
 005034e0	784	code	0	world		named	CGameActor	SetState	

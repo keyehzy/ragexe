@@ -609,12 +609,69 @@ def make_landings(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
             lines.append(f"{kind} " + " ".join(fields + land_fields + [str(r & 0xFFFFFFFF) for r in records] + times))
     return lines
 
+def make_casts(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
+    """The script for a map: actors (C) and players (R) as make_goes and make_plays make them,
+    casting (docs/world/windows.md): message 0x52 with durations about its edges, often then
+    SetState(13), or 0x53, 0x21 or 0x36, or nothing, from state 13 and others, with +0xcc set or
+    not; the four windows over the actor or not, the balloon about its 5 s and the screen's
+    edges, the cast's times about each update's, the point on screen, +0x48 and the screen's
+    size about their edges; then the windows and the state update by update."""
+    rng = random.Random(zlib.crc32(b"cast " + name.encode()))
+    lines = []
+    for kind, source in (("C", make_goes("cast " + name, width, height, attrs, count, updates)),
+                         ("R", make_plays("cast " + name, width, height, attrs, count, updates))):
+        for line in source:
+            if line[0] not in "GP":
+                continue
+            player = kind == "R"
+            tokens = line.split()[1:]
+            n = 44 if player else 39
+            fields, times = tokens[:n], tokens[n:]
+            fields[17] = str(rng.choice([13, 13, 13, 13, 13, 8, 8, 0, 2, 4, 12, 3]))
+            if player:
+                fields[7] = str(rng.choice([rng.randint(0, 0x15), rng.randint(0, 0x15), 0, 7, 14, 0x16, 0x2D]))
+                fields[41] = "0"
+            else:
+                fields[7] = str(rng.choice([rng.randint(0, 0x15), 7, 14, 0x16, rng.randint(46, 999),
+                                            rng.randint(1001, 1400), -1]))
+            tick = int(times[1])
+            how = rng.choice([0x52, 0x52, 0x52, 0x52, 0, 0, 0x53, 0x21, 0x36])
+            duration = rng.choice([0, 1, 24, 100, 500, 1000, 1500, 3000, rng.randint(0, 6000), rng.randint(0, 6000),
+                                   -1, -500, 0x7FFFFFFF])
+            enter = rng.choice([13, 13, 13, 0, 0, 8]) if how == 0x52 else rng.choice([0, 0, 0, 13])
+            end = (tick + rng.choice([-100, 0, 1, 50, 500, 2000, rng.randint(0, 6000)])) & 0xFFFFFFFF
+            if rng.random() < 0.05:
+                end = rng.getrandbits(32)
+            begin = (end - rng.choice([0, 1, 500, 2000, rng.randint(0, 6000), -300])) & 0xFFFFFFFF
+            spoke = (tick - rng.choice([0, 1000, 4999, 5000, 5001, rng.randint(0, 6000), -50])) & 0xFFFFFFFF
+            if rng.random() < 0.05:
+                spoke = rng.getrandbits(32)
+            bw, bh = rng.randint(8, 300), rng.randint(8, 120)
+            screen = rng.choice([(640, 480), (640, 480), (800, 600), (1024, 768), (0, 0), (1, 1),
+                                 (rng.randint(0, 2000), rng.randint(0, 2000)), (0x7FFFFFFF, 0x7FFFFFFF)])
+            sx = rng.choice([rng.randint(-50, 700), rng.randint(-50, 700), 0, -3, -4, 320, screen[0],
+                             rng.randint(-0x80000000, 0x7FFFFFFF)])
+            sy = rng.choice([rng.randint(-50, 700), rng.randint(-50, 700), 0, 240, screen[1],
+                             rng.randint(-0x80000000, 0x7FFFFFFF)])
+            scale = rng.choice([1.0, 0.5, rng.uniform(0, 3), rng.uniform(0, 3), 0.0, -1.0, 1e30, 1e-40,
+                                float("inf"), float("nan")])
+            cast_fields = [
+                how, duration, enter, rng.choice([0, 0, 1, 7]), rng.randint(0, 15), bw, bh,
+                rng.choice([bw, bw, bw + 1, rng.randint(-300, 300)]), rng.choice([bh, bh, rng.randint(-120, 120)]),
+                spoke, end, begin, sx, sy, f"0x{bits(f32(scale)):08x}", screen[0], screen[1],
+                rng.choice([0, 0, 1, 2]), rng.choice([-1, rng.randint(0, 0x16), 0xB, rng.randint(1001, 2100)]),
+                rng.choice([0, 1, 1, 2]), (tick - rng.choice([0, 0, 24, 100, rng.randint(0, 5000)])) & 0xFFFFFFFF,
+            ]
+            lines.append(f"{kind} " + " ".join(fields + [str(f) for f in cast_fields] + times))
+    return lines
+
+
 def main():
     args = path_oracle.arguments("walks per map", 40)
     ours, originals = path_oracle.run_maps(
         args, lambda *a: make_walks(*a) + make_goes(*a) + make_plays(*a) + make_tos(*a)
         + make_stands(*a) + make_enters(*a) + make_arrivals(*a) + make_effects(*a)
-        + make_deaths(*a) + make_attacks(*a) + make_landings(*a), "walks")
+        + make_deaths(*a) + make_attacks(*a) + make_landings(*a) + make_casts(*a), "walks")
     totals = {}
     for (_, lines, _), want in zip(ours, originals):
         for line, result in zip(lines, want):
@@ -622,9 +679,10 @@ def main():
                    "Y": "player stand ", "E": "enter ",
                    "Q": "player enter ", "A": "arrive ", "B": "arrive with effects ", "X": "effects ",
                    "K": "player effects ", "D": "death ", "H": "player death ", "V": "attack ",
-                   "J": "player attack ", "L": "land ", "O": "player land "}[line[0]] + result.split()[0]
+                   "J": "player attack ", "L": "land ", "O": "player land ", "C": "cast ",
+                   "R": "player cast "}[line[0]] + result.split()[0]
             totals[key] = totals.get(key, 0) + 1
-            if line[0] in "WGPTUNYEQABDHVJLO" and result != "-":
+            if line[0] in "WGPTUNYEQABDHVJLOCR" and result != "-":
                 totals["updates"] = totals.get("updates", 0) + int(result.split()[1])
             if line[0] in "XK":
                 totals["effect messages"] = totals.get("effect messages", 0) + int(result.split()[1])

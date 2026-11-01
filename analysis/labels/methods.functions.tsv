@@ -193,7 +193,6 @@ address	namespace	name	calling_convention	evidence
 004a5790	UIWindow	method_004a5790	__thiscall	__thiscall; called with this from 92 functions of UIBasicInfoWnd, UICardItemIllustWnd, UIChatHisBox, UIChatHisBox2 and more, e.g. 004408e0
 004a57f0	UISelectCharWnd	method_004a57f0	__thiscall	__thiscall; called with this from 1 functions of UISelectCharWnd, e.g. 0044d290
 004a5850	UIWindow	method_004a5850	__thiscall	__thiscall; called with this from 2 functions of UIIllustWnd, UIWindow, e.g. 00486c70
-004a58e0	UIWindow	method_004a58e0	__thiscall	__thiscall; called with this from 21 functions of UIBitmapButton, UIEmailAddressWnd, UIEmblemWnd, UIMessageBox and more, e.g. 004413c0
 004a5950	UIWindow	method_004a5950	__thiscall	__thiscall; called with this from 1 functions of UIWindow, e.g. 004a56b0
 004a5af0	UIWindow	method_004a5af0	__thiscall	__thiscall; called with this from 29 functions of UIBarGraph4, UIBasicInfoWnd, UIButton, UIChatWnd and more, e.g. 0043a6e0
 004a5b50	UIGuildNoticeWnd	method_004a5b50	__thiscall	__thiscall; called with this from 1 functions of UIGuildNoticeWnd, e.g. 004828c0
@@ -211,7 +210,6 @@ address	namespace	name	calling_convention	evidence
 004a7ca0	UIWindowMgr	method_004a7ca0	__thiscall	__thiscall; called with this from 1 functions of UIWindowMgr, e.g. 005b2280
 004a7ce0	UIWindowMgr	method_004a7ce0	__thiscall	__thiscall; called with this from 3 functions of UIWindowMgr, e.g. 004a7ab0
 004a7d10	UIWindowMgr	method_004a7d10	__thiscall	__thiscall; called with this from 7 functions of UIWindowMgr, e.g. 004ad670
-004a7d60	UIWindowMgr	method_004a7d60	__thiscall	__thiscall; called with this from 7 functions of UIWindowMgr, e.g. 00504460
 004a7dc0	UIWindowMgr	method_004a7dc0	__thiscall	__thiscall; called with this from 1 functions of UIWindowMgr, e.g. 004a8230
 004a7e40	UIWindowMgr	method_004a7e40	__thiscall	__thiscall; called with this from 1 functions of UIWindowMgr, e.g. 0050cfb0
 004a7e50	UIWindowMgr	method_004a7e50	__thiscall	__thiscall; called with this from 2 functions of UIWindowMgr, e.g. 0050cfb0
@@ -373,7 +371,6 @@ address	namespace	name	calling_convention	evidence
 00502850	CGameActor	method_00502850	__thiscall	__thiscall; called with this from 1 functions of CGameActor, e.g. 00502570
 00502a20	CGameActor	method_00502a20	__thiscall	__thiscall; called with this from 1 functions of CGameActor, e.g. 00502700
 00503020	CGameActor	method_00503020	__thiscall	__thiscall; called with this from 7 functions of C3dGrannyGameActor, CBlurPC, CGrannyPc, CNpc and more, e.g. 00508000
-00503210	CGameActor	method_00503210	__thiscall	__thiscall; called with this from 4 functions of CGrannyPc, CPc, CPlayer, CSkill, e.g. 00542e40
 00503440	CGameActor	method_00503440	__thiscall	__thiscall; called with this from 8 functions of C3dGrannyGameActor, CBlurPC, CGrannyPc, CNpc and more, e.g. 00508000
 00507740	CGameActor	method_00507740	__thiscall	__thiscall; called with this from 4 functions of C3dGrannyGameActor, CGrannyPc, CPc, CPlayer, e.g. 00508250
 00507860	CPlayer	method_00507860	__thiscall	__thiscall; called with this from 1 functions of CPlayer, e.g. 0054b770

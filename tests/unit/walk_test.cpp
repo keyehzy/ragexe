@@ -15,6 +15,7 @@
 #include "world/actor_hit.h"
 #include "world/actor_state.h"
 #include "world/actor_walk.h"
+#include "world/actor_window.h"
 #include "world/path_finder.h"
 
 using ragexe::res::AttrMap;
@@ -107,6 +108,7 @@ struct AttackChoiceVector {
 #include "actor_effect_vectors.inc"
 #include "arrival_vectors.inc"
 #include "attack_vectors.inc"
+#include "cast_vectors.inc"
 #include "death_vectors.inc"
 #include "enter_vectors.inc"
 #include "land_vectors.inc"
@@ -244,7 +246,7 @@ std::string Walk(const AttrMap& map, const MovePath& path, std::istringstream& f
 std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istringstream& fields,
                bool player, bool to = false, bool stand = false, bool enter = false,
                bool arrive = false, bool with_effects = false, bool die = false,
-               bool attack = false, bool land = false) {
+               bool attack = false, bool land = false, bool cast = false) {
   std::vector<std::uint32_t> v;
   for (std::string token; fields >> token;)
     v.push_back(static_cast<std::uint32_t>(std::stoll(token, nullptr, 0)));
@@ -255,11 +257,13 @@ std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istr
   constexpr std::size_t kDeathFields = 6;
   constexpr std::size_t kAttackFields = 17 + 10;  // and the record
   constexpr std::size_t kLandFields = 27;         // then 10 words a hit
+  constexpr std::size_t kCastFields = 21;
   const std::size_t hit_words = land ? 10 * std::size_t{v[base_fields + kLandFields - 1]} : 0;
   const std::size_t kFields = base_fields + (to ? 1 : 0) + (stand ? 7 : 0) + (enter ? 9 : 0) +
                               (arrive ? kArriveFields + kRecordWords : 0) +
                               (with_effects ? kEffectFields : 0) + (die ? kDeathFields : 0) +
-                              (attack ? kAttackFields : 0) + (land ? kLandFields + hit_words : 0);
+                              (attack ? kAttackFields : 0) + (land ? kLandFields + hit_words : 0) +
+                              (cast ? kCastFields : 0);
   // B, X and K: EFFECT_FIELDS, after ARRIVE_FIELDS for B.
   const std::size_t effect_at =
       base_fields + (arrive ? kArriveFields : 0) + (die ? kDeathFields : 0);
@@ -302,7 +306,7 @@ std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istr
   if (player) {
     actor.body_state = static_cast<std::int32_t>(v[39]);
     actor.saved_frame = static_cast<std::int32_t>(v[40]);
-    actor.window = static_cast<std::int32_t>(v[41]);
+    actor.cast_gauge = static_cast<std::int32_t>(v[41]);
     actor.field_0x224 = static_cast<std::int32_t>(v[42]);
     actor.field_0xcc = static_cast<std::int32_t>(v[43]);
   }
@@ -444,7 +448,7 @@ std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istr
   const auto fold_player = [&] {
     if (!player) return;
     for (const std::int32_t x :
-         {mode_field_0x2a0, actor.window, actor.saved_frame, actor.field_0xcc})
+         {mode_field_0x2a0, actor.cast_gauge, actor.saved_frame, actor.field_0xcc})
       fold(static_cast<std::uint32_t>(x));
     for (const std::int32_t x : windows) fold(static_cast<std::uint32_t>(x));
     windows.clear();
@@ -609,10 +613,6 @@ std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istr
     for (std::size_t k = kFields + 2; k + 1 < v.size(); k += 2) {
       const auto r = player ? ragexe::world::ProcessGameActorState(actor, context, v[k + 1], v[k])
                             : ragexe::world::ProcessGameActorState(base, context, v[k + 1], v[k]);
-      if (r == ragexe::world::StateResult::kNotPorted) {
-        end = "unported";
-        break;
-      }
       ++updates;
       const bool over =
           r == ragexe::world::StateResult::kFaded || r == ragexe::world::StateResult::kGone;
@@ -635,6 +635,119 @@ std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istr
                   Bits(o.position[0]), Bits(o.position[1]), Bits(o.position[2]), Bits(o.facing),
                   o.action, static_cast<std::uint32_t>(o.frame),
                   static_cast<std::uint32_t>(actor.state), static_cast<unsigned long long>(h));
+    return line;
+  }
+  // C and R: the message (0x52, 0x53, 0x21 or 0x36) and the state; +0xcc, the windows and
+  // their times, the point on screen, +0x48 and the screen's size; then the updates, each
+  // 00503210 then ProcessState, as tools/path_oracle.py's cast().
+  if (cast) {
+    auto& base = static_cast<ragexe::world::GameActor&>(actor);
+    const std::size_t b = base_fields;
+    const std::uint32_t how = v[b];
+    const auto duration = static_cast<std::int32_t>(v[b + 1]);
+    const std::uint32_t enter_state = v[b + 2];
+    actor.field_0xcc = static_cast<std::int32_t>(v[b + 3]);
+    ragexe::world::ActorWindows actor_windows;
+    for (std::int32_t* window :
+         {&actor.balloon, &actor.chat_title, &actor.shop_title, &actor.cast_gauge}) {
+      const auto k = static_cast<std::uint32_t>(window - &actor.balloon);
+      if ((v[b + 4] >> k & 1) == 0) continue;
+      actor_windows.sizes.push_back(k == 0   ? std::array{static_cast<std::int32_t>(v[b + 5]),
+                                                          static_cast<std::int32_t>(v[b + 6])}
+                                    : k == 3 ? std::array{0x3c, 6}
+                                             : std::array{0x8c, 0x22});
+      *window = static_cast<std::int32_t>(actor_windows.sizes.size());
+    }
+    actor.balloon_width = static_cast<std::int32_t>(v[b + 7]);
+    actor.balloon_height = static_cast<std::int32_t>(v[b + 8]);
+    actor.balloon_at = v[b + 9];
+    actor.cast_end = v[b + 10];
+    actor.cast_start = v[b + 11];
+    o.screen_x = static_cast<std::int32_t>(v[b + 12]);
+    o.screen_y = static_cast<std::int32_t>(v[b + 13]);
+    o.pixel_scale = std::bit_cast<float>(v[b + 14]);
+    context.windows = &actor_windows;
+    context.screen_width = static_cast<std::int32_t>(v[b + 15]);
+    context.screen_height = static_cast<std::int32_t>(v[b + 16]);
+    actor.field_0x1bc = static_cast<std::int32_t>(v[b + 17]);
+    actor.weapon = static_cast<std::int32_t>(v[b + 18]);
+    o.play_mode = static_cast<std::int32_t>(v[b + 19]);
+    o.start_time = v[b + 20];
+    if (!player) actor.body_state = 0;
+    // The windows by number, the cast's times, +0x1a4 and +0xcc; for a player CGameMode+0x2a0
+    // and +0x294; what the windows were told and which were queued for removal since, as
+    // tools/path_oracle.py's casted().
+    const auto fold_cast = [&] {
+      for (const std::int32_t x :
+           {actor.balloon, actor.chat_title, actor.shop_title, actor.cast_gauge,
+            static_cast<std::int32_t>(actor.balloon_at), static_cast<std::int32_t>(actor.cast_end),
+            static_cast<std::int32_t>(actor.cast_start), actor.field_0xcc})
+        fold(static_cast<std::uint32_t>(x));
+      if (player) {
+        fold(static_cast<std::uint32_t>(mode_field_0x2a0));
+        fold(static_cast<std::uint32_t>(actor.saved_frame));
+      }
+      fold(static_cast<std::uint32_t>(4 * actor_windows.calls.size()));
+      for (const auto& call : actor_windows.calls) {
+        for (const std::int32_t x :
+             {static_cast<std::int32_t>(call.kind), call.window, call.a, call.b})
+          fold(static_cast<std::uint32_t>(x));
+      }
+      actor_windows.calls.clear();
+      fold(static_cast<std::uint32_t>(windows.size()));
+      for (const std::int32_t x : windows) fold(static_cast<std::uint32_t>(x));
+      windows.clear();
+    };
+    const std::uint32_t at = v[kFields + 1];
+    if (how == 0x52)
+      ragexe::world::StartGameActorCast(base, duration, context, at);
+    else if (how != 0)
+      ragexe::world::CloseGameActorWindow(base, static_cast<std::int32_t>(how), context);
+    if (enter_state != 0) {
+      if (player)
+        ragexe::world::SetPlayerState(actor, static_cast<std::int32_t>(enter_state), context, at);
+      else
+        ragexe::world::SetGameActorState(base, static_cast<std::int32_t>(enter_state), context, at);
+    }
+    fold(8);
+    fold_fields();
+    fold_messages();
+    fold_cast();
+    int updates = 0;
+    const char* end = "staying";
+    for (std::size_t k = kFields + 2; k + 1 < v.size(); k += 2) {
+      if (player)
+        ragexe::world::StepGameActorWindows(actor, context, v[k + 1]);
+      else
+        ragexe::world::StepGameActorWindows(base, context, v[k + 1]);
+      fold(9);
+      fold_fields();
+      fold_messages();
+      fold_cast();
+      const auto r = player ? ragexe::world::ProcessGameActorState(actor, context, v[k + 1], v[k])
+                            : ragexe::world::ProcessGameActorState(base, context, v[k + 1], v[k]);
+      ++updates;
+      const bool over =
+          r == ragexe::world::StateResult::kFaded || r == ragexe::world::StateResult::kGone;
+      fold(over ? 0u : 1u);
+      fold_fields();
+      fold_messages();
+      fold_cast();
+      if (over) {
+        end = "faded";
+        break;
+      }
+      if (actor.state != 13 && actor.balloon == 0 && actor.chat_title == 0 &&
+          actor.shop_title == 0 && actor.cast_gauge == 0) {
+        end = "settled";
+        break;
+      }
+    }
+    char line[160];
+    std::snprintf(line, sizeof line, "%s %d %08x %08x %08x %08x %d %d %u %016llx", end, updates,
+                  Bits(o.position[0]), Bits(o.position[1]), Bits(o.position[2]), Bits(o.facing),
+                  o.action, o.frame, static_cast<std::uint32_t>(actor.state),
+                  static_cast<unsigned long long>(h));
     return line;
   }
   // L and O: the hits, queued and delivered or the first sent; the attacker, another or the
@@ -847,10 +960,6 @@ std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istr
         ragexe::world::DeliverGameActorHits(base, context, v[k + 1]);
       const auto r = player ? ragexe::world::ProcessGameActorState(actor, context, v[k + 1], v[k])
                             : ragexe::world::ProcessGameActorState(base, context, v[k + 1], v[k]);
-      if (r == ragexe::world::StateResult::kNotPorted) {
-        end = "unported";
-        break;
-      }
       ++updates;
       const bool over =
           r == ragexe::world::StateResult::kFaded || r == ragexe::world::StateResult::kGone;
@@ -939,10 +1048,6 @@ std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istr
     for (std::size_t k = kFields + 2; k + 1 < v.size(); k += 2) {
       const auto r = player ? ragexe::world::ProcessGameActorState(actor, context, v[k + 1], v[k])
                             : ragexe::world::ProcessGameActorState(base, context, v[k + 1], v[k]);
-      if (r == ragexe::world::StateResult::kNotPorted) {
-        end = "unported";
-        break;
-      }
       ++updates;
       const bool over =
           r == ragexe::world::StateResult::kFaded || r == ragexe::world::StateResult::kGone;
@@ -1123,10 +1228,6 @@ std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istr
     const char* end = ported ? "staying" : "unported";
     for (std::size_t k = kFields + 2; ported && k + 1 < v.size(); k += 2) {
       const auto result = ragexe::world::ProcessGameActorState(base, context, v[k + 1], v[k]);
-      if (result == ragexe::world::StateResult::kNotPorted) {
-        end = "unported";
-        break;
-      }
       ++updates;
       fold(result == ragexe::world::StateResult::kFaded ? 0u : 1u);
       fold_fields();
@@ -1170,10 +1271,6 @@ std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istr
     for (std::size_t k = kFields + 2; k + 1 < v.size(); k += 2) {
       const auto r = player ? ragexe::world::ProcessGameActorState(actor, context, v[k + 1], v[k])
                             : ragexe::world::ProcessGameActorState(base, context, v[k + 1], v[k]);
-      if (r == ragexe::world::StateResult::kNotPorted) {
-        end = "unported";
-        break;
-      }
       ++updates;
       fold(r == ragexe::world::StateResult::kFaded ? 0u : 1u);
       fold_fields();
@@ -1609,6 +1706,33 @@ TEST_CASE("Hits land on actors and players as the original's messages and 00503f
     const std::string got = kind == 'F' ? Search(finder, path, fields)
                                         : Go(map, finder, path, fields, kind == 'O', false, false,
                                              false, false, false, false, false, true);
+    CHECK(got == v.result);
+  }
+}
+
+TEST_CASE(
+    "Actors and players cast, and their windows follow them, as the original's message "
+    "0x52, state 13 and 00503210",
+    "[walk]") {
+  int current = -1;
+  AttrMap map;
+  PathFinder finder;
+  MovePath path;
+  for (const StateQueryVector& v : kCastQueries) {
+    if (v.map != current) {
+      current = v.map;
+      map = MakeMap(kWalkMaps[current]);
+      finder = PathFinder();
+      finder.SetAttrMap(&map);
+      path = MovePath();
+    }
+    INFO(kWalkMaps[current].name << ": " << v.query);
+    std::istringstream fields(v.query);
+    char kind = 0;
+    fields >> kind;
+    const std::string got = kind == 'F' ? Search(finder, path, fields)
+                                        : Go(map, finder, path, fields, kind == 'R', false, false,
+                                             false, false, false, false, false, false, true);
     CHECK(got == v.result);
   }
 }

@@ -46,14 +46,23 @@ struct GameActor {
   float travelled = 0.0f;          // +0x198, the distance walked, which steps the frames
   std::uint32_t processed_at = 0;  // +0x19c, timeGetTime at the last update
   std::uint32_t server_at = 0;     // +0x1a0, the server's time at the last update
+  std::uint32_t balloon_at = 0;    // +0x1a4, timeGetTime when the chat balloon last spoke
   std::int32_t target_id = 0;      // +0x1a8, the id of the actor its action is aimed at
   float field_0x1ac = 0.0f;        // +0x1ac, -1 after vf07
   std::int32_t id = 0;             // +0x1b4, the server's id
   std::int32_t job = 0;            // +0x1b8
   std::int32_t field_0x1bc = 0;    // +0x1bc, which with the job picks a player's attack
-  std::int32_t window = 0;         // +0x1cc, a window of the actor's, closed when it walks
+  // The windows over the actor, by number in ActorWindows (docs/world/windows.md), 0 none.
+  std::int32_t balloon = 0;        // +0x1c0, the chat balloon (UITransBalloonText, message 7)
+  std::int32_t chat_title = 0;     // +0x1c4, its chat room's title (UIChatRoomTitle, 0x20)
+  std::int32_t shop_title = 0;     // +0x1c8, its shop's title (UIMerchantShopTitle, 0x37)
+  std::int32_t cast_gauge = 0;     // +0x1cc, the cast's gauge (UIRechargeGage, 0x52)
   std::uint32_t hold_until = 0;    // +0x1d0: held (+0x82) until timeGetTime passes it
   std::uint32_t pet_talk_at = 0;   // +0x1d4: a pet may talk 3 s after it, then it is 0
+  std::uint32_t cast_end = 0;      // +0x1d8, timeGetTime when the cast ends (message 0x52)
+  std::uint32_t cast_start = 0;    // +0x1dc, and when it began
+  std::int32_t balloon_width = 0;  // +0x1e0 and +0x1e4, the balloon's size when it last spoke
+  std::int32_t balloon_height = 0;
   std::int32_t field_0x1ec = 0;    // +0x1ec, from the records that bring it in
   std::int32_t field_0x1f0 = 0;    // +0x1f0
   std::int32_t field_0x1f4 = 0;    // +0x1f4

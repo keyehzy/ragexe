@@ -135,6 +135,5 @@ end, and the server's time just at the path's end. `tests/unit/walk_test.cpp` re
   times and frame counts.
 
 **Not ported:**
-- `ProcessState`'s states 3 and 13 ([states.md](states.md#each-update)); the rest are ported;
 - `CPc`'s own messages 5 and 6, which start a walk as `CGameActor`'s do
   ([arrival.md](arrival.md));

@@ -104,6 +104,31 @@ struct PetTalk {
   std::int32_t second = 0;
 };
 
+// What an actor does to one of its windows (docs/world/windows.md), beyond queueing it for
+// removal (UIWindowMgr 004a90c0, StateContext::closed_windows).
+enum class WindowCallKind : std::uint8_t {
+  kCreate,  // UIWindow 004a58e0 with its width and height, once made
+  kMove,    // vf18 with x and y
+  kAdd,     // UIWindowMgr 004a7d60, which shows it
+  kAmount,  // UIRechargeGage::SetAmount (00442e40) with the part done and the whole
+};
+
+struct WindowCall {
+  WindowCallKind kind = WindowCallKind::kMove;
+  std::int32_t window = 0;  // its number
+  std::int32_t a = 0;
+  std::int32_t b = 0;
+  bool operator==(const WindowCall&) const = default;
+};
+
+// The actors' windows as the port keeps them, which GameActor names by number, their place
+// in `sizes` from 1: each one's width and height (UIWindow +0x1c, +0x20) and what they were
+// told, in order.
+struct ActorWindows {
+  std::vector<std::array<std::int32_t, 2>> sizes;
+  std::vector<WindowCall> calls;
+};
+
 // What the actors' states read beyond the actor (docs/world/states.md).
 struct StateContext {
   const res::AttrMap* attr = nullptr;                   // CWorld+0x40
@@ -154,6 +179,10 @@ struct StateContext {
                                                     // 00641f98), which packet 0x0196 keeps
   std::int32_t target_weapon{-1};  // vf31 of target_actor and of player_actor: -1 for a
   std::int32_t player_weapon{-1};  // CGameActor, a CPc's weapon (+0x2a0)
+  ActorWindows* windows{};         // the windows made and what they were told; without it
+                                   // none is made and those an actor has are not told
+  std::int32_t screen_width{640};  // g_pSceneRenderer (00625e98) +0x24 and +0x28
+  std::int32_t screen_height{480};
   // NOLINTEND(readability-redundant-member-init)
 };
 
@@ -196,7 +225,7 @@ void SetGameActorAction(GameActor& actor, const res::Act& act, std::int32_t acti
 //    cell reported;
 //  - dying (3): lies down (+0x80), ends a frozen body's ice (0x3b and 0x3e to itself) and
 //    plays action 0x40 once;
-//  - 4: closes the actor's window (0x53), plays action 0x30 once and reports the cell;
+//  - 4: closes the cast's gauge (0x53), plays action 0x30 once and reports the cell;
 //  - 5: action 0x18 played once, clearing +0xcc and +0x82; 11 action 0x20 and 12 action 0x28
 //    played once, 12 reporting the cell;
 //  - 13: held, action 0x58 or 0x50 by AttacksWithSecondAction for jobs below 0x16, otherwise
@@ -209,7 +238,7 @@ void SetGameActorState(GameActor& actor, std::int32_t state, const StateContext&
 // CPc::SetState (00543020, vf10), around CGameActor's: standing goes back to the saved frame,
 // takes the ready stance (action 32) after states 2, 4 and 8 or with +0x224 set, and clears
 // CGameMode+0x2a0; walking clears +0xcc and, but for +0x218 1 and 2, +0x82, closes the
-// actor's window (message 0x53, CGameActor::SendMsg) and forgets the saved frame. 6 reports
+// cast's gauge (message 0x53, CGameActor::SendMsg) and forgets the saved frame. 6 reports
 // the cell and plays action 0x10 once, finished at once, on the saved frame; 8 reports it and
 // plays action 0x60 once, finished at once. 2 and 9 start as walking does, then are
 // CGameActor's 9 or 2 by AttacksWithSecondAction, +0x1ac PlayerAttackFrame's, and for a bow
@@ -222,10 +251,9 @@ void SetPlayerState(PlayerActor& player, std::int32_t state, const StateContext&
 
 // What an update of an actor's state came to.
 enum class StateResult {
-  kFaded,      // returned 0: the fade (+0x234) is over
-  kDone,       // returned 1
-  kGone,       // returned 0: it died, and left its corpse
-  kNotPorted,  // a state whose update is not ported; nothing was done
+  kFaded,  // returned 0: the fade (+0x234) is over
+  kDone,   // returned 1
+  kGone,   // returned 0: it died, and left its corpse
 };
 
 // CGameActor::ProcessState (005038c0, vf09) in the actor's state, at timeGetTime `now` and the
@@ -246,14 +274,16 @@ enum class StateResult {
 //  - 8: clears +0xcc, steps the frame, and faces the actor +0x1a8 names (context.target) on
 //    every 34th tick since the state began.
 //  - 10: clears +0xcc; 16 and 17: the frame; the rest nothing.
-// State 13 is not ported.
+//  - 13, casting (docs/world/windows.md): with +0xcc clear, sets it and plays SetState's action
+//    again, held; once timeGetTime reaches the cast's end (+0x1d8), clears +0xcc and +0x82,
+//    stands and closes the gauge (0x53). Then the frame.
 StateResult ProcessGameActorState(GameActor& actor, const StateContext& context, std::uint32_t now,
                                   std::uint32_t server_time);
 
 // CPc::ProcessState (00542eb0, vf09): the hold and the fade, then, without the times, 2 and 7
 // the frame and, the action finished, standing again; 3 the frame, clearing +0x82 first; 6 the
 // frame; 8 the frame and facing the target as CGameActor's state 8, keeping +0xcc. The rest
-// are CGameActor's, standing again through CPc::SetState; 13 is not ported.
+// are CGameActor's, standing again through CPc::SetState.
 StateResult ProcessGameActorState(PlayerActor& player, const StateContext& context,
                                   std::uint32_t now, std::uint32_t server_time);
 

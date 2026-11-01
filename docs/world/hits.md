@@ -166,5 +166,5 @@ and order); then `kHitSounds`, both sound functions by job and kind after five s
 `kLaunches`, `LaunchEffect` for ids -1 to 0xa5 and past, effects on and off.
 
 **Not ported:** what the effects do once made; the rest of the classes' `vf01` around the
-delivery (the key colour's end after 100 ms, `00507740`, `00503210`); hits of other messages,
-which are only taken off the queue.
+delivery (the key colour's end after 100 ms, `00507740`; `00503210` is
+[windows.md](windows.md)'s); hits of other messages, which are only taken off the queue.
