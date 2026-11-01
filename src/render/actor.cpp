@@ -3,9 +3,9 @@
 #include <bit>
 #include <cmath>
 #include <cstddef>
-#include <limits>
 
 #include "core/angles.h"
+#include "core/x87.h"
 
 namespace ragexe::render {
 
@@ -49,12 +49,7 @@ std::optional<ImageSize> ImageOf(const res::Sprite& sprite, std::int32_t type, s
   return ImageSize{im.width, im.height, im.halved_x ? 1 : 0, im.halved_y ? 1 : 0};
 }
 
-// __ftol: truncation, and the integer indefinite outside the int range.
-std::int32_t Ftol(float f) {
-  if (std::isnan(f) || f <= -2147483904.0f || f >= 2147483648.0f)
-    return std::numeric_limits<std::int32_t>::min();
-  return static_cast<std::int32_t>(f);
-}
+using core::Ftol;
 
 // GetFrameCount (00421a80): 1 for an action of fewer than two frames.
 std::int32_t FrameCount(const res::Act& act, std::int32_t action) {

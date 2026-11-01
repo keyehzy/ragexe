@@ -1,8 +1,8 @@
 #include "res/act.h"
 
-#include <cmath>
 #include <cstring>
 
+#include "core/x87.h"
 #include "res/data_file.h"
 #include "res/sprite.h"
 
@@ -55,15 +55,6 @@ class Reader {
 // c(v) = v / 2 + v % 2, with C's signed division (00420eb9).
 std::int32_t HalfRoundedAway(std::int32_t v) { return v / 2 + v % 2; }
 
-// __ftol (005c2084): a 64-bit fistp with truncation, of which it returns the low dword.
-// NaN, infinities and values past 64 bits give the integer indefinite 0x8000000000000000,
-// so 0; values past 32 bits wrap.
-std::int32_t Truncate(double v) {
-  if (std::isnan(v) || v <= -9223372036854775808.0 || v >= 9223372036854775808.0) return 0;
-  const auto whole = static_cast<std::int64_t>(std::trunc(v));
-  return static_cast<std::int32_t>(static_cast<std::uint32_t>(static_cast<std::uint64_t>(whole)));
-}
-
 bool ReadItem(Reader& r, std::uint16_t version, ActItem& item, ActImageSize& stored_size) {
   if (version < 0x200) {
     return r.I32(item.x) && r.I32(item.y) && r.I32(item.image) && r.U32(item.flags);
@@ -93,8 +84,8 @@ void AdjustActItem(ActItem& item, const ActImageSize& size) {
   const std::int32_t h = size.halved_y ? size.height * 2 : size.height;
   const double sx = item.scale_x;
   const double sy = item.scale_y;
-  item.x = Truncate((item.x - HalfRoundedAway(w) * sx) / sx);
-  item.y = Truncate((item.y - HalfRoundedAway(h) * sy) / sy);
+  item.x = core::Ftol((item.x - HalfRoundedAway(w) * sx) / sx);
+  item.y = core::Ftol((item.y - HalfRoundedAway(h) * sy) / sy);
 }
 
 bool DecodeAct(std::span<const std::uint8_t> data, const ActImageLookup& lookup, Act& out,

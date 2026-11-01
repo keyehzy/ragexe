@@ -12,6 +12,11 @@ namespace ragexe::core {
 // thread at. Under double, values on the x87 stack keep 53 bits until stored as floats.
 enum class FpuPrecision : std::uint8_t { kDouble, kSingle };
 
+// __ftol (005c2084), the compiler's float-to-int conversion: a 64-bit fistp with truncation,
+// of which it returns the low dword. Values past 32 bits wrap; NaN, the infinities and values
+// past 64 bits give the integer indefinite 0x8000000000000000, so 0.
+std::int32_t Ftol(double v);
+
 // a × b rounded once to single precision, as the x87 rounds a product with a double
 // operand under the client's precision control (24 bits, DirectDraw's FPUSETUP).
 float RoundedProduct(float a, double b);

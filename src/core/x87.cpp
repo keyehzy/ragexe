@@ -29,6 +29,11 @@ float RoundedProduct(float a, double b) {
   return RoundOnce(hi, std::fma(static_cast<double>(a), b, -hi));
 }
 
+std::int32_t Ftol(double v) {
+  if (std::isnan(v) || v <= -9223372036854775808.0 || v >= 9223372036854775808.0) return 0;
+  return static_cast<std::int32_t>(static_cast<std::uint32_t>(static_cast<std::int64_t>(v)));
+}
+
 float RoundedSum(float a, double b) {
   const double x = static_cast<double>(a);
   const double hi = x + b;

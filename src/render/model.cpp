@@ -5,6 +5,8 @@
 #include <cstddef>
 #include <type_traits>
 
+#include "core/x87.h"
+
 namespace ragexe::render {
 
 namespace {
@@ -49,15 +51,10 @@ float Radians(float degrees) {
 // __ftol (005c2084) of the x87's value, keeping the low byte as the colour stores do.
 template <typename T>
 std::uint32_t FtolByte(T value) {
-  const auto v = static_cast<double>(value);
-  if (std::isnan(v) || v <= -9.2233720368547758e18 || v >= 9.2233720368547758e18) return 0;
-  return static_cast<std::uint32_t>(static_cast<std::int64_t>(v)) & 0xff;
+  return static_cast<std::uint32_t>(core::Ftol(static_cast<double>(value))) & 0xff;
 }
 
-std::int32_t Ftol(float v) {
-  if (std::isnan(v) || v <= -9.2233720368547758e18f || v >= 9.2233720368547758e18f) return 0;
-  return static_cast<std::int32_t>(static_cast<std::int64_t>(v));
-}
+using core::Ftol;
 
 std::uint32_t Argb(std::uint32_t a, std::uint32_t r, std::uint32_t g, std::uint32_t b) {
   return (a & 0xff) << 24 | (r & 0xff) << 16 | (g & 0xff) << 8 | (b & 0xff);

@@ -1,7 +1,8 @@
 #include "world/actor_pick.h"
 
-#include <cmath>
 #include <cstddef>
+
+#include "core/x87.h"
 
 namespace ragexe::world {
 
@@ -10,12 +11,7 @@ namespace {
 constexpr float kItemBias = 300.0f;   // 005e2738
 constexpr float kSkillBias = 350.0f;  // 005ea084
 
-// __ftol (005c2084): fistp qword toward zero, then the low dword. NaN and values beyond 2^63
-// give the integer indefinite 0x8000000000000000, whose low dword is 0.
-std::int32_t Ftol(float f) {
-  if (std::isnan(f) || f >= 9223372036854775808.0f || f < -9223372036854775808.0f) return 0;
-  return static_cast<std::int32_t>(static_cast<std::uint32_t>(static_cast<std::int64_t>(f)));
-}
+using core::Ftol;
 
 // The rectangle from the bounds: left and right ordered by fcom (an unordered pair keeps
 // them), the top and bottom as they are, the depth the bias and the point's 1/z.

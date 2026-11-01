@@ -3,7 +3,6 @@
 #include <bit>
 #include <cmath>
 #include <cstddef>
-#include <limits>
 
 #include "core/x87.h"
 
@@ -22,11 +21,7 @@ constexpr std::uint32_t kVertexZ = 0x3727c5ac;    // 1e-5, at the near plane
 constexpr std::uint32_t kVertexRhw = 0x3f7fff58;  // 0.99999
 constexpr std::int32_t kNoKey = -1;
 
-std::int32_t Ftol(float f) {
-  if (std::isnan(f) || f <= -2147483904.0f || f >= 2147483648.0f)
-    return std::numeric_limits<std::int32_t>::min();
-  return static_cast<std::int32_t>(f);
-}
+using core::Ftol;
 
 const res::StrKey* KeyAt(const res::StrLayer& layer, std::int64_t i) {
   if (i < 0 || static_cast<std::size_t>(i) >= layer.keys.size()) return nullptr;

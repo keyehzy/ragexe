@@ -2,9 +2,9 @@
 
 #include <array>
 #include <bit>
-#include <cmath>
 #include <cstddef>
-#include <limits>
+
+#include "core/x87.h"
 
 namespace ragexe::render {
 
@@ -56,11 +56,7 @@ bool AnchorOffset(const res::ActFrame* to, const res::ActFrame& from, std::int32
   return true;
 }
 
-std::int32_t Ftol(float f) {
-  if (std::isnan(f) || f <= -2147483904.0f || f >= 2147483648.0f)
-    return std::numeric_limits<std::int32_t>::min();
-  return static_cast<std::int32_t>(f);
-}
+using core::Ftol;
 
 struct ImageSize {
   std::int32_t width = 0, height = 0, halved_x = 0, halved_y = 0;

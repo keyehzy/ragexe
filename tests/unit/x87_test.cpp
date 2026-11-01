@@ -18,6 +18,7 @@ struct DoubleOpVector {
   std::uint64_t results[4];
 };
 
+#include "ftol_vectors.inc"
 #include "x87_vectors.inc"
 
 template <typename F, typename Bits>
@@ -65,4 +66,12 @@ TEST_CASE("X87 negation and absolute value only touch the sign", "[x87]") {
   CHECK(BitsOf<float, std::uint32_t>(Abs(-nan)) == 0x7fc12345u);
   CHECK(BitsOf<float, std::uint32_t>(X87<float>::Indefinite()) == 0xffc00000u);
   CHECK(BitsOf<double, std::uint64_t>(X87<double>::Indefinite()) == 0xfff8000000000000u);
+}
+
+TEST_CASE("Ftol truncates as __ftol and keeps the low dword", "[x87]") {
+  for (const auto& v : kFtols) {
+    INFO(std::hex << v[0]);
+    CHECK(ragexe::core::Ftol(std::bit_cast<double>(v[0])) ==
+          static_cast<std::int32_t>(static_cast<std::uint32_t>(v[1])));
+  }
 }

@@ -1,8 +1,8 @@
 #include "res/gat.h"
 
-#include <cmath>
 #include <cstring>
 
+#include "core/x87.h"
 #include "res/data_file.h"
 
 namespace ragexe::res {
@@ -81,15 +81,10 @@ void RegisterAttrTypes(ResourceManager& manager) {
 
 float AttrHeight(const AttrMap& map, float x, float z) {
   const auto cs = static_cast<float>(map.cell_size);
-  // __ftol (005c2084) truncates through 64 bits; what it cannot hold reads as 0 here.
-  const auto ftol = [](float v) {
-    if (std::isnan(v) || v <= -9.2233720368547758e18f || v >= 9.2233720368547758e18f) return 0;
-    return static_cast<std::int32_t>(static_cast<std::int64_t>(v));
-  };
   const float gx = ((static_cast<float>(map.width) * cs) * 0.5f) + x;
-  const std::int32_t ix = ftol(gx / cs);
+  const std::int32_t ix = core::Ftol(gx / cs);
   const float gz = ((static_cast<float>(map.height) * cs) * 0.5f) + z;
-  const std::int32_t iz = ftol(gz / cs);
+  const std::int32_t iz = core::Ftol(gz / cs);
   if (ix < 0 || ix >= map.width || iz < 0 || iz >= map.height) return 0.0f;
   const auto& h = map.cells[(static_cast<std::size_t>(map.width) * static_cast<std::size_t>(iz)) +
                             static_cast<std::size_t>(ix)]

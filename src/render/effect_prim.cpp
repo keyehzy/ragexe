@@ -4,7 +4,6 @@
 #include <bit>
 #include <cmath>
 #include <cstddef>
-#include <limits>
 #include <string>
 #include <utility>
 
@@ -63,11 +62,7 @@ constexpr float kFifteenth = std::bit_cast<float>(0x3d888889u);       // 005e8ab
 constexpr float kTwentieth = std::bit_cast<float>(0x3d4ccccdu);       // 005e9e14, 0.05
 constexpr float kSixtieth = std::bit_cast<float>(0x3c888889u);        // 005e9ec4, 1/60
 
-std::int32_t Ftol(float f) {
-  if (std::isnan(f) || f <= -2147483904.0f || f >= 2147483648.0f)
-    return std::numeric_limits<std::int32_t>::min();
-  return static_cast<std::int32_t>(f);
-}
+using core::Ftol;
 
 float Sin(float degrees) { return core::SinDegrees(Ftol(degrees)); }
 float Cos(float degrees) { return core::CosDegrees(Ftol(degrees)); }

@@ -5,6 +5,7 @@
 #include <cstdio>
 
 #include "core/angles.h"
+#include "core/x87.h"
 
 namespace ragexe::render {
 
@@ -40,12 +41,8 @@ void Scale(Vec3& v, float r) {
 
 Vec3 Add(const Vec3& a, const Vec3& b) { return {a[0] + b[0], a[1] + b[1], a[2] + b[2]}; }
 
-// __ftol (005c2084): a truncation to 64 bits; values it cannot hold, NaN among them,
-// give the low dword of 0x8000000000000000.
-std::uint32_t Ftol(float v) {
-  if (std::isnan(v) || v <= -9.2233720368547758e18f || v >= 9.2233720368547758e18f) return 0;
-  return static_cast<std::uint32_t>(static_cast<std::int64_t>(v));
-}
+// __ftol's low dword, unsigned for the colour bytes.
+std::uint32_t Ftol(float v) { return static_cast<std::uint32_t>(core::Ftol(v)); }
 
 // A vertex colour: each of the colour's red, green and blue times the light on that
 // channel, intensity × diffuse + ambient, at most 1. Alpha is 0xff.

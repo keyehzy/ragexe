@@ -2799,12 +2799,20 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     clear deletes them, so in the game it is one list.
   - **Found on the way:** `__ftol` keeps the low dword of a 64-bit result, so beyond 2³¹ it
     wraps and NaN gives 0, where the port's copies gave `INT_MIN`. Fixed for the walk and
-    picking; the renderer's copies remain.
+    picking, then everywhere (below).
   - **Checks:** `tools/pick_vectors.py`: 400 objects' records and 41 tree scripts (1,267
     finds) from the original.
   - **Labels:** `CActorPickNode`'s methods, the items' and skills' `OnScreenBounds`,
     `ClientState::IsGuildWarMap` and `IsPlayerGuild`, `CGameActor::GetGuild`, and the
     minimums and switches.
+- [x] One `__ftol` (`core::Ftol`, `src/core/x87.h`): the compiler's float-to-int
+  conversion (`005c2084`) stores a 64-bit integer with truncation (`fistp qword`) and returns
+  its low dword. Past 32 bits it wraps; NaN, the infinities and values past 64 bits give 0.
+  - **Fourteen copies** in the renderer, the resources and the world now share it. Six of them
+    returned `INT_MIN` out of the 32-bit range; the rest agreed.
+  - **Checks:** `tools/ftol_vectors.py` runs the original's `__ftol` on 165 doubles: the edges
+    of 32 and 64 bits on both sides, the infinities, NaNs, denormals and assorted values, as
+    doubles and as widened floats (`tests/unit/ftol_vectors.inc`, in the x87 test).
 
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,

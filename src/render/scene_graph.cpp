@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include "core/x87.h"
+
 namespace ragexe::render {
 
 namespace {
@@ -11,11 +13,7 @@ constexpr float kUnbounded = 999999.0f;  // 005e28cc
 constexpr float kNear = 10.0f;           // 005e8a98
 constexpr float kFar = 1500.0f;          // 005e8a94
 
-// __ftol (005c2084) of a whole number from floor.
-std::int32_t Ftol(double v) {
-  if (std::isnan(v) || v <= -9.2233720368547758e18 || v >= 9.2233720368547758e18) return 0;
-  return static_cast<std::int32_t>(static_cast<std::int64_t>(v));
-}
+using core::Ftol;
 
 // C3dGround::GetCellCoords (004bc3b0) and SceneGraphNode::SetAttr's same sum (004c5de0):
 // floor(v / size) + count / 2.

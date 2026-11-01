@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstddef>
 
+#include "core/x87.h"
 #include "render/world_load.h"
 
 namespace ragexe::world {
@@ -19,12 +20,7 @@ constexpr double kNearestStep = 1.0 / 45.0;                          // 005e9520
 // 005e9664: frames per unit walked, times the delay.
 constexpr float kStepsPerDistance = 1.48f;
 
-// __ftol (005c2084): fistp qword toward zero, then the low dword. NaN and values beyond 2^63
-// give the integer indefinite 0x8000000000000000, whose low dword is 0.
-std::int32_t Ftol(float f) {
-  if (std::isnan(f) || f >= 9223372036854775808.0f || f < -9223372036854775808.0f) return 0;
-  return static_cast<std::int32_t>(static_cast<std::uint32_t>(static_cast<std::int64_t>(f)));
-}
+using core::Ftol;
 
 // CActRes::GetFrameCount (00421a80): 1 for an action of fewer than two frames.
 std::int32_t FrameCount(const res::Act& act, std::int32_t action) {

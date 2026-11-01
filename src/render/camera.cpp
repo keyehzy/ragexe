@@ -1,9 +1,9 @@
 #include "render/camera.h"
 
 #include <cmath>
-#include <limits>
 
 #include "core/angles.h"
+#include "core/x87.h"
 #include "res/gat.h"
 
 namespace ragexe::render {
@@ -145,12 +145,7 @@ void SetShakeAmplitudes(Camera& camera, float sideways, float distance, float pi
 
 namespace {
 
-// __ftol of the yaw for SinDegrees and CosDegrees.
-std::int32_t Ftol(float f) {
-  if (std::isnan(f) || f <= -2147483904.0f || f >= 2147483648.0f)
-    return std::numeric_limits<std::int32_t>::min();
-  return static_cast<std::int32_t>(f);
-}
+using core::Ftol;
 
 // rand() % 5 − 2, from −2 to 2.
 float Jitter(core::CrtRand& rand) { return static_cast<float>(rand.Next() % 5 - 2); }
