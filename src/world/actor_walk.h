@@ -31,6 +31,7 @@ struct QueuedHit {
 struct GameActor {
   render::RenderObject object;
   std::int32_t state = 0;          // +0x58: 0 standing, 1 walking, docs/world/states.md
+  std::int32_t field_0xa8 = 0;     // +0xa8 (CAbleToMakeEffect): 1 once effect 0x7f is launched
   std::int32_t goal_x = 0;         // +0xc0, the cell a move heads for
   std::int32_t goal_y = 0;         // +0xc4
   std::int32_t speed = 150;        // +0xc8, milliseconds a cell

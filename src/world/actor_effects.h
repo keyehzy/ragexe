@@ -33,7 +33,8 @@ enum EffectSlot : std::size_t {
 //    sets state 10. Their ends (0x34, 0x66, 0x39, 0x3b and 0x6b, 0x44, 0x46, 0x48, 0x4a, 0x4c,
 //    0x4f) tell the slot's effect to end (0x35) and empty the slot.
 //  - 0x3e, 0x3f, 0x5c, 0x5f and 0x7d make one without a slot; 0x15 makes the emotion `arg`,
-//    0x22 into its slot when it is empty.
+//    0x22 into its slot when it is empty; 0x59, with context.msg_sprites (00687ec0), makes
+//    one with msg.spr (CGameMode::AddMsgSpriteEffect), its +0x7c `arg`.
 //  - 0x30 takes the sender out of the list and its slot (ClearSlotHolding, 00504090).
 // False for the other messages, which it leaves alone. Without context.effects nothing is
 // made or ended.
@@ -44,5 +45,17 @@ bool SendGameActorEffectMessage(GameActor& actor, std::int32_t message, std::int
 // state through CPc::SetState.
 bool SendGameActorEffectMessage(PlayerActor& player, std::int32_t message, std::int32_t sender,
                                 std::int32_t arg, const StateContext& context, std::uint32_t now);
+
+// CGameActor::SendMsg's message 0x58 (0050456b), a number shown over the actor: nothing on a
+// guild war's map (context.guild_war_map) unless the player has privilege 7
+// (SeesHiddenActors); otherwise ShowNumberEffect (0050beb0). The value, 0 to 999999, is shown
+// a digit an effect from the last, each a CMsgEffect with +0x7c the colour, sent its id and
+// the type (0x16, which its +0x10c keeps), the actor's position with the digit and its offset
+// (4 × (digits - 1) - 8 × its place), and told to follow the actor (0x32), then put in the
+// actor's list. Type 0x16 first drops the numbers of that type from the list
+// (RemoveMsgEffectsOfType16, 0050c100: each out of its slot, sent 0x18 from the actor and
+// deleted) and gives its digits +0x3c 0.5. Without context.effects nothing is made.
+void ShowGameActorNumber(GameActor& actor, std::int32_t value, std::uint32_t color,
+                         std::int32_t type, const StateContext& context);
 
 }  // namespace ragexe::world

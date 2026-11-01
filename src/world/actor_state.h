@@ -33,29 +33,45 @@ struct Sound {
   float z = 0.0f;
 };
 
-// An effect the game mode makes for an actor (a CMsgEffect: CGameMode::AddSpriteEffectByType,
-// 005106a0, or AddEmotionEffect, 005111b0), as the actor's messages see it.
-struct ActorEffect {
-  bool emotion = false;   // made by AddEmotionEffect
-  std::int32_t type = 0;  // AddSpriteEffectByType's type, which picks the sprite, or the emotion
-  std::int32_t actor_id = 0;               // the actor's id (+0x1b4) when it was made
-  const render::Vec3* position = nullptr;  // the actor's position, which it is drawn at
-  float field_0x44 = 0.0f;                 // +0x44
+// What made an actor's effect, a CMsgEffect.
+enum class EffectMaker : std::uint8_t {
+  kSprite,     // CGameMode::AddSpriteEffectByType (005106a0)
+  kEmotion,    // CGameMode::AddEmotionEffect (005111b0)
+  kNumber,     // CGameActor::ShowNumberEffect (0050beb0), one digit
+  kMsgSprite,  // CGameMode::AddMsgSpriteEffect (00510440), msg.spr
 };
 
-// A message to an effect (its vf02): 0x32 from the actor, to follow it, or 0x35 from none, to
-// end.
+// An effect made for an actor, as the actor's messages see it.
+struct ActorEffect {
+  EffectMaker maker = EffectMaker::kSprite;
+  std::int32_t type = 0;      // AddSpriteEffectByType's type, which picks the sprite, the emotion,
+                              // or ShowNumberEffect's, its +0x10c
+  std::int32_t actor_id = 0;  // the actor's id (+0x1b4) when it was made
+  const render::Vec3* position = nullptr;  // the actor's position, which it is drawn at
+  float field_0x44 = 0.0f;                 // +0x44
+  float field_0x3c = 0.0f;                 // +0x3c: 0.5 for a number of type 0x16
+  std::uint32_t color = 0;                 // +0x7c: a number's, or AddMsgSpriteEffect's value
+};
+
+// A message to an effect (its vf02): 0x32 from the actor, to follow it, 0x35 from none, to
+// end, and the others with their arguments, `at` standing for a position's address.
 struct EffectMessage {
   std::int32_t effect = 0;  // its number
   std::int32_t id = 0;
+  std::int32_t a = 0;
+  std::int32_t b = 0;
+  std::int32_t c = 0;
+  const render::Vec3* at = nullptr;
+  const GameActor* sender = nullptr;  // the actor that sends it, or none
   bool operator==(const EffectMessage&) const = default;
 };
 
-// The effects made for actors, which they name by number, their place in `made` from 1, and
-// what they were sent, in order.
+// The effects made for actors, which they name by number, their place in `made` from 1, what
+// they were sent, in order, and those the world deleted (CWorld::DeleteGameObject, 004c4bc0).
 struct ActorEffects {
   std::vector<ActorEffect> made;
   std::vector<EffectMessage> messages;
+  std::vector<std::int32_t> deleted;
 };
 
 // What CGameActor::vf34 (00503f30) leaves of an actor that has died: CGameMode::AddCorpse
@@ -119,13 +135,25 @@ struct StateContext {
   std::string_view act_name{};     // the names of the body's act (+0x9c) and sprite (+0x98),
   std::string_view sprite_name{};  // which a corpse takes
   GameActor* target_actor{};       // the actor CWorld::GetActorById finds for +0x1a8, which an
-                                   // attack's hits are queued on; `target` is its position
+                                   // attack's hits are queued on, or for a hit's attacker;
+                                   // `target` is its position
   GameActor* player_actor{};       // the player (CWorld+0x3c) as an actor, which the hits aimed
-                                   // at own_id are queued on; `player` is its position
+                                   // at own_id are queued on and whom own_id's hits are from;
+                                   // `player` is its position
   std::vector<Arrow>* arrows{};    // the arrows shot, when kept
   std::vector<std::int32_t>* launched{};  // the effects CAbleToMakeEffect::LaunchEffect
                                           // (00501e10) is asked for, by id, which the port
                                           // doesn't make, when kept
+  std::vector<EffectMessage>* launched_messages{};  // what those it makes are sent, each by
+                                                    // its place in `launched` from 1, when
+                                                    // kept
+  bool effects_on{};     // 00687ea8: LaunchEffect makes any effect, not only its own few
+  bool msg_sprites{};    // 00687ec0, which CGameMode 00516a80 toggles: message 0x59 shows one
+  bool guild_war_map{};  // CWorld+0x60 (ClientState::IsGuildWarMap, 005aa630)
+  const std::vector<std::int32_t>* own_statuses{};  // the player's statuses (the vector at
+                                                    // 00641f98), which packet 0x0196 keeps
+  std::int32_t target_weapon{-1};  // vf31 of target_actor and of player_actor: -1 for a
+  std::int32_t player_weapon{-1};  // CGameActor, a CPc's weapon (+0x2a0)
   // NOLINTEND(readability-redundant-member-init)
 };
 
@@ -228,6 +256,10 @@ StateResult ProcessGameActorState(GameActor& actor, const StateContext& context,
 // are CGameActor's, standing again through CPc::SetState; 13 is not ported.
 StateResult ProcessGameActorState(PlayerActor& player, const StateContext& context,
                                   std::uint32_t now, std::uint32_t server_time);
+
+// CGameActor::ReportCell (00503110, vf11): the game mode told 0xc with the actor's id and the
+// attribute cell under it.
+void ReportGameActorCell(const GameActor& actor, const StateContext& context);
 
 // CGameActor::SendMsg's message 0x1c (00505266), which packet 0x0080 sends when the actor has
 // died: a monster's id (jobs 1001 to 0x57f) becomes 100000 less it; then dying (SetState(3)),

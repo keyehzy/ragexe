@@ -7,7 +7,7 @@ An actor acts on another, usually attacking it, through **message 0xb** to its
 each to land at its time. The port is `src/world/actor_attack`.
 
 What a hit does when it lands (messages 0x1a, 0x27, 0x5d, 0x5e and 0x6f, which the target
-sends itself from its queue) is not ported here.
+sends itself from its queue) is in [hits.md](hits.md).
 
 ## The record
 
@@ -41,8 +41,8 @@ Message 0xb's first argument is a record of ten words:
    - the rest log "Unknown Action Type == %d" (`0061485c`) and end there.
 
 An attack:
-1. **With +0xcc set,** the actor launches effect 0x83 (`CAbleToMakeEffect::LaunchEffect`),
-   tells it to follow (0x32), and clears +0xcc.
+1. **With +0xcc set,** the actor launches effect 0x83 (`CAbleToMakeEffect::LaunchEffect`,
+   [hits.md](hits.md#launcheffect)), tells it to follow (0x32) when it is made, and clears +0xcc.
 2. **`vf35`** sets +0x50 to the motion over 432 (`005e9754`), the motion at most 432
    (`00614858`): `CGameActor`'s `0050ad50`; `CPc`'s `00543470` leaves it whole for a bow (the
    weapon's kind 0xb).
@@ -177,5 +177,5 @@ Then `kWeaponKinds`, `MapRangedIdToKind` at each range's edges and either side, 
 `kAttackChoices`, `0059a440` and `0059a3e0` for jobs −1 to 0x16 and 0x7fffffff, +0x1bc 0 to 2
 and weapons from −1 to 0x18 and ids in each range.
 
-**Not ported:** the hits' landing; skills as targets; `CPc::vf02`'s own messages, which leave
+**Not ported:** skills as targets; `CPc::vf02`'s own messages, which leave
 0xb and 0x1b to `CGameActor`'s.

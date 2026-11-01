@@ -34,7 +34,7 @@ import world_oracle  # noqa: E402
 from emu import Emulator  # noqa: E402
 from emu.winapi import Stub  # noqa: E402
 from unicorn import UC_PROT_ALL  # noqa: E402
-from unicorn.x86_const import UC_X86_REG_FPCW  # noqa: E402
+from unicorn.x86_const import UC_X86_REG_EAX, UC_X86_REG_ECX, UC_X86_REG_EIP, UC_X86_REG_FPCW  # noqa: E402
 
 C3DATTR_CTOR, C3DATTR_LOAD = 0x426BA0, 0x426EC0
 PATH_FINDER_CTOR, SET_ATTR_MAP, FIND_PATH = 0x4CC1B0, 0x4CCC50, 0x4CC5C0
@@ -143,6 +143,30 @@ ATTACK_RECORD = 10
 GET_SKILL_BY_ID, LAUNCH_EFFECT, ADD_ARROW = 0x4C4DB0, 0x501E10, 0x5101F0
 GET_FRAME, GET_EVENT_NAME, HIT_QUEUE = 0x421A60, 0x420F20, 0x204
 EVENT_NAMES = ["atk", "atk2", "at", ""]
+# L and O: a G and a P that hits land on (docs/world/hits.md): by `how`, CGameActor 00503f80
+# delivering what is queued (0), or the message `how` sent with the first hit through vf02;
+# then, update by update, 00503f80 and ProcessState, until the update returns 0. Before it: the
+# attacker (0 none; 1 another, which CWorld::GetActorById finds; 2 the player, by its id; 3 the
+# actor itself, found; 4 the actor itself as the player), whether the other and the player are
+# CPcs (bits 0 and 1 of `pcs`), their job, +0x21c and weapon (+0x2a0); the player's id, its
+# statuses (00641f98: 0 none, 1 [0x13], 2 [5], 3 [5, 0x13]), the guild war (CWorld+0x60),
+# effects on (00687ea8) and the msg sprites (00687ec0), srand's seed, +0x210, `listed` effects
+# in the list before (each a number whose +0x10c is 0x16 by `kinds`' bits, the first in the
+# slot `slot` below 11), the act's events as V's, +0x54, +0x70, +0x1a8, the actor's weapon,
+# +0x1bc, where the other and the player stand (float bits) and how many hits (each
+# ATTACK_RECORD words after the fields, queued unless `how` sends the first). The world always
+# has its player. CMsgEffect::CMsgEffect, AddMsgSpriteEffect and CAbleToMakeEffect::LaunchEffect's
+# effect are stand-ins whose vf02 is recorded (message 0x16 keeping its second argument at
+# +0x10c, as CMsgEffect's does); CGameMode::AddToWorldObjects is skipped and
+# CWorld::DeleteGameObject recorded. The hash takes, after the message and each update,
+# fields(), the game mode's messages, extra() and landed().
+LAND_FIELDS = ["how", "attacker", "pcs", "ajob", "aeffect", "aweapon", "own", "statuses", "war", "effects_on",
+               "msgs", "seed", "f210", "listed", "kinds", "slot", "events", "play", "start", "f1a8", "weapon",
+               "f1bc", "tx", "tz", "px", "pz", "count"]
+DELIVER, MSG_EFFECT_CTOR, ADD_TO_WORLD, DELETE_OBJECT = 0x503F80, 0x5AD910, 0x511150, 0x4C4BC0
+ADD_MSG_SPRITE, LAUNCH_MAKES, LAUNCH_RETURNS = 0x510440, 0x501E93, 0x501E80
+CLIENT_STATE, PLAYER_HIT_SOUNDS, WEAPON_HIT_SOUNDS = 0x686670, 0x599620, 0x599A40
+OWN_STATUSES, EFFECTS_ON, MSG_SPRITES, WORLD_GUILD_WAR = 0x641F98, 0x687EA8, 0x687EC0, 0x60
 SRAND, PET_ID, PET_TABLE = 0x5C2546, 0x686E40, 0x686E94
 PET_LEVEL_A, PET_LEVEL_B, PET_LINE = 0x5A9F40, 0x5A9FA0, 0x5AA3E0
 SINGLE = 0x007F
@@ -319,9 +343,14 @@ class Oracle:
         self.effect_vtable = emu.scratch(size=0x40)
         emu.mem_write(EFFECT_MESSAGE_STUB, b"\xC3")
         emu.write_u32(self.effect_vtable + 4 * SEND_SELF_SLOT, EFFECT_MESSAGE_STUB)
-        self.made, self.made_by, self.effect_messages = [], [], []
+        self.made, self.made_by, self.made_at, self.effect_messages = [], [], [], []
 
         def effect_message(this, sender, message, a, b, c):
+            if self.landing:
+                if message == 0x16:
+                    emu.write_u32(this + 0x10C, b)
+                self.effect_messages += [self.number(this), self.who(sender), message, self.where(a), b, c]
+                return
             self.effect_messages += [self.number(this), {0: 0, self.actor: 1}.get(sender, 2), message, a, b, c]
         emu.replace_thiscall(EFFECT_MESSAGE_STUB, 5, effect_message)
         emu.replace_thiscall(ADD_SPRITE_EFFECT, 3, lambda this, kind, at, actor_id: self.make_effect(0, kind, at, actor_id))
@@ -348,11 +377,67 @@ class Oracle:
         emu.replace_thiscall(ADD_ARROW, 3, add_arrow)
 
         def launch(uc, address, size, _):
-            if self.attacking:
+            if self.landing:
+                self.launched.append(emu.read_u32(emu.esp() + 4))
+            elif self.attacking:
                 esp = emu.esp()
                 self.launched.append(emu.read_u32(esp + 4))
                 emu.complete(0, emu.read_u32(esp), esp + 4 + 0x14)
         emu.hook_code(LAUNCH_EFFECT, LAUNCH_EFFECT, launch)
+
+        # For L and O: where LaunchEffect would make its effect, a stand-in, returned as it
+        # returns.
+        def launch_makes(uc, address, size, _):
+            if self.landing:
+                effect = emu.scratch(size=0x120)
+                emu.write_u32(effect, self.launched_vtable)
+                self.launched_effects[effect] = len(self.launched)
+                uc.reg_write(UC_X86_REG_EAX, effect)
+                uc.reg_write(UC_X86_REG_EIP, LAUNCH_RETURNS)
+        emu.hook_code(LAUNCH_MAKES, LAUNCH_MAKES, launch_makes)
+        self.landing, self.launched_effects, self.launched_messages = False, {}, []
+        self.launched_vtable = emu.scratch(size=0x40)
+        launched_stub = MESSAGE_STUB + 0x30
+        emu.mem_write(launched_stub, b"\xC3")
+        emu.write_u32(self.launched_vtable + 4 * SEND_SELF_SLOT, launched_stub)
+
+        def launched_message(this, sender, message, a, b, c):
+            self.launched_messages += [self.launched_effects.get(this, 0xFFFFFFFF), self.who(sender), message,
+                                       self.where(a), b, c]
+        emu.replace_thiscall(launched_stub, 5, launched_message)
+
+        def conditional(address, nargs, fn):
+            def hook(uc, _address, _size, _):
+                if self.landing:
+                    esp = emu.esp()
+                    args = [emu.read_u32(esp + 4 + 4 * k) for k in range(nargs)]
+                    emu.complete(fn(uc.reg_read(UC_X86_REG_ECX), *args), emu.read_u32(esp), esp + 4 + 4 * nargs)
+            emu.hook_code(address, address, hook)
+
+        def msg_effect(this):
+            emu.mem_write(this, bytes(0x11C))
+            emu.write_u32(this, self.effect_vtable)
+            self.made.append(this)
+            self.made_by.append([3, 0, 0, 0])
+            self.made_at.append(0)
+            return this
+        conditional(MSG_EFFECT_CTOR, 0, msg_effect)
+        conditional(ADD_TO_WORLD, 1, lambda this, effect: 0)
+        self.deleted = []
+        conditional(DELETE_OBJECT, 1, lambda this, effect: self.deleted.append(self.number(effect)))
+
+        def msg_sprite(this, at, value, actor_id):
+            effect = self.make_effect(4, 0, at, actor_id)
+            emu.write_u32(effect + 0x7C, value)
+            return effect
+        conditional(ADD_MSG_SPRITE, 3, msg_sprite)
+        # The C runtime's thread data, which srand and rand keep their state in, made on first
+        # use: made here, below every run's heap, which each run releases.
+        emu.call(SRAND, 1)
+        # ClientState's tables of the sounds of hits (+0x16d4 and +0x16e4), as 00588a00 fills them.
+        emu.call(PLAYER_HIT_SOUNDS, this=CLIENT_STATE)
+        emu.call(WEAPON_HIT_SOUNDS, this=CLIENT_STATE)
+        self.statuses = emu.scratch(size=8)
         self.frame_records = emu.scratch(size=0x40 * 64)
         self.event_names = [emu.cstr(name) for name in EVENT_NAMES]
         no_name = emu.cstr("")
@@ -408,7 +493,7 @@ class Oracle:
         for line in lines:
             kind, *values = line.split()
             v = [int(x) for x in values] if kind not in ("W", "G", "P", "T", "U", "N", "Y", "E", "Q", "A", "B", "X",
-                                                         "K", "D", "H", "V", "J") else []
+                                                         "K", "D", "H", "V", "J", "L", "O") else []
             self.logged = []
             if kind == "F":
                 found = emu.call(FIND_PATH, *v, self.actor + ACTOR_PATH, this=G_PATH_FINDER).eax & 0xFF
@@ -473,6 +558,10 @@ class Oracle:
                 out.append(self.go(values, attack=True))
             elif kind == "J":
                 out.append(self.go(values, player=True, attack=True))
+            elif kind == "L":
+                out.append(self.go(values, land=True))
+            elif kind == "O":
+                out.append(self.go(values, player=True, land=True))
         emu.heap_release(mark)
         return out
 
@@ -526,14 +615,15 @@ class Oracle:
         self.frames = w["frames"]
 
     def go(self, values, player=False, to=False, stand=False, enter=False, arrive=False, effects=False,
-           die=False, attack=False):
+           die=False, attack=False, land=False):
         """CGameActor::vf02's message 0 on the actor, then ProcessState update by update, with
         SetState run, until the actor stands again or has faded; for a player, a CPc's."""
         emu, actor = self.emu, self.actor
         v = [int(x, 0) for x in values]
         names = ((PLAYER_FIELDS if player else GO_FIELDS) + (TO_SPEED if to else []) + (STAND_FIELDS if stand else [])
                  + (ENTER_FIELDS if enter else []) + (ARRIVE_FIELDS if arrive else []) + (DEATH_FIELDS if die else [])
-                 + (EFFECT_FIELDS if effects else []) + (ATTACK_FIELDS if attack else []))
+                 + (EFFECT_FIELDS if effects else []) + (ATTACK_FIELDS if attack else [])
+                 + (LAND_FIELDS if land else []))
         g = dict(zip(names, v))
         updates = v[len(names):]
         self.place(g)
@@ -593,6 +683,9 @@ class Oracle:
             return self.enter(g, updates, extra)
         if attack:
             return self.attack(g, updates[:ATTACK_RECORD], updates[ATTACK_RECORD:], extra, player)
+        if land:
+            n = ATTACK_RECORD * g["count"]
+            return self.land(g, updates[:n], updates[n:], extra, player)
         if effects:
             self.ready_effects(g)
         if die:
@@ -833,6 +926,117 @@ class Oracle:
         r = [emu.read_u32(actor + o) for o in (0x4, 0x8, 0xC, 0x38, 0x24, 0x28, 0x58)]
         return f"{last} {calls} {r[0]:08x} {r[1]:08x} {r[2]:08x} {r[3]:08x} {r[4]} {r[5]} {r[6]} {h:016x}"
 
+    def land(self, g, hits, updates, extra, player):
+        """The hits, delivered or the first sent, then 00503f80 and ProcessState update by update,
+        until the update returns 0."""
+        emu, actor, foe, pc = self.emu, self.actor, self.foe, self.pc
+        for offset, name in ((0x54, "play"), (0x70, "start"), (0x1A8, "f1a8"), (0x1BC, "f1bc"), (0x2A0, "weapon"),
+                             (0x210, "f210")):
+            emu.write_u32(actor + offset, g[name] & 0xFFFFFFFF)
+        for offset in (0x1D4, 0x1F4, 0xB8, 0xBC, 0xA8, 0x6C, 0x228, 0x22C) + (() if player else (0x1CC, 0x218, 0xCC)):
+            emu.write_u32(actor + offset, 0)
+        emu.mem_write(actor + 0x83, b"\0")
+        self.made, self.made_by, self.made_at, self.effect_messages, self.deleted = [], [], [], [], []
+        self.empty_list(actor + EFFECT_LIST)
+        self.empty_list(actor + LAUNCHED_LIST)
+        self.empty_list(actor + HIT_QUEUE)
+        for k in range(EFFECT_SLOT_COUNT):
+            emu.write_u32(actor + EFFECT_SLOTS + 4 * k, 0)
+        for k in range(g["listed"]):
+            effect = self.make_effect(2, 0, 0, 0)
+            if g["kinds"] >> k & 1:
+                emu.write_u32(effect + 0x10C, 0x16)
+            self.link(effect)
+            if k == 0 and g["slot"] < EFFECT_SLOT_COUNT:
+                emu.write_u32(actor + EFFECT_SLOTS + 4 * g["slot"], effect)
+        for other, x, z, bit in ((foe, g["tx"], g["tz"], 1), (pc, g["px"], g["pz"], 2)):
+            emu.mem_write(other, bytes(ACTOR_SIZE))
+            emu.write_u32(other, PC_VTABLE if g["pcs"] & bit else GAME_ACTOR_VTABLE)
+            emu.write_u32(other + 4, x)
+            emu.write_u32(other + 0xC, z)
+            for offset, name in ((0x1B8, "ajob"), (0x21C, "aeffect"), (0x2A0, "aweapon")):
+                emu.write_u32(other + offset, g[name] & 0xFFFFFFFF)
+            emu.write_u32(other + 0x1B4, 0x5A5A0000 | bit)
+            for at in (EFFECT_LIST, LAUNCHED_LIST, HIT_QUEUE):
+                self.empty_list(other + at)
+        emu.write_u32(OWN_ID, g["own"] & 0xFFFFFFFF)
+        emu.write_u32(self.world + 0x3C, actor if g["attacker"] == 4 else pc)
+        emu.write_u32(self.world + WORLD_GUILD_WAR, g["war"])
+        statuses = {0: [], 1: [0x13], 2: [5], 3: [5, 0x13]}[g["statuses"]]
+        emu.mem_write(self.statuses, struct.pack("<2I", *statuses, *[0] * (2 - len(statuses))))
+        emu.write_u32(OWN_STATUSES + 4, self.statuses)
+        emu.write_u32(OWN_STATUSES + 8, self.statuses + 4 * len(statuses))
+        emu.write_u32(EFFECTS_ON, g["effects_on"])
+        emu.write_u32(MSG_SPRITES, g["msgs"])
+        emu.call(SRAND, g["seed"] & 0xFFFFFFFF)
+        saved = self.target
+        self.target, self.target_found = (actor if g["attacker"] == 3 else foe), g["attacker"] in (1, 3)
+        self.events, self.launched, self.arrows, self.attacking, self.landing = g["events"], [], [], True, True
+        self.launched_effects, self.launched_messages = {}, []
+        records = [hits[k:k + ATTACK_RECORD] for k in range(0, len(hits), ATTACK_RECORD)]
+        first = None
+        for k, record in enumerate(records):
+            if k == 0 and g["how"]:
+                first = emu.scratch(struct.pack(f"<{ATTACK_RECORD}I", *(r & 0xFFFFFFFF for r in record)))
+            else:
+                self.push(actor + HIT_QUEUE, [r & 0xFFFFFFFF for r in record])
+        self.messages, self.states, self.sounds = [], [], []
+        self.server, self.now = updates[0], updates[1]
+        if g["how"]:
+            emu.call(emu.read_u32(emu.read_u32(actor) + 4 * 2), 0, g["how"], first, 0, 0, this=actor)
+        h = fnv1a64([7, *self.fields(), *self.messages, *extra(), *self.landed()])
+        last, calls = "staying", 0
+        for server, tick in zip(updates[2::2], updates[3::2]):
+            self.messages, self.states = [], []
+            self.now, self.server = tick, server
+            emu.call(DELIVER, this=actor)
+            ret = emu.call(emu.read_u32(emu.read_u32(actor) + 4 * 9), this=actor).eax & 0xFF
+            calls += 1
+            h = fnv1a64([ret, *self.fields(), *self.messages, *extra(), *self.landed()], h)
+            if ret == 0:
+                last = "faded"
+                break
+        self.attacking, self.landing, self.target, self.target_found = False, False, saved, False
+        emu.write_u32(self.world + 0x3C, 0)
+        emu.write_u32(self.world + WORLD_GUILD_WAR, 0)
+        for address in (OWN_STATUSES + 4, OWN_STATUSES + 8, EFFECTS_ON, MSG_SPRITES):
+            emu.write_u32(address, 0)
+        r = [emu.read_u32(actor + o) for o in (0x4, 0x8, 0xC, 0x38, 0x24, 0x28, 0x58)]
+        for offset in (0x210, 0x20C):
+            emu.write_u32(actor + offset, 0)
+        return f"{last} {calls} {r[0]:08x} {r[1]:08x} {r[2]:08x} {r[3]:08x} {r[4]} {r[5]} {r[6]} {h:016x}"
+
+    def listed(self, at):
+        """The effects in the list at `at` by number."""
+        emu = self.emu
+        head = emu.read_u32(at + 4)
+        words, node = [emu.read_u32(at + 8)], emu.read_u32(head)
+        while node != head:
+            words.append(self.number(emu.read_u32(node + 8)))
+            node = emu.read_u32(node)
+        return words
+
+    def landed(self):
+        """What a hit's landing writes beyond fields(), and the queue; what was played,
+        launched and sent to what was launched since; the slots and the three lists of
+        effects, every effect's maker, what it was made at and for, +0x44, +0x3c, +0x7c and
+        +0x10c, and what they were sent and which the world deleted since."""
+        emu, a = self.emu, self.actor
+        words = [emu.read_u32(a + o) for o in (0x6C, 0xA8, 0x228, 0x22C, 0x210, 0x1A8, 0xCC)]
+        words += [emu.mem_read(a + 0x83, 1)[0], *self.queue(a)]
+        words += [len(self.sounds), *self.sounds, len(self.launched), *self.launched,
+                  len(self.launched_messages), *self.launched_messages]
+        words += [self.number(emu.read_u32(a + EFFECT_SLOTS + 4 * k)) for k in range(EFFECT_SLOT_COUNT)]
+        for at in (a, self.foe, self.pc):
+            words += self.listed(at + EFFECT_LIST)
+        words.append(len(self.made))
+        for effect, by, at in zip(self.made, self.made_by, self.made_at):
+            words += [by[0], by[1], self.where(at), by[3]]
+            words += [emu.read_u32(effect + o) for o in (0x44, 0x3C, 0x7C, 0x10C)]
+        words += [len(self.effect_messages), *self.effect_messages, len(self.deleted), *self.deleted]
+        self.sounds, self.launched, self.launched_messages, self.effect_messages, self.deleted = [], [], [], [], []
+        return words
+
     def push(self, at, words):
         """A node at the end of the std::list at `at`, as push_back."""
         emu = self.emu
@@ -869,7 +1073,17 @@ class Oracle:
         self.emu.write_u32(effect, self.effect_vtable)
         self.made.append(effect)
         self.made_by.append([by, kind, int(at == self.actor + 4), actor_id])
+        self.made_at.append(at)
         return effect
+
+    def who(self, sender):
+        """A sender for L and O: 0 none, 1 the actor, 2 the other, 3 the player, 4 another."""
+        return {0: 0, self.actor: 1, self.foe: 2, self.pc: 3}.get(sender, 4)
+
+    def where(self, value):
+        """An argument for L and O, the actor's, the other's and the player's positions as 1 to
+        3."""
+        return {self.actor + 4: 1, self.foe + 4: 2, self.pc + 4: 3}.get(value, value)
 
     def number(self, effect):
         if effect in self.made:
@@ -897,7 +1111,7 @@ class Oracle:
     def ready_effects(self, g):
         """The effects of X, K and B before the messages, and the launched effects' list empty."""
         emu, actor = self.emu, self.actor
-        self.made, self.made_by, self.effect_messages = [], [], []
+        self.made, self.made_by, self.made_at, self.effect_messages = [], [], [], []
         self.empty_list(actor + EFFECT_LIST)
         self.empty_list(actor + LAUNCHED_LIST)
         shared = 0

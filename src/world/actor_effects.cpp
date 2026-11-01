@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include "world/actor_arrival.h"
+
 namespace ragexe::world {
 
 namespace {
@@ -11,6 +13,13 @@ constexpr std::int32_t kEnd = 0x35;
 constexpr std::int32_t kGone = 0x30;  // from an effect that has gone
 constexpr std::int32_t kEmotion = 0x15;
 constexpr std::int32_t kEmotionInSlot = 0x22;
+constexpr std::int32_t kMsgSprite = 0x59;   // AddMsgSpriteEffect with the message's value
+constexpr std::int32_t kNumberKind = 0x16;  // a number that replaces the last of its kind
+constexpr std::int32_t kDropped = 0x18;     // RemoveMsgEffectsOfType16's, from the actor
+constexpr std::int32_t kKind = 0x16;        // a number's id and type (+0x10c)
+constexpr std::int32_t kDigit = 0x40;       // its position, digit and offset
+constexpr float kNumberKindScale = 0.5f;    // 0x3f000000, +0x3c of a number of type 0x16
+constexpr std::int32_t kMostShown = 999999;
 constexpr std::int32_t kSleepState = 10;  // 0x45's SetState
 constexpr float kFalconField44 = 6.0f;    // 0x40c00000, which 0x65 writes to its effect's +0x44
 constexpr std::uint32_t kHiding = 1u << 1;
@@ -53,15 +62,27 @@ std::int32_t CartType(std::uint32_t effect_state) {
   }
 }
 
-// CGameMode::AddSpriteEffectByType or AddEmotionEffect at the actor's position, then the
-// effect in the actor's list and told to follow it.
-std::int32_t Make(GameActor& actor, const StateContext& context, bool emotion, std::int32_t type) {
+// CGameMode::AddSpriteEffectByType, AddEmotionEffect or AddMsgSpriteEffect at the actor's
+// position, then the effect in the actor's list and told to follow it.
+std::int32_t Make(GameActor& actor, const StateContext& context, EffectMaker maker,
+                  std::int32_t type) {
   ActorEffects& effects = *context.effects;
-  effects.made.push_back({emotion, type, actor.id, &actor.object.position});
+  effects.made.push_back({maker, type, actor.id, &actor.object.position});
   const auto number = static_cast<std::int32_t>(effects.made.size());
   actor.effects.push_back(number);
-  effects.messages.push_back({number, kFollow});
+  effects.messages.push_back({.effect = number, .id = kFollow, .sender = &actor});
   return number;
+}
+
+// ClearSlotHolding (00504090): the first slot holding the effect, in kClearOrder's order,
+// emptied.
+void ClearSlotHolding(GameActor& actor, std::int32_t number) {
+  for (const EffectSlot slot : kClearOrder) {
+    if (actor.effect_slots[slot] == number) {
+      actor.effect_slots[slot] = 0;
+      return;
+    }
+  }
 }
 
 void End(GameActor& actor, EffectSlot slot, const StateContext& context) {
@@ -79,7 +100,7 @@ bool IsEffectMessage(std::int32_t message) {
     if (message == start) return true;
   }
   return message == 0x33 || message == 0x34 || message == kFrozenEndToo || message == kEmotion ||
-         message == kGone;
+         message == kGone || message == kMsgSprite;
 }
 
 template <class Actor, class SetState>
@@ -94,7 +115,7 @@ bool Send(Actor& actor, std::int32_t message, std::int32_t sender, std::int32_t 
     }
     if (message != s.start) continue;
     if (actor.effect_slots[s.slot] != 0) return true;
-    const std::int32_t number = Make(actor, context, false, s.type);
+    const std::int32_t number = Make(actor, context, EffectMaker::kSprite, s.type);
     if (s.slot == kFalconSlot)
       context.effects->made[static_cast<std::size_t>(number - 1)].field_0x44 = kFalconField44;
     actor.effect_slots[s.slot] = number;
@@ -103,32 +124,35 @@ bool Send(Actor& actor, std::int32_t message, std::int32_t sender, std::int32_t 
   }
   for (const auto& [start, type] : kUnslotted) {
     if (message == start) {
-      Make(actor, context, false, type);
+      Make(actor, context, EffectMaker::kSprite, type);
       return true;
     }
   }
   switch (message) {
     case 0x33:
       if ((actor.effect_state & (kHiding | kCloaked)) == 0 && actor.effect_slots[kCartSlot] == 0)
-        actor.effect_slots[kCartSlot] = Make(actor, context, false, CartType(actor.effect_state));
+        actor.effect_slots[kCartSlot] =
+            Make(actor, context, EffectMaker::kSprite, CartType(actor.effect_state));
       break;
     case 0x34: End(actor, kCartSlot, context); break;
     case kEmotion:
       if (arg != kEmotionInSlot) {
-        Make(actor, context, true, arg);
+        Make(actor, context, EffectMaker::kEmotion, arg);
       } else if (actor.effect_slots[kEmotionSlot] == 0) {
-        actor.effect_slots[kEmotionSlot] = Make(actor, context, true, arg);
+        actor.effect_slots[kEmotionSlot] = Make(actor, context, EffectMaker::kEmotion, arg);
+      }
+      break;
+    case kMsgSprite:
+      if (context.msg_sprites) {
+        const std::int32_t number = Make(actor, context, EffectMaker::kMsgSprite, 0);
+        context.effects->made[static_cast<std::size_t>(number - 1)].color =
+            static_cast<std::uint32_t>(arg);
       }
       break;
     default: {
       const auto at = std::find(actor.effects.begin(), actor.effects.end(), sender);
       if (at == actor.effects.end()) break;
-      for (const EffectSlot slot : kClearOrder) {
-        if (actor.effect_slots[slot] == sender) {
-          actor.effect_slots[slot] = 0;
-          break;
-        }
-      }
+      ClearSlotHolding(actor, sender);
       actor.effects.erase(at);
       break;
     }
@@ -148,6 +172,49 @@ bool SendGameActorEffectMessage(PlayerActor& player, std::int32_t message, std::
                                 std::int32_t arg, const StateContext& context, std::uint32_t now) {
   return Send(player, message, sender, arg, context,
               [&](std::int32_t state) { SetPlayerState(player, state, context, now); });
+}
+
+void ShowGameActorNumber(GameActor& actor, std::int32_t value, std::uint32_t color,
+                         std::int32_t type, const StateContext& context) {
+  if (context.guild_war_map && !SeesHiddenActors(context.service_type, context.own_id)) return;
+  if (context.effects == nullptr) return;
+  ActorEffects& effects = *context.effects;
+  if (value > kMostShown) value = kMostShown;
+  if (value < 0) value = 0;
+  std::int32_t count = 1;
+  for (std::int32_t edge = 10; count < 6 && value >= edge; edge *= 10) ++count;
+  if (type == kNumberKind) {
+    // RemoveMsgEffectsOfType16 (0050c100): each number of the kind dropped, sent 0x18 and deleted.
+    for (auto at = actor.effects.begin(); at != actor.effects.end();) {
+      const std::int32_t number = *at;
+      const ActorEffect& e = effects.made[static_cast<std::size_t>(number - 1)];
+      if (e.maker != EffectMaker::kNumber || e.type != kNumberKind) {
+        ++at;
+        continue;
+      }
+      ClearSlotHolding(actor, number);
+      effects.messages.push_back({.effect = number, .id = kDropped, .sender = &actor});
+      at = actor.effects.erase(at);
+      effects.deleted.push_back(number);
+    }
+  }
+  std::int32_t digits = value;
+  for (std::int32_t k = 0; k < count; ++k) {
+    ActorEffect digit{EffectMaker::kNumber, type, actor.id, &actor.object.position};
+    digit.color = color;
+    if (type == kNumberKind) digit.field_0x3c = kNumberKindScale;
+    effects.made.push_back(digit);
+    const auto number = static_cast<std::int32_t>(effects.made.size());
+    effects.messages.push_back({.effect = number, .id = kKind, .a = actor.id, .b = type});
+    effects.messages.push_back({.effect = number,
+                                .id = kDigit,
+                                .b = digits % 10,
+                                .c = 4 * (count - 1) - 8 * k,
+                                .at = &actor.object.position});
+    effects.messages.push_back({.effect = number, .id = kFollow, .sender = &actor});
+    actor.effects.push_back(number);
+    digits /= 10;
+  }
 }
 
 }  // namespace ragexe::world

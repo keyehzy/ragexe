@@ -2935,6 +2935,31 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     `LaunchRangedAttack`, `CPc`'s `SetAttackMotion` and `GetWeapon`, and `ClientState`'s
     `UsesSecondAttack`, `GetAttackFrame` and `IsPlayerJob`.
 
+- [x] Hits landing (`docs/world/hits.md`, `src/world/actor_hit`): `CGameActor::DeliverDueHits`
+  (`00503f80`), which the classes' `vf01` call before `ProcessState`, sends the actor each queued
+  hit whose time has come. Messages 0x1a, 0x27, 0x5d, 0x5e, 0x60, 0x61 and 0x6f land: the cell
+  state 4 slides to, the attacker by id; no damage shows 0x5f, the attacker's 0x59 (msg.spr, while
+  `00687ec0` is set) or the player's 0x7d with status 0x13; damage keys the actor, plays the hit's
+  sound (`ClientState`'s two tables, by job or weapon kind, `rand` for none and fists), launches
+  +0x18 and +0x1c (0x7a a turn of 90 degrees), shows the number (message 0x58,
+  `ShowNumberEffect`: a `CMsgEffect` a digit, red, white or yellow, type 0x16 replacing the last;
+  none in a guild war without privilege 7) and flinches into state 4 with the hit's motion. With
+  +0x210 the last hit kills. 0x6c, which skills queue, restarts the attack at frame 4.
+  `CAbleToMakeEffect::LaunchEffect`'s choice of what it makes (effects on, or its own eleven ids)
+  is ported, the attack's effect 0x83 through it.
+  - **Found on the way:** the oracle's C runtime thread data, where `srand` keeps `rand`'s state,
+    was made on the first query's heap and freed with it; it is now made when the oracle starts.
+    The slip was the oracle's; the port was right.
+  - **Checks:** `tools/walk_oracle.py`'s `L` and `O` on all 287 maps, the attacker another
+    `CGameActor` or `CPc`, the player or the actor itself, the `CMsgEffect`s, msg sprites and
+    launched effects stand-ins whose `vf02` is recorded, the sound tables filled by the original:
+    11,480 actors and 11,480 players over 4,195,761 updates equal, every effect, message, sound
+    and hit hashed; 225,130 queries in all, the older counts unchanged and the older vector files
+    byte-identical. `land_vectors.inc` keeps short ones, each edge of the damages, jobs, messages,
+    ids and motions, both sound functions by job and kind, and `LaunchEffect` by id.
+  - **Labels:** `CGameActor::DeliverDueHits`; `ClientState`'s `FillPlayerHitSounds`,
+    `FillWeaponHitSounds`, `GetPlayerHitSound`, `GetWeaponHitSound` and `HasOwnStatus`.
+
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

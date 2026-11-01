@@ -4,6 +4,7 @@
 
 #include "core/x87.h"
 #include "render/actor.h"
+#include "world/actor_hit.h"
 
 namespace ragexe::world {
 
@@ -21,6 +22,7 @@ constexpr std::int32_t kBowKind = 0xb;           // a player's motion past 432 s
 constexpr std::int32_t kStand = 0;
 constexpr std::int32_t kAttack = 2;
 constexpr std::int32_t kEffectWithCc = 0x83;  // launched for an attack with +0xcc set
+constexpr std::int32_t kFollow = 0x32;        // to that effect, from the actor
 
 // GetJob's later hits for a few monsters: ms added to the first's time.
 std::int32_t LateHit(std::int32_t job) {
@@ -72,10 +74,6 @@ std::int32_t Add(std::int32_t a, std::int32_t b) {
   return static_cast<std::int32_t>(static_cast<std::uint32_t>(a) + static_cast<std::uint32_t>(b));
 }
 
-void Launch(const StateContext& context, std::int32_t id) {
-  if (context.launched != nullptr) context.launched->push_back(id);
-}
-
 template <typename Actor, typename SetState>
 bool Act(Actor& actor, const TargetAction& action, const StateContext& context, std::uint32_t now,
          SetState set_state) {
@@ -112,7 +110,9 @@ bool Act(Actor& actor, const TargetAction& action, const StateContext& context, 
     default: return false;
   }
   if (actor.field_0xcc != 0) {
-    Launch(context, kEffectWithCc);
+    const std::int32_t effect = LaunchGameActorEffect(actor, kEffectWithCc, context);
+    if (effect != 0 && context.launched_messages != nullptr)
+      context.launched_messages->push_back({.effect = effect, .id = kFollow, .sender = &actor});
     actor.field_0xcc = 0;
   }
   SetMotion(actor, action.motion);

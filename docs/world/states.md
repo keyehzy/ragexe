@@ -4,7 +4,8 @@ An actor is told to move by a message, walks the path it finds ([walk.md](walk.m
 stands when it gets there. The message is `CGameActor::SendMsg` (`00504460`, `vf02`), and the
 state changes are `CGameActor::SetState` (`005034e0`, `vf10`). The port is
 `src/world/actor_state`, for the move and for every state. What starts an attack, and the hits
-it queues on its target, are in [attack.md](attack.md).
+it queues on its target, are in [attack.md](attack.md); what they do when they land, state 4
+among it, in [hits.md](hits.md).
 
 ## The move
 

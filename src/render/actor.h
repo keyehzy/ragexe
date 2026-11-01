@@ -50,6 +50,7 @@ struct RenderObject {
   float repeats = 1.0f;                  // +0x4c, how many times a play-once action runs
   std::int32_t play_mode = 0;            // +0x54: 0 loops, 1 plays once, others hold
   std::uint32_t key_color = 0xffff0000;  // +0x68
+  std::uint32_t keyed_at = 0;            // +0x6c, timeGetTime when it was keyed
   std::uint32_t start_time = 0;          // +0x70, timeGetTime when the action began
   std::uint32_t color = 0xffffffff;      // +0x7c, A << 24 | R << 16 | G << 8 | B
   bool depth_up = false;                 // +0x80, depth from the other slope

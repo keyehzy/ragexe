@@ -12,6 +12,7 @@
 #include "world/actor_arrival.h"
 #include "world/actor_attack.h"
 #include "world/actor_effects.h"
+#include "world/actor_hit.h"
 #include "world/actor_state.h"
 #include "world/actor_walk.h"
 #include "world/path_finder.h"
@@ -83,6 +84,20 @@ struct WeaponKindVector {
   int id, kind;
 };
 
+struct HitSoundVector {
+  int player;  // 1 ClientState 00599a00 by the job, 0 00599df0 by the weapon's kind
+  int value;
+  std::uint32_t seed;
+  const char* name;
+};
+
+struct LaunchVector {
+  int id;
+  int effects_on;
+  int made;
+  int field_0xa8;
+};
+
 struct AttackChoiceVector {
   int job, field_0x1bc, weapon;
   int second;
@@ -94,6 +109,7 @@ struct AttackChoiceVector {
 #include "attack_vectors.inc"
 #include "death_vectors.inc"
 #include "enter_vectors.inc"
+#include "land_vectors.inc"
 #include "move_to_vectors.inc"
 #include "player_state_vectors.inc"
 #include "stand_vectors.inc"
@@ -130,6 +146,18 @@ AttrMap MakeMap(const WalkMapVector& v) {
 }
 
 std::uint32_t Bits(float f) { return std::bit_cast<std::uint32_t>(f); }
+
+// What made an effect, as tools/path_oracle.py names it: 0 AddSpriteEffectByType, 1
+// AddEmotionEffect, 3 ShowNumberEffect, 4 AddMsgSpriteEffect (2 is an effect made before).
+std::uint32_t MakerCode(ragexe::world::EffectMaker maker) {
+  switch (maker) {
+    case ragexe::world::EffectMaker::kSprite: return 0;
+    case ragexe::world::EffectMaker::kEmotion: return 1;
+    case ragexe::world::EffectMaker::kNumber: return 3;
+    case ragexe::world::EffectMaker::kMsgSprite: return 4;
+  }
+  return 0;
+}
 
 std::uint64_t Fold(std::uint64_t h, std::uint32_t v) {
   for (int k = 0; k < 4; ++k) h = (h ^ ((v >> (8 * k)) & 0xff)) * 0x100000001b3ull;
@@ -216,7 +244,7 @@ std::string Walk(const AttrMap& map, const MovePath& path, std::istringstream& f
 std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istringstream& fields,
                bool player, bool to = false, bool stand = false, bool enter = false,
                bool arrive = false, bool with_effects = false, bool die = false,
-               bool attack = false) {
+               bool attack = false, bool land = false) {
   std::vector<std::uint32_t> v;
   for (std::string token; fields >> token;)
     v.push_back(static_cast<std::uint32_t>(std::stoll(token, nullptr, 0)));
@@ -226,10 +254,12 @@ std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istr
   constexpr std::size_t kEffectFields = 3;
   constexpr std::size_t kDeathFields = 6;
   constexpr std::size_t kAttackFields = 17 + 10;  // and the record
+  constexpr std::size_t kLandFields = 27;         // then 10 words a hit
+  const std::size_t hit_words = land ? 10 * std::size_t{v[base_fields + kLandFields - 1]} : 0;
   const std::size_t kFields = base_fields + (to ? 1 : 0) + (stand ? 7 : 0) + (enter ? 9 : 0) +
                               (arrive ? kArriveFields + kRecordWords : 0) +
                               (with_effects ? kEffectFields : 0) + (die ? kDeathFields : 0) +
-                              (attack ? kAttackFields : 0);
+                              (attack ? kAttackFields : 0) + (land ? kLandFields + hit_words : 0);
   // B, X and K: EFFECT_FIELDS, after ARRIVE_FIELDS for B.
   const std::size_t effect_at =
       base_fields + (arrive ? kArriveFields : 0) + (die ? kDeathFields : 0);
@@ -437,11 +467,9 @@ std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istr
     for (std::size_t k = 0; k < effects.made.size(); ++k) {
       const auto& e = effects.made[k];
       for (const std::uint32_t x :
-           {k < made_before ? 2u
-            : e.emotion     ? 1u
-                            : 0u,
-            static_cast<std::uint32_t>(e.type), e.position == &o.position ? 1u : 0u,
-            static_cast<std::uint32_t>(e.actor_id), Bits(e.field_0x44)}) {
+           {k < made_before ? 2u : MakerCode(e.maker), static_cast<std::uint32_t>(e.type),
+            e.position == &o.position ? 1u : 0u, static_cast<std::uint32_t>(e.actor_id),
+            Bits(e.field_0x44)}) {
         fold(x);
       }
     }
@@ -599,6 +627,240 @@ std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istr
       }
       if (actor.state != state) {
         end = "changed";
+        break;
+      }
+    }
+    char line[160];
+    std::snprintf(line, sizeof line, "%s %d %08x %08x %08x %08x %d %u %u %016llx", end, updates,
+                  Bits(o.position[0]), Bits(o.position[1]), Bits(o.position[2]), Bits(o.facing),
+                  o.action, static_cast<std::uint32_t>(o.frame),
+                  static_cast<std::uint32_t>(actor.state), static_cast<unsigned long long>(h));
+    return line;
+  }
+  // L and O: the hits, queued and delivered or the first sent; the attacker, another or the
+  // player or the actor itself; the player's statuses, the guild war, effects on, the msg
+  // sprites, the effects listed before; then the updates, each delivering what is due, as
+  // tools/path_oracle.py's land().
+  if (land) {
+    auto& base = static_cast<ragexe::world::GameActor&>(actor);
+    const std::size_t b = base_fields;
+    const std::uint32_t how = v[b];
+    const std::uint32_t attacker = v[b + 1];
+    const std::uint32_t pcs = v[b + 2];
+    context.own_id = static_cast<std::int32_t>(v[b + 6]);
+    ragexe::world::GameActor foe;
+    ragexe::world::GameActor pc;
+    for (ragexe::world::GameActor* other : {&foe, &pc}) {
+      other->job = static_cast<std::int32_t>(v[b + 3]);
+      other->effect_state = v[b + 4];
+    }
+    foe.id = 0x5a5a0001;
+    pc.id = 0x5a5a0002;
+    foe.object.position = {std::bit_cast<float>(v[b + 22]), 0.0f, std::bit_cast<float>(v[b + 23])};
+    pc.object.position = {std::bit_cast<float>(v[b + 24]), 0.0f, std::bit_cast<float>(v[b + 25])};
+    const auto weapon_of = [&](std::uint32_t bit) {
+      return (pcs & bit) != 0 ? static_cast<std::int32_t>(v[b + 5]) : -1;
+    };
+    std::vector<std::int32_t> statuses;
+    if ((v[b + 7] & 2) != 0) statuses.push_back(5);
+    if ((v[b + 7] & 1) != 0) statuses.push_back(0x13);
+    context.own_statuses = &statuses;
+    context.guild_war_map = v[b + 8] != 0;
+    context.effects_on = v[b + 9] != 0;
+    context.msg_sprites = v[b + 10] != 0;
+    rand.Seed(v[b + 11]);
+    actor.field_0x210 = static_cast<std::int32_t>(v[b + 12]);
+    const std::uint32_t events = v[b + 16];
+    o.play_mode = static_cast<std::int32_t>(v[b + 17]);
+    o.start_time = v[b + 18];
+    actor.target_id = static_cast<std::int32_t>(v[b + 19]);
+    actor.weapon = static_cast<std::int32_t>(v[b + 20]);
+    actor.field_0x1bc = static_cast<std::int32_t>(v[b + 21]);
+    actor.target_x = 0.0f;
+    actor.target_z = 0.0f;
+    if (!player) actor.body_state = 0;
+    const std::int32_t own_weapon = player ? actor.weapon : -1;
+    context.target_actor = attacker == 1 ? &foe : attacker == 3 ? &base : nullptr;
+    context.target_weapon = attacker == 3 ? own_weapon : weapon_of(1);
+    context.player_actor = attacker == 4 ? &base : &pc;
+    context.player_weapon = attacker == 4 ? own_weapon : weapon_of(2);
+    context.target =
+        context.target_actor != nullptr ? &context.target_actor->object.position : nullptr;
+    context.player = &context.player_actor->object.position;
+    // The effects before: `listed` numbers, of type 0x16 by `kinds`' bits, the first in the
+    // slot `slot` below 11.
+    ragexe::world::ActorEffects effects;
+    for (std::uint32_t k = 0; k < v[b + 13]; ++k) {
+      ragexe::world::ActorEffect e;
+      if ((v[b + 14] >> k & 1) != 0) {
+        e.maker = ragexe::world::EffectMaker::kNumber;
+        e.type = 0x16;
+      }
+      effects.made.push_back(e);
+      const auto number = static_cast<std::int32_t>(effects.made.size());
+      actor.effects.push_back(number);
+      if (k == 0 && v[b + 15] < actor.effect_slots.size()) actor.effect_slots[v[b + 15]] = number;
+    }
+    const std::size_t made_before = effects.made.size();
+    context.effects = &effects;
+    act.events = {"atk", "atk2", "at", ""};
+    for (auto& frames : act.actions) {
+      for (std::size_t k = 0; k < frames.size() && k < 10; ++k) {
+        const std::uint32_t code = events >> (3 * k) & 7;
+        frames[k].event = code == 0 || code == 7 ? -1
+                          : code == 5            ? 4
+                          : code == 6            ? 0x7fffffff
+                                                 : static_cast<std::int32_t>(code) - 1;
+      }
+    }
+    std::vector<ragexe::world::Arrow> arrows;
+    std::vector<std::int32_t> launched;
+    std::vector<ragexe::world::EffectMessage> launched_messages;
+    context.arrows = &arrows;
+    context.launched = &launched;
+    context.launched_messages = &launched_messages;
+    context.sounds = &sounds;
+    ragexe::world::QueuedHit first;
+    for (std::size_t k = 0; k < v[b + 26]; ++k) {
+      const std::uint32_t* w = &v[b + kLandFields + 10 * k];
+      const ragexe::world::QueuedHit hit{static_cast<std::int32_t>(w[0]),
+                                         static_cast<std::int32_t>(w[1]),
+                                         w[2],
+                                         static_cast<std::int32_t>(w[3]),
+                                         static_cast<std::int32_t>(w[4]),
+                                         static_cast<std::int32_t>(w[5]),
+                                         static_cast<std::int32_t>(w[6]),
+                                         static_cast<std::int32_t>(w[7]),
+                                         static_cast<std::int32_t>(w[8]),
+                                         std::bit_cast<float>(w[9])};
+      if (k == 0 && how != 0) {
+        first = hit;
+      } else {
+        actor.hits.push_back(hit);
+      }
+    }
+    const std::uint32_t at = v[kFields + 1];
+    if (how == 0x6c) {
+      if (player)
+        ragexe::world::RestartGameActorAttack(actor, context, at);
+      else
+        ragexe::world::RestartGameActorAttack(base, context, at);
+    } else if (how != 0) {
+      if (player)
+        ragexe::world::LandGameActorHit(actor, static_cast<std::int32_t>(how), first, context, at);
+      else
+        ragexe::world::LandGameActorHit(base, static_cast<std::int32_t>(how), first, context, at);
+    }
+    const auto where = [&](const ragexe::render::Vec3* p) {
+      return p == &o.position ? 1u : p == &foe.object.position ? 2u : 3u;
+    };
+    const auto who = [&](const ragexe::world::GameActor* sender) {
+      return sender == nullptr ? 0u : sender == &base ? 1u : sender == &foe ? 2u : 3u;
+    };
+    const auto fold_message = [&](const ragexe::world::EffectMessage& m) {
+      for (const std::uint32_t x :
+           {static_cast<std::uint32_t>(m.effect), who(m.sender), static_cast<std::uint32_t>(m.id),
+            m.at != nullptr ? where(m.at) : static_cast<std::uint32_t>(m.a),
+            static_cast<std::uint32_t>(m.b), static_cast<std::uint32_t>(m.c)})
+        fold(x);
+    };
+    const auto fold_list = [&](const ragexe::world::GameActor& a) {
+      fold(static_cast<std::uint32_t>(a.effects.size()));
+      for (const std::int32_t number : a.effects) fold(static_cast<std::uint32_t>(number));
+    };
+    // What a hit's landing writes beyond the fields, and the queue; what was played,
+    // launched and sent to it since; the slots, the three lists, every effect and what they
+    // were sent and which the world deleted since, as tools/path_oracle.py's landed().
+    const auto fold_landed = [&] {
+      for (const std::uint32_t x :
+           {o.keyed_at, static_cast<std::uint32_t>(actor.field_0xa8), Bits(actor.target_x),
+            Bits(actor.target_z), static_cast<std::uint32_t>(actor.field_0x210),
+            static_cast<std::uint32_t>(actor.target_id),
+            static_cast<std::uint32_t>(actor.field_0xcc), o.keyed ? 1u : 0u,
+            static_cast<std::uint32_t>(actor.hits.size())})
+        fold(x);
+      for (const auto& hit : actor.hits) {
+        for (const std::uint32_t x :
+             {static_cast<std::uint32_t>(hit.message), static_cast<std::uint32_t>(hit.damage),
+              hit.time, static_cast<std::uint32_t>(hit.attacker_id),
+              static_cast<std::uint32_t>(hit.cell_x), static_cast<std::uint32_t>(hit.cell_y),
+              static_cast<std::uint32_t>(hit.field_0x18),
+              static_cast<std::uint32_t>(hit.field_0x1c),
+              static_cast<std::uint32_t>(hit.field_0x20), Bits(hit.field_0x24)}) {
+          fold(x);
+        }
+      }
+      fold(static_cast<std::uint32_t>(8 * sounds.size()));
+      for (const auto& sound : sounds) {
+        std::uint64_t n = 0xcbf29ce484222325ull;
+        for (const char c : sound.name) n = (n ^ static_cast<std::uint8_t>(c)) * 0x100000001b3ull;
+        fold(static_cast<std::uint32_t>(n));
+        fold(static_cast<std::uint32_t>(n >> 32));
+        for (const std::uint32_t x : {Bits(sound.x), 0u, Bits(sound.z), 250u, 40u, Bits(1.0f)})
+          fold(x);
+      }
+      sounds.clear();
+      fold(static_cast<std::uint32_t>(launched.size()));
+      for (const std::int32_t id : launched) fold(static_cast<std::uint32_t>(id));
+      launched.clear();
+      fold(static_cast<std::uint32_t>(6 * launched_messages.size()));
+      for (const auto& m : launched_messages) fold_message(m);
+      launched_messages.clear();
+      for (const std::int32_t number : actor.effect_slots) fold(static_cast<std::uint32_t>(number));
+      fold_list(base);
+      fold_list(foe);
+      fold_list(pc);
+      fold(static_cast<std::uint32_t>(effects.made.size()));
+      for (std::size_t k = 0; k < effects.made.size(); ++k) {
+        const auto& e = effects.made[k];
+        const bool before = k < made_before;
+        const bool number = e.maker == ragexe::world::EffectMaker::kNumber;
+        const bool sprite = e.maker == ragexe::world::EffectMaker::kSprite ||
+                            e.maker == ragexe::world::EffectMaker::kEmotion;
+        for (const std::uint32_t x :
+             {before ? 2u : MakerCode(e.maker),
+              !before && sprite ? static_cast<std::uint32_t>(e.type) : 0u,
+              before || number ? 0u : where(e.position),
+              before || number ? 0u : static_cast<std::uint32_t>(e.actor_id), Bits(e.field_0x44),
+              Bits(e.field_0x3c), e.color, number ? static_cast<std::uint32_t>(e.type) : 0u}) {
+          fold(x);
+        }
+      }
+      fold(static_cast<std::uint32_t>(6 * effects.messages.size()));
+      for (const auto& m : effects.messages) fold_message(m);
+      effects.messages.clear();
+      fold(static_cast<std::uint32_t>(effects.deleted.size()));
+      for (const std::int32_t number : effects.deleted) fold(static_cast<std::uint32_t>(number));
+      effects.deleted.clear();
+    };
+    fold(7);
+    fold_fields();
+    fold_messages();
+    fold_player();
+    fold_landed();
+    int updates = 0;
+    const char* end = "staying";
+    for (std::size_t k = kFields + 2; k + 1 < v.size(); k += 2) {
+      if (player)
+        ragexe::world::DeliverGameActorHits(actor, context, v[k + 1]);
+      else
+        ragexe::world::DeliverGameActorHits(base, context, v[k + 1]);
+      const auto r = player ? ragexe::world::ProcessGameActorState(actor, context, v[k + 1], v[k])
+                            : ragexe::world::ProcessGameActorState(base, context, v[k + 1], v[k]);
+      if (r == ragexe::world::StateResult::kNotPorted) {
+        end = "unported";
+        break;
+      }
+      ++updates;
+      const bool over =
+          r == ragexe::world::StateResult::kFaded || r == ragexe::world::StateResult::kGone;
+      fold(over ? 0u : 1u);
+      fold_fields();
+      fold_messages();
+      fold_player();
+      fold_landed();
+      if (over) {
+        end = "faded";
         break;
       }
     }
@@ -1323,6 +1585,58 @@ TEST_CASE("Actors and players act on targets as the original's messages 0xb and 
                                         : Go(map, finder, path, fields, kind == 'J', false, false,
                                              false, false, false, false, true);
     CHECK(got == v.result);
+  }
+}
+
+TEST_CASE("Hits land on actors and players as the original's messages and 00503f80 deliver them",
+          "[walk]") {
+  int current = -1;
+  AttrMap map;
+  PathFinder finder;
+  MovePath path;
+  for (const StateQueryVector& v : kLandQueries) {
+    if (v.map != current) {
+      current = v.map;
+      map = MakeMap(kWalkMaps[current]);
+      finder = PathFinder();
+      finder.SetAttrMap(&map);
+      path = MovePath();
+    }
+    INFO(kWalkMaps[current].name << ": " << v.query);
+    std::istringstream fields(v.query);
+    char kind = 0;
+    fields >> kind;
+    const std::string got = kind == 'F' ? Search(finder, path, fields)
+                                        : Go(map, finder, path, fields, kind == 'O', false, false,
+                                             false, false, false, false, false, true);
+    CHECK(got == v.result);
+  }
+}
+
+TEST_CASE("The sounds of hits are ClientState 00599a00's and 00599df0's", "[walk]") {
+  for (const HitSoundVector& v : kHitSounds) {
+    INFO(v.player << " " << v.value << " " << v.seed);
+    ragexe::core::CrtRand rand(v.seed);
+    const std::string_view got = v.player != 0 ? ragexe::world::PlayerHitSound(v.value, rand)
+                                               : ragexe::world::WeaponHitSound(v.value, rand);
+    CHECK(got == v.name);
+  }
+}
+
+TEST_CASE("CAbleToMakeEffect::LaunchEffect makes its own few, and the rest with effects on",
+          "[walk]") {
+  for (const LaunchVector& v : kLaunches) {
+    INFO(v.id << " " << v.effects_on);
+    ragexe::world::GameActor actor;
+    std::vector<std::int32_t> launched;
+    ragexe::world::StateContext context;
+    context.launched = &launched;
+    context.effects_on = v.effects_on != 0;
+    const std::int32_t made = ragexe::world::LaunchGameActorEffect(actor, v.id, context);
+    CHECK((made != 0 ? 1 : 0) == v.made);
+    CHECK(ragexe::world::LaunchesEffect(v.id, v.effects_on != 0) == (v.made != 0));
+    CHECK(actor.field_0xa8 == v.field_0xa8);
+    CHECK(launched == std::vector<std::int32_t>{v.id});
   }
 }
 

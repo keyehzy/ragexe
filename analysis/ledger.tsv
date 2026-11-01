@@ -4397,7 +4397,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00503880	53	code	0	world		named	CGameActor	ResetIdAndStartDelay	
 005038c0	1575	code	0	world		named	CGameActor	ProcessState	
 00503f30	66	code	0	world		named	CGameActor	LeaveCorpse	
-00503f80	118	code	0	world		named	CGameActor	method_00503f80	
+00503f80	118	code	0	world		named	CGameActor	DeliverDueHits	
 00504000	133	code	0	world		named	CGameActor	LaunchRangedAttack	
 00504090	250	code	0	world		named	CGameActor	ClearSlotHolding	
 00504190	71	code	0	world		named	CGameActor	RemapValueByFlagBit5	
@@ -5873,10 +5873,10 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00599560	89	code	0	game		named	ClientState	UnderscoresToSpaces	
 005995c0	37	code	0	game		named	ClientState	method_005995c0	
 005995f0	37	code	0	game		named	ClientState	method_005995f0	
-00599620	977	code	0	game		named	ClientState	method_00599620	
-00599a00	53	code	0	game		named	ClientState	method_00599a00	
-00599a40	939	code	0	game		named	ClientState	method_00599a40	
-00599df0	198	code	0	game		named	ClientState	method_00599df0	
+00599620	977	code	0	game		named	ClientState	FillPlayerHitSounds	
+00599a00	53	code	0	game		named	ClientState	GetPlayerHitSound	
+00599a40	939	code	0	game		named	ClientState	FillWeaponHitSounds	
+00599df0	198	code	0	game		named	ClientState	GetWeaponHitSound	
 00599ee0	939	code	0	game		named	ClientState	method_00599ee0	
 0059a290	165	code	0	game		named	ClientState	method_0059a290	
 0059a350	117	code	0	game	unreferenced	raw	Global	FUN_0059a350	
@@ -6109,7 +6109,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005aa6d0	42	code	0	game		named	ClientState	method_005aa6d0	
 005aa700	35	code	0	game		named	ClientState	method_005aa700	
 005aa730	30	code	0	game		named	ClientState	method_005aa730	
-005aa750	63	code	0	game		named	ClientState	method_005aa750	
+005aa750	63	code	0	game		named	ClientState	HasOwnStatus	
 005aa790	87	code	0	game	dead	named	ClientState	method_005aa790	
 005aa810	5	code	0	game		named	ClientState	method_005aa810	
 005aa820	500	code	0	game	unreferenced	raw	Global	FUN_005aa820	

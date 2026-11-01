@@ -498,6 +498,10 @@ void KillGameActor(PlayerActor& player, const StateContext& context, std::uint32
   Kill(player, [&](std::int32_t state) { SetPlayerState(player, state, context, now); });
 }
 
+void ReportGameActorCell(const GameActor& actor, const StateContext& context) {
+  ReportCell(actor, context);
+}
+
 void KillGameActorAfterQueue(GameActor& actor, const StateContext& context, std::uint32_t now) {
   if (actor.state != kDying) SetGameActorState(actor, kDying, context, now);
 }

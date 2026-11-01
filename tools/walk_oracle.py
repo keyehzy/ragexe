@@ -535,12 +535,86 @@ def make_attacks(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
     return lines
 
 
+
+def make_landings(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
+    """The script for a map: actors (L) and players (O) as make_goes and make_plays make them,
+    that hits land on (docs/world/hits.md): queued and delivered update by update, or the first
+    sent at once, by every message, the damages by their edges (none, negative, the numbers'
+    digits), the attacker another, the player, the actor itself or none, and their jobs and
+    weapons; the sounds, the effects launched with effects on or off, the turn, the guild war
+    and the player's statuses, the msg sprites, numbers of type 0x16 listed before; the motion
+    by 1; from assorted states, now and then blocked, with +0x210 set or not."""
+    rng = random.Random(zlib.crc32(b"land " + name.encode()))
+    lines = []
+    seers = [0x186B4, 0x2933C9, 0x326B70]
+    for kind, source in (("L", make_goes("land " + name, width, height, attrs, count, updates)),
+                         ("O", make_plays("land " + name, width, height, attrs, count, updates))):
+        for line in source:
+            if line[0] not in "GP":
+                continue
+            player = kind == "O"
+            tokens = line.split()[1:]
+            n = 44 if player else 39
+            fields, times = tokens[:n], tokens[n:]
+            fields[17] = str(rng.choice([0, 0, 0, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 3]))
+            if player:
+                fields[7] = str(rng.choice([rng.randint(0, 0x15), rng.randint(0, 0x15), 0, 7, 14, 0x15, 0x16, 23,
+                                            0x2D]))
+            else:
+                fields[7] = str(rng.choice([rng.randint(1001, 1400), rng.randint(1001, 1400), 0x2C, 0x2D, 0x2E,
+                                            rng.randint(0, 0x15), 0x15, 0x16, 7, 14, rng.randint(46, 999), -1]))
+            if rng.random() < 0.3:
+                fields[10] = str(rng.choice([1, 2, 3, 5, 6, 9, 10, 12]))
+            actor_id = int(fields[34])
+            how = rng.choice([0] * 6 + [0x1A, 0x27, 0x5D, 0x5E, 0x60, 0x61, 0x6F, 0x6C, 0x81])
+            attacker = rng.choice([1, 1, 1, 2, 2, 0, 3, 4])
+            own = rng.choice([rng.getrandbits(31), rng.getrandbits(31), actor_id, rng.choice(seers)])
+            weapons = [-1, rng.randint(0, 0x16), 0, 0xB, rng.randint(1001, 2100), 1700, 0x16]
+            x, z = (struct.unpack("<f", struct.pack("<I", int(fields[k], 0)))[0] for k in (0, 1))
+            tick = int(times[1])
+            codes = [rng.choice([0, 0, 0, 1, 1, 2, 3, 4, 5, 6, 7]) for _ in range(10)]
+            events = sum(c << 3 * k for k, c in enumerate(codes)) if rng.random() < 0.8 else 0
+            hits = rng.choice([1, 1, 2, 3, 5]) if how else rng.choice([0, 1, 1, 2, 3, 5])
+            near = lambda v: f"0x{bits(f32(v + rng.uniform(-60, 60))):08x}"
+            land_fields = [
+                how, attacker, rng.randint(0, 3), rng.choice([rng.randint(0, 0x15), 0x2C, 0x2D, rng.randint(1001, 1400),
+                                                              7, 14, -1]),
+                rng.choice([0, 0, 0x20, rng.getrandbits(32)]), rng.choice(weapons), own, rng.randint(0, 3),
+                rng.choice([0, 0, 1]), rng.choice([0, 1, 1]), rng.choice([0, 1, 1]), rng.getrandbits(32),
+                rng.choice([0, 0, 1]), rng.choice([0, 0, 1, 2, 3]), rng.randint(0, 7), rng.choice([11, 11, rng.randint(0, 10)]),
+                events, rng.choice([0, 1, 1, 2]), (tick - rng.choice([0, 0, 24, 100, rng.randint(0, 5000)])) & 0xFFFFFFFF,
+                rng.choice([own, 0, rng.getrandbits(31)]), rng.choice(weapons), rng.choice([0, 0, 1, 2]),
+            ]
+            land_fields = [str(f) for f in land_fields] + [near(x), near(z), near(x), near(z), str(hits)]
+            records = []
+            for _ in range(hits):
+                motion = rng.choice([rng.randint(0, 2000) / 288, 1.0, 0.5, 2.0, 0.0, 1.0000001, -1.0])
+                records += [
+                    rng.choice([0x1A, 0x1A, 0x27, 0x5D, 0x5E, 0x60, 0x61, 0x6F, 0x6F, 0x6C, 0x81]),
+                    rng.choice([0, 0, 1, rng.randint(1, 2000), rng.randint(1, 50000), -rng.randint(1, 500), 0x7FFFFFFF,
+                                -0x80000000, 999999, 1000000, 9, 10, 99999, 100000]),
+                    (tick + rng.choice([-1000, 0, rng.randint(0, 1500), rng.randint(0, 1500), 3000]))
+                    if rng.random() < 0.95 else rng.getrandbits(32),
+                    own if attacker in (2, 4) else rng.getrandbits(31) | 1 << 30,
+                    rng.choice([-1, -1, rng.randint(0, width)]), rng.choice([-1, -1, rng.randint(0, height)]),
+                    rng.choice([-1, -1, 1, 0x23, 0x7F, 0x50, 60000, 60001, 0, 0xA4, -5]),
+                    rng.choice([0, 0, -2, 0x7A, 0xD8, 0xD9, -1, 0x24, 0x7F]),
+                    rng.choice([1, rng.randint(1, 5000), 0, 1000000]),
+                    bits(f32(motion)),
+                ]
+            if attacker not in (2, 4):
+                for k in range(hits):
+                    if records[10 * k + 3] == own:
+                        records[10 * k + 3] ^= 1
+            lines.append(f"{kind} " + " ".join(fields + land_fields + [str(r & 0xFFFFFFFF) for r in records] + times))
+    return lines
+
 def main():
     args = path_oracle.arguments("walks per map", 40)
     ours, originals = path_oracle.run_maps(
         args, lambda *a: make_walks(*a) + make_goes(*a) + make_plays(*a) + make_tos(*a)
         + make_stands(*a) + make_enters(*a) + make_arrivals(*a) + make_effects(*a)
-        + make_deaths(*a) + make_attacks(*a), "walks")
+        + make_deaths(*a) + make_attacks(*a) + make_landings(*a), "walks")
     totals = {}
     for (_, lines, _), want in zip(ours, originals):
         for line, result in zip(lines, want):
@@ -548,9 +622,9 @@ def main():
                    "Y": "player stand ", "E": "enter ",
                    "Q": "player enter ", "A": "arrive ", "B": "arrive with effects ", "X": "effects ",
                    "K": "player effects ", "D": "death ", "H": "player death ", "V": "attack ",
-                   "J": "player attack "}[line[0]] + result.split()[0]
+                   "J": "player attack ", "L": "land ", "O": "player land "}[line[0]] + result.split()[0]
             totals[key] = totals.get(key, 0) + 1
-            if line[0] in "WGPTUNYEQABDHVJ" and result != "-":
+            if line[0] in "WGPTUNYEQABDHVJLO" and result != "-":
                 totals["updates"] = totals.get("updates", 0) + int(result.split()[1])
             if line[0] in "XK":
                 totals["effect messages"] = totals.get("effect messages", 0) + int(result.split()[1])
