@@ -4344,11 +4344,11 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00501840	39	code	0	world		named	CRenderObject	SetScreenPosition	
 00501870	44	code	0	world		named	CRenderObject	Render	
 005018a0	55	code	0	world		named	CRenderObject	SetSprite	
-005018e0	18	code	0	world		named	CGameActor	method_005018e0	
+005018e0	18	code	0	world		named	CRenderObject	GetSpriteName	
 00501900	7	code	0	world		named	CRenderObject	GetSprite	
 00501910	55	code	0	world		named	CRenderObject	SetAct	
 00501950	7	code	0	world		named	CRenderObject	GetAct	
-00501960	18	code	0	world		named	CGameActor	method_00501960	
+00501960	18	code	0	world		named	CRenderObject	GetActName	
 00501980	73	code	0	ui		named	CMousePointer	CMousePointer	
 005019d0	33	code	0	ui		named	CMousePointer	`scalar_deleting_destructor'	
 00501a00	78	code	0	ui		named	CMousePointer	~CMousePointer	
@@ -4396,7 +4396,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00503830	68	code	0	world		named	CGameActor	UpdateFade	
 00503880	53	code	0	world		named	CGameActor	ResetIdAndStartDelay	
 005038c0	1575	code	0	world		named	CGameActor	ProcessState	
-00503f30	66	code	0	world		named	CGameActor	vf34	
+00503f30	66	code	0	world		named	CGameActor	LeaveCorpse	
 00503f80	118	code	0	world		named	CGameActor	method_00503f80	
 00504000	133	code	0	world		named	CGameActor	method_00504000	
 00504090	250	code	0	world		named	CGameActor	ClearSlotHolding	

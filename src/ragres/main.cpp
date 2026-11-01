@@ -740,7 +740,7 @@ int FindPaths(const std::string& gat, const std::string& queries) {
       actor.effect_state = v[8];
       actor.pushed = v[9] != 0;
       ragexe::res::Act act;
-      act.actions.assign(64, std::vector<ragexe::res::ActFrame>(v[10]));
+      act.actions.assign(256, std::vector<ragexe::res::ActFrame>(v[10]));
       actor.hold_until = v[11];
       actor.fade_until = v[12];
       o.color = v[13];
@@ -791,13 +791,15 @@ int FindPaths(const std::string& gat, const std::string& queries) {
                   static_cast<unsigned long long>(h));
     } else if (kind == "G" || kind == "P" || kind == "T" || kind == "U" || kind == "N" ||
                kind == "Y" || kind == "E" || kind == "Q" || kind == "A" || kind == "B" ||
-               kind == "X" || kind == "K") {
-      const bool player = kind == "P" || kind == "U" || kind == "Y" || kind == "Q" || kind == "K";
+               kind == "X" || kind == "K" || kind == "D" || kind == "H") {
+      const bool player =
+          kind == "P" || kind == "U" || kind == "Y" || kind == "Q" || kind == "K" || kind == "H";
       const bool to = kind == "T" || kind == "U";
       const bool stand = kind == "N" || kind == "Y";
       const bool enter = kind == "E" || kind == "Q";
       const bool arrive = kind == "A" || kind == "B";
-      const bool with_effects = kind == "B" || kind == "X" || kind == "K";
+      const bool die = kind == "D" || kind == "H";
+      const bool with_effects = kind == "B" || kind == "X" || kind == "K" || die;
       std::vector<std::uint32_t> v;
       for (std::string token; fields >> token;)
         v.push_back(static_cast<std::uint32_t>(std::stoll(token, nullptr, 0)));
@@ -805,11 +807,13 @@ int FindPaths(const std::string& gat, const std::string& queries) {
       constexpr std::size_t kArriveFields = 12;
       constexpr std::size_t kRecordWords = 28;
       constexpr std::size_t kEffectFields = 3;
+      constexpr std::size_t kDeathFields = 6;
       const std::size_t kFields = base_fields + (to ? 1 : 0) + (stand ? 7 : 0) + (enter ? 9 : 0) +
                                   (arrive ? kArriveFields + kRecordWords : 0) +
-                                  (with_effects ? kEffectFields : 0);
+                                  (with_effects ? kEffectFields : 0) + (die ? kDeathFields : 0);
       // B, X and K: EFFECT_FIELDS, after ARRIVE_FIELDS for B.
-      const std::size_t effect_at = base_fields + (arrive ? kArriveFields : 0);
+      const std::size_t effect_at =
+          base_fields + (arrive ? kArriveFields : 0) + (die ? kDeathFields : 0);
       const std::size_t record_at =
           base_fields + kArriveFields + (with_effects ? kEffectFields : 0);
       if (v.size() < kFields + 2) {
@@ -829,7 +833,7 @@ int FindPaths(const std::string& gat, const std::string& queries) {
       actor.effect_state = v[8];
       actor.pushed = v[9] != 0;
       ragexe::res::Act act;
-      act.actions.assign(64, std::vector<ragexe::res::ActFrame>(v[10]));
+      act.actions.assign(256, std::vector<ragexe::res::ActFrame>(v[10]));
       actor.hold_until = v[11];
       actor.fade_until = v[12];
       o.color = v[13];
@@ -1035,6 +1039,103 @@ int FindPaths(const std::string& gat, const std::string& queries) {
         }
         effects.messages.clear();
       };
+      // D and H: the death, by vf10 (0), 0xc or 0x1c, after +0x218, +0x20c, +0x210, a sprite or
+      // none and +0xcc; then the updates, as tools/path_oracle.py's die().
+      if (die) {
+        auto& base = static_cast<ragexe::world::GameActor&>(actor);
+        const std::uint32_t how = v[base_fields];
+        actor.body_state = static_cast<std::int32_t>(v[base_fields + 1]);
+        actor.field_0x20c = static_cast<std::int32_t>(v[base_fields + 2]);
+        actor.field_0x210 = static_cast<std::int32_t>(v[base_fields + 3]);
+        actor.field_0xcc = static_cast<std::int32_t>(v[base_fields + 5]);
+        std::vector<ragexe::world::Corpse> corpses;
+        context.corpses = &corpses;
+        context.act_name = "poring.act";
+        if (v[base_fields + 4] != 0) context.sprite_name = "poring.spr";
+        const std::uint32_t at = v[kFields + 1];
+        if (how == 0) {
+          if (player)
+            ragexe::world::SetPlayerState(actor, 3, context, at);
+          else
+            ragexe::world::SetGameActorState(base, 3, context, at);
+        } else if (how == 0xc) {
+          if (player)
+            ragexe::world::KillGameActorAfterQueue(actor, context, at);
+          else
+            ragexe::world::KillGameActorAfterQueue(base, context, at);
+        } else if (player) {
+          ragexe::world::KillGameActor(actor, context, at);
+        } else {
+          ragexe::world::KillGameActor(base, context, at);
+        }
+        const auto fold_name = [&](std::string_view name) {
+          if (name.data() == nullptr) {
+            fold(0);
+            fold(0);
+            return;
+          }
+          std::uint64_t n = 0xcbf29ce484222325ull;
+          for (const char c : name) n = (n ^ static_cast<std::uint8_t>(c)) * 0x100000001b3ull;
+          fold(static_cast<std::uint32_t>(n));
+          fold(static_cast<std::uint32_t>(n >> 32));
+        };
+        const auto fold_died = [&] {
+          fold(static_cast<std::uint32_t>(actor.id));
+          fold(static_cast<std::uint32_t>(actor.field_0x210));
+          fold(o.depth_up ? 1u : 0u);
+          fold(static_cast<std::uint32_t>(actor.field_0xcc));
+          fold(static_cast<std::uint32_t>(10 * corpses.size()));
+          for (const auto& c : corpses) {
+            for (const float x : c.position) fold(FloatBits(x));
+            fold_name(c.act);
+            fold_name(c.sprite);
+            fold(static_cast<std::uint32_t>(c.action));
+            fold(static_cast<std::uint32_t>(c.frame));
+            fold(FloatBits(c.facing));
+          }
+          corpses.clear();
+        };
+        fold(5);
+        fold_fields();
+        fold_messages();
+        fold_player();
+        fold_effects();
+        fold_died();
+        const std::int32_t state = actor.state;
+        int updates = 0;
+        const char* end = "staying";
+        for (std::size_t k = kFields + 2; k + 1 < v.size(); k += 2) {
+          const auto r = player
+                             ? ragexe::world::ProcessGameActorState(actor, context, v[k + 1], v[k])
+                             : ragexe::world::ProcessGameActorState(base, context, v[k + 1], v[k]);
+          if (r == ragexe::world::StateResult::kNotPorted) {
+            end = "unported";
+            break;
+          }
+          ++updates;
+          const bool over =
+              r == ragexe::world::StateResult::kFaded || r == ragexe::world::StateResult::kGone;
+          fold(over ? 0u : 1u);
+          fold_fields();
+          fold_messages();
+          fold_player();
+          fold_effects();
+          fold_died();
+          if (over) {
+            end = r == ragexe::world::StateResult::kGone ? "gone" : "faded";
+            break;
+          }
+          if (actor.state != state) {
+            end = "changed";
+            break;
+          }
+        }
+        std::printf("%s %d %08x %08x %08x %08x %d %d %u %016llx\n", end, updates,
+                    FloatBits(o.position[0]), FloatBits(o.position[1]), FloatBits(o.position[2]),
+                    FloatBits(o.facing), o.action, o.frame, static_cast<std::uint32_t>(actor.state),
+                    static_cast<unsigned long long>(h));
+        continue;
+      }
       if (with_effects && !arrive) {
         const std::size_t count = v[kFields];
         if (v.size() < kFields + 3 * count + 3) {

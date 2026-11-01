@@ -15,8 +15,8 @@ After each update the result, the actor's position, facing, action, frame, segme
 distance, times, colour, +0x82 and +0x190, and whether it stood, are hashed; the hash and
 the end compare with `ragres find-paths` on the same script. Then moves (G, P, T, U), standing
 (N, Y) and states given (E, Q), as their makers below describe (docs/world/states.md), and
-actors coming into view (A, docs/world/arrival.md), and the actors' effects (X, K and B,
-docs/world/effects.md).
+actors coming into view (A, docs/world/arrival.md), the actors' effects (X, K and B,
+docs/world/effects.md), and their deaths (D and H).
 """
 import os
 import random
@@ -421,20 +421,53 @@ def make_effects(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
     return lines
 
 
+def make_deaths(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
+    """The script for a map: actors (D) and players (H) as make_goes and make_plays make them,
+    dying (docs/world/states.md#dying) through SetState(3), 0xc or 0x1c: from the states whose
+    update is ported, now and then already dying or blocked by +0xd0; monsters, players and
+    NPCs, the mounted jobs; frozen or not, with its ice in its slot or not; something queued or
+    not, +0x210 set or not; a sprite or none. Then ProcessState update by update until it
+    returns 0 or its state changes, often long enough for the action to end."""
+    rng = random.Random(zlib.crc32(b"die " + name.encode()))
+    lines = []
+    for kind, source in (("D", make_goes("die " + name, width, height, attrs, count, updates)),
+                         ("H", make_plays("die " + name, width, height, attrs, count, updates))):
+        for line in source:
+            if line[0] not in "GP":
+                lines.append(line)
+                continue
+            tokens = line.split()[1:]
+            n = 39 if kind == "D" else 44
+            fields, times = tokens[:n], tokens[n:]
+            fields[17] = str(rng.choice([0, 0, 0, 2, 3, 4, 5, 6, 8, 10, 11, 12]))
+            if kind == "D":
+                fields[7] = str(rng.choice([rng.randint(1001, 1400), 1000, 1001, 0x57F, 0x580, 0x16, 0x17, 7, 14,
+                                            rng.randint(0, 0x15), rng.randint(46, 999)]))
+            fields[34] = str(rng.choice([int(fields[34]), rng.randint(0, 200000), 100000, 0x7FFFFFFF]))
+            body = rng.choice([0, 0, 2, 2, 1, 3])
+            death = [str(rng.choice([0, 0xC, 0x1C, 0x1C])), str(body), str(rng.choice([0, 0, 1, 3])),
+                     str(rng.choice([0, 0, 1])), str(int(rng.random() < 0.5)), str(rng.choice([0, 0, 1, 7]))]
+            slots = rng.choice([0, 0, 1 << 3, 0x7FF, rng.getrandbits(11)])
+            effects = [str(slots), str(rng.choice([0, 1])), "0"]
+            lines.append(f"{kind} " + " ".join(fields + death + effects + times))
+    return lines
+
+
 def main():
     args = path_oracle.arguments("walks per map", 40)
     ours, originals = path_oracle.run_maps(
         args, lambda *a: make_walks(*a) + make_goes(*a) + make_plays(*a) + make_tos(*a)
-        + make_stands(*a) + make_enters(*a) + make_arrivals(*a) + make_effects(*a), "walks")
+        + make_stands(*a) + make_enters(*a) + make_arrivals(*a) + make_effects(*a)
+        + make_deaths(*a), "walks")
     totals = {}
     for (_, lines, _), want in zip(ours, originals):
         for line, result in zip(lines, want):
             key = result.split()[0] if line[0] == "F" else {"W": "walk ", "G": "go ", "P": "player ", "T": "to ", "U": "player to ", "N": "stand ",
                    "Y": "player stand ", "E": "enter ",
                    "Q": "player enter ", "A": "arrive ", "B": "arrive with effects ", "X": "effects ",
-                   "K": "player effects "}[line[0]] + result.split()[0]
+                   "K": "player effects ", "D": "death ", "H": "player death "}[line[0]] + result.split()[0]
             totals[key] = totals.get(key, 0) + 1
-            if line[0] in "WGPTUNYEQAB" and result != "-":
+            if line[0] in "WGPTUNYEQABDH" and result != "-":
                 totals["updates"] = totals.get("updates", 0) + int(result.split()[1])
             if line[0] in "XK":
                 totals["effect messages"] = totals.get("effect messages", 0) + int(result.split()[1])

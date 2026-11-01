@@ -62,10 +62,11 @@ second argument again never read:
 | 12 (`005037b1`) | the action 0x28, then `vf11`, the cell to the game mode |
 | 6, 8, 10 and past 13 (`005037c5`) | none: only the direction, the state and its time |
 
+Dying (3) is [below](#dying).
+
 **Not ported:** the other states' work:
 - 2, 7 and 9 face the actor +0x1a8 names through the world (`CWorld::GetActorById`), with
   their own actions and `vf33`;
-- 3 plays the action 0x40 and, for +0x218 2, sends the actor messages 0x3b and 0x3e;
 - 4 sends that actor message 0x57, sends itself 0x54 and 0x53, plays 0x30 and reports the cell;
 - 13 reads `ClientState`'s tables by the job.
 
@@ -103,10 +104,45 @@ tick's remainder by 34 is 0, `CWorld::GetActorById` looks the actor up. If it is
 as `GetAngleBetween` would. The action (+0x24) isn't recomputed there; the next `vf08` takes the
 new facing.
 
-**Not ported:** state 3's update. It clears +0x82 and +0xcc and runs `vf08`. Once the action is
-finished, with the list at +0x20c empty, the game mode hears message 0xd with the actor's id. A
-job past 0x16 then calls `vf34`, and the update returns 0. Also not ported: state 13's, which
-reads `ClientState`'s tables by the job, and its time at +0x1d8.
+**Not ported:** state 13's update, which reads `ClientState`'s tables by the job, and its time
+at +0x1d8. State 3's is [below](#dying).
+
+## Dying
+
+An actor dies through **message 0x1c** (`00505266`). `CGameMode::HandlePacket_0080` sends it
+(`005292ae`) to the actor the packet names, and to the world's player (`005292ee`) when that is
+the player's own id.
+1. **A monster's id** (`GetJob` 1001 to 0x57f) becomes 100000 (`0x186a0`) less it, wrapping.
+2. **Something queued:** the list at +0x204 (its size at +0x20c) holds what message 0x1b
+   queued. When it isn't empty and `GetJob` is 0x16 or past, +0x210 is set and nothing more
+   happens. When that list has played, the actor sends itself **message 0xc** (`00505300`),
+   which sets state 3 unless the actor is in it already.
+3. **Otherwise** it is `SetState(3)`, through `vf10`.
+
+**`SetState(3)`** (`005036f3`), after `SetState`'s guard (nothing in state 3 or with +0xd0):
+1. +0x82 cleared;
+2. **with the body state (+0x218) 2, frozen:** the actor sends itself 0x3b and 0x3e, which end
+   its ice and break it ([effects.md](effects.md));
+3. +0x80 set (the body's depth from the other slope, [actor.md](../render/actor.md)), +0x81
+   and +0x82 cleared;
+4. the action 0x40 played once (`vf07`);
+5. the direction, the state and its time, as every state ends.
+
+`CPc::SetState` leaves 3 to `CGameActor`'s.
+
+**Each update in state 3** (`00503e66`), after the hold and the fade:
+1. +0x82 and +0xcc cleared, then `vf08`, the frame by the time;
+2. once the action is finished (+0x81) with nothing queued (+0x20c 0), the game mode hears
+   message 0xd with the id, on every update;
+3. then, for a `GetJob` past 0x16, `LeaveCorpse` (`vf34`, `00503f30`) leaves the corpse, and
+   the update returns 0 without its times, as a fade's end does.
+
+**The corpse** is `CGameMode::AddCorpse` (`00510030`): a `CCorpse` in the world's list at the
+actor's position, with the names of the body's act (+0x9c) and sprite (+0x98, `GetActName` and
+`GetSpriteName`, 0 without one), the actor's base action as its action, and its frame and
+facing.
+
+A player's update in state 3 (`CPc::ProcessState`) clears +0x82 and runs `vf08`, and stays.
 
 ## Players
 
@@ -192,13 +228,16 @@ the walk put it, at the goal's centre.
 
 `src/world/actor_state.{h,cpp}`, in `ragexe_world`:
 - `MoveGameActor`, message 0, with a `MoveOrder`, and `MoveGameActorTo`, message 0x13;
-- `SetGameActorState` for 0, 1, 5, 6, 8, 10, 11, 12, those past 13, and 7 in state 6 (others
+- `SetGameActorState` for 0, 1, 3, 5, 6, 8, 10, 11, 12, those past 13, and 7 in state 6 (others
   return false having done nothing), and `SetGameActorAction`;
 - `AttrCellAt`, `CellPointAt` (`GetCellPoint`) and `IsSpecialActorIdOnKoreaService`;
 - `ModeMessage`: what the game mode hears, kept in the `StateContext`'s list when there is one,
   with the windows queued for removal and `CGameMode`+0x2a0;
 - `PlayerActor`, `CPc`'s fields, with `SetPlayerState` and a `MoveGameActor` that calls it;
-- `ProcessGameActorState`, an update in any state but 3 and 13 for actors and 13 for players
+- `KillGameActor` (0x1c) and `KillGameActorAfterQueue` (0xc), for actors and players. Dying
+  updates return `StateResult::kGone` where they leave a corpse, kept in the `StateContext`'s
+  list (`Corpse`), with the body's names (`act_name`, `sprite_name`) given;
+- `ProcessGameActorState`, an update in any state but 13
   (`StateResult::kNotPorted`, having done nothing): walking as `ProcessWalk`, standing at the
   end, standing with the pet's talk, and the rest above. `ClientState`'s pet tables aren't
   ported: the caller gives the pet and its two lines (`PetTalk`), and the C runtime's `rand`
@@ -208,8 +247,8 @@ the walk put it, at the goal's centre.
 `render::SetAction` and `render::ActionDelay` (`src/render/actor`) are `CRenderObject`'s;
 `RenderObject` gained +0x50, the delay's scale.
 
-`GameActor` gained the goal, the speed, +0xd0, +0xd8, +0x1ac, +0x1a8 and the target of
-state 4. `render::TurnTowards` and `render::SpanTicks` (the 1/24 ms ticks) are shared with the
+`GameActor` gained the goal, the speed, +0xd0, +0xd8, +0x1ac, +0x1a8, the target of state 4,
+and +0x20c and +0x210 for dying. `render::TurnTowards` and `render::SpanTicks` (the 1/24 ms ticks) are shared with the
 effects and the frame step.
 
 **`ragview`** walks its actor, a player with `CPc`'s states: a left click on the cell under the
@@ -220,7 +259,8 @@ until it stands, and steps a standing actor's frame.
 `ragres find-paths` takes moves: `G`, the actor's fields, the order, then the message's and each
 update's times; `P`, the same for a player; `T` and `U`, message 0x13 for both; `N` and `Y`, a
 standing actor and player, with `srand`'s seed, the pet and its lines; `E` and `Q`, an actor
-and a player given a state or left in theirs, then updated.
+and a player given a state or left in theirs, then updated; `D` and `H`, an actor and a player
+dying, then updated.
 
 ## Checks
 
@@ -254,6 +294,14 @@ messages are hashed, and equal `ragres find-paths`:
     or not; the state's start near the first update;
   - 1,219 changed state (stood), 766 faded, 9,495 stayed.
 
+- **11,480 deaths of actors and 11,480 of players** (`D` and `H`: `SetState(3)`, 0xc or 0x1c,
+  then `ProcessState` update by update) and 3,774,271 updates, +0x1b4, +0x210, +0x80, +0xcc, the
+  effects and the corpses (`CGameMode::AddCorpse`, recorded) hashed too:
+  - from states that block it or not, frozen or not, something queued or not, monsters,
+    players and NPCs, a sprite or none;
+  - actors: 2,975 left a corpse, 753 faded, 231 changed state (dying later) and 7,521 still
+    dying; players: 832 faded, 74 changed and 10,574 stayed.
+
 `tools/state_vectors.py` writes `tests/unit/state_vectors.inc`:
 - **moves** on `tools/walk_vectors.py`'s three maps, with short walks;
 - **`GetAttrCell`** at points on and either side of the cells' edges, both sides of 0 and
@@ -268,7 +316,12 @@ on them, then state 8 on its 34th tick, a tick either side and on tick 0, its ta
 and none named, state 4's slide with 200 ms, 1 ms and none left, played once and finished (with
 +0xd0 too, so that only the slide puts it on the target), and a way times the time gone just
 past a tie of single precision; 7 asked in state 6, 5, 11 and 12 played to the end, and 2 and 7
-left in and played to the end. `tests/unit/walk_test.cpp` replays them.
+left in and played to the end. `tools/death_vectors.py` writes `tests/unit/death_vectors.inc`:
+deaths on them, then each way of dying from the states that block it or not, monsters' ids by
+the job's edges and the ids', something queued by the job's edge and +0x210, the frozen body's
+ice in its slot or not, the update to the action's end and past it by the job's edge for the
+corpse, with a sprite or none, held through the updates, +0xcc before, and players, who stay.
+`tests/unit/walk_test.cpp` replays them.
 
 **Not ported:** the other messages but 3 to 6 ([arrival.md](arrival.md)) and those that make and
 end effects ([effects.md](effects.md)); the states above that aren't; and `CPlayer::SetState`'s

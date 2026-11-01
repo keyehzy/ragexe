@@ -113,6 +113,16 @@ SELF_MESSAGE_STUB, SEND_SELF_SLOT, VTABLE_SIZE = MESSAGE_STUB + 0x10, 2, 0x100
 EFFECT_FIELDS = ["slots", "listed", "same"]
 ADD_SPRITE_EFFECT, ADD_EMOTION_EFFECT, EFFECT_MESSAGE_STUB = 0x5106A0, 0x5111B0, MESSAGE_STUB + 0x20
 EFFECT_SLOTS, EFFECT_SLOT_COUNT, EFFECT_LIST, LAUNCHED_LIST = 0x244, 11, 0x270, 0xAC
+# D and H: a G and a P that die (docs/world/states.md#dying): through vf10's SetState(3) (`how`
+# 0), CGameActor::SendMsg's 0xc or its 0x1c; before it +0x218, +0x20c (the size of the list at
+# +0x204, its nodes unread), +0x210, whether the body has a sprite (+0x98), and +0xcc; then
+# EFFECT_FIELDS, then the server's time and timeGetTime of the death and of each update, until
+# the update returns 0 or the state changes. The body's CRes names are ACT_NAME and
+# SPRITE_NAME (CRes::GetName, +0x14). CGameMode::AddCorpse is recorded; the hash takes, after
+# the death and each update, fields(), the game mode's messages, extra(), effects(), +0x1b4,
+# +0x210, +0x80, +0xcc and the corpses (their position, names, action, frame and facing).
+DEATH_FIELDS = ["how", "body", "queued", "f210", "sprite", "f0cc"]
+ADD_CORPSE, ACT_NAME, SPRITE_NAME = 0x510030, "poring.act", "poring.spr"
 SRAND, PET_ID, PET_TABLE = 0x5C2546, 0x686E40, 0x686E94
 PET_LEVEL_A, PET_LEVEL_B, PET_LINE = 0x5A9F40, 0x5A9FA0, 0x5AA3E0
 SINGLE = 0x007F
@@ -296,6 +306,16 @@ class Oracle:
         emu.replace_thiscall(EFFECT_MESSAGE_STUB, 5, effect_message)
         emu.replace_thiscall(ADD_SPRITE_EFFECT, 3, lambda this, kind, at, actor_id: self.make_effect(0, kind, at, actor_id))
         emu.replace_thiscall(ADD_EMOTION_EFFECT, 3, lambda this, at, kind, actor_id: self.make_effect(1, kind, at, actor_id))
+        # For D and H: the body's names, a sprite to have or not, and the corpses left.
+        emu.mem_write(self.act + 0x14, ACT_NAME.encode() + b"\0")
+        self.sprite = emu.scratch(size=0x40)
+        emu.mem_write(self.sprite + 0x14, SPRITE_NAME.encode() + b"\0")
+        self.corpses = []
+
+        def add_corpse(this, *v):
+            name = lambda a: name_hash(emu.mem_read(a, len(emu.read_cstr(a)))) if a else [0, 0]
+            self.corpses += [*v[:3], *name(v[3]), *name(v[4]), *v[5:]]
+        emu.replace_thiscall(ADD_CORPSE, 8, add_corpse)
 
     def result(self, found):
         if found:
@@ -328,7 +348,7 @@ class Oracle:
         for line in lines:
             kind, *values = line.split()
             v = [int(x) for x in values] if kind not in ("W", "G", "P", "T", "U", "N", "Y", "E", "Q", "A", "B", "X",
-                                                         "K") else []
+                                                         "K", "D", "H") else []
             self.logged = []
             if kind == "F":
                 found = emu.call(FIND_PATH, *v, self.actor + ACTOR_PATH, this=G_PATH_FINDER).eax & 0xFF
@@ -385,6 +405,10 @@ class Oracle:
                 out.append(self.go(values, effects=True))
             elif kind == "K":
                 out.append(self.go(values, player=True, effects=True))
+            elif kind == "D":
+                out.append(self.go(values, die=True, effects=True))
+            elif kind == "H":
+                out.append(self.go(values, player=True, die=True, effects=True))
         emu.heap_release(mark)
         return out
 
@@ -437,13 +461,15 @@ class Oracle:
         emu.write_u32(self.view + 0x20, w["yaw"])
         self.frames = w["frames"]
 
-    def go(self, values, player=False, to=False, stand=False, enter=False, arrive=False, effects=False):
+    def go(self, values, player=False, to=False, stand=False, enter=False, arrive=False, effects=False,
+           die=False):
         """CGameActor::vf02's message 0 on the actor, then ProcessState update by update, with
         SetState run, until the actor stands again or has faded; for a player, a CPc's."""
         emu, actor = self.emu, self.actor
         v = [int(x, 0) for x in values]
         names = ((PLAYER_FIELDS if player else GO_FIELDS) + (TO_SPEED if to else []) + (STAND_FIELDS if stand else [])
-                 + (ENTER_FIELDS if enter else []) + (ARRIVE_FIELDS if arrive else []) + (EFFECT_FIELDS if effects else []))
+                 + (ENTER_FIELDS if enter else []) + (ARRIVE_FIELDS if arrive else []) + (DEATH_FIELDS if die else [])
+                 + (EFFECT_FIELDS if effects else []))
         g = dict(zip(names, v))
         updates = v[len(names):]
         self.place(g)
@@ -503,6 +529,8 @@ class Oracle:
             return self.enter(g, updates, extra)
         if effects:
             self.ready_effects(g)
+        if die:
+            return self.die(g, updates, extra)
         if arrive:
             return self.arrive(g, updates[:ARRIVE_RECORD], updates[ARRIVE_RECORD:], effects)
         if effects:
@@ -638,6 +666,52 @@ class Oracle:
             h = fnv1a64([message, *self.fields(), *self.messages, *extra(), *self.effects()], h)
         r = [emu.read_u32(actor + o) for o in (0x4, 0x8, 0xC, 0x38, 0x24, 0x28, 0x58)]
         return f"sent {count} {r[0]:08x} {r[1]:08x} {r[2]:08x} {r[3]:08x} {r[4]} {r[5]} {r[6]} {h:016x}"
+
+    def die(self, g, updates, extra):
+        """The death, then ProcessState update by update until it returns 0 or the state changes."""
+        emu, actor = self.emu, self.actor
+        emu.write_u32(actor + 0x218, g["body"] & 0xFFFFFFFF)
+        emu.write_u32(actor + 0x20C, g["queued"])
+        emu.write_u32(actor + 0x210, g["f210"])
+        emu.write_u32(actor + 0x98, self.sprite if g["sprite"] else 0)
+        emu.mem_write(actor + 0x80, b"\0")
+        emu.write_u32(actor + 0xCC, g["f0cc"] & 0xFFFFFFFF)
+        for offset in (0x1A8, 0x1D4, 0x1F4):
+            emu.write_u32(actor + offset, 0)
+        self.target_found = False
+        self.messages, self.states, self.corpses = [], [], []
+        self.server, self.now = updates[0], updates[1]
+        if g["how"] == 0:
+            emu.call(emu.read_u32(emu.read_u32(actor) + 4 * 10), 3, this=actor)
+        else:
+            emu.call(emu.read_u32(emu.read_u32(actor) + 4 * 2), 0, g["how"], 0, 0, 0, this=actor)
+
+        def died():
+            words = [emu.read_u32(actor + 0x1B4), emu.read_u32(actor + 0x210), emu.mem_read(actor + 0x80, 1)[0],
+                     emu.read_u32(actor + 0xCC), len(self.corpses), *self.corpses]
+            self.corpses = []
+            return words
+        h = fnv1a64([5, *self.fields(), *self.messages, *extra(), *self.effects(), *died()])
+        state = emu.read_u32(actor + 0x58)
+        last, calls = "staying", 0
+        for server, tick in zip(updates[2::2], updates[3::2]):
+            self.messages, self.states = [], []
+            self.now, self.server = tick, server
+            ret = emu.call(emu.read_u32(emu.read_u32(actor) + 4 * 9), this=actor).eax & 0xFF
+            calls += 1
+            corpse = bool(self.corpses)
+            h = fnv1a64([ret, *self.fields(), *self.messages, *extra(), *self.effects(), *died()], h)
+            if ret == 0:
+                last = "gone" if corpse else "faded"
+                break
+            if emu.read_u32(actor + 0x58) != state:
+                last = "changed"
+                break
+        r = [emu.read_u32(actor + o) for o in (0x4, 0x8, 0xC, 0x38, 0x24, 0x28, 0x58)]
+        for offset in (0x98, 0x20C, 0x210):
+            emu.write_u32(actor + offset, 0)
+        emu.mem_write(actor + 0x80, b"\0")
+        return f"{last} {calls} {r[0]:08x} {r[1]:08x} {r[2]:08x} {r[3]:08x} {r[4]} {r[5]} {r[6]} {h:016x}"
 
     def make_effect(self, by, kind, at, actor_id):
         """An effect as the game mode makes one: its vtable, the rest 0."""

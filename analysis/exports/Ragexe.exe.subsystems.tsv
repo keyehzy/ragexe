@@ -3435,11 +3435,11 @@ entry	subsystem	rule	evidence
 00501840	world	class	class CGameObject, base of CRenderObject
 00501870	world	class	class CGameObject, base of CRenderObject
 005018a0	world	class	class CGameObject, base of CRenderObject
-005018e0	world	class	class CGameObject, base of CGameActor
+005018e0	world	class	class CGameObject, base of CRenderObject
 00501900	world	class	class CGameObject, base of CRenderObject
 00501910	world	class	class CGameObject, base of CRenderObject
 00501950	world	class	class CGameObject, base of CRenderObject
-00501960	world	class	class CGameObject, base of CGameActor
+00501960	world	class	class CGameObject, base of CRenderObject
 00501980	ui	class	class CMousePointer
 005019d0	ui	class	class CMousePointer
 00501a00	ui	class	class CMousePointer

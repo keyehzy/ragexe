@@ -39,6 +39,9 @@ struct GameActor {
   std::int32_t field_0x1ec = 0;    // +0x1ec, from the records that bring it in
   std::int32_t field_0x1f0 = 0;    // +0x1f0
   std::int32_t field_0x1f4 = 0;    // +0x1f4
+  std::int32_t field_0x20c = 0;    // +0x20c, the size of the list at +0x204 that message 0x1b
+                                   // queues to; an actor dies only once it is empty
+  std::int32_t field_0x210 = 0;    // +0x210: told it died (0x1c) before that, it dies after
   std::int32_t body_state = 0;     // +0x218, the first status word (docs/world/arrival.md)
   std::uint32_t effect_state = 0;  // +0x21c, the second; bit 5 mounts jobs 7 and 14
   std::uint32_t health_state = 0;  // +0x220, the third

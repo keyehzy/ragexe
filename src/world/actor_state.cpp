@@ -4,6 +4,7 @@
 
 #include "core/x87.h"
 #include "render/actor.h"
+#include "world/actor_effects.h"
 
 namespace ragexe::world {
 
@@ -11,6 +12,12 @@ namespace {
 
 constexpr std::int32_t kStand = 0;
 constexpr std::int32_t kWalk = 1;
+constexpr std::int32_t kDying = 3;
+constexpr std::int32_t kDyingAction = 0x40;
+constexpr std::int32_t kFrozen = 2;               // the body state whose ice dying ends
+constexpr std::int32_t kCorpseJobsFrom = 0x17;    // jobs past 0x16 leave a corpse
+constexpr std::int32_t kQueueDelaysFrom = 0x16;   // and from 0x16 die after their queue
+constexpr std::uint32_t kMonsterIdBase = 100000;  // 0x186a0, less a dead monster's id
 constexpr std::int32_t kStandAction = 0;
 constexpr std::int32_t kWalkAction = 8;
 constexpr std::int32_t kReadyAction = 32;
@@ -30,7 +37,6 @@ constexpr std::int32_t kFaceEvery = 34;          // ticks, state 8's turn toward
 bool SetsGameActorState(std::int32_t state) {
   switch (state) {
     case 2:
-    case 3:
     case 4:
     case 7:
     case 9:
@@ -58,6 +64,20 @@ void ReportCell(const GameActor& actor, const StateContext& context) {
   const render::Vec3& at = actor.object.position;
   const auto [cx, cz] = AttrCellAt(*context.attr, at[0], at[2]);
   Send(context, {kStandsMessage, actor.id, cx, cz});
+}
+
+// vf02 to itself, from no sender: kept, and made and ended the effects of.
+void SendSelf(GameActor& actor, const StateContext& context, std::uint32_t now, std::int32_t id) {
+  if (context.actor_messages != nullptr) context.actor_messages->push_back({id, 0, 0, 0});
+  SendGameActorEffectMessage(actor, id, 0, 0, context, now);
+}
+
+// vf34 (00503f30): the corpse, at the actor's position, of its body and how it stands.
+void LeaveCorpse(const GameActor& actor, const StateContext& context) {
+  if (context.corpses == nullptr) return;
+  const render::RenderObject& o = actor.object;
+  context.corpses->push_back(
+      {o.position, context.act_name, context.sprite_name, o.base_action, o.frame, o.facing});
 }
 
 // State 8's turn toward the actor +0x1a8 names: while it names one, on every 34th tick since
@@ -162,7 +182,6 @@ StateResult Update(Actor& actor, const StateContext& context, std::uint32_t now,
       if (r == WalkResult::kArrived) set_state(kStand);
       return StateResult::kDone;
     }
-    case 3:
     case 13: return StateResult::kNotPorted;
     default: break;
   }
@@ -188,6 +207,18 @@ StateResult Update(Actor& actor, const StateContext& context, std::uint32_t now,
       frame();
       FaceTarget(actor, context, now);
       break;
+    case kDying:
+      o.held = false;
+      actor.field_0xcc = 0;
+      frame();
+      if (o.finished && actor.field_0x20c == 0) {
+        Send(context, {kWalksMessage, actor.id, 0, 0});
+        if (GameActorJob(actor) >= kCorpseJobsFrom) {
+          LeaveCorpse(actor, context);
+          return StateResult::kGone;
+        }
+      }
+      break;
     case 10: actor.field_0xcc = 0; break;
     case 16:
     case 17: frame(); break;
@@ -197,6 +228,18 @@ StateResult Update(Actor& actor, const StateContext& context, std::uint32_t now,
   actor.server_at = server_time;
   if (moved) o.position[1] = res::AttrHeight(*context.attr, o.position[0], o.position[2]);
   return StateResult::kDone;
+}
+
+template <typename Actor, typename SetState>
+void Kill(Actor& actor, SetState set_state) {
+  const std::int32_t job = GameActorJob(actor);
+  if (job > 1000 && job < 0x580)
+    actor.id = static_cast<std::int32_t>(kMonsterIdBase - static_cast<std::uint32_t>(actor.id));
+  if (actor.field_0x20c != 0 && GameActorJob(actor) >= kQueueDelaysFrom) {
+    actor.field_0x210 = 1;
+    return;
+  }
+  set_state(kDying);
 }
 
 template <typename Actor, typename SetState>
@@ -289,6 +332,15 @@ bool SetGameActorState(GameActor& actor, std::int32_t state, const StateContext&
     if (actor.field_0xd8 == 0) SetGameActorAction(actor, *context.act, kWalkAction, 0);
     // vf12 (00503160).
     Send(context, {kWalksMessage, actor.id, 0, 0});
+  } else if (state == kDying) {
+    o.held = false;
+    if (actor.body_state == kFrozen) {
+      SendSelf(actor, context, now, 0x3b);
+      SendSelf(actor, context, now, 0x3e);
+    }
+    o.depth_up = true;
+    o.finished = false;
+    SetGameActorAction(actor, *context.act, kDyingAction, kOnce);
   } else if (const std::int32_t action = GameActorStateAction(state); action >= 0) {
     if (state == 5) {
       actor.field_0xcc = 0;
@@ -338,6 +390,22 @@ bool SetPlayerState(PlayerActor& player, std::int32_t state, const StateContext&
   }
   FinishState(player, state, context, now);
   return true;
+}
+
+void KillGameActor(GameActor& actor, const StateContext& context, std::uint32_t now) {
+  Kill(actor, [&](std::int32_t state) { SetGameActorState(actor, state, context, now); });
+}
+
+void KillGameActor(PlayerActor& player, const StateContext& context, std::uint32_t now) {
+  Kill(player, [&](std::int32_t state) { SetPlayerState(player, state, context, now); });
+}
+
+void KillGameActorAfterQueue(GameActor& actor, const StateContext& context, std::uint32_t now) {
+  if (actor.state != kDying) SetGameActorState(actor, kDying, context, now);
+}
+
+void KillGameActorAfterQueue(PlayerActor& player, const StateContext& context, std::uint32_t now) {
+  if (player.state != kDying) SetPlayerState(player, kDying, context, now);
 }
 
 PathResult MoveGameActor(GameActor& actor, PathFinder& finder, const MoveOrder& order,

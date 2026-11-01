@@ -2904,6 +2904,15 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     was sent equal. `actor_effect_vectors.inc` keeps short ones, every slot's start and end, the carts,
     each step of `ClearSlotHolding` and the arrivals of `arrival_vectors.inc` with their effects.
   - **Labels:** `CAbleToMakeEffect::SendMsg`, `CRenderObject::SendMsg` and `CGameObject::SendMsg`.
+- [x] Dying (`docs/world/states.md#dying`): message 0x1c, which packet 0x0080 sends (a monster's id
+  becomes 100000 less it; with something queued, from job 0x16 it dies later, by message 0xc);
+  `SetState(3)`, which ends a frozen body's ice, sets +0x80 and plays action 0x40 once; and
+  state 3's update, which tells the game mode 0xd once the action ends and, past job 0x16,
+  leaves the corpse (`LeaveCorpse`, `CGameMode::AddCorpse`) and returns 0.
+  - **Checks:** `tools/walk_oracle.py`'s `D` and `H` on all 287 maps: 11,480 actors and 11,480
+    players dying over 3,774,271 updates equal, the corpses recorded. `death_vectors.inc` keeps
+    short ones and each edge of the jobs, the ids and the queue.
+  - **Labels:** `CGameActor::LeaveCorpse`, `CRenderObject::GetActName` and `GetSpriteName`.
 
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,

@@ -367,8 +367,6 @@ address	namespace	name	calling_convention	evidence
 00500660	CGameActor	method_00500660	__thiscall	__thiscall; called with this from 4 functions of CGrannyPc, CPc, CPlayer, mg::mgType1::CMonster, e.g. 004f0790
 00500760	CArrowEffect	method_00500760	__thiscall	__thiscall; called with this from 1 functions of CArrowEffect, e.g. 005afbc0
 00500940	CRenderObject	method_00500940	__thiscall	__thiscall; called with this from 4 functions of CBlowEffect, CGrannyPc, CPc, CPlayer, e.g. 00540a60
-005018e0	CGameActor	method_005018e0	__thiscall	__thiscall; called with this from 1 functions of CGameActor, e.g. 00503f30
-00501960	CGameActor	method_00501960	__thiscall	__thiscall; called with this from 1 functions of CGameActor, e.g. 00503f30
 00501a50	CMousePointer	method_00501a50	__thiscall	__thiscall; called with this from 1 functions of CMousePointer, e.g. 00501980
 00501d40	CAbleToMakeEffect	method_00501d40	__thiscall	__thiscall; called with this from 1 functions of CAbleToMakeEffect, e.g. 00501be0
 00501d70	CAbleToMakeEffect	method_00501d70	__thiscall	__thiscall; called with this from 1 functions of CAbleToMakeEffect, e.g. 00501c90

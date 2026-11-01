@@ -3,7 +3,8 @@
 An actor shows some of its statuses with effects that follow it: a cart, a falcon, the ice
 of a frozen actor, a curse, sleep or stun over its head. `CGameActor::SendMsg` (`00504460`,
 `vf02`) makes and ends them, mostly on the messages that `SetStatus` sends the actor itself
-([arrival.md](arrival.md#the-status)). The game mode makes each effect, a `CMsgEffect`; the
+([arrival.md](arrival.md#the-status)); dying sends 0x3b and 0x3e for a frozen body
+([states.md](states.md#dying)). The game mode makes each effect, a `CMsgEffect`; the
 actor keeps it in a slot for its status and in a list of all its effects. The port is
 `src/world/actor_effects`.
 

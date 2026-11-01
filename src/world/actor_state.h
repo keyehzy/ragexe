@@ -58,6 +58,18 @@ struct ActorEffects {
   std::vector<EffectMessage> messages;
 };
 
+// What CGameActor::vf34 (00503f30) leaves of an actor that has died: CGameMode::AddCorpse
+// (00510030) with its position, its body's act and sprite (CRes::GetName, empty without one),
+// its base action, frame and facing.
+struct Corpse {
+  render::Vec3 position{};
+  std::string_view act;
+  std::string_view sprite;
+  std::int32_t action = 0;
+  std::int32_t frame = 0;
+  float facing = 0.0f;
+};
+
 // What a pet says when it talks (CGameActor::ProcessState, standing): ClientState's pet
 // (+0x7d0) and the two lines of its tables the game mode hears, the first from 005aa3e0, the
 // second from the table at +0x824 by 005a9f40's and 005a9fa0's levels.
@@ -92,8 +104,11 @@ struct StateContext {
   std::function<bool(const std::string&)> resource_exists{};  // ResourceManager::Exists
                                                               // (004e0190); without it every
                                                               // file is there
-  ActorEffects* effects{};  // the effects made; without it the messages that make and end
-                            // them do nothing
+  ActorEffects* effects{};         // the effects made; without it the messages that make and end
+                                   // them do nothing
+  std::vector<Corpse>* corpses{};  // the corpses left, when kept
+  std::string_view act_name{};     // the names of the body's act (+0x9c) and sprite (+0x98),
+  std::string_view sprite_name{};  // which a corpse takes
   // NOLINTEND(readability-redundant-member-init)
 };
 
@@ -128,11 +143,12 @@ void SetGameActorAction(GameActor& actor, const res::Act& act, std::int32_t acti
 
 // CGameActor::SetState (005034e0, vf10) at timeGetTime `now`. Nothing happens in state 3 or
 // with +0xd0 set, nor for 7 in state 6; leaving state 4 puts the actor on its target. Then
-// the state's work: standing (0) and walking (1) their actions and messages; 5 action 0x18
-// played once, clearing +0xcc and +0x82; 11 action 0x20 and 12 action 0x28 played once, 12
-// reporting the cell; 6, 8, 10 and those past 13 none. Last the action's direction, the state
-// and its time. States 2, 3, 4, 7 (but in state 6), 9 and 13 are not ported, and return false
-// having done nothing.
+// the state's work: standing (0) and walking (1) their actions and messages; dying (3) lies
+// down (+0x80), ends a frozen body's ice (0x3b and 0x3e to itself) and plays action 0x40
+// once; 5 action 0x18 played once, clearing +0xcc and +0x82; 11 action 0x20 and 12 action
+// 0x28 played once, 12 reporting the cell; 6, 8, 10 and those past 13 none. Last the action's
+// direction, the state and its time. States 2, 4, 7 (but in state 6), 9 and 13 are not
+// ported, and return false having done nothing.
 bool SetGameActorState(GameActor& actor, std::int32_t state, const StateContext& context,
                        std::uint32_t now);
 
@@ -150,6 +166,7 @@ bool SetPlayerState(PlayerActor& player, std::int32_t state, const StateContext&
 enum class StateResult {
   kFaded,      // returned 0: the fade (+0x234) is over
   kDone,       // returned 1
+  kGone,       // returned 0: it died, and left its corpse
   kNotPorted,  // a state whose update is not ported; nothing was done
 };
 
@@ -162,13 +179,16 @@ enum class StateResult {
 //    cleared. Then the frame (vf08).
 //  - 2, 5, 7, 9 and 12: the frame and, the action finished, standing again; 5 and 7 clear
 //    +0xcc first.
+//  - 3: clears +0x82 and +0xcc and steps the frame. The action finished with nothing queued
+//    (+0x20c), the game mode hears 0xd with the id; a job past 0x16 then leaves its corpse
+//    (vf34) and the update returns 0 (kGone) without the times.
 //  - 4: clears +0xcc, steps the frame, and slides toward the target (+0x228, +0x22c) by the
 //    time since the last update over what is left of 200 ms from the state's start; the
 //    action finished, it is on the target and stands. Set on the ground when it moved.
 //  - 8: clears +0xcc, steps the frame, and faces the actor +0x1a8 names (context.target) on
 //    every 34th tick since the state began.
 //  - 10: clears +0xcc; 16 and 17: the frame; the rest nothing.
-// States 3 and 13 are not ported.
+// State 13 is not ported.
 StateResult ProcessGameActorState(GameActor& actor, const StateContext& context, std::uint32_t now,
                                   std::uint32_t server_time);
 
@@ -178,6 +198,18 @@ StateResult ProcessGameActorState(GameActor& actor, const StateContext& context,
 // are CGameActor's, standing again through CPc::SetState; 13 is not ported.
 StateResult ProcessGameActorState(PlayerActor& player, const StateContext& context,
                                   std::uint32_t now, std::uint32_t server_time);
+
+// CGameActor::SendMsg's message 0x1c (00505266), which packet 0x0080 sends when the actor has
+// died: a monster's id (jobs 1001 to 0x57f) becomes 100000 less it; then dying (SetState(3)),
+// unless something is queued (+0x20c) and the job is 0x16 or past, when +0x210 is set and it
+// dies once that is played.
+void KillGameActor(GameActor& actor, const StateContext& context, std::uint32_t now);
+void KillGameActor(PlayerActor& player, const StateContext& context, std::uint32_t now);
+
+// Message 0xc (00505300), which the actor sends itself once what was queued has played:
+// dying, unless it already is.
+void KillGameActorAfterQueue(GameActor& actor, const StateContext& context, std::uint32_t now);
+void KillGameActorAfterQueue(PlayerActor& player, const StateContext& context, std::uint32_t now);
 
 // The order message 0 carries (CGameActor::vf02): when, and from which cell (with the
 // sixteenths in it) to which.

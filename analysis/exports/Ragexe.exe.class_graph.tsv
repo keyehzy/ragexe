@@ -204,9 +204,9 @@ std::locale::facet	rtti		8	estimated	1		FUN_005b42bc; FUN_005b432e; FUN_005b5163
 std::ctype_base	rtti				0					0	0			
 std::ctype<char>	rtti	std::ctype_base@0 std::locale::facet@0	24	new	1		FUN_005b4e8f; std::ctype<char>::ctype<char>; std::use_facet		004e5e30	7	7	stl		
 CGameObject	rtti		4	estimated	1	00500030		00500090	00500060	8	8	world		
-CRenderObject	rtti	CGameObject@0	160	estimated	1	005002b0		00500350	00500320	25	25	world		CRes@0x98 CRes@0x9c
+CRenderObject	rtti	CGameObject@0	160	estimated	1	005002b0		00500350	00500320	27	27	world		CRes@0x98 CRes@0x9c
 CAbleToMakeEffect	rtti	CRenderObject@0	192	estimated	1	00501be0		00501c90	00501c60	9	9	world		CRes@0x98 CRes@0x9c
-CGameActor	rtti	CAbleToMakeEffect@0	636	estimated	1	00502570		00502700	005026a0	71	71	world	MovePath@0x170	CRes@0x98 CRes@0x9c
+CGameActor	rtti	CAbleToMakeEffect@0	636	estimated	1	00502570		00502700	005026a0	69	69	world	MovePath@0x170	CRes@0x98 CRes@0x9c
 CPc	rtti	CGameActor@0	776	new	1	00541fb0		00542160	00542130	44	44	world	MovePath@0x170	CRes@0x98 CRes@0x9c
 mg::CMGPc	rtti	CPc@0	776	estimated	1	004eb040		004eb0d0	004eb0a0	3	2	game	MovePath@0x170	CRes@0x98 CRes@0x9c
 CNpc	rtti	CGameActor@0	664	new	1	0053f950		0053f9d0	0053f9a0	19	19	world	MovePath@0x170	CRes@0x98 CRes@0x9c

@@ -205,9 +205,9 @@ facet	std::locale	4	1
 ctype_base	std	0	0
 ctype<char>	std	7	1
 CGameObject	Global	8	1
-CRenderObject	Global	25	1
+CRenderObject	Global	27	1
 CAbleToMakeEffect	Global	9	1
-CGameActor	Global	71	1
+CGameActor	Global	69	1
 CPc	Global	44	1
 CMGPc	mg	3	1
 CNpc	Global	19	1
