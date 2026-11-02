@@ -138,6 +138,7 @@ add_custom_command(OUTPUT "${RAGEXE_FONT_DIR}/embedded_fonts.h"
 add_library(ragexe_world STATIC
   world/actor_arrival.cpp
   world/actor_attack.cpp
+  world/actor_draw.cpp
   world/actor_hit.cpp
   world/actor_update.cpp
   world/ground_item.cpp

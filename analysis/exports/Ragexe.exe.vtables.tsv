@@ -6076,7 +6076,7 @@ mg::CMGPc	005e8eac	0	40	004eb080	CGameActor::vf40
 mg::CMGNpc	005e8f54	0	0	004eb220	mg::CMGNpc::`scalar_deleting_destructor'	
 mg::CMGNpc	005e8f54	0	1	005404d0	CNpc::Update	
 mg::CMGNpc	005e8f54	0	2	0053fa60	CNpc::vf02	
-mg::CMGNpc	005e8f54	0	3	00540610	CNpc::vf03	
+mg::CMGNpc	005e8f54	0	3	00540610	CNpc::Render	
 mg::CMGNpc	005e8f54	0	4	00502b00	CGameActor::GetDirection	
 mg::CMGNpc	005e8f54	0	5	00502cc0	CGameActor::OnScreenBounds	
 mg::CMGNpc	005e8f54	0	6	00501840	CRenderObject::SetScreenPosition	
@@ -6200,7 +6200,7 @@ mg::mgType1::CMapObj	005e918c	0	5	004ef9e0	mg::mgType1::CMapObj::`scalar_deletin
 mg::mgType1::CMonster	005e91d8	116	0	004f0f50	mg::mgType1::CMonster::vf00_for_CMGNpc	adjustor:-116
 mg::mgType1::CMonster	005e91d8	116	1	005404d0	CNpc::Update	
 mg::mgType1::CMonster	005e91d8	116	2	0053fa60	CNpc::vf02	
-mg::mgType1::CMonster	005e91d8	116	3	00540610	CNpc::vf03	
+mg::mgType1::CMonster	005e91d8	116	3	00540610	CNpc::Render	
 mg::mgType1::CMonster	005e91d8	116	4	00502b00	CGameActor::GetDirection	
 mg::mgType1::CMonster	005e91d8	116	5	00502cc0	CGameActor::OnScreenBounds	
 mg::mgType1::CMonster	005e91d8	116	6	00501840	CRenderObject::SetScreenPosition	
@@ -6547,7 +6547,7 @@ CLoginMode	005e98f0	0	6	0053baa0	CLoginMode::OnChangeState
 CNpc	005e991c	0	0	0053f9a0	CNpc::`scalar_deleting_destructor'	
 CNpc	005e991c	0	1	005404d0	CNpc::Update	
 CNpc	005e991c	0	2	0053fa60	CNpc::vf02	
-CNpc	005e991c	0	3	00540610	CNpc::vf03	
+CNpc	005e991c	0	3	00540610	CNpc::Render	
 CNpc	005e991c	0	4	00502b00	CGameActor::GetDirection	
 CNpc	005e991c	0	5	00502cc0	CGameActor::OnScreenBounds	
 CNpc	005e991c	0	6	00501840	CRenderObject::SetScreenPosition	

@@ -124,7 +124,8 @@ only for the body and the head.
 
 **An object not drawn** (+0x84 clear, or `CPc` without +0x85) gets its point from
 `CRenderObject::ProjectToScreen` (`00500ed0`), which places it as the drawing does and
-calls `vf06`. `CGameMode::MarkModelsOnPlayerRay` reads +0x90 and +0x94
+calls `vf06`. A `CNpc` without +0x84 gets none, and keeps its old one
+([world/npc_draw.md](../world/npc_draw.md)). `CGameMode::MarkModelsOnPlayerRay` reads +0x90 and +0x94
 ([scene_graph.md](scene_graph.md#picking)).
 
 ## The shadow
@@ -245,7 +246,8 @@ each frame of the login and game modes. `CMode`'s cursor fields:
 - **Animation:** `ActorDirection` and `UpdateActorFrame`.
 - **Drawing:** `DrawActorBody` and `DrawActorShadow`, which return the quads. The body also
   returns the point on screen and the bounds (`ActorBody`). `ProjectToScreen`,
-  `ScreenPosition` (`vf06`'s truncation) and `ExpandBounds` are separate.
+  `ScreenPosition` (`vf06`'s truncation) and `ExpandBounds` are separate. `PlaceOnScreen`
+  places the point, and `PixelScale` gives +0x48, for each drawing.
 - **The quad:** `SpriteQuadVertices`, with the texture's extent as `SpriteTextureRect`.
 
 `src/render/cursor.{h,cpp}`: `DrawActFrame`, which returns the device calls and the quads

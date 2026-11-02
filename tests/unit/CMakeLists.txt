@@ -1,6 +1,7 @@
 add_executable(ragexe_tests
   act_test.cpp
   actor_test.cpp
+  actor_draw_test.cpp
   blit_test.cpp
   bitmap_test.cpp
   camera_test.cpp

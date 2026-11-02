@@ -161,8 +161,7 @@ void StepActorFrame(RenderObject& object, const res::Act& act, std::int32_t dire
   }
 }
 
-std::array<float, 2> ProjectToScreen(const Vec3& position, const Matrix& view,
-                                     const Projection& projection) {
+ScreenPlace PlaceOnScreen(const Vec3& position, const Matrix& view, const Projection& projection) {
   const Matrix& m = view;
   const Vec3& p = position;
   const float x = (((m[6] * p[2]) + (m[3] * p[1])) + (p[0] * m[0])) + m[9];
@@ -171,7 +170,18 @@ std::array<float, 2> ProjectToScreen(const Vec3& position, const Matrix& view,
   if (!(z >= kNear)) z = kNear;
   const float inverse = 1.0f / z;
   return {((x * projection.scale_x) * inverse) + static_cast<float>(projection.center_x),
-          ((y * projection.scale_y) * inverse) + static_cast<float>(projection.center_y)};
+          ((y * projection.scale_y) * inverse) + static_cast<float>(projection.center_y), z,
+          inverse};
+}
+
+float PixelScale(float inverse_z, const Projection& projection, const SpriteScales& scales) {
+  return ((inverse_z * projection.scale_x) * kPixel) / scales.size;
+}
+
+std::array<float, 2> ProjectToScreen(const Vec3& position, const Matrix& view,
+                                     const Projection& projection) {
+  const ScreenPlace place = PlaceOnScreen(position, view, projection);
+  return {place.x, place.y};
 }
 
 std::array<std::int32_t, 2> ScreenPosition(float x, float y) { return {Ftol(x), Ftol(y)}; }
@@ -189,22 +199,17 @@ ActorBody DrawActorBody(const RenderObject& object, const res::Act& act, const r
                         const Matrix& view, const Projection& projection,
                         const SpriteScales& scales, const std::array<float, 3>& ground_color) {
   ActorBody out;
-  const Matrix& m = view;
-  const Vec3& p = object.position;
-  const float x = (((m[6] * p[2]) + (m[3] * p[1])) + (p[0] * m[0])) + m[9];
-  const float y = (((m[7] * p[2]) + (m[1] * p[0])) + (m[4] * p[1])) + m[10];
-  float z = (((m[8] * p[2]) + (m[2] * p[0])) + (m[5] * p[1])) + m[11];
-  if (!(z >= kNear)) z = kNear;
-  const float inverse = 1.0f / z;
-  const float sx = ((x * projection.scale_x) * inverse) + static_cast<float>(projection.center_x);
-  const float sy = ((y * projection.scale_y) * inverse) + static_cast<float>(projection.center_y);
+  const ScreenPlace place = PlaceOnScreen(object.position, view, projection);
+  const float z = place.z;
+  const float sx = place.x;
+  const float sy = place.y;
   out.screen_x = sx;
   out.screen_y = sy;
   out.bounds = {static_cast<float>(projection.width), static_cast<float>(projection.height), 0.0f,
                 0.0f};
-  out.inverse_z = inverse;
-  const float pixel = (inverse * projection.scale_x) * kPixel;
-  out.pixel_scale = pixel / scales.size;
+  out.inverse_z = place.inverse_z;
+  const float pixel = (place.inverse_z * projection.scale_x) * kPixel;
+  out.pixel_scale = PixelScale(place.inverse_z, projection, scales);
   const float offset =
       ((projection.width_ratio * static_cast<float>(object.offset_x)) * out.pixel_scale) *
       object.scale;

@@ -135,6 +135,21 @@ struct ActorBody {
   float inverse_z = 0.0f;
 };
 
+// Where the drawings place an object's point (DrawBody, ProjectToScreen, CPc's and CNpc's
+// Render): the view's depth, at least 10 (each has its 10 of its own: 005e269c, 005e94fc,
+// 005e9914, 005e9b8c), its 1/z, and the point on screen.
+struct ScreenPlace {
+  float x = 0.0f;
+  float y = 0.0f;
+  float z = 0.0f;
+  float inverse_z = 0.0f;
+};
+ScreenPlace PlaceOnScreen(const Vec3& position, const Matrix& view, const Projection& projection);
+
+// The sprite's pixel at a depth, as the drawings keep it at +0x48: 1/z times the projection's
+// x scale and 1/7 (005e9564), over SpriteScales::size.
+float PixelScale(float inverse_z, const Projection& projection, const SpriteScales& scales);
+
 // ProjectToScreen (00500ed0): the point on screen of an object that is not drawn, as the
 // drawing finds it, which it passes to vf06.
 std::array<float, 2> ProjectToScreen(const Vec3& position, const Matrix& view,

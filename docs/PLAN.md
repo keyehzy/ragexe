@@ -3103,6 +3103,22 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     regenerate byte-identical. `list_vectors.inc` keeps 60 scripts on the three maps and 8 chosen
     ones.
   - **Labels:** `CGameMode::RemoveIdFromList`.
+- [x] An NPC's drawing (`docs/world/npc_draw.md`, `src/world/actor_draw`): `CNpc::Render`
+  (`00540610`), shared by `mg::CMGNpc` and `mg::mgType1::CMonster`, by the job through its byte
+  table: job 45 hands `vf05` bounds 50 sprite pixels about the point and, with effects off, a
+  shadow three times the scale; 104 and 139 draw nothing; 111 hands `vf05` bounds of +0x1ec by
+  +0x1f0 above the point; the others the shadow when opaque, then the body or only the point.
+  `render::PlaceOnScreen` and `PixelScale` are the placing `DrawActorBody`, `DrawPlayer` and
+  `ProjectToScreen` now share.
+  - **Found on the way:** a `CNpc` that is not shown (+0x84) gets no point on screen at all; job
+    111 draws whether shown or not, and its rectangle does not reach below the point; its right
+    edge takes the half-width from the float `fst` stored, its left from `fild`'s exact value, so
+    the two differ for a half past 2^24 that a float cannot hold.
+  - **Checks:** `tools/npc_draw_vectors.py` runs `CNpc::Render` in the emulation oracle on 420
+    objects (jobs about the table's edges, the flags, alpha, effects, +0x1ec and +0x1f0 past 2^24,
+    five projections, six views), its four calls recorded in order with their arguments, then
+    +0x48; `tests/unit/actor_draw_test.cpp` matches all 420. 30 mutants killed.
+  - **Labels:** `CNpc::Render`.
 
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,

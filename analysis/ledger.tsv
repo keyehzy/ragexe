@@ -5107,7 +5107,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00540390	121	code	0	world		named	CNpc	RepeatEffectPeriodically	
 00540410	180	code	0	world	unreferenced	raw	Global	FUN_00540410	
 005404d0	198	code	0	world		named	CNpc	Update	
-00540610	708	code	0	world		named	CNpc	vf03	
+00540610	708	code	0	world		named	CNpc	Render	
 00540950	73	code	0	world	dead	named	CBlowEffect	CBlowEffect	
 005409a0	33	code	0	world		named	CBlowEffect	`scalar_deleting_destructor'	
 005409d0	78	code	0	world		named	CBlowEffect	~CBlowEffect	
