@@ -5,8 +5,8 @@ The game mode brings an actor into view with a message to it, `CGameActor::SendM
 the actor, built by the game mode from a packet, and with it the actor's three status words,
 which `CGameActor` `00506c80` (here `SetStatus`) takes. The port is `src/world/actor_arrival`.
 
-`CPc` has its own messages 3 to 6 (`CPc::vf02`, `00543540`). They also set the player's look
-(`vf14`), its state (dead or sitting) and +0x294. They are not ported here.
+`CPc` has its own messages 3 to 6 (`CPc::SendMsg`, `00543540`). They also set the player's look
+(`vf14`), its state (dead or sitting) and +0x294: [look.md](look.md).
 
 ## The records
 
@@ -227,7 +227,6 @@ changed state (a walker that stood), 639 faded and 8,742 stayed.
 `tests/unit/walk_test.cpp` replays them, and checks `EmblemFileName`'s two forms.
 
 **Not ported:**
-- `CPc`'s messages 3 to 6;
 - message 4's effect 6;
 - `SetStatus` with `announce` set;
 - the guild war map's work: `005078e0` and `005078a0`, run when `ClientState::IsGuildWarMap`

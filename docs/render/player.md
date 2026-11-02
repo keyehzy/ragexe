@@ -163,6 +163,9 @@ in CP949:
   `PlayerHeadgearNames`, `PlayerWeaponNames` and `PlayerShieldNames`.
 - **The palettes:** `PlayerHeadPaletteName` and `PlayerBodyPaletteName`.
 - **The tests:** `CanShowWeapon`, `CanShowShield` and `ShieldKindOf`.
+- **The weapon by item id** (`SetWeapon`, vf20, [world/look.md](../world/look.md#the-weapon-by-item)):
+  `PlayerWeaponKindName`, `PlayerWeaponGlowName`, `PlayerWeaponItemName` and `WeaponShowsGlow`.
+  The world's `PlayerLook` keeps what the setters name each layer ([world/look.md](../world/look.md)).
 
 **ragview:** `--player JOB SEX HAIR` draws a player where the player stands:
 - the body and the head of the job, sex and hair style given, ordered by the job's `.imf`;
@@ -198,7 +201,4 @@ in CP949:
 `tests/unit/player_test.cpp` matches all 19,686 values.
 
 **Not ported:**
-- `SetWeapon` (`vf20`), the weapon by item id, with its ranges of ids and the sprites
-  named after the id;
-- the message `vf02` sends;
 - `00545540`, the special drawing for a few ids on the Korean service;

@@ -13,12 +13,13 @@ constexpr std::int32_t kEnd = 0x35;
 constexpr std::int32_t kGone = 0x30;  // from an effect that has gone
 constexpr std::int32_t kEmotion = 0x15;
 constexpr std::int32_t kEmotionInSlot = 0x22;
-constexpr std::int32_t kMsgSprite = 0x59;   // AddMsgSpriteEffect with the message's value
-constexpr std::int32_t kNumberKind = 0x16;  // a number that replaces the last of its kind
-constexpr std::int32_t kDropped = 0x18;     // RemoveMsgEffectsOfType16's, from the actor
-constexpr std::int32_t kKind = 0x16;        // a number's id and type (+0x10c)
-constexpr std::int32_t kDigit = 0x40;       // its position, digit and offset
-constexpr float kNumberKindScale = 0.5f;    // 0x3f000000, +0x3c of a number of type 0x16
+constexpr std::int32_t kEmotionDeleted = 0x76;  // the world deletes the emotion in the slot
+constexpr std::int32_t kMsgSprite = 0x59;       // AddMsgSpriteEffect with the message's value
+constexpr std::int32_t kNumberKind = 0x16;      // a number that replaces the last of its kind
+constexpr std::int32_t kDropped = 0x18;         // RemoveMsgEffectsOfType16's, from the actor
+constexpr std::int32_t kKind = 0x16;            // a number's id and type (+0x10c)
+constexpr std::int32_t kDigit = 0x40;           // its position, digit and offset
+constexpr float kNumberKindScale = 0.5f;        // 0x3f000000, +0x3c of a number of type 0x16
 constexpr std::int32_t kMostShown = 999999;
 constexpr std::int32_t kSleepState = 10;  // 0x45's SetState
 constexpr float kFalconField44 = 6.0f;    // 0x40c00000, which 0x65 writes to its effect's +0x44
@@ -100,7 +101,7 @@ bool IsEffectMessage(std::int32_t message) {
     if (message == start) return true;
   }
   return message == 0x33 || message == 0x34 || message == kFrozenEndToo || message == kEmotion ||
-         message == kGone || message == kMsgSprite;
+         message == kGone || message == kMsgSprite || message == kEmotionDeleted;
 }
 
 template <class Actor, class SetState>
@@ -141,6 +142,11 @@ bool Send(Actor& actor, std::int32_t message, std::int32_t sender, std::int32_t 
       } else if (actor.effect_slots[kEmotionSlot] == 0) {
         actor.effect_slots[kEmotionSlot] = Make(actor, context, EffectMaker::kEmotion, arg);
       }
+      break;
+    case kEmotionDeleted:
+      // CWorld::DeleteGameObject (004c4bc0); the slot keeps it.
+      if (actor.effect_slots[kEmotionSlot] != 0)
+        context.effects->deleted.push_back(actor.effect_slots[kEmotionSlot]);
       break;
     case kMsgSprite:
       if (context.msg_sprites) {

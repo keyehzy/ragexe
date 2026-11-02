@@ -97,7 +97,9 @@ head at +0xb0):
 
 The port launches no effects (`LaunchEffect` is not ported), so it has none to end.
 
-`CPc::vf02` (`00543540`) leaves all these to `CGameActor`'s.
+`CPc::SendMsg` (`00543540`, [look.md](look.md)) leaves all these to `CGameActor`'s, and so
+does 0x76, which has the world delete the emotion in +0x26c (`CWorld::DeleteGameObject`,
+`004c4bc0`) and leaves the slot as it is.
 
 ## In the port
 

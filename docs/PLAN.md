@@ -3041,6 +3041,29 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     exactly, the walk asked about its second, moves past 2^24.
   - **Labels:** `CPlayer::SendMsg` described whole, `UIWindowMgr::MakeWindow`.
 
+- [x] Players coming into view and their look (`docs/world/look.md`, `src/world/player_look`):
+  `CPc::SendMsg` (`00543540`), the messages of its switch's 3 to 0x7c it handles itself. The
+  arrivals standing (3, 4, 0x79, 0x7c) and walking (5, 6, 0x7a, 0x7b) as `CGameActor`'s with
+  the look, the record's state (dead, sitting) and effect 6; the dress by kinds (vf14) or by item
+  ids (vf15), with `SetSex`, `SetJob` and every layer named again: `UpdateBody` (the bard and
+  dancer's sexes, the shadow's scale), the hair, the weapon by kind or by item (`SetWeapon`:
+  two hands by `ClassifyIdPair`, the item's own sprite, the kinds some jobs hold otherwise), the
+  headgear, the shield, the `.imf` and palettes; the administrators' bodies and weapons
+  (`IsInAdminListB`); vf37's words (emotion 0x22, or 0x76 deleting it); the gauge made, filled
+  (0x22) and closed (0x23); the frame (0x64), dressing again (0x69, 0x6a) and 0x72. `SetStatus`'s
+  messages to a player go through it first.
+  - **Found on the way:** `CPc`'s 3 and 5 take what `CGameActor`'s leave (+0x224, the id) and
+    its 4 does not fade in; vf15 ignores its shield argument; two hands leave the glow as it was.
+  - **Checks:** `tools/walk_oracle.py`'s `c` on all 287 maps, every message through the
+    original's switch, the resources named as asked for and the object's names, the player's
+    messages to itself, the effects, launches and windows recorded: 11,480 players sent 72,114
+    messages equal; 305,490 queries in all, the older counts unchanged and the older vector files
+    regenerate byte-identical. `look_vectors.inc` keeps 704 players' scripts and the edges of
+    each message, job, weapon word, administrator and the gauge, and 1,872 calls of vf20 with
+    both halves.
+  - **Labels:** `CPc`'s `SendMsg`, `Dress`, `DressByItems`, `SetEmotionWord` and
+    `SetEmotionWords`; `CGameActor::SetSex` and `SetJob`.
+
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

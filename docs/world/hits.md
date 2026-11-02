@@ -6,7 +6,7 @@ the time it lands. Each update, before `ProcessState`, the classes' `vf01` (`CPc
 (`00503f80`), which sends the actor each hit whose time has come. The hit is a message to the
 actor's own `CGameActor::SendMsg` (`00504460`, `vf02`, from no sender): 0x1a, 0x27, 0x5d, 0x5e,
 0x60, 0x61 and 0x6f land (case `00505326`), and 0x6c, which skills queue
-(`ProcessIdActionOnTarget`, `0050b83e`), restarts the attack (`0050579a`). `CPc::vf02`
+(`ProcessIdActionOnTarget`, `0050b83e`), restarts the attack (`0050579a`). `CPc::SendMsg`
 (`00543540`) leaves them all to `CGameActor`'s. The port is `src/world/actor_hit`.
 
 ## The delivery

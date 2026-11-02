@@ -12,7 +12,8 @@ An actor carries up to four windows of the UI over its head, each a pointer in t
 
 Closing is `UIWindowMgr::QueueRemoval` (`004a90c0`) and the field cleared; without a window
 the message does nothing. Walking and state 4 close the gauge too ([states.md](states.md)).
-`CPc::vf02` (`00543540`) leaves all of these to `CGameActor`'s. The port is
+`CPc::SendMsg` (`00543540`) leaves all of these to `CGameActor`'s; its own gauge (0x22, 0x23) is
+in [look.md](look.md). The port is
 `src/world/actor_window`, with state 13's update in `src/world/actor_state`.
 
 ## Where the windows stand

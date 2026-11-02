@@ -140,6 +140,7 @@ add_library(ragexe_world STATIC
   world/actor_attack.cpp
   world/actor_hit.cpp
   world/actor_update.cpp
+  world/player_look.cpp
   world/player_orders.cpp
   world/player_pursuit.cpp
   world/actor_window.cpp

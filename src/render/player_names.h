@@ -48,6 +48,17 @@ bool CanShowWeapon(std::int32_t job, std::int32_t kind);
 std::array<PlayerSpriteNames, 2> PlayerWeaponNames(std::int32_t job, std::int32_t sex,
                                                    std::int32_t kind);
 
+// CPc::SetWeapon (vf20, 005464b0), the weapon by item id, names layer 5 by a weapon's kind without
+// asking CanShowWeapon: 인간족\<job folder><suffix><weapon>; the glow (layer 6) adds _검광.
+std::string PlayerWeaponKindName(std::int32_t job, std::int32_t sex, std::int32_t kind);
+std::string PlayerWeaponGlowName(std::int32_t job, std::int32_t sex, std::int32_t kind);
+
+// SetWeapon's own sprite for the item: 인간족\<job folder><suffix>_<id>.
+std::string PlayerWeaponItemName(std::int32_t job, std::int32_t sex, std::int32_t id);
+
+// Whether a weapon of the kind has a glow: kinds 1 to 7 and 0x10 to 0x16.
+bool WeaponShowsGlow(std::int32_t kind);
+
 // ClientState::MapHighIdToKind (005aae70): the shields' item ids 0x835 to 0x83f as kinds 1
 // to 4, others 0.
 std::int32_t ShieldKindOf(std::int32_t id);

@@ -126,6 +126,7 @@
 #include "world/actor_walk.h"
 #include "world/actor_window.h"
 #include "world/path_finder.h"
+#include "world/player_look.h"
 #include "world/player_orders.h"
 
 namespace {
@@ -836,10 +837,10 @@ int FindPaths(const std::string& gat, const std::string& queries) {
                kind == "Y" || kind == "E" || kind == "Q" || kind == "A" || kind == "B" ||
                kind == "X" || kind == "K" || kind == "D" || kind == "H" || kind == "V" ||
                kind == "J" || kind == "L" || kind == "O" || kind == "C" || kind == "R" ||
-               kind == "u" || kind == "p" || kind == "o" || kind == "m") {
+               kind == "u" || kind == "p" || kind == "o" || kind == "m" || kind == "c") {
       const bool player = kind == "P" || kind == "U" || kind == "Y" || kind == "Q" || kind == "K" ||
                           kind == "H" || kind == "J" || kind == "O" || kind == "R" || kind == "p" ||
-                          kind == "o" || kind == "m";
+                          kind == "o" || kind == "m" || kind == "c";
       const bool to = kind == "T" || kind == "U";
       const bool stand = kind == "N" || kind == "Y";
       const bool enter = kind == "E" || kind == "Q";
@@ -849,9 +850,10 @@ int FindPaths(const std::string& gat, const std::string& queries) {
       const bool land = kind == "L" || kind == "O";
       const bool cast = kind == "C" || kind == "R";
       const bool orders = kind == "m";
+      const bool look = kind == "c";
       const bool own = kind == "o" || orders;
       const bool update = kind == "u" || kind == "p" || kind == "o";
-      const bool with_effects = kind == "B" || kind == "X" || kind == "K" || die;
+      const bool with_effects = kind == "B" || kind == "X" || kind == "K" || die || look;
       std::vector<std::uint32_t> v;
       for (std::string token; fields >> token;)
         v.push_back(static_cast<std::uint32_t>(std::stoll(token, nullptr, 0)));
@@ -866,6 +868,7 @@ int FindPaths(const std::string& gat, const std::string& queries) {
       constexpr std::size_t kUpdateFields = 30;
       constexpr std::size_t kOwnFields = 32;
       constexpr std::size_t kOrderFields = 7;
+      constexpr std::size_t kLookFields = 21;
       if (land && v.size() < base_fields + kLandFields) {
         std::fprintf(stderr, "short go: %s\n", line.c_str());
         return 2;
@@ -876,10 +879,11 @@ int FindPaths(const std::string& gat, const std::string& queries) {
           (arrive ? kArriveFields + kRecordWords : 0) + (with_effects ? kEffectFields : 0) +
           (die ? kDeathFields : 0) + (attack ? kAttackFields : 0) +
           (land ? kLandFields + hit_words : 0) + (cast ? kCastFields : 0) +
-          (update ? kUpdateFields : 0) + (own ? kOwnFields : 0) + (orders ? kOrderFields : 0);
+          (update ? kUpdateFields : 0) + (own ? kOwnFields : 0) + (orders ? kOrderFields : 0) +
+          (look ? kArriveFields + kLookFields : 0);
       // B, X and K: EFFECT_FIELDS, after ARRIVE_FIELDS for B.
       const std::size_t effect_at =
-          base_fields + (arrive ? kArriveFields : 0) + (die ? kDeathFields : 0);
+          base_fields + (arrive || look ? kArriveFields : 0) + (die ? kDeathFields : 0);
       const std::size_t record_at =
           base_fields + kArriveFields + (with_effects ? kEffectFields : 0);
       if (v.size() < kFields + 2) {
@@ -978,7 +982,7 @@ int FindPaths(const std::string& gat, const std::string& queries) {
       std::int32_t ground_water_fade = 0x5a5a5a5a;
       ragexe::render::Vec3 player_at{};
       std::array<std::int32_t, kRecordWords> record{};
-      if (arrive) {
+      if (arrive || look) {
         const std::size_t b = base_fields;
         actor.body_state = static_cast<std::int32_t>(v[b + 2]);
         actor.health_state = v[b + 3];
@@ -996,11 +1000,11 @@ int FindPaths(const std::string& gat, const std::string& queries) {
         };
         player_at = {std::bit_cast<float>(v[b + 10]), 0.0f, std::bit_cast<float>(v[b + 11])};
         context.player = v[b + 9] != 0 ? &player_at : nullptr;
-        context.actor_messages = with_effects ? nullptr : &actor_messages;
+        context.actor_messages = with_effects && !look ? nullptr : &actor_messages;
         context.sounds = &sounds;
         context.ground_water_fade = &ground_water_fade;
         context.server_name = "Chaos";
-        for (std::size_t k = 0; k < kRecordWords; ++k)
+        for (std::size_t k = 0; arrive && k < kRecordWords; ++k)
           record[k] = static_cast<std::int32_t>(v[record_at + k]);
       }
       // The effects before: one in each slot of `slots`' bits (one for all with `same`), each
@@ -1996,6 +2000,179 @@ int FindPaths(const std::string& gat, const std::string& queries) {
                     FloatBits(o.position[0]), FloatBits(o.position[1]), FloatBits(o.position[2]),
                     FloatBits(o.facing), o.action, o.frame, static_cast<std::uint32_t>(actor.state),
                     static_cast<unsigned long long>(h));
+        continue;
+      }
+      // c: the look before, the gauge, the screen, the one administrator, effects on and msg
+      // sprites, then the messages through CPc::SendMsg, as tools/path_oracle.py's looks().
+      if (look) {
+        const std::size_t l = base_fields + kArriveFields + kEffectFields;
+        const auto i = [&](std::size_t j) { return static_cast<std::int32_t>(v[l + j]); };
+        ragexe::world::PlayerLook& dressed = actor.look;
+        actor.field_0x1bc = i(0);
+        dressed.hair = i(1);
+        dressed.hair_color = i(2);
+        actor.weapon = i(3);
+        dressed.headgear = {i(4), i(5), i(6)};
+        dressed.shield = i(7);
+        dressed.body_color = i(8);
+        actor.field_0x28c = i(9);
+        actor.repeated_at = v[l + 10];
+        actor.field_0x2e0 = i(11);
+        actor.field_0x2e4 = i(12);
+        actor.field_0x1f4 = i(13);
+        actor.cast_gauge = 0;
+        ragexe::world::ActorWindows made_windows;
+        if (i(14) != 0) {
+          made_windows.sizes.push_back({0, 0});
+          actor.gauge = 1;
+        }
+        o.screen_x = i(15);
+        o.screen_y = i(16);
+        context.screen_height = i(17);
+        std::vector<std::int32_t> admins;
+        if (i(18) != 0) admins.push_back(i(18));
+        context.admins = &admins;
+        context.effects_on = i(19) != 0;
+        context.msg_sprites = i(20) != 0;
+        context.windows = &made_windows;
+        std::vector<std::int32_t> launched;
+        context.launched = &launched;
+        const std::uint32_t count = v[kFields];
+        constexpr std::size_t kRecord = 3 + kRecordWords + 2;
+        if (v.size() < kFields + 1 + kRecord * std::size_t{count}) {
+          std::fprintf(stderr, "short go: %s\n", line.c_str());
+          return 2;
+        }
+        const auto fold_name = [&](std::string_view name) {
+          const std::uint64_t n =
+              Fnv1a64(std::span(reinterpret_cast<const std::uint8_t*>(name.data()), name.size()));
+          fold(static_cast<std::uint32_t>(n));
+          fold(static_cast<std::uint32_t>(n >> 32));
+        };
+        // What the messages write beyond the fields and what they sent, played, asked for,
+        // launched, made, deleted and did to the windows, as tools/path_oracle.py's looked().
+        const auto fold_looked = [&] {
+          for (const std::int32_t x : {actor.id,
+                                       actor.job,
+                                       actor.field_0x1bc,
+                                       dressed.hair,
+                                       dressed.hair_color,
+                                       actor.weapon,
+                                       dressed.headgear[0],
+                                       dressed.headgear[1],
+                                       dressed.headgear[2],
+                                       dressed.shield,
+                                       dressed.body_color,
+                                       actor.field_0x28c,
+                                       static_cast<std::int32_t>(actor.repeated_at),
+                                       actor.field_0x2e0,
+                                       actor.field_0x2e4,
+                                       static_cast<std::int32_t>(FloatBits(o.shadow_scale)),
+                                       actor.saved_frame,
+                                       actor.speed,
+                                       actor.field_0x1ec,
+                                       actor.field_0x1f0,
+                                       actor.field_0x1f4,
+                                       actor.body_state,
+                                       static_cast<std::int32_t>(actor.effect_state),
+                                       static_cast<std::int32_t>(actor.health_state),
+                                       actor.field_0x224,
+                                       actor.guild,
+                                       actor.emblem})
+            fold(static_cast<std::uint32_t>(x));
+          for (const bool x : {o.visible, o.body_shown, o.tinted, o.shadow}) fold(x ? 1u : 0u);
+          fold(static_cast<std::uint32_t>(ground_water_fade));
+          fold(static_cast<std::uint32_t>(mode_field_0x2a0));
+          for (const auto& layer : dressed.layers) {
+            fold_name(layer.act);
+            fold_name(layer.sprite);
+          }
+          for (const std::string& name : {dressed.imf, dressed.head_palette, dressed.body_palette,
+                                          dressed.body.act, dressed.body.sprite})
+            fold_name(name);
+          fold(static_cast<std::uint32_t>(actor.gauge));
+          fold(static_cast<std::uint32_t>(4 * actor_messages.size()));
+          for (const auto& m : actor_messages) {
+            for (const std::int32_t x : {m.id, m.a, m.b, m.c}) fold(static_cast<std::uint32_t>(x));
+          }
+          actor_messages.clear();
+          fold(static_cast<std::uint32_t>(8 * sounds.size()));
+          for (const auto& sound : sounds) {
+            fold_name(sound.name);
+            for (const std::uint32_t x :
+                 {FloatBits(sound.x), 0u, FloatBits(sound.z), 250u, 40u, FloatBits(1.0f)})
+              fold(x);
+          }
+          sounds.clear();
+          fold(static_cast<std::uint32_t>(2 * asked.size()));
+          for (const auto& name : asked) fold_name(name);
+          asked.clear();
+          fold(static_cast<std::uint32_t>(launched.size()));
+          for (const std::int32_t id : launched) fold(static_cast<std::uint32_t>(id));
+          launched.clear();
+          fold_effects();
+          fold(static_cast<std::uint32_t>(effects.deleted.size()));
+          for (const std::int32_t number : effects.deleted)
+            fold(static_cast<std::uint32_t>(number));
+          effects.deleted.clear();
+          fold(static_cast<std::uint32_t>(4 * made_windows.calls.size()));
+          for (const auto& call : made_windows.calls) {
+            for (const std::int32_t x :
+                 {static_cast<std::int32_t>(call.kind), call.window, call.a, call.b})
+              fold(static_cast<std::uint32_t>(x));
+          }
+          made_windows.calls.clear();
+          fold(static_cast<std::uint32_t>(windows.size()));
+          for (const std::int32_t window : windows) fold(static_cast<std::uint32_t>(window));
+          windows.clear();
+        };
+        for (std::uint32_t n = 0; n < count; ++n) {
+          const std::size_t k = kFields + 1 + kRecord * n;
+          const auto w = [&](std::size_t j) { return static_cast<std::int32_t>(v[k + j]); };
+          const std::int32_t id = w(0);
+          const std::uint32_t server = v[k + 3 + kRecordWords];
+          const std::uint32_t tick = v[k + 4 + kRecordWords];
+          const auto r = [&](std::size_t j) { return w(3 + j); };
+          const auto u = [&](std::size_t j) { return static_cast<std::uint32_t>(w(3 + j)); };
+          if (id == 3 || id == 4 || id == 0x79 || id == 0x7c) {
+            const ragexe::world::PlayerStandingArrival arrival{
+                r(0),  r(1),  r(2),  r(3),  r(4),  r(5),  r(6),  r(7),  r(8),
+                r(9),  r(10), r(11), r(12), r(13), u(14), u(15), r(16), r(17),
+                r(18), r(19), r(20), r(21), r(22), r(23), r(24), r(25), r(26)};
+            ragexe::world::ArrivePlayer(actor, id, arrival, w(2), context, tick);
+          } else if (id == 5 || id == 6 || id == 0x7a || id == 0x7b) {
+            const ragexe::world::PlayerWalkingArrival arrival{
+                r(0),  r(1),  r(2),  {u(3), r(4), r(5), r(6), r(7), r(8), r(9)},
+                r(10), r(11), r(12), r(13),
+                r(14), u(15), u(16), r(17),
+                r(18), r(19), r(20), r(21),
+                r(22), r(24), r(25), r(26),
+                r(27)};
+            ragexe::world::ArriveWalkingPlayer(actor, finder, id, arrival, server, context, tick);
+          } else {
+            ragexe::world::SendPlayerMessage(actor, id, w(1), w(2), context, tick);
+          }
+          std::vector<std::uint32_t> steps;
+          for (const auto& step : actor.path.steps) {
+            steps.push_back(static_cast<std::uint32_t>(step.x));
+            steps.push_back(static_cast<std::uint32_t>(step.y));
+            steps.push_back(static_cast<std::uint32_t>(step.dir));
+            steps.push_back(step.time);
+          }
+          const std::uint64_t digest = Fnv1a64(steps);
+          fold(static_cast<std::uint32_t>(id));
+          fold_fields();
+          fold(static_cast<std::uint32_t>(actor.path.steps.size()));
+          fold(static_cast<std::uint32_t>(digest));
+          fold(static_cast<std::uint32_t>(digest >> 32));
+          fold_messages();
+          fold_looked();
+        }
+        path = actor.path;
+        std::printf("sent %u %08x %08x %08x %08x %d %u %u %016llx\n", count,
+                    FloatBits(o.position[0]), FloatBits(o.position[1]), FloatBits(o.position[2]),
+                    FloatBits(o.facing), o.action, static_cast<std::uint32_t>(o.frame),
+                    static_cast<std::uint32_t>(actor.state), static_cast<unsigned long long>(h));
         continue;
       }
       if (with_effects && !arrive) {

@@ -224,6 +224,30 @@ GET_ITEM_BY_ID, PING, ATTACK_RANGE, PICKED_LIST = 0x4C4D20, 0x686B94, 0x686CB0, 
 ORDER_FIELDS = ["walk_asked", "walk_asked_at", "level", "own_speed", "skill_range", "tspeed", "t1f4"]
 ORDER_RECORD, OWN_SPEED, SKILL_RANGE, OBJECT_SKILL_MESSAGE = 13, 0x687404, 0x364, 0x67
 MAKE_WINDOW, WINDOW_MANAGER, SKILL_WINDOW_SLOT, CELL_SKILL = 0x4AD670, 0x641FA8, 0x94 // 4, 0x4D
+# c: a P sent CPc::SendMsg's (00543540) own messages one by one through the original's switch
+# (docs/world/look.md), with A's fields (`message` and `how` unused) and B's effects. Then the
+# look before: +0x1bc, +0x298, +0x29c, +0x2a0, +0x2a4, +0x2a8, +0x2ac, +0x2b0, +0x34, +0x28c,
+# +0x290, +0x2e0, +0x2e4 and +0x1f4; whether it has a gauge (UIPcGage, +0x2dc); its point on
+# screen and the screen's height; the one id IsInAdminListB finds (0 none); effects on and msg
+# sprites. Each message is its id, two words, a record of 28 words (the first word points at it
+# for the arrivals), the server's time and timeGetTime. ResourceManager::GetResource gives a
+# stand-in named as asked for (none for ""), CRenderObject::SetAct and SetSprite record their
+# names, CPc::SendMsg records the messages the player sends itself at its entry (but 0x53, which
+# SetState sends to close the cast's gauge and the port does in place), LaunchEffect
+# records its id and makes nothing, and UIPcGage's constructor and its bars are recorded as
+# C's windows are. ClientState's name tables (00588ba0) and shadow scales (0059a5e0) are as the
+# client fills them. The hash takes, after each message, its id, fields(), the path, the game
+# mode's messages and looked().
+LOOK_FIELDS = ["sex", "hair", "hair_color", "weapon", "top", "mid", "bottom", "shield", "body_color", "f28c",
+               "f290", "f2e0", "f2e4", "f1f4", "gauge", "screen_x", "screen_y", "height", "admin", "effects_on",
+               "msgs"]
+LOOK_OFFSETS = (0x1BC, 0x298, 0x29C, 0x2A0, 0x2A4, 0x2A8, 0x2AC, 0x2B0, 0x34, 0x28C, 0x290, 0x2E0, 0x2E4, 0x1F4)
+LOOK_RECORD, PC_MESSAGE, INIT_NAMES, INIT_SHADOWS = 33, 0x543540, 0x588BA0, 0x59A5E0
+GET_RESOURCE, RES_ADD_REF, RES_RELEASE, SET_ACT, SET_SPRITE = 0x4DFF60, 0x4DF950, 0x4DF960, 0x501910, 0x5018A0
+PC_GAUGE_CTOR, FIRST_BAR, SECOND_BAR, ADMINS_B = 0x442E60, 0x4431B0, 0x4431D0, 0x67C978
+LAYER_SPRITES, LAYER_ACTS, LAYER_SLOTS, LAYER_COUNT = 0x2E8, 0x2F8, 10, 8
+LOOK_STRINGS = (0x27C, 0x2CC, 0x10)
+ARRIVALS, CLOSE_CAST_GAUGE = (3, 4, 5, 6, 0x79, 0x7A, 0x7B, 0x7C), 0x53
 SINGLE = 0x007F
 SPEEDS = [150, 150, 150, 100, 200, 75, 300, 120, 1, 7, 999]
 
@@ -436,7 +460,7 @@ class Oracle:
         emu.replace_thiscall(GET_RESOURCE_MANAGER, 0, lambda this: resources)
 
         def exists(this, name):
-            self.asked += name_hash(emu.mem_read(name, len(emu.read_cstr(name))))
+            self.asked += name_hash(emu.mem_read(name, len(emu.read_cstr(name, encoding="latin-1"))))
             return self.emblem_exists
         emu.replace_thiscall(RESOURCE_EXISTS, 1, exists)
         emu.write_u32(SERVER_NAME_BUFFER, emu.cstr(SERVER_NAME))
@@ -482,7 +506,7 @@ class Oracle:
         def launch(uc, address, size, _):
             if self.landing:
                 self.launched.append(emu.read_u32(emu.esp() + 4))
-            elif self.attacking:
+            elif self.attacking or self.looking:
                 esp = emu.esp()
                 self.launched.append(emu.read_u32(esp + 4))
                 emu.complete(0, emu.read_u32(esp), esp + 4 + 0x14)
@@ -511,7 +535,7 @@ class Oracle:
 
         def conditional(address, nargs, fn):
             def hook(uc, _address, _size, _):
-                if self.landing:
+                if self.landing or self.looking:
                     esp = emu.esp()
                     args = [emu.read_u32(esp + 4 + 4 * k) for k in range(nargs)]
                     emu.complete(fn(uc.reg_read(UC_X86_REG_ECX), *args), emu.read_u32(esp), esp + 4 + 4 * nargs)
@@ -566,6 +590,47 @@ class Oracle:
         casting_only(move_stub, 2, lambda this, x, y: call(1, this, x, y))
         casting_only(ADD_WINDOW, 1, lambda this, window: call(2, window))
         casting_only(SET_AMOUNT, 2, lambda this, done, whole: call(3, this, done, whole))
+        casting_only(PC_GAUGE_CTOR, 0, gauge)
+        casting_only(FIRST_BAR, 2, lambda this, a, b: call(4, this, a, b))
+        casting_only(SECOND_BAR, 2, lambda this, a, b: call(5, this, a, b))
+        # For c: ClientState's names and shadow scales; resources by name, the object's own
+        # names, the messages the player sends itself, and the gauge's bars.
+        emu.call(INIT_NAMES, this=CLIENT_STATE)
+        emu.call(INIT_SHADOWS, this=CLIENT_STATE)
+        self.looking, self.resources, self.object_names, self.pc_messages = False, {}, [b"", b""], []
+
+        def looking_only(address, nargs, fn):
+            def hook(uc, _address, _size, _):
+                if self.looking:
+                    esp = emu.esp()
+                    args = [emu.read_u32(esp + 4 + 4 * k) for k in range(nargs)]
+                    emu.complete(fn(uc.reg_read(UC_X86_REG_ECX), *args), emu.read_u32(esp), esp + 4 + 4 * nargs)
+            emu.hook_code(address, address, hook)
+
+        def get_resource(this, name):
+            text = emu.mem_read(name, len(emu.read_cstr(name, encoding="latin-1")))
+            if not text:
+                return 0
+            if text not in self.resources:
+                self.resources[text] = emu.scratch(bytes(0x14) + text + b"\0")
+            return self.resources[text]
+        looking_only(GET_RESOURCE, 1, get_resource)
+        looking_only(RES_ADD_REF, 0, lambda this: 0)
+        looking_only(RES_RELEASE, 0, lambda this: 0)
+
+        def object_name(which):
+            def fn(this, name):
+                self.object_names[which] = emu.mem_read(name, len(emu.read_cstr(name, encoding="latin-1")))
+                return 0
+            return fn
+        looking_only(SET_ACT, 1, object_name(0))
+        looking_only(SET_SPRITE, 1, object_name(1))
+
+        def pc_message(uc, address, size, _):
+            esp = emu.esp()
+            if self.looking and emu.read_u32(esp + 8) != CLOSE_CAST_GAUGE:
+                self.pc_messages += [emu.read_u32(esp + 8 + 4 * k) for k in range(4)]
+        emu.hook_code(PC_MESSAGE, PC_MESSAGE, pc_message)
         # The C runtime's thread data, which srand and rand keep their state in, made on first
         # use: made here, below every run's heap, which each run releases.
         emu.call(SRAND, 1)
@@ -616,6 +681,7 @@ class Oracle:
     def run(self, data, lines):
         emu = self.emu
         mark = emu.heap_mark()
+        self.resources = {}
         emu.serve_data_files({"data\\t.gat": data})
         emu.mem_write(self.attr, bytes(0x12C))
         emu.call(C3DATTR_CTOR, this=self.attr)
@@ -631,7 +697,7 @@ class Oracle:
             kind, *values = line.split()
             v = [int(x) for x in values] if kind not in ("W", "G", "P", "T", "U", "N", "Y", "E", "Q", "A", "B", "X",
                                                          "K", "D", "H", "V", "J", "L", "O", "C", "R", "u", "p",
-                                                         "o", "m") else []
+                                                         "o", "m", "c") else []
             self.logged = []
             if kind == "F":
                 found = emu.call(FIND_PATH, *v, self.actor + ACTOR_PATH, this=G_PATH_FINDER).eax & 0xFF
@@ -712,6 +778,8 @@ class Oracle:
                 out.append(self.go(values, player=True, update=True, own=True))
             elif kind == "m":
                 out.append(self.go(values, player=True, own=True, orders=True))
+            elif kind == "c":
+                out.append(self.go(values, player=True, arrive=True, effects=True, looks=True))
         emu.heap_release(mark)
         return out
 
@@ -765,7 +833,8 @@ class Oracle:
         self.frames = w["frames"]
 
     def go(self, values, player=False, to=False, stand=False, enter=False, arrive=False, effects=False,
-           die=False, attack=False, land=False, cast=False, update=False, own=False, orders=False):
+           die=False, attack=False, land=False, cast=False, update=False, own=False, orders=False,
+           looks=False):
         """CGameActor::vf02's message 0 on the actor, then ProcessState update by update, with
         SetState run, until the actor stands again or has faded; for a player, a CPc's."""
         emu, actor = self.emu, self.actor
@@ -774,7 +843,8 @@ class Oracle:
                  + (ENTER_FIELDS if enter else []) + (ARRIVE_FIELDS if arrive else []) + (DEATH_FIELDS if die else [])
                  + (EFFECT_FIELDS if effects else []) + (ATTACK_FIELDS if attack else [])
                  + (LAND_FIELDS if land else []) + (CAST_FIELDS if cast else []) + (UPDATE_FIELDS if update else [])
-                 + (OWN_FIELDS if own else []) + (ORDER_FIELDS if orders else []))
+                 + (OWN_FIELDS if own else []) + (ORDER_FIELDS if orders else [])
+                 + (LOOK_FIELDS if looks else []))
         g = dict(zip(names, v))
         updates = v[len(names):]
         self.place(g)
@@ -845,6 +915,8 @@ class Oracle:
             return self.land(g, updates[:n], updates[n:], extra, player)
         if effects:
             self.ready_effects(g)
+        if looks:
+            return self.looks(g, updates)
         if die:
             return self.die(g, updates, extra)
         if arrive:
@@ -965,6 +1037,98 @@ class Oracle:
         emu.write_u32(self.world + 0x3C, 0)
         r = [emu.read_u32(actor + o) for o in (0x4, 0x8, 0xC, 0x38, 0x24, 0x28, 0x58)]
         return f"{last} {calls} {r[0]:08x} {r[1]:08x} {r[2]:08x} {r[3]:08x} {r[4]} {r[5]} {r[6]} {h:016x}"
+
+    def looks(self, g, rest):
+        """The messages through CPc::SendMsg, one by one, with A's player and B's effects."""
+        emu, actor = self.emu, self.actor
+        for offset, name in ((0x218, "body0"), (0x220, "health0"), (0x23C, "guild0"), (0x240, "emblem0"),
+                             *zip(LOOK_OFFSETS, LOOK_FIELDS), (0x90, "screen_x"), (0x94, "screen_y")):
+            emu.write_u32(actor + offset, g[name] & 0xFFFFFFFF)
+        for k, offset in enumerate((0x84, 0x85, 0x87, 0x88)):
+            emu.mem_write(actor + offset, bytes([g["flags"] >> k & 1]))
+        for offset in (0x1D4, 0x1EC, 0x1F0, 0x1CC, 0xA8, 0x210):
+            emu.write_u32(actor + offset, 0)
+        emu.write_u32(actor + 0x40, 0x3F800000)
+        for offset in LOOK_STRINGS:
+            emu.mem_write(actor + offset, bytes(16))
+        for offset in (LAYER_SPRITES, LAYER_ACTS):
+            layers = emu.scratch(size=4 * LAYER_SLOTS)
+            for k, value in ((4, layers), (8, layers + 4 * LAYER_SLOTS), (0xC, layers + 4 * LAYER_SLOTS)):
+                emu.write_u32(actor + offset + k, value)
+        self.empty_list(actor + HIT_QUEUE)
+        self.window_numbers, self.window_calls, self.windows = {}, [], []
+        emu.write_u32(actor + GAUGE_OFFSET, self.new_window(emu.scratch(size=0xA8)) if g["gauge"] else 0)
+        emu.write_u32(SCENE_RENDERER, self.renderer)
+        emu.write_u32(self.renderer + 0x28, g["height"] & 0xFFFFFFFF)
+        emu.write_u32(OWN_ID, g["own"] & 0xFFFFFFFF)
+        self.emblem_exists = g["exists"]
+        emu.write_u32(self.player + 4, g["px"])
+        emu.write_u32(self.player + 0xC, g["pz"])
+        emu.write_u32(self.world + 0x3C, self.player if g["player"] else 0)
+        emu.write_u32(GROUND_WATER_FADE, 0x5A5A5A5A)
+        emu.write_u32(self.mode + MODE_FIELD_2A0, 0x5A5A5A5A)
+        admins = emu.scratch(struct.pack("<I", g["admin"] & 0xFFFFFFFF))
+        emu.write_u32(ADMINS_B + 4, admins)
+        emu.write_u32(ADMINS_B + 8, admins + (4 if g["admin"] else 0))
+        emu.write_u32(EFFECTS_ON, g["effects_on"])
+        emu.write_u32(MSG_SPRITES, g["msgs"])
+        self.object_names = [b"", b""]
+        self.messages, self.states, self.sounds, self.asked, self.launched, self.deleted = [], [], [], [], [], []
+        self.looking = self.casting = True
+        count = rest[0]
+        h = 0xCBF29CE484222325
+        for k in range(count):
+            message, a, b, *record = rest[1 + LOOK_RECORD * k:1 + LOOK_RECORD * (k + 1)]
+            self.server, self.now = record[-2], record[-1]
+            record = record[:-2]
+            if message in ARRIVALS:
+                a = emu.scratch(struct.pack(f"<{ARRIVE_RECORD}I", *(r & 0xFFFFFFFF for r in record)))
+            self.messages, self.states, self.pc_messages = [], [], []
+            emu.call(PC_MESSAGE, 0, message, a & 0xFFFFFFFF, b & 0xFFFFFFFF, 0, this=actor)
+            self.pc_messages = self.pc_messages[4:]
+            count_, digest = self.path()[3:5]
+            h = fnv1a64([message, *self.fields(), count_, digest, digest >> 32, *self.messages, *self.looked()], h)
+        self.looking = self.casting = False
+        emu.write_u32(self.world + 0x3C, 0)
+        for address in (ADMINS_B + 4, ADMINS_B + 8, EFFECTS_ON, MSG_SPRITES, SCENE_RENDERER):
+            emu.write_u32(address, 0)
+        for offset in (GAUGE_OFFSET, LAYER_SPRITES + 4, LAYER_SPRITES + 8, LAYER_ACTS + 4, LAYER_ACTS + 8):
+            emu.write_u32(actor + offset, 0)
+        r = [emu.read_u32(actor + o) for o in (0x4, 0x8, 0xC, 0x38, 0x24, 0x28, 0x58)]
+        return f"sent {count} {r[0]:08x} {r[1]:08x} {r[2]:08x} {r[3]:08x} {r[4]} {r[5]} {r[6]} {h:016x}"
+
+    def string_at(self, at):
+        """An MSVC std::string's text: its buffer +4 and length +8."""
+        buffer = self.emu.read_u32(at + 4)
+        return self.emu.mem_read(buffer, self.emu.read_u32(at + 8)) if buffer else b""
+
+    def looked(self):
+        """What c's messages write beyond fields(): the look, the arrival's fields, the eight
+        layers' names, the .imf and palettes, the object's own names, the gauge by number; what
+        was sent to the player itself, played, asked for, launched, made, sent to the effects,
+        deleted and done to the windows since."""
+        emu, a = self.emu, self.actor
+        words = [emu.read_u32(a + o) for o in (0x1B4, 0x1B8, *LOOK_OFFSETS[:-1], 0x40, 0x294, 0xC8, 0x1EC, 0x1F0,
+                                               0x1F4, 0x218, 0x21C, 0x220, 0x224, 0x23C, 0x240)]
+        words += [emu.mem_read(a + o, 1)[0] for o in (0x84, 0x85, 0x87, 0x88)]
+        words += [emu.read_u32(GROUND_WATER_FADE), emu.read_u32(self.mode + MODE_FIELD_2A0)]
+        for k in range(LAYER_COUNT):
+            for offset in (LAYER_ACTS, LAYER_SPRITES):
+                res = emu.read_u32(emu.read_u32(a + offset + 4) + 4 * k)
+                words += name_hash(emu.mem_read(res + 0x14, len(emu.read_cstr(res + 0x14, encoding="latin-1"))) if res else b"")
+        for offset in LOOK_STRINGS:
+            words += name_hash(self.string_at(a + offset))
+        for name in self.object_names:
+            words += name_hash(name)
+        words += [self.window_number(emu.read_u32(a + GAUGE_OFFSET))]
+        words += [len(self.pc_messages), *self.pc_messages, len(self.sounds), *self.sounds, len(self.asked),
+                  *self.asked, len(self.launched), *self.launched]
+        words += self.effects()
+        words += [len(self.deleted), *self.deleted, len(self.window_calls), *self.window_calls, len(self.windows),
+                  *(self.window_number(w) for w in self.windows)]
+        self.pc_messages, self.sounds, self.asked, self.launched, self.deleted = [], [], [], [], []
+        self.window_calls, self.windows = [], []
+        return words
 
     def send(self, rest, extra):
         """The messages through the actor's vf02, one by one."""

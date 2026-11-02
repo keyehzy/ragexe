@@ -89,7 +89,8 @@ struct GameActor {
                                                 // status, by number (ActorEffects), 0 none
   std::vector<std::int32_t> effects;            // +0x270: every effect made for the actor
                                                 // and not yet gone, by number
-  std::uint32_t repeated_at = 0;  // +0x290 (CNpc), when RepeatEffectPeriodically last launched
+  std::uint32_t repeated_at = 0;  // +0x290: a CNpc's when RepeatEffectPeriodically last launched;
+                                  // a CPc's vf37's second argument
 };
 
 // CGameActor::GetJob (00503490): the job, 7 and 14 mounted (bit 5 of +0x21c) as 13 and 21.

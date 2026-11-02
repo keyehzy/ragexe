@@ -79,6 +79,11 @@ void SetGameActorEmblem(GameActor& actor, std::int32_t guild, std::int32_t emble
 void SetGameActorStatus(GameActor& actor, std::int32_t body_state, std::uint32_t effect_state,
                         std::uint32_t health_state, const StateContext& context, std::uint32_t now);
 
+// The same for a CPc, whose messages to itself go through CPc::SendMsg first (SendPlayerMessage):
+// 0x23 closes its gauge, 0x69 and 0x6a dress it again.
+void SetPlayerStatus(PlayerActor& player, std::int32_t body_state, std::uint32_t effect_state,
+                     std::uint32_t health_state, const StateContext& context, std::uint32_t now);
+
 // CGameActor::SendMsg's messages 3 (0050597b) and 4 (00505a33), `how` the message's next
 // argument: the actor stands on the record's cell, facing its direction, with its status and
 // emblem. False for message 4 with `how` 2 and bit 6 of the effect state clear, which then

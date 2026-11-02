@@ -4382,7 +4382,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00502c60	95	code	0	world	unreferenced	raw	Global	FUN_00502c60	
 00502cc0	808	code	0	world		named	CGameActor	OnScreenBounds	
 00502ff0	47	code	0	world		named	CGameActor	SetAction	
-00503020	37	code	0	world		named	CGameActor	method_00503020	
+00503020	37	code	0	world		named	CGameActor	SetSex	
 00503050	22	code	0	world		named	CGameActor	UpdateDirectionalIndex	
 00503070	152	code	0	world		named	CGameActor	GetAttackFrame	
 00503110	75	code	0	world		named	CGameActor	ReportCell	
@@ -4390,7 +4390,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00503190	63	code	0	world		named	CGameActor	AddTravelledDistance	
 005031d0	51	code	0	world		named	CGameActor	UpdateWalkFrame	
 00503210	557	code	0	world		named	CGameActor	UpdateWindows	
-00503440	69	code	0	world		named	CGameActor	method_00503440	
+00503440	69	code	0	world		named	CGameActor	SetJob	
 00503490	79	code	0	world		named	CGameActor	GetJob	
 005034e0	784	code	0	world		named	CGameActor	SetState	
 00503830	68	code	0	world		named	CGameActor	UpdateFade	
@@ -5180,16 +5180,16 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00542b30	217	code	0	world		named	CPc	UpdateBodyPalette	
 00542c10	18	code	0	world		named	CPc	vf29	
 00542c30	21	code	0	world		named	CPc	vf30	
-00542c50	205	code	0	world		named	CPc	vf14	
-00542d20	275	code	0	world		named	CPc	vf15	
+00542c50	205	code	0	world		named	CPc	Dress	
+00542d20	275	code	0	world		named	CPc	DressByItems	
 00542e40	112	code	0	world		named	CPc	Update	
 00542eb0	327	code	0	world		named	CPc	ProcessState	
 00543020	944	code	0	world		named	CPc	SetState	
 00543400	97	code	0	world		named	CPc	MoveGauge	
 00543470	65	code	0	world		named	CPc	SetAttackMotion	
-005434c0	70	code	0	world		named	CPc	vf36	
-00543510	34	code	0	world		named	CPc	vf37	
-00543540	3440	code	0	world		named	CPc	vf02	
+005434c0	70	code	0	world		named	CPc	SetEmotionWord	
+00543510	34	code	0	world		named	CPc	SetEmotionWords	
+00543540	3440	code	0	world		named	CPc	SendMsg	
 00544380	159	code	0	world		named	CPc	Render	
 00544420	1954	code	0	world	unreferenced	raw	Global	FUN_00544420	
 00544be0	2380	code	0	world		named	CPc	RenderActFrameItems	

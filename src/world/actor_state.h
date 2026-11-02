@@ -9,6 +9,8 @@
 #include <vector>
 
 #include "core/crt_rand.h"
+#include "render/player.h"
+#include "render/player_names.h"
 #include "res/act.h"
 #include "res/gat.h"
 #include "world/actor_walk.h"
@@ -120,10 +122,12 @@ struct PetTalk {
 // What an actor does to one of its windows (docs/world/windows.md), beyond queueing it for
 // removal (UIWindowMgr 004a90c0, StateContext::closed_windows).
 enum class WindowCallKind : std::uint8_t {
-  kCreate,  // UIWindow 004a58e0 with its width and height, once made
-  kMove,    // vf18 with x and y
-  kAdd,     // UIWindowMgr 004a7d60, which shows it
-  kAmount,  // UIRechargeGage::SetAmount (00442e40) with the part done and the whole
+  kCreate,     // UIWindow 004a58e0 with its width and height, once made
+  kMove,       // vf18 with x and y
+  kAdd,        // UIWindowMgr 004a7d60, which shows it
+  kAmount,     // UIRechargeGage::SetAmount (00442e40) with the part done and the whole
+  kFirstBar,   // UIPcGage::SetFirstBar (004431b0) with its two words
+  kSecondBar,  // UIPcGage::SetSecondBar (004431d0)
 };
 
 struct WindowCall {
@@ -223,6 +227,9 @@ struct StateContext {
   std::int32_t skill_range{};  // CGameMode+0x364, the range of the skill being aimed (its record's
                                // +0x18, CGameMode::SendMsg 00521cde; 5 after packet 0x019e)
   std::vector<CellSkill>* cell_skills{};  // what message 0x42 asks for, when kept
+  // The ids IsInAdminListB (004cad40) looks among (0067c978, the clientinfo's admins), whose
+  // players' bodies and weapons are the administrators' own.
+  const std::vector<std::int32_t>* admins{};
   // CPlayer::SendMsg for the messages the own player sends itself, the id and two words; without
   // it they are kept in actor_messages.
   std::function<void(std::int32_t, std::int32_t, std::int32_t)> send_own{};
@@ -261,11 +268,32 @@ struct OwnPlayer {
   std::int32_t queued_y = -1;
 };
 
+// A player's look (docs/world/look.md): what CPc's vf14 and vf15 dress it in, and the names its
+// layers' resources were asked for by, as given (ResourceManager::GetResource, 004dff60), ""
+// none.
+struct PlayerLook {
+  std::int32_t hair = 0;                   // +0x298
+  std::int32_t hair_color = 0;             // +0x29c
+  std::array<std::int32_t, 3> headgear{};  // +0x2a4, +0x2a8 and +0x2ac: the top, middle and
+                                           // bottom
+  std::int32_t shield = 0;                 // +0x2b0, a kind
+  std::int32_t body_color = 0;             // +0x34 (CRenderObject), the clothes' colour
+  std::array<render::PlayerSpriteNames, render::kPlayerLayerCount> layers{};  // +0x2f8, +0x2e8
+  render::PlayerSpriteNames body{};  // the object's own actions and sprite (+0x9c, +0x98)
+  std::string imf;                   // +0x27c
+  std::string head_palette;          // +0x2cc
+  std::string body_palette;          // +0x10
+};
+
 // The CPc fields a player's states read and write beyond a CGameActor's.
 struct PlayerActor : GameActor {
+  std::int32_t field_0x28c = 0;  // +0x28c, vf36's argument: below 0 it shows emotion 0x22
   std::int32_t saved_frame = 0;  // +0x294: the frame standing goes back to
   std::int32_t weapon = 0;       // +0x2a0 (CPc::SetWeapon, 005464b0), a kind or an item's id
   std::int32_t gauge = 0;        // +0x2dc, its gauge (UIPcGage), by number in ActorWindows
+  std::int32_t field_0x2e0 = 0;  // +0x2e0 and +0x2e4, message 0x72's second and first words
+  std::int32_t field_0x2e4 = 0;
+  PlayerLook look;
   std::optional<OwnPlayer> own;  // a CPlayer's fields: the world's own player, whose vf10 is
                                  // CPlayer::SetState (0054c550)
 };

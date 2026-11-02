@@ -456,11 +456,24 @@ const char* HeadOf(std::int32_t hair, std::int32_t sex) {
   return sex == 1 ? At(kMaleHair, hair) : At(kFemaleHair, hair);
 }
 
-bool ShowsGlow(std::int32_t kind) {
+}  // namespace
+
+bool WeaponShowsGlow(std::int32_t kind) {
   return (kind >= 1 && kind <= 7) || (kind >= 0x10 && kind <= 0x16);
 }
 
-}  // namespace
+std::string PlayerWeaponKindName(std::int32_t job, std::int32_t sex, std::int32_t kind) {
+  return std::string(kRace) + At(kJobFolders, job) + At(kSexSuffixes, sex) + At(kWeapons, kind);
+}
+
+std::string PlayerWeaponGlowName(std::int32_t job, std::int32_t sex, std::int32_t kind) {
+  return PlayerWeaponKindName(job, sex, kind) + kGlow;
+}
+
+std::string PlayerWeaponItemName(std::int32_t job, std::int32_t sex, std::int32_t id) {
+  return std::string(kRace) + At(kJobFolders, job) + At(kSexSuffixes, sex) + "_" +
+         std::to_string(id);
+}
 
 std::string PlayerBodyName(std::int32_t job, std::int32_t sex) {
   return std::string(kRace) + kBody + At(kSexFolders, sex) + "\\" + At(kJobs, job) +
@@ -516,10 +529,9 @@ bool CanShowWeapon(std::int32_t job, std::int32_t kind) {
 std::array<PlayerSpriteNames, 2> PlayerWeaponNames(std::int32_t job, std::int32_t sex,
                                                    std::int32_t kind) {
   if (!CanShowWeapon(job, kind)) return {};
-  const std::string name =
-      std::string(kRace) + At(kJobFolders, job) + At(kSexSuffixes, sex) + At(kWeapons, kind);
+  const std::string name = PlayerWeaponKindName(job, sex, kind);
   std::array<PlayerSpriteNames, 2> out{PlayerSpriteNames{name, name}, PlayerSpriteNames{}};
-  if (ShowsGlow(kind)) out[1] = {name + kGlow, name + kGlow};
+  if (WeaponShowsGlow(kind)) out[1] = {name + kGlow, name + kGlow};
   return out;
 }
 

@@ -887,13 +887,126 @@ def make_orders(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
     return lines
 
 
+LOOK_MESSAGES = [3, 3, 4, 4, 5, 6, 6, 0x79, 0x7A, 0x7B, 0x7C, 0x22, 0x22, 0x23, 0x4D, 0x64, 0x69, 0x6A, 0x72]
+SPECIAL_IDS = [0x2C8C7D, 0x2C8C80, 0x2C8C82]
+
+
+def make_looks(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
+    """The script for a map: players as make_plays makes them sent CPc::SendMsg's own messages
+    (c, docs/world/look.md): arrivals standing and walking dressed by kinds and by item ids, each
+    hair, headgear, shield and colour, weapons by kind, by their own sprites there or not, in
+    both hands and the jobs that hold them otherwise; administrators on both sets; the status
+    words as make_arrivals varies them; the gauge made, filled and closed; the frame, mounting
+    (0x69, 0x6a) and 0x72; in each state, vf37's words below 0 or not."""
+    rng = random.Random(zlib.crc32(b"looks " + name.encode()))
+    walkable = [(k % width, k // width) for k, a in enumerate(attrs) if a not in (1, 5)] or [(0, 0)]
+    lines = []
+    jobs = list(range(0, 45)) + [7, 14, 0x13, 0x14, 6, 6, 0xC, 0x11, 8, 0xD, 0x15]
+
+    def effect():
+        return rng.choice([0, 0, 0, 0x20, 0x20, 0x40, 2, 4, 8, 0x10, 0x80, rng.getrandbits(11)])
+
+    def health():
+        return rng.choice([0, 0, 0, 1, 2, 4, 0x10, 0x20, 0x40, rng.getrandbits(7)])
+
+    def body():
+        return rng.choice([0, 0, 0, 0, 1, 2, 3, 4, 6])
+
+    def hair():
+        return rng.choice([rng.randint(0, 19), rng.randint(0, 19), 0, 19, 20, -1, 13, rng.getrandbits(16)])
+
+    def headgear():
+        return rng.choice([0, 0, rng.randint(1, 139), 0x12, 0x13, 139, 1])
+
+    def shield():
+        return rng.choice([0, 0, 1, 2, 3, 4, rng.randint(0x835, 0x83F), 2000, 2001, 5, rng.randint(0, 3000)])
+
+    def colour():
+        return rng.choice([0, 0, rng.randint(1, 8), -1, rng.getrandbits(16)])
+
+    def kind():
+        return rng.choice([0, rng.randint(1, 22), rng.randint(1, 22), 23, -1, 1101, rng.getrandbits(16)])
+
+    def item():
+        low = rng.choice([0, 0x63F, rng.randint(1100, 1999), rng.randint(1100, 1999), rng.randint(1, 1099),
+                          rng.randint(2000, 0xFFFF), 1150, 1201, 1301, 1550])
+        high = rng.choice([0, 0, 0, rng.randint(0x835, 0x83F), rng.randint(1100, 1349), rng.randint(1100, 1999),
+                           rng.randint(1, 0xFFFF), 2000])
+        return high << 16 | low
+
+    for line in make_plays("looks " + name, width, height, attrs, count, updates):
+        if line[0] != "P":
+            continue
+        tokens = line.split()[1:]
+        fields, times = tokens[:44], tokens[44:]
+        server, tick = int(times[0]), int(times[1])
+        fields[7] = str(rng.choice(jobs))
+        fields[8] = str(effect())
+        fields[17] = str(rng.choice([0, 0, 0, 1, 2, 3, 6, 6, 8]))
+        old_id = int(fields[34])
+        x, z = (struct.unpack("<f", struct.pack("<I", int(fields[k], 0)))[0] for k in (0, 1))
+        own = rng.choice([rng.getrandbits(31), old_id, 0x186B4])
+        arrive = [0, 0, body(), health(), rng.choice([0b1011, 0b1011, 0b0011, rng.getrandbits(4)]),
+                  rng.choice([0, rng.getrandbits(20)]), rng.choice([0, rng.randint(1, 9)]), own,
+                  int(rng.random() < 0.5), 1,
+                  f"0x{bits(f32(x + rng.uniform(-40, 40))):08x}", f"0x{bits(f32(z + rng.uniform(-40, 40))):08x}"]
+        effect_fields = [rng.choice([0, 0, rng.getrandbits(11), 1 << 10]), rng.choice([0, 0, 1]), 0]
+        ids = [old_id, rng.getrandbits(31), rng.choice(SPECIAL_IDS), 0x2100E]
+        admin = rng.choice([0, 0, 0, rng.choice(ids)])
+        look = [rng.choice([0, 1]), rng.randint(0, 19), colour(), rng.choice([0, rng.randint(1, 22)]),
+                headgear(), headgear(), headgear(), rng.choice([0, 1, 2, 3, 4]), colour(),
+                rng.choice([0, -1, 5]), rng.getrandbits(16), 0, 0, 0, int(rng.random() < 0.3),
+                rng.randint(-50, 700), rng.randint(-50, 500), rng.choice([480, 480, 600, 768, 0, 1 << 28]),
+                admin, rng.choice([0, 1]), rng.choice([0, 1])]
+        script = []
+        for _ in range(rng.choice([1, 2, 4, 8, 16])):
+            message = rng.choice(LOOK_MESSAGES)
+            a, b = rng.choice([0, rng.randint(1, 100), rng.getrandbits(32)]), rng.choice([0, 0, 1, 2])
+            record = [0] * path_oracle.ARRIVE_RECORD
+            junk = lambda: rng.choice([0, rng.getrandbits(32)])
+            new_id = rng.choice(ids)
+            by_item = message >= 0x79
+            weapon = item() if by_item else kind()
+            effect_word = rng.choice([effect(), effect() | 0x40 if b == 2 else effect()])
+            if message in (3, 4, 0x79, 0x7C):
+                cx, cy = rng.choice(walkable) if rng.random() < 0.9 else (rng.randint(-3, width + 3),
+                                                                          rng.randint(-3, height + 3))
+                record = [new_id, rng.choice(jobs), rng.choice([0, 1, 1, 2, -1]), cx, cy,
+                          rng.choice([0, 1, 2, 3, 4, 5, 6, 7, -1, 9]), rng.choice(path_oracle.SPEEDS), junk(),
+                          junk(), hair(), weapon, headgear(), rng.choice([0, 0, 1, 2, 3, -1]), body(), health(),
+                          effect_word, junk(), shield(), headgear(), headgear(), colour(), colour(), junk(),
+                          rng.choice([0, 1, rng.getrandbits(20), -1]), rng.choice([0, 0, 1, rng.randint(2, 50)]),
+                          rng.choice([0, -1, -5, 7]), junk(), 0]
+            elif message in (5, 6, 0x7A, 0x7B):
+                sx, sy = rng.choice(walkable)
+                r = rng.choice([0, 1, 3, 8])
+                gx, gy = rng.choice([(sx + rng.randint(-r, r), sy + rng.randint(-r, r)), rng.choice(walkable)])
+                time = (server + rng.choice([0, -rng.randint(0, 3000), rng.randint(0, 200)])) & 0xFFFFFFFF
+                record = [new_id, rng.choice(jobs), rng.choice([0, 1, 1, 2]), time, sx, sy,
+                          rng.choice([8, rng.randint(0, 15)]), rng.choice([8, rng.randint(0, 15)]), gx, gy,
+                          rng.choice(path_oracle.SPEEDS), hair(), weapon, headgear(), body(), health(), effect_word,
+                          junk(), shield(), headgear(), headgear(), colour(), colour(), junk(),
+                          rng.choice([0, 1, rng.getrandbits(20)]), rng.choice([0, 0, 1, rng.randint(2, 50)]),
+                          rng.choice([0, -1, 7]), junk()]
+            elif message == 0x64:
+                a = rng.choice([0, 1, 5, rng.randint(0, 100)])
+            step = rng.choice([0, 1, 16, 100, rng.randint(0, 5000)])
+            server, tick = (server + step) & 0xFFFFFFFF, (tick + step) & 0xFFFFFFFF
+            script += [message, a, b, *record, server, tick]
+        lines.append("c " + " ".join(fields + [str(f & 0xFFFFFFFF) if isinstance(f, int) else f
+                                               for f in arrive + effect_fields + look]
+                                     + [str(len(script) // path_oracle.LOOK_RECORD)]
+                                     + [str(v & 0xFFFFFFFF) for v in script]))
+    return lines
+
+
 def main():
     args = path_oracle.arguments("walks per map", 40)
     ours, originals = path_oracle.run_maps(
         args, lambda *a: make_walks(*a) + make_goes(*a) + make_plays(*a) + make_tos(*a)
         + make_stands(*a) + make_enters(*a) + make_arrivals(*a) + make_effects(*a)
         + make_deaths(*a) + make_attacks(*a) + make_landings(*a) + make_casts(*a) + make_updates(*a)
-        + make_own_updates(*a) + make_orders(*a),
+        + make_own_updates(*a) + make_orders(*a) + make_looks(*a),
         "walks")
     totals = {}
     for (_, lines, _), want in zip(ours, originals):
@@ -904,7 +1017,7 @@ def main():
                    "K": "player effects ", "D": "death ", "H": "player death ", "V": "attack ",
                    "J": "player attack ", "L": "land ", "O": "player land ", "C": "cast ",
                    "R": "player cast ", "u": "update ", "p": "player update ",
-                   "o": "own update ", "m": "orders "}[line[0]] + result.split()[0]
+                   "o": "own update ", "m": "orders ", "c": "looks "}[line[0]] + result.split()[0]
             totals[key] = totals.get(key, 0) + 1
             if line[0] in "WGPTUNYEQABDHVJLOCRup" and result != "-":
                 totals["updates"] = totals.get("updates", 0) + int(result.split()[1])
@@ -912,6 +1025,8 @@ def main():
                 totals["own updates"] = totals.get("own updates", 0) + int(result.split()[1])
             if line[0] == "m":
                 totals["own messages"] = totals.get("own messages", 0) + int(result.split()[1])
+            if line[0] == "c":
+                totals["player messages"] = totals.get("player messages", 0) + int(result.split()[1])
             if line[0] in "XK":
                 totals["effect messages"] = totals.get("effect messages", 0) + int(result.split()[1])
     return path_oracle.report(ours, originals, totals, "queries")

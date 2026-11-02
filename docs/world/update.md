@@ -57,7 +57,7 @@ status colours the actor (+0x87), each byte of +0x7c (blue, green, red, alpha) p
 no less than 0 and no more than 255.
 
 **The gauge** (`CPc::MoveGauge`, `00543400`): the gauge over a `CPc` (+0x2dc, `UIPcGage`, which
-`CPc::vf02` makes) moved (`vf18`) to 0x1e left of the point on screen (+0x90) and the screen's
+`CPc::SendMsg`'s 0x22 makes, [look.md](look.md)) moved (`vf18`) to 0x1e left of the point on screen (+0x90) and the screen's
 height (`g_pSceneRenderer` +0x28) × 12 / 480, whole, × +0x48 below it (+0x94): `fild`, `fmul`,
 `fiadd`, each rounded to single precision, then `__ftol`.
 
@@ -125,4 +125,4 @@ effect; the frames' sounds by event, a new action, the frame ahead, behind and p
 an action the act lacks; the gauge by the screen's height, +0x48 and the point; a cast's gauge ending in state 8; the
 fade).
 
-**Not ported:** the other classes' `vf01`; `CPc::vf02`'s messages that make and fill its gauge.
+**Not ported:** the other classes' `vf01`.

@@ -177,5 +177,5 @@ Then `kWeaponKinds`, `MapRangedIdToKind` at each range's edges and either side, 
 `kAttackChoices`, `0059a440` and `0059a3e0` for jobs −1 to 0x16 and 0x7fffffff, +0x1bc 0 to 2
 and weapons from −1 to 0x18 and ids in each range.
 
-**Not ported:** skills as targets; `CPc::vf02`'s own messages, which leave
-0xb and 0x1b to `CGameActor`'s.
+**Not ported:** skills as targets. `CPc::SendMsg` ([look.md](look.md)) leaves 0xb and 0x1b to
+`CGameActor`'s.
