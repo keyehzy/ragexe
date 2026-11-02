@@ -160,7 +160,8 @@ the player's own id.
 **The corpse** is `CGameMode::AddCorpse` (`00510030`): a `CCorpse` in the world's list at the
 actor's position, with the names of the body's act (+0x9c) and sprite (+0x98, `GetActName` and
 `GetSpriteName`, 0 without one), the actor's base action as its action, and its frame and
-facing.
+facing. The corpse shows its action's last frame and fades out over 255 ticks
+([items.md](items.md#a-corpse)).
 
 A player's update in state 3 (`CPc::ProcessState`) clears +0x82 and runs `vf08`, and stays.
 

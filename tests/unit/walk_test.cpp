@@ -4,12 +4,15 @@
 #include <catch2/catch_test_macros.hpp>
 #include <cstdint>
 #include <cstdio>
+#include <map>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <vector>
 
 #include "res/act.h"
 #include "res/gat.h"
+#include "res/item_tables.h"
 #include "world/actor_arrival.h"
 #include "world/actor_attack.h"
 #include "world/actor_effects.h"
@@ -18,6 +21,7 @@
 #include "world/actor_update.h"
 #include "world/actor_walk.h"
 #include "world/actor_window.h"
+#include "world/ground_item.h"
 #include "world/path_finder.h"
 #include "world/player_look.h"
 #include "world/player_orders.h"
@@ -79,7 +83,8 @@ struct WeaponItemVector {
   std::uint32_t word;  // the item's id, the second hand's in the high word
   int exists;          // whether the item's own sprite is there
   std::uint32_t weapon;
-  std::uint64_t names[4];  // FNV-1a of layer 5's actions and sprite, then layer 6's
+  // FNV-1a of layer 5's actions and sprite, then layer 6's.
+  std::uint64_t act5, sprite5, act6, sprite6;
 };
 
 struct AttrCellVector {
@@ -124,6 +129,7 @@ struct AttackChoiceVector {
 #include "cast_vectors.inc"
 #include "death_vectors.inc"
 #include "enter_vectors.inc"
+#include "item_vectors.inc"
 #include "land_vectors.inc"
 #include "look_vectors.inc"
 #include "move_to_vectors.inc"
@@ -1825,6 +1831,145 @@ std::string Go(const AttrMap& map, PathFinder& finder, MovePath& path, std::istr
   return line;
 }
 
+// The FNV-1a of a name's bytes, folded as its two halves.
+std::uint64_t FoldName(std::uint64_t h, std::string_view name) {
+  std::uint64_t n = 0xcbf29ce484222325ull;
+  for (const char c : name) n = (n ^ static_cast<std::uint8_t>(c)) * 0x100000001b3ull;
+  return Fold(Fold(h, static_cast<std::uint32_t>(n)), static_cast<std::uint32_t>(n >> 32));
+}
+
+// tools/path_oracle.py's i: a CItem made, sent a message, updated and drawn.
+std::string DropItem(const AttrMap& map, std::istringstream& fields) {
+  const auto bytes = [](const std::string& hex) {
+    std::string out;
+    if (hex == "-") return out;
+    for (std::size_t k = 0; k + 1 < hex.size(); k += 2)
+      out.push_back(static_cast<char>(std::stoi(hex.substr(k, 2), nullptr, 16)));
+    return out;
+  };
+  std::string name;
+  fields >> name;
+  std::uint32_t v[13] = {};
+  for (std::uint32_t& x : v) {
+    std::string token;
+    fields >> token;
+    x = static_cast<std::uint32_t>(std::stoll(token, nullptr, 0));
+  }
+  constexpr const char* kTables[] = {"IdNum2ItemDisplayNameTable.txt",
+                                     "Num2ItemDisplayNameTable.txt", "IdNum2ItemResNameTable.txt",
+                                     "Num2ItemResNameTable.txt"};
+  std::map<std::string, std::string, std::less<>> tables;
+  for (const char* table : kTables) {
+    std::string hex;
+    fields >> hex;
+    if (const std::string text = bytes(hex); !text.empty()) tables.emplace(table, text);
+  }
+  std::string format;
+  fields >> format;
+  format = bytes(format);
+  ragexe::res::ItemTables items;
+  std::string error;
+  const auto read = [&tables](std::string_view n) -> std::optional<std::vector<std::uint8_t>> {
+    const auto found = tables.find(n);
+    if (found == tables.end()) return std::nullopt;
+    return std::vector<std::uint8_t>(found->second.begin(), found->second.end());
+  };
+  REQUIRE(ragexe::res::LoadItemTables(read, {}, items, &error));
+  ragexe::world::GroundItem item = ragexe::world::MakeGroundItem(v[11]);
+  auto& o = item.object;
+  std::uint64_t h = 0xcbf29ce484222325ull;
+  for (const std::uint32_t x :
+       {Bits(o.scale), o.key_color, o.keyed_at, o.depth_up ? 1u : 0u, o.keyed ? 1u : 0u,
+        o.visible ? 1u : 0u, o.shadow ? 1u : 0u, o.pickable ? 1u : 0u})
+    h = Fold(h, x);
+  o.visible = v[9] != 0;
+  o.scale = std::bit_cast<float>(v[10]);
+  ragexe::world::GroundItemArrival record;
+  record.name = bytes(name).substr(0, 0x1f);
+  record.name = record.name.substr(0, record.name.find('\0'));
+  record.id = static_cast<std::int32_t>(v[1]);
+  record.cell_x = static_cast<std::int32_t>(v[2]);
+  record.cell_y = static_cast<std::int32_t>(v[3]);
+  record.sub_x = static_cast<std::int32_t>(v[4]);
+  record.sub_y = static_cast<std::int32_t>(v[5]);
+  record.dropped = static_cast<std::int32_t>(v[6]);
+  record.count = static_cast<std::int32_t>(v[7]);
+  record.identified = (v[8] & 0xff) != 0;
+  if (v[0] == 4) ragexe::world::ArriveGroundItem(item, record, map, {&items, format}, v[12]);
+  for (const std::uint32_t x : {static_cast<std::uint32_t>(item.id), Bits(o.position[0]),
+                                Bits(o.position[1]), Bits(o.position[2]), item.falling ? 1u : 0u,
+                                Bits(item.fall_speed), Bits(item.drop_height), o.start_time})
+    h = Fold(h, x);
+  h = FoldName(FoldName(FoldName(h, item.label), item.sprite_name), item.act_name);
+  int updates = 0;
+  for (std::string token; fields >> token;) {
+    ragexe::world::UpdateGroundItem(item, map,
+                                    static_cast<std::uint32_t>(std::stoll(token, nullptr, 0)));
+    ++updates;
+    for (const std::uint32_t x :
+         {1u, Bits(o.position[1]), item.falling ? 1u : 0u, o.keyed ? 1u : 0u})
+      h = Fold(h, x);
+  }
+  if (const std::optional<float> shadow = ragexe::world::GroundItemShadowScale(item)) {
+    for (const std::uint32_t x : {3u, 1u, Bits(*shadow), 2u}) h = Fold(h, x);
+  } else {
+    h = Fold(h, 0);
+  }
+  char line[96];
+  std::snprintf(line, sizeof line, "%s %d %08x %d %016llx", item.falling ? "falling" : "lying",
+                updates, Bits(o.position[1]), o.keyed ? 1 : 0, static_cast<unsigned long long>(h));
+  return line;
+}
+
+// tools/path_oracle.py's k: a CCorpse made by CGameMode::AddCorpse, then faded.
+std::string FadeCorpse(std::istringstream& fields) {
+  std::string names[2];
+  for (std::string& name : names) {
+    std::string hex;
+    fields >> hex;
+    if (hex == "-") continue;
+    for (std::size_t k = 0; k + 1 < hex.size(); k += 2)
+      name.push_back(static_cast<char>(std::stoi(hex.substr(k, 2), nullptr, 16)));
+  }
+  std::vector<std::uint32_t> v;
+  for (std::string token; fields >> token;)
+    v.push_back(static_cast<std::uint32_t>(std::stoll(token, nullptr, 0)));
+  REQUIRE(v.size() >= 9);
+  ragexe::world::Corpse left;
+  left.position = {std::bit_cast<float>(v[0]), std::bit_cast<float>(v[1]),
+                   std::bit_cast<float>(v[2])};
+  left.act = names[0];
+  left.sprite = names[1];
+  left.action = static_cast<std::int32_t>(v[3]);
+  left.frame = static_cast<std::int32_t>(v[4]);
+  left.facing = std::bit_cast<float>(v[5]);
+  ragexe::res::Act act;
+  act.actions.assign(256, std::vector<ragexe::res::ActFrame>(v[7]));
+  ragexe::world::CorpseObject corpse = ragexe::world::MakeCorpse(left, v[8]);
+  const auto& o = corpse.object;
+  std::uint64_t h = 0xcbf29ce484222325ull;
+  for (const std::uint32_t x :
+       {o.keyed_at, o.start_time, o.depth_up ? 1u : 0u, o.visible ? 1u : 0u, 1u,
+        Bits(o.position[0]), Bits(o.position[1]), Bits(o.position[2]),
+        static_cast<std::uint32_t>(o.base_action), static_cast<std::uint32_t>(o.action),
+        static_cast<std::uint32_t>(o.frame), Bits(o.facing)})
+    h = Fold(h, x);
+  h = FoldName(FoldName(h, corpse.act_name), corpse.sprite_name);
+  int updates = 0;
+  bool kept = true;
+  for (std::size_t k = 9; k < v.size() && kept; ++k) {
+    kept = ragexe::world::UpdateCorpse(corpse, act, std::bit_cast<float>(v[6]), v[k]);
+    ++updates;
+    for (const std::uint32_t x : {kept ? 1u : 0u, static_cast<std::uint32_t>(o.action),
+                                  static_cast<std::uint32_t>(o.frame), o.color})
+      h = Fold(h, x);
+  }
+  char line[64];
+  std::snprintf(line, sizeof line, "%s %d %08x %016llx", kept ? "fading" : "gone", updates, o.color,
+                static_cast<unsigned long long>(h));
+  return line;
+}
+
 }  // namespace
 
 TEST_CASE("Actors walk their paths as the original's CGameActor::ProcessState does", "[walk]") {
@@ -2337,10 +2482,10 @@ TEST_CASE("A player's weapon by item ids is CPc::SetWeapon's, one in each hand o
     ragexe::world::SetPlayerWeapon(player, static_cast<std::int32_t>(v.word), context);
     CHECK(static_cast<std::uint32_t>(player.weapon) == v.weapon);
     const auto& layers = player.look.layers;
-    CHECK(fnv(layers[5].act) == v.names[0]);
-    CHECK(fnv(layers[5].sprite) == v.names[1]);
-    CHECK(fnv(layers[6].act) == v.names[2]);
-    CHECK(fnv(layers[6].sprite) == v.names[3]);
+    CHECK(fnv(layers[5].act) == v.act5);
+    CHECK(fnv(layers[5].sprite) == v.sprite5);
+    CHECK(fnv(layers[6].act) == v.act6);
+    CHECK(fnv(layers[6].sprite) == v.sprite6);
   }
 }
 
@@ -2408,4 +2553,48 @@ TEST_CASE("The cell under a point is CGameMode::GetAttrCell's", "[walk]") {
     CHECK(cell[0] == v.cell_x);
     CHECK(cell[1] == v.cell_z);
   }
+}
+
+TEST_CASE(
+    "Items on the ground and corpses are the original's CItem and CCorpse: the drop, the label, "
+    "the blink and the fade",
+    "[walk]") {
+  int current = -1;
+  AttrMap map;
+  for (const StateQueryVector& v : kItemQueries) {
+    if (v.map != current) {
+      current = v.map;
+      if (current < 3) {
+        map = MakeMap(kWalkMaps[current]);
+      } else {
+        map = AttrMap();
+        map.width = map.height = 4;
+        map.cells.resize(16);
+        for (auto& cell : map.cells) cell.heights.fill(kDeepGround);
+      }
+    }
+    INFO(current << ": " << v.query);
+    std::istringstream fields(v.query);
+    char kind = 0;
+    fields >> kind;
+    const std::string got = kind == 'i' ? DropItem(map, fields) : FadeCorpse(fields);
+    CHECK(got == v.result);
+  }
+}
+
+TEST_CASE("An item sent message 4 again falls only if this one drops it", "[walk]") {
+  // CItem::SendMsg clears +0xb4 for a record that does not drop the item (0053b0d0).
+  AttrMap map;
+  map.width = map.height = 2;
+  map.cells.resize(4);
+  const ragexe::res::ItemTables tables;
+  ragexe::world::GroundItem item = ragexe::world::MakeGroundItem(0);
+  ragexe::world::GroundItemArrival record;
+  record.dropped = 1;
+  ragexe::world::ArriveGroundItem(item, record, map, {&tables, ""}, 0);
+  CHECK(item.falling);
+  record.dropped = 0;
+  ragexe::world::ArriveGroundItem(item, record, map, {&tables, ""}, 0);
+  CHECK_FALSE(item.falling);
+  CHECK(item.object.position[1] == 0.0f);
 }

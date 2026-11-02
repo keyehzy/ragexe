@@ -248,6 +248,35 @@ PC_GAUGE_CTOR, FIRST_BAR, SECOND_BAR, ADMINS_B = 0x442E60, 0x4431B0, 0x4431D0, 0
 LAYER_SPRITES, LAYER_ACTS, LAYER_SLOTS, LAYER_COUNT = 0x2E8, 0x2F8, 10, 8
 LOOK_STRINGS = (0x27C, 0x2CC, 0x10)
 ARRIVALS, CLOSE_CAST_GAUGE = (3, 4, 5, 6, 0x79, 0x7A, 0x7B, 0x7C), 0x53
+# i: a CItem (docs/world/items.md) made by its constructor (0053abb0) at timeGetTime `made`, its
+# +0x84 and scale (+0x3c, float bits) then set; sent CItem::SendMsg's (0053afb0) `message` at
+# `at` with a record of ITEM_RECORD's words after its name (a hex token, "-" for none, at +0, at
+# most 31 bytes); then CItem::Update (0053ad60) at each update's timeGetTime, and CItem::Render
+# (0053ad20) once. Before the message LoadItemTables (004d48e0) loads ITEM_TABLES, one hex token
+# each ("-" none), and msgStringTable's 0xb7 is the next token, the label's format. SetSprite and
+# SetAct record their names, DrawShadow its scale and DrawBody that it was called, none of them
+# drawing. The hash takes the constructor's +0x3c, +0x68, +0x6c and flags, the message's fields,
+# label and names, each update's result, height, +0xb4 and +0x83, and the drawing's calls.
+# k: CGameMode::AddCorpse (00510030) at `made` with CORPSE_FIELDS' position, action, frame and
+# facing and the names of its act and sprite (two hex tokens first, "-" for none), on a world
+# whose list of objects is empty; then its CCorpse's update (CCorpse::Update, 00540c70) at each
+# update's timeGetTime until it returns 0, the camera's yaw given and its .act every action of
+# `frames` frames. SetAct and SetSprite record their names. The hash takes the constructor's
+# +0x6c, +0x70, +0x80 and +0x84, the world's count, AddCorpse's fields and names, and each
+# update's result, +0x24, +0x28 and +0x7c.
+ITEM_FIELDS = ["message", "id", "cell_x", "cell_y", "sub_x", "sub_y", "dropped", "count", "identified", "shown",
+               "scale", "made", "at"]
+ITEM_TABLES = ["IdNum2ItemDisplayNameTable.txt", "Num2ItemDisplayNameTable.txt", "IdNum2ItemResNameTable.txt",
+               "Num2ItemResNameTable.txt"]
+ITEM_RECORD, ITEM_SIZE, ITEM_CTOR, ITEM_SEND, ITEM_UPDATE, ITEM_RENDER = 7, 0xC0, 0x53ABB0, 0x53AFB0, 0x53AD60, 0x53AD20
+LOAD_ITEM_TABLES, ITEM_MAP_INITS, MSG_STRINGS, LABEL_MESSAGE = 0x4D48E0, (0x4D3440, 0x4D35A0, 0x4D3700), 0x67CCA4, 0xB7
+ITEM_FALLBACK, ITEM_GUARD, CARD_FALLBACK, CARD_GUARD, CODE_PAGE = 0x689140, 0x689130, 0x6891C0, 0x6891B8, 0x67C998
+DRAW_SHADOW, DRAW_BODY, INIT_JOB_NAMES = 0x501550, 0x500F70, 0x58AC70
+# ClientState::GetItemResourceName's std::string (00686658) and its guard (00686668), made again for each i,
+# since each releases the heap its buffer is on.
+RESOURCE_NAME_STATIC = 0x686658
+CORPSE_FIELDS = ["x", "y", "z", "action", "frame", "facing", "yaw", "frames", "made"]
+CORPSE_UPDATE = 0x540C70
 SINGLE = 0x007F
 SPEEDS = [150, 150, 150, 100, 200, 75, 300, 120, 1, 7, 999]
 
@@ -488,10 +517,18 @@ class Oracle:
         emu.mem_write(self.sprite + 0x14, SPRITE_NAME.encode() + b"\0")
         self.corpses = []
 
-        def add_corpse(this, *v):
+        # Recorded and skipped but for k, which runs it.
+        self.fading = False
+
+        def add_corpse(uc, address, size, _):
+            if self.fading:
+                return
+            esp = emu.esp()
+            v = [emu.read_u32(esp + 4 + 4 * k) for k in range(8)]
             name = lambda a: name_hash(emu.mem_read(a, len(emu.read_cstr(a)))) if a else [0, 0]
             self.corpses += [*v[:3], *name(v[3]), *name(v[4]), *v[5:]]
-        emu.replace_thiscall(ADD_CORPSE, 8, add_corpse)
+            emu.complete(0, emu.read_u32(esp), esp + 4 + 4 * len(v))
+        emu.hook_code(ADD_CORPSE, ADD_CORPSE, add_corpse)
         # For V and J: the other actor and the player, the effects launched, the arrows shot
         # and the act's frames' events, only while attacking.
         self.foe, self.pc = emu.scratch(size=ACTOR_SIZE), emu.scratch(size=ACTOR_SIZE)
@@ -597,6 +634,8 @@ class Oracle:
         # names, the messages the player sends itself, and the gauge's bars.
         emu.call(INIT_NAMES, this=CLIENT_STATE)
         emu.call(INIT_SHADOWS, this=CLIENT_STATE)
+        # For i and k: the jobs' names (+0x754), which CRenderObject's constructor names its sprite by.
+        emu.call(INIT_JOB_NAMES, this=CLIENT_STATE)
         self.looking, self.resources, self.object_names, self.pc_messages = False, {}, [b"", b""], []
 
         def looking_only(address, nargs, fn):
@@ -625,6 +664,15 @@ class Oracle:
             return fn
         looking_only(SET_ACT, 1, object_name(0))
         looking_only(SET_SPRITE, 1, object_name(1))
+
+        # For i: the drawing's two calls, recorded and skipped.
+        self.drawn = []
+
+        def draw(*words):
+            self.drawn += words
+            return 0
+        looking_only(DRAW_SHADOW, 2, lambda this, view, scale: draw(1, scale))
+        looking_only(DRAW_BODY, 1, lambda this, view: draw(2))
 
         def pc_message(uc, address, size, _):
             esp = emu.esp()
@@ -697,7 +745,7 @@ class Oracle:
             kind, *values = line.split()
             v = [int(x) for x in values] if kind not in ("W", "G", "P", "T", "U", "N", "Y", "E", "Q", "A", "B", "X",
                                                          "K", "D", "H", "V", "J", "L", "O", "C", "R", "u", "p",
-                                                         "o", "m", "c") else []
+                                                         "o", "m", "c", "i", "k") else []
             self.logged = []
             if kind == "F":
                 found = emu.call(FIND_PATH, *v, self.actor + ACTOR_PATH, this=G_PATH_FINDER).eax & 0xFF
@@ -780,6 +828,10 @@ class Oracle:
                 out.append(self.go(values, player=True, own=True, orders=True))
             elif kind == "c":
                 out.append(self.go(values, player=True, arrive=True, effects=True, looks=True))
+            elif kind == "i":
+                out.append(self.dropped(values, data))
+            elif kind == "k":
+                out.append(self.faded(values))
         emu.heap_release(mark)
         return out
 
@@ -1096,6 +1148,104 @@ class Oracle:
             emu.write_u32(actor + offset, 0)
         r = [emu.read_u32(actor + o) for o in (0x4, 0x8, 0xC, 0x38, 0x24, 0x28, 0x58)]
         return f"sent {count} {r[0]:08x} {r[1]:08x} {r[2]:08x} {r[3]:08x} {r[4]} {r[5]} {r[6]} {h:016x}"
+
+    def dropped(self, values, data):
+        """A CItem made, sent a message, updated and drawn, its names from the query's tables."""
+        emu = self.emu
+        n = len(ITEM_FIELDS)
+        g = dict(zip(["name"] + ITEM_FIELDS, values[:n + 1]))
+        name = b"" if g.pop("name") == "-" else bytes.fromhex(values[0])
+        g = {k: int(x, 0) for k, x in g.items()}
+        record_words = [g[k] & 0xFFFFFFFF for k in ITEM_FIELDS[1:ITEM_RECORD + 1]]
+        texts = [b"" if x == "-" else bytes.fromhex(x) for x in values[n + 1:n + 2 + len(ITEM_TABLES)]]
+        updates = [int(x, 0) for x in values[n + 2 + len(ITEM_TABLES):]]
+        mark = emu.heap_mark()
+        files = {"data\\" + t.lower(): text for t, text in zip(ITEM_TABLES, texts) if text}
+        emu.serve_data_files({"data\\t.gat": data, **files})
+        for f in ITEM_MAP_INITS:
+            emu.call(f)
+        emu.mem_write(RESOURCE_NAME_STATIC, bytes(0x14))
+        emu.mem_write(ITEM_FALLBACK, bytes(0x78))
+        emu.mem_write(CARD_FALLBACK, bytes(0x30))
+        emu.write_u32(ITEM_GUARD, 0)
+        emu.write_u32(CARD_GUARD, 0)
+        emu.write_u32(SERVICE_TYPE, 1)
+        emu.write_u32(CODE_PAGE, 0)
+        emu.call(LOAD_ITEM_TABLES)
+        no_message = emu.cstr("")
+        strings = emu.scratch(struct.pack(f"<{LABEL_MESSAGE}I", *[no_message] * LABEL_MESSAGE)
+                              + struct.pack("<I", emu.scratch(texts[-1] + b"\0")))
+        emu.write_u32(MSG_STRINGS, strings)
+        item = emu.scratch(size=ITEM_SIZE)
+        self.looking, self.object_names, self.drawn = True, [b"", b""], []
+        self.now = g["made"] & 0xFFFFFFFF
+        emu.call(ITEM_CTOR, this=item)
+        self.object_names = [b"", b""]
+        byte = lambda o: emu.mem_read(item + o, 1)[0]
+        h = fnv1a64([emu.read_u32(item + o) for o in (0x3C, 0x68, 0x6C)]
+                    + [byte(o) for o in (0x80, 0x83, 0x84, 0x88, 0x89)])
+        emu.mem_write(item + 0x84, bytes([g["shown"]]))
+        emu.write_u32(item + 0x3C, g["scale"] & 0xFFFFFFFF)
+        record = emu.scratch(name[:0x1F].ljust(0x20, b"\0") + struct.pack(f"<{ITEM_RECORD}I", *record_words)
+                             + bytes([g["identified"] & 0xFF]))
+        self.now = g["at"] & 0xFFFFFFFF
+        emu.call(ITEM_SEND, 0, g["message"] & 0xFFFFFFFF, record, 0, 0, this=item)
+        h = fnv1a64([emu.read_u32(item + o) for o in (0xB0, 0x4, 0x8, 0xC, 0xB4, 0xB8, 0xBC, 0x70)]
+                    + name_hash(self.string_at(item + 0xA0)) + name_hash(self.object_names[1])
+                    + name_hash(self.object_names[0]), h)
+        for tick in updates:
+            self.now = tick
+            ret = emu.call(ITEM_UPDATE, this=item).eax & 0xFF
+            h = fnv1a64([ret, emu.read_u32(item + 0x8), emu.read_u32(item + 0xB4), byte(0x83)], h)
+        emu.call(ITEM_RENDER, self.view, this=item)
+        h = fnv1a64([len(self.drawn), *self.drawn], h)
+        self.looking = False
+        state = "falling" if emu.read_u32(item + 0xB4) else "lying"
+        out = f"{state} {len(updates)} {emu.read_u32(item + 0x8):08x} {byte(0x83)} {h:016x}"
+        emu.write_u32(MSG_STRINGS, 0)
+        emu.heap_release(mark)
+        return out
+
+    def faded(self, values):
+        """A CCorpse made by CGameMode::AddCorpse, then faded update by update."""
+        emu = self.emu
+        names = [b"" if x == "-" else bytes.fromhex(x) for x in values[:2]]
+        v = [int(x, 0) & 0xFFFFFFFF for x in values[2:]]
+        g = dict(zip(CORPSE_FIELDS, v))
+        updates = v[len(CORPSE_FIELDS):]
+        mark = emu.heap_mark()
+        head = emu.scratch(size=12)
+        emu.write_u32(head, head)
+        emu.write_u32(head + 4, head)
+        emu.write_u32(self.world + 0xC, head)
+        emu.write_u32(self.world + 0x10, 0)
+        self.looking, self.fading, self.object_names = True, True, [b"", b""]
+        self.now = g["made"]
+        emu.call(ADD_CORPSE, *(g[k] for k in ("x", "y", "z")), emu.scratch(names[0] + b"\0"),
+                 emu.scratch(names[1] + b"\0"), *(g[k] for k in ("action", "frame", "facing")), this=self.mode)
+        self.looking = self.fading = False
+        corpse = emu.read_u32(emu.read_u32(head) + 8)
+        byte = lambda o: emu.mem_read(corpse + o, 1)[0]
+        h = fnv1a64([emu.read_u32(corpse + 0x6C), emu.read_u32(corpse + 0x70), byte(0x80), byte(0x84),
+                     emu.read_u32(self.world + 0x10)]
+                    + [emu.read_u32(corpse + o) for o in (0x4, 0x8, 0xC, 0x20, 0x24, 0x28, 0x38)]
+                    + name_hash(self.object_names[0]) + name_hash(self.object_names[1]))
+        emu.write_u32(self.world + 0xC, 0)
+        emu.write_u32(self.world + 0x10, 0)
+        emu.write_u32(corpse + 0x9C, self.act)
+        emu.write_u32(self.view + 0x20, g["yaw"])
+        self.frames = g["frames"]
+        calls, ret = 0, 1
+        for tick in updates:
+            self.now = tick
+            ret = emu.call(CORPSE_UPDATE, this=corpse).eax & 0xFF
+            calls += 1
+            h = fnv1a64([ret, *(emu.read_u32(corpse + o) for o in (0x24, 0x28, 0x7C))], h)
+            if ret == 0:
+                break
+        out = f"{'gone' if ret == 0 else 'fading'} {calls} {emu.read_u32(corpse + 0x7C):08x} {h:016x}"
+        emu.heap_release(mark)
+        return out
 
     def string_at(self, at):
         """An MSVC std::string's text: its buffer +4 and length +8."""

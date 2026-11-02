@@ -6529,9 +6529,9 @@ UIVerticalNameBalloonText	005e97dc	0	38	0043dcf0	UIVerticalNameBalloonText::vf38
 UIVerticalNameBalloonText	005e97dc	0	39	0043d6b0	UIVerticalNameBalloonText::vf39	
 UIVerticalNameBalloonText	005e97dc	0	40	0043d510	UIVerticalNameBalloonText::vf40	
 CItem	005e98ac	0	0	0053ac20	CItem::`scalar_deleting_destructor'	
-CItem	005e98ac	0	1	0053ad60	CItem::vf01	
-CItem	005e98ac	0	2	0053afb0	CItem::vf02	
-CItem	005e98ac	0	3	0053ad20	CItem::vf03	
+CItem	005e98ac	0	1	0053ad60	CItem::Update	
+CItem	005e98ac	0	2	0053afb0	CItem::SendMsg	
+CItem	005e98ac	0	3	0053ad20	CItem::Render	
 CItem	005e98ac	0	4	005000d0	CGameObject::GetDirection	
 CItem	005e98ac	0	5	0053ae40	CItem::OnScreenBounds	
 CItem	005e98ac	0	6	00501840	CRenderObject::SetScreenPosition	
@@ -6595,8 +6595,8 @@ CBlowEffect	005e99c8	0	6	00501840	CRenderObject::SetScreenPosition
 CBlowEffect	005e99c8	0	7	00500de0	CRenderObject::SetAction	
 CBlowEffect	005e99c8	0	8	00500830	CRenderObject::UpdateFrame	
 CCorpse	005e99f0	0	0	00540bc0	CCorpse::`scalar_deleting_destructor'	
-CCorpse	005e99f0	0	1	00540c70	CCorpse::vf01	
-CCorpse	005e99f0	0	2	00540d00	CCorpse::vf02	
+CCorpse	005e99f0	0	1	00540c70	CCorpse::Update	
+CCorpse	005e99f0	0	2	00540d00	CCorpse::SendMsg	
 CCorpse	005e99f0	0	3	00501870	CRenderObject::Render	
 CCorpse	005e99f0	0	4	005000d0	CGameObject::GetDirection	
 CCorpse	005e99f0	0	5	00501830	CRenderObject::OnScreenBounds	

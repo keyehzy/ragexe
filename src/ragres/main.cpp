@@ -125,6 +125,7 @@
 #include "world/actor_update.h"
 #include "world/actor_walk.h"
 #include "world/actor_window.h"
+#include "world/ground_item.h"
 #include "world/path_finder.h"
 #include "world/player_look.h"
 #include "world/player_orders.h"
@@ -682,6 +683,11 @@ int DecodeGats(const std::vector<std::string>& files) {
 //                                              P as the own player sent messages through
 //                                              CPlayer::SendMsg, message 0's order and 0x67's
 //                                              skill from the words (ORDER_FIELDS)
+//   i NAME ITEM... TABLES*4 FORMAT TICK...     a CItem made, sent a message, updated and drawn,
+//                                              its tables and label format as hex, "-" for
+//                                              none (ITEM_FIELDS)
+//   k ACT SPRITE CORPSE... TICK...             a CCorpse made by CGameMode::AddCorpse and faded,
+//                                              its names as hex (CORPSE_FIELDS)
 // Prints for F and M "RESULT MOVE_TIME FIELD_0X10 START_X START_Y COUNT HASH" (the result
 // found, same, none or overflow; the move time "-" for F; the start as float bits; the
 // hash FNV-1a over each step's x, y, dir and time), for I the result, and for S "INDEX
@@ -694,7 +700,8 @@ int DecodeGats(const std::vector<std::string>& files) {
 // corpse) or unported, the state unsigned; for C and R the same with the end staying, faded or
 // settled (out of state 13 with no window left); for u and p the same with the end staying or
 // faded, the action unsigned, and for o as for p; for X, K and m the same with "sent" and the
-// messages' count.
+// messages' count; for i "STATE UPDATES Y KEYED HASH", the state falling or lying, and for k
+// "END UPDATES COLOR HASH", the end fading or gone.
 int FindPaths(const std::string& gat, const std::string& queries) {
   ragexe::res::AttrMap map;
   std::string error;
@@ -832,6 +839,171 @@ int FindPaths(const std::string& gat, const std::string& queries) {
       std::printf("%s %d %08x %08x %08x %08x %d %d %08x %016llx\n", end, updates,
                   FloatBits(o.position[0]), FloatBits(o.position[1]), FloatBits(o.position[2]),
                   FloatBits(o.facing), o.action, o.frame, FloatBits(actor.travelled),
+                  static_cast<unsigned long long>(h));
+    } else if (kind == "i") {
+      std::vector<std::string> tokens;
+      for (std::string token; fields >> token;) tokens.push_back(token);
+      constexpr std::size_t kItemFields = 13;
+      constexpr std::size_t kTexts = 5;  // the four tables and the format
+      if (tokens.size() < 1 + kItemFields + kTexts) {
+        std::fprintf(stderr, "short item: %s\n", line.c_str());
+        return 2;
+      }
+      const auto bytes = [](const std::string& hex) {
+        std::string out;
+        if (hex == "-") return out;
+        for (std::size_t k = 0; k + 1 < hex.size(); k += 2)
+          out.push_back(static_cast<char>(std::stoi(hex.substr(k, 2), nullptr, 16)));
+        return out;
+      };
+      std::vector<std::uint32_t> v;
+      for (std::size_t k = 1; k <= kItemFields; ++k)
+        v.push_back(static_cast<std::uint32_t>(std::stoll(tokens[k], nullptr, 0)));
+      constexpr std::string_view kTables[] = {
+          "IdNum2ItemDisplayNameTable.txt", "Num2ItemDisplayNameTable.txt",
+          "IdNum2ItemResNameTable.txt", "Num2ItemResNameTable.txt"};
+      std::map<std::string, std::string, std::less<>> tables;
+      for (std::size_t k = 0; k < 4; ++k) {
+        const std::string text = bytes(tokens[1 + kItemFields + k]);
+        if (!text.empty()) tables.emplace(kTables[k], text);
+      }
+      const std::string format = bytes(tokens[1 + kItemFields + 4]);
+      ragexe::res::ItemTables items;
+      const auto read =
+          [&tables](std::string_view name) -> std::optional<std::vector<std::uint8_t>> {
+        const auto found = tables.find(name);
+        if (found == tables.end()) return std::nullopt;
+        return std::vector<std::uint8_t>(found->second.begin(), found->second.end());
+      };
+      if (!ragexe::res::LoadItemTables(read, {}, items, &error)) {
+        std::fprintf(stderr, "item tables: %s\n", error.c_str());
+        return 2;
+      }
+      ragexe::world::GroundItem item = ragexe::world::MakeGroundItem(v[11]);
+      auto& o = item.object;
+      std::vector<std::uint32_t> values = {
+          FloatBits(o.scale), o.key_color,         o.keyed_at,         o.depth_up ? 1u : 0u,
+          o.keyed ? 1u : 0u,  o.visible ? 1u : 0u, o.shadow ? 1u : 0u, o.pickable ? 1u : 0u};
+      std::uint64_t h = Fnv1a64(values);
+      const auto fold = [&h](std::uint32_t x) {
+        const std::uint8_t le[4] = {static_cast<std::uint8_t>(x), static_cast<std::uint8_t>(x >> 8),
+                                    static_cast<std::uint8_t>(x >> 16),
+                                    static_cast<std::uint8_t>(x >> 24)};
+        h = Fnv1a64(le, h);
+      };
+      const auto fold_name = [&fold](std::string_view name) {
+        const std::uint64_t n =
+            Fnv1a64(std::span(reinterpret_cast<const std::uint8_t*>(name.data()), name.size()));
+        fold(static_cast<std::uint32_t>(n));
+        fold(static_cast<std::uint32_t>(n >> 32));
+      };
+      o.visible = v[9] != 0;
+      o.scale = std::bit_cast<float>(v[10]);
+      ragexe::world::GroundItemArrival record;
+      record.name = bytes(tokens[0]).substr(0, 0x1f);
+      record.name = record.name.substr(0, record.name.find('\0'));
+      record.id = static_cast<std::int32_t>(v[1]);
+      record.cell_x = static_cast<std::int32_t>(v[2]);
+      record.cell_y = static_cast<std::int32_t>(v[3]);
+      record.sub_x = static_cast<std::int32_t>(v[4]);
+      record.sub_y = static_cast<std::int32_t>(v[5]);
+      record.dropped = static_cast<std::int32_t>(v[6]);
+      record.count = static_cast<std::int32_t>(v[7]);
+      record.identified = (v[8] & 0xff) != 0;
+      if (v[0] == 4) ragexe::world::ArriveGroundItem(item, record, map, {&items, format}, v[12]);
+      for (const std::uint32_t x :
+           {static_cast<std::uint32_t>(item.id), FloatBits(o.position[0]), FloatBits(o.position[1]),
+            FloatBits(o.position[2]), item.falling ? 1u : 0u, FloatBits(item.fall_speed),
+            FloatBits(item.drop_height), o.start_time})
+        fold(x);
+      fold_name(item.label);
+      fold_name(item.sprite_name);
+      fold_name(item.act_name);
+      int updates = 0;
+      for (std::size_t k = 1 + kItemFields + kTexts; k < tokens.size(); ++k) {
+        ragexe::world::UpdateGroundItem(
+            item, map, static_cast<std::uint32_t>(std::stoll(tokens[k], nullptr, 0)));
+        ++updates;
+        for (const std::uint32_t x :
+             {1u, FloatBits(o.position[1]), item.falling ? 1u : 0u, o.keyed ? 1u : 0u})
+          fold(x);
+      }
+      if (const std::optional<float> shadow = ragexe::world::GroundItemShadowScale(item)) {
+        for (const std::uint32_t x : {3u, 1u, FloatBits(*shadow), 2u}) fold(x);
+      } else {
+        fold(0);
+      }
+      std::printf("%s %d %08x %d %016llx\n", item.falling ? "falling" : "lying", updates,
+                  FloatBits(o.position[1]), o.keyed ? 1 : 0, static_cast<unsigned long long>(h));
+    } else if (kind == "k") {
+      std::string act_hex, sprite_hex;
+      fields >> act_hex >> sprite_hex;
+      const auto bytes = [](const std::string& hex) {
+        std::string out;
+        if (hex == "-") return out;
+        for (std::size_t k = 0; k + 1 < hex.size(); k += 2)
+          out.push_back(static_cast<char>(std::stoi(hex.substr(k, 2), nullptr, 16)));
+        return out;
+      };
+      const std::string act_name = bytes(act_hex);
+      const std::string sprite_name = bytes(sprite_hex);
+      std::vector<std::uint32_t> v;
+      for (std::string token; fields >> token;)
+        v.push_back(static_cast<std::uint32_t>(std::stoll(token, nullptr, 0)));
+      constexpr std::size_t kCorpseFields = 9;
+      if (v.size() < kCorpseFields) {
+        std::fprintf(stderr, "short corpse: %s\n", line.c_str());
+        return 2;
+      }
+      ragexe::world::Corpse left;
+      left.position = {std::bit_cast<float>(v[0]), std::bit_cast<float>(v[1]),
+                       std::bit_cast<float>(v[2])};
+      left.act = act_name;
+      left.sprite = sprite_name;
+      left.action = static_cast<std::int32_t>(v[3]);
+      left.frame = static_cast<std::int32_t>(v[4]);
+      left.facing = std::bit_cast<float>(v[5]);
+      const float yaw = std::bit_cast<float>(v[6]);
+      ragexe::res::Act act;
+      act.actions.assign(256, std::vector<ragexe::res::ActFrame>(v[7]));
+      ragexe::world::CorpseObject corpse = ragexe::world::MakeCorpse(left, v[8]);
+      auto& o = corpse.object;
+      const auto name_hash = [](std::string_view name) {
+        return Fnv1a64(std::span(reinterpret_cast<const std::uint8_t*>(name.data()), name.size()));
+      };
+      const std::uint64_t act_hash = name_hash(corpse.act_name);
+      const std::uint64_t sprite_hash = name_hash(corpse.sprite_name);
+      std::vector<std::uint32_t> values = {o.keyed_at,
+                                           o.start_time,
+                                           o.depth_up ? 1u : 0u,
+                                           o.visible ? 1u : 0u,
+                                           1u,
+                                           FloatBits(o.position[0]),
+                                           FloatBits(o.position[1]),
+                                           FloatBits(o.position[2]),
+                                           static_cast<std::uint32_t>(o.base_action),
+                                           static_cast<std::uint32_t>(o.action),
+                                           static_cast<std::uint32_t>(o.frame),
+                                           FloatBits(o.facing),
+                                           static_cast<std::uint32_t>(act_hash),
+                                           static_cast<std::uint32_t>(act_hash >> 32),
+                                           static_cast<std::uint32_t>(sprite_hash),
+                                           static_cast<std::uint32_t>(sprite_hash >> 32)};
+      std::uint64_t h = Fnv1a64(values);
+      int updates = 0;
+      bool kept = true;
+      for (std::size_t k = kCorpseFields; k < v.size() && kept; ++k) {
+        kept = ragexe::world::UpdateCorpse(corpse, act, yaw, v[k]);
+        ++updates;
+        for (const std::uint32_t x : {kept ? 1u : 0u, static_cast<std::uint32_t>(o.action),
+                                      static_cast<std::uint32_t>(o.frame), o.color}) {
+          const std::uint8_t le[4] = {
+              static_cast<std::uint8_t>(x), static_cast<std::uint8_t>(x >> 8),
+              static_cast<std::uint8_t>(x >> 16), static_cast<std::uint8_t>(x >> 24)};
+          h = Fnv1a64(le, h);
+        }
+      }
+      std::printf("%s %d %08x %016llx\n", kept ? "fading" : "gone", updates, o.color,
                   static_cast<unsigned long long>(h));
     } else if (kind == "G" || kind == "P" || kind == "T" || kind == "U" || kind == "N" ||
                kind == "Y" || kind == "E" || kind == "Q" || kind == "A" || kind == "B" ||

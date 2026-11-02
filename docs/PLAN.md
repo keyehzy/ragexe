@@ -3064,6 +3064,26 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Labels:** `CPc`'s `SendMsg`, `Dress`, `DressByItems`, `SetEmotionWord` and
     `SetEmotionWords`; `CGameActor::SetSex` and `SetJob`.
 
+- [x] Items on the ground and corpses (`docs/world/items.md`, `src/world/ground_item`): `CItem`
+  made (`0053abb0`, `SetItemDefaults`), its message 4 (`CItem::SendMsg`, `0053afb0`): the place
+  by `CGameMode::CellToWorld`, the drop 15 above at -0.6, the sprite and act by
+  `GetItemResourceName` and the tables, the label by `BuildDisplayName` and message 0xb7; its
+  update (`0053ad60`): the blink, two ticks of 92, and the fall to the ground; its drawing's
+  shadow scale (`0053ad20`). `CCorpse` as `CGameMode::AddCorpse` makes it and its update
+  (`00540c70`): the last frame of its action by direction and the fade over 255 ticks.
+  - **Found on the way:** `CellToWorld`'s point is a cell's corner at 0 sixteenths, not its
+    centre; an item that lands exactly on the ground falls one update more; the corpse's alpha
+    stays as it was from the 256th tick to the 257th (`SetColorChannels`' -1); the item's update
+    never lets it go, only packet 0x00a1 does.
+  - **Checks:** `tools/walk_oracle.py`'s `i` and `k` on all 287 maps, `LoadItemTables` on
+    synthetic tables the queries carry and the original's `AddCorpse`: 11,480 items through
+    134,582 updates and 11,480 corpses through 75,412; 328,450 queries in all, the older counts
+    unchanged and the older vector files regenerate byte-identical.
+    `item_vectors.inc` keeps 356 queries on the three maps and a fourth flat at -1000000 for the
+    exact landing.
+  - **Labels:** `CItem`'s `SetItemDefaults`, `Update`, `SendMsg` and `Render`; `CCorpse`'s
+    `SetCorpseDefaults`, `Update` and `SendMsg`; `ClientState::GetItemResourceName`.
+
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

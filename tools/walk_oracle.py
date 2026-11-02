@@ -1000,13 +1000,100 @@ def make_looks(name, width, height, attrs, count, updates=(8, 40, 200, 600)):
     return lines
 
 
+ITEM_FORMATS = [b"%s: %d ea", b"%s: %d ea", b"%s", b"", b"%s x%d", b"[%s] %+d", b"%-20s|%5d", b"%.4s %04d",
+                b"%s \xb0\xb3 %d", b"%s %d%%"]
+ITEM_NAMES = [b"Red_Potion", b"Apple", b"\xbb\xe7\xb0\xfa", b"Knife_[3]", b"", b"Jellopy", b"a b_c", b"%s%d",
+              b"n" * 63, b"\xc4\xab\xc5\xb8\xb3\xaa"]
+ITEM_RESOURCES = [b"\xbb\xe7\xb0\xfa", b"red_potion", b"", b"\xb3\xaa\xc0\xcc\xc7\xc1", b"r" * 100, b"a\\b"]
+
+
+def item_tables(rng):
+    """Four small tables (IdNum2 and Num2 display names, then resource names) of a few ids,
+    each table "-" at times, and the ids they know."""
+    ids = rng.sample([0, 1, 501, 502, 909, 1201, 4001, 65535, 2147483647, -5], rng.randint(1, 5))
+    texts = []
+    for _ in path_oracle.ITEM_TABLES[:2]:
+        texts.append(b"".join(b"%d#%s#\r\n" % (i, rng.choice(ITEM_NAMES)) for i in ids if rng.random() < 0.8))
+    for _ in path_oracle.ITEM_TABLES[2:]:
+        texts.append(b"".join(b"%d#%s#\r\n" % (i, rng.choice(ITEM_RESOURCES)) for i in ids if rng.random() < 0.8))
+    return [t.hex() if t and rng.random() < 0.9 else "-" for t in texts], ids
+
+
+def make_items(name, width, height, attrs, count):
+    """The script for a map: items made and sent CItem's messages (i, docs/world/items.md), 4 most
+    often, on walkable cells and others, off the map, at assorted sixteenths, dropped or not, by
+    ids the tables know (as text, with spaces, signs and junk) and do not, identified or not, with
+    assorted counts and label formats; then updated through the fall's end and the blinks, at
+    times before the message too; drawn shown or not at assorted scales."""
+    rng = random.Random(zlib.crc32(b"items " + name.encode()))
+    walkable = [(k % width, k // width) for k, a in enumerate(attrs) if a not in (1, 5)] or [(0, 0)]
+    lines = []
+    for _ in range(count):
+        tables, ids = item_tables(rng)
+        known = rng.choice(ids)
+        text = rng.choice([b"%d" % known, b"%d" % known, b" %d" % known, b"+%d" % known, b"%dx" % known, b"abc",
+                           b"", b"%d" % rng.randint(0, 99999), b"4294967797", b"0" * 40 + b"501"])
+        cx, cy = rng.choice(walkable) if rng.random() < 0.9 else (rng.randint(-3, width + 3),
+                                                                  rng.randint(-3, height + 3))
+        sub = lambda: rng.choice([8, 8, rng.randint(0, 15), rng.randint(-20, 40), rng.getrandbits(32)])
+        made = rng.getrandbits(32)
+        at = (made + rng.choice([0, 0, 16, rng.randint(0, 100000)])) & 0xFFFFFFFF
+        fields = [rng.choice([4, 4, 4, 4, 4, 0, 3, 5, rng.getrandbits(32)]), rng.getrandbits(32), cx, cy, sub(), sub(),
+                  rng.choice([0, 1, 1, rng.getrandbits(32)]),
+                  rng.choice([1, 1, 5, 99, 30000, 0, -1, rng.getrandbits(32)]),
+                  rng.choice([0, 1, 1, rng.randint(2, 255), 256]), rng.choice([1, 1, 1, 0]),
+                  bits(f32(rng.choice([1.0, 1.0, 0.5, 1.25, 0.0, rng.uniform(0, 3)]))), made, at]
+        ticks, tick = [], at
+        for _ in range(rng.choice([0, 1, 3, 8, 20, 40])):
+            tick = (tick + rng.choice([0, 16, 24, 40, 100, 300, rng.randint(0, 5000)])) & 0xFFFFFFFF
+            if rng.random() < 0.1:
+                blink = rng.randint(0, 50) * 92 * 24 + rng.choice([2159, 2160, 2183, 2184, 2207, 2208])
+                tick = (at + blink) & 0xFFFFFFFF
+            elif rng.random() < 0.05:
+                tick = (at - rng.randint(1, 5000)) & 0xFFFFFFFF
+            ticks.append(tick)
+        label = rng.choice(ITEM_FORMATS)
+        lines.append("i " + " ".join([text.hex() or "-"] + [str(f & 0xFFFFFFFF) for f in fields] + tables
+                                     + [label.hex() or "-"] + [str(t) for t in ticks]))
+    return lines
+
+
+def make_corpses(name, width, height, attrs, count):
+    """The script for a map: corpses made by CGameMode::AddCorpse and faded (k,
+    docs/world/items.md): assorted names, actions, frames, facings, yaws and frame counts, updated
+    through the 255th tick, past it by a little (the alpha -1, kept) and at times before the
+    corpse was made."""
+    rng = random.Random(zlib.crc32(b"corpses " + name.encode()))
+    walkable = [(k % width, k // width) for k, a in enumerate(attrs) if a not in (1, 5)] or [(0, 0)]
+    lines = []
+    for _ in range(count):
+        cx, cy = rng.choice(walkable)
+        made = rng.getrandbits(32)
+        fields = [bits(f32(centre(cx, width))), bits(f32(rng.uniform(-20, 5))), bits(f32(centre(cy, height))),
+                  rng.choice([0, 8, 16, 24, 32, 40, rng.randint(0, 248)]), rng.choice([0, 0, 1, 5, -1, 999]),
+                  bits(f32(rng.choice([0.0, 45.0, 180.0, 359.9, -10.0, 720.0, rng.uniform(0, 360)]))),
+                  bits(f32(rng.choice([0.0, 45.0, 135.0, 270.0, rng.uniform(0, 360)]))),
+                  rng.choice([0, 1, 2, 5, 9]), made]
+        ticks, tick = [], made
+        for _ in range(rng.choice([1, 3, 8, 40, 400])):
+            tick = (tick + rng.choice([0, 16, 24, 40, 100, rng.randint(0, 3000)])) & 0xFFFFFFFF
+            if rng.random() < 0.05:
+                tick = (made + rng.choice([6119, 6120, 6143, 6144, 6167, 6168])) & 0xFFFFFFFF
+            elif rng.random() < 0.02:
+                tick = (made - rng.randint(1, 5000)) & 0xFFFFFFFF
+            ticks.append(tick)
+        names = [rng.choice([b"poring.act", b"\xc6\xf7\xb8\xb5.act", b"", b"a" * 80]) for _ in range(2)]
+        lines.append("k " + " ".join([n.hex() or "-" for n in names] + [str(f & 0xFFFFFFFF) for f in fields + ticks]))
+    return lines
+
+
 def main():
     args = path_oracle.arguments("walks per map", 40)
     ours, originals = path_oracle.run_maps(
         args, lambda *a: make_walks(*a) + make_goes(*a) + make_plays(*a) + make_tos(*a)
         + make_stands(*a) + make_enters(*a) + make_arrivals(*a) + make_effects(*a)
         + make_deaths(*a) + make_attacks(*a) + make_landings(*a) + make_casts(*a) + make_updates(*a)
-        + make_own_updates(*a) + make_orders(*a) + make_looks(*a),
+        + make_own_updates(*a) + make_orders(*a) + make_looks(*a) + make_items(*a) + make_corpses(*a),
         "walks")
     totals = {}
     for (_, lines, _), want in zip(ours, originals):
@@ -1017,7 +1104,8 @@ def main():
                    "K": "player effects ", "D": "death ", "H": "player death ", "V": "attack ",
                    "J": "player attack ", "L": "land ", "O": "player land ", "C": "cast ",
                    "R": "player cast ", "u": "update ", "p": "player update ",
-                   "o": "own update ", "m": "orders ", "c": "looks "}[line[0]] + result.split()[0]
+                   "o": "own update ", "m": "orders ", "c": "looks ", "i": "item ",
+                   "k": "corpse "}[line[0]] + result.split()[0]
             totals[key] = totals.get(key, 0) + 1
             if line[0] in "WGPTUNYEQABDHVJLOCRup" and result != "-":
                 totals["updates"] = totals.get("updates", 0) + int(result.split()[1])
@@ -1027,6 +1115,8 @@ def main():
                 totals["own messages"] = totals.get("own messages", 0) + int(result.split()[1])
             if line[0] == "c":
                 totals["player messages"] = totals.get("player messages", 0) + int(result.split()[1])
+            if line[0] in "ik":
+                totals[line[0] + " updates"] = totals.get(line[0] + " updates", 0) + int(result.split()[1])
             if line[0] in "XK":
                 totals["effect messages"] = totals.get("effect messages", 0) + int(result.split()[1])
     return path_oracle.report(ours, originals, totals, "queries")
