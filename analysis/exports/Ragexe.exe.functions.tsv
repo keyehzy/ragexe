@@ -4545,7 +4545,7 @@ entry	size	namespace	name	source	fid	thunk	calling_convention	signature
 00511800	204	Global	FUN_00511800	DEFAULT	0	0	unknown	undefined FUN_00511800()
 005118d0	61	CGameMode	IsWithinCellRange	USER_DEFINED	0	0	__thiscall	undefined IsWithinCellRange(CGameMode * this)
 00511910	41	CGameMode	ListContainsId	USER_DEFINED	0	0	__thiscall	undefined ListContainsId(CGameMode * this)
-00511940	79	CGameMode	method_00511940	USER_DEFINED	0	0	__thiscall	undefined method_00511940(CGameMode * this)
+00511940	79	CGameMode	RemoveIdFromList	USER_DEFINED	0	0	__thiscall	undefined RemoveIdFromList(CGameMode * this)
 00511990	88	CGameMode	AddIdToList	USER_DEFINED	0	0	__thiscall	undefined AddIdToList(CGameMode * this)
 005119f0	67	Global	FUN_005119f0	DEFAULT	0	0	unknown	undefined FUN_005119f0()
 00511a40	276	CGameMode	GetFreeCellToward	USER_DEFINED	0	0	__thiscall	undefined GetFreeCellToward(CGameMode * this)

@@ -277,6 +277,28 @@ DRAW_SHADOW, DRAW_BODY, INIT_JOB_NAMES = 0x501550, 0x500F70, 0x58AC70
 RESOURCE_NAME_STATIC = 0x686658
 CORPSE_FIELDS = ["x", "y", "z", "action", "frame", "facing", "yaw", "frames", "made"]
 CORPSE_UPDATE = 0x540C70
+# l: a script of the world's lists (docs/world/lists.md) on a CWorld whose lists, the actors',
+# the items' and the skills' (+8, +0x14, +0x20 and +0x2c) start empty, and CGameMode+0x198's ids
+# too, after ITEM_TABLES as i's (hex, "-" none), run op by op, each an op number and its words:
+#   0 kind id lives: a stand-in made, its id +0x1b4, its update returning 1 `lives` times and 0
+#     after, its deleting destructor recorded and not freeing; CGameMode::AddToWorldObjects
+#     (00511150) puts it at the end of the list, kind 1 an actor also at the end of the actors'
+#     (std::list::insert, 004c6e30), kind 2 the player at +0x3c;
+#   1 dropped id number identified x y sub_x sub_y count now: packet 0x009d (dropped 0) or 0x009e
+#     at timeGetTime `now` through CGameMode::HandlePacket_009D (00529780) or _009E (00529900);
+#   2 id: packet 0x00a1 (HandlePacket_00A1, 0052a070); 3 id: CGameMode::AddIdToList (00511990);
+#   4 id: CWorld::DeleteActorById (004c4b00); 5 id and 6 id: GetActorById and GetItemById;
+#   7 now: CWorld::UpdateGameObjects (004c4a10) at timeGetTime `now`; 8: ClearGameObjects (004c4c20).
+# Objects are numbered from 1 as they are made, stand-ins and CItems alike. Before the first,
+# LoadItemTables runs on the tables and msgStringTable's 0xb7 is LIST_LABEL; SetSprite and SetAct
+# record their names. After each op the hash takes the op, its result (DeleteActorById's, the
+# number found, or for a packet the number GetItemById finds after it), the numbers deleted in
+# order, each list's count and numbers, the player's number, the ids' count and ids, and each
+# listed item's +0xb0, position, +0xb4, +0x6c, +0x70 and +0x83; for a packet also the names and
+# label.
+LIST_UPDATE, LIST_DELETE_ACTOR, LIST_CLEAR, LIST_INSERT, ADD_ID = 0x4C4A10, 0x4C4B00, 0x4C4C20, 0x4C6E30, 0x511990
+ITEM_PACKETS, ITEM_GONE, ITEM_DELETER = (0x529780, 0x529900), 0x52A070, 0x53AC20
+LIST_STUB_DELETE, LIST_STUB_UPDATE, LIST_LABEL = MESSAGE_STUB + 0x60, MESSAGE_STUB + 0x70, b"%s: %d ea"
 SINGLE = 0x007F
 SPEEDS = [150, 150, 150, 100, 200, 75, 300, 120, 1, 7, 999]
 
@@ -439,7 +461,43 @@ class Oracle:
         emu.replace_thiscall(PET_LINE, 3, lambda this, a, b, c: self.pet_line)
         # The actor +0x1a8 names, which CWorld::GetActorById finds or not.
         self.target, self.target_found = emu.scratch(size=0x10), False
-        emu.replace_thiscall(GET_ACTOR_BY_ID, 1, lambda this, actor_id: self.target if self.target_found else 0)
+        self.listing = False
+
+        def unless_listing(address, nargs, fn):
+            def hook(uc, _address, _size, _):
+                if not self.listing:
+                    esp = emu.esp()
+                    args = [emu.read_u32(esp + 4 + 4 * k) for k in range(nargs)]
+                    emu.complete(fn(uc.reg_read(UC_X86_REG_ECX), *args), emu.read_u32(esp), esp + 4 + 4 * nargs)
+            emu.hook_code(address, address, hook)
+        # For l: the stand-ins' deleting destructor and update, and the CItems numbered as made and
+        # recorded as deleted.
+        self.list_numbers, self.list_deleted = {}, []
+        for stub in (LIST_STUB_DELETE, LIST_STUB_UPDATE):
+            emu.mem_write(stub, b"\xC3")
+
+        def stand_in_deleted(this, flags):
+            self.list_deleted.append(self.list_numbers.get(this, 0))
+            return this
+
+        def stand_in_update(this):
+            lives = emu.read_u32(this + 4)
+            if lives:
+                emu.write_u32(this + 4, lives - 1)
+            return 1 if lives else 0
+        emu.replace_thiscall(LIST_STUB_DELETE, 1, stand_in_deleted)
+        emu.replace_thiscall(LIST_STUB_UPDATE, 0, stand_in_update)
+
+        def item_made(uc, _address, _size, _):
+            if self.listing:
+                self.list_numbers[uc.reg_read(UC_X86_REG_ECX)] = len(self.list_numbers) + 1
+
+        def item_deleted(uc, _address, _size, _):
+            if self.listing:
+                self.list_deleted.append(self.list_numbers.get(uc.reg_read(UC_X86_REG_ECX), 0))
+        emu.hook_code(ITEM_CTOR, ITEM_CTOR, item_made)
+        emu.hook_code(ITEM_DELETER, ITEM_DELETER, item_deleted)
+        unless_listing(GET_ACTOR_BY_ID, 1, lambda this, actor_id: self.target if self.target_found else 0)
         # The body's CActRes: GetActionDelay reads the delays at +0x138..+0x13c.
         self.act = emu.scratch(size=0x144)
         self.delays = emu.scratch(size=4 * 9)
@@ -477,7 +535,7 @@ class Oracle:
             uc.reg_write(UC_X86_REG_EBP, emu.read_u32(ebp))
             emu.complete(0, emu.read_u32(ebp + 4), ebp + 8 + 0x14)
         emu.hook_code(OWN_SWITCH, OWN_SWITCH, own_switch)
-        emu.replace_thiscall(GET_ITEM_BY_ID, 1, lambda this, v: self.pursued if self.found & 2 else 0)
+        unless_listing(GET_ITEM_BY_ID, 1, lambda this, v: self.pursued if self.found & 2 else 0)
 
         def play_wave(uc, address, size, _):
             esp = emu.esp()
@@ -745,7 +803,7 @@ class Oracle:
             kind, *values = line.split()
             v = [int(x) for x in values] if kind not in ("W", "G", "P", "T", "U", "N", "Y", "E", "Q", "A", "B", "X",
                                                          "K", "D", "H", "V", "J", "L", "O", "C", "R", "u", "p",
-                                                         "o", "m", "c", "i", "k") else []
+                                                         "o", "m", "c", "i", "k", "l") else []
             self.logged = []
             if kind == "F":
                 found = emu.call(FIND_PATH, *v, self.actor + ACTOR_PATH, this=G_PATH_FINDER).eax & 0xFF
@@ -832,6 +890,8 @@ class Oracle:
                 out.append(self.dropped(values, data))
             elif kind == "k":
                 out.append(self.faded(values))
+            elif kind == "l":
+                out.append(self.kept(values, data))
         emu.heap_release(mark)
         return out
 
@@ -1244,6 +1304,128 @@ class Oracle:
             if ret == 0:
                 break
         out = f"{'gone' if ret == 0 else 'fading'} {calls} {emu.read_u32(corpse + 0x7C):08x} {h:016x}"
+        emu.heap_release(mark)
+        return out
+
+    def kept(self, values, data):
+        """A script of the world's lists, op by op, through the original's own functions."""
+        emu, world, mode = self.emu, self.world, self.mode
+        texts = [b"" if x == "-" else bytes.fromhex(x) for x in values[:len(ITEM_TABLES)]]
+        v = [int(x, 0) & 0xFFFFFFFF for x in values[len(ITEM_TABLES):]]
+        mark = emu.heap_mark()
+        files = {"data\\" + t.lower(): text for t, text in zip(ITEM_TABLES, texts) if text}
+        emu.serve_data_files({"data\\t.gat": data, **files})
+        for f in ITEM_MAP_INITS:
+            emu.call(f)
+        emu.mem_write(RESOURCE_NAME_STATIC, bytes(0x14))
+        emu.mem_write(ITEM_FALLBACK, bytes(0x78))
+        emu.mem_write(CARD_FALLBACK, bytes(0x30))
+        emu.write_u32(ITEM_GUARD, 0)
+        emu.write_u32(CARD_GUARD, 0)
+        emu.write_u32(SERVICE_TYPE, 1)
+        emu.write_u32(CODE_PAGE, 0)
+        emu.call(LOAD_ITEM_TABLES)
+        no_message = emu.cstr("")
+        strings = emu.scratch(struct.pack(f"<{LABEL_MESSAGE}I", *[no_message] * LABEL_MESSAGE)
+                              + struct.pack("<I", emu.scratch(LIST_LABEL + b"\0")))
+        emu.write_u32(MSG_STRINGS, strings)
+
+        def empty_list(at):
+            head = emu.scratch(size=12)
+            emu.write_u32(head, head)
+            emu.write_u32(head + 4, head)
+            emu.write_u32(at, head)
+            emu.write_u32(at + 4, 0)
+        for at in (0xC, 0x18, 0x24, 0x30):
+            empty_list(world + at)
+        empty_list(mode + PICKED_LIST)
+        for at in (0x3C, 0x54, 0x58):
+            emu.write_u32(world + at, 0)
+        self.listing, self.list_numbers, self.list_deleted, self.object_names = True, {}, [], [b"", b""]
+        vtable = emu.scratch(struct.pack("<2I", LIST_STUB_DELETE, LIST_STUB_UPDATE))
+
+        def listed_values(at):
+            head, values = emu.read_u32(at), []
+            node = emu.read_u32(head)
+            while node != head:
+                values.append(emu.read_u32(node + 8))
+                node = emu.read_u32(node)
+            return values
+
+        def number(address):
+            return self.list_numbers.get(address, 0) if address else 0
+        h = 0xCBF29CE484222325
+        k = 0
+        while k < len(v):
+            op = v[k]
+            words = []
+            if op == 0:
+                kind, actor_id, lives = v[k + 1:k + 4]
+                k += 4
+                stand_in = emu.scratch(size=0x300)
+                emu.write_u32(stand_in, vtable)
+                emu.write_u32(stand_in + 4, lives)
+                emu.write_u32(stand_in + 0x1B4, actor_id)
+                self.list_numbers[stand_in] = len(self.list_numbers) + 1
+                if kind == 2:
+                    emu.write_u32(world + 0x3C, stand_in)
+                emu.call(ADD_TO_WORLD, stand_in, this=mode)
+                if kind == 1:
+                    emu.call(LIST_INSERT, emu.scratch(size=4), emu.read_u32(world + 0x18), emu.scratch(
+                        struct.pack("<I", stand_in)), this=world + 0x14)
+                result = 0
+            elif op == 1:
+                dropped, item_id, item_number, identified, x, y, sub_x, sub_y, count, now = v[k + 1:k + 11]
+                k += 11
+                s16 = lambda w: w - 0x10000 if w & 0x8000 else w
+                x, y, count = (s16(w & 0xFFFF) for w in (x, y, count))
+                if dropped:
+                    packet = struct.pack("<HIHBhhBBh", 0x9E, item_id, item_number & 0xFFFF, identified & 0xFF, x, y,
+                                         sub_x & 0xFF, sub_y & 0xFF, count)
+                else:
+                    packet = struct.pack("<HIHBhhhBB", 0x9D, item_id, item_number & 0xFFFF, identified & 0xFF, x, y,
+                                         count, sub_x & 0xFF, sub_y & 0xFF)
+                self.now = now
+                self.looking, self.object_names = True, [b"", b""]
+                emu.call(ITEM_PACKETS[1 if dropped else 0], emu.scratch(packet), this=mode)
+                self.looking = False
+                found = emu.call(GET_ITEM_BY_ID, item_id, this=world).eax
+                result = number(found)
+                words = name_hash(self.string_at(found + 0xA0)) + name_hash(self.object_names[1]) + name_hash(
+                    self.object_names[0])
+            elif op == 2:
+                emu.call(ITEM_GONE, emu.scratch(struct.pack("<HI", 0xA1, v[k + 1])), this=mode)
+                k, result = k + 2, 0
+            elif op == 3:
+                emu.call(ADD_ID, v[k + 1], this=mode)
+                k, result = k + 2, 0
+            elif op == 4:
+                result = emu.call(LIST_DELETE_ACTOR, v[k + 1], this=world).eax & 0xFF
+                k += 2
+            elif op in (5, 6):
+                result = number(emu.call(GET_ACTOR_BY_ID if op == 5 else GET_ITEM_BY_ID, v[k + 1], this=world).eax)
+                k += 2
+            elif op == 7:
+                self.now = v[k + 1]
+                emu.call(LIST_UPDATE, this=world)
+                k, result = k + 2, 0
+            else:
+                emu.call(LIST_CLEAR, this=world)
+                k, result = k + 1, 0
+            words += [op, result, len(self.list_deleted), *self.list_deleted]
+            for at in (0xC, 0x18, 0x24):
+                words += [emu.read_u32(world + at + 4)] + [number(a) for a in listed_values(world + at)]
+            ids = listed_values(mode + PICKED_LIST)
+            words += [number(emu.read_u32(world + 0x3C)), emu.read_u32(mode + PICKED_LIST + 4), len(ids), *ids]
+            for item in listed_values(world + 0x24):
+                words += [emu.read_u32(item + o) for o in (0xB0, 0x4, 0x8, 0xC, 0xB4, 0x6C, 0x70)]
+                words.append(emu.mem_read(item + 0x83, 1)[0])
+            h = fnv1a64(words, h)
+            self.list_deleted = []
+        out = (f"{emu.read_u32(world + 0x10)} {emu.read_u32(world + 0x1C)} {emu.read_u32(world + 0x28)} "
+               f"{h:016x}")
+        self.listing = False
+        emu.write_u32(MSG_STRINGS, 0)
         emu.heap_release(mark)
         return out
 

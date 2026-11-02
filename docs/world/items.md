@@ -3,12 +3,11 @@
 Two of the world's objects are plain `CRenderObject`s, not actors: **`CItem`** (vtable
 `005e98ac`), an item lying on the ground, and **`CCorpse`** (vtable `005e99f0`), what a monster
 leaves when it dies ([states.md](states.md#dying)). Each has its own update (`vf01`). Both are
-in the world's list of objects (`CWorld`+8: its head +0xc, its count +0x10), which
-`CWorld::UpdateGameObjects` (`004c4a10`) updates each world step: an object whose update returns
-0 is let go (`CWorld::RemoveActor`, from the actors' list if it is there, then its destructor)
-and unlinked. Items are also in a list of their own (+0x20), by which `CWorld::GetItemById` and
-`DeleteItemById` (`004c4b60`, for packet 0x00a1) find them; an item's update always returns 1, so
-only that deletes it. The port is `src/world/ground_item`.
+in the world's list of objects (`CWorld`+8), which `CWorld::UpdateGameObjects` (`004c4a10`)
+updates each world step, letting go an object whose update returns 0. Items are also in a list
+of their own (+0x20), by which `CWorld::GetItemById` and `DeleteItemById` (`004c4b60`, for
+packet 0x00a1) find them; an item's update always returns 1, so only that deletes it
+([lists.md](lists.md)). The port is `src/world/ground_item`.
 
 | Slot | `CItem` | `CCorpse` |
 |------|---------|-----------|
@@ -151,5 +150,5 @@ the messages other than 4, shown or not and the scale; the corpse's ticks 254 to
 counts and the directions) and on a fourth, flat at −1000000, where the fall's 421st millisecond
 lands exactly on the ground and the item falls one update more.
 
-**Not ported:** the world's lists of these objects and their drawing order; `CItem`'s pick record
-is [pick.md](pick.md)'s.
+The world's lists and the packets that bring and take items are [lists.md](lists.md);
+`CItem`'s pick record is [pick.md](pick.md)'s.

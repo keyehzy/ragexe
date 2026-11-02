@@ -1087,13 +1087,79 @@ def make_corpses(name, width, height, attrs, count):
     return lines
 
 
+LIST_OP_WORDS = {0: 4, 1: 11, 2: 2, 3: 2, 4: 2, 5: 2, 6: 2, 7: 2, 8: 1}
+# The tables of l (path_oracle.ITEM_TABLES' order), each name and resource apart: the item
+# numbers make_lists sends, 32768 past a signed word's reach and 0.
+LIST_TABLES = [b"501#Red_Potion#\r\n909#Jellopy#\r\n0#Nothing#\r\n32768#Half#\r\n65535#Last#\r\n",
+               b"501#Potion?#\r\n909#Gel?#\r\n0#Nothing?#\r\n32768#Half?#\r\n65535#Last?#\r\n",
+               b"501#red_potion#\r\n909#jellopy#\r\n0#nothing#\r\n65535#last#\r\n",
+               b"501#potion_unknown#\r\n909#gel_unknown#\r\n32768#half_unknown#\r\n"]
+
+
+def list_ops(line):
+    """The ops of an l query."""
+    words, k, ops = line.split()[1 + len(LIST_TABLES):], 0, 0
+    while k < len(words):
+        k += LIST_OP_WORDS[int(words[k])]
+        ops += 1
+    return ops
+
+
+def make_lists(name, width, height, attrs, count):
+    """The script for a map: the world's lists op by op (l, docs/world/lists.md): stand-ins (an
+    object alone, an actor, the player) that live a few updates or many; items by packets 0x009d
+    and 0x009e, the ids few so that one comes again, on walkable cells and others at assorted
+    sixteenths, numbers the tables know and not, and counts, a table missing at times; packets 0x00a1, the ids asked to be picked up, actors deleted
+    and actors and items found by ids there and not; updates as time goes on, and clearing."""
+    rng = random.Random(zlib.crc32(b"lists " + name.encode()))
+    walkable = [(k % width, k // width) for k, a in enumerate(attrs) if a not in (1, 5)] or [(0, 0)]
+    actor_ids = [1, 2, 3, 4, 5, 0, -1, 0x7FFFFFFF, rng.getrandbits(32)]
+    item_ids = [100, 101, 102, 103, 0, -7, rng.getrandbits(32)]
+    lines = []
+    for _ in range(count):
+        now, ops = rng.getrandbits(32), []
+        for _ in range(rng.choice([1, 5, 20, 40, 80])):
+            r = rng.random()
+            if r < 0.2:
+                kind = rng.choice([0, 1, 1, 1, 2])
+                lives = 1000000 if kind == 2 else rng.choice([0, 1, 2, 3, 5, 1000])
+                ops += [0, kind, rng.choice(actor_ids), lives]
+            elif r < 0.45:
+                cx, cy = rng.choice(walkable) if rng.random() < 0.9 else (rng.randint(-3, width + 3),
+                                                                          rng.randint(-3, height + 3))
+                sub = lambda: rng.choice([8, 8, rng.randint(0, 15), rng.randint(0, 255)])
+                ops += [1, rng.choice([0, 1]), rng.choice(item_ids),
+                        rng.choice([501, 909, 0, 32768, 65535, rng.getrandbits(16)]),
+                        rng.choice([0, 1, 1, 2, 255]), cx, cy, sub(), sub(),
+                        rng.choice([1, 1, 5, 0, -1, 30000, 65535]), now]
+            elif r < 0.52:
+                ops += [2, rng.choice(item_ids + [555])]
+            elif r < 0.58:
+                ops += [3, rng.choice(item_ids + [555])]
+            elif r < 0.66:
+                ops += [4, rng.choice(actor_ids)]
+            elif r < 0.71:
+                ops += [5, rng.choice(actor_ids)]
+            elif r < 0.76:
+                ops += [6, rng.choice(item_ids)]
+            elif r < 0.98:
+                now = (now + rng.choice([16, 24, 24, 100, 400, 3000])) & 0xFFFFFFFF
+                ops += [7, now]
+            else:
+                ops += [8]
+        tables = [t.hex() if rng.random() < 0.95 else "-" for t in LIST_TABLES]
+        lines.append("l " + " ".join(tables + [str(w & 0xFFFFFFFF) for w in ops]))
+    return lines
+
+
 def main():
     args = path_oracle.arguments("walks per map", 40)
     ours, originals = path_oracle.run_maps(
         args, lambda *a: make_walks(*a) + make_goes(*a) + make_plays(*a) + make_tos(*a)
         + make_stands(*a) + make_enters(*a) + make_arrivals(*a) + make_effects(*a)
         + make_deaths(*a) + make_attacks(*a) + make_landings(*a) + make_casts(*a) + make_updates(*a)
-        + make_own_updates(*a) + make_orders(*a) + make_looks(*a) + make_items(*a) + make_corpses(*a),
+        + make_own_updates(*a) + make_orders(*a) + make_looks(*a) + make_items(*a) + make_corpses(*a)
+        + make_lists(*a),
         "walks")
     totals = {}
     for (_, lines, _), want in zip(ours, originals):
@@ -1105,7 +1171,10 @@ def main():
                    "J": "player attack ", "L": "land ", "O": "player land ", "C": "cast ",
                    "R": "player cast ", "u": "update ", "p": "player update ",
                    "o": "own update ", "m": "orders ", "c": "looks ", "i": "item ",
-                   "k": "corpse "}[line[0]] + result.split()[0]
+                   "k": "corpse ", "l": "lists "}[line[0]] + result.split()[0]
+            if line[0] == "l":
+                key = "lists " + ("emptied" if result.split()[0] == "0" else "kept")
+                totals["l ops"] = totals.get("l ops", 0) + list_ops(line)
             totals[key] = totals.get(key, 0) + 1
             if line[0] in "WGPTUNYEQABDHVJLOCRup" and result != "-":
                 totals["updates"] = totals.get("updates", 0) + int(result.split()[1])

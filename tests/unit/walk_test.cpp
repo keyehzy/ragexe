@@ -26,6 +26,7 @@
 #include "world/player_look.h"
 #include "world/player_orders.h"
 #include "world/player_pursuit.h"
+#include "world/world_objects.h"
 
 using ragexe::res::AttrMap;
 using ragexe::world::GameActor;
@@ -131,6 +132,7 @@ struct AttackChoiceVector {
 #include "enter_vectors.inc"
 #include "item_vectors.inc"
 #include "land_vectors.inc"
+#include "list_vectors.inc"
 #include "look_vectors.inc"
 #include "move_to_vectors.inc"
 #include "own_orders_vectors.inc"
@@ -1970,6 +1972,157 @@ std::string FadeCorpse(std::istringstream& fields) {
   return line;
 }
 
+// tools/path_oracle.py's l: the world's lists, op by op.
+std::string KeepLists(const AttrMap& map, std::istringstream& fields) {
+  constexpr const char* kTables[] = {"IdNum2ItemDisplayNameTable.txt",
+                                     "Num2ItemDisplayNameTable.txt", "IdNum2ItemResNameTable.txt",
+                                     "Num2ItemResNameTable.txt"};
+  std::map<std::string, std::vector<std::uint8_t>, std::less<>> tables;
+  for (const char* table : kTables) {
+    std::string hex;
+    fields >> hex;
+    std::vector<std::uint8_t> text;
+    for (std::size_t k = 0; hex != "-" && k + 1 < hex.size(); k += 2)
+      text.push_back(static_cast<std::uint8_t>(std::stoi(hex.substr(k, 2), nullptr, 16)));
+    if (!text.empty()) tables.emplace(table, std::move(text));
+  }
+  std::vector<std::uint32_t> v;
+  for (std::string token; fields >> token;)
+    v.push_back(static_cast<std::uint32_t>(std::stoll(token, nullptr, 0)));
+  ragexe::res::ItemTables items;
+  std::string error;
+  REQUIRE(ragexe::res::LoadItemTables(
+      [&tables](std::string_view name) -> std::optional<std::vector<std::uint8_t>> {
+        const auto found = tables.find(name);
+        if (found == tables.end()) return std::nullopt;
+        return found->second;
+      },
+      {}, items, &error));
+  ragexe::world::WorldObjects world;
+  std::vector<std::int32_t> picked;
+  std::map<const void*, std::uint32_t> numbers;
+  std::map<const void*, std::uint32_t> lives;
+  const auto address = [](const ragexe::world::WorldObject& object) {
+    return std::visit([](const auto& x) -> const void* { return &x; }, object);
+  };
+  const auto number = [&numbers](const void* at) -> std::uint32_t {
+    const auto found = numbers.find(at);
+    return found == numbers.end() ? 0 : found->second;
+  };
+  const auto listed = [&] {
+    std::vector<std::uint32_t> out;
+    for (const auto& object : world.objects()) out.push_back(number(address(*object)));
+    return out;
+  };
+  std::uint64_t h = 0xcbf29ce484222325ull;
+  for (std::size_t k = 0; k < v.size();) {
+    const std::uint32_t op = v[k];
+    const std::vector<std::uint32_t> before = listed();
+    std::uint32_t result = 0;
+    std::uint64_t names = h;
+    bool named = false;
+    const auto id = [&v, k] { return static_cast<std::int32_t>(v[k + 1]); };
+    if (op == 0) {
+      const void* made = nullptr;
+      if (v[k + 1] == 2) {
+        made = &world.CreatePlayer({});
+      } else if (v[k + 1] == 1) {
+        GameActor actor;
+        actor.id = static_cast<std::int32_t>(v[k + 2]);
+        made = &world.AddActor(std::move(actor));
+      } else {
+        made = address(world.Add(ragexe::world::CorpseObject{}));
+      }
+      numbers[made] = static_cast<std::uint32_t>(numbers.size() + 1);
+      lives[made] = v[k + 3];
+      k += 4;
+    } else if (op == 1) {
+      const bool dropped = v[k + 1] != 0;
+      std::array<std::uint8_t, ragexe::world::kItemPacketSize> packet{};
+      const auto put = [&packet](std::size_t at, std::uint32_t x, std::size_t n) {
+        for (std::size_t b = 0; b < n; ++b)
+          packet[at + b] = static_cast<std::uint8_t>(x >> (8 * b));
+      };
+      put(0, dropped ? 0x9e : 0x9d, 2);
+      put(2, v[k + 2], 4);
+      put(6, v[k + 3], 2);
+      put(8, v[k + 4], 1);
+      put(9, v[k + 5], 2);
+      put(0xb, v[k + 6], 2);
+      put(dropped ? 0xd : 0xf, v[k + 7], 1);
+      put(dropped ? 0xe : 0x10, v[k + 8], 1);
+      put(dropped ? 0xf : 0xd, v[k + 9], 2);
+      const ragexe::world::GroundItemArrival record =
+          dropped ? ragexe::world::ItemDropped(packet) : ragexe::world::ItemInView(packet);
+      const bool fresh = world.FindItem(record.id) == nullptr;
+      const ragexe::world::GroundItem& item =
+          ragexe::world::ShowGroundItem(world, record, map, {&items, "%s: %d ea"}, v[k + 10]);
+      if (fresh) numbers[&item] = static_cast<std::uint32_t>(numbers.size() + 1);
+      result = number(world.FindItem(record.id));
+      names = FoldName(FoldName(FoldName(h, item.label), item.sprite_name), item.act_name);
+      named = true;
+      k += 11;
+    } else if (op == 2) {
+      ragexe::world::RemoveGroundItem(world, &picked, id());
+      k += 2;
+    } else if (op == 3) {
+      picked.push_back(id());
+      k += 2;
+    } else if (op == 4) {
+      result = world.DeleteActor(id()) ? 1 : 0;
+      k += 2;
+    } else if (op == 5 || op == 6) {
+      result = op == 5 ? number(world.FindActor(id())) : number(world.FindItem(id()));
+      k += 2;
+    } else if (op == 7) {
+      const std::uint32_t at = v[k + 1];
+      world.Update([&](ragexe::world::WorldObject& object) {
+        if (auto* item = std::get_if<ragexe::world::GroundItem>(&object)) {
+          ragexe::world::UpdateGroundItem(*item, map, at);
+          return true;
+        }
+        std::uint32_t& left = lives[address(object)];
+        if (left == 0) return false;
+        --left;
+        return true;
+      });
+      k += 2;
+    } else {
+      world.Clear();
+      k += 1;
+    }
+    if (named) h = names;
+    const std::vector<std::uint32_t> after = listed();
+    std::vector<std::uint32_t> deleted;
+    for (const std::uint32_t n : before)
+      if (std::ranges::find(after, n) == after.end()) deleted.push_back(n);
+    std::vector<std::uint32_t> words = {op, result, static_cast<std::uint32_t>(deleted.size())};
+    words.insert(words.end(), deleted.begin(), deleted.end());
+    words.push_back(static_cast<std::uint32_t>(after.size()));
+    words.insert(words.end(), after.begin(), after.end());
+    words.push_back(static_cast<std::uint32_t>(world.actors().size()));
+    for (const GameActor* actor : world.actors()) words.push_back(number(actor));
+    words.push_back(static_cast<std::uint32_t>(world.items().size()));
+    for (const ragexe::world::GroundItem* item : world.items()) words.push_back(number(item));
+    words.push_back(number(world.player()));
+    words.push_back(static_cast<std::uint32_t>(picked.size()));
+    words.push_back(static_cast<std::uint32_t>(picked.size()));
+    for (const std::int32_t picked_id : picked)
+      words.push_back(static_cast<std::uint32_t>(picked_id));
+    for (const ragexe::world::GroundItem* item : world.items()) {
+      const auto& o = item->object;
+      words.insert(words.end(), {static_cast<std::uint32_t>(item->id), Bits(o.position[0]),
+                                 Bits(o.position[1]), Bits(o.position[2]), item->falling ? 1u : 0u,
+                                 o.keyed_at, o.start_time, o.keyed ? 1u : 0u});
+    }
+    for (const std::uint32_t x : words) h = Fold(h, x);
+  }
+  char line[64];
+  std::snprintf(line, sizeof line, "%zu %zu %zu %016llx", world.objects().size(),
+                world.actors().size(), world.items().size(), static_cast<unsigned long long>(h));
+  return line;
+}
+
 }  // namespace
 
 TEST_CASE("Actors walk their paths as the original's CGameActor::ProcessState does", "[walk]") {
@@ -2580,6 +2733,56 @@ TEST_CASE(
     const std::string got = kind == 'i' ? DropItem(map, fields) : FadeCorpse(fields);
     CHECK(got == v.result);
   }
+}
+
+TEST_CASE(
+    "The world's lists are the original's CWorld's: updates, finds, deletes and the item packets",
+    "[walk]") {
+  int current = -1;
+  AttrMap map;
+  for (const StateQueryVector& v : kListQueries) {
+    if (v.map != current) {
+      current = v.map;
+      map = MakeMap(kWalkMaps[current]);
+    }
+    INFO(current << ": " << v.query);
+    std::istringstream fields(v.query);
+    char kind = 0;
+    fields >> kind;
+    CHECK(KeepLists(map, fields) == v.result);
+  }
+}
+
+TEST_CASE("Objects that join the world's list during an update are updated in that update",
+          "[walk]") {
+  // CWorld::UpdateGameObjects reads the next node after each update (004c4aa1), so a corpse an
+  // actor leaves at the end is reached in the same pass.
+  ragexe::world::WorldObjects world;
+  GameActor actor;
+  actor.id = 1;
+  world.AddActor(std::move(actor));
+  std::vector<std::size_t> updated;
+  world.Update([&](ragexe::world::WorldObject& object) {
+    updated.push_back(object.index());
+    if (std::holds_alternative<GameActor>(object)) {
+      world.Add(ragexe::world::CorpseObject{});
+      return false;
+    }
+    return true;
+  });
+  CHECK(updated == std::vector<std::size_t>{0, 3});
+  CHECK(world.objects().size() == 1);
+  CHECK(world.actors().empty());
+}
+
+TEST_CASE("The own player let go by its update is no longer the world's player", "[walk]") {
+  ragexe::world::WorldObjects world;
+  world.CreatePlayer({});
+  CHECK(world.player() != nullptr);
+  CHECK_FALSE(world.DeleteActor(0));
+  world.Update([](ragexe::world::WorldObject&) { return false; });
+  CHECK(world.player() == nullptr);
+  CHECK(world.objects().empty());
 }
 
 TEST_CASE("An item sent message 4 again falls only if this one drops it", "[walk]") {

@@ -129,6 +129,7 @@
 #include "world/path_finder.h"
 #include "world/player_look.h"
 #include "world/player_orders.h"
+#include "world/world_objects.h"
 
 namespace {
 
@@ -688,6 +689,10 @@ int DecodeGats(const std::vector<std::string>& files) {
 //                                              none (ITEM_FIELDS)
 //   k ACT SPRITE CORPSE... TICK...             a CCorpse made by CGameMode::AddCorpse and faded,
 //                                              its names as hex (CORPSE_FIELDS)
+//   l TABLES*4 (OP WORDS...)...                the world's lists, op by op: stand-ins added,
+//                                              items' packets, finds, deletes, updates and
+//                                              clearing, the item tables as i's
+//                                              (path_oracle.py's l)
 // Prints for F and M "RESULT MOVE_TIME FIELD_0X10 START_X START_Y COUNT HASH" (the result
 // found, same, none or overflow; the move time "-" for F; the start as float bits; the
 // hash FNV-1a over each step's x, y, dir and time), for I the result, and for S "INDEX
@@ -701,7 +706,8 @@ int DecodeGats(const std::vector<std::string>& files) {
 // settled (out of state 13 with no window left); for u and p the same with the end staying or
 // faded, the action unsigned, and for o as for p; for X, K and m the same with "sent" and the
 // messages' count; for i "STATE UPDATES Y KEYED HASH", the state falling or lying, and for k
-// "END UPDATES COLOR HASH", the end fading or gone.
+// "END UPDATES COLOR HASH", the end fading or gone; for l "OBJECTS ACTORS ITEMS HASH", the
+// lists' counts at the end.
 int FindPaths(const std::string& gat, const std::string& queries) {
   ragexe::res::AttrMap map;
   std::string error;
@@ -1005,6 +1011,173 @@ int FindPaths(const std::string& gat, const std::string& queries) {
       }
       std::printf("%s %d %08x %016llx\n", kept ? "fading" : "gone", updates, o.color,
                   static_cast<unsigned long long>(h));
+    } else if (kind == "l") {
+      constexpr std::string_view kTables[] = {
+          "IdNum2ItemDisplayNameTable.txt", "Num2ItemDisplayNameTable.txt",
+          "IdNum2ItemResNameTable.txt", "Num2ItemResNameTable.txt"};
+      std::map<std::string, std::vector<std::uint8_t>, std::less<>> tables;
+      for (const std::string_view table : kTables) {
+        std::string hex;
+        fields >> hex;
+        std::vector<std::uint8_t> text;
+        for (std::size_t k = 0; hex != "-" && k + 1 < hex.size(); k += 2)
+          text.push_back(static_cast<std::uint8_t>(std::stoi(hex.substr(k, 2), nullptr, 16)));
+        if (!text.empty()) tables.emplace(table, std::move(text));
+      }
+      std::vector<std::uint32_t> v;
+      for (std::string token; fields >> token;)
+        v.push_back(static_cast<std::uint32_t>(std::stoll(token, nullptr, 0)));
+      ragexe::res::ItemTables items;
+      if (!ragexe::res::LoadItemTables(
+              [&tables](std::string_view name) -> std::optional<std::vector<std::uint8_t>> {
+                const auto found = tables.find(name);
+                if (found == tables.end()) return std::nullopt;
+                return found->second;
+              },
+              {}, items, &error)) {
+        std::fprintf(stderr, "item tables: %s\n", error.c_str());
+        return 2;
+      }
+      constexpr std::string_view kLabel = "%s: %d ea";
+      ragexe::world::WorldObjects world;
+      std::vector<std::int32_t> picked;
+      std::map<const void*, std::uint32_t> numbers;
+      std::map<const void*, std::uint32_t> lives;
+      const auto address = [](const ragexe::world::WorldObject& object) {
+        return std::visit([](const auto& x) -> const void* { return &x; }, object);
+      };
+      const auto number = [&numbers](const void* at) -> std::uint32_t {
+        const auto found = numbers.find(at);
+        return found == numbers.end() ? 0 : found->second;
+      };
+      const auto listed = [&] {
+        std::vector<std::uint32_t> out;
+        for (const auto& object : world.objects()) out.push_back(number(address(*object)));
+        return out;
+      };
+      std::vector<std::uint32_t> words;
+      const auto name_words = [&words](std::string_view name) {
+        const std::uint64_t n =
+            Fnv1a64(std::span(reinterpret_cast<const std::uint8_t*>(name.data()), name.size()));
+        words.push_back(static_cast<std::uint32_t>(n));
+        words.push_back(static_cast<std::uint32_t>(n >> 32));
+      };
+      std::uint64_t h = 0xcbf29ce484222325ull;
+      for (std::size_t k = 0; k < v.size();) {
+        const std::uint32_t op = v[k];
+        const std::vector<std::uint32_t> before = listed();
+        std::uint32_t result = 0;
+        words.clear();
+        const auto id = [&v, k] { return static_cast<std::int32_t>(v[k + 1]); };
+        if (op == 0) {
+          const void* made = nullptr;
+          if (v[k + 1] == 2) {
+            made = &world.CreatePlayer({});
+          } else if (v[k + 1] == 1) {
+            ragexe::world::GameActor actor;
+            actor.id = static_cast<std::int32_t>(v[k + 2]);
+            made = &world.AddActor(std::move(actor));
+          } else {
+            made = address(world.Add(ragexe::world::CorpseObject{}));
+          }
+          numbers[made] = static_cast<std::uint32_t>(numbers.size() + 1);
+          lives[made] = v[k + 3];
+          k += 4;
+        } else if (op == 1) {
+          const bool dropped = v[k + 1] != 0;
+          std::array<std::uint8_t, ragexe::world::kItemPacketSize> packet{};
+          const auto put = [&packet](std::size_t at, std::uint32_t x, std::size_t n) {
+            for (std::size_t b = 0; b < n; ++b)
+              packet[at + b] = static_cast<std::uint8_t>(x >> (8 * b));
+          };
+          put(0, dropped ? 0x9e : 0x9d, 2);
+          put(2, v[k + 2], 4);
+          put(6, v[k + 3], 2);
+          put(8, v[k + 4], 1);
+          put(9, v[k + 5], 2);
+          put(0xb, v[k + 6], 2);
+          if (dropped) {
+            put(0xd, v[k + 7], 1);
+            put(0xe, v[k + 8], 1);
+            put(0xf, v[k + 9], 2);
+          } else {
+            put(0xd, v[k + 9], 2);
+            put(0xf, v[k + 7], 1);
+            put(0x10, v[k + 8], 1);
+          }
+          const ragexe::world::GroundItemArrival record =
+              dropped ? ragexe::world::ItemDropped(packet) : ragexe::world::ItemInView(packet);
+          const bool fresh = world.FindItem(record.id) == nullptr;
+          const ragexe::world::GroundItem& item =
+              ragexe::world::ShowGroundItem(world, record, map, {&items, kLabel}, v[k + 10]);
+          if (fresh) numbers[&item] = static_cast<std::uint32_t>(numbers.size() + 1);
+          result = number(world.FindItem(record.id));
+          name_words(item.label);
+          name_words(item.sprite_name);
+          name_words(item.act_name);
+          k += 11;
+        } else if (op == 2) {
+          ragexe::world::RemoveGroundItem(world, &picked, id());
+          k += 2;
+        } else if (op == 3) {
+          picked.push_back(id());
+          k += 2;
+        } else if (op == 4) {
+          result = world.DeleteActor(id()) ? 1 : 0;
+          k += 2;
+        } else if (op == 5 || op == 6) {
+          result = op == 5 ? number(world.FindActor(id())) : number(world.FindItem(id()));
+          k += 2;
+        } else if (op == 7) {
+          const std::uint32_t at = v[k + 1];
+          world.Update([&](ragexe::world::WorldObject& object) {
+            if (auto* item = std::get_if<ragexe::world::GroundItem>(&object)) {
+              ragexe::world::UpdateGroundItem(*item, map, at);
+              return true;
+            }
+            std::uint32_t& left = lives[address(object)];
+            if (left == 0) return false;
+            --left;
+            return true;
+          });
+          k += 2;
+        } else {
+          world.Clear();
+          k += 1;
+        }
+        const std::vector<std::uint32_t> after = listed();
+        std::vector<std::uint32_t> deleted;
+        for (const std::uint32_t n : before)
+          if (std::ranges::find(after, n) == after.end()) deleted.push_back(n);
+        words.insert(words.end(), {op, result, static_cast<std::uint32_t>(deleted.size())});
+        words.insert(words.end(), deleted.begin(), deleted.end());
+        words.push_back(static_cast<std::uint32_t>(after.size()));
+        words.insert(words.end(), after.begin(), after.end());
+        words.push_back(static_cast<std::uint32_t>(world.actors().size()));
+        for (const ragexe::world::GameActor* actor : world.actors()) words.push_back(number(actor));
+        words.push_back(static_cast<std::uint32_t>(world.items().size()));
+        for (const ragexe::world::GroundItem* item : world.items()) words.push_back(number(item));
+        words.push_back(number(world.player()));
+        words.push_back(static_cast<std::uint32_t>(picked.size()));
+        words.push_back(static_cast<std::uint32_t>(picked.size()));
+        for (const std::int32_t picked_id : picked)
+          words.push_back(static_cast<std::uint32_t>(picked_id));
+        for (const ragexe::world::GroundItem* item : world.items()) {
+          const auto& o = item->object;
+          words.insert(words.end(),
+                       {static_cast<std::uint32_t>(item->id), FloatBits(o.position[0]),
+                        FloatBits(o.position[1]), FloatBits(o.position[2]), item->falling ? 1u : 0u,
+                        o.keyed_at, o.start_time, o.keyed ? 1u : 0u});
+        }
+        for (const std::uint32_t x : words) {
+          const std::uint8_t le[4] = {
+              static_cast<std::uint8_t>(x), static_cast<std::uint8_t>(x >> 8),
+              static_cast<std::uint8_t>(x >> 16), static_cast<std::uint8_t>(x >> 24)};
+          h = Fnv1a64(le, h);
+        }
+      }
+      std::printf("%zu %zu %zu %016llx\n", world.objects().size(), world.actors().size(),
+                  world.items().size(), static_cast<unsigned long long>(h));
     } else if (kind == "G" || kind == "P" || kind == "T" || kind == "U" || kind == "N" ||
                kind == "Y" || kind == "E" || kind == "Q" || kind == "A" || kind == "B" ||
                kind == "X" || kind == "K" || kind == "D" || kind == "H" || kind == "V" ||

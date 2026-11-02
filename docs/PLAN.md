@@ -3084,6 +3084,26 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Labels:** `CItem`'s `SetItemDefaults`, `Update`, `SendMsg` and `Render`; `CCorpse`'s
     `SetCorpseDefaults`, `Update` and `SendMsg`; `ClientState::GetItemResourceName`.
 
+- [x] The world's lists (`docs/world/lists.md`, `src/world/world_objects`): `CWorld`'s list of
+  objects and the actors' and items' lists, the own player apart; `UpdateGameObjects`
+  (`004c4a10`) letting go the objects whose update returns 0 (`RemoveActor`, `004c4ab0`);
+  `GetActorById`, `GetItemById`, `DeleteActorById`, `DeleteItemById` and `DeleteGameObject`;
+  `ClearGameObjects` and `CreatePlayer`. The item packets' world side: 0x009d and 0x009e's
+  records (`HandlePacket_009D`, `00529780`, and `_009E`, `00529900`), the item found again or
+  made at the end of both lists, then message 4; 0x00a1 (`0052a070`) deleting it and the id
+  out of the picked list (`RemoveIdFromList`, `00511940`).
+  - **Found on the way:** objects that join the list during an update are updated in that pass
+    (the next node is read after each update); neither `CItem`'s nor `CSkill`'s update ever
+    returns 0, so only packets 0x00a1 and 0x0120 let them go; an object let go stays in the
+    items', skills' and player's places if it was there; `CreatePlayer` leaves a player there
+    before in the list; four functions beside these have no callers.
+  - **Checks:** `tools/walk_oracle.py`'s `l` on all 287 maps, scripts through the original's own
+    list functions and packet handlers with stand-ins and real `CItem`s: 11,480 scripts through
+    332,468 ops; 339,930 queries in all, the older counts unchanged and the older vector files
+    regenerate byte-identical. `list_vectors.inc` keeps 60 scripts on the three maps and 8 chosen
+    ones.
+  - **Labels:** `CGameMode::RemoveIdFromList`.
+
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

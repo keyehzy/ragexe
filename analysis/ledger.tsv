@@ -4545,7 +4545,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00511800	204	code	0	game	unreferenced	raw	Global	FUN_00511800	
 005118d0	61	code	0	game		named	CGameMode	IsWithinCellRange	
 00511910	41	code	0	game		named	CGameMode	ListContainsId	
-00511940	79	code	0	game		named	CGameMode	method_00511940	
+00511940	79	code	0	game		named	CGameMode	RemoveIdFromList	
 00511990	88	code	0	game		named	CGameMode	AddIdToList	
 005119f0	67	code	0	game	unreferenced	raw	Global	FUN_005119f0	
 00511a40	276	code	0	game		named	CGameMode	GetFreeCellToward	
