@@ -117,6 +117,23 @@ TEST_CASE("items move from their centre to their top-left corner") {
   CHECK(halved.y == -3);
 }
 
+TEST_CASE("items move at the x87's precision") {
+  // As poring.act's action 32, frame 2, item 8 in x: an image 13 wide at 0.6, centred at -3.
+  ActItem item;
+  item.x = -3;
+  item.y = -3;
+  item.scale_x = 0.6f;
+  item.scale_y = 0.6f;
+  ActItem single = item;
+  AdjustActItem(item, {13, 13, false, false}, ragexe::res::FpuPrecision::kDouble);
+  AdjustActItem(single, {13, 13, false, false}, ragexe::res::FpuPrecision::kSingle);
+  // (-3 - 7 * 0.6) / 0.6: -11.99999... in double, but -12 once each step is a float.
+  CHECK(item.x == -11);
+  CHECK(item.y == -11);
+  CHECK(single.x == -12);
+  CHECK(single.y == -12);
+}
+
 TEST_CASE("each version's layout") {
   for (int version : {0x101, 0x200, 0x201, 0x202, 0x203, 0x204, 0x205}) {
     INFO("version " << std::hex << version);

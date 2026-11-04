@@ -156,13 +156,28 @@ the direction and at the frame given. Each is drawn through `CPc::Render`
 palette and the head in the hair's, each quad through `AddSpriteQuad` with the palette it is
 drawn in.
 
-**Resources by name.** Each sprite, actions, `.imf` and palette is loaded once by its name and
-shared, as `ResourceManager` keeps one resource for a name. That matters to the sprite cache,
-which tells images and palettes apart by address: two monsters of one job draw the same images,
-and the second finds the first's slots.
+`--item ID IDENTIFIED DROPPED SUB_X SUB_Y DX DY` adds items after the players, each as
+`CItem`'s constructor and its message 4 leave one ([world/items.md](../world/items.md)): the id
+as text, identified or not, dropped (15 above the ground, where it stays, as no update runs) or
+not, at those sixteenths of the cell DX and DY from the player's, its pick id counting from 1.
+Each is drawn through `CItem::Render`: its shadow at 0.4 of its scale, then its body.
+
+`--corpse JOB ACTION FRAME FACING DX DY` adds corpses last, each as `CGameMode::AddCorpse` makes
+one when a monster of the job dies (`CGameActor::LeaveCorpse`), in the centre of its cell: its
+names are the monster's actions and sprite as `CRes::GetName` gives them, lower-cased under
+`sprite\`. Each is drawn through `CRenderObject::Render` (`00501870`): its shadow at its scale,
+then its body.
+
+**Resources by name.** The frame keeps its sprites, actions, `.imf` files and palettes in a
+`res::ResourceManager`, as the client does: one resource for a name, whatever its case and
+whether it starts with its type's folder. That matters to the sprite cache, which tells images
+and palettes apart by address: two monsters of one job draw the same images, and so does a
+monster's corpse, though it asks for `sprite\몬스터\poring.spr` where the monster asked for
+`몬스터\poring.spr`. The actions load at the single precision of the client's main thread
+([formats/act.md](../formats/act.md#in-the-port)).
 
 Only 8-bit images are drawn: a 32-bit image's texture is made as `CSprRes` loads, which is not
-followed. No player's sprite has one.
+followed. No player's or item's sprite has one.
 
 **The vertices** (`FrameDraws`). Each draw first multiplies the primitive's texture
 coordinates by its texture's uv scale, in place, at the x87's single precision
@@ -213,26 +228,32 @@ textures in the order made, then each frame's device calls.
 - **The result:** all 287 maps are equal, three frames each: 21,308 textures made, 267,611
   device calls and 215,472 draws. The textures listed also count the renderer's 50 spare
   sprite page textures, which the original makes before any map's.
-- **With actors** (`--npc`, `--pc`): each `JOB DX DY` is a `CNpc` in the original's world list
-  (`CWorld`+8), made by its constructor, its job named by `vf16` (its sprite and actions
-  loaded for real, from a second cache of the archives' `.spr`, `.act`, `.imf` and `.pal`
-  files), its shadow set, in the centre of its cell. Each `--pc` is a `CPc` after them, made by
-  its constructor (`00541fb0`) and dressed by its `vf14` (`00542c50`) with the name tables
-  `ClientState::InitNameTables` fills, its base action, action and frame set (+0x20, +0x24,
-  +0x28). `CNpc::Render` records its pick bounds in
-  `g_CActorPickNode`, which the oracle constructs and clears before each frame as `OnFrame`
-  does. `timeGetTime` answers 1,000,000 ms in the first frame and 16 more in each after, and
-  `ragres draw-frame` takes the same times. `ctest` runs two maps with the actors below
-  (`frame_oracle_actors`).
-- **The result with actors:** all 287 maps are equal, three frames each, with fifteen actors
-  about the player:
+- **With the world's objects** (`--npc`, `--pc`, `--item`, `--corpse`): each `JOB DX DY` is a
+  `CNpc` in the original's world list (`CWorld`+8), made by its constructor, its job named by
+  `vf16` (its sprite and actions loaded for real, from a second cache of the archives' `.spr`,
+  `.act`, `.imf` and `.pal` files), its shadow set, in the centre of its cell. Each `--pc` is a
+  `CPc` after them, made by its constructor (`00541fb0`) and dressed by its `vf14` (`00542c50`)
+  with the name tables `ClientState::InitNameTables` fills, its base action, action and frame
+  set (+0x20, +0x24, +0x28). Each `--item` is a `CItem` after those, made by its constructor
+  (`0053abb0`) and sent message 4 with the item tables `LoadItemTables` loads. Each `--corpse`
+  comes last, from `CGameMode::AddCorpse` with the names a `CNpc` of the job gives.
+  `CNpc::Render` records its pick bounds in `g_CActorPickNode`, which the oracle constructs and
+  clears before each frame as `OnFrame` does. `timeGetTime` answers 1,000,000 ms in the first
+  frame and 16 more in each after, and `ragres draw-frame` takes the same times. `ctest` runs
+  two maps with the objects below (`frame_oracle_actors`).
+- **The result with the world's objects:** all 287 maps are equal, three frames each, with
+  thirty objects about the player:
   - three NPCs and four monsters (jobs 50, 84, 120, 1002 twice, 1013 and 1031);
   - eight players: a swordsman swinging a sword at frame 5, where its glow shows; a
     swordswoman with a shield in action 0x20; an acolyte in three headgear, turned away; a
     thief and an archer attacking; three novices alike but for their palettes, two in one
-    colour and one in its sprite's own.
+    colour and one in its sprite's own;
+  - six items: two red potions, a knife unidentified and dropped, a sword identified (its
+    sprite not the unidentified one's), a jellopy and an unidentified shirt;
+  - three corpses: two porings, one at action 32, frame 2, where single precision moves an
+    item ([formats/act.md](../formats/act.md)), and a poporing.
 
-  35,658 textures made, the spares included, 337,531 device calls and 257,201 draws. Every
+  35,658 textures made, the spares included, 371,577 device calls and 277,831 draws. Every
   sprite page took a spare.
 - **Found by the patches' maps:**
   - the lava of `mag_dun01` and `mag_dun02` is coloured by the ambient colour
@@ -255,7 +276,8 @@ textures in the order made, then each frame's device calls.
   frames and rewound after each: the order of every node's address.
 
 **What the frames leave out:**
-- **No player or other objects:** `CWorld::CreatePlayer` is stood in, so the list at
-  `CWorld`+0xc is empty.
+- **No own player:** `CWorld::CreatePlayer` is stood in, so the list at `CWorld`+0xc holds only
+  the objects the options put there, and none without them. No object is updated: each is
+  drawn as it was made.
 - **No sky, Granny models, effects, UI or cursor.**
 - **`WorldColorFade::Update`** is not run, so the fade keeps the values the load left.

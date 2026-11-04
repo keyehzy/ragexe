@@ -282,8 +282,9 @@ bool LoadActorSprite(const res::DataFiles& files, const std::string& name,
     }
     return std::nullopt;
   };
+  // Loaded on the main thread, at FPUSETUP's single precision.
   if (!Load(files, "data\\sprite\\" + name + ".act", bytes) ||
-      !res::DecodeAct(bytes, lookup, out.act, &ignored))
+      !res::DecodeAct(bytes, lookup, out.act, &ignored, res::FpuPrecision::kSingle))
     return false;
   for (const res::SpriteImage& image : out.sprite.images) {
     const std::vector<std::uint8_t> indices = image.Decode();

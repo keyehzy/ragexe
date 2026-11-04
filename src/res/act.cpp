@@ -79,17 +79,26 @@ bool ReadItem(Reader& r, std::uint16_t version, ActItem& item, ActImageSize& sto
 
 }  // namespace
 
-void AdjustActItem(ActItem& item, const ActImageSize& size) {
+void AdjustActItem(ActItem& item, const ActImageSize& size, FpuPrecision precision) {
   const std::int32_t w = size.halved_x ? size.width * 2 : size.width;
   const std::int32_t h = size.halved_y ? size.height * 2 : size.height;
-  const double sx = item.scale_x;
-  const double sy = item.scale_y;
-  item.x = core::Ftol((item.x - HalfRoundedAway(w) * sx) / sx);
-  item.y = core::Ftol((item.y - HalfRoundedAway(h) * sy) / sy);
+  // fild of the coordinate and of the half, fmul and fsubp, fdiv: at single precision each of
+  // the three operations rounds to a float. A double operation rounded to a float rounds as the
+  // x87 does, a double's 53 bits being more than twice a float's 24 and 2.
+  const auto adjust = [precision](std::int32_t v, std::int32_t half, float scale) {
+    const double s = scale;
+    if (precision == FpuPrecision::kDouble) return core::Ftol((v - half * s) / s);
+    const auto f = [](double x) { return static_cast<double>(static_cast<float>(x)); };
+    const double product = f(half * s);
+    const double difference = f(v - product);
+    return core::Ftol(f(difference / s));
+  };
+  item.x = adjust(item.x, HalfRoundedAway(w), item.scale_x);
+  item.y = adjust(item.y, HalfRoundedAway(h), item.scale_y);
 }
 
 bool DecodeAct(std::span<const std::uint8_t> data, const ActImageLookup& lookup, Act& out,
-               std::string* error) {
+               std::string* error, FpuPrecision precision) {
   out = Act{};
   Reader r(data);
   std::span<const std::uint8_t> header;
@@ -121,12 +130,12 @@ bool DecodeAct(std::span<const std::uint8_t> data, const ActImageLookup& lookup,
         if (!ReadItem(r, out.version, item, stored)) return Fail(error, "the file is truncated");
         if (out.version < 0x200 || item.image == -1) continue;
         if (out.version >= 0x205) {
-          AdjustActItem(item, stored);
+          AdjustActItem(item, stored, precision);
           continue;
         }
         const auto size = lookup ? lookup(item.image_type, item.image) : std::nullopt;
         if (!size) return Fail(error, "Error While Load Act");
-        AdjustActItem(item, *size);
+        AdjustActItem(item, *size, precision);
       }
       if (out.version >= 0x200) {
         if (!r.I32(frame.event)) return Fail(error, "the file is truncated");
@@ -169,7 +178,9 @@ bool DecodeAct(std::span<const std::uint8_t> data, const ActImageLookup& lookup,
   return true;
 }
 
-std::unique_ptr<Resource> ActRes::Clone() const { return std::make_unique<ActRes>(manager_); }
+std::unique_ptr<Resource> ActRes::Clone() const {
+  return std::make_unique<ActRes>(manager_, precision_);
+}
 
 bool ActRes::Load(const DataFiles& files, std::string_view path) {
   DataFile file;
@@ -203,13 +214,13 @@ bool ActRes::Load(const DataFiles& files, std::string_view path) {
     return std::nullopt;
   };
   error_.clear();
-  return DecodeAct(file.data(), lookup, act_, &error_);
+  return DecodeAct(file.data(), lookup, act_, &error_, precision_);
 }
 
 void ActRes::Reset() { act_ = Act{}; }
 
-void RegisterActTypes(ResourceManager& manager) {
-  manager.RegisterType("act", "sprite\\", std::make_unique<ActRes>(&manager));
+void RegisterActTypes(ResourceManager& manager, FpuPrecision precision) {
+  manager.RegisterType("act", "sprite\\", std::make_unique<ActRes>(&manager, precision));
 }
 
 }  // namespace ragexe::res

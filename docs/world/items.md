@@ -150,5 +150,9 @@ the messages other than 4, shown or not and the scale; the corpse's ticks 254 to
 counts and the directions) and on a fourth, flat at −1000000, where the fall's 421st millisecond
 lands exactly on the ground and the item falls one update more.
 
+**In whole frames,** the frame oracle draws items and corpses with the rest of the world, every
+call and vertex against the original's ([render/frame.md](../render/frame.md#in-the-port)):
+real `CItem`s sent message 4 with the real item tables, and real corpses from `AddCorpse`.
+
 The world's lists and the packets that bring and take items are [lists.md](lists.md);
 `CItem`'s pick record is [pick.md](pick.md)'s.

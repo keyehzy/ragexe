@@ -3192,6 +3192,30 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     (`tests/unit/player_test.cpp` checks the offset kept between players).
   - **Labels:** `CPc::ResetPcFields`.
 
+- [x] Items and corpses in whole frames (`docs/render/frame.md#in-the-port`): `ragres draw-frame`
+  and the frame oracle's `--item` and `--corpse` put items on the ground, in the original real
+  `CItem`s (`0053abb0`) sent message 4 with the real item tables, and monsters' corpses, made by
+  `CGameMode::AddCorpse` with the names `GetActName` and `GetSpriteName` give a `CNpc` of the
+  job, as `LeaveCorpse` passes them. An item draws through `CItem::Render`, a corpse through
+  `CRenderObject::Render` (`00501870`). The frame's sprites, actions, `.imf` files and palettes
+  now come from a `res::ResourceManager`, as the client's do.
+  - **Found on the way:** the client loads actions at single precision, on its main thread after
+    `FPUSETUP`, and `CActRes::AdjustItem` (`00420e70`) rounds there: a poring's corpse at action
+    32, frame 2 has an image 13 wide at 0.6, centred at −3, which single precision places at −12
+    and double at −11. The act loader had been checked at the CRT's double only. `DecodeAct`
+    and `ActRes` now take the precision, and the frames, ragview and `ragres decode-acts
+    --single` load at single. A corpse asks for `sprite\몬스터\poring.spr`, a live poring for
+    `몬스터\poring.spr`: one resource, whose images the sprite cache shares.
+  - **Checks:** the frame oracle with the earlier fifteen actors, six items (two alike, a sword
+    identified, a knife unidentified and dropped) and three corpses (two porings) on all 287
+    maps, three frames each: every device call and vertex equal, 35,658 textures, 371,577 calls
+    and 277,831 draws. `tools/act_oracle.py` now runs every action at both
+    precisions: all 2,109 equal at four detail levels, 16,872 loads and 6,790,680 items; single
+    precision moves 4,103 items in 127 actions. `tests/unit/act_test.cpp` checks the poring's item at both. 12 of
+    14 mutants killed, the three of the single-precision steps through every action; the
+    survivors cannot show in a frame: an item's pick id, and a corpse's shadow (a corpse's +0x88
+    is never set, so `DrawShadow` draws nothing).
+
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
    in the same reviewed way.

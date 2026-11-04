@@ -1,11 +1,13 @@
 """Compares the port's action loader with the original (docs/formats/act.md).
 
-usage: .venv/bin/python -I tools/act_oracle.py [--sample N] [--scales 00,11] [--jobs J]
+usage: .venv/bin/python -I tools/act_oracle.py [--sample N] [--scales 00,11]
+           [--precisions double,single] [--jobs J]
 
 Runs CActRes::Load (00420f60) in the emulation oracle on every .act of data.grf, with
 the original resource manager and the sprite type registered, so the matching .spr
-really loads, at each detail level given (halve x, halve y). Compares every field with
-`ragres decode-acts`. An action whose original load faults (a missing sprite) must fail
+really loads, at each detail level given (halve x, halve y) and each x87 precision given:
+the CRT's double, and the single the client's main thread runs at after FPUSETUP, where it
+loads sprites and actions. Compares every field with `ragres decode-acts` (--single). An action whose original load faults (a missing sprite) must fail
 in the port.
 """
 import argparse
@@ -21,6 +23,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 import oracle_pool  # noqa: E402
 from emu import EmulationError, Emulator  # noqa: E402
+from unicorn.x86_const import UC_X86_REG_FPCW  # noqa: E402
 from sprite_oracle import replace_textures  # noqa: E402
 
 # analysis/labels: CSprRes and CActRes constructors and slots, ResourceManager
@@ -28,11 +31,13 @@ CSPRRES_REGISTER, G_CSPRRES = 0x433F00, 0x6414A0
 CACTRES_CTOR, CACTRES_LOAD, CACTRES_RESET = 0x420A70, 0x420F60, 0x420D60
 G_RESOURCE_MANAGER, RESOURCE_MANAGER_CLEAR = 0x67CD88, 0x4E0310
 HALVE_X, HALVE_Y = 0x688A7C, 0x688A80
+CONTROL_WORDS = {"double": 0x027F, "single": 0x007F}
 
 
-def port_dump(ragres, files, scale):
+def port_dump(ragres, files, scale, precision):
     """{n: [lines]} from ragres decode-acts, in batches."""
-    flags = (["--halve-x"] if scale[0] else []) + (["--halve-y"] if scale[1] else [])
+    flags = ((["--halve-x"] if scale[0] else []) + (["--halve-y"] if scale[1] else [])
+             + (["--single"] if precision == "single" else []))
     results = {}
     for start in range(0, len(files), 200):
         out = subprocess.run([ragres, "decode-acts", *flags, *files[start:start + 200]],
@@ -101,7 +106,7 @@ def dump(emu, obj):
 
 def work(state, job):
     emu, obj = state
-    act_path, scale = job
+    act_path, scale, precision = job
     with open(act_path, "rb") as f:
         act = f.read()
     files = {"data\\sprite\\t.act": act}
@@ -115,6 +120,7 @@ def work(state, job):
     emu.serve_data_files(files)
     emu.mem_write(obj, bytes(0x144))
     emu.call(CACTRES_CTOR, this=obj)
+    emu.uc.reg_write(UC_X86_REG_FPCW, CONTROL_WORDS[precision])
     try:
         ok = emu.call(CACTRES_LOAD, emu.cstr("sprite\\t.act"), this=obj).eax & 0xFF
     except EmulationError:
@@ -138,9 +144,11 @@ def main():
     ap.add_argument("--ragres", default=os.path.join(ROOT, "build", "dev", "src", "ragres"))
     ap.add_argument("--sample", type=int, default=0, help="check N actions (0: all)")
     ap.add_argument("--scales", default="00,11", help="detail levels: halve x and halve y digits")
+    ap.add_argument("--precisions", default="double,single", help="the x87's precisions: double, single")
     ap.add_argument("--jobs", type=int, default=0, help="worker processes (0: one per core but one)")
     args = ap.parse_args()
     scales = [(int(s[0]), int(s[1])) for s in args.scales.split(",")]
+    precisions = args.precisions.split(",")
 
     with tempfile.TemporaryDirectory() as tmp:
         subprocess.run([args.ragres, "extract", args.archive, tmp, "*.act", "*.spr"], check=True,
@@ -149,24 +157,27 @@ def main():
         if args.sample:
             files = sorted(random.Random(1).sample(files, min(args.sample, len(files))))
         mismatches, loads, faults, items = [], 0, 0, 0
-        for scale in scales:
-            ours = port_dump(args.ragres, files, scale)
-            results = oracle_pool.run([(f, scale) for f in files], init, work, args.jobs or None,
-                                      label=f"act {scale[0]}{scale[1]}")
-            for n, (path, (_, _, want)) in enumerate(zip(files, results)):
-                got = ours.get(n, ["A failed"])
-                loads += 1
-                if want == ["A fault"]:
-                    faults += 1
-                    if got[0] != "A failed":
-                        mismatches.append(f"{os.path.relpath(path, tmp)} at {scale}: the original faults, the port loads it")
-                    continue
-                items += sum(1 for l in want if l.startswith("i "))
-                if got != want:
-                    k = next((k for k, (a, b) in enumerate(zip(got, want)) if a != b), min(len(got), len(want)))
-                    mismatches.append(f"{os.path.relpath(path, tmp)} at {scale}: line {k}: port "
-                                      f"{got[k:k + 1]}, original {want[k:k + 1]}")
-    print(f"{len(files)} actions at {len(scales)} detail levels: {loads} loads, {items} items compared, "
+        for precision in precisions:
+            for scale in scales:
+                at = f"{scale} at {precision} precision"
+                ours = port_dump(args.ragres, files, scale, precision)
+                results = oracle_pool.run([(f, scale, precision) for f in files], init, work, args.jobs or None,
+                                          label=f"act {scale[0]}{scale[1]} {precision}")
+                for n, (path, (_, _, want)) in enumerate(zip(files, results)):
+                    got = ours.get(n, ["A failed"])
+                    loads += 1
+                    if want == ["A fault"]:
+                        faults += 1
+                        if got[0] != "A failed":
+                            mismatches.append(f"{os.path.relpath(path, tmp)} at {at}: the original faults, the port "
+                                              "loads it")
+                        continue
+                    items += sum(1 for l in want if l.startswith("i "))
+                    if got != want:
+                        k = next((k for k, (a, b) in enumerate(zip(got, want)) if a != b), min(len(got), len(want)))
+                        mismatches.append(f"{os.path.relpath(path, tmp)} at {at}: line {k}: port "
+                                          f"{got[k:k + 1]}, original {want[k:k + 1]}")
+    print(f"{len(files)} actions at {len(scales)} detail levels and {len(precisions)} precisions: {loads} loads, {items} items compared, "
           f"{faults} loads where the original faults (the port must fail), {len(mismatches)} differ")
     for line in mismatches[:20]:
         print("MISMATCH", line)

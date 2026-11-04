@@ -10,9 +10,12 @@
 #include <string_view>
 #include <vector>
 
+#include "core/x87.h"
 #include "res/resource.h"
 
 namespace ragexe::res {
+
+using core::FpuPrecision;
 
 // An item of a frame: one sprite image placed, as CActRes keeps it (docs/formats/act.md).
 struct ActItem {
@@ -62,17 +65,20 @@ using ActImageLookup =
     std::function<std::optional<ActImageSize>(std::int32_t image_type, std::int32_t index)>;
 
 // CActRes::Load (00420f60) on a whole .act file. Versions 0x200 to 0x204 look their
-// images up with lookup.
+// images up with lookup. The items are adjusted at the x87's precision: the client's main
+// thread, which loads sprites and actions, runs at FPUSETUP's single.
 bool DecodeAct(std::span<const std::uint8_t> data, const ActImageLookup& lookup, Act& out,
-               std::string* error);
+               std::string* error, FpuPrecision precision = FpuPrecision::kDouble);
 
-// 00420e70: from the stored centre to the top-left corner.
-void AdjustActItem(ActItem& item, const ActImageSize& size);
+// CActRes::AdjustItem (00420e70): from the stored centre to the top-left corner.
+void AdjustActItem(ActItem& item, const ActImageSize& size,
+                   FpuPrecision precision = FpuPrecision::kDouble);
 
 // CActRes. Its matching sprite comes from the manager it was registered with.
 class ActRes : public Resource {
  public:
-  explicit ActRes(ResourceManager* manager) : manager_(manager) {}
+  explicit ActRes(ResourceManager* manager, FpuPrecision precision = FpuPrecision::kDouble)
+      : manager_(manager), precision_(precision) {}
 
   std::unique_ptr<Resource> Clone() const override;
   bool Load(const DataFiles& files, std::string_view path) override;
@@ -83,11 +89,13 @@ class ActRes : public Resource {
 
  private:
   ResourceManager* manager_;
+  FpuPrecision precision_;
   Act act_;
   std::string error_;
 };
 
-// The original's registration (static initializer 004207a0).
-void RegisterActTypes(ResourceManager& manager);
+// The original's registration (static initializer 004207a0), its actions loaded at the
+// precision given.
+void RegisterActTypes(ResourceManager& manager, FpuPrecision precision = FpuPrecision::kDouble);
 
 }  // namespace ragexe::res

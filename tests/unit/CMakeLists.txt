@@ -180,13 +180,15 @@ if(RAGEXE_ARCHIVES)
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/frame_oracle.py"
         moc_pryd03 payon_in02 alb_ship mag_dun01 --ragres $<TARGET_FILE:ragres>
         --install "${RAGEXE_INSTALL_DIR}" --cache "${CMAKE_BINARY_DIR}/oracle-data")
-    # Two of them again with actors about the player, in the original's world list: three NPCs and
-    # four monsters (two of one job, which share their sprite), each a CNpc drawn through
-    # CNpc::Render, and eight players, each a CPc dressed by its vf14 and drawn through
+    # Two of them again with the world's objects about the player, in the original's world list:
+    # three NPCs and four monsters (two of one job, which share their sprite), each a CNpc drawn
+    # through CNpc::Render; eight players, each a CPc dressed by its vf14 and drawn through
     # CPc::Render, in assorted actions, directions and frames (three novices alike but for their
-    # palettes, which the sprite cache tells apart); the sprite cache and the ground's tints with
-    # them (the sprites, actions, .imf files and palettes are extracted on the first
-    # run).
+    # palettes, which the sprite cache tells apart); six items, each a CItem sent its message 4
+    # (two alike, a sword identified and a knife dropped); three corpses made by
+    # CGameMode::AddCorpse, two of them porings, whose sprite the live ones share. The sprite
+    # cache and the ground's tints with them (the sprites, actions, .imf files and palettes are
+    # extracted on the first run).
     add_test(NAME frame_oracle_actors
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/frame_oracle.py"
         moc_pryd03 prontera --npc 1002 2 1 --npc 50 -2 0 --npc 1013 0 3 --npc 84 1 -2
@@ -195,6 +197,9 @@ if(RAGEXE_ARCHIVES)
         --pc 6 1 7 1 0 0 0 0 0 3 80 5 2 3 -1 --pc 3 0 9 11 2 0 0 0 7 0 80 6 3 -1 -2
         --pc 1 0 4 2 0 0 0 1 0 4 32 2 0 0 2 --pc 0 1 2 0 0 0 0 0 0 0 0 0 0 -4 1
         --pc 0 1 2 0 0 0 0 0 4 1 0 0 0 2 -3 --pc 0 1 2 0 0 0 0 0 4 1 0 0 0 -3 3
+        --item 501 1 0 8 8 1 1 --item 501 1 0 2 14 1 3 --item 1201 0 1 3 12 -1 1
+        --item 1104 1 0 8 8 -2 -1 --item 909 1 0 0 0 3 2 --item 2301 0 0 15 15 -3 0
+        --corpse 1002 32 2 90 2 0 --corpse 1031 32 0 225 -2 -2 --corpse 1002 0 0 0 3 3
         --ragres $<TARGET_FILE:ragres> --install "${RAGEXE_INSTALL_DIR}"
         --cache "${CMAKE_BINARY_DIR}/oracle-data" --sprites "${CMAKE_BINARY_DIR}/oracle-actors")
     # ragview's reviewed frames (tools/frame_baselines.py): what each scene gives the GPU, and its

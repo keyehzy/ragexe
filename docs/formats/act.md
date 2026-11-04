@@ -139,6 +139,13 @@ Every file ends exactly after its last field.
      `몬스터\ambernite.act` and `이팩트\miss.act`) gives 0.
    - **So** the file stores each image's centre, and the client keeps its top-left
      corner.
+   - **The precision** is the x87's: `fild` loads x and c(w) exactly, and the `fmul`,
+     `fsubp` and `fdiv` each round to it. The client's main thread loads sprites and
+     actions after DirectDraw's `FPUSETUP`, at single precision, where a scale such as 0.6
+     can land an item a pixel off its double-precision place: in `몬스터\poring.act`'s
+     action 32, frame 2, an image 13 wide at 0.6 centred at −3 goes to −12, where double
+     precision gives −11.
+
    Because a halved sprite's width is rounded down, the result depends on the detail
    level the sprite was loaded at.
 7. **Events and delays,** then succeed.
@@ -162,10 +169,15 @@ the largest item count or the delays.
   - a missing sprite or an image index outside it (the original reads past them);
   - truncated files;
   - frames of more than 1000 items (the original writes past its item vector).
-- **The arithmetic** is done in double precision. The original's x87 runs at whatever
-  precision Direct3D left. The values are small, and every one in `data.grf` agrees
-  (below).
+- **The precision:** `DecodeAct`, `AdjustActItem` and `ActRes` take the x87's, double by
+  default or single (`RegisterActTypes`' second argument). Each single-precision step is a
+  double operation rounded to a float, which rounds as the x87 at 24 bits does: 53 bits are
+  more than twice 24 and 2. The frames (`ragres draw-frame`) and ragview load actions at
+  single, as the client does.
 - **The oracle:** `tools/act_oracle.py` runs the original `Load` in the emulation oracle,
   with the original resource manager and the sprite type registered, so the matching
-  sprite really loads, at each detail level. It compares every action, frame, item,
-  anchor, event and delay.
+  sprite really loads, at each detail level and at both precisions (the CRT's double and
+  `FPUSETUP`'s single, `ragres decode-acts --single`). It compares every action, frame,
+  item, anchor, event and delay. All 2,109 actions of `data.grf` agree at four detail levels and
+  both precisions: 16,872 loads and 6,790,680 items, 56 loads where the original faults and the
+  port fails. At full detail, single precision moves 4,103 items in 127 actions.
