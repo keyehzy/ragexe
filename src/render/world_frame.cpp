@@ -45,6 +45,16 @@ std::uint32_t FrameTextures::Create(std::uint32_t width, std::uint32_t height, b
   return Make({}, width, height, alpha);
 }
 
+std::uint32_t FrameTextures::Construct() {
+  textures_.emplace_back();
+  return static_cast<std::uint32_t>(textures_.size());
+}
+
+WorldFrameState::WorldFrameState(const res::DataFiles& files) : textures(files) {
+  SetSpriteScalesForSize(projection, sprite_scales);
+  sprites.MakeSpareTextures([this] { return textures.Construct(); });
+}
+
 // CreateTexture: the size divided by g_textureDivisor, the texture fitted to the device
 // (CTexture::CreateSurface), then the whole image through UpdatePixels, which sets the uv scale.
 std::uint32_t FrameTextures::Make(std::string name, std::uint32_t width, std::uint32_t height,
@@ -170,6 +180,30 @@ void FrameLists::AddTriangleList(ScenePrimitive s, std::vector<ScreenVertex> ver
   Add(s, std::move(vertices), {}, flags);
 }
 
+std::optional<SpriteSlot> AddSpriteQuad(FrameLists& lists, const SpriteQuad& quad,
+                                        const SpriteImageRef& image, std::uint32_t now) {
+  WorldFrameState& state = lists.state();
+  ScenePrimitive s;
+  SpriteTextureRect rect = image.rect;
+  std::optional<SpriteSlot> drawn;
+  if (image.texture != 0) {
+    s.texture = image.texture;
+  } else if (const std::optional<CachedSprite> found =
+                 state.sprites.Find(image.image, image.palette, image.width, image.height, now)) {
+    s.texture = found->texture;
+    rect = found->rect;
+  } else {
+    drawn = state.sprites.Cache(image.image, image.palette, image.width, image.height, now,
+                                [&] { return state.textures.Construct(); });
+    if (drawn) {
+      s.texture = drawn->sprite.texture;
+      rect = drawn->sprite.rect;
+    }
+  }
+  lists.AddQuad(s, SpriteQuadVertices(quad, rect), quad.flags);
+  return drawn;
+}
+
 void EnterWorld(const WorldScene& scene, float x, float z, bool indoor, WorldFrameState& state) {
   state.lightmap_pages = MakeWorldTextures(scene, state.textures);
   state.player = {x, res::AttrHeight(scene.attr, x, z), z};
@@ -197,7 +231,12 @@ std::vector<SceneCall> DrawWorldFrame(WorldScene& scene, WorldFrameState& state,
                                       std::vector<FrameDraw>& draws,
                                       const WorldObjectsDraw& objects) {
   const std::uint32_t water = state.textures.Get(StepWater(state.ground.water));
-  UpdateCamera(state.camera, state.player, false, &scene.attr, state.shake, now, *state.rand);
+  state.camera.target_at = state.player;
+  StepCamera(state.camera, false);
+  StepSpriteScales(state.camera.pitch, state.camera.distance, state.projection,
+                   state.sprite_scales);
+  ApplyShake(state.camera, state.shake, now, *state.rand);
+  BuildCameraView(state.camera, &scene.attr);
   state.shake.step_pending = true;
   state.ground.frame = state.frame;
 

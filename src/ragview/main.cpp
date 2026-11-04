@@ -700,8 +700,9 @@ int main(int argc, char** argv) {
               render::DrawActorShadow(actor_object, ground_height, actor_object.scale, shadow.act,
                                       shadow.sprite, camera.view, projection, sprite_scales))
         add(*q, shadow);
-      // C3dGround15::vf11's colour table is never filled in this client: always white.
-      const std::array<float, 3> white = {1.0f, 1.0f, 1.0f};
+      // CRenderObject::GetGroundColor (00500e60): the tint of the attribute cell under it.
+      const std::array<std::int32_t, 2> cell = world::AttrCellAt(attr, player[0], player[2]);
+      const std::array<float, 3> tint = render::GroundCellTint(scene.mesh, cell[0], cell[1]);
       render::ActorBody body;
       if (o.player) {
         std::array<render::PlayerLayer, render::kPlayerLayerCount> player_layers;
@@ -709,10 +710,10 @@ int main(int argc, char** argv) {
           if (!layers[l].ids8.empty() || !layers[l].ids32.empty())
             player_layers[l] = {&layers[l].act, &layers[l].sprite};
         body = render::DrawPlayer(actor_object, player_layers, imf, camera.view, projection,
-                                  sprite_scales, white, head_offset);
+                                  sprite_scales, tint, head_offset);
       } else {
         body = render::DrawActorBody(actor_object, actor.act, actor.sprite, camera.view, projection,
-                                     sprite_scales, white);
+                                     sprite_scales, tint);
       }
       for (const render::SpriteQuad& q : body.quads)
         add(q, layers[static_cast<std::size_t>(q.layer)]);
@@ -725,13 +726,13 @@ int main(int argc, char** argv) {
       effect_started = true;
     }
     if (has_prims) {
-      render::PrimScene scene;
-      scene.view_yaw = camera.yaw;
-      scene.view_pitch = camera.pitch;
-      scene.attr = &attr;
-      scene.view = camera.view;
-      scene.projection = projection;
-      scene.slope_down = sprite_scales.slope_down;
+      render::PrimScene prim_scene;
+      prim_scene.view_yaw = camera.yaw;
+      prim_scene.view_pitch = camera.pitch;
+      prim_scene.attr = &attr;
+      prim_scene.view = camera.view;
+      prim_scene.projection = projection;
+      prim_scene.slope_down = sprite_scales.slope_down;
       for (std::uint32_t i = 0; i < steps; ++i) {
         if (prim_world.empty()) {
           // The effects thrown at a target aim at a point 50 out either way along the ground.
@@ -746,7 +747,7 @@ int main(int argc, char** argv) {
           }
         }
         prim_world.SetPlayer(player);
-        prim_world.Step(scene);
+        prim_world.Step(prim_scene);
         // Cloaking and the after-images colour the actor, drawn from the next frame.
         for (const render::EffectWorld::Object& object : prim_world.objects())
           if (object.effect) actor_object.color = object.actor.color;
@@ -763,7 +764,7 @@ int main(int argc, char** argv) {
                                      std::bit_cast<float>(m.values[2]));
         }
       }
-      const render::PrimDrawing drawing = prim_world.Draw(scene);
+      const render::PrimDrawing drawing = prim_world.Draw(prim_scene);
       for (std::size_t i = 0; i < drawing.quads.size(); ++i) {
         const auto it = sprite_of.find(drawing.quad_sprites[i]);
         if (it != sprite_of.end()) add(drawing.quads[i], *it->second);

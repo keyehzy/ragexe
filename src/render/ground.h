@@ -76,6 +76,9 @@ struct GroundMesh {
   std::vector<GroundCellMesh> cells;  // row by row
   std::vector<GroundSurfaceMesh> surfaces;
   LightmapAtlas atlas;
+  // +0xac: each attribute cell's tint (r, g, b), 2 × width by 2 × height, row by row
+  // (TintGroundCells); empty without ISLIGHTMAP.
+  std::vector<std::array<float, 3>> tints;
 };
 
 // C3dGround15::Build (vf03, 004bcc30), with ISLIGHTMAP as lightmaps: each cell's top and
@@ -84,6 +87,18 @@ struct GroundMesh {
 // the names, or a lightmap index past the lightmaps.
 bool BuildGround(const res::Ground& ground, const GroundLight& light, bool lightmaps,
                  GroundMesh& out, std::string* error);
+
+// C3dGround15::vf10 (004bfdb0), at the end of CWorld::LoadWorld (004c414c), with ISLIGHTMAP:
+// each attribute cell's tint, from the lightmaps of the ground cells' tops
+// (docs/render/ground.md#the-cell-tints). White where the top of the ground cell, less 2.5,
+// lies below the attribute cell's mean height; otherwise each of r, g and b the shadow / 255
+// plus the colour / 128 of a lightmap texel, averaged over the cell and the four beside it, and
+// all three divided by the greatest once it passes 1.
+void TintGroundCells(GroundMesh& mesh, const res::Ground& ground, const res::AttrMap& attr);
+
+// C3dGround15::GetCellTint (004bfc90): the attribute cell's tint; white outside the ground or
+// with no tints.
+std::array<float, 3> GroundCellTint(const GroundMesh& mesh, std::int32_t x, std::int32_t y);
 
 // The view's transform (render/matrix.h).
 using ViewMatrix = Matrix;

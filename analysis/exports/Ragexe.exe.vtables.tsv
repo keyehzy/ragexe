@@ -5964,10 +5964,10 @@ C3dGround15	005e897c	0	3	004bcc30	C3dGround15::Build
 C3dGround15	005e897c	0	4	004be500	C3dGround15::DrawCells	
 C3dGround15	005e897c	0	5	004befa0	C3dGround15::vf05	
 C3dGround15	005e897c	0	6	004bf3d0	C3dGround15::vf06	
-C3dGround15	005e897c	0	7	004bf930	C3dGround15::vf07	
+C3dGround15	005e897c	0	7	004bf930	C3dGround15::GetTopHeights	
 C3dGround15	005e897c	0	8	004bf7a0	C3dGround15::vf08	
 C3dGround15	005e897c	0	9	004c4240	C3dGround15::HasCellTint	
-C3dGround15	005e897c	0	10	004bfdb0	C3dGround15::vf10	
+C3dGround15	005e897c	0	10	004bfdb0	C3dGround15::TintCells	
 C3dGround15	005e897c	0	11	004bfc90	C3dGround15::GetCellTint	
 C3dGround15	005e897c	0	12	004bf6c0	C3dGround15::vf12	
 C3dGround15	005e897c	0	13	004c0040	C3dGround15::vf13	

@@ -137,10 +137,17 @@ the primitive's address ([scene.md](scene.md#sorting)). On a heap that only grow
 | `SetFogEnabled` | `SceneRenderer::SetFogEnabled` on a device with vertex fog |
 | `FrameLists` | `AddPrimitive`: the lists, each primitive's vertices kept for the draws, each vertex's fog; quads and triangle lists from the pools |
 | `DrawWorldFrame` | one frame of `OnFrame`: the steps, `DrawWorld`, `Present`'s count, the pools rewound |
+| `WorldFrameState` | what lasts: with the renderer's 50 spare sprite page textures, the first textures of all ([sprite_cache.md](sprite_cache.md#the-pages)), the sprite cache and `CView::Step`'s sprite scales |
+| `AddSpriteQuad` | `SceneRenderer::AddSpriteQuad`: the image's texture, its own or the sprite cache's, and the quad into the lists |
 
 **The world's objects.** `DrawWorldFrame` takes a function that adds what the objects of
 `CWorld`+0xc draw, after the cell cursor, as `DrawWorld` has them draw themselves. ragview
-adds its actor and its effects there ([gpu.md](gpu.md#ragview)).
+adds its actor and its effects there ([gpu.md](gpu.md#ragview)). `ragres draw-frame --npc JOB
+DX DY` adds NPCs and monsters, each in the centre of the cell DX and DY from the player's, as
+`CNpc`'s constructor and `vf16` leave one: through `CNpc::Render`
+([world/npc_draw.md](../world/npc_draw.md)), its shadow and its body tinted by the ground under
+it ([ground.md](ground.md#the-cell-tints)), each quad through `AddSpriteQuad`. Only 8-bit
+images are drawn: a 32-bit image's texture is made as `CSprRes` loads, which is not followed.
 
 **The vertices** (`FrameDraws`). Each draw first multiplies the primitive's texture
 coordinates by its texture's uv scale, in place, at the x87's single precision
@@ -189,7 +196,20 @@ textures in the order made, then each frame's device calls.
 - **`ctest`** runs 4 maps (`frame_oracle_sample`): the smallest, an indoor map, a ship, and
   `mag_dun01`, a patch's map with fog and lava. `--sample 0` runs every map.
 - **The result:** all 287 maps are equal, three frames each: 21,308 textures made, 267,611
-  device calls and 215,472 draws.
+  device calls and 215,472 draws. The textures listed also count the renderer's 50 spare
+  sprite page textures, which the original makes before any map's.
+- **With actors** (`--npc`): each `JOB DX DY` is a `CNpc` in the original's world list
+  (`CWorld`+8), made by its constructor, its job named by `vf16` (its sprite and actions
+  loaded for real, from a second cache of the archives' `.spr` and `.act` files), its shadow
+  set, in the centre of its cell. `CNpc::Render` records its pick bounds in
+  `g_CActorPickNode`, which the oracle constructs and clears before each frame as `OnFrame`
+  does. `timeGetTime` answers 1,000,000 ms in the first frame and 16 more in each after, and
+  `ragres draw-frame` takes the same times. `ctest` runs two maps with three NPCs and three
+  monsters (`frame_oracle_actors`).
+- **The result with actors:** all 287 maps are equal with three NPCs and three monsters about
+  the player (jobs 50, 84, 120, 1002, 1013 and 1031), three frames each: 35,658 textures
+  made, the spares included, 284,692 device calls and 225,772 draws. Every sprite page took a
+  spare.
 - **Found by the patches' maps:**
   - the lava of `mag_dun01` and `mag_dun02` is coloured by the ambient colour
     `C3dWorldRes::Load` copies (above), which the port had left at 1.0. No map of `data.grf`

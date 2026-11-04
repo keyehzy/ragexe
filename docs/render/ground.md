@@ -28,6 +28,7 @@ from a file that starts with `GRGN`.
 | +0x64 | 1 for a `GRGN` file |
 | +0x7c | the vertices: 4 for each surface |
 | +0x9c | the surfaces: one 0x20-byte record for each surface of the file |
+| +0xac | the cell tints: 3 floats for each attribute cell, 2 × width by 2 × height, row by row ([below](#the-cell-tints)) |
 | +0xbc | the cells: 0x54 bytes each, row by row |
 
 **A surface record:**
@@ -175,6 +176,32 @@ order the code takes them. `ftol` truncates.
 - **Reuse:** the buffer is not cleared between pages. A page that is not full keeps the
   previous page's texels past its last lightmap, and the first page keeps whatever was
   on the stack.
+
+### The cell tints
+
+The last step of `CWorld::LoadWorld` (`004c414c`), after the scene graph, is the ground's
+slot 10 (`004bfdb0`). With ISLIGHTMAP (`0061ec60`) it gives each attribute cell (x, y) of
+2 × width by 2 × height a tint, kept at +0xac (`SetCellTint`, `004bfd50`, at
+`x + 2 · width · y`). `Reset` sized the table.
+1. **The height test.** The mean of the attribute cell's four heights,
+   `(((h3 + h2) + h1) + h0) × 0.25`, or 0 off the attribute map. The ground cell
+   (x / 2, y / 2)'s top: the least y of its surface's four vertices (slot 7, `004bf930`),
+   which are those of the last cell that used the surface; 1,000,000 without a top, 0 off the
+   ground. When the top less 2.5 (`005e8950`) is below the mean (heights grow downward), the
+   tint is white.
+2. **Otherwise the lightmap.** For the cell and the four beside it (`0060b060`: here, up,
+   down, right, left), one texel of the lightmap of its ground cell's top (`004bfa60`): row
+   and column 1 or 5, by which quarter of the ground cell the attribute cell is. Its shadow
+   (the alpha byte) and its red, green and blue are summed; a cell off the ground, or whose
+   ground cell has no top or lightmap, counts 255 for all four.
+3. **The tint:** each of red, green and blue is its sum × 1/640 (`005e26b4`) plus the
+   shadows' sum × 1/1275 (`005e894c`), at single precision: the colour over 128 plus the
+   shadow over 255, averaged over the five. When the greatest of the three passes 1, all
+   three are divided by it.
+
+`GetCellTint` (slot 11, `004bfc90`) answers a cell's tint, or white off the ground or with
+no table. An actor's body is coloured by the tint of the attribute cell under it
+([actor.md](actor.md#the-body)).
 
 ## Drawing
 
@@ -375,6 +402,7 @@ colour.
 |------|----------|
 | `BuildLightmapAtlas` | the atlas; the pages hold the ARGB texels |
 | `BuildGround` | `Build`: cells, surfaces with their vertices, and the atlas |
+| `TintGroundCells`, `GroundCellTint` | slot 10's cell tints and `GetCellTint` |
 | `GroundMesh` | the cells and surfaces, with their corner records and frame stamps |
 | `DrawGroundCells` | `DrawCells` with `DrawSurface` and the water; `GroundPrimitive`s for `AddPrimitive` |
 | `PlaceCellCursor`, `DrawCellCursor` | the cell cursor's choice and its quad (`CellCursor`) |

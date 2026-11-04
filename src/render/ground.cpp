@@ -345,6 +345,97 @@ bool BuildGround(const res::Ground& ground, const GroundLight& light, bool light
 
 namespace {
 
+constexpr float kHeightMargin = 2.5f;                                     // 005e8950
+constexpr float kShadowScale = 0.00078431371f;                            // 005e894c, 1 / (255 × 5)
+constexpr float kColorScale = 0.0015625f;                                 // 005e26b4, 1 / (128 × 5)
+constexpr float kNoTop = 1000000.0f;                                      // 0x497423f0
+constexpr std::array<std::array<std::int32_t, 2>, 5> kTintNeighbours = {  // 0060b060
+    {{0, 0}, {0, -1}, {0, 1}, {1, 0}, {-1, 0}}};
+
+// Entry (x, y) of a table `width` wide, row by row.
+std::size_t At(std::int32_t x, std::int32_t y, std::int32_t width) {
+  return static_cast<std::size_t>(y) * static_cast<std::size_t>(width) +
+         static_cast<std::size_t>(x);
+}
+
+// C3dGround15::vf07 (004bf930)'s first answer: the least height of the ground cell's top, as
+// its surface's four vertices hold them (those of the last cell that used it); 1,000,000
+// without a top, 0 outside the ground. A NaN first height is kept; one after is not taken.
+float TopLeastHeight(const GroundMesh& mesh, std::int32_t x, std::int32_t z) {
+  if (x < 0 || x >= mesh.width || z < 0 || z >= mesh.height) return 0.0f;
+  const std::int32_t top = mesh.cells[At(x, z, mesh.width)].surfaces[0];
+  if (top < 0) return kNoTop;
+  const auto& v = mesh.surfaces[static_cast<std::size_t>(top)].vertices;
+  float least = kNoTop;
+  if (!(v[0].y >= least)) least = v[0].y;
+  for (std::size_t k = 1; k < 4; ++k) {
+    if (least > v[k].y) least = v[k].y;
+  }
+  return least;
+}
+
+// C3dGround15 004bfa60: the shadow and the colour of one texel of the lightmap of the ground
+// cell's top that holds the attribute cell (x, y): of rows and columns 1 and 5, by which
+// quarter of the ground cell it is. 255 for all four outside the ground or without a top or
+// lightmap.
+std::array<std::uint8_t, 4> TopLightTexel(const GroundMesh& mesh, const res::Ground& ground,
+                                          std::int32_t x, std::int32_t y) {
+  constexpr std::array<std::uint8_t, 4> kNone = {0xff, 0xff, 0xff, 0xff};
+  if (x < 0 || x / 2 >= mesh.width || y < 0 || y / 2 >= mesh.height || mesh.cells.empty())
+    return kNone;
+  const std::int32_t top = mesh.cells[At(x / 2, y / 2, mesh.width)].surfaces[0];
+  if (top < 0) return kNone;
+  const std::int32_t block = mesh.surfaces[static_cast<std::size_t>(top)].lightmap_block;
+  if (block < 0) return kNone;
+  const res::GroundLightmap& map = ground.lightmaps[static_cast<std::size_t>(block)];
+  const std::size_t texel = (y % 2 == 0 ? 8 : 40) + (x % 2 == 0 ? 1 : 5);
+  return {map.alpha[texel], map.color[texel * 3], map.color[texel * 3 + 1],
+          map.color[texel * 3 + 2]};
+}
+
+}  // namespace
+
+void TintGroundCells(GroundMesh& mesh, const res::Ground& ground, const res::AttrMap& attr) {
+  if (!mesh.lightmaps) return;
+  const std::int32_t width = mesh.width * 2;
+  const std::int32_t height = mesh.height * 2;
+  mesh.tints.assign(static_cast<std::size_t>(width) * static_cast<std::size_t>(height),
+                    {1.0f, 1.0f, 1.0f});
+  for (std::int32_t y = 0; y < height; ++y) {
+    for (std::int32_t x = 0; x < width; ++x) {
+      float mean = 0.0f;
+      if (x < attr.width && y < attr.height) {
+        const auto& h = attr.cells[At(x, y, attr.width)].heights;
+        mean = (((h[3] + h[2]) + h[1]) + h[0]) * 0.25f;
+      }
+      std::array<float, 3>& tint = mesh.tints[At(x, y, width)];
+      if ((TopLeastHeight(mesh, x / 2, y / 2) - kHeightMargin) > mean) continue;
+      std::array<std::int32_t, 4> sums{};
+      for (const auto& [dx, dy] : kTintNeighbours) {
+        const std::array<std::uint8_t, 4> t = TopLightTexel(mesh, ground, x + dx, y + dy);
+        for (std::size_t c = 0; c < 4; ++c) sums[c] += t[c];
+      }
+      const float shadow = static_cast<float>(sums[0]) * kShadowScale;
+      for (std::size_t c = 0; c < 3; ++c)
+        tint[c] = static_cast<float>(sums[c + 1]) * kColorScale + shadow;
+      float most = tint[0];
+      if (tint[1] > most) most = tint[1];
+      if (tint[2] > most) most = tint[2];
+      if (most > 1.0f) {
+        for (float& c : tint) c /= most;
+      }
+    }
+  }
+}
+
+std::array<float, 3> GroundCellTint(const GroundMesh& mesh, std::int32_t x, std::int32_t y) {
+  if (x < 0 || x / 2 >= mesh.width || y < 0 || y / 2 >= mesh.height || mesh.tints.empty())
+    return {1.0f, 1.0f, 1.0f};
+  return mesh.tints[At(x, y, mesh.width * 2)];
+}
+
+namespace {
+
 constexpr float kNear = 10.0f;     // 005e88f8
 constexpr float kFar = 1500.0f;    // 005e88f4
 constexpr float kWaterUv = 0.25f;  // 00679f98

@@ -102,7 +102,9 @@ them come and go.
 - **`ReleaseExpired`** answers the textures deleted, in order.
 - **`ReleaseIfDue`** is `0050d3d0`.
 
-Images and palettes are keys, as the original tells them apart by address.
+Images and palettes are keys, as the original tells them apart by address. The frame's
+`WorldFrameState` keeps one, its spares made first, and `AddSpriteQuad` asks it as the
+original's does ([frame.md](frame.md#in-the-port)).
 
 ## Checks
 

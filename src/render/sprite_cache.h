@@ -42,6 +42,8 @@ class SpriteTextureCache {
 
   // The time a page or slot lasts unused, 15 s (00612710).
   static constexpr std::uint32_t kExpiry = 15000;
+  // A page's width and height.
+  static constexpr std::uint32_t kPageSide = 256;
   // The spare page textures SceneRenderer makes.
   static constexpr int kSpareTextures = 50;
 

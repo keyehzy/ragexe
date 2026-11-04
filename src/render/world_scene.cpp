@@ -70,6 +70,7 @@ bool LoadWorldScene(const res::DataFiles& files, std::string_view map, float pla
     out.records.push_back(index);
     if (near) ++out.near_count;
   }
+  TintGroundCells(out.mesh, out.ground, out.attr);
   BuildSceneGraph(out.mesh, out.attr, std::span(out.models).first(out.near_count), out.world.bounds,
                   out.graph);
   for (std::size_t k = out.near_count; k < out.models.size(); ++k)

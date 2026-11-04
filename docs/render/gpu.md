@@ -139,8 +139,9 @@ frames call for call:
    the mouse, in a window.
 3. **The world's objects,** through `DrawWorldFrame`'s hook, into the same lists:
    - the actor's shadow and body, standing where the player does, idle, its frame
-     following the time, each quad from the renderer's quad pool as `AddSpriteQuad` takes
-     it;
+     following the time, its body tinted by the ground under it
+     ([ground.md](ground.md#the-cell-tints)), each quad from the renderer's quad pool as
+     `AddSpriteQuad` takes it;
    - the effects' triangles, stepped once a world step (at most 8 a frame). Each effect
      keeps its own primitives, so ragview gives them ids in the order added, above the
      pools'; the original's are where each effect was allocated, which is not ported.

@@ -89,11 +89,12 @@ the `.act`, at least 1, times +0x50.
 - **The palette** is the sprite's (+0x110), or with +0x34 that of the resource named by
   +0x14.
 
-**The ground's colour** is always white in this client. `GetGroundColor` asks the ground
-for the colour of the attribute cell under the actor (`C3dGround15::GetCellTint`,
-`004bfc90`). That reads a vector at `C3dGround15`+0xac which nothing fills: only
-`CWorld::LoadWorld` constructs it (`004c3d0b`), and `Reset` and the destructor clear it.
-So it answers 1, 1, 1.
+**The ground's colour** is the tint of the attribute cell under the actor. With ISLIGHTMAP
+(`0061ec60`), `GetGroundColor` takes the cell under +4 and +0xc (`CGameMode::GetAttrCell`,
+`00511d50`) and asks the ground for its tint (`C3dGround15::GetCellTint`, `004bfc90`), which
+`LoadWorld`'s last step made from the ground's lightmaps
+([ground.md](ground.md#the-cell-tints)). Without ISLIGHTMAP it is white. So an actor in a
+shadow is drawn darker.
 
 ## The point on screen
 

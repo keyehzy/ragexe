@@ -3142,6 +3142,30 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   - **Labels:** `SceneRenderer::MakeSpareSpritePages`,
     `CGameMode::ReleaseSpritePagesPeriodically`, `g_nextSpritePageRelease`,
     `g_spriteSlotSizes`, `g_unusedLifetime`.
+- [x] Actors in whole frames (`docs/render/frame.md#in-the-port`,
+  `docs/render/ground.md#the-cell-tints`): `ragres draw-frame --npc JOB DX DY` and the frame
+  oracle's `--npc` put NPCs and monsters about the player, in the original as real `CNpc`s in
+  `CWorld`'s list, and compare `CView::DrawWorld`'s frames call for call. The port's frame
+  keeps the renderer's 50 spare page textures and its sprite cache (`WorldFrameState`), steps
+  `CView::Step`'s sprite scales each frame, and adds sprites through `AddSpriteQuad`
+  (`0040e980`). An actor's body takes the tint of the attribute cell under it
+  (`GetGroundColor`, `00500e60`), which `CWorld::LoadWorld`'s last step makes from the
+  ground's lightmaps (`C3dGround15::TintCells`, `004bfdb0`, with `GetTopHeights` and
+  `GetTopLightTexel`): `TintGroundCells` and `GroundCellTint`. ragview's actor takes it too.
+  - **Found on the way:** the docs had the ground's colour always white, its table never
+    filled; `LoadWorld` fills it after the scene graph, so an actor is drawn in the light of the
+    ground under it, orange in the pyramids and green in Turtle Island's dungeon. Four of
+    ragview's reviewed frames changed only there, and every frame's digests with the spares'
+    texture ids; the baselines are updated.
+  - **Checks:** the frame oracle with six actors about the player (jobs 50, 84, 120, 1002,
+    1013, 1031) on all 287 maps, three frames each: every device call and vertex equal, 35,658
+    textures (each map's 50 spares included), 284,692 calls and 225,772 draws; `ctest` runs two
+    maps (`frame_oracle_actors`). The world oracle now also compares the whole tint table:
+    equal on 14 maps. 15 mutants of the tints killed, through the world oracle (which now exits
+    1 on a mismatch) and the frame oracle. `tests/unit/scene_test.cpp` checks the spares and
+    `AddSpriteQuad`.
+  - **Labels:** `C3dGround15::TintCells`, `GetTopHeights`, `GetTopLightTexel`, `SetCellTint`,
+    `g_cellTintNeighbours`.
 
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,

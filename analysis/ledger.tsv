@@ -3088,11 +3088,11 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 004bf3d0	752	code	0	world		named	C3dGround15	vf06	
 004bf6c0	221	code	0	world		named	C3dGround15	vf12	
 004bf7a0	386	code	0	world		named	C3dGround15	vf08	
-004bf930	300	code	0	world		named	C3dGround15	vf07	
-004bfa60	548	code	0	world		named	C3dGround15	method_004bfa60	
+004bf930	300	code	0	world		named	C3dGround15	GetTopHeights	
+004bfa60	548	code	0	world		named	C3dGround15	GetTopLightTexel	
 004bfc90	177	code	0	world		named	C3dGround15	GetCellTint	
-004bfd50	91	code	0	world		named	C3dGround15	method_004bfd50	
-004bfdb0	574	code	0	world		named	C3dGround15	vf10	
+004bfd50	91	code	0	world		named	C3dGround15	SetCellTint	
+004bfdb0	574	code	0	world		named	C3dGround15	TintCells	
 004bfff0	77	code	0	world		named	C3dGround15	vf14	
 004c0040	511	code	0	world		named	C3dGround15	vf13	
 004c0240	131	code	0	world		named	C3dGround15	DrawCellCursor	

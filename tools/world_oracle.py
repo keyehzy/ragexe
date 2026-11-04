@@ -15,8 +15,8 @@ TextureCache::GetTexture and texture creation, the effects' and sounds' makers, 
 the UI's progress, Present, and Direct3D's lights.
 
 Each map is dumped as `ragres load-world` dumps the port's: per model of CWorld+0x48 its
-.rsw record and hashes of its fields and nodes, and per scene graph node its box, cells and
-models. --sample takes the smallest maps and a spread of the rest; 0 takes every map.
+.rsw record and hashes of its fields and nodes, the ground's cell tints (C3dGround15+0xac, which
+LoadWorld's last step fills) hashed, and per scene graph node its box, cells and models. --sample takes the smallest maps and a spread of the rest; 0 takes every map.
 """
 import argparse
 import os
@@ -249,6 +249,9 @@ def dump(emu, world, records, near):
                 walk(u(n + 4 + 4 * k), depth + 1)
 
     walk(world + 0x68, 0)
+    ground = u(world + 0x38)
+    tints = floats(emu, u(ground + 0xB0), (u(ground + 0xB4) - u(ground + 0xB0)) // 4)
+    lines.append(f"tints {len(tints) // 3} {fnv1a64(tints):016x}")
     lines.append(f"graph {len(graph)}")
     for k, n in enumerate(graph):
         cells = struct.unpack("<4i", emu.mem_read(n + 0x5C, 16))
@@ -313,6 +316,7 @@ def main():
                     if a != b]
             print("\n".join(diff[:args.show]))
     print("FAILED" if mismatches else "OK")
+    sys.exit(1 if mismatches else 0)
 
 
 def summary(got, want):

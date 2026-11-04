@@ -272,3 +272,45 @@ TEST_CASE("a frame's lists take their primitives from the pools and give each ve
   CHECK_FALSE(f.uv.has_value());
   for (const ScreenVertex& v : f.vertices) CHECK(v.specular == 0x12345678);
 }
+
+TEST_CASE("a frame's sprite pages take the renderer's spare textures, the last first") {
+  const ragexe::res::DataFiles files{std::filesystem::path{}};
+  WorldFrameState state(files);
+  REQUIRE(state.textures.size() == SpriteTextureCache::kSpareTextures);
+  for (std::uint32_t id = 1; id <= SpriteTextureCache::kSpareTextures; ++id) {
+    CHECK(state.textures.at(id).name.empty());
+    CHECK(state.textures.at(id).format == TextureFormat::kArgb1555);
+    CHECK(state.textures.at(id).uv.u == 1.0f);
+    CHECK(state.textures.at(id).uv.v == 1.0f);
+  }
+  FrameLists lists(state);
+  SpriteQuad quad;
+  quad.top = 10.0f;
+  quad.left = 20.0f;
+  quad.bottom = 60.0f;
+  quad.right = 50.0f;
+  quad.rhw_bottom = 0.5f;
+  quad.rhw_top = 0.5f;
+  quad.color = 0xffffffff;
+  quad.flags = 0x101;
+  SpriteImageRef image;
+  image.image = 1;
+  image.palette = 7;
+  image.width = 20;
+  image.height = 30;
+  const std::optional<SpriteSlot> drawn = AddSpriteQuad(lists, quad, image, 100000);
+  REQUIRE(drawn);
+  CHECK(drawn->page_made == SpriteTextureCache::kSpareTextures);
+  CHECK_FALSE(drawn->texture_made);
+  CHECK_FALSE(AddSpriteQuad(lists, quad, image, 100016));
+  SpriteImageRef own;
+  own.texture = state.textures.Create(64, 64, true);
+  own.rect = {0.0f, 0.0f, 1.0f, 1.0f};
+  CHECK_FALSE(AddSpriteQuad(lists, quad, own, 100016));
+  const std::vector<ScenePrimitive>& added = lists.lists().primitives();
+  REQUIRE(added.size() == 3);
+  CHECK(added[0].texture == SpriteTextureCache::kSpareTextures);
+  CHECK(added[1].texture == SpriteTextureCache::kSpareTextures);
+  CHECK(added[2].texture == own.texture);
+  CHECK(added[0].type == 5u);
+}

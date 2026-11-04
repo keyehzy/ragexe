@@ -93,3 +93,4 @@ address	namespace	name	evidence	type
 00685ee0	Global	g_nextSpritePageRelease	CGameMode::ReleaseSpritePagesPeriodically (0050d3d0): runs SceneRenderer::ReleaseExpiredPooledTextures once timeGetTime is past it, then sets it to 15000 ms later (docs/render/sprite_cache.md)	dword
 006055c8	Global	g_spriteSlotSizes	SceneRenderer::CacheSpriteImage: each of the 16 size classes' slot width and height (32 to 256 by 32 to 256), read as [class*8] and [class*8+4]	int
 00612710	Global	g_unusedLifetime	15000: ResourceManager::UnloadExpiredResources and SceneRenderer::ReleaseExpiredPooledTextures let go what was unused that long, CacheSpriteImage takes slots unused a quarter of it	dword
+0060b060	Global	g_cellTintNeighbours	C3dGround15::TintCells: five (dx, dy) int pairs, (0, 0), (0, -1), (0, 1), (1, 0), (-1, 0), whose lightmap texels it sums	int

@@ -6,7 +6,6 @@ namespace ragexe::render {
 
 namespace {
 
-constexpr std::int32_t kPageSide = 256;
 constexpr float kTexel = 0.00390625f;  // 005e2668, 1/256
 
 // 006055c8: each class's slot width and height.
@@ -95,8 +94,8 @@ std::optional<SpriteSlot> SpriteTextureCache::Cache(
     out.page_made = page.texture;
     page.width = kSlotSizes[size_class].first;
     page.height = kSlotSizes[size_class].second;
-    const std::int32_t columns = kPageSide / page.width;
-    const std::int32_t rows = kPageSide / page.height;
+    const std::int32_t columns = static_cast<std::int32_t>(kPageSide) / page.width;
+    const std::int32_t rows = static_cast<std::int32_t>(kPageSide) / page.height;
     page.slots.resize(static_cast<std::size_t>(columns) * static_cast<std::size_t>(rows));
     auto slot = page.slots.begin();
     for (std::int32_t row = 0; row < rows; ++row) {

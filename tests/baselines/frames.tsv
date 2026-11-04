@@ -1,18 +1,18 @@
 # Reviewed frames of ragview (tools/frame_baselines.py; docs/render/gpu.md#baselines). Each scene:
 # its name, its ragview arguments, the draws its frame gave the GPU, the digests of the draws and of
 # the textures (ragview --digest), the SHA-256 of the image as reviewed, and the GPU driver.
-prontera	--cell 156 196 prontera	180	52378738bee7f81b	5b925cc7f3d078eb	437c5dbdaf5faa044c61debb0a39e929a44b3f2b5eb88cc9b5afc31bf32e6075	metal
-prt_in	--cell 160 100 prt_in	99	be011be22478ceb3	0c3cc1443945f40f	ec33716bcf1419e7b0aba5e348297fe51c651aedea9856f28ac92559f8468868	metal
-moc_pryd03	--cell 100 97 moc_pryd03	192	ffaf28c57c56497b	0eb808ca21ee8b53	4da0eb1152a26d915eafe158478c9752b1e84c5da9d5989d115de028330b7b2a	metal
-yuno	--cell 200 200 yuno	162	fdd356f6024c63b9	cdffa546e2b1d135	b07281af8918838238c1cd777c86fc5f79fe8831a24f66889206cde2bba49ac2	metal
-mag_dun01	--cell 127 125 mag_dun01	719	96874c67f0666b95	f0a53f4573d2dd53	56643b2ec9ddc50368df131c1556da98201cc08d55d927b781740df2cc161334	metal
-gef_fild12	--cell 203 202 gef_fild12	261	7b39d806acc2e6c7	a30b06e6ecc68b6e	ae7d55c7ebb94935472368eacd8e44242695c57528c52ffe8cb9f8331f9a61c3	metal
-alberta	--cell 139 140 alberta	389	33647f8ece663e93	facb2ef936a87518	8a12e038466bf87384970d2b62347767941e5391bf1c111a4e0c9bf1a4570554	metal
-comodo_turned	--cell 179 191 --yaw 120 comodo	240	89ca9ce0600f1e3d	008d10792e8d612d	9c55543b847d1483f0db0b088bcaef26a8f58cee1270b1bcc598b94ff6e68fe0	metal
-izlude_player	--cell 150 133 --player 7 1 5 --headgear 2 0 0 --weapon 2 --shield 1 --action 80 izlude	184	090113f3013165df	2729286e2a731158	7d41b7338d2298ea4fcfda28407a50608cf54d07c76274f071fb01da811d459d	metal
-payon_monster	--cell 100 115 --job 1002 payon	188	409960055b78787d	dd2745fc10e2ee10	c0341a25c0468508de01d6ee2806214a632630ba9e2bab278db2d71fd43e70ae	metal
-gonryun	--cell 150 180 gonryun	142	c13fc59fdf87e251	722014dbaa822d73	6c76a7c7630097664d232c5da85a499a3db36bee6741ad0075f84755ad64b729	metal
-ama_dun01	--cell 120 119 ama_dun01	217	ba3287eb48570b46	7f1562efa67bab3c	b9f8843c2ca4c9e183fb9083f126ed5de141f3985c3e4f2619126264a04e6a38	metal
-tur_dun02	--cell 150 150 tur_dun02	515	2bbafae142cc21b7	5b00e0900b6f7624	a4c9b532c5a98d0d3659971f8d348d69dafdc429dcd61dc7a192a6520ffd48e2	metal
-prontera_str	--cell 156 196 --effect angelus prontera	182	3012b9bfa10f75e3	5380bd7c3766d5e6	ab73b3ed043dce1ebdb19adef5eb54441612266ca877cf0a45770cd4d841adbc	metal
-prontera_prim	--cell 156 196 --effect-id 1 prontera	190	9171c20285fb40b5	505c2036c05bf7b6	272cc01aa36a479c7f805edc95446fd357250bb6c7e0f3c64dc3ef660505452a	metal
+prontera	--cell 156 196 prontera	180	72de4a02e1aec22f	21c0c9016f1de4c9	1bc62e76fd76b2b164ced07617bead947bb7853cbc5d97a70c23efc39d55916b	metal
+prt_in	--cell 160 100 prt_in	99	2b0d3ecb2200558f	1b46f15f581fa913	c5e09d64b86ea2cb78e305998655e942d64895087a29021d4606bfddf1539ad9	metal
+moc_pryd03	--cell 100 97 moc_pryd03	192	cdf8a98052103503	e88c03ca1a94631f	feb40fb3f4d42c1283b3bb758f12d678f6e25f2ecce1ec11bc6f0590f9153839	metal
+yuno	--cell 200 200 yuno	162	0f167a17638a0e73	b549c0c9e1eae4c6	b954e15e7c57b1ba4f0101c6dce542e2fa8a2e41380631fb852e15399a14fb2a	metal
+mag_dun01	--cell 127 125 mag_dun01	719	e184b8eb37c47b13	f5d44b82814f7125	430a55b2302eef1375a061fbabe2f111c74dcd51bdb68c5ad8e3bf20e85648c5	metal
+gef_fild12	--cell 203 202 gef_fild12	261	c35b79143974514f	e072fde167b0da50	ae7d55c7ebb94935472368eacd8e44242695c57528c52ffe8cb9f8331f9a61c3	metal
+alberta	--cell 139 140 alberta	389	36a07cc3d6d1ebad	8cc217780dffd4a4	8a12e038466bf87384970d2b62347767941e5391bf1c111a4e0c9bf1a4570554	metal
+comodo_turned	--cell 179 191 --yaw 120 comodo	240	493c2fb1a2d9d2a3	61700a756d75c523	54d28f4059755ce0c648ff519c96b29bce8ac9aba085b8088aa3c1ee7332d5fe	metal
+izlude_player	--cell 150 133 --player 7 1 5 --headgear 2 0 0 --weapon 2 --shield 1 --action 80 izlude	184	6d0922aa2ce36aef	7e1f820ae8332030	7d41b7338d2298ea4fcfda28407a50608cf54d07c76274f071fb01da811d459d	metal
+payon_monster	--cell 100 115 --job 1002 payon	188	031decb8b2f0add1	d54d03ef58f4177c	c0341a25c0468508de01d6ee2806214a632630ba9e2bab278db2d71fd43e70ae	metal
+gonryun	--cell 150 180 gonryun	142	7fe3edd57d506a55	b7eec6c41afc83a9	6c76a7c7630097664d232c5da85a499a3db36bee6741ad0075f84755ad64b729	metal
+ama_dun01	--cell 120 119 ama_dun01	217	2279f93c9754841a	6b14e38fc16b491e	b9f8843c2ca4c9e183fb9083f126ed5de141f3985c3e4f2619126264a04e6a38	metal
+tur_dun02	--cell 150 150 tur_dun02	515	6f89f2ba13c261a1	ca86df7c00b94cf4	7d7337a15a16b451b08cbd401bd694f44b04f11b15fb866346f8364c252bf835	metal
+prontera_str	--cell 156 196 --effect angelus prontera	182	a0ee2aee622fbd1b	ce3b435ad3d4b7b9	68dcd11bff76c7f9e2ac1b6ed9d50325e55588a27a0c4ed55f52d9a4bc98e981	metal
+prontera_prim	--cell 156 196 --effect-id 1 prontera	190	d9ef528d540680ad	21ffae86930d93ec	1e659d8b4952b0e09856be76568f5024f0f9235eb9aa407262c1112d899b029d	metal

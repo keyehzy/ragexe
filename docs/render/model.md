@@ -316,12 +316,15 @@ read `data.grf` with the `.gpf` patches over it, in name order, as the patcher m
 - **Stood in for:** the textures, the effects' and sounds' makers, the player, the UI, and
   Direct3D's lights.
 - **Compared:** each model of +0x48 (its `.rsw` record, its fields +0xc0 to +0x1e4, its
-  nodes' alpha, matrix, box, face colours and ground colours), and each scene graph node's
-  box, cells and models.
+  nodes' alpha, matrix, box, face colours and ground colours), the ground's cell tints
+  ([ground.md](ground.md#the-cell-tints)), and each scene graph node's box, cells and models.
 
 **On all 287 maps**, the 208 of `data.grf` and the 79 only in its patches, every model's
 record, in order, every model's fields and nodes, near and far, and every scene graph node
-are equal. Run with `--sample 0`, the comparison takes about three hours.
+are equal. Run with `--sample 0`, the comparison takes about three hours. The cell tints,
+compared since, are equal on 14 maps: the default sample of 12 and `prontera` and
+`mag_dun01`. The frame oracle with actors reads them under six actors on every map
+([frame.md](frame.md#checks)).
 
 In the oracle `LazyModelLoadThread` runs to its end before `UpdateGameObjects`. In the
 client the two threads overlap, so the main thread may insert the far models over several

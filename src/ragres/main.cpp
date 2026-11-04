@@ -24,7 +24,7 @@
 //                                          player in that cell, from data.grf with the
 //                                          .gpf patches over it, as hashes (--raw: each
 //                                          model's fields and nodes)
-//   ragres draw-frame [--raw] INSTALL MAP CELL_X CELL_Y
+//   ragres draw-frame [--raw] [--npc JOB DX DY]... INSTALL MAP CELL_X CELL_Y
 //                                          draws three frames of a world as CGameMode::OnFrame
 //                                          does, the player and the cell cursor in that
 //                                          cell, and prints the device calls (--raw: each
@@ -91,6 +91,7 @@
 
 #include "render/fog.h"
 #include "render/ground.h"
+#include "render/player_names.h"
 #include "render/world_frame.h"
 #include "render/world_load.h"
 #include "render/world_scene.h"
@@ -106,6 +107,7 @@
 #include "res/imf.h"
 #include "res/item_tables.h"
 #include "res/manner.h"
+#include "res/name_tables.h"
 #include "res/palette.h"
 #include "res/resource.h"
 #include "res/rma.h"
@@ -119,6 +121,7 @@
 #include "res/xml.h"
 #include "world/actor_arrival.h"
 #include "world/actor_attack.h"
+#include "world/actor_draw.h"
 #include "world/actor_effects.h"
 #include "world/actor_hit.h"
 #include "world/actor_state.h"
@@ -392,10 +395,10 @@ bool LoadSceneAtCell(const ragexe::res::DataFiles& files, const std::string& map
 // and prints "instances n" and "near n", the models placed at once, then per model of CWorld+0x48
 // "I k record fields nodes": its .rsw model, the FNV-1a hashes of its fields +0xc0 to +0x1e4 and of
 // its nodes depth first (alpha, matrix, box, each face's colours and texture coordinates, its
-// ground colours); then "graph n" and per scene graph node depth first "G k box dirty cells
-// attribute-cells models", the box its minimum, maximum, centre and half extents hashed, the models
-// the instances' indices or "-". With --raw, a model's line holds its fields themselves,
-// then "|" and its nodes' values.
+// ground colours); then "tints n hash", the ground's cell tints hashed, and "graph n" and per
+// scene graph node depth first "G k box dirty cells attribute-cells models", the box its
+// minimum, maximum, centre and half extents hashed, the models the instances' indices or "-".
+// With --raw, a model's line holds its fields themselves, then "|" and its nodes' values.
 int LoadWorld(std::vector<std::string> args) {
   bool raw = false;
   if (!args.empty() && args.front() == "--raw") {
@@ -453,6 +456,11 @@ int LoadWorld(std::vector<std::string> args) {
                 static_cast<unsigned long long>(Fnv1a64(fields)),
                 static_cast<unsigned long long>(Fnv1a64(nodes)));
   }
+  std::vector<std::uint32_t> tints;
+  for (const auto& tint : scene.mesh.tints)
+    for (const float f : tint) tints.push_back(bits(f));
+  std::printf("tints %zu %016llx\n", scene.mesh.tints.size(),
+              static_cast<unsigned long long>(Fnv1a64(tints)));
   std::printf("graph %zu\n", scene.graph.nodes.size());
   for (std::size_t k = 0; k < scene.graph.nodes.size(); ++k) {
     const ragexe::render::SceneGraphNode& n = scene.graph.nodes[k];
@@ -3053,14 +3061,63 @@ std::string ArchiveName(std::string_view name) {
 // each call DrawScene makes on the device: "R state value", "S stage state value", "T stage
 // texture" and "D type fvf count" with the FNV-1a hash of the vertices' dwords (--raw: the
 // dwords).
+// A sprite and its actions, as SetSprite and SetAct load them from data\sprite\.
+struct LoadedSprite {
+  ragexe::res::Sprite sprite;
+  ragexe::res::Act act;
+};
+
+bool LoadSprite(const ragexe::res::DataFiles& files, const std::string& name, LoadedSprite& out) {
+  std::string ignored;
+  auto bytes = files.Load("data\\sprite\\" + name + ".spr");
+  if (!bytes || !ragexe::res::DecodeSprite(*bytes, {}, out.sprite, &ignored)) return false;
+  const ragexe::res::ActImageLookup lookup =
+      [&](std::int32_t type, std::int32_t index) -> std::optional<ragexe::res::ActImageSize> {
+    const auto i = static_cast<std::size_t>(index);
+    if (index >= 0 && type == 0 && i < out.sprite.images.size()) {
+      const auto& image = out.sprite.images[i];
+      return ragexe::res::ActImageSize{image.width, image.height, image.halved_x, image.halved_y};
+    }
+    if (index >= 0 && type == 1 && i < out.sprite.images32.size()) {
+      const auto& image = out.sprite.images32[i];
+      return ragexe::res::ActImageSize{image.width, image.height, image.halved_x, image.halved_y};
+    }
+    return std::nullopt;
+  };
+  bytes = files.Load("data\\sprite\\" + name + ".act");
+  return bytes && ragexe::res::DecodeAct(*bytes, lookup, out.act, &ignored);
+}
+
+// An NPC or monster of the world's list, as CNpc's constructor and vf16 leave one of a job.
+struct FrameNpc {
+  ragexe::world::GameActor actor;
+  LoadedSprite body;
+};
+
+// The time timeGetTime answers in the frame oracle's frames: 1,000,000 ms, 16 more each frame.
+constexpr std::uint32_t kFrameTime = 1000000;
+constexpr std::uint32_t kFrameTimeStep = 16;
+
 int DrawFrame(std::vector<std::string> args) {
   bool raw = false;
-  if (!args.empty() && args.front() == "--raw") {
-    raw = true;
-    args.erase(args.begin());
+  std::vector<std::array<std::int32_t, 3>> npc_args;
+  while (!args.empty() && args.front().starts_with("--")) {
+    if (args.front() == "--raw") {
+      raw = true;
+      args.erase(args.begin());
+    } else if (args.front() == "--npc" && args.size() >= 4) {
+      npc_args.push_back({static_cast<std::int32_t>(std::stol(args[1])),
+                          static_cast<std::int32_t>(std::stol(args[2])),
+                          static_cast<std::int32_t>(std::stol(args[3]))});
+      args.erase(args.begin(), args.begin() + 4);
+    } else {
+      break;
+    }
   }
   if (args.size() != 4) {
-    std::fprintf(stderr, "usage: ragres draw-frame [--raw] INSTALL MAP CELL_X CELL_Y\n");
+    std::fprintf(
+        stderr,
+        "usage: ragres draw-frame [--raw] [--npc JOB DX DY]... INSTALL MAP CELL_X CELL_Y\n");
     return 2;
   }
   const std::filesystem::path install = args[0];
@@ -3084,6 +3141,77 @@ int DrawFrame(std::vector<std::string> args) {
                                     ragexe::render::FindMapFog(fog_table, map + ".rsw", state.fog));
   state.cursor = {static_cast<std::int32_t>(std::stol(args[2])),
                   static_cast<std::int32_t>(std::stol(args[3])), false, 0x6600ffaa};
+
+  // The NPCs, each in the centre of its cell, that far from the player's, in the order given:
+  // CNpc's constructor shows it (+0x84, +0x85) and vf16 names its sprite (iRO's service type,
+  // 1) and keeps the job's shadow scale; its shadow (+0x88) is set, as for any actor not the
+  // player's.
+  LoadedSprite shadow;
+  if (!npc_args.empty() && !LoadSprite(files, "shadow", shadow)) {
+    std::fprintf(stderr, "ragres: no shadow sprite\n");
+    return 1;
+  }
+  std::vector<FrameNpc> npcs(npc_args.size());
+  for (std::size_t k = 0; k < npc_args.size(); ++k) {
+    const auto [job, dx, dy] = npc_args[k];
+    FrameNpc& npc = npcs[k];
+    const ragexe::render::PlayerSpriteNames names = ragexe::render::NpcSpriteNames(job, job, 1);
+    if (names.sprite.empty() || !LoadSprite(files, names.sprite, npc.body)) {
+      std::fprintf(stderr, "ragres: no sprite for job %d\n", job);
+      return 1;
+    }
+    npc.actor.job = job;
+    const std::array<float, 2> at =
+        ragexe::render::CellCentre(scene.attr, static_cast<std::int32_t>(std::stol(args[2])) + dx,
+                                   static_cast<std::int32_t>(std::stol(args[3])) + dy);
+    npc.actor.object.position = {at[0], ragexe::res::AttrHeight(scene.attr, at[0], at[1]), at[1]};
+    npc.actor.object.shadow = true;
+    npc.actor.object.shadow_scale = ragexe::res::JobShadowScale(job);
+  }
+  // CView::DrawWorld's objects: each NPC through CNpc::Render, its shadow and body through
+  // AddSpriteQuad. Only 8-bit images are drawn: a 32-bit image's texture is made as CSprRes
+  // loads, which is not followed here.
+  const auto image_of =
+      [](const LoadedSprite& from,
+         const ragexe::render::SpriteQuad& q) -> std::optional<ragexe::render::SpriteImageRef> {
+    const auto i = static_cast<std::size_t>(q.image);
+    if (q.image_type != 0 || q.image < 0 || i >= from.sprite.images.size()) return std::nullopt;
+    ragexe::render::SpriteImageRef ref;
+    ref.image = reinterpret_cast<std::uintptr_t>(&from.sprite.images[i]);
+    ref.palette = reinterpret_cast<std::uintptr_t>(&from.sprite.palette);
+    ref.width = from.sprite.images[i].width;
+    ref.height = from.sprite.images[i].height;
+    return ref;
+  };
+  const auto draw_npcs = [&](ragexe::render::FrameLists& lists, std::uint32_t now) {
+    const ragexe::render::Matrix& view = state.camera.view;
+    for (const FrameNpc& npc : npcs) {
+      const ragexe::render::RenderObject& o = npc.actor.object;
+      const ragexe::world::NpcDrawing d =
+          ragexe::world::DrawNpc(npc.actor, view, state.projection, state.sprite_scales, false);
+      const auto add = [&](const ragexe::render::SpriteQuad& q, const LoadedSprite& from) {
+        if (const auto ref = image_of(from, q)) ragexe::render::AddSpriteQuad(lists, q, *ref, now);
+      };
+      if (d.shadow_scale) {
+        if (const auto q = ragexe::render::DrawActorShadow(
+                o, ragexe::res::AttrHeight(scene.attr, o.position[0], o.position[2]),
+                *d.shadow_scale, shadow.act, shadow.sprite, view, state.projection,
+                state.sprite_scales))
+          add(*q, shadow);
+      }
+      if (d.body) {
+        // CRenderObject::GetGroundColor (00500e60): the tint of the attribute cell under it.
+        const std::array<std::int32_t, 2> cell =
+            ragexe::world::AttrCellAt(scene.attr, o.position[0], o.position[2]);
+        for (const ragexe::render::SpriteQuad& q :
+             ragexe::render::DrawActorBody(
+                 o, npc.body.act, npc.body.sprite, view, state.projection, state.sprite_scales,
+                 ragexe::render::GroundCellTint(scene.mesh, cell[0], cell[1]))
+                 .quads)
+          add(q, npc.body);
+      }
+    }
+  };
   std::vector<std::vector<ragexe::render::SceneCall>> frames;
   std::vector<std::vector<ragexe::render::FrameDraw>> frame_draws;
   const float placed = state.camera.yaw;
@@ -3093,7 +3221,10 @@ int DrawFrame(std::vector<std::string> args) {
       state.camera.target_yaw = state.camera.yaw;
     }
     frame_draws.emplace_back();
-    frames.push_back(ragexe::render::DrawWorldFrame(scene, state, 0, frame_draws.back()));
+    const auto now = static_cast<std::uint32_t>(kFrameTime + kFrameTimeStep * frames.size());
+    frames.push_back(ragexe::render::DrawWorldFrame(
+        scene, state, 0, frame_draws.back(),
+        [&](ragexe::render::FrameLists& lists) { draw_npcs(lists, now); }));
   }
 
   std::vector<std::uint32_t> unnamed;
@@ -3951,7 +4082,7 @@ int Usage() {
                "       ragres decode-rsws [--no-lightmaps] FILE...\n"
                "       ragres decode-rsms [--single] FILE...\n"
                "       ragres load-world [--raw] INSTALL MAP CELL_X CELL_Y\n"
-               "       ragres draw-frame [--raw] INSTALL MAP CELL_X CELL_Y\n"
+               "       ragres draw-frame [--raw] [--npc JOB DX DY]... INSTALL MAP CELL_X CELL_Y\n"
                "       ragres decode-rsxs FILE...\n"
                "       ragres decode-imfs FILE...\n"
                "       ragres decode-rmas FILE...\n"

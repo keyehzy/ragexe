@@ -11,12 +11,14 @@
 #include <vector>
 
 #include "core/crt_rand.h"
+#include "render/actor.h"
 #include "render/camera.h"
 #include "render/device.h"
 #include "render/fog.h"
 #include "render/ground.h"
 #include "render/model.h"
 #include "render/scene.h"
+#include "render/sprite_cache.h"
 #include "render/texture.h"
 #include "render/world_scene.h"
 #include "res/data_files.h"
@@ -48,6 +50,9 @@ class FrameTextures {
   std::uint32_t Find(const std::string& name) const;
   // C3dDevice::CreateTexture of an image of this size that no name holds.
   std::uint32_t Create(std::uint32_t width, std::uint32_t height, bool alpha);
+  // CTexture(256, 256, 0) itself (004165e0), not through CreateTexture, as a sprite page's
+  // texture is made: ARGB 1555, its uv scale 1.
+  std::uint32_t Construct();
 
   const FrameTexture& at(std::uint32_t id) const { return textures_[id - 1]; }
   std::size_t size() const { return textures_.size(); }
@@ -122,7 +127,9 @@ std::vector<FrameDraw> FrameDraws(const std::vector<SceneCall>& calls,
 
 // What CGameMode keeps of a world between frames, and the renderer's state that lasts.
 struct WorldFrameState {
-  explicit WorldFrameState(const res::DataFiles& files) : textures(files) {}
+  // The renderer made: its sprite scales for the projection's size (SetSize), and the spare
+  // sprite page textures its constructor makes (0040deb0), the first textures of all.
+  explicit WorldFrameState(const res::DataFiles& files);
   WorldFrameState(const WorldFrameState&) = delete;
   WorldFrameState& operator=(const WorldFrameState&) = delete;
 
@@ -142,6 +149,8 @@ struct WorldFrameState {
   FrameTextures textures;
   std::vector<std::uint32_t> lightmap_pages;  // the atlas pages' textures
   std::uint32_t frame = 1;                    // the renderer's frame count (+0x34)
+  SpriteScales sprite_scales;                 // CView::Step's, each frame
+  SpriteTextureCache sprites;                 // +0x194
   FogState fog;                               // 00625ea0 to 00625eb4
   bool vertex_fog = false;                    // +0x4c: AddPrimitive writes each vertex's fog
   bool setup_projection = false;              // +0x48: the next DrawScene sets up the projection
@@ -179,6 +188,25 @@ class FrameLists {
   std::map<std::uint32_t, FramePrimitive> primitives_;
 };
 
+// The image a sprite quad draws: an 8-bit one by its image and palette, as the sprite texture
+// cache keeps them, or one with a texture of its own (a 32-bit image's, +8 of its record) and
+// the corners it spans there, 0 to its uv scale.
+struct SpriteImageRef {
+  SpriteTextureCache::Key image = 0;
+  SpriteTextureCache::Key palette = 0;
+  std::int16_t width = 0;
+  std::int16_t height = 0;
+  std::uint32_t texture = 0;
+  SpriteTextureRect rect;
+};
+
+// SceneRenderer::AddSpriteQuad (0040e980) at time now: the image's own texture and corners, or
+// an 8-bit image's from the sprite texture cache (FindCachedSprite, else CacheSpriteImage with
+// a page texture Construct makes once the spares run out); then the quad from the pool into
+// the lists (SpriteQuadVertices). The slot CacheSpriteImage drew the image into, if it did.
+std::optional<SpriteSlot> AddSpriteQuad(FrameLists& lists, const SpriteQuad& quad,
+                                        const SpriteImageRef& image, std::uint32_t now);
+
 // What the world's objects add to a frame (the list at CWorld+0xc, each through its slot 3).
 using WorldObjectsDraw = std::function<void(FrameLists&)>;
 
@@ -190,10 +218,11 @@ using WorldObjectsDraw = std::function<void(FrameLists&)>;
 void EnterWorld(const WorldScene& scene, float x, float z, bool indoor, WorldFrameState& state);
 
 // One frame as CGameMode::OnFrame steps and draws it at time now: the water's step and the
-// view's (CView::Update), then CView::DrawWorld (004cf4d0): the visible scene graph's models
-// and cells and the cell cursor into the scene lists, then the world's objects (objects), and
-// DrawScene, which first sets up the projection when SetFogEnabled asked. Then the frame
-// counted, as Present counts it, and the pools rewound. The calls DrawScene makes, and its draws.
+// view's (CView::Update, with CView::Step's sprite scales), then CView::DrawWorld (004cf4d0): the
+// visible scene graph's models and cells and the cell cursor into the scene lists, then the world's
+// objects (objects), and DrawScene, which first sets up the projection when SetFogEnabled asked.
+// Then the frame counted, as Present counts it, and the pools rewound. The calls DrawScene makes,
+// and its draws.
 std::vector<SceneCall> DrawWorldFrame(WorldScene& scene, WorldFrameState& state, std::uint32_t now,
                                       std::vector<FrameDraw>& draws,
                                       const WorldObjectsDraw& objects = {});

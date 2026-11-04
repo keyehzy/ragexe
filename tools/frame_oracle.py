@@ -1,7 +1,7 @@
 """Compares the port's whole frames with the original's (docs/render/frame.md).
 
 usage: .venv/bin/python -I tools/frame_oracle.py [--sample N] [--jobs J] [--raw] [--show N]
-           [--original-only] [MAP...]
+           [--original-only] [--npc JOB DX DY]... [MAP...]
 
 Each map is loaded as tools/world_oracle.py loads it, but with the player on the walkable cell
 nearest the attribute map's centre, and with the textures made for real:
@@ -20,12 +20,21 @@ IsIndoorMap is answered from indoorRswTable.txt. The fog is set as CGameMode::On
 the FOG setting on, the client's default (00516570, from fogParameterTable.txt read by
 ClientState::LoadFogParameterTable), on a device with vertex fog.
 
+With --npc, each JOB is a CNpc in the world's list (CWorld+8), in the order given: made by its
+constructor (0053f950), its job at +0x1b8 named by vf16 (0053fae0, which loads its sprite and
+actions for real and keeps the job's shadow scale; the job names and shadows of service type
+1), in the centre of the cell DX and DY from the player's, its shadow (+0x88) set. DrawWorld
+draws it through CNpc::Render, which records its pick bounds in g_CActorPickNode (constructed,
+and cleared before each frame as OnFrame clears it). The sprites and actions are read from a
+second cache. timeGetTime answers 1,000,000 ms in the first frame, 16 more in each after.
+
 Every call DrawWorld makes on the device but SetTransform (SetupProjection's, which the port
 leaves out: its vertices come transformed) is recorded and printed as `ragres draw-frame` prints the
 port's: "R state value", "S stage state value", "T stage texture", "D type fvf count" and the
 vertices' hash (--raw: the vertices). A texture is named by the name it was asked for, or
-"#k" for the k-th unnamed one (the lightmap pages). Before the frames, "X k name" lists the
-textures in the order they were made, which is the order of their addresses. --sample takes the
+"#k" for the k-th unnamed one (the renderer's 50 spare sprite page textures, then the lightmap
+pages and any sprite pages after). Before the frames, "X k name" lists the textures in the order
+they were made, which is the order of their addresses. --sample takes the
 smallest maps and a spread of the rest, as world_oracle.py does; 0 takes every map. The
 textures and models are read from a cache under build/ (extracted from data.grf and the patches
 on first use).
@@ -43,6 +52,7 @@ sys.path.insert(0, os.path.join(ROOT, "tools"))
 import oracle_pool  # noqa: E402
 import world_oracle  # noqa: E402
 from emu import directx  # noqa: E402
+from emu.winapi import Stub  # noqa: E402
 from unicorn.x86_const import UC_X86_REG_ECX  # noqa: E402
 from model_vectors import G_PSCENE_RENDERER  # noqa: E402
 from PIL import Image  # noqa: E402
@@ -57,6 +67,11 @@ CELL_CURSOR = 0x684E20  # x, z, hidden, colour
 CURSOR_COLOR = 0x6600FFAA
 TURNS = (None, 120.0, 240.0)
 CACHE_PATTERNS = ("*.bmp", "*.tga", "*.jpg", "*.rsm", "*.txt")
+SPRITE_PATTERNS = ("*.spr", "*.act")
+NPC_CTOR, NPC_SET_JOB, NPC_SIZE = 0x53F950, 0x53FAE0, 0x298
+INIT_JOB_NAMES, INIT_SHADOWS, SERVICE_TYPE = 0x58AC70, 0x59A5E0, 0x67C9D4
+CONSTRUCT_PICK_TREE, CLEAR_PICK_TREE, G_PICK_TREE = 0x4CE470, 0x4CE710, 0x67CA60
+FRAME_TIME, FRAME_TIME_STEP = 1000000, 16
 RAW = "--raw" in sys.argv
 
 _draw_primitive = directx.Device.DrawPrimitive
@@ -71,8 +86,9 @@ def draw_primitive(self, kind, fvf, data, count, flags):
 directx.Device.DrawPrimitive = draw_primitive
 
 
-def build_cache(ragres, install, cache):
-    """Every image, model and text file of data.grf with each .gpf over it, in name order."""
+def build_cache(ragres, install, cache, patterns=CACHE_PATTERNS):
+    """Every file of data.grf with each .gpf over it, in name order, that the patterns name:
+    by default the images, models and text files."""
     if os.path.isdir(cache):
         return
     work = cache + ".partial"
@@ -80,7 +96,7 @@ def build_cache(ragres, install, cache):
     archives = [os.path.join(install, "data.grf")] + sorted(
         os.path.join(install, n) for n in os.listdir(install) if n.lower().endswith(".gpf"))
     for archive in archives:
-        subprocess.run([ragres, "extract", archive, work, *CACHE_PATTERNS], check=True, capture_output=True)
+        subprocess.run([ragres, "extract", archive, work, *patterns], check=True, capture_output=True)
     os.rename(work, cache)
 
 
@@ -144,15 +160,49 @@ def walkable_cell(emu, attr):
     return best[1] if best else centre
 
 
+def queued_textures(emu, renderer):
+    """The textures of the list at SceneRenderer+0x254 (its head +0x258), in order."""
+    head = emu.read_u32(renderer + 0x258)
+    node, out = emu.read_u32(head), []
+    while node != head:
+        out.append(emu.read_u32(node + 8))
+        node = emu.read_u32(node)
+    return out
+
+
+def add_npc(emu, world, mode, attr, cell, job, dx, dy):
+    """A CNpc of the job in the centre of the cell dx and dy from cell, at the end of the
+    world's list."""
+    npc = emu.alloc(NPC_SIZE)
+    emu.call(NPC_CTOR, this=npc)
+    emu.write_u32(npc + 0x1B8, job & 0xFFFFFFFF)
+    emu.call(NPC_SET_JOB, job & 0xFFFFFFFF, this=npc)
+    out = emu.scratch(size=8)
+    emu.call(GET_CELL_CENTRE, cell[0] + dx, cell[1] + dy, out, out + 4, this=mode)
+    x, z = struct.unpack("<ff", emu.mem_read(out, 8))
+    y = emu.call(GET_HEIGHT, *struct.unpack("<II", emu.mem_read(out, 8)), this=attr).st0
+    emu.mem_write(npc + 4, struct.pack("<fff", x, y, z))
+    emu.mem_write(npc + 0x88, b"\1")
+    head = emu.read_u32(world + 0xC)
+    last = emu.read_u32(head + 4)
+    node = emu.alloc(12)
+    emu.mem_write(node, struct.pack("<III", head, last, npc))
+    emu.write_u32(last, node)
+    emu.write_u32(head + 4, node)
+    emu.write_u32(world + 0x10, emu.read_u32(world + 0x10) + 1)
+
+
 def frames(item):
-    ragres, install, cache, mapname = item
+    ragres, install, cache, sprites, npcs, mapname = item
     with tempfile.TemporaryDirectory() as tmp:
         world_oracle.extract_world(ragres, install, tmp, mapname)
         emu = world_oracle.boot()
         emu.serve_data_files({})
         emu.data_files = CachedFiles(cache, world_oracle.served(tmp))
+        if npcs:
+            emu.data_files.paths.update(CachedFiles(sprites, {}).paths)
     stand_in_jpeg(emu)
-    textures = []
+    textures = queued_textures(emu, emu.read_u32(G_PSCENE_RENDERER))
     emu.hook_code(CTEXTURE_CTOR, CTEXTURE_CTOR,
                   lambda uc, address, size, _: textures.append(uc.reg_read(UC_X86_REG_ECX)))
     table = emu.data_files.get("data\\indoorrswtable.txt")
@@ -185,6 +235,15 @@ def frames(item):
     emu.call(APPLY_MAP_FOG, 1, this=mode)
     emu.mem_write(CELL_CURSOR, struct.pack("<iiII", cell[0], cell[1], 0, CURSOR_COLOR))
     emu.write_u32(renderer + 0x34, 1)
+    if npcs:
+        emu.write_u32(SERVICE_TYPE, 1)
+        emu.call(INIT_JOB_NAMES, this=G_CLIENT_STATE)
+        emu.call(INIT_SHADOWS, this=G_CLIENT_STATE)
+        emu.call(CONSTRUCT_PICK_TREE)
+        for job, dx, dy in npcs:
+            add_npc(emu, world, mode, attr, cell, job, dx, dy)
+    now = [FRAME_TIME]
+    emu.api.stubs["WINMM.DLL!timeGetTime"] = Stub(0, lambda: now[0])
 
     lines = []
     calls = []
@@ -196,6 +255,8 @@ def frames(item):
             emu.mem_write(view + 0x38, yaw)
         emu.call(STEP_WATER, this=emu.read_u32(world + 0x38))
         emu.call(CVIEW_UPDATE, this=view)
+        if npcs:
+            emu.call(CLEAR_PICK_TREE, this=G_PICK_TREE)
         start = len(emu.directx.calls)
         emu.call(DRAW_WORLD, this=view)
         calls.append([c for c in emu.directx.calls[start:]
@@ -203,6 +264,7 @@ def frames(item):
         for offset in (0x34, 0x3C):
             emu.write_u32(renderer + offset, emu.read_u32(renderer + offset) + 1)
         emu.call(REWIND_POOLS, this=renderer)
+        now[0] += FRAME_TIME_STEP
 
     names, unnamed = {}, 0
     for k, t in enumerate(textures):
@@ -257,10 +319,17 @@ def main():
     ap.add_argument("--raw", action="store_true", help="each draw's vertices, not their hash")
     ap.add_argument("--show", type=int, default=0, help="differing lines to print for each map")
     ap.add_argument("--original-only", action="store_true", help="print the original's frames only")
+    ap.add_argument("--sprites", default=os.path.join(ROOT, "build", "oracle-sprites"),
+                    help="the sprites' and actions' cache, for --npc")
+    ap.add_argument("--npc", nargs=3, type=int, action="append", default=[], metavar=("JOB", "DX", "DY"),
+                    help="a CNpc of the job that far from the player's cell")
     args = ap.parse_args()
     build_cache(args.ragres, args.install, args.cache)
+    if args.npc:
+        build_cache(args.ragres, args.install, args.sprites, SPRITE_PATTERNS)
     maps = args.maps or world_oracle.sample_maps(args.ragres, args.install, args.sample)
-    results = oracle_pool.run([(args.ragres, args.install, args.cache, m) for m in maps], init, work,
+    npcs = [tuple(n) for n in args.npc]
+    results = oracle_pool.run([(args.ragres, args.install, args.cache, args.sprites, npcs, m) for m in maps], init, work,
                               args.jobs or None, label="frames")
     mismatches = 0
     for mapname, result in zip(maps, results):
@@ -275,8 +344,9 @@ def main():
         if args.original_only:
             print(f"{mapname} {cell[0]} {cell[1]}\n{want}")
             continue
-        got = subprocess.run([args.ragres, "draw-frame", *(["--raw"] if args.raw else []), args.install, mapname,
-                              str(cell[0]), str(cell[1])], capture_output=True, text=True).stdout.strip()
+        npc_args = [str(v) for n in npcs for v in ("--npc", *n)]
+        got = subprocess.run([args.ragres, "draw-frame", *(["--raw"] if args.raw else []), *npc_args, args.install,
+                              mapname, str(cell[0]), str(cell[1])], capture_output=True, text=True).stdout.strip()
         print(f"{mapname}: {summary(got, want)}")
         if got != want:
             mismatches += 1
