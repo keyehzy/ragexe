@@ -44,4 +44,19 @@ NpcDrawing DrawNpc(const GameActor& actor, const render::Matrix& view,
                    const render::Projection& projection, const render::SpriteScales& scales,
                    bool effects_on);
 
+// What CPc::Render (00544380, vf03) does, in the order it does it.
+struct PcDrawing {
+  std::optional<float> shadow_scale;  // the shadow (DrawShadow) at the object's scale (+0x3c)
+  bool layers = false;                // the layers (CPc::RenderActFrameItems, render::DrawPlayer)
+  bool special = false;  // 00545540, the Korean service's drawing for a few ids, not ported
+  bool point = false;    // only the point on screen (ProjectToScreen)
+};
+
+// CPc::Render: nothing but the point unless shown (+0x84); then the shadow unless it is dead
+// or sitting (+0x58 3 or 6), whatever its alpha, and with the body shown (+0x85) the layers,
+// or 00545540 for IsSpecialActorIdOnKoreaService's ids; the point otherwise. Its DrawBody with
+// +0x2c8 set is left out: a CPc's constructor clears +0x2c8 (005422dc), and only CGrannyPc's
+// sets it.
+PcDrawing DrawPc(const GameActor& actor, std::int32_t service_type);
+
 }  // namespace ragexe::world

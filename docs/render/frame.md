@@ -146,8 +146,23 @@ adds its actor and its effects there ([gpu.md](gpu.md#ragview)). `ragres draw-fr
 DX DY` adds NPCs and monsters, each in the centre of the cell DX and DY from the player's, as
 `CNpc`'s constructor and `vf16` leave one: through `CNpc::Render`
 ([world/npc_draw.md](../world/npc_draw.md)), its shadow and its body tinted by the ground under
-it ([ground.md](ground.md#the-cell-tints)), each quad through `AddSpriteQuad`. Only 8-bit
-images are drawn: a 32-bit image's texture is made as `CSprRes` loads, which is not followed.
+it ([ground.md](ground.md#the-cell-tints)), each quad through `AddSpriteQuad`.
+
+`--pc JOB SEX HAIR WEAPON TOP MID BOTTOM SHIELD HAIR_COLOR CLOTHES_COLOR ACTION DIRECTION FRAME
+DX DY` adds players after them, each as `CPc`'s constructor and its `vf14` leave one, dressed in
+the ten values `vf14` takes ([world/look.md](../world/look.md#the-dress)), at the action plus
+the direction and at the frame given. Each is drawn through `CPc::Render`
+([player.md](player.md#drawing)): its shadow, then its layers, the body in the clothes'
+palette and the head in the hair's, each quad through `AddSpriteQuad` with the palette it is
+drawn in.
+
+**Resources by name.** Each sprite, actions, `.imf` and palette is loaded once by its name and
+shared, as `ResourceManager` keeps one resource for a name. That matters to the sprite cache,
+which tells images and palettes apart by address: two monsters of one job draw the same images,
+and the second finds the first's slots.
+
+Only 8-bit images are drawn: a 32-bit image's texture is made as `CSprRes` loads, which is not
+followed. No player's sprite has one.
 
 **The vertices** (`FrameDraws`). Each draw first multiplies the primitive's texture
 coordinates by its texture's uv scale, in place, at the x87's single precision
@@ -198,18 +213,27 @@ textures in the order made, then each frame's device calls.
 - **The result:** all 287 maps are equal, three frames each: 21,308 textures made, 267,611
   device calls and 215,472 draws. The textures listed also count the renderer's 50 spare
   sprite page textures, which the original makes before any map's.
-- **With actors** (`--npc`): each `JOB DX DY` is a `CNpc` in the original's world list
+- **With actors** (`--npc`, `--pc`): each `JOB DX DY` is a `CNpc` in the original's world list
   (`CWorld`+8), made by its constructor, its job named by `vf16` (its sprite and actions
-  loaded for real, from a second cache of the archives' `.spr` and `.act` files), its shadow
-  set, in the centre of its cell. `CNpc::Render` records its pick bounds in
+  loaded for real, from a second cache of the archives' `.spr`, `.act`, `.imf` and `.pal`
+  files), its shadow set, in the centre of its cell. Each `--pc` is a `CPc` after them, made by
+  its constructor (`00541fb0`) and dressed by its `vf14` (`00542c50`) with the name tables
+  `ClientState::InitNameTables` fills, its base action, action and frame set (+0x20, +0x24,
+  +0x28). `CNpc::Render` records its pick bounds in
   `g_CActorPickNode`, which the oracle constructs and clears before each frame as `OnFrame`
   does. `timeGetTime` answers 1,000,000 ms in the first frame and 16 more in each after, and
-  `ragres draw-frame` takes the same times. `ctest` runs two maps with three NPCs and three
-  monsters (`frame_oracle_actors`).
-- **The result with actors:** all 287 maps are equal with three NPCs and three monsters about
-  the player (jobs 50, 84, 120, 1002, 1013 and 1031), three frames each: 35,658 textures
-  made, the spares included, 284,692 device calls and 225,772 draws. Every sprite page took a
-  spare.
+  `ragres draw-frame` takes the same times. `ctest` runs two maps with the actors below
+  (`frame_oracle_actors`).
+- **The result with actors:** all 287 maps are equal, three frames each, with fifteen actors
+  about the player:
+  - three NPCs and four monsters (jobs 50, 84, 120, 1002 twice, 1013 and 1031);
+  - eight players: a swordsman swinging a sword at frame 5, where its glow shows; a
+    swordswoman with a shield in action 0x20; an acolyte in three headgear, turned away; a
+    thief and an archer attacking; three novices alike but for their palettes, two in one
+    colour and one in its sprite's own.
+
+  35,658 textures made, the spares included, 337,531 device calls and 257,201 draws. Every
+  sprite page took a spare.
 - **Found by the patches' maps:**
   - the lava of `mag_dun01` and `mag_dun02` is coloured by the ambient colour
     `C3dWorldRes::Load` copies (above), which the port had left at 1.0. No map of `data.grf`

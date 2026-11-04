@@ -78,12 +78,17 @@ The sprites' paths are relative to `sprite\`, the `.imf`'s to `imf\` and the pal
 
 ## Drawing
 
-`CPc::Render` (`vf03`, `00544380`) runs in three steps:
-1. **The shadow:** `DrawShadow`, unless +0x58 is 3 or 6.
+`CPc::Render` (`vf03`, `00544380`) only works out the screen position (`ProjectToScreen`)
+unless the player is shown (+0x84). Shown, it runs in three steps:
+1. **The shadow:** `DrawShadow` at the object's scale (+0x3c), unless +0x58 is 3 (dead) or 6
+   (sitting). Unlike an NPC's ([world/npc_draw.md](../world/npc_draw.md)), the alpha does not
+   matter.
 2. **The body,** while +0x85 is set:
    - `RenderActFrameItems` (`00544be0`), the layered drawing below;
-   - `DrawBody` instead, with +0x2c8 set;
-   - `00545540` instead, for a few special ids on the Korean service.
+   - `00545540` instead, for a few special ids on the Korean service
+     (`IsSpecialActorIdOnKoreaService`, `004d8e10`);
+   - `DrawBody` instead, with +0x2c8 set. A `CPc`'s constructor clears it (`005422dc`); only
+     `CGrannyPc`'s sets it.
 3. **Otherwise** it only works out the screen position.
 
 **`RenderActFrameItems`** first sets up as `DrawBody` does: the projection, the pixel
@@ -157,6 +162,9 @@ body.
 - **Drawing:** `DrawPlayer` and `FindImfLayer`. Each quad carries its layer, so the
   caller knows which sprite's texture it needs.
 
+`world::DrawPc` (`src/world/actor_draw`) is `CPc::Render`: what it draws, in order. Its
+`DrawBody` with +0x2c8 is left out, and so is `00545540`, which it only reports.
+
 `src/render/player_names.{h,cpp}`, the names, with the tables as the original fills them,
 in CP949:
 - **The sprites:** `PlayerBodyName`, `PlayerHeadName` and `PlayerImfName`;
@@ -173,6 +181,9 @@ in CP949:
 - `--headgear TOP MID BOTTOM`, `--weapon KIND` and `--shield ID` dress it;
 - `--action BASE` picks the action, 80 to attack, which shows the weapon and shield;
 - with the shadow, animated.
+
+**`ragres draw-frame --pc`** puts dressed players in whole frames
+([frame.md](frame.md#in-the-port)).
 
 ## Checks
 
@@ -199,6 +210,14 @@ in CP949:
   ([actor.md](actor.md#the-point-on-screen)). Only the body and the head widen the bounds.
 
 `tests/unit/player_test.cpp` matches all 19,686 values.
+
+`tools/pc_draw_vectors.py` runs `CPc::Render` on 1,152 players: shown or not, the body shown
+or not, each state from −1 to 10, opaque or not, ids about the Korean service's special ones under service
+types 0 to 2. The five calls it can make are recorded in order. `tests/unit/actor_draw_test.cpp`
+matches `DrawPc` against all of them.
+
+The frame oracle ([frame.md](frame.md#checks)) draws dressed players in whole frames, every
+quad of every layer through the sprite cache.
 
 **Not ported:**
 - `00545540`, the special drawing for a few ids on the Korean service;

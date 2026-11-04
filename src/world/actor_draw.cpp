@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "core/x87.h"
+#include "world/actor_state.h"
 
 namespace ragexe::world {
 
@@ -15,6 +16,8 @@ constexpr std::int32_t kSized = 111;
 constexpr float kPortalReach = 50.0f;  // 005e99c0
 constexpr float kPortalShadow = 3.0f;  // 005e29d8
 constexpr std::uint32_t kOpaque = 0xff000000;
+constexpr std::int32_t kDead = 3;
+constexpr std::int32_t kSitting = 6;
 
 NpcBounds Place(const GameActor& actor, const render::Matrix& view,
                 const render::Projection& projection, const render::SpriteScales& scales) {
@@ -72,6 +75,24 @@ NpcDrawing DrawNpc(const GameActor& actor, const render::Matrix& view,
         out.point = true;
       }
       break;
+  }
+  return out;
+}
+
+PcDrawing DrawPc(const GameActor& actor, std::int32_t service_type) {
+  const render::RenderObject& o = actor.object;
+  PcDrawing out;
+  if (!o.visible) {
+    out.point = true;
+    return out;
+  }
+  if (actor.state != kSitting && actor.state != kDead) out.shadow_scale = o.scale;
+  if (!o.body_shown) {
+    out.point = true;
+  } else if (IsSpecialActorIdOnKoreaService(service_type, actor.id)) {
+    out.special = true;
+  } else {
+    out.layers = true;
   }
   return out;
 }

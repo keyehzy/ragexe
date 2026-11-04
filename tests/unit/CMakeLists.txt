@@ -180,15 +180,23 @@ if(RAGEXE_ARCHIVES)
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/frame_oracle.py"
         moc_pryd03 payon_in02 alb_ship mag_dun01 --ragres $<TARGET_FILE:ragres>
         --install "${RAGEXE_INSTALL_DIR}" --cache "${CMAKE_BINARY_DIR}/oracle-data")
-    # Two of them again with three NPCs and three monsters about the player, each a CNpc in the
-    # original's world list drawn through CNpc::Render, the sprite cache and the ground's tints
-    # (its sprites and actions are extracted on the first run).
+    # Two of them again with actors about the player, in the original's world list: three NPCs and
+    # four monsters (two of one job, which share their sprite), each a CNpc drawn through
+    # CNpc::Render, and eight players, each a CPc dressed by its vf14 and drawn through
+    # CPc::Render, in assorted actions, directions and frames (three novices alike but for their
+    # palettes, which the sprite cache tells apart); the sprite cache and the ground's tints with
+    # them (the sprites, actions, .imf files and palettes are extracted on the first
+    # run).
     add_test(NAME frame_oracle_actors
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/frame_oracle.py"
         moc_pryd03 prontera --npc 1002 2 1 --npc 50 -2 0 --npc 1013 0 3 --npc 84 1 -2
-        --npc 1031 -3 -3 --npc 120 4 0 --ragres $<TARGET_FILE:ragres>
-        --install "${RAGEXE_INSTALL_DIR}" --cache "${CMAKE_BINARY_DIR}/oracle-data"
-        --sprites "${CMAKE_BINARY_DIR}/oracle-sprites")
+        --npc 1031 -3 -3 --npc 120 4 0 --npc 1002 -1 2
+        --pc 1 1 5 2 17 0 0 1 3 2 80 0 5 2 2 --pc 4 0 3 0 4 12 20 0 5 1 0 3 0 -2 2
+        --pc 6 1 7 1 0 0 0 0 0 3 80 5 2 3 -1 --pc 3 0 9 11 2 0 0 0 7 0 80 6 3 -1 -2
+        --pc 1 0 4 2 0 0 0 1 0 4 32 2 0 0 2 --pc 0 1 2 0 0 0 0 0 0 0 0 0 0 -4 1
+        --pc 0 1 2 0 0 0 0 0 4 1 0 0 0 2 -3 --pc 0 1 2 0 0 0 0 0 4 1 0 0 0 -3 3
+        --ragres $<TARGET_FILE:ragres> --install "${RAGEXE_INSTALL_DIR}"
+        --cache "${CMAKE_BINARY_DIR}/oracle-data" --sprites "${CMAKE_BINARY_DIR}/oracle-actors")
     # ragview's reviewed frames (tools/frame_baselines.py): what each scene gives the GPU, and its
     # image against the reviewed copy under original/baselines. Skipped without a GPU device.
     add_test(NAME frame_baselines

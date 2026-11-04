@@ -24,7 +24,9 @@
 //                                          player in that cell, from data.grf with the
 //                                          .gpf patches over it, as hashes (--raw: each
 //                                          model's fields and nodes)
-//   ragres draw-frame [--raw] [--npc JOB DX DY]... INSTALL MAP CELL_X CELL_Y
+//   ragres draw-frame [--raw] [--npc JOB DX DY]... [--pc JOB SEX HAIR WEAPON TOP MID BOTTOM
+//                     SHIELD HAIR_COLOR CLOTHES_COLOR ACTION DIRECTION FRAME DX DY]...
+//                     INSTALL MAP CELL_X CELL_Y
 //                                          draws three frames of a world as CGameMode::OnFrame
 //                                          does, the player and the cell cursor in that
 //                                          cell, and prints the device calls (--raw: each
@@ -3088,19 +3090,87 @@ bool LoadSprite(const ragexe::res::DataFiles& files, const std::string& name, Lo
   return bytes && ragexe::res::DecodeAct(*bytes, lookup, out.act, &ignored);
 }
 
+// The sprites, actions, .imf files and palettes the world's objects ask for, each loaded once
+// by its name, as ResourceManager keeps one resource for a name: actors of one job share their
+// sprite, and so their sprite images' slots in the sprite cache. A name not found is kept as
+// none.
+class FrameResources {
+ public:
+  explicit FrameResources(const ragexe::res::DataFiles& files) : files_(files) {}
+
+  // The sprite and actions of a name without its extension, under data\sprite\.
+  const LoadedSprite* Sprite(const std::string& name) {
+    auto it = sprites_.find(name);
+    if (it == sprites_.end()) {
+      auto loaded = std::make_unique<LoadedSprite>();
+      if (!LoadSprite(files_, name, *loaded)) loaded.reset();
+      it = sprites_.emplace(name, std::move(loaded)).first;
+    }
+    return it->second.get();
+  }
+
+  const ragexe::res::Imf* Imf(const std::string& name) {
+    auto it = imfs_.find(name);
+    if (it == imfs_.end()) {
+      auto loaded = std::make_unique<ragexe::res::Imf>();
+      std::string ignored;
+      const auto bytes = files_.Load("data\\imf\\" + name);
+      if (!bytes || !ragexe::res::DecodeImf(*bytes, *loaded, &ignored)) loaded.reset();
+      it = imfs_.emplace(name, std::move(loaded)).first;
+    }
+    return it->second.get();
+  }
+
+  const ragexe::res::Palette* Palette(const std::string& name) {
+    auto it = palettes_.find(name);
+    if (it == palettes_.end()) {
+      auto loaded = std::make_unique<ragexe::res::PaletteRes>();
+      const auto bytes = files_.Load("data\\palette\\" + name);
+      if (!bytes || !loaded->LoadFromBytes(*bytes)) loaded.reset();
+      it = palettes_.emplace(name, std::move(loaded)).first;
+    }
+    return it->second ? &it->second->palette() : nullptr;
+  }
+
+ private:
+  const ragexe::res::DataFiles& files_;
+  std::map<std::string, std::unique_ptr<LoadedSprite>> sprites_;
+  std::map<std::string, std::unique_ptr<ragexe::res::Imf>> imfs_;
+  std::map<std::string, std::unique_ptr<ragexe::res::PaletteRes>> palettes_;
+};
+
 // An NPC or monster of the world's list, as CNpc's constructor and vf16 leave one of a job.
 struct FrameNpc {
   ragexe::world::GameActor actor;
-  LoadedSprite body;
+  const LoadedSprite* body = nullptr;
 };
+
+// A player of the world's list, as CPc's constructor and vf14 leave one: each layer's actions
+// and sprite, the .imf, and the palettes its body and head are drawn in.
+struct FramePc {
+  ragexe::world::PlayerActor actor;
+  std::array<ragexe::render::PlayerLayer, ragexe::render::kPlayerLayerCount> layers{};
+  const ragexe::res::Imf* imf = nullptr;
+  std::array<const ragexe::res::Palette*, ragexe::render::kPlayerLayerCount> palettes{};
+};
+
+// --pc's numbers: vf14's ten, the base action, the direction added to it and the frame, then
+// the cell.
+constexpr std::size_t kPcArgs = 15;
 
 // The time timeGetTime answers in the frame oracle's frames: 1,000,000 ms, 16 more each frame.
 constexpr std::uint32_t kFrameTime = 1000000;
 constexpr std::uint32_t kFrameTimeStep = 16;
 
+// A layer's name less its extension (".act", ".spr").
+std::string WithoutExtension(const std::string& name) {
+  return name.size() < 4 ? std::string() : name.substr(0, name.size() - 4);
+}
+
 int DrawFrame(std::vector<std::string> args) {
   bool raw = false;
   std::vector<std::array<std::int32_t, 3>> npc_args;
+  std::vector<std::array<std::int32_t, kPcArgs>> pc_args;
   while (!args.empty() && args.front().starts_with("--")) {
     if (args.front() == "--raw") {
       raw = true;
@@ -3110,14 +3180,20 @@ int DrawFrame(std::vector<std::string> args) {
                           static_cast<std::int32_t>(std::stol(args[2])),
                           static_cast<std::int32_t>(std::stol(args[3]))});
       args.erase(args.begin(), args.begin() + 4);
+    } else if (args.front() == "--pc" && args.size() >= kPcArgs + 1) {
+      std::array<std::int32_t, kPcArgs>& pc = pc_args.emplace_back();
+      for (std::size_t k = 0; k < kPcArgs; ++k)
+        pc[k] = static_cast<std::int32_t>(std::stol(args[k + 1]));
+      args.erase(args.begin(), args.begin() + static_cast<std::ptrdiff_t>(kPcArgs + 1));
     } else {
       break;
     }
   }
   if (args.size() != 4) {
-    std::fprintf(
-        stderr,
-        "usage: ragres draw-frame [--raw] [--npc JOB DX DY]... INSTALL MAP CELL_X CELL_Y\n");
+    std::fprintf(stderr,
+                 "usage: ragres draw-frame [--raw] [--npc JOB DX DY]... [--pc JOB SEX HAIR WEAPON "
+                 "TOP MID BOTTOM SHIELD HAIR_COLOR CLOTHES_COLOR ACTION DIRECTION FRAME DX DY]... "
+                 "INSTALL MAP CELL_X CELL_Y\n");
     return 2;
   }
   const std::filesystem::path install = args[0];
@@ -3139,76 +3215,147 @@ int DrawFrame(std::vector<std::string> args) {
   ragexe::render::SetFogEnabled(state,
                                 ragexe::res::LoadFogParameters(files, fog_table) &&
                                     ragexe::render::FindMapFog(fog_table, map + ".rsw", state.fog));
-  state.cursor = {static_cast<std::int32_t>(std::stol(args[2])),
-                  static_cast<std::int32_t>(std::stol(args[3])), false, 0x6600ffaa};
+  const std::int32_t cell_x = static_cast<std::int32_t>(std::stol(args[2]));
+  const std::int32_t cell_y = static_cast<std::int32_t>(std::stol(args[3]));
+  state.cursor = {cell_x, cell_y, false, 0x6600ffaa};
 
-  // The NPCs, each in the centre of its cell, that far from the player's, in the order given:
-  // CNpc's constructor shows it (+0x84, +0x85) and vf16 names its sprite (iRO's service type,
-  // 1) and keeps the job's shadow scale; its shadow (+0x88) is set, as for any actor not the
+  // The actors, each in the centre of its cell, that far from the player's, the NPCs then the
+  // players, in the order given, each with its shadow (+0x88) set, as for any actor not the
   // player's.
-  LoadedSprite shadow;
-  if (!npc_args.empty() && !LoadSprite(files, "shadow", shadow)) {
-    std::fprintf(stderr, "ragres: no shadow sprite\n");
-    return 1;
+  FrameResources resources(files);
+  const LoadedSprite* shadow = nullptr;
+  if (!npc_args.empty() || !pc_args.empty()) {
+    shadow = resources.Sprite("shadow");
+    if (shadow == nullptr) {
+      std::fprintf(stderr, "ragres: no shadow sprite\n");
+      return 1;
+    }
   }
+  const auto place = [&](ragexe::render::RenderObject& o, std::int32_t dx, std::int32_t dy) {
+    const std::array<float, 2> at =
+        ragexe::render::CellCentre(scene.attr, cell_x + dx, cell_y + dy);
+    o.position = {at[0], ragexe::res::AttrHeight(scene.attr, at[0], at[1]), at[1]};
+    o.shadow = true;
+  };
+  // CNpc's constructor shows it (+0x84, +0x85) and vf16 names its sprite (iRO's service type,
+  // 1) and keeps the job's shadow scale.
   std::vector<FrameNpc> npcs(npc_args.size());
   for (std::size_t k = 0; k < npc_args.size(); ++k) {
     const auto [job, dx, dy] = npc_args[k];
     FrameNpc& npc = npcs[k];
     const ragexe::render::PlayerSpriteNames names = ragexe::render::NpcSpriteNames(job, job, 1);
-    if (names.sprite.empty() || !LoadSprite(files, names.sprite, npc.body)) {
+    npc.body = names.sprite.empty() ? nullptr : resources.Sprite(names.sprite);
+    if (npc.body == nullptr) {
       std::fprintf(stderr, "ragres: no sprite for job %d\n", job);
       return 1;
     }
     npc.actor.job = job;
-    const std::array<float, 2> at =
-        ragexe::render::CellCentre(scene.attr, static_cast<std::int32_t>(std::stol(args[2])) + dx,
-                                   static_cast<std::int32_t>(std::stol(args[3])) + dy);
-    npc.actor.object.position = {at[0], ragexe::res::AttrHeight(scene.attr, at[0], at[1]), at[1]};
-    npc.actor.object.shadow = true;
+    place(npc.actor.object, dx, dy);
     npc.actor.object.shadow_scale = ragexe::res::JobShadowScale(job);
   }
-  // CView::DrawWorld's objects: each NPC through CNpc::Render, its shadow and body through
-  // AddSpriteQuad. Only 8-bit images are drawn: a 32-bit image's texture is made as CSprRes
-  // loads, which is not followed here.
-  const auto image_of =
-      [](const LoadedSprite& from,
-         const ragexe::render::SpriteQuad& q) -> std::optional<ragexe::render::SpriteImageRef> {
+  // CPc's constructor shows it (+0x84, +0x85); vf14 dresses it, naming its layers, its .imf and
+  // its palettes; a layer is drawn only with both names (GetLayerActName, GetLayerSpriteName).
+  // The body (layer 0) takes the clothes' palette and the head (1) the hair's, when named.
+  ragexe::world::StateContext dress_context{};
+  dress_context.attr = &scene.attr;
+  dress_context.service_type = 1;
+  std::vector<FramePc> pcs(pc_args.size());
+  for (std::size_t k = 0; k < pc_args.size(); ++k) {
+    const std::array<std::int32_t, kPcArgs>& a = pc_args[k];
+    FramePc& pc = pcs[k];
+    ragexe::world::DressPlayer(pc.actor,
+                               {a[0], a[1], a[2], a[3], {a[4], a[5], a[6]}, a[7], a[8], a[9]},
+                               false, dress_context);
+    const ragexe::world::PlayerLook& look = pc.actor.look;
+    for (std::size_t l = 0; l < pc.layers.size(); ++l) {
+      const ragexe::render::PlayerSpriteNames& names = look.layers[l];
+      if (names.act.empty() || names.sprite.empty()) continue;
+      const LoadedSprite* act = resources.Sprite(WithoutExtension(names.act));
+      const LoadedSprite* sprite = resources.Sprite(WithoutExtension(names.sprite));
+      if (act == nullptr || sprite == nullptr) {
+        std::fprintf(stderr, "ragres: no sprite %s\n", names.sprite.c_str());
+        return 1;
+      }
+      pc.layers[l] = {&act->act, &sprite->sprite};
+      pc.palettes[l] = &sprite->sprite.palette;
+    }
+    pc.imf = resources.Imf(look.imf);
+    if (pc.imf == nullptr) {
+      std::fprintf(stderr, "ragres: no %s\n", look.imf.c_str());
+      return 1;
+    }
+    const auto recolour = [&](std::size_t layer, const std::string& name) {
+      if (name.empty()) return true;
+      pc.palettes[layer] = resources.Palette(name);
+      if (pc.palettes[layer] != nullptr) return true;
+      std::fprintf(stderr, "ragres: no palette %s\n", name.c_str());
+      return false;
+    };
+    if (!recolour(ragexe::render::kPlayerBody, look.body_palette) ||
+        !recolour(ragexe::render::kPlayerHead, look.head_palette))
+      return 1;
+    ragexe::render::RenderObject& o = pc.actor.object;
+    o.base_action = a[10];
+    o.action = a[10] + a[11];
+    o.frame = a[12];
+    place(o, a[13], a[14]);
+  }
+  // CView::DrawWorld's objects: each NPC through CNpc::Render and each player through
+  // CPc::Render, their shadows and bodies through AddSpriteQuad. Only 8-bit images are drawn: a
+  // 32-bit image's texture is made as CSprRes loads, which is not followed here.
+  const auto add = [](ragexe::render::FrameLists& lists, const ragexe::render::SpriteQuad& q,
+                      const ragexe::res::Sprite& sprite, const ragexe::res::Palette& palette,
+                      std::uint32_t now) {
     const auto i = static_cast<std::size_t>(q.image);
-    if (q.image_type != 0 || q.image < 0 || i >= from.sprite.images.size()) return std::nullopt;
+    if (q.image_type != 0 || q.image < 0 || i >= sprite.images.size()) return;
     ragexe::render::SpriteImageRef ref;
-    ref.image = reinterpret_cast<std::uintptr_t>(&from.sprite.images[i]);
-    ref.palette = reinterpret_cast<std::uintptr_t>(&from.sprite.palette);
-    ref.width = from.sprite.images[i].width;
-    ref.height = from.sprite.images[i].height;
-    return ref;
+    ref.image = reinterpret_cast<std::uintptr_t>(&sprite.images[i]);
+    ref.palette = reinterpret_cast<std::uintptr_t>(&palette);
+    ref.width = sprite.images[i].width;
+    ref.height = sprite.images[i].height;
+    ragexe::render::AddSpriteQuad(lists, q, ref, now);
   };
-  const auto draw_npcs = [&](ragexe::render::FrameLists& lists, std::uint32_t now) {
+  const auto add_shadow = [&](ragexe::render::FrameLists& lists,
+                              const ragexe::render::RenderObject& o, float scale,
+                              std::uint32_t now) {
+    if (const auto q = ragexe::render::DrawActorShadow(
+            o, ragexe::res::AttrHeight(scene.attr, o.position[0], o.position[2]), scale,
+            shadow->act, shadow->sprite, state.camera.view, state.projection, state.sprite_scales))
+      add(lists, *q, shadow->sprite, shadow->sprite.palette, now);
+  };
+  // CRenderObject::GetGroundColor (00500e60): the tint of the attribute cell under it.
+  const auto ground_color = [&](const ragexe::render::RenderObject& o) {
+    const std::array<std::int32_t, 2> cell =
+        ragexe::world::AttrCellAt(scene.attr, o.position[0], o.position[2]);
+    return ragexe::render::GroundCellTint(scene.mesh, cell[0], cell[1]);
+  };
+  // 006864f0 and 006864f4, which RenderActFrameItems keeps between players and frames.
+  ragexe::render::PlayerHeadOffset head_offset;
+  const auto draw_actors = [&](ragexe::render::FrameLists& lists, std::uint32_t now) {
     const ragexe::render::Matrix& view = state.camera.view;
     for (const FrameNpc& npc : npcs) {
       const ragexe::render::RenderObject& o = npc.actor.object;
       const ragexe::world::NpcDrawing d =
           ragexe::world::DrawNpc(npc.actor, view, state.projection, state.sprite_scales, false);
-      const auto add = [&](const ragexe::render::SpriteQuad& q, const LoadedSprite& from) {
-        if (const auto ref = image_of(from, q)) ragexe::render::AddSpriteQuad(lists, q, *ref, now);
-      };
-      if (d.shadow_scale) {
-        if (const auto q = ragexe::render::DrawActorShadow(
-                o, ragexe::res::AttrHeight(scene.attr, o.position[0], o.position[2]),
-                *d.shadow_scale, shadow.act, shadow.sprite, view, state.projection,
-                state.sprite_scales))
-          add(*q, shadow);
-      }
-      if (d.body) {
-        // CRenderObject::GetGroundColor (00500e60): the tint of the attribute cell under it.
-        const std::array<std::int32_t, 2> cell =
-            ragexe::world::AttrCellAt(scene.attr, o.position[0], o.position[2]);
-        for (const ragexe::render::SpriteQuad& q :
-             ragexe::render::DrawActorBody(
-                 o, npc.body.act, npc.body.sprite, view, state.projection, state.sprite_scales,
-                 ragexe::render::GroundCellTint(scene.mesh, cell[0], cell[1]))
-                 .quads)
-          add(q, npc.body);
+      if (d.shadow_scale) add_shadow(lists, o, *d.shadow_scale, now);
+      if (!d.body) continue;
+      for (const ragexe::render::SpriteQuad& q :
+           ragexe::render::DrawActorBody(o, npc.body->act, npc.body->sprite, view, state.projection,
+                                         state.sprite_scales, ground_color(o))
+               .quads)
+        add(lists, q, npc.body->sprite, npc.body->sprite.palette, now);
+    }
+    for (const FramePc& pc : pcs) {
+      const ragexe::render::RenderObject& o = pc.actor.object;
+      const ragexe::world::PcDrawing d = ragexe::world::DrawPc(pc.actor, 1);
+      if (d.shadow_scale) add_shadow(lists, o, *d.shadow_scale, now);
+      if (!d.layers) continue;
+      for (const ragexe::render::SpriteQuad& q :
+           ragexe::render::DrawPlayer(o, pc.layers, *pc.imf, view, state.projection,
+                                      state.sprite_scales, ground_color(o), head_offset)
+               .quads) {
+        const auto l = static_cast<std::size_t>(q.layer);
+        add(lists, q, *pc.layers[l].sprite, *pc.palettes[l], now);
       }
     }
   };
@@ -3224,7 +3371,7 @@ int DrawFrame(std::vector<std::string> args) {
     const auto now = static_cast<std::uint32_t>(kFrameTime + kFrameTimeStep * frames.size());
     frames.push_back(ragexe::render::DrawWorldFrame(
         scene, state, 0, frame_draws.back(),
-        [&](ragexe::render::FrameLists& lists) { draw_npcs(lists, now); }));
+        [&](ragexe::render::FrameLists& lists) { draw_actors(lists, now); }));
   }
 
   std::vector<std::uint32_t> unnamed;
@@ -4082,7 +4229,9 @@ int Usage() {
                "       ragres decode-rsws [--no-lightmaps] FILE...\n"
                "       ragres decode-rsms [--single] FILE...\n"
                "       ragres load-world [--raw] INSTALL MAP CELL_X CELL_Y\n"
-               "       ragres draw-frame [--raw] [--npc JOB DX DY]... INSTALL MAP CELL_X CELL_Y\n"
+               "       ragres draw-frame [--raw] [--npc JOB DX DY]... [--pc JOB SEX HAIR\n"
+               "                 WEAPON TOP MID BOTTOM SHIELD HAIR_COLOR CLOTHES_COLOR\n"
+               "                 ACTION DIRECTION FRAME DX DY]... INSTALL MAP CELL_X CELL_Y\n"
                "       ragres decode-rsxs FILE...\n"
                "       ragres decode-imfs FILE...\n"
                "       ragres decode-rmas FILE...\n"

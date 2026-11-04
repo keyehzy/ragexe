@@ -1,7 +1,8 @@
 """Compares the port's whole frames with the original's (docs/render/frame.md).
 
 usage: .venv/bin/python -I tools/frame_oracle.py [--sample N] [--jobs J] [--raw] [--show N]
-           [--original-only] [--npc JOB DX DY]... [MAP...]
+           [--original-only] [--npc JOB DX DY]... [--pc JOB SEX HAIR WEAPON TOP MID BOTTOM SHIELD
+           HAIR_COLOR CLOTHES_COLOR ACTION DIRECTION FRAME DX DY]... [MAP...]
 
 Each map is loaded as tools/world_oracle.py loads it, but with the player on the walkable cell
 nearest the attribute map's centre, and with the textures made for real:
@@ -25,8 +26,12 @@ constructor (0053f950), its job at +0x1b8 named by vf16 (0053fae0, which loads i
 actions for real and keeps the job's shadow scale; the job names and shadows of service type
 1), in the centre of the cell DX and DY from the player's, its shadow (+0x88) set. DrawWorld
 draws it through CNpc::Render, which records its pick bounds in g_CActorPickNode (constructed,
-and cleared before each frame as OnFrame clears it). The sprites and actions are read from a
-second cache. timeGetTime answers 1,000,000 ms in the first frame, 16 more in each after.
+and cleared before each frame as OnFrame clears it). With --pc, each is a CPc after the NPCs:
+made by its constructor (00541fb0), dressed by vf14 (00542c50, with the tables of
+ClientState::InitNameTables), its base action (+0x20), action (the base action plus the
+direction, +0x24) and frame (+0x28) set, placed as an NPC is; DrawWorld draws it through
+CPc::Render. The sprites, actions, .imf files and palettes are read from a second cache.
+timeGetTime answers 1,000,000 ms in the first frame, 16 more in each after.
 
 Every call DrawWorld makes on the device but SetTransform (SetupProjection's, which the port
 leaves out: its vertices come transformed) is recorded and printed as `ragres draw-frame` prints the
@@ -67,11 +72,14 @@ CELL_CURSOR = 0x684E20  # x, z, hidden, colour
 CURSOR_COLOR = 0x6600FFAA
 TURNS = (None, 120.0, 240.0)
 CACHE_PATTERNS = ("*.bmp", "*.tga", "*.jpg", "*.rsm", "*.txt")
-SPRITE_PATTERNS = ("*.spr", "*.act")
+ACTOR_PATTERNS = ("*.spr", "*.act", "*.imf", "*.pal")
 NPC_CTOR, NPC_SET_JOB, NPC_SIZE = 0x53F950, 0x53FAE0, 0x298
-INIT_JOB_NAMES, INIT_SHADOWS, SERVICE_TYPE = 0x58AC70, 0x59A5E0, 0x67C9D4
+PC_CTOR, PC_DRESS, PC_SIZE = 0x541FB0, 0x542C50, 0x308
+INIT_JOB_NAMES, INIT_SHADOWS, INIT_NAME_TABLES, SERVICE_TYPE = 0x58AC70, 0x59A5E0, 0x588BA0, 0x67C9D4
 CONSTRUCT_PICK_TREE, CLEAR_PICK_TREE, G_PICK_TREE = 0x4CE470, 0x4CE710, 0x67CA60
 FRAME_TIME, FRAME_TIME_STEP = 1000000, 16
+PC_ARGS = ("JOB", "SEX", "HAIR", "WEAPON", "TOP", "MID", "BOTTOM", "SHIELD", "HAIR_COLOR", "CLOTHES_COLOR", "ACTION",
+           "DIRECTION", "FRAME", "DX", "DY")
 RAW = "--raw" in sys.argv
 
 _draw_primitive = directx.Device.DrawPrimitive
@@ -170,36 +178,55 @@ def queued_textures(emu, renderer):
     return out
 
 
-def add_npc(emu, world, mode, attr, cell, job, dx, dy):
-    """A CNpc of the job in the centre of the cell dx and dy from cell, at the end of the
-    world's list."""
-    npc = emu.alloc(NPC_SIZE)
-    emu.call(NPC_CTOR, this=npc)
-    emu.write_u32(npc + 0x1B8, job & 0xFFFFFFFF)
-    emu.call(NPC_SET_JOB, job & 0xFFFFFFFF, this=npc)
+def place(emu, world, mode, attr, cell, actor, dx, dy):
+    """The actor in the centre of the cell dx and dy from cell, on the ground, its shadow (+0x88)
+    set, at the end of the world's list."""
     out = emu.scratch(size=8)
     emu.call(GET_CELL_CENTRE, cell[0] + dx, cell[1] + dy, out, out + 4, this=mode)
     x, z = struct.unpack("<ff", emu.mem_read(out, 8))
     y = emu.call(GET_HEIGHT, *struct.unpack("<II", emu.mem_read(out, 8)), this=attr).st0
-    emu.mem_write(npc + 4, struct.pack("<fff", x, y, z))
-    emu.mem_write(npc + 0x88, b"\1")
+    emu.mem_write(actor + 4, struct.pack("<fff", x, y, z))
+    emu.mem_write(actor + 0x88, b"\1")
     head = emu.read_u32(world + 0xC)
     last = emu.read_u32(head + 4)
     node = emu.alloc(12)
-    emu.mem_write(node, struct.pack("<III", head, last, npc))
+    emu.mem_write(node, struct.pack("<III", head, last, actor))
     emu.write_u32(last, node)
     emu.write_u32(head + 4, node)
     emu.write_u32(world + 0x10, emu.read_u32(world + 0x10) + 1)
 
 
+def add_npc(emu, world, mode, attr, cell, job, dx, dy):
+    """A CNpc of the job, its sprite named by vf16, placed dx and dy from cell."""
+    npc = emu.alloc(NPC_SIZE)
+    emu.call(NPC_CTOR, this=npc)
+    emu.write_u32(npc + 0x1B8, job & 0xFFFFFFFF)
+    emu.call(NPC_SET_JOB, job & 0xFFFFFFFF, this=npc)
+    place(emu, world, mode, attr, cell, npc, dx, dy)
+
+
+def add_pc(emu, world, mode, attr, cell, look):
+    """A CPc dressed by vf14 (job, sex, hair, weapon kind, the three headgear, shield, hair and
+    clothes colours), at the base action plus the direction (+0x20, +0x24) and the frame (+0x28),
+    placed dx and dy from cell."""
+    *dress, base, direction, frame, dx, dy = look
+    pc = emu.alloc(PC_SIZE)
+    emu.call(PC_CTOR, this=pc)
+    emu.call(PC_DRESS, *(v & 0xFFFFFFFF for v in dress), this=pc)
+    emu.write_u32(pc + 0x20, base & 0xFFFFFFFF)
+    emu.write_u32(pc + 0x24, (base + direction) & 0xFFFFFFFF)
+    emu.write_u32(pc + 0x28, frame & 0xFFFFFFFF)
+    place(emu, world, mode, attr, cell, pc, dx, dy)
+
+
 def frames(item):
-    ragres, install, cache, sprites, npcs, mapname = item
+    ragres, install, cache, sprites, npcs, pcs, mapname = item
     with tempfile.TemporaryDirectory() as tmp:
         world_oracle.extract_world(ragres, install, tmp, mapname)
         emu = world_oracle.boot()
         emu.serve_data_files({})
         emu.data_files = CachedFiles(cache, world_oracle.served(tmp))
-        if npcs:
+        if npcs or pcs:
             emu.data_files.paths.update(CachedFiles(sprites, {}).paths)
     stand_in_jpeg(emu)
     textures = queued_textures(emu, emu.read_u32(G_PSCENE_RENDERER))
@@ -235,13 +262,17 @@ def frames(item):
     emu.call(APPLY_MAP_FOG, 1, this=mode)
     emu.mem_write(CELL_CURSOR, struct.pack("<iiII", cell[0], cell[1], 0, CURSOR_COLOR))
     emu.write_u32(renderer + 0x34, 1)
-    if npcs:
+    if npcs or pcs:
         emu.write_u32(SERVICE_TYPE, 1)
         emu.call(INIT_JOB_NAMES, this=G_CLIENT_STATE)
         emu.call(INIT_SHADOWS, this=G_CLIENT_STATE)
+        if pcs:
+            emu.call(INIT_NAME_TABLES, this=G_CLIENT_STATE)
         emu.call(CONSTRUCT_PICK_TREE)
         for job, dx, dy in npcs:
             add_npc(emu, world, mode, attr, cell, job, dx, dy)
+        for look in pcs:
+            add_pc(emu, world, mode, attr, cell, look)
     now = [FRAME_TIME]
     emu.api.stubs["WINMM.DLL!timeGetTime"] = Stub(0, lambda: now[0])
 
@@ -255,7 +286,7 @@ def frames(item):
             emu.mem_write(view + 0x38, yaw)
         emu.call(STEP_WATER, this=emu.read_u32(world + 0x38))
         emu.call(CVIEW_UPDATE, this=view)
-        if npcs:
+        if npcs or pcs:
             emu.call(CLEAR_PICK_TREE, this=G_PICK_TREE)
         start = len(emu.directx.calls)
         emu.call(DRAW_WORLD, this=view)
@@ -319,17 +350,22 @@ def main():
     ap.add_argument("--raw", action="store_true", help="each draw's vertices, not their hash")
     ap.add_argument("--show", type=int, default=0, help="differing lines to print for each map")
     ap.add_argument("--original-only", action="store_true", help="print the original's frames only")
-    ap.add_argument("--sprites", default=os.path.join(ROOT, "build", "oracle-sprites"),
-                    help="the sprites' and actions' cache, for --npc")
+    ap.add_argument("--sprites", default=os.path.join(ROOT, "build", "oracle-actors"),
+                    help="the cache of sprites, actions, .imf files and palettes, for --npc and --pc")
     ap.add_argument("--npc", nargs=3, type=int, action="append", default=[], metavar=("JOB", "DX", "DY"),
                     help="a CNpc of the job that far from the player's cell")
+    ap.add_argument("--pc", nargs=len(PC_ARGS), type=int, action="append", default=[], metavar=PC_ARGS,
+                    help="a CPc so dressed, at the base action plus the direction and the frame, that far from the "
+                    "player's cell")
     args = ap.parse_args()
     build_cache(args.ragres, args.install, args.cache)
-    if args.npc:
-        build_cache(args.ragres, args.install, args.sprites, SPRITE_PATTERNS)
+    if args.npc or args.pc:
+        build_cache(args.ragres, args.install, args.sprites, ACTOR_PATTERNS)
     maps = args.maps or world_oracle.sample_maps(args.ragres, args.install, args.sample)
     npcs = [tuple(n) for n in args.npc]
-    results = oracle_pool.run([(args.ragres, args.install, args.cache, args.sprites, npcs, m) for m in maps], init, work,
+    pcs = [tuple(p) for p in args.pc]
+    results = oracle_pool.run([(args.ragres, args.install, args.cache, args.sprites, npcs, pcs, m) for m in maps], init,
+                              work,
                               args.jobs or None, label="frames")
     mismatches = 0
     for mapname, result in zip(maps, results):
@@ -344,7 +380,7 @@ def main():
         if args.original_only:
             print(f"{mapname} {cell[0]} {cell[1]}\n{want}")
             continue
-        npc_args = [str(v) for n in npcs for v in ("--npc", *n)]
+        npc_args = [str(v) for n in npcs for v in ("--npc", *n)] + [str(v) for p in pcs for v in ("--pc", *p)]
         got = subprocess.run([args.ragres, "draw-frame", *(["--raw"] if args.raw else []), *npc_args, args.install,
                               mapname, str(cell[0]), str(cell[1])], capture_output=True, text=True).stdout.strip()
         print(f"{mapname}: {summary(got, want)}")

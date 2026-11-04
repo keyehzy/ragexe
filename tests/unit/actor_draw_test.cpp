@@ -8,8 +8,10 @@
 #include "render/camera.h"
 
 using ragexe::world::DrawNpc;
+using ragexe::world::DrawPc;
 using ragexe::world::GameActor;
 using ragexe::world::NpcDrawing;
+using ragexe::world::PcDrawing;
 
 namespace {
 
@@ -30,6 +32,18 @@ struct NpcDrawVector {
 
 #include "npc_draw_vectors.inc"
 
+struct PcDrawVector {
+  int visible, body_shown;
+  std::int32_t state;
+  std::uint32_t scale, color;
+  std::int32_t id;
+  std::int32_t service_type;
+  std::uint32_t calls[3];
+  int call_words;
+};
+
+#include "pc_draw_vectors.inc"
+
 constexpr std::uint32_t kUnset = 0x11111111;
 
 float F(std::uint32_t bits) { return std::bit_cast<float>(bits); }
@@ -47,6 +61,16 @@ std::vector<std::uint32_t> Calls(const NpcDrawing& d) {
   if (d.shadow_scale) out.insert(out.end(), {1, B(*d.shadow_scale)});
   if (d.body) out.push_back(2);
   if (d.point) out.push_back(3);
+  return out;
+}
+
+// The calls as CPc::Render makes them: the shadow, then 00545540, the layers or the point.
+std::vector<std::uint32_t> Calls(const PcDrawing& d) {
+  std::vector<std::uint32_t> out;
+  if (d.shadow_scale) out.insert(out.end(), {1, B(*d.shadow_scale)});
+  if (d.special) out.push_back(2);
+  if (d.layers) out.push_back(4);
+  if (d.point) out.push_back(5);
   return out;
 }
 
@@ -73,5 +97,20 @@ TEST_CASE("An NPC's drawing is the original's CNpc::Render", "[actor]") {
     INFO("job " << v.job << ", " << v.width << " x " << v.height << ", +0x1ec " << v.field_0x1ec);
     CHECK(Calls(d) == std::vector<std::uint32_t>(v.calls, v.calls + v.call_words));
     CHECK((d.bounds ? B(d.bounds->pixel_scale) : kUnset) == v.pixel_scale);
+  }
+}
+
+TEST_CASE("A player's drawing is the original's CPc::Render", "[actor]") {
+  for (const PcDrawVector& v : kPcDraws) {
+    GameActor actor;
+    actor.object.visible = v.visible != 0;
+    actor.object.body_shown = v.body_shown != 0;
+    actor.state = v.state;
+    actor.object.scale = F(v.scale);
+    actor.object.color = v.color;
+    actor.id = v.id;
+    INFO("state " << v.state << ", id " << v.id << ", service " << v.service_type);
+    CHECK(Calls(DrawPc(actor, v.service_type)) ==
+          std::vector<std::uint32_t>(v.calls, v.calls + v.call_words));
   }
 }

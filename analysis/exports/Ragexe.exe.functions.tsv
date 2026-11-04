@@ -5165,7 +5165,7 @@ entry	size	namespace	name	source	fid	thunk	calling_convention	signature
 00541fb0	369	CPc	CPc	USER_DEFINED	0	0	__thiscall	undefined CPc(CPc * this)
 00542130	33	CPc	`scalar_deleting_destructor'	USER_DEFINED	0	0	__thiscall	undefined `scalar_deleting_destructor'(CPc * this)
 00542160	315	CPc	~CPc	USER_DEFINED	0	0	__thiscall	undefined ~CPc(CPc * this)
-005422a0	79	CPc	method_005422a0	USER_DEFINED	0	0	__thiscall	undefined method_005422a0(CPc * this)
+005422a0	79	CPc	ResetPcFields	USER_DEFINED	0	0	__thiscall	undefined ResetPcFields(CPc * this)
 005422f0	36	CPc	method_005422f0	USER_DEFINED	0	0	__thiscall	undefined method_005422f0(CPc * this)
 00542320	219	CPc	UpdateBody	USER_DEFINED	0	0	__thiscall	undefined UpdateBody(CPc * this)
 00542400	118	CPc	SetHair	USER_DEFINED	0	0	__thiscall	undefined SetHair(CPc * this)

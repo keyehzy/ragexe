@@ -5165,7 +5165,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 00541fb0	369	code	0	world		named	CPc	CPc	
 00542130	33	code	0	world		named	CPc	`scalar_deleting_destructor'	
 00542160	315	code	0	world		named	CPc	~CPc	
-005422a0	79	code	0	world		named	CPc	method_005422a0	
+005422a0	79	code	0	world		named	CPc	ResetPcFields	
 005422f0	36	code	0	world		named	CPc	method_005422f0	
 00542320	219	code	0	world		named	CPc	UpdateBody	
 00542400	118	code	0	world		named	CPc	SetHair	

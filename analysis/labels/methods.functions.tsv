@@ -481,7 +481,6 @@ address	namespace	name	calling_convention	evidence
 005417d0	CSoundMaker	method_005417d0	__thiscall	__thiscall; called with this from 1 functions of CSoundMaker, e.g. 00541680
 00541d70	CGndRiser	method_00541d70	__thiscall	__thiscall; called with this from 1 functions of CGndRiser, e.g. 00541c90
 00541d80	CGndRiser	method_00541d80	__thiscall	__thiscall; called with this from 1 functions of CGndRiser, e.g. 00541d20
-005422a0	CPc	method_005422a0	__thiscall	__thiscall; called with this from 2 functions of CPc, mg::mgType1::CPlayer, e.g. 004f1530
 005422f0	CPc	method_005422f0	__thiscall	__thiscall; called with this from 2 functions of CPc, mg::mgType1::CPlayer, e.g. 004f1600
 00545540	CPc	method_00545540	__thiscall	__thiscall; called with this from 2 functions of CBlurPC, CPc, e.g. 00541140
 00545bf0	CBlurPC	method_00545bf0	__thiscall	__thiscall; called with this from 1 functions of CBlurPC, e.g. 00540d20

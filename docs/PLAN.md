@@ -3166,6 +3166,31 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     `AddSpriteQuad`.
   - **Labels:** `C3dGround15::TintCells`, `GetTopHeights`, `GetTopLightTexel`, `SetCellTint`,
     `g_cellTintNeighbours`.
+- [x] Players in whole frames (`docs/render/frame.md#in-the-port`,
+  `docs/render/player.md#drawing`): `ragres draw-frame --pc` and the frame oracle's `--pc` put
+  dressed players about the player, in the original as real `CPc`s (`00541fb0`) dressed by
+  `vf14` in `CWorld`'s list, at an action, direction and frame given. `world::DrawPc` is
+  `CPc::Render` (`00544380`): the shadow unless dead or sitting, whatever the alpha, then the
+  layers (`DrawPlayer`), or only the point. Each layer's quads go through `AddSpriteQuad` in the
+  palette the layer is drawn in, the clothes' for the body and the hair's for the head. The
+  frame's sprites, actions, `.imf` files and palettes are loaded once by name and shared, as
+  `ResourceManager` keeps them.
+  - **Found on the way:** the sprite cache tells images and palettes apart by address, so two
+    actors of one job share their slots only because their sprite is one resource; the `--npc`
+    actors had each loaded their own, which matched only because no two shared a job. A
+    player's palette is shared the same way: two novices in one colour share their slots, and
+    one in its sprite's own palette takes its own.
+  - **Checks:** the frame oracle with seven NPCs and monsters (two porings) and eight players
+    (swordsmen with a sword and its glow at frame 5, and a shield in action 0x20; an acolyte in
+    three headgear turned away; a thief; an archer with a bow; three novices alike but for their
+    palettes) on all 287 maps, three frames each: every device call and vertex equal, 35,658
+    textures, 337,531 calls and 257,201 draws. `ctest` runs two maps
+    (`frame_oracle_actors`). `tools/pc_draw_vectors.py` runs `CPc::Render` on 1,152 players
+    (shown or not, every state, opaque or not, the Korean service's special ids);
+    `tests/unit/actor_draw_test.cpp` matches them all. 16 of 17 mutants killed: the survivor
+    resets the head's offset for each player, which none of these players shows
+    (`tests/unit/player_test.cpp` checks the offset kept between players).
+  - **Labels:** `CPc::ResetPcFields`.
 
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,
