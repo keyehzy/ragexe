@@ -67,6 +67,7 @@ add_library(ragexe_render STATIC
   render/blit.cpp
   render/camera.cpp
   render/cursor.cpp
+  render/sprite_cache.cpp
   render/device.cpp
   render/effect.cpp
   render/effect_prim.cpp

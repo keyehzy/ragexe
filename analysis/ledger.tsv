@@ -4495,7 +4495,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0050cc70	62	code	1	stl		named	std::pair	~pair	
 0050ccb0	767	code	0	game		named	CGameMode	~CGameMode	
 0050cfb0	1048	code	0	game		named	CGameMode	OnInit	
-0050d3d0	36	code	0	game		named	CGameMode	method_0050d3d0	
+0050d3d0	36	code	0	game		named	CGameMode	ReleaseSpritePagesPeriodically	
 0050d400	452	code	0	game		named	CGameMode	OnFrame	
 0050d5d0	91	code	0	game		named	CGameMode	Run	
 0050d630	247	code	0	game		named	CGameMode	OnExit	

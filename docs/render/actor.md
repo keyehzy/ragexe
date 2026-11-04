@@ -158,10 +158,11 @@ bottom's rhw, the top's rhw, a colour, an angle and an image.
   - **Pages:** 256 × 256 pages split into slots of a size class. The class comes from the
     image's width and height, each up to 32, 64, 128 or more.
   - **The lookup:** `FindCachedSprite` (`0040e540`) finds the image and palette, or
-    `CacheSpriteImage` (`0040e130`) takes the oldest slot or a new page.
+    `CacheSpriteImage` (`0040e130`) takes a slot unused for 3.75 s or a new page
+    ([sprite_cache.md](sprite_cache.md)).
   - **Drawing:** `CTexture::DrawRleImage` writes each index's palette entry (16 bits,
     ARGB 1555). Index 0 and the rest of the slot are 0, which is clear.
-  - **The extent** is the slot's over 256.
+  - **The extent** is the image's corners in its slot, over 256.
 
 **The vertices,** top left, top right, bottom left and bottom right, into a `RenderQuad`
 from the frame's pool (`NewQuad`, `00412b40`; a `TRIANGLESTRIP`):
@@ -302,5 +303,4 @@ image is skipped.
 
 **Not ported:**
 - `vf08`'s play modes beyond 0 and 1, which it leaves alone too;
-- the texture cache's slots and pages, which change only where in a texture an image lies;
 - the palettes of other resources (+0x34).

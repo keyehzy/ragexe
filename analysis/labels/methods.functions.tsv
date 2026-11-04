@@ -377,7 +377,6 @@ address	namespace	name	calling_convention	evidence
 0050a060	CGrannyCorpse3d	method_0050a060	__thiscall	__thiscall; called with this from 1 functions of CGrannyCorpse3d, e.g. 00509f60
 0050a220	CGrannyCorpse3d	method_0050a220	__thiscall	__thiscall; called with this from 1 functions of CGrannyCorpse3d, e.g. 0050a010
 0050a2f0	CGrannyCorpse3d	method_0050a2f0	__thiscall	__thiscall; called with this from 1 functions of CGrannyCorpse3d, e.g. 0050a380
-0050d3d0	CGameMode	method_0050d3d0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050d400
 0050d730	CGameMode	method_0050d730	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050d630
 0050d860	CGameMode	method_0050d860	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050dc90
 0050d9d0	CGameMode	method_0050d9d0	__thiscall	__thiscall; called with this from 1 functions of CGameMode, e.g. 0050cfb0
