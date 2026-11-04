@@ -304,7 +304,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0040dd40	102	code	0	render		named	SceneRenderer	LockBackBuffer	
 0040ddb0	15	code	0	render		named	SceneRenderer	UnlockBackBuffer	
 0040ddc0	236	code	0	render		named	SceneRenderer	method_0040ddc0	
-0040deb0	215	code	0	render		named	SceneRenderer	method_0040deb0	
+0040deb0	215	code	0	render		named	SceneRenderer	MakeSpareSpritePages	
 0040df90	111	code	0	render		named	SceneRenderer	DeleteQueuedTextures	
 0040e000	48	code	0	render		named	Global	IsNameLess	
 0040e030	254	code	0	render		named	SceneRenderer	ReleaseExpiredPooledTextures	

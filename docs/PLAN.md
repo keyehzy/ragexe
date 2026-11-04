@@ -3124,19 +3124,23 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
   (`0040e540`) and `CacheSpriteImage` (`0040e130`), which takes a slot unused for 3.75 s or
   makes a page, and the pages let go after 15 s unused (`ReleaseExpiredPooledTextures`,
   `0040e030`, every 15 s from `OnFrame` through `0050d3d0`). This is where `AddSpriteQuad` and
-  `DrawActFrame` find an 8-bit image's texture and corners.
+  `DrawActFrame` find an 8-bit image's texture and corners. The pages' first 50 textures are
+  the spares the renderer's constructor makes and queues (`0040deb0`), which a release puts
+  back rather than deletes.
   - **Found on the way:** an image's far corner is loaded with `fild` from a quadword whose
     high half is 0, so a negative width or height lands past 2^24; a time of exactly 3750 makes
     `CacheSpriteImage` add pages without end; in the 3.75 s after the clock wraps every slot is
     old enough, so the first slot is taken again each time; `CacheSpriteImage` does not look
-    for the image first, so a second copy can go in another slot; nothing references a page's
-    texture, so the queue at +0x258 is never used.
+    for the image first, so a second copy can go in another slot. The first version of this
+    port missed the spares, built on lists made one by one: putting a poring in the frame
+    oracle's world showed its pages' textures made before any map's.
   - **Checks:** `tools/sprite_cache_vectors.py` runs the original's functions in the
-    emulation oracle on a real `SceneRenderer`'s lists: 32 scripts, 11,964 operations (finds
-    then caches, caches alone, releases), with `CTexture`'s constructor, `FillColor`, destructor
-    and `DrawRleImage` recorded. `tests/unit/sprite_cache_test.cpp` matches all of them. 24
-    mutants killed.
-  - **Labels:** `CGameMode::ReleaseSpritePagesPeriodically`, `g_nextSpritePageRelease`,
+    emulation oracle on a `SceneRenderer` its constructor made: 32 scripts, 14,730 operations
+    (finds then caches, caches alone, releases), with `CTexture`'s constructor, `FillColor`,
+    destructor and `DrawRleImage` recorded. `tests/unit/sprite_cache_test.cpp` matches all of
+    them. 29 mutants killed.
+  - **Labels:** `SceneRenderer::MakeSpareSpritePages`,
+    `CGameMode::ReleaseSpritePagesPeriodically`, `g_nextSpritePageRelease`,
     `g_spriteSlotSizes`, `g_unusedLifetime`.
 
 ### Next actions

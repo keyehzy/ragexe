@@ -304,7 +304,7 @@ entry	size	namespace	name	source	fid	thunk	calling_convention	signature
 0040dd40	102	SceneRenderer	LockBackBuffer	USER_DEFINED	0	0	__thiscall	undefined LockBackBuffer(SceneRenderer * this)
 0040ddb0	15	SceneRenderer	UnlockBackBuffer	USER_DEFINED	0	0	__thiscall	undefined UnlockBackBuffer(SceneRenderer * this)
 0040ddc0	236	SceneRenderer	method_0040ddc0	USER_DEFINED	0	0	__thiscall	undefined method_0040ddc0(SceneRenderer * this)
-0040deb0	215	SceneRenderer	method_0040deb0	USER_DEFINED	0	0	__thiscall	undefined method_0040deb0(SceneRenderer * this)
+0040deb0	215	SceneRenderer	MakeSpareSpritePages	USER_DEFINED	0	0	__thiscall	undefined MakeSpareSpritePages(SceneRenderer * this)
 0040df90	111	SceneRenderer	DeleteQueuedTextures	USER_DEFINED	0	0	__thiscall	undefined DeleteQueuedTextures(SceneRenderer * this)
 0040e000	48	Global	IsNameLess	USER_DEFINED	0	0	__thiscall	undefined IsNameLess(void * this)
 0040e030	254	SceneRenderer	ReleaseExpiredPooledTextures	USER_DEFINED	0	0	__thiscall	undefined ReleaseExpiredPooledTextures(SceneRenderer * this)

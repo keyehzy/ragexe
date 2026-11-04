@@ -15,6 +15,12 @@ and height (`CSprRes` image +0 and +2, compared as signed 16-bit) each fall in a
 an image of 0 or negative width goes with the smallest. Each class's slots are the size its
 bands allow (`006055c8`): 32 × 32 for the first, 256 × 256 for the last.
 
+**The spare textures.** The `SceneRenderer` constructor makes 50 page textures up front
+(`MakeSpareSpritePages`, `0040deb0`, from `0040d454`): each a `CTexture(256, 256, 0)` at the
+end of the list at +0x254 (its head +0x258, its count +0x25c), referenced once
+(`IncrementUseCount`, `004167e0`, +0x120). They are the first 50 textures the client makes,
+before any map's.
+
 A **page** (0x2c bytes, in a list node of 0x34) is:
 
 | Offset | Field |
@@ -52,7 +58,9 @@ page's texture is the answer. Otherwise the answer is 0 and the record is left a
    every slot is old enough, and the first slot of the first page is taken whatever it holds.
    An image already cached is not looked for: a second copy can go in another slot.
 2. **Without one, a page:** a new node at the end of the class's list.
-   - Its texture is `CTexture(256, 256, 0)`, cleared with `FillColor(0, 0)` (`vf02`).
+   - Its texture is the last spare in the queue, taken off it (`0040e2c3`), or once the queue
+     is empty a new `CTexture(256, 256, 0)`. So the first page takes the 50th spare. Either
+     way it is cleared with `FillColor(0, 0)` (`vf02`).
    - The slots are laid out row by row at multiples of the class's size, each with its corner
      over 256 as u0 and v0 and its time 0.
    - Then the search starts again from the first page, and finds the new page's first slot.
@@ -75,30 +83,32 @@ never returns.
 (`0x3a98`).
 
 `ReleaseExpiredPooledTextures` goes through the 16 lists in order and lets go each page last
-used before `timeGetTime` − 15000 (unsigned again): its slots are freed and its texture is
-deleted. A texture still referenced (+0x120, [texture.md](texture.md)) would instead be
-queued at +0x258, and `CacheSpriteImage` would take the last queued one before making one.
-Nothing references a page's texture, so the queue stays empty.
+used before `timeGetTime` − 15000 (unsigned again), freeing its slots. A texture still
+referenced (+0x120, [texture.md](texture.md)), which only a spare is, goes back at the end of
+the queue (`0040e090`); any other is deleted. So the 50 spares are never deleted while the
+renderer lives (`DeleteQueuedTextures`, `0040df90`, deletes them with it), and pages beyond
+them come and go.
 
 ## The port
 
 `SpriteTextureCache` holds the 16 lists:
+- **`MakeSpareTextures`** is `0040deb0`: the spares from a function that makes a texture.
 - **`Find`** is `FindCachedSprite`.
-- **`Cache`** is `CacheSpriteImage`. It takes a function that makes a page's texture, and it
-  answers the page made (to be cleared) and the slot to draw the image into. It reads the
+- **`Cache`** is `CacheSpriteImage`. It takes a function that makes a page's texture once the
+  spares run out, and it answers the page made (to be cleared), whether its texture was made,
+  and the slot to draw the image into. It reads the
   time once, where the original reads it twice. At the time that makes the original loop,
   it answers none.
-- **`ReleaseExpired`** answers the textures let go, in order.
+- **`ReleaseExpired`** answers the textures deleted, in order.
 - **`ReleaseIfDue`** is `0050d3d0`.
 
-Images and palettes are keys, as the original tells them apart by address. The queue of
-referenced textures is not ported.
+Images and palettes are keys, as the original tells them apart by address.
 
 ## Checks
 
 `tools/sprite_cache_vectors.py` runs the original's functions in the emulation oracle, with
-the x87 at single precision, on a `SceneRenderer` whose lists its own constructor made
-(`0040d800`). It runs 32 scripts of frames, each frame at one time. Each frame's operations
+the x87 at single precision, on a `SceneRenderer` made by its own constructor, spares and
+all. It runs 32 scripts of frames, each frame at one time. Each frame's operations
 are:
 - **draws,** as `AddSpriteQuad` asks: `FindCachedSprite`, then `CacheSpriteImage` on a miss;
 - **`CacheSpriteImage` alone,** the image cached or not;
@@ -106,15 +116,16 @@ are:
 
 The scripts vary:
 - **the images:** 3 to 150 of them, with sides at each band's edges, 0, negative and up to
-  32,767;
+  32,767; four scripts draw 150 large images 40 at a frame, which use up the spares;
 - **the palettes:** one to three;
 - **the starting time,** about where `timeGetTime` − 3750 and − 15000 wrap and near 2³²;
 - **the steps between frames,** from milliseconds to past 15 s.
 
 `CTexture`'s constructor, `FillColor`, deleting destructor and `DrawRleImage` are stood in
-for and recorded, the pages numbered in the order made. Each operation's texture, record,
-page made, slot drawn and pages let go are kept.
+for and recorded, the textures numbered in the order made. Each operation's texture, record,
+page made and whether its texture was, slot drawn and textures deleted are kept.
 
-`tests/unit/sprite_cache_test.cpp` matches all 11,964 operations: 6,721 images found, 837
-pages made, 3,915 slots taken again, and 491 releases letting go of 579 pages. It also checks that the port gives up at the time
-where the original never returns. 24 mutants are killed.
+`tests/unit/sprite_cache_test.cpp` matches all 14,730 operations: 6,578 images found, 1,630
+pages made (702 of them with a new texture), 5,915 slots taken again, and 607 releases
+deleting 264 textures. It also checks that the port gives up at the time where the original
+never returns. 29 mutants are killed.

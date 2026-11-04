@@ -3,8 +3,9 @@ taken from the original in the emulation oracle.
 
 usage: .venv/bin/python -I tools/sprite_cache_vectors.py > tests/unit/sprite_cache_vectors.inc
 
-Scripts of frames on one SceneRenderer, its 16 page lists (+0x194) made by their constructor
-(0040d800), each frame at a time timeGetTime answers:
+Scripts of frames on one SceneRenderer, made by its constructor (0040d1a0) with its 16 page lists
+(+0x194) and the 50 spare page textures it queues (0040deb0, +0x254), each frame at a time
+timeGetTime answers:
   - draws, as SceneRenderer::AddSpriteQuad (0040e980) asks for an 8-bit image: FindCachedSprite
     (0040e540), then CacheSpriteImage (0040e130) when it answers no texture;
   - CacheSpriteImage alone, an image already cached or not;
@@ -15,7 +16,7 @@ and some negative; the palettes are assorted values. The times start about the e
 timeGetTime - 3750 and - 15000 cross (and near 2^32), and step by a few milliseconds, by
 seconds, or past 15. CTexture's constructor (004165e0), its FillColor (vf02, 00416750), its
 deleting destructor (00416680) and DrawRleImage (00416d80) are stood in for and recorded: the
-pages are numbered in the order made. The x87 runs at single precision, as in the client.
+textures are numbered in the order made, the spares first. The x87 runs at single precision, as in the client.
 """
 
 import os
@@ -30,7 +31,7 @@ from emu import Emulator
 from emu.winapi import Stub
 
 FIND_CACHED, CACHE_IMAGE, RELEASE_DUE = 0x40E540, 0x40E130, 0x50D3D0
-LIST_CONSTRUCTOR, NEXT_RELEASE, G_PSCENE_RENDERER = 0x40D800, 0x685EE0, 0x625E98
+SCENE_RENDERER_CTOR, NEXT_RELEASE, G_PSCENE_RENDERER = 0x40D1A0, 0x685EE0, 0x625E98
 TEXTURE_CONSTRUCTOR, FILL_COLOR, DELETING_DESTRUCTOR, DRAW_RLE = (
     0x4165E0,
     0x416750,
@@ -132,23 +133,26 @@ def main():
         "// CacheSpriteImage on a miss, 1 CacheSpriteImage alone, 2 CGameMode 0050d3d0), image,",
         "// palette, timeGetTime}, then what they did as words:",
         "// FindCachedSprite's page (0 for none) and on a hit u0, v0, u1, v1; CacheSpriteImage's",
-        "// page made (or 0), the page, the slot x, y, width, height drawn and u0, v0, u1, v1; the",
-        "// release's next time (00685ee0) and the pages it let go, then 0. Pages count from 1 in",
-        "// the order made, across the scripts.",
+        "// page made (or 0), 1 when its texture was made rather than a spare taken, the page, the",
+        "// slot x, y, width, height drawn and u0, v0, u1, v1; the release's next time (00685ee0)",
+        "// and the textures it deleted, then 0. Textures count from 1 in the order made, across",
+        "// the scripts, each script's 50 spares first.",
     ]
     images_rows, script_rows, op_rows = [], [], []
     for script in range(32):
         mark = emu.heap_mark()
         renderer = emu.scratch(size=SCENE_RENDERER_SIZE)
-        for k in range(16):
-            emu.call(LIST_CONSTRUCTOR, this=renderer + 0x194 + 12 * k)
-        emu.call(LIST_CONSTRUCTOR, this=renderer + 0x254)
+        emu.call(SCENE_RENDERER_CTOR, this=renderer)
         emu.write_u32(G_PSCENE_RENDERER, renderer)
         emu.write_u32(NEXT_RELEASE, rng.choice([0, 0, 5000, 0xFFFFFFFF]))
         next_release = emu.read_u32(NEXT_RELEASE)
         # Images of a few size classes, so that pages fill and slots are taken back.
         sides = rng.sample(SIDES, rng.randrange(2, 6))
-        count = rng.choice([3, 10, 40, 80, 150])
+        # Some of many large images at once, which take the spares and then make pages.
+        if script % 8 == 7:
+            sides = [129, 200, 256, 300, 32767]
+        busy = script % 8 == 7
+        count = 150 if busy else rng.choice([3, 10, 40, 80, 150])
         sizes = [(rng.choice(sides), rng.choice(sides)) for _ in range(count)]
         first = len(images_rows)
         records = [emu.scratch(struct.pack("<2h", w, h), size=16) for w, h in sizes]
@@ -156,8 +160,8 @@ def main():
         palettes = [rng.getrandbits(32) for _ in range(rng.choice([1, 1, 2, 3]))]
         now = rng.choice(STARTS)
         script_rows.append(f"0x{next_release:08x}")
-        for _ in range(rng.choice([20, 40, 80])):
-            for _ in range(rng.choice([1, 3, 8, 20])):
+        for _ in range(20 if busy else rng.choice([20, 40, 80])):
+            for _ in range(40 if busy else rng.choice([1, 3, 8, 20])):
                 if now == HANG:
                     now += 1
                 state["now"] = now
@@ -194,23 +198,29 @@ def main():
                             words += struct.unpack("<4I", emu.mem_read(out + 0xC, 16))
                     if kind == 1 or not found:
                         texture = emu.call(CACHE_IMAGE, *args, this=renderer).eax
-                        made = [e[1] for e in events if e[0] == "new"]
-                        assert [e[0] for e in events] == (
-                            ["new", "fill", "draw"] if made else ["draw"]
+                        kinds = [e[0] for e in events]
+                        assert kinds in (
+                            ["new", "fill", "draw"],
+                            ["fill", "draw"],
+                            ["draw"],
                         )
+                        filled = events[-2][1] if "fill" in kinds else 0
                         drawn = events[-1]
                         assert drawn[1] == pages[texture] and drawn[6:] == args[:2]
-                        words += [made[0] if made else 0, pages[texture], *drawn[2:6]]
+                        words += [
+                            filled,
+                            int("new" in kinds),
+                            pages[texture],
+                            *drawn[2:6],
+                        ]
                         words += struct.unpack("<4I", emu.mem_read(out + 0xC, 16))
                 op_rows.append(
                     f"    {{{script}, {kind}, {first + image}, 0x{palettes[palette]:08x}, "
                     f"0x{now:08x}, {{{hexs(words)}}}, {len(words)}}},"
                 )
+            steps = [0, 1, 16, 16, 33, 400, 1200, 3749, 3751, 5000, 15001, 16000]
             now = (
-                now
-                + rng.choice(
-                    [0, 1, 16, 16, 33, 400, 1200, 3749, 3751, 5000, 15001, 16000]
-                )
+                now + rng.choice(steps[:5] * 4 + steps if busy else steps)
             ) & 0xFFFFFFFF
         emu.heap_release(mark)
     lines.append("static const SpriteCacheImage kSpriteCacheImages[] = {")

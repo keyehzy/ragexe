@@ -53,9 +53,13 @@ std::optional<CachedSprite> SpriteTextureCache::Find(Key image, Key palette, std
   return std::nullopt;
 }
 
+void SpriteTextureCache::MakeSpareTextures(const std::function<std::uint32_t()>& make_texture) {
+  for (int k = 0; k < kSpareTextures; ++k) spares_.push_back(make_texture());
+}
+
 std::optional<SpriteSlot> SpriteTextureCache::Cache(
     Key image, Key palette, std::int16_t width, std::int16_t height, std::uint32_t now,
-    const std::function<std::uint32_t()>& make_page) {
+    const std::function<std::uint32_t()>& make_texture) {
   const std::size_t size_class = SizeClass(width, height);
   std::list<Page>& pages = pages_[size_class];
   const std::uint32_t unused_before = now - (kExpiry >> 2);
@@ -80,7 +84,14 @@ std::optional<SpriteSlot> SpriteTextureCache::Cache(
     }
     if (unused_before == 0) return std::nullopt;
     Page& page = pages.emplace_back();
-    page.texture = make_page();
+    if (spares_.empty()) {
+      page.texture = make_texture();
+      out.texture_made = true;
+    } else {
+      page.texture = spares_.back();
+      page.spare = true;
+      spares_.pop_back();
+    }
     out.page_made = page.texture;
     page.width = kSlotSizes[size_class].first;
     page.height = kSlotSizes[size_class].second;
@@ -108,7 +119,7 @@ std::vector<std::uint32_t> SpriteTextureCache::ReleaseExpired(std::uint32_t now)
         ++it;
         continue;
       }
-      released.push_back(it->texture);
+      (it->spare ? spares_ : released).push_back(it->texture);
       it = pages.erase(it);
     }
   }

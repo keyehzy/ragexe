@@ -19,7 +19,7 @@ struct SpriteCacheImage {
 struct SpriteCacheOp {
   int script, kind, image;
   std::uint32_t palette, now;
-  std::uint32_t words[36];
+  std::uint32_t words[80];
   int count;
 };
 
@@ -32,9 +32,10 @@ void Rect(const CachedSprite& s, std::vector<std::uint32_t>& out) {
 }
 
 void Slot(const SpriteSlot& s, std::vector<std::uint32_t>& out) {
-  out.insert(out.end(), {s.page_made, s.sprite.texture, static_cast<std::uint32_t>(s.x),
-                         static_cast<std::uint32_t>(s.y), static_cast<std::uint32_t>(s.width),
-                         static_cast<std::uint32_t>(s.height)});
+  out.insert(out.end(),
+             {s.page_made, s.texture_made ? 1U : 0U, s.sprite.texture,
+              static_cast<std::uint32_t>(s.x), static_cast<std::uint32_t>(s.y),
+              static_cast<std::uint32_t>(s.width), static_cast<std::uint32_t>(s.height)});
   Rect(s.sprite, out);
 }
 
@@ -49,6 +50,7 @@ TEST_CASE("The sprite texture cache is the original's", "[render]") {
     if (op.script != script) {
       script = op.script;
       cache.emplace();
+      cache->MakeSpareTextures(make_page);
       cache->set_next_release(kSpriteCacheReleases[script]);
     }
     const SpriteCacheImage& image = kSpriteCacheImages[op.image];
