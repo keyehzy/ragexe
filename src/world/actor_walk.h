@@ -93,6 +93,21 @@ struct GameActor {
                                   // a CPc's vf37's second argument
 };
 
+// CGameActor's constructor (00502570) at timeGetTime `now` and the server's time `server_time`:
+// CRenderObject's reset (CRenderObject::ResetObjectFields, 00500400), then CGameActor's
+// (CGameActor::ResetActorFields, 00502850). At the origin, facing 0, standing at action and frame
+// 0, at scale 1, white, shown (+0x84, +0x85), pickable (+0x89) and with its shadow (+0x88); +0x48
+// 1; the id -1 and the step left (+0x194) -1, +0x1ac -1, +0x230 3600; keyed (+0x6c), the action's
+// start (+0x70) and the last update (+0x19c, +0x1a0) now, the cast ended 5 s before (+0x1d8) and
+// begun 10 s before (+0x1dc); the rest 0. The move's goal and speed (+0xc0 to +0xc8), +0x18c,
+// +0x1a4, +0x1b8, +0x1bc, +0x1e4, +0x1ec to +0x1f4, +0x228, +0x22c and +0x240 are left as the
+// memory had them; the port has its own.
+GameActor MakeGameActor(std::uint32_t now, std::uint32_t server_time);
+
+// CNpc's constructor (0053f950): MakeGameActor, then CNpc::ResetNpcFields (0053fa20), which
+// sets +0x290 to timeGetTime.
+GameActor MakeNpc(std::uint32_t now, std::uint32_t server_time);
+
 // CGameActor::GetJob (00503490): the job, 7 and 14 mounted (bit 5 of +0x21c) as 13 and 21.
 std::int32_t GameActorJob(const GameActor& actor);
 

@@ -152,7 +152,9 @@ lands exactly on the ground and the item falls one update more.
 
 **In whole frames,** the frame oracle draws items and corpses with the rest of the world, every
 call and vertex against the original's ([render/frame.md](../render/frame.md#in-the-port)):
-real `CItem`s sent message 4 with the real item tables, and real corpses from `AddCorpse`.
+real `CItem`s sent message 4 with the real item tables, and real corpses from `AddCorpse`, each
+updated every world step: the dropped knife falls and lands, the items blink, the corpses fade
+and are let go.
 
 The world's lists and the packets that bring and take items are [lists.md](lists.md);
 `CItem`'s pick record is [pick.md](pick.md)'s.

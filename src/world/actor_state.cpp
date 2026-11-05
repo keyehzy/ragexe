@@ -403,6 +403,12 @@ PathResult MoveTo(Actor& actor, PathFinder& finder, std::int32_t goal_x, std::in
 
 }  // namespace
 
+PlayerActor MakePlayerActor(std::uint32_t now, std::uint32_t server_time) {
+  PlayerActor player;
+  static_cast<GameActor&>(player) = MakeGameActor(now, server_time);
+  return player;
+}
+
 std::array<std::int32_t, 2> AttrCellAt(const res::AttrMap& attr, float x, float z) {
   const auto cell = static_cast<float>(attr.cell_size);
   const std::int32_t half_width = attr.width / 2;

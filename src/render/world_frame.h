@@ -149,6 +149,7 @@ struct WorldFrameState {
   FrameTextures textures;
   std::vector<std::uint32_t> lightmap_pages;  // the atlas pages' textures
   std::uint32_t frame = 1;                    // the renderer's frame count (+0x34)
+  std::uint32_t water = 0;                    // the texture the water's last step asked for
   SpriteScales sprite_scales;                 // CView::Step's, each frame
   SpriteTextureCache sprites;                 // +0x194
   FogState fog;                               // 00625ea0 to 00625eb4
@@ -217,12 +218,20 @@ using WorldObjectsDraw = std::function<void(FrameLists&)>;
 // ambient colour, which C3dWorldRes::Load copies to the water's multipliers (00436918).
 void EnterWorld(const WorldScene& scene, float x, float z, bool indoor, WorldFrameState& state);
 
-// One frame as CGameMode::OnFrame steps and draws it at time now: the water's step and the
-// view's (CView::Update, with CView::Step's sprite scales), then CView::DrawWorld (004cf4d0): the
-// visible scene graph's models and cells and the cell cursor into the scene lists, then the world's
-// objects (objects), and DrawScene, which first sets up the projection when SetFogEnabled asked.
-// Then the frame counted, as Present counts it, and the pools rewound. The calls DrawScene makes,
-// and its draws.
+// What a world step of CGameMode::OnFrame does after CWorld::UpdateGameObjects, at time now: the
+// water's step (C3dGround15::StepWater, its texture asked for) and the view's (CView::Update, with
+// CView::Step's sprite scales).
+void StepWorld(const WorldScene& scene, WorldFrameState& state, std::uint32_t now);
+
+// The rest of a frame of OnFrame: CView::DrawWorld (004cf4d0), the visible scene graph's models
+// and cells and the cell cursor into the scene lists, then the world's objects (objects), and
+// DrawScene, which first sets up the projection when SetFogEnabled asked. Then the frame counted,
+// as Present counts it, and the pools rewound. The calls DrawScene makes, and its draws.
+std::vector<SceneCall> DrawWorld(WorldScene& scene, WorldFrameState& state,
+                                 std::vector<FrameDraw>& draws,
+                                 const WorldObjectsDraw& objects = {});
+
+// One frame of one world step, with no objects to update: StepWorld, then DrawWorld.
 std::vector<SceneCall> DrawWorldFrame(WorldScene& scene, WorldFrameState& state, std::uint32_t now,
                                       std::vector<FrameDraw>& draws,
                                       const WorldObjectsDraw& objects = {});

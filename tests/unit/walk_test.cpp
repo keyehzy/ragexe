@@ -2123,6 +2123,124 @@ std::string KeepLists(const AttrMap& map, std::istringstream& fields) {
   return line;
 }
 
+struct ActorMakeVector {
+  std::uint32_t kind;  // 0 CNpc, 1 CPc
+  std::uint32_t now;
+  std::uint32_t server_offset;
+  std::size_t count;
+  const char* set;
+  std::array<std::uint32_t, 98> values;
+};
+
+#include "actor_make_vectors.inc"
+
+std::uint32_t Word(float f) { return std::bit_cast<std::uint32_t>(f); }
+std::uint32_t Word(bool b) { return b ? 1u : 0u; }
+std::uint32_t Word(std::int32_t i) { return static_cast<std::uint32_t>(i); }
+std::uint32_t Word(std::uint32_t u) { return u; }
+
+// The port's field at the original's offset in a CGameActor, or a CPc when `player` is given.
+std::optional<std::uint32_t> ActorWord(const GameActor& a, const ragexe::world::PlayerActor* player,
+                                       std::uint32_t offset) {
+  const ragexe::render::RenderObject& o = a.object;
+  if (offset >= 0x244 && offset <= 0x26c && offset % 4 == 0)
+    return Word(a.effect_slots[(offset - 0x244) / 4]);
+  switch (offset) {
+    case 0x4: return Word(o.position[0]);
+    case 0x8: return Word(o.position[1]);
+    case 0xc: return Word(o.position[2]);
+    case 0x20: return Word(o.base_action);
+    case 0x24: return Word(o.action);
+    case 0x28: return Word(o.frame);
+    case 0x2c: return Word(o.sounded_action);
+    case 0x30: return Word(o.sounded_frame);
+    case 0x38: return Word(o.facing);
+    case 0x3c: return Word(o.scale);
+    case 0x40: return Word(o.shadow_scale);
+    case 0x44: return Word(o.delay);
+    case 0x48: return Word(o.pixel_scale);
+    case 0x4c: return Word(o.repeats);
+    case 0x50: return Word(o.delay_scale);
+    case 0x54: return Word(o.play_mode);
+    case 0x58: return Word(a.state);
+    case 0x5c: return Word(o.offset_x);
+    case 0x60: return Word(o.angle);
+    case 0x64: return Word(o.depth_index);
+    case 0x68: return Word(o.key_color);
+    case 0x6c: return Word(o.keyed_at);
+    case 0x70: return Word(o.start_time);
+    case 0x7c: return Word(o.color);
+    case 0x80: return Word(o.depth_up);
+    case 0x81: return Word(o.finished);
+    case 0x82: return Word(o.held);
+    case 0x83: return Word(o.keyed);
+    case 0x84: return Word(o.visible);
+    case 0x85: return Word(o.body_shown);
+    case 0x86: return Word(o.flat);
+    case 0x87: return Word(o.tinted);
+    case 0x88: return Word(o.shadow);
+    case 0x89: return Word(o.pickable);
+    case 0x90: return Word(o.screen_x);
+    case 0x94: return Word(o.screen_y);
+    case 0xa8: return Word(a.field_0xa8);
+    case 0xc0: return Word(a.goal_x);
+    case 0xc4: return Word(a.goal_y);
+    case 0xc8: return Word(a.speed);
+    case 0xcc: return Word(a.field_0xcc);
+    case 0xd0: return Word(a.field_0xd0);
+    case 0xd8: return Word(a.field_0xd8);
+    case 0x18c: return Word(a.move_time);
+    case 0x190: return Word(a.pushed);
+    case 0x194: return Word(a.segment);
+    case 0x198: return Word(a.travelled);
+    case 0x19c: return Word(a.processed_at);
+    case 0x1a0: return Word(a.server_at);
+    case 0x1a4: return Word(a.balloon_at);
+    case 0x1a8: return Word(a.target_id);
+    case 0x1ac: return Word(a.field_0x1ac);
+    case 0x1b4: return Word(a.id);
+    case 0x1b8: return Word(a.job);
+    case 0x1bc: return Word(a.field_0x1bc);
+    case 0x1c0: return Word(a.balloon);
+    case 0x1c4: return Word(a.chat_title);
+    case 0x1c8: return Word(a.shop_title);
+    case 0x1cc: return Word(a.cast_gauge);
+    case 0x1d0: return Word(a.hold_until);
+    case 0x1d4: return Word(a.pet_talk_at);
+    case 0x1d8: return Word(a.cast_end);
+    case 0x1dc: return Word(a.cast_start);
+    case 0x1e0: return Word(a.balloon_width);
+    case 0x1e4: return Word(a.balloon_height);
+    case 0x1ec: return Word(a.field_0x1ec);
+    case 0x1f0: return Word(a.field_0x1f0);
+    case 0x1f4: return Word(a.field_0x1f4);
+    case 0x210: return Word(a.field_0x210);
+    case 0x218: return Word(a.body_state);
+    case 0x21c: return Word(a.effect_state);
+    case 0x220: return Word(a.health_state);
+    case 0x224: return Word(a.field_0x224);
+    case 0x228: return Word(a.target_x);
+    case 0x22c: return Word(a.target_z);
+    case 0x230: return Word(a.sight_ticks);
+    case 0x234: return Word(a.fade_until);
+    case 0x238: return Word(a.model_kind);
+    case 0x23c: return Word(a.guild);
+    case 0x240: return Word(a.emblem);
+    case 0x290: return Word(a.repeated_at);
+    default: break;
+  }
+  if (player == nullptr) return std::nullopt;
+  switch (offset) {
+    case 0x28c: return Word(player->field_0x28c);
+    case 0x294: return Word(player->saved_frame);
+    case 0x2a0: return Word(player->weapon);
+    case 0x2dc: return Word(player->gauge);
+    case 0x2e0: return Word(player->field_0x2e0);
+    case 0x2e4: return Word(player->field_0x2e4);
+    default: return std::nullopt;
+  }
+}
+
 }  // namespace
 
 TEST_CASE("Actors walk their paths as the original's CGameActor::ProcessState does", "[walk]") {
@@ -2800,4 +2918,22 @@ TEST_CASE("An item sent message 4 again falls only if this one drops it", "[walk
   ragexe::world::ArriveGroundItem(item, record, map, {&tables, ""}, 0);
   CHECK_FALSE(item.falling);
   CHECK(item.object.position[1] == 0.0f);
+}
+
+TEST_CASE("Actors start as the original's CNpc and CPc constructors leave them", "[walk]") {
+  for (const ActorMakeVector& v : kActorMakes) {
+    const std::uint32_t server_time = v.now - 72 - v.server_offset;
+    const ragexe::world::PlayerActor player = ragexe::world::MakePlayerActor(v.now, server_time);
+    const GameActor npc = ragexe::world::MakeNpc(v.now, server_time);
+    const GameActor& actor = v.kind == 1 ? static_cast<const GameActor&>(player) : npc;
+    for (std::size_t k = 0; k < v.count; ++k) {
+      if (v.set[k] != '1') continue;
+      INFO("kind " << v.kind << " at " << v.now << ", offset 0x" << std::hex
+                   << kActorMakeOffsets[k]);
+      const std::optional<std::uint32_t> got =
+          ActorWord(actor, v.kind == 1 ? &player : nullptr, kActorMakeOffsets[k]);
+      REQUIRE(got.has_value());
+      CHECK(*got == v.values[k]);
+    }
+  }
 }

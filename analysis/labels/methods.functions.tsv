@@ -355,13 +355,11 @@ address	namespace	name	calling_convention	evidence
 004f1d10	mg::CScript	method_004f1d10	__thiscall	__thiscall; called with this from 1 functions of mg::CScript, e.g. 004f1b70
 00500150	CRagEffect	method_00500150	__thiscall	__thiscall; called with this from 1 functions of CRagEffect, e.g. 0055dc90
 00500210	CArrowEffect	method_00500210	__thiscall	__thiscall; called with this from 1 functions of CArrowEffect, e.g. 005afbc0
-00500400	CRenderObject	method_00500400	__thiscall	__thiscall; called with this from 1 functions of CRenderObject, e.g. 005002b0
 00500520	CRenderObject	method_00500520	__thiscall	__thiscall; called with this from 1 functions of CRenderObject, e.g. 00500350
 00500760	CArrowEffect	method_00500760	__thiscall	__thiscall; called with this from 1 functions of CArrowEffect, e.g. 005afbc0
 00501a50	CMousePointer	method_00501a50	__thiscall	__thiscall; called with this from 1 functions of CMousePointer, e.g. 00501980
 00501d40	CAbleToMakeEffect	method_00501d40	__thiscall	__thiscall; called with this from 1 functions of CAbleToMakeEffect, e.g. 00501be0
 00501d70	CAbleToMakeEffect	method_00501d70	__thiscall	__thiscall; called with this from 1 functions of CAbleToMakeEffect, e.g. 00501c90
-00502850	CGameActor	method_00502850	__thiscall	__thiscall; called with this from 1 functions of CGameActor, e.g. 00502570
 00502a20	CGameActor	method_00502a20	__thiscall	__thiscall; called with this from 1 functions of CGameActor, e.g. 00502700
 005078a0	CGameActor	method_005078a0	__thiscall	__thiscall; called with this from 2 functions of CGameActor, e.g. 00502a20
 005078e0	CGameActor	method_005078e0	__thiscall	__thiscall; called with this from 1 functions of CGameActor, e.g. 00506c80
@@ -473,7 +471,6 @@ address	namespace	name	calling_convention	evidence
 0053ce20	CLoginMode	method_0053ce20	__thiscall	__thiscall; called with this from 1 functions of CLoginMode, e.g. 0053b810
 0053cf00	CLoginMode	method_0053cf00	__thiscall	__thiscall; called with this from 1 functions of CLoginMode, e.g. 0053b810
 0053cf10	CLoginMode	method_0053cf10	__thiscall	__thiscall; called with this from 1 functions of CLoginMode, e.g. 0053e790
-0053fa20	CNpc	method_0053fa20	__thiscall	__thiscall; called with this from 1 functions of CNpc, e.g. 0053f950
 00540a20	CBlowEffect	method_00540a20	__thiscall	__thiscall; called with this from 1 functions of CBlowEffect, e.g. 00540950
 005410f0	CBlurPC	method_005410f0	__thiscall	__thiscall; called with this from 1 functions of CBlurPC, e.g. 00540d20
 005413f0	CMasterChaser	method_005413f0	__thiscall	__thiscall; called with this from 1 functions of CMasterChaser, e.g. 00541320

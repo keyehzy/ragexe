@@ -8,9 +8,11 @@ by, and the vertices `DrawScene`'s draws send. The parts are in [scene_graph.md]
 ## The frame
 
 `CGameMode::OnFrame` (`0050d400`, vf04) runs in this order, as far as the world goes:
-1. **Each world step due** (`GetFrameStepsDue`): `CWorld::UpdateGameObjects`, the water's
-   step (`C3dGround15::StepWater`, [ground.md](ground.md#the-water)) and the view's
-   (`CView::Update`, vf04, [camera.md](camera.md)).
+1. **Each world step due** (`GetFrameStepsDue`, `00420390`: the whole periods of 16 ms,
+   `SetFrameRate(60)`'s, since the timer's base, which moves on by them): `CWorld::UpdateGameObjects`
+   ([world/lists.md](../world/lists.md#the-update)), the water's step (`C3dGround15::StepWater`,
+   [ground.md](ground.md#the-water)) and the view's (`CView::Update`, vf04,
+   [camera.md](camera.md)). Every step of a frame sees the same `timeGetTime`.
 2. **`C3dDevice::Clear`** with the map's colour, then `SceneRenderer::BeginScene`.
 3. **`CView::DrawWorld`** (vf03, `004cf4d0`), below.
 4. The UI, the cursor and the fade, then **`SceneRenderer::Present`** (`00410c50`), which
@@ -136,37 +138,59 @@ the primitive's address ([scene.md](scene.md#sorting)). On a heap that only grow
 | `EnterWorld` | `PlaceCamera`, the draw settings `CGameMode::OnInit` leaves, and the ambient colour `C3dWorldRes::Load` copies |
 | `SetFogEnabled` | `SceneRenderer::SetFogEnabled` on a device with vertex fog |
 | `FrameLists` | `AddPrimitive`: the lists, each primitive's vertices kept for the draws, each vertex's fog; quads and triangle lists from the pools |
-| `DrawWorldFrame` | one frame of `OnFrame`: the steps, `DrawWorld`, `Present`'s count, the pools rewound |
+| `StepWorld` | a world step after `UpdateGameObjects`: the water's step, its texture asked for, and the view's |
+| `DrawWorld` | the rest of a frame of `OnFrame`: `DrawWorld`, `Present`'s count, the pools rewound |
+| `DrawWorldFrame` | a frame of one step with no objects to update, as ragview draws: `StepWorld`, then `DrawWorld` |
 | `WorldFrameState` | what lasts: with the renderer's 50 spare sprite page textures, the first textures of all ([sprite_cache.md](sprite_cache.md#the-pages)), the sprite cache and `CView::Step`'s sprite scales |
 | `AddSpriteQuad` | `SceneRenderer::AddSpriteQuad`: the image's texture, its own or the sprite cache's, and the quad into the lists |
 
-**The world's objects.** `DrawWorldFrame` takes a function that adds what the objects of
+**The world's objects.** `DrawWorld` takes a function that adds what the objects of
 `CWorld`+0xc draw, after the cell cursor, as `DrawWorld` has them draw themselves. ragview
-adds its actor and its effects there ([gpu.md](gpu.md#ragview)). `ragres draw-frame --npc JOB
+adds its actor and its effects there ([gpu.md](gpu.md#ragview)). `ragres draw-frame` keeps its
+objects in a `world::WorldObjects`, in the order of the list: the NPCs, the players, the items,
+then the corpses, each kind in the order given, all made at the first frame's time. `--npc JOB
 DX DY` adds NPCs and monsters, each in the centre of the cell DX and DY from the player's, as
-`CNpc`'s constructor and `vf16` leave one: through `CNpc::Render`
-([world/npc_draw.md](../world/npc_draw.md)), its shadow and its body tinted by the ground under
-it ([ground.md](ground.md#the-cell-tints)), each quad through `AddSpriteQuad`.
+`CNpc`'s constructor ([world/arrival.md](../world/arrival.md#the-constructors)) and `vf16` leave
+one: through `CNpc::Render` ([world/npc_draw.md](../world/npc_draw.md)), its shadow and its body
+tinted by the ground under it ([ground.md](ground.md#the-cell-tints)), each quad through
+`AddSpriteQuad`.
 
-`--pc JOB SEX HAIR WEAPON TOP MID BOTTOM SHIELD HAIR_COLOR CLOTHES_COLOR ACTION DIRECTION FRAME
-DX DY` adds players after them, each as `CPc`'s constructor and its `vf14` leave one, dressed in
-the ten values `vf14` takes ([world/look.md](../world/look.md#the-dress)), at the action plus
-the direction and at the frame given. Each is drawn through `CPc::Render`
-([player.md](player.md#drawing)): its shadow, then its layers, the body in the clothes'
-palette and the head in the hair's, each quad through `AddSpriteQuad` with the palette it is
-drawn in.
+`--pc JOB SEX HAIR WEAPON TOP MID BOTTOM SHIELD HAIR_COLOR CLOTHES_COLOR ACTION FACING DX DY`
+adds players after them, each as `CPc`'s constructor and its `vf14` leave one, dressed in the
+ten values `vf14` takes ([world/look.md](../world/look.md#the-dress)), then playing the action
+in a loop (`CGameActor::SetAction`, `vf07`, as the states start theirs) and facing so many
+degrees (+0x38). Each is drawn through `CPc::Render` ([player.md](player.md#drawing)): its
+shadow, then its layers, the body in the clothes' palette and the head in the hair's, each quad
+through `AddSpriteQuad` with the palette it is drawn in.
 
 `--item ID IDENTIFIED DROPPED SUB_X SUB_Y DX DY` adds items after the players, each as
 `CItem`'s constructor and its message 4 leave one ([world/items.md](../world/items.md)): the id
-as text, identified or not, dropped (15 above the ground, where it stays, as no update runs) or
-not, at those sixteenths of the cell DX and DY from the player's, its pick id counting from 1.
-Each is drawn through `CItem::Render`: its shadow at 0.4 of its scale, then its body.
+as text, identified or not, dropped (15 above the ground, from where it falls) or not, at those
+sixteenths of the cell DX and DY from the player's, its pick id counting from 1. Each is drawn
+through `CItem::Render`: its shadow at 0.4 of its scale, then its body.
 
 `--corpse JOB ACTION FRAME FACING DX DY` adds corpses last, each as `CGameMode::AddCorpse` makes
 one when a monster of the job dies (`CGameActor::LeaveCorpse`), in the centre of its cell: its
 names are the monster's actions and sprite as `CRes::GetName` gives them, lower-cased under
 `sprite\`. Each is drawn through `CRenderObject::Render` (`00501870`): its shadow at its scale,
 then its body.
+
+**The updates.** Each world step runs `CWorld::UpdateGameObjects` on the list
+(`WorldObjects::Update`): each NPC through `CNpc::Update`, each player through `CPc::Update`
+([world/update.md](../world/update.md)), with its body's actions and heard by the player; each
+item through `CItem::Update` and each corpse through `CCorpse::Update`
+([world/items.md](../world/items.md)). One whose update returns 0 is let go, as a corpse is
+255 ticks after it was left. The update reads the camera's yaw, which the view's step after it
+keeps, and the server's time, `timeGetTime` less 72 (`ClientState::GetServerTime`, its offset
++0x504 0). So the first update sets each actor's action to its base action plus its direction
+from the camera, and its frame by the time since the action started, at its delay (1 tick, 24
+ms, for an action the constructor left); a corpse takes its action's last frame and fades.
+
+**The clock.** `--frames N` draws N frames (3 by default), `--frame-time MS` apart (16 by
+default). The frame timer is set to 60 frames a second (`SetFrameRate`) 16 ms before the first
+frame, so the first frame and each 16 ms after it run one world step: a longer time runs
+several steps in one frame, carrying the rest, as `GetFrameStepsDue` does. The camera turns by
+120 degrees each frame, round again at the fourth.
 
 **Resources by name.** The frame keeps its sprites, actions, `.imf` files and palettes in a
 `res::ResourceManager`, as the client does: one resource for a name, whatever its case and
@@ -191,8 +215,8 @@ A primitive drawn twice is scaled twice.
 
 **`ragres draw-frame INSTALL MAP CELL_X CELL_Y`** loads the map as `load-world` does
 ([model.md](model.md#loading)), with the player and the cell cursor on that cell, and draws
-three frames, the map's fog on as the client's FOG setting has it by default. It prints the
-textures in the order made, then each frame's device calls.
+three frames (or `--frames`), the map's fog on as the client's FOG setting has it by default.
+It prints the textures in the order made, then each frame's device calls.
 
 ## Checks
 
@@ -215,9 +239,13 @@ textures in the order made, then each frame's device calls.
   - the cell cursor shown over the player's cell;
   - the fog as `CGameMode::OnInit` sets it with the FOG setting on (`00516570`, the table read
     by `ClientState::LoadFogParameterTable`), the device reporting vertex fog;
-  - the frame count at 1, as if the loading had presented one frame.
-- **Three frames,** as `OnFrame` draws them: the camera as placed, then turned by 120
-  and by 240 degrees.
+  - the frame count at 1, as if the loading had presented one frame;
+  - `timeGetTime` at 1,000,000 ms in the first frame and 16 more in each after (or
+    `--frame-time`), the frame timer set to 60 frames a second (`SetFrameRate`, `00420360`) 16
+    ms before the first, and `ragres draw-frame` at the same times.
+- **Three frames** (or `--frames`), as `OnFrame` draws them: the world steps
+  `GetFrameStepsDue` gives, each `CWorld::UpdateGameObjects`, `StepWater` and `CView::Update`,
+  then `DrawWorld`. The camera as placed, then turned by 120 and by 240 degrees.
 - **The comparison:** every device call `DrawWorld` makes but `SetTransform`, every vertex
   bit for bit, and the order the textures were made in. It is checked against `ragres
   draw-frame`. The transforms `SetupProjection` sets are left out of the port, whose vertices
@@ -225,36 +253,40 @@ textures in the order made, then each frame's device calls.
 - **The maps:** those of `data.grf` and of the patches, 287 in all.
 - **`ctest`** runs 4 maps (`frame_oracle_sample`): the smallest, an indoor map, a ship, and
   `mag_dun01`, a patch's map with fog and lava. `--sample 0` runs every map.
-- **The result:** all 287 maps are equal, three frames each: 21,308 textures made, 267,611
+- **The result:** all 287 maps are equal, three frames each: 35,658 textures made, 267,611
   device calls and 215,472 draws. The textures listed also count the renderer's 50 spare
   sprite page textures, which the original makes before any map's.
 - **With the world's objects** (`--npc`, `--pc`, `--item`, `--corpse`): each `JOB DX DY` is a
   `CNpc` in the original's world list (`CWorld`+8), made by its constructor, its job named by
   `vf16` (its sprite and actions loaded for real, from a second cache of the archives' `.spr`,
-  `.act`, `.imf` and `.pal` files), its shadow set, in the centre of its cell. Each `--pc` is a
-  `CPc` after them, made by its constructor (`00541fb0`) and dressed by its `vf14` (`00542c50`)
-  with the name tables `ClientState::InitNameTables` fills, its base action, action and frame
-  set (+0x20, +0x24, +0x28). Each `--item` is a `CItem` after those, made by its constructor
-  (`0053abb0`) and sent message 4 with the item tables `LoadItemTables` loads. Each `--corpse`
-  comes last, from `CGameMode::AddCorpse` with the names a `CNpc` of the job gives.
-  `CNpc::Render` records its pick bounds in `g_CActorPickNode`, which the oracle constructs and
-  clears before each frame as `OnFrame` does. `timeGetTime` answers 1,000,000 ms in the first
-  frame and 16 more in each after, and `ragres draw-frame` takes the same times. `ctest` runs
-  two maps with the objects below (`frame_oracle_actors`).
-- **The result with the world's objects:** all 287 maps are equal, three frames each, with
-  thirty objects about the player:
+  `.act`, `.imf` and `.pal` files), in the centre of its cell. Each `--pc` is a `CPc` after
+  them, made by its constructor (`00541fb0`) and dressed by its `vf14` (`00542c50`) with the
+  name tables `ClientState::InitNameTables` fills, its action started by `CGameActor::SetAction`
+  (`00502ff0`) and its facing set (+0x38). Each `--item` is a `CItem` after those, made by its
+  constructor (`0053abb0`) and sent message 4 with the item tables `LoadItemTables` loads. Each
+  `--corpse` comes last, from `CGameMode::AddCorpse` with the names a `CNpc` of the job gives.
+  All are made at the first frame's time, and the world's steps update them for real; `PlayWave`
+  (`004352a0`), which the frames' sounds call, is stood in for. `CNpc::Render` records its pick
+  bounds in `g_CActorPickNode`, which the oracle constructs and clears before each frame as
+  `OnFrame` does. `ctest` runs two maps with the objects below (`frame_oracle_actors`), and one
+  over twelve frames 731 ms apart (`frame_oracle_actors_long`).
+- **The result with the world's objects:** all 287 maps are equal with thirty objects about
+  the player:
   - three NPCs and four monsters (jobs 50, 84, 120, 1002 twice, 1013 and 1031);
-  - eight players: a swordsman swinging a sword at frame 5, where its glow shows; a
-    swordswoman with a shield in action 0x20; an acolyte in three headgear, turned away; a
-    thief and an archer attacking; three novices alike but for their palettes, two in one
-    colour and one in its sprite's own;
+  - eight players: a swordsman swinging a sword, with its glow at some frames; a swordswoman
+    with a shield in action 0x20; an acolyte in three headgear, turned away; a thief and an
+    archer attacking; three novices alike but for their palettes, two in one colour and one in
+    its sprite's own;
   - six items: two red potions, a knife unidentified and dropped, a sword identified (its
     sprite not the unidentified one's), a jellopy and an unidentified shirt;
-  - three corpses: two porings, one at action 32, frame 2, where single precision moves an
-    item ([formats/act.md](../formats/act.md)), and a poporing.
+  - three corpses: two porings and a poporing.
 
-  35,658 textures made, the spares included, 371,577 device calls and 277,831 draws. Every
-  sprite page took a spare.
+  Over three frames: 35,658 textures made, the spares included, 376,637 device calls and 284,678
+  draws. Over twelve frames 731 ms apart (45 or 46 world steps each, 8.8
+  s in all), where the actions go round, the knife lands, the items blink at the 4th, 7th and
+  10th frames, and the corpses fade and are let go after the 9th: 44,279 textures made,
+  1,477,793 device calls and 1,120,436 draws. Every sprite page
+  took a spare.
 - **Found by the patches' maps:**
   - the lava of `mag_dun01` and `mag_dun02` is coloured by the ambient colour
     `C3dWorldRes::Load` copies (above), which the port had left at 1.0. No map of `data.grf`
@@ -277,7 +309,8 @@ textures in the order made, then each frame's device calls.
 
 **What the frames leave out:**
 - **No own player:** `CWorld::CreatePlayer` is stood in, so the list at `CWorld`+0xc holds only
-  the objects the options put there, and none without them. No object is updated: each is
-  drawn as it was made.
+  the objects the options put there, and none without them.
+- **No sprite pages let go:** `CGameMode::ReleaseSpritePagesPeriodically`, which `OnFrame` runs
+  before the steps, is not run. It lets go only pages unused for 15 s, longer than any run.
 - **No sky, Granny models, effects, UI or cursor.**
 - **`WorldColorFade::Update`** is not run, so the fade keeps the values the load left.

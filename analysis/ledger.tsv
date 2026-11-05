@@ -4323,7 +4323,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005002b0	104	code	0	world		named	CRenderObject	CRenderObject	
 00500320	33	code	0	world		named	CRenderObject	`scalar_deleting_destructor'	
 00500350	167	code	0	world		named	CRenderObject	~CRenderObject	
-00500400	280	code	0	world		named	CRenderObject	method_00500400	
+00500400	280	code	0	world		named	CRenderObject	ResetObjectFields	
 00500520	1	code	0	world		named	CRenderObject	method_00500520	
 00500530	45	code	0	world		named	CRenderObject	GroundDistanceTo	
 00500560	76	code	0	world		named	CRenderObject	GetDistanceTo	
@@ -4375,7 +4375,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005026a0	33	code	0	world		named	CGameActor	`scalar_deleting_destructor'	
 005026d0	38	code	1	stl		named	std::vector	~vector	
 00502700	327	code	0	world		named	CGameActor	~CGameActor	
-00502850	453	code	0	world		named	CGameActor	method_00502850	
+00502850	453	code	0	world		named	CGameActor	ResetActorFields	
 00502a20	221	code	0	world		named	CGameActor	method_00502a20	
 00502b00	273	code	0	world		named	CGameActor	GetDirection	
 00502c20	62	code	0	world	unreferenced	raw	Global	FUN_00502c20	
@@ -5095,7 +5095,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0053f950	73	code	0	world		named	CNpc	CNpc	
 0053f9a0	33	code	0	world		named	CNpc	`scalar_deleting_destructor'	
 0053f9d0	78	code	0	world		named	CNpc	~CNpc	
-0053fa20	37	code	0	world		named	CNpc	method_0053fa20	
+0053fa20	37	code	0	world		named	CNpc	ResetNpcFields	
 0053fa50	1	code	0	world		named	CNpc	NoOp	
 0053fa60	113	code	0	world		named	CNpc	vf02	
 0053fae0	165	code	0	world		named	CNpc	vf16	

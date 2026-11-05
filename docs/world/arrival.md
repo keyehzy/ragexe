@@ -8,6 +8,31 @@ which `CGameActor` `00506c80` (here `SetStatus`) takes. The port is `src/world/a
 `CPc` has its own messages 3 to 6 (`CPc::SendMsg`, `00543540`). They also set the player's look
 (`vf14`), its state (dead or sitting) and +0x294: [look.md](look.md).
 
+## The constructors
+
+A new actor (a `CPc` for packet 0x0078 and the like, [lists.md](lists.md#joining)) starts as
+its constructor leaves it. `CNpc`'s (`0053f950`) and `CPc`'s (`00541fb0`) both call
+`CGameActor`'s (`00502570`), which resets the fields in two steps:
+1. **`CRenderObject::ResetObjectFields`** (`00500400`): at the origin, facing 0, at the base
+   action, action and frame 0 (and +0x2c, +0x30 and the state +0x58), playing in a loop (+0x54
+   0); the scale and the shadow's (+0x3c, +0x40), the delay (+0x44), +0x48, +0x4c and +0x50 all
+   1.0; white (+0x7c), shown (+0x84, +0x85), the key colour red (+0x68); +0x6c `timeGetTime`;
+   the flags +0x80 to +0x83 and +0x86 to +0x89, the bytes +0x74 to +0x77, +0x5c, +0x60, +0x64,
+   +0x34 and +0x8c 0. It names
+   a sprite and actions after the job name table's entry at +0xb8 (`00686dc8`, `NPC\%s.spr` and
+   `NPC\%s.act`), which every actor names again later.
+2. **`CGameActor::ResetActorFields`** (`00502850`): the position, facing, actions, frame, state
+   and play mode 0 again, the delay 1.0; its shadow (+0x88) and pickable (+0x89); the id
+   (+0x1b4) −1, the step left (+0x194) −1, +0x1ac −1.0, Sight's count (+0x230) 3600; the last
+   update's times, `ClientState::GetServerTime` (+0x1a0) and `timeGetTime` (+0x19c); the action's
+   start (+0x70) `timeGetTime`; the cast ended 5,000 ms before (+0x1d8) and begun 10,000 ms
+   before (+0x1dc); the windows, the status words, the fade, the effects' slots and the rest 0.
+
+Then **`CNpc::ResetNpcFields`** (`0053fa20`): +0x290 `timeGetTime`, +0x28c and +0x294 0; or
+**`CPc::ResetPcFields`** (`005422a0`), its fields 0 but +0x8c 1. No constructor sets the move's goal
+and speed (+0xc0 to +0xc8), +0x18c, +0x1a4, +0x1b8, +0x1bc, +0x1e4, +0x1ec to +0x1f4, +0x228,
++0x22c, a `CNpc`'s +0x240 or a `CPc`'s weapon (+0x2a0): they keep what the memory had.
+
 ## The records
 
 Messages 3 and 4 share one record, and 5 and 6 another. The offsets that `CGameActor` reads:
@@ -167,6 +192,9 @@ Then:
 ## In the port
 
 `src/world/actor_arrival.{h,cpp}`, in `ragexe_world`:
+- `MakeGameActor` and `MakeNpc` (`src/world/actor_walk`) and `MakePlayerActor`
+  (`src/world/actor_state`), the constructors at a time and the server's time. The fields no
+  constructor sets keep the port's own values;
 - `StandingArrival` and `WalkingArrival`, the records, with the offsets above;
 - `ArriveGameActor` for messages 3 and 4, and `ArriveWalkingGameActor` for 5 and 6;
 - `SetGameActorStatus`, `SetStatus` with `announce` 0, which also sends its messages through
@@ -208,6 +236,12 @@ original's `SendMsg` with a record in memory, then runs `ProcessState` update by
 
 The hashes equal `ragres find-paths` for 11,480 arrivals over 1,462,447 updates: 2,099
 changed state (a walker that stood), 639 faded and 8,742 stayed.
+
+`tools/actor_make_vectors.py` runs `CNpc`'s and `CPc`'s constructors on memory filled with 0 and
+then 0xa5, at five times and server time offsets (0 and the clock's wrap among them), with
+`SetSprite` and `SetAct` stood in. It records every field the port keeps, and whether the
+constructor set it, in `tests/unit/actor_make_vectors.inc`; `tests/unit/walk_test.cpp` matches
+the fields set in all ten.
 
 `tools/arrival_vectors.py` writes `tests/unit/arrival_vectors.inc`. It holds arrivals on
 `tools/walk_vectors.py`'s three maps, then ones that each hang on one thing:

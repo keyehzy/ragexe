@@ -217,7 +217,8 @@ types 0 to 2. The five calls it can make are recorded in order. `tests/unit/acto
 matches `DrawPc` against all of them.
 
 The frame oracle ([frame.md](frame.md#checks)) draws dressed players in whole frames, every
-quad of every layer through the sprite cache.
+quad of every layer through the sprite cache, each updated every world step (`CPc::Update`), so
+its action turns with the camera and its frames go round.
 
 **Not ported:**
 - `00545540`, the special drawing for a few ids on the Korean service;

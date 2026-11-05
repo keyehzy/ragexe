@@ -32,7 +32,36 @@ std::int32_t FrameCount(const res::Act& act, std::int32_t action) {
 // fcom's equal: true for equal values and for an unordered pair.
 bool SameOrUnordered(float a, float b) { return !(a < b) && !(a > b); }
 
+constexpr std::uint32_t kCastEndedBefore = 5000;     // ms, 0x1388
+constexpr std::uint32_t kCastBegunBefore = 10000;    // ms, 0x2710
+constexpr std::uint32_t kStartingSightTicks = 3600;  // 0xe10
+
 }  // namespace
+
+GameActor MakeGameActor(std::uint32_t now, std::uint32_t server_time) {
+  GameActor actor;
+  render::RenderObject& o = actor.object;
+  o.pixel_scale = 1.0f;
+  o.keyed_at = now;
+  o.shadow = true;
+  o.pickable = true;
+  o.start_time = now;
+  actor.id = -1;
+  actor.segment = -1;
+  actor.field_0x1ac = -1.0f;
+  actor.server_at = server_time;
+  actor.processed_at = now;
+  actor.cast_end = now - kCastEndedBefore;
+  actor.cast_start = now - kCastBegunBefore;
+  actor.sight_ticks = kStartingSightTicks;
+  return actor;
+}
+
+GameActor MakeNpc(std::uint32_t now, std::uint32_t server_time) {
+  GameActor actor = MakeGameActor(now, server_time);
+  actor.repeated_at = now;
+  return actor;
+}
 
 std::int32_t GameActorJob(const GameActor& actor) {
   const bool mounted = (actor.effect_state >> 5 & 1) != 0;

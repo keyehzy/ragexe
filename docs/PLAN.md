@@ -3215,6 +3215,36 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     14 mutants killed, the three of the single-precision steps through every action; the
     survivors cannot show in a frame: an item's pick id, and a corpse's shadow (a corpse's +0x88
     is never set, so `DrawShadow` draws nothing).
+- [x] Objects updated in whole frames (`docs/render/frame.md#in-the-port`,
+  `docs/world/arrival.md#the-constructors`): each frame of `ragres draw-frame` and the frame
+  oracle now runs the world steps `GetFrameStepsDue` gives, each `CWorld::UpdateGameObjects`
+  (`WorldObjects::Update`: `CNpc::Update`, `CPc::Update`, `CItem::Update`, `CCorpse::Update`, an
+  object let go when its update returns 0), the water's step and the view's. `--frames` and
+  `--frame-time` set how many frames and how far apart, the frame timer set to 60 frames a
+  second a step before the first. `render::StepWorld` and `render::DrawWorld` split
+  `DrawWorldFrame`. The actors start as their constructors leave them: `MakeGameActor`
+  (`CRenderObject::ResetObjectFields`, `00500400`, and `CGameActor::ResetActorFields`,
+  `00502850`), `MakeNpc` (`CNpc::ResetNpcFields`, `0053fa20`) and `MakePlayerActor`. A player's
+  `--pc` now takes its action, started by `CGameActor::SetAction`, and its facing, where it took
+  a direction and a frame that the first update overwrites.
+  - **Found on the way:** the constructors start the action's clock (+0x70) and the key's
+    (+0x6c) at `timeGetTime`, set +0x48 to 1.0, the id and the step left to −1, the shadow and
+    pickable flags, and Sight's count to 3600; the port's actors had started at 0. No
+    constructor sets the move's goal and speed, +0x18c, +0x1a4, +0x1b8, +0x1bc, +0x1e4, +0x1ec
+    to +0x1f4, +0x228 or +0x22c: they keep what the memory had.
+  - **Checks:** the frame oracle, now updating the world's objects for real (`PlayWave` stood
+    in for), on all 287 maps: without objects 35,658 textures (the spares included), 267,611 calls and 215,472
+    draws, as before; with the thirty objects over
+    three frames 376,637 calls and 284,678 draws; over twelve frames 731 ms apart, where the actions go round, the
+    knife lands, the items blink and the corpses fade and go, 1,477,793 calls and 1,120,436 draws. `ctest` runs the
+    long one on prontera (`frame_oracle_actors_long`). `tools/actor_make_vectors.py` runs `CNpc`'s
+    and `CPc`'s constructors on memory filled two ways at five times; `tests/unit/walk_test.cpp`
+    matches every field they set. 22 mutants killed: 14 of the constructors' fields, through the
+    vectors, and 8 of the steps (one a frame, none before the first, the corpses kept, the
+    world stepped once a frame, each kind's update skipped, an action played once), through
+    the frames.
+  - **Labels:** `CRenderObject::ResetObjectFields`, `CGameActor::ResetActorFields`,
+    `CNpc::ResetNpcFields`.
 
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,

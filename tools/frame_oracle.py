@@ -1,9 +1,10 @@
 """Compares the port's whole frames with the original's (docs/render/frame.md).
 
 usage: .venv/bin/python -I tools/frame_oracle.py [--sample N] [--jobs J] [--raw] [--show N]
-           [--original-only] [--npc JOB DX DY]... [--pc JOB SEX HAIR WEAPON TOP MID BOTTOM SHIELD
-           HAIR_COLOR CLOTHES_COLOR ACTION DIRECTION FRAME DX DY]... [--item ID IDENTIFIED DROPPED
-           SUB_X SUB_Y DX DY]... [--corpse JOB ACTION FRAME FACING DX DY]... [MAP...]
+           [--original-only] [--frames N] [--frame-time MS] [--npc JOB DX DY]... [--pc JOB SEX
+           HAIR WEAPON TOP MID BOTTOM SHIELD HAIR_COLOR CLOTHES_COLOR ACTION FACING DX DY]...
+           [--item ID IDENTIFIED DROPPED SUB_X SUB_Y DX DY]... [--corpse JOB ACTION FRAME FACING DX
+           DY]... [MAP...]
 
 Each map is loaded as tools/world_oracle.py loads it, but with the player on the walkable cell
 nearest the attribute map's centre, and with the textures made for real:
@@ -12,11 +13,13 @@ makes a CTexture of the fake Direct3D device. Only CBitmapRes::LoadJpeg (004280d
 decoder is ijl15.dll, is stood in for: it gives the image's size and its pixels (decoded by
 Pillow, with the original's magenta rule) and clears the alpha flag, as the original does.
 
-Then three frames, each as CGameMode::OnFrame draws one: the water's step (StepWater), the
-view's (CView::Update), CView::DrawWorld, which draws the visible scene graph and the cell cursor
-into the scene lists and ends with SceneRenderer::DrawScene, then the frame counted (as Present
-counts it) and the primitive pools rewound (00412e70). The first frame looks as PlaceCamera
-places the camera; the second and third turn it by 120 and 240 degrees. The cell cursor is over
+Then three frames (--frames), each as CGameMode::OnFrame draws one: the world steps
+GetFrameStepsDue (00420390) gives, each CWorld::UpdateGameObjects (004c4a10), the water's step
+(StepWater) and the view's (CView::Update); then CView::DrawWorld, which draws the visible scene
+graph and the cell cursor into the scene lists and ends with SceneRenderer::DrawScene, then the
+frame counted (as Present counts it) and the primitive pools rewound (00412e70). The first frame
+looks as PlaceCamera places the camera; the second and third turn it by 120 and 240 degrees, and
+so on round. The cell cursor is over
 the player's cell. The frame count is 1 at the first frame, as if the loading had presented one.
 IsIndoorMap is answered from indoorRswTable.txt. The fog is set as CGameMode::OnInit sets it with
 the FOG setting on, the client's default (00516570, from fogParameterTable.txt read by
@@ -25,20 +28,22 @@ ClientState::LoadFogParameterTable), on a device with vertex fog.
 With --npc, each JOB is a CNpc in the world's list (CWorld+8), in the order given: made by its
 constructor (0053f950), its job at +0x1b8 named by vf16 (0053fae0, which loads its sprite and
 actions for real and keeps the job's shadow scale; the job names and shadows of service type
-1), in the centre of the cell DX and DY from the player's, its shadow (+0x88) set. DrawWorld
+1), in the centre of the cell DX and DY from the player's. DrawWorld
 draws it through CNpc::Render, which records its pick bounds in g_CActorPickNode (constructed,
 and cleared before each frame as OnFrame clears it). With --pc, each is a CPc after the NPCs:
 made by its constructor (00541fb0), dressed by vf14 (00542c50, with the tables of
-ClientState::InitNameTables), its base action (+0x20), action (the base action plus the
-direction, +0x24) and frame (+0x28) set, placed as an NPC is; DrawWorld draws it through
-CPc::Render. With --item, each is a CItem after the players: made by its constructor (0053abb0)
+ClientState::InitNameTables), playing the action in a loop (CGameActor::SetAction, 00502ff0),
+facing so many degrees (+0x38), placed as an NPC is; DrawWorld draws it through CPc::Render. With --item, each is a CItem after the players: made by its constructor (0053abb0)
 and sent message 4 (CItem::SendMsg, 0053afb0) with the item tables LoadItemTables loads (every
 message of msgStringTable empty, the label's format among them); DrawWorld draws it through
 CItem::Render. With --corpse, each is a CCorpse after them, made by CGameMode::AddCorpse with the
 names GetActName and GetSpriteName give a CNpc of the job, as CGameActor::LeaveCorpse passes them;
 DrawWorld draws it through CRenderObject::Render. The sprites, actions, .imf files and palettes
 are read from a second cache.
-timeGetTime answers 1,000,000 ms in the first frame, 16 more in each after.
+All are made at the first frame's time, and UpdateGameObjects updates them; PlayWave (004352a0),
+which the frames' sounds call, is stood in for. timeGetTime answers 1,000,000 ms in the first
+frame and 16 more in each after (--frame-time); the frame timer is set to 60 frames a second
+(SetFrameRate, 00420360) 16 ms before the first frame.
 
 Every call DrawWorld makes on the device but SetTransform (SetupProjection's, which the port
 leaves out: its vertices come transformed) is recorded and printed as `ragres draw-frame` prints the
@@ -72,25 +77,26 @@ from PIL import Image  # noqa: E402
 CBITMAPRES_LOAD_JPEG, CTEXTURE_CTOR = 0x4280D0, 0x4165E0
 CVIEW_SIZE, CVIEW_CTOR, CVIEW_RESET, CVIEW_UPDATE, DRAW_WORLD = 0x1C0, 0x4CEF80, 0x4CF1D0, 0x4CF260, 0x4CF4D0
 PLACE_CAMERA, IS_INDOOR_MAP, GET_CELL_CENTRE, GET_HEIGHT = 0x50D9E0, 0x598BA0, 0x511DE0, 0x427150
-STEP_WATER, REWIND_POOLS = 0x4BC450, 0x412E70
+STEP_WATER, REWIND_POOLS, UPDATE_GAME_OBJECTS = 0x4BC450, 0x412E70, 0x4C4A10
+SET_FRAME_RATE, GET_FRAME_STEPS_DUE, FRAME_RATE, PLAY_WAVE = 0x420360, 0x420390, 60, 0x4352A0
 LOAD_FOG_TABLE, APPLY_MAP_FOG, G_CLIENT_STATE = 0x598E10, 0x516570, 0x686670
 DEVICE_TRI_RASTER_CAPS, RASTERCAPS_FOGVERTEX = 0x623A5C, 0x80  # g_C3dDevice+0x8c
 CELL_CURSOR = 0x684E20  # x, z, hidden, colour
 CURSOR_COLOR = 0x6600FFAA
-TURNS = (None, 120.0, 240.0)
+TURN = 120.0
 CACHE_PATTERNS = ("*.bmp", "*.tga", "*.jpg", "*.rsm", "*.txt")
 ACTOR_PATTERNS = ("*.spr", "*.act", "*.imf", "*.pal")
 NPC_CTOR, NPC_SET_JOB, NPC_SIZE = 0x53F950, 0x53FAE0, 0x298
-PC_CTOR, PC_DRESS, PC_SIZE = 0x541FB0, 0x542C50, 0x308
+PC_CTOR, PC_DRESS, PC_SIZE, SET_ACTION = 0x541FB0, 0x542C50, 0x308, 0x502FF0
 ITEM_CTOR, ITEM_SEND, ITEM_SIZE, ITEM_ARRIVES = 0x53ABB0, 0x53AFB0, 0xC0, 4
 LOAD_ITEM_TABLES, ITEM_MAP_INITS, MSG_STRINGS, LABEL_MESSAGE = 0x4D48E0, (0x4D3440, 0x4D35A0, 0x4D3700), 0x67CCA4, 0xB7
 ITEM_FALLBACK, ITEM_GUARD, CARD_FALLBACK, CARD_GUARD, CODE_PAGE = 0x689140, 0x689130, 0x6891C0, 0x6891B8, 0x67C998
 ADD_CORPSE, GET_ACT_NAME, GET_SPRITE_NAME = 0x510030, 0x501960, 0x5018E0
 INIT_JOB_NAMES, INIT_SHADOWS, INIT_NAME_TABLES, SERVICE_TYPE = 0x58AC70, 0x59A5E0, 0x588BA0, 0x67C9D4
 CONSTRUCT_PICK_TREE, CLEAR_PICK_TREE, G_PICK_TREE = 0x4CE470, 0x4CE710, 0x67CA60
-FRAME_TIME, FRAME_TIME_STEP = 1000000, 16
+FRAME_TIME, FRAME_TIME_STEP, FRAMES = 1000000, 16, 3
 PC_ARGS = ("JOB", "SEX", "HAIR", "WEAPON", "TOP", "MID", "BOTTOM", "SHIELD", "HAIR_COLOR", "CLOTHES_COLOR", "ACTION",
-           "DIRECTION", "FRAME", "DX", "DY")
+           "FACING", "DX", "DY")
 ITEM_ARGS = ("ID", "IDENTIFIED", "DROPPED", "SUB_X", "SUB_Y", "DX", "DY")
 CORPSE_ARGS = ("JOB", "ACTION", "FRAME", "FACING", "DX", "DY")
 RAW = "--raw" in sys.argv
@@ -212,10 +218,9 @@ def cell_centre(emu, mode, attr, cell, dx, dy):
 
 
 def place(emu, world, mode, attr, cell, actor, dx, dy):
-    """The actor in the centre of the cell dx and dy from cell, on the ground, its shadow (+0x88)
-    set, at the end of the world's list."""
+    """The actor in the centre of the cell dx and dy from cell, on the ground, at the end of the
+    world's list."""
     emu.mem_write(actor + 4, struct.pack("<fff", *cell_centre(emu, mode, attr, cell, dx, dy)))
-    emu.mem_write(actor + 0x88, b"\1")
     append(emu, world, actor)
 
 
@@ -230,15 +235,14 @@ def add_npc(emu, world, mode, attr, cell, job, dx, dy):
 
 def add_pc(emu, world, mode, attr, cell, look):
     """A CPc dressed by vf14 (job, sex, hair, weapon kind, the three headgear, shield, hair and
-    clothes colours), at the base action plus the direction (+0x20, +0x24) and the frame (+0x28),
-    placed dx and dy from cell."""
-    *dress, base, direction, frame, dx, dy = look
+    clothes colours), the action played in a loop (CGameActor::SetAction, vf07), facing so many
+    degrees (+0x38), placed dx and dy from cell."""
+    *dress, action, facing, dx, dy = look
     pc = emu.alloc(PC_SIZE)
     emu.call(PC_CTOR, this=pc)
     emu.call(PC_DRESS, *(v & 0xFFFFFFFF for v in dress), this=pc)
-    emu.write_u32(pc + 0x20, base & 0xFFFFFFFF)
-    emu.write_u32(pc + 0x24, (base + direction) & 0xFFFFFFFF)
-    emu.write_u32(pc + 0x28, frame & 0xFFFFFFFF)
+    emu.call(SET_ACTION, action & 0xFFFFFFFF, 0, 0, this=pc)
+    emu.mem_write(pc + 0x38, struct.pack("<f", facing))
     place(emu, world, mode, attr, cell, pc, dx, dy)
 
 
@@ -287,7 +291,7 @@ def add_corpse(emu, mode, attr, cell, look):
 
 
 def frames(item):
-    ragres, install, cache, sprites, npcs, pcs, items, corpses, mapname = item
+    ragres, install, cache, sprites, npcs, pcs, items, corpses, (frame_count, frame_time), mapname = item
     with tempfile.TemporaryDirectory() as tmp:
         world_oracle.extract_world(ragres, install, tmp, mapname)
         emu = world_oracle.boot()
@@ -329,6 +333,12 @@ def frames(item):
     emu.call(APPLY_MAP_FOG, 1, this=mode)
     emu.mem_write(CELL_CURSOR, struct.pack("<iiII", cell[0], cell[1], 0, CURSOR_COLOR))
     emu.write_u32(renderer + 0x34, 1)
+    now = [FRAME_TIME - FRAME_TIME_STEP]
+    emu.api.stubs["WINMM.DLL!timeGetTime"] = Stub(0, lambda: now[0])
+    emu.call(SET_FRAME_RATE, FRAME_RATE)
+    now[0] = FRAME_TIME
+    emu.hook_code(PLAY_WAVE, PLAY_WAVE, lambda uc, address, size, _: emu.complete(0, emu.read_u32(emu.esp()),
+                                                                                  emu.esp() + 4))
     actors = npcs or pcs or items or corpses
     if actors:
         emu.write_u32(SERVICE_TYPE, 1)
@@ -347,19 +357,19 @@ def frames(item):
             add_item(emu, world, cell, number, look)
         for look in corpses:
             add_corpse(emu, mode, attr, cell, look)
-    now = [FRAME_TIME]
-    emu.api.stubs["WINMM.DLL!timeGetTime"] = Stub(0, lambda: now[0])
 
     lines = []
     calls = []
     placed = struct.unpack("<f", emu.mem_read(view + 0x20, 4))[0]
-    for turn in TURNS:
-        if turn is not None:
-            yaw = struct.pack("<f", placed + turn)
+    for k in range(frame_count):
+        if k:
+            yaw = struct.pack("<f", placed + TURN * (k % 3))
             emu.mem_write(view + 0x20, yaw)
             emu.mem_write(view + 0x38, yaw)
-        emu.call(STEP_WATER, this=emu.read_u32(world + 0x38))
-        emu.call(CVIEW_UPDATE, this=view)
+        for _ in range(emu.call(GET_FRAME_STEPS_DUE).eax):
+            emu.call(UPDATE_GAME_OBJECTS, this=world)
+            emu.call(STEP_WATER, this=emu.read_u32(world + 0x38))
+            emu.call(CVIEW_UPDATE, this=view)
         if actors:
             emu.call(CLEAR_PICK_TREE, this=G_PICK_TREE)
         start = len(emu.directx.calls)
@@ -369,7 +379,7 @@ def frames(item):
         for offset in (0x34, 0x3C):
             emu.write_u32(renderer + offset, emu.read_u32(renderer + offset) + 1)
         emu.call(REWIND_POOLS, this=renderer)
-        now[0] += FRAME_TIME_STEP
+        now[0] = (now[0] + frame_time) & 0xFFFFFFFF
 
     names, unnamed = {}, 0
     for k, t in enumerate(textures):
@@ -429,7 +439,7 @@ def main():
     ap.add_argument("--npc", nargs=3, type=int, action="append", default=[], metavar=("JOB", "DX", "DY"),
                     help="a CNpc of the job that far from the player's cell")
     ap.add_argument("--pc", nargs=len(PC_ARGS), type=int, action="append", default=[], metavar=PC_ARGS,
-                    help="a CPc so dressed, at the base action plus the direction and the frame, that far from the "
+                    help="a CPc so dressed, playing the action in a loop, facing so many degrees, that far from the "
                     "player's cell")
     ap.add_argument("--item", nargs=len(ITEM_ARGS), type=int, action="append", default=[], metavar=ITEM_ARGS,
                     help="a CItem of the id, identified or not and dropped or not, at those sixteenths of the cell "
@@ -437,6 +447,9 @@ def main():
     ap.add_argument("--corpse", nargs=len(CORPSE_ARGS), type=int, action="append", default=[], metavar=CORPSE_ARGS,
                     help="a CCorpse of a monster of the job, at the action, frame and facing (degrees), that far "
                     "from the player's cell")
+    ap.add_argument("--frames", type=int, default=FRAMES, help="frames to draw")
+    ap.add_argument("--frame-time", type=int, default=FRAME_TIME_STEP,
+                    help="milliseconds from one frame to the next, %(default)s each world step")
     args = ap.parse_args()
     build_cache(args.ragres, args.install, args.cache)
     if args.npc or args.pc or args.item or args.corpse:
@@ -446,9 +459,9 @@ def main():
     pcs = [tuple(p) for p in args.pc]
     items = [tuple(i) for i in args.item]
     corpses = [tuple(c) for c in args.corpse]
-    results = oracle_pool.run([(args.ragres, args.install, args.cache, args.sprites, npcs, pcs, items, corpses, m) for m in maps], init,
-                              work,
-                              args.jobs or None, label="frames")
+    clock = (args.frames, args.frame_time)
+    results = oracle_pool.run([(args.ragres, args.install, args.cache, args.sprites, npcs, pcs, items, corpses, clock, m)
+                               for m in maps], init, work, args.jobs or None, label="frames")
     mismatches = 0
     for mapname, result in zip(maps, results):
         if result == "failed":
@@ -464,8 +477,10 @@ def main():
             continue
         npc_args = [str(v) for kind, given in (("--npc", npcs), ("--pc", pcs), ("--item", items), ("--corpse", corpses))
                     for one in given for v in (kind, *one)]
-        got = subprocess.run([args.ragres, "draw-frame", *(["--raw"] if args.raw else []), *npc_args, args.install,
-                              mapname, str(cell[0]), str(cell[1])], capture_output=True, text=True).stdout.strip()
+        clock_args = ["--frames", str(args.frames), "--frame-time", str(args.frame_time)]
+        got = subprocess.run([args.ragres, "draw-frame", *(["--raw"] if args.raw else []), *clock_args, *npc_args,
+                              args.install, mapname, str(cell[0]), str(cell[1])],
+                             capture_output=True, text=True).stdout.strip()
         print(f"{mapname}: {summary(got, want)}")
         if got != want:
             mismatches += 1
@@ -480,8 +495,9 @@ def summary(got, want):
     a, b = got.splitlines(), want.splitlines()
     draws = sum(1 for line in b if line.startswith("D "))
     textures = sum(1 for line in b if line.startswith("X "))
+    frame_lines = sum(1 for line in b if line.startswith("frame "))
     if a == b:
-        return f"equal ({textures} textures, {len(b) - textures - len(TURNS)} calls, {draws} draws)"
+        return f"equal ({textures} textures, {len(b) - textures - frame_lines} calls, {draws} draws)"
     differing = sum(1 for x, y in zip(a, b) if x != y) + abs(len(a) - len(b))
     return f"{differing} of {len(b)} lines differ (port {len(a)} lines)"
 

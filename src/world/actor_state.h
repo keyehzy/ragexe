@@ -298,6 +298,10 @@ struct PlayerActor : GameActor {
                                  // CPlayer::SetState (0054c550)
 };
 
+// CPc's constructor (00541fb0): MakeGameActor, then CPc::ResetPcFields (005422a0), whose fields
+// the port has at 0, +0x240 among them. The weapon (+0x2a0) is left as the memory had it.
+PlayerActor MakePlayerActor(std::uint32_t now, std::uint32_t server_time);
+
 // CGameMode::GetAttrCell (00511d50): the attribute cell under world (x, z), floor(x / cell
 // size + width / 2) and floor(z / cell size + height / 2), the halves C's.
 std::array<std::int32_t, 2> AttrCellAt(const res::AttrMap& attr, float x, float z);

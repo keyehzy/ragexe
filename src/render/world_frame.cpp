@@ -227,16 +227,26 @@ void EnterWorld(const WorldScene& scene, float x, float z, bool indoor, WorldFra
   }
 }
 
-std::vector<SceneCall> DrawWorldFrame(WorldScene& scene, WorldFrameState& state, std::uint32_t now,
-                                      std::vector<FrameDraw>& draws,
-                                      const WorldObjectsDraw& objects) {
-  const std::uint32_t water = state.textures.Get(StepWater(state.ground.water));
+void StepWorld(const WorldScene& scene, WorldFrameState& state, std::uint32_t now) {
+  state.water = state.textures.Get(StepWater(state.ground.water));
   state.camera.target_at = state.player;
   StepCamera(state.camera, false);
   StepSpriteScales(state.camera.pitch, state.camera.distance, state.projection,
                    state.sprite_scales);
   ApplyShake(state.camera, state.shake, now, *state.rand);
   BuildCameraView(state.camera, &scene.attr);
+}
+
+std::vector<SceneCall> DrawWorldFrame(WorldScene& scene, WorldFrameState& state, std::uint32_t now,
+                                      std::vector<FrameDraw>& draws,
+                                      const WorldObjectsDraw& objects) {
+  StepWorld(scene, state, now);
+  return DrawWorld(scene, state, draws, objects);
+}
+
+std::vector<SceneCall> DrawWorld(WorldScene& scene, WorldFrameState& state,
+                                 std::vector<FrameDraw>& draws, const WorldObjectsDraw& objects) {
+  const std::uint32_t water = state.water;
   state.shake.step_pending = true;
   state.ground.frame = state.frame;
 
