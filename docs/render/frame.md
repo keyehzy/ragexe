@@ -175,6 +175,15 @@ names are the monster's actions and sprite as `CRes::GetName` gives them, lower-
 `sprite\`. Each is drawn through `CRenderObject::Render` (`00501870`): its shadow at its scale,
 then its body.
 
+`--move OBJECT DX DY SPEED` then sends the OBJECT-th object of the list (counting from 1, an NPC
+or a player) message 0 at that speed (+0xc8, which no constructor sets), as a server's move would
+([world/states.md](../world/states.md#the-move)): at the server's time, from the cell and
+sixteenths under it (`CGameMode::GetCellPoint`) to the cell DX and DY from the player's, through
+`g_PathFinder` on the world's attribute map (`SetAttrMap`, as `CGameMode` `0050de37` sets it
+after loading). It walks if a path is found, and stands where it is if not. An NPC or a monster
+does both through `CNpc::SetState` ([world/states.md](../world/states.md#npcs-and-monsters)),
+so an NPC walks in action 0.
+
 **The updates.** Each world step runs `CWorld::UpdateGameObjects` on the list
 (`WorldObjects::Update`): each NPC through `CNpc::Update`, each player through `CPc::Update`
 ([world/update.md](../world/update.md)), with its body's actions and heard by the player; each
@@ -265,7 +274,8 @@ It prints the textures in the order made, then each frame's device calls.
   (`00502ff0`) and its facing set (+0x38). Each `--item` is a `CItem` after those, made by its
   constructor (`0053abb0`) and sent message 4 with the item tables `LoadItemTables` loads. Each
   `--corpse` comes last, from `CGameMode::AddCorpse` with the names a `CNpc` of the job gives.
-  All are made at the first frame's time, and the world's steps update them for real; `PlayWave`
+  Each `--move` is message 0 through the object's `vf02`, with `g_PathFinder` constructed and
+  given the attribute map. All are made at the first frame's time, and the world's steps update them for real; `PlayWave`
   (`004352a0`), which the frames' sounds call, is stood in for. `CNpc::Render` records its pick
   bounds in `g_CActorPickNode`, which the oracle constructs and clears before each frame as
   `OnFrame` does. `ctest` runs two maps with the objects below (`frame_oracle_actors`), and one
@@ -279,14 +289,18 @@ It prints the textures in the order made, then each frame's device calls.
     its sprite's own;
   - six items: two red potions, a knife unidentified and dropped, a sword identified (its
     sprite not the unidentified one's), a jellopy and an unidentified shirt;
-  - three corpses: two porings and a poporing.
+  - three corpses: two porings and a poporing;
+  - five walkers, sent message 0 to cells about the player: a poring, the job 50 NPC, the
+    poporing, the swordsman and a novice, at 100 to 200 ms a cell. Each finds its path or
+    not by the map, and walks or stands.
 
-  Over three frames: 35,658 textures made, the spares included, 376,637 device calls and 284,678
-  draws. Over twelve frames 731 ms apart (45 or 46 world steps each, 8.8
-  s in all), where the actions go round, the knife lands, the items blink at the 4th, 7th and
-  10th frames, and the corpses fade and are let go after the 9th: 44,279 textures made,
-  1,477,793 device calls and 1,120,436 draws. Every sprite page
-  took a spare.
+  Over three frames: 35,658 textures made, 374,556 device calls and 283,811
+  draws. Over twelve frames 731 ms apart (45 or 46 world steps each, 8.8 s
+  in all), where the actions go round, the walkers arrive and stand, the knife lands, the items
+  blink at the 4th, 7th and 10th frames, and the corpses fade and are let go after the 9th:
+  44,279 textures made, 1,472,489 device calls and 1,116,244 draws. Every sprite page took a
+  spare. On prontera the poring, the NPC, the poporing and the swordsman walk; on `moc_pryd03`
+  the NPC, the poporing and the novice.
 - **Found by the patches' maps:**
   - the lava of `mag_dun01` and `mag_dun02` is coloured by the ambient colour
     `C3dWorldRes::Load` copies (above), which the port had left at 1.0. No map of `data.grf`

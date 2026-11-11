@@ -226,6 +226,58 @@ the sixteenths count from its own left.
 the width / 2) and the same for z with the height. The halves are C's (toward zero), the sum
 single precision, and the floor and `__ftol` through doubles.
 
+## NPCs and monsters
+
+`CNpc` has its own `SetState` (`0053fca0`, `vf10`), `ReportCell` (`00540210`, `vf11`) and
+`ReportWalking` (`005402e0`, `vf12`); the rest of the states are `CGameActor`'s, and its
+`ProcessState` calls this `SetState` through the vtable. `CNpc::SetState` has none of
+`CGameActor`'s guards: it changes state while dying or with +0xd0 set. By the job (`GetJob`,
+the byte table `00540174` for jobs 0x2d to 0x8b):
+- **0x2d, the warp portal:** +0x1ec and +0x1f0 at least 10, then its area from half of each
+  (C's halves, the z one rounded to a float first): +0x27c the x less the half width, +0x280
+  the z less the half height, +0x284 and +0x288 the x and the z plus them, each sum rounded to
+  single precision. Once, while +0x294 is 0 and the body is shown (+0x85), +0x294 is 1 and
+  effect 0x3d is launched (`LaunchEffect` with a zero offset).
+- **0x68:** the height less 5 × +0x1f0 (wrapping, then loaded exactly, the difference rounded to
+  single precision).
+- **0x6f:** +0x1ec and +0x1f0 doubled (and logged, `m_xSize(%d) m_ySize(%d)`).
+- **0x8b:** nothing.
+- **Other NPCs** (jobs below 1000): action 0 in a loop (`vf07`) and the cell reported, whatever
+  the state. So an NPC walks in action 0.
+- **Monsters** (from 1000): leaving state 4 puts the actor on its target (+0x228, +0x22c; the
+  height is left), then by the state (the table `005401d4`, 0 to 10 unsigned):
+  - **0:** not lying (+0x80 0), pickable (+0x89), action 0 in a loop. With no performance
+    (+0x224 0): +0x1d4 `timeGetTime` unless it was standing already, and the cell reported.
+    With one, the pet's: +0x224 1 to 4 plays action 0x28, 0x30, 0x38 or 0x40 once and takes the
+    line `ClientState` `005aa3e0` gives for the job, the kind 7 to 10 and the level `005a9f40`
+    gives of `ClientState`+0x804; any other +0x224 plays 0x28 and takes the state (0) as its
+    line. When the actor's id is the pet's (`ClientState`+0x7d0) the game mode hears 0xa1 with
+    the line. Then +0x224 and +0x81 cleared and the cell reported.
+  - **1:** +0x82 cleared but for body states 1 and 2, action 8 in a loop, `vf12`.
+  - **2,** and **7** unless in state 6, where nothing at all happens: +0x82 as for 1, action
+    0x10 once, +0x1ac `vf33`'s attack frame, the cell reported, then
+    `CGameActor::LaunchRangedAttack` (`00504000`) at the actor +0x1a8 names with the delay ×
+    +0x1ac (rounded to single precision): jobs 0x3f8 and 0x505 shoot an arrow
+    (`CGameMode::AddArrowEffect`) at that speed, jobs 0x3fc and 0x42c attack as a Mandragora
+    does (`CGameMode::AddMandraAttackEffect`, `00510380`). There is no turn toward the target.
+  - **3:** +0x82 cleared, a frozen body's ice ended (0x3b and 0x3e to itself), lying
+    (+0x80), not pickable, action 0x20 once and `vf12`, the walking message.
+  - **4:** message 0x53 to itself, which closes the cast's gauge. In an action from 0x28
+    only the frame is stepped (`vf08`) and nothing more is set, not even the state; otherwise
+    action 0x18 once and the cell reported.
+  - **10:** a frozen body's ice ended, not lying, finished and held (+0x81, +0x82), then action
+    0 once (which clears +0x81 again).
+  - **5, 6, 8, 9** and the rest: nothing.
+
+Last, but for 7 in state 6 and 4 in an action from 0x28, the action's direction (`vf04`), the
+state and its time, as `CGameActor`'s. `vf11` and `vf12` are `CGameActor`'s but report nothing
+for jobs 0x2d, 0x68, 0x6f and 0x8b (the byte tables `00540280` and `00540328`).
+
+**The pet's lines.** `ClientState` `005a9f40` gives a level: 4 above 90 to 100, 3 above 75, 2
+above 25, 1 above 10, otherwise 0. `005aa3e0` gives a line: the level plus 10 × (the kind plus 10
+× the job less 10000), wrapping, plus 50000 when `005a4bd0` (`ClientState`+0x18d0, which it also
+copies to +0x5b8) is 1, otherwise 90000.
+
 ## Standing, each update
 
 `CGameActor::ProcessState` (`005038c0`) for state 0 (`005039f3`), after the hold and the fade
@@ -256,7 +308,11 @@ the walk put it, at the goal's centre.
 `src/world/actor_state.{h,cpp}`, in `ragexe_world`:
 - `MoveGameActor`, message 0, with a `MoveOrder`, and `MoveGameActorTo`, message 0x13;
 - `SetGameActorState` for every state, and `SetGameActorAction`. The arrows shot are kept in
-  the `StateContext`'s list (`Arrow`) when there is one;
+  the `StateContext`'s list (`Arrow`) when there is one, and the Mandragoras' attacks in
+  another (`MandraAttack`). On a `CNpc` (`GameActor::npc`, which `MakeNpc` sets) it is
+  `CNpc::SetState`, and the cell and walking reports are `CNpc`'s. `GameActor` gained the warp
+  portal's area (+0x27c to +0x288) and `CNpc`'s +0x294; `PetTalk` `ClientState`+0x804 and
+  +0x18d0, which `PetLevel` and `PetLine` (`005a9f40`, `005aa3e0`) read;
 - `AttrCellAt`, `CellPointAt` (`GetCellPoint`) and `IsSpecialActorIdOnKoreaService`;
 - `ModeMessage`: what the game mode hears, kept in the `StateContext`'s list when there is one,
   with the windows queued for removal and `CGameMode`+0x2a0;
@@ -293,6 +349,22 @@ dying, then updated; `V` and `J`, an actor and a player acting on a target or gi
 4, 7, 9 and 13 ([attack.md](attack.md#checks)).
 
 ## Checks
+
+`tools/npc_state_vectors.py` runs `CNpc::SetState` on 2,000 `CNpc`s its constructor made, their
+fields then set: each job about the tables' edges (0x2c to 0x2e, 0x67 to 0x70, 0x8a to 0x8c,
+999, 1000, the ranged attackers 0x3f8, 0x3fc, 0x42c and 0x505, 0x57f, and players' jobs 5 and 7
+mounted) at each state from −1 to 11, 13 and 0x7fffffff, then as many at random: from states
+0 to 6, body states 0 to 3, performances (+0x224) −1 to 5 by the pet's id or another, its
+level's value about each edge, both line tables, sizes about 10, negative and past 2^24,
+positions to 10^8, actions about 0x28. The fields it writes, the game mode's messages, the
+messages to itself (through a copy of its vtable), the effects launched, the arrows and the
+Mandragoras' attacks are in `tests/unit/npc_state_vectors.inc`, and `tests/unit/walk_test.cpp`
+matches all of them; `ClientState` `005a9f40`, `005aa3e0` and `005a4bd0` run for real. Among them
+1,173 report the cell, 97 report walking, 49 send 0x53, 23 end the ice, 29 launch the portal's
+effect, 11 shoot an arrow, 24 attack as a Mandragora and 10 say a pet's line.
+
+The frame oracle walks NPCs, monsters and players in whole frames
+([render/frame.md](../render/frame.md#checks)).
 
 `tools/walk_oracle.py` also moves actors on every map's `.gat` (287): message 0 through the
 original's `SendMsg`, then `ProcessState` update by update. `SetState` runs, and the game mode's

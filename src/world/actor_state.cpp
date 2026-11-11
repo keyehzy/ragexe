@@ -6,6 +6,7 @@
 #include "render/actor.h"
 #include "world/actor_attack.h"
 #include "world/actor_effects.h"
+#include "world/actor_hit.h"
 #include "world/player_pursuit.h"
 
 namespace ragexe::world {
@@ -45,6 +46,20 @@ constexpr float kArrowSpeed = 28.0f;        // 0x41e00000, CGameActor 00504000's
 constexpr float kPlayerArrowTime = 8.0f;    // 005e972c, over +0x44 added to +0x1ac
 constexpr std::int32_t kBowKind = 0xb;
 constexpr float kPlayerHitFrame = 6.0f;  // 0x40c00000, CPc's state 7
+// The jobs CNpc's vf10, vf11 and vf12 take their own ways for (the byte tables 00540174,
+// 00540280 and 00540328, by the job less 0x2d).
+constexpr std::int32_t kWarpPortalJob = 0x2d;
+constexpr std::int32_t kRaisedNpcJob = 0x68;   // set 5 × +0x1f0 higher
+constexpr std::int32_t kDoubledNpcJob = 0x6f;  // +0x1ec and +0x1f0 doubled
+constexpr std::int32_t kStillNpcJob = 0x8b;
+constexpr std::int32_t kMonsterJobsFrom = 1000;
+constexpr std::int32_t kPortalLeastSize = 10;
+constexpr std::int32_t kPortalEffect = 0x3d;
+constexpr std::int32_t kNpcAttackAction = 0x10;
+constexpr std::int32_t kNpcHurtAction = 0x18;
+constexpr std::int32_t kNpcDyingAction = 0x20;
+constexpr std::int32_t kNpcHurtActionsFrom = 0x28;  // state 4 in these only steps the frame
+constexpr std::int32_t kPetLineMessage = 0xa1;
 
 // The action CGameActor::SetState plays once for a state, or -1 for none.
 std::int32_t GameActorStateAction(std::int32_t state) {
@@ -74,9 +89,17 @@ std::int32_t CastAction(const Actor& actor) {
                                                                         : kAttackAction;
 }
 
-// vf11 (00503110): the cell under the actor, to the game mode.
+// CNpc's vf11 and vf12 report nothing for these jobs.
+bool IsSilentNpc(const GameActor& actor) {
+  if (!actor.npc) return false;
+  const std::int32_t job = GameActorJob(actor);
+  return job == kWarpPortalJob || job == kRaisedNpcJob || job == kDoubledNpcJob ||
+         job == kStillNpcJob;
+}
+
+// vf11 (00503110; a CNpc's 00540210): the cell under the actor, to the game mode.
 void ReportCell(const GameActor& actor, const StateContext& context) {
-  if (!actor.reports) return;
+  if (!actor.reports || IsSilentNpc(actor)) return;
   const render::Vec3& at = actor.object.position;
   const auto [cx, cz] = AttrCellAt(*context.attr, at[0], at[2]);
   Send(context, {kStandsMessage, actor.id, cx, cz});
@@ -95,11 +118,30 @@ void CloseWindow(GameActor& actor, const StateContext& context) {
   actor.cast_gauge = 0;
 }
 
+// vf12 (00503160; a CNpc's 005402e0): that the actor walks, to the game mode.
+void ReportWalking(const GameActor& actor, const StateContext& context) {
+  if (!actor.reports || IsSilentNpc(actor)) return;
+  Send(context, {kWalksMessage, actor.id, 0, 0});
+}
+
 // CGameMode::AddArrowEffect (005101f0), which makes one only for a target.
 void Shoot(const StateContext& context, const render::Vec3& from, std::int32_t target_id,
            float speed) {
   if (target_id != 0 && context.arrows != nullptr)
     context.arrows->push_back({&from, target_id, speed});
+}
+
+// CGameActor::LaunchRangedAttack (00504000) at the target: jobs 0x3f8 and 0x505 shoot an arrow
+// at the speed given, jobs 0x3fc and 0x42c attack as a Mandragora does
+// (CGameMode::AddMandraAttackEffect), the rest nothing.
+void LaunchRangedAttack(const GameActor& actor, const StateContext& context, std::int32_t target_id,
+                        float speed) {
+  const std::int32_t job = GameActorJob(actor);
+  if (job == 0x3f8 || job == kArrowJob) {
+    Shoot(context, actor.object.position, target_id, speed);
+  } else if ((job == 0x3fc || job == 0x42c) && context.mandra_attacks != nullptr) {
+    context.mandra_attacks->push_back({target_id, job});
+  }
 }
 
 // The turn toward the actor +0x1a8 names as states 2, 7 and 9 begin: the player (CWorld+0x3c)
@@ -193,8 +235,7 @@ void SetBaseState(Actor& actor, std::int32_t state, const StateContext& context,
       break;
     case kWalk:
       if (actor.field_0xd8 == 0) SetGameActorAction(actor, *context.act, kWalkAction, 0);
-      // vf12 (00503160).
-      if (actor.reports) Send(context, {kWalksMessage, actor.id, 0, 0});
+      ReportWalking(actor, context);
       break;
     case 2:
     case 7:
@@ -239,6 +280,129 @@ void SetBaseState(Actor& actor, std::int32_t state, const StateContext& context,
         if (state == 12) ReportCell(actor, context);
       }
       break;
+  }
+  FinishState(actor, state, context, now);
+}
+
+// CNpc::SetState (0053fca0, vf10). By the job first: a warp portal (0x2d) keeps its area and
+// launches its effect once; 0x68 rises; 0x6f doubles its size; 0x8b does nothing; other NPCs
+// play action 0 and report their cell, whatever the state. Monsters (from job 1000) leave state
+// 4 on its target, then by the state, with no guard against dying again. Last the action's
+// direction, the state and its time, but for 7 in state 6 and 4 in an action from 0x28.
+void SetNpcState(GameActor& actor, std::int32_t state, const StateContext& context,
+                 std::uint32_t now) {
+  render::RenderObject& o = actor.object;
+  const std::int32_t job = GameActorJob(actor);
+  const auto unless_stone_or_frozen = [&] {
+    if (actor.body_state != 1 && actor.body_state != kFrozen) o.held = false;
+  };
+  const auto end_ice = [&] {
+    if (actor.body_state != kFrozen) return;
+    SendSelf(actor, context, now, 0x3b);
+    SendSelf(actor, context, now, 0x3e);
+  };
+  if (job == kWarpPortalJob) {
+    if (actor.field_0x1f0 <= kPortalLeastSize) actor.field_0x1f0 = kPortalLeastSize;
+    if (actor.field_0x1ec <= kPortalLeastSize) actor.field_0x1ec = kPortalLeastSize;
+    const std::int32_t half_x = actor.field_0x1ec / 2;
+    const std::int32_t half_height = actor.field_0x1f0 / 2;
+    const auto half_z = static_cast<float>(half_height);
+    actor.portal_area = {core::RoundedSum(o.position[0], -static_cast<double>(half_x)),
+                         core::RoundedSum(o.position[2], -static_cast<double>(half_z)),
+                         core::RoundedSum(o.position[0], static_cast<double>(half_x)),
+                         core::RoundedSum(o.position[2], static_cast<double>(half_z))};
+    if (actor.portal_effect == 0 && o.body_shown) {
+      actor.portal_effect = 1;
+      LaunchGameActorEffect(actor, kPortalEffect, context);
+    }
+  } else if (job == kRaisedNpcJob) {
+    const auto rise = static_cast<std::int32_t>(static_cast<std::uint32_t>(actor.field_0x1f0) * 5u);
+    o.position[1] = core::RoundedSum(o.position[1], -static_cast<double>(rise));
+  } else if (job == kDoubledNpcJob) {
+    actor.field_0x1ec =
+        static_cast<std::int32_t>(static_cast<std::uint32_t>(actor.field_0x1ec) << 1);
+    actor.field_0x1f0 =
+        static_cast<std::int32_t>(static_cast<std::uint32_t>(actor.field_0x1f0) << 1);
+  } else if (job == kStillNpcJob) {
+  } else if (job < kMonsterJobsFrom) {
+    SetGameActorAction(actor, *context.act, kStandAction, 0);
+    ReportCell(actor, context);
+  } else {
+    if (actor.state == 4) {
+      o.position[0] = actor.target_x;
+      o.position[2] = actor.target_z;
+    }
+    switch (state) {
+      case kStand: {
+        o.depth_up = false;
+        o.pickable = true;
+        SetGameActorAction(actor, *context.act, kStandAction, 0);
+        if (actor.field_0x224 == 0) {
+          if (actor.state != kStand) actor.pet_talk_at = now;
+          ReportCell(actor, context);
+          break;
+        }
+        // The pet's performance: an action played once, and its line when it is the pet.
+        const PetTalk pet = context.pet != nullptr ? *context.pet : PetTalk{};
+        const std::int32_t level = PetLevel(pet.field_0x804);
+        std::int32_t line = state;
+        std::int32_t action = 0x28;
+        if (actor.field_0x224 >= 1 && actor.field_0x224 <= 4) {
+          action = 0x28 + 8 * (actor.field_0x224 - 1);
+          line = PetLine(job, 6 + actor.field_0x224, level, pet.field_0x18d0);
+        }
+        SetGameActorAction(actor, *context.act, action, kOnce);
+        if (actor.id == pet.pet_id) Send(context, {kPetLineMessage, line, 0, 0});
+        actor.field_0x224 = 0;
+        o.finished = false;
+        ReportCell(actor, context);
+        break;
+      }
+      case kWalk:
+        unless_stone_or_frozen();
+        SetGameActorAction(actor, *context.act, kWalkAction, 0);
+        ReportWalking(actor, context);
+        break;
+      case 7:
+        if (actor.state == 6) return;
+        [[fallthrough]];
+      case 2:
+        unless_stone_or_frozen();
+        SetGameActorAction(actor, *context.act, kNpcAttackAction, kOnce);
+        actor.field_0x1ac = static_cast<float>(AttackFrame(*context.act, o.action));
+        ReportCell(actor, context);
+        LaunchRangedAttack(actor, context, actor.target_id,
+                           core::RoundedProduct(o.delay, static_cast<double>(actor.field_0x1ac)));
+        break;
+      case kDying:
+        o.held = false;
+        end_ice();
+        o.depth_up = true;
+        o.held = false;
+        o.pickable = false;
+        SetGameActorAction(actor, *context.act, kNpcDyingAction, kOnce);
+        ReportWalking(actor, context);
+        break;
+      case 4:
+        // Message 0x53 through vf02 to itself.
+        if (context.actor_messages != nullptr) context.actor_messages->push_back({0x53, 0, 0, 0});
+        CloseWindow(actor, context);
+        if (o.action >= kNpcHurtActionsFrom) {
+          UpdateGameActorFrame(actor, *context.act, context.camera_yaw, now);
+          return;
+        }
+        SetGameActorAction(actor, *context.act, kNpcHurtAction, kOnce);
+        ReportCell(actor, context);
+        break;
+      case 10:
+        end_ice();
+        o.depth_up = false;
+        o.finished = true;
+        o.held = true;
+        SetGameActorAction(actor, *context.act, kStandAction, kOnce);
+        break;
+      default: break;
+    }
   }
   FinishState(actor, state, context, now);
 }
@@ -448,9 +612,29 @@ void SetGameActorAction(GameActor& actor, const res::Act& act, std::int32_t acti
   actor.field_0x1ac = -1.0f;
 }
 
+std::int32_t PetLevel(std::int32_t value) {
+  if (value > 90 && value <= 100) return 4;
+  if (value > 75 && value <= 90) return 3;
+  if (value > 25 && value <= 75) return 2;
+  if (value > 10 && value <= 25) return 1;
+  return 0;
+}
+
+std::int32_t PetLine(std::int32_t job, std::int32_t kind, std::int32_t level,
+                     std::int32_t field_0x18d0) {
+  const std::uint32_t row =
+      static_cast<std::uint32_t>(kind) + (static_cast<std::uint32_t>(job) * 5u - 5000u) * 2u;
+  const std::uint32_t line = static_cast<std::uint32_t>(level) + row * 10u;
+  return static_cast<std::int32_t>(line + (field_0x18d0 == 1 ? 50000u : 90000u));
+}
+
 void SetGameActorState(GameActor& actor, std::int32_t state, const StateContext& context,
                        std::uint32_t now) {
-  SetBaseState(actor, state, context, now);
+  if (actor.npc) {
+    SetNpcState(actor, state, context, now);
+  } else {
+    SetBaseState(actor, state, context, now);
+  }
 }
 
 void SetPlayerState(PlayerActor& player, std::int32_t state, const StateContext& context,

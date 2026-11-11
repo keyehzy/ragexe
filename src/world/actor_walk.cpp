@@ -59,6 +59,7 @@ GameActor MakeGameActor(std::uint32_t now, std::uint32_t server_time) {
 
 GameActor MakeNpc(std::uint32_t now, std::uint32_t server_time) {
   GameActor actor = MakeGameActor(now, server_time);
+  actor.npc = true;
   actor.repeated_at = now;
   return actor;
 }

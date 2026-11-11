@@ -3132,10 +3132,12 @@ struct FrameLook {
   std::array<const ragexe::res::Palette*, ragexe::render::kPlayerLayerCount> palettes{};
 };
 
-// The numbers of --pc (vf14's ten, the action, the facing and the cell), --item and --corpse.
+// The numbers of --pc (vf14's ten, the action, the facing and the cell), --item, --corpse and
+// --move (the object, the goal's cell and the speed).
 constexpr std::size_t kPcArgs = 14;
 constexpr std::size_t kItemArgs = 7;
 constexpr std::size_t kCorpseArgs = 6;
+constexpr std::size_t kMoveArgs = 4;
 
 int DrawFrame(std::vector<std::string> args) {
   bool raw = false;
@@ -3145,6 +3147,7 @@ int DrawFrame(std::vector<std::string> args) {
   std::vector<std::array<std::int32_t, kPcArgs>> pc_args;
   std::vector<std::array<std::int32_t, kItemArgs>> item_args;
   std::vector<std::array<std::int32_t, kCorpseArgs>> corpse_args;
+  std::vector<std::array<std::int32_t, kMoveArgs>> move_args;
   const auto take = [&args](auto& into) {
     auto& values = into.emplace_back();
     for (std::size_t k = 0; k < values.size(); ++k)
@@ -3169,6 +3172,8 @@ int DrawFrame(std::vector<std::string> args) {
       take(item_args);
     } else if (args.front() == "--corpse" && args.size() >= kCorpseArgs + 1) {
       take(corpse_args);
+    } else if (args.front() == "--move" && args.size() >= kMoveArgs + 1) {
+      take(move_args);
     } else {
       break;
     }
@@ -3180,7 +3185,7 @@ int DrawFrame(std::vector<std::string> args) {
         "[--pc JOB SEX HAIR WEAPON "
         "TOP MID BOTTOM SHIELD HAIR_COLOR CLOTHES_COLOR ACTION FACING DX DY]... "
         "[--item ID IDENTIFIED DROPPED SUB_X SUB_Y DX DY]... [--corpse JOB ACTION FRAME "
-        "FACING DX DY]... INSTALL MAP CELL_X CELL_Y\n");
+        "FACING DX DY]... [--move OBJECT DX DY SPEED]... INSTALL MAP CELL_X CELL_Y\n");
     return 2;
   }
   const std::filesystem::path install = args[0];
@@ -3343,14 +3348,59 @@ int DrawFrame(std::vector<std::string> args) {
                    kFrameTime),
                look);
   }
-  // CWorld::UpdateGameObjects (004c4a10) at time now: each object through its update, each
-  // actor's with its body's actions, heard by the player; one that returns 0 is let go.
-  const auto update_objects = [&](std::uint32_t now) {
+  // What an actor's messages and update read: the world's attribute map, the camera's yaw, iRO's
+  // service type and the player who hears its sounds.
+  const auto actor_context = [&] {
     ragexe::world::StateContext context{};
     context.attr = &scene.attr;
     context.camera_yaw = state.camera.yaw;
     context.service_type = 1;
     context.player = &state.player;
+    return context;
+  };
+  // Message 0 (vf02) to the OBJECT-th object of the list, an NPC or a player, at the speed given
+  // (+0xc8): at the server's time, from the cell and sixteenths under it (GetCellPoint) to the
+  // cell DX and DY from the player's, through g_PathFinder on the world's attribute map
+  // (SetAttrMap, as CGameMode 0050de37 sets it).
+  ragexe::world::PathFinder finder;
+  finder.SetAttrMap(&scene.attr);
+  for (const auto& [number, dx, dy, speed] : move_args) {
+    ragexe::world::GameActor* actor = nullptr;
+    ragexe::world::PlayerActor* player = nullptr;
+    const FrameLook* look = nullptr;
+    std::int32_t k = 0;
+    for (const auto& object : world.objects()) {
+      if (++k != number) continue;
+      if (auto* npc = std::get_if<ragexe::world::GameActor>(object.get())) actor = npc;
+      if (auto* pc = std::get_if<ragexe::world::PlayerActor>(object.get())) actor = player = pc;
+      look = &looks.at(address(*object));
+    }
+    if (actor == nullptr) {
+      std::fprintf(stderr, "ragres: object %d is not an actor\n", number);
+      return 1;
+    }
+    actor->speed = speed;
+    ragexe::world::StateContext context = actor_context();
+    context.act = look->body.act;
+    const ragexe::world::CellPoint at = ragexe::world::CellPointAt(
+        scene.attr, actor->object.position[0], actor->object.position[2]);
+    const ragexe::world::MoveOrder order{.time = kFrameServerTime,
+                                         .start_x = at.cell_x,
+                                         .start_y = at.cell_y,
+                                         .sub_x = at.sub_x,
+                                         .sub_y = at.sub_y,
+                                         .goal_x = cell_x + dx,
+                                         .goal_y = cell_y + dy};
+    if (player != nullptr) {
+      ragexe::world::MoveGameActor(*player, finder, order, kFrameServerTime, context, kFrameTime);
+    } else {
+      ragexe::world::MoveGameActor(*actor, finder, order, kFrameServerTime, context, kFrameTime);
+    }
+  }
+  // CWorld::UpdateGameObjects (004c4a10) at time now: each object through its update, each
+  // actor's with its body's actions, heard by the player; one that returns 0 is let go.
+  const auto update_objects = [&](std::uint32_t now) {
+    ragexe::world::StateContext context = actor_context();
     const std::uint32_t server_time = now - kServerTimeLag;
     world.Update([&](ragexe::world::WorldObject& object) {
       const void* key = address(object);

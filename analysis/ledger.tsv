@@ -5101,9 +5101,9 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0053fae0	165	code	0	world		named	CNpc	vf16	
 0053fb90	244	code	0	world		named	CNpc	vf13	
 0053fc90	3	code	0	world		named	CNpc	vf18	
-0053fca0	1214	code	0	world		named	CNpc	vf10	
-00540210	103	code	0	world		named	CNpc	vf11	
-005402e0	63	code	0	world		named	CNpc	vf12	
+0053fca0	1214	code	0	world		named	CNpc	SetState	
+00540210	103	code	0	world		named	CNpc	ReportCell	
+005402e0	63	code	0	world		named	CNpc	ReportWalking	
 00540390	121	code	0	world		named	CNpc	RepeatEffectPeriodically	
 00540410	180	code	0	world	unreferenced	raw	Global	FUN_00540410	
 005404d0	198	code	0	world		named	CNpc	Update	
@@ -6094,10 +6094,10 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005a9a90	126	code	0	game		named	ClientState	method_005a9a90	
 005a9b40	207	code	0	game		named	ClientState	method_005a9b40	
 005a9c60	457	code	0	game	unreferenced	raw	Global	FUN_005a9c60	
-005a9f40	88	code	0	game		named	ClientState	method_005a9f40	
+005a9f40	88	code	0	game		named	ClientState	GetPetLevel	
 005a9fa0	111	code	0	game		named	ClientState	method_005a9fa0	
 005aa010	970	code	0	game		named	ClientState	method_005aa010	
-005aa3e0	70	code	0	game		named	ClientState	method_005aa3e0	
+005aa3e0	70	code	0	game		named	ClientState	GetPetLine	
 005aa430	167	code	0	game		named	ClientState	method_005aa430	
 005aa4e0	181	code	0	game		named	ClientState	method_005aa4e0	
 005aa5a0	49	code	0	game		named	ClientState	method_005aa5a0	

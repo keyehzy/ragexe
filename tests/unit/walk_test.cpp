@@ -2241,6 +2241,116 @@ std::optional<std::uint32_t> ActorWord(const GameActor& a, const ragexe::world::
   }
 }
 
+struct NpcStateVector {
+  std::array<std::uint32_t, 37> in;
+  std::array<std::uint32_t, 48> out;
+};
+
+#include "npc_state_vectors.inc"
+
+// tools/npc_state_vectors.py's body: a delay for each action to 0x47.
+ragexe::res::Act NpcStateAct(std::size_t frames) {
+  ragexe::res::Act act;
+  act.actions.assign(256, std::vector<ragexe::res::ActFrame>(frames));
+  for (std::int32_t a = 0; a < 0x48; ++a)
+    act.delays.push_back(1.0f + static_cast<float>(a % 7) * 0.75f);
+  return act;
+}
+
+// CNpc::SetState on a CNpc made at the vector's time and given its fields, as the vector's words.
+std::array<std::uint32_t, 48> RunNpcState(const NpcStateVector& v) {
+  const auto& in = v.in;
+  const auto i = [&](std::size_t k) { return static_cast<std::int32_t>(in[k]); };
+  const auto f = [&](std::size_t k) { return std::bit_cast<float>(in[k]); };
+  GameActor npc = ragexe::world::MakeNpc(in[35], in[35] - 72);
+  ragexe::render::RenderObject& o = npc.object;
+  npc.job = i(0);
+  npc.state = i(1);
+  npc.body_state = i(3);
+  npc.field_0x224 = i(4);
+  npc.field_0x1ec = i(5);
+  npc.field_0x1f0 = i(6);
+  npc.portal_effect = i(7);
+  o.body_shown = in[8] != 0;
+  o.action = i(9);
+  o.base_action = i(10);
+  o.frame = i(11);
+  o.facing = f(12);
+  o.position = {f(14), f(15), f(16)};
+  npc.target_x = f(17);
+  npc.target_z = f(18);
+  npc.id = i(19);
+  npc.target_id = i(20);
+  o.delay = f(21);
+  npc.effect_state = in[26];
+  o.finished = in[27] != 0;
+  o.held = in[28] != 0;
+  o.pickable = in[29] != 0;
+  o.depth_up = in[30] != 0;
+  o.play_mode = i(31);
+  o.start_time = in[32];
+  npc.pet_talk_at = in[33];
+  npc.cast_gauge = i(34);
+  AttrMap map;
+  map.width = 40;
+  map.height = 30;
+  const ragexe::res::Act act = NpcStateAct(in[22]);
+  const ragexe::world::PetTalk pet{i(23), 0, 0, i(24), i(25)};
+  std::vector<ragexe::world::ModeMessage> messages, own;
+  std::vector<std::int32_t> launched;
+  std::vector<ragexe::world::Arrow> arrows;
+  std::vector<ragexe::world::MandraAttack> mandra;
+  ragexe::world::StateContext context{};
+  context.attr = &map;
+  context.act = &act;
+  context.camera_yaw = f(13);
+  context.service_type = 1;
+  context.messages = &messages;
+  context.actor_messages = &own;
+  context.pet = &pet;
+  context.launched = &launched;
+  context.arrows = &arrows;
+  context.mandra_attacks = &mandra;
+  ragexe::world::SetGameActorState(npc, i(2), context, in[36]);
+  std::vector<std::uint32_t> got;
+  for (const float x : {o.position[0], o.position[1], o.position[2]}) got.push_back(Word(x));
+  for (const std::int32_t x : {o.base_action, o.action, o.frame, o.play_mode})
+    got.push_back(Word(x));
+  for (const float x : {o.delay, o.repeats, o.delay_scale}) got.push_back(Word(x));
+  got.push_back(Word(npc.state));
+  got.push_back(o.start_time);
+  got.push_back(npc.pet_talk_at);
+  for (const std::int32_t x : {npc.field_0x224, npc.field_0x1ec, npc.field_0x1f0})
+    got.push_back(Word(x));
+  for (const float x : npc.portal_area) got.push_back(Word(x));
+  got.push_back(Word(npc.portal_effect));
+  got.push_back(Word(npc.field_0x1ac));
+  got.push_back(Word(npc.cast_gauge));
+  for (const bool x : {o.depth_up, o.finished, o.held, o.pickable, npc.pushed})
+    got.push_back(Word(x));
+  got.push_back(static_cast<std::uint32_t>(messages.size()));
+  for (const auto& m : messages)
+    for (const std::int32_t x : {m.id, m.a, m.b, m.c}) got.push_back(Word(x));
+  got.push_back(static_cast<std::uint32_t>(own.size()));
+  for (const auto& m : own) got.push_back(Word(m.id));
+  got.push_back(static_cast<std::uint32_t>(launched.size()));
+  for (const std::int32_t x : launched) got.push_back(Word(x));
+  got.push_back(static_cast<std::uint32_t>(arrows.size()));
+  for (const auto& a : arrows) {
+    got.push_back(Word(a.target_id));
+    got.push_back(Word(a.speed));
+  }
+  got.push_back(static_cast<std::uint32_t>(mandra.size()));
+  for (const auto& m : mandra) {
+    got.push_back(Word(m.target_id));
+    got.push_back(Word(m.job));
+  }
+  std::array<std::uint32_t, 48> out{};
+  REQUIRE(got.size() <= out.size());
+  std::copy(got.begin(), got.end(), out.begin());
+  return out;
+}
+
 }  // namespace
 
 TEST_CASE("Actors walk their paths as the original's CGameActor::ProcessState does", "[walk]") {
@@ -2935,5 +3045,43 @@ TEST_CASE("Actors start as the original's CNpc and CPc constructors leave them",
       REQUIRE(got.has_value());
       CHECK(*got == v.values[k]);
     }
+  }
+}
+
+TEST_CASE("NPCs and monsters change state as the original's CNpc::SetState", "[walk]") {
+  for (std::size_t k = 0; k < std::size(kNpcStates); ++k) {
+    const NpcStateVector& v = kNpcStates[k];
+    INFO("vector " << k << ": job " << v.in[0] << ", state " << static_cast<std::int32_t>(v.in[2])
+                   << " from " << v.in[1]);
+    CHECK(RunNpcState(v) == v.out);
+  }
+}
+
+TEST_CASE("A pet's lines are ClientState 005a9f40's and 005aa3e0's", "[walk]") {
+  CHECK(ragexe::world::PetLevel(10) == 0);
+  CHECK(ragexe::world::PetLevel(11) == 1);
+  CHECK(ragexe::world::PetLevel(100) == 4);
+  CHECK(ragexe::world::PetLevel(101) == 0);
+  CHECK(ragexe::world::PetLine(1002, 7, 2, 1) == 2 + 10 * (7 + 10 * 1002 - 10000) + 50000);
+  CHECK(ragexe::world::PetLine(1002, 7, 2, 0) == 2 + 10 * (7 + 10 * 1002 - 10000) + 90000);
+}
+
+// CNpc's vf11 (00540210, its byte table 00540280): jobs 0x2d, 0x68, 0x6f and 0x8b report
+// nothing; the others, CGameActor's message 0xc with the cell.
+TEST_CASE("Four NPC jobs report no cell", "[walk]") {
+  AttrMap map;
+  map.width = 40;
+  map.height = 30;
+  for (const std::int32_t job : {0x2c, 0x2d, 0x2e, 0x68, 0x6f, 0x8a, 0x8b, 0x8c, 1002}) {
+    GameActor npc = ragexe::world::MakeNpc(0, 0);
+    npc.job = job;
+    std::vector<ragexe::world::ModeMessage> messages;
+    ragexe::world::StateContext context{};
+    context.attr = &map;
+    context.messages = &messages;
+    ragexe::world::ReportGameActorCell(npc, context);
+    const bool silent = job == 0x2d || job == 0x68 || job == 0x6f || job == 0x8b;
+    INFO("job " << job);
+    CHECK(messages.size() == (silent ? 0u : 1u));
   }
 }

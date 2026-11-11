@@ -3245,6 +3245,29 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     the frames.
   - **Labels:** `CRenderObject::ResetObjectFields`, `CGameActor::ResetActorFields`,
     `CNpc::ResetNpcFields`.
+- [x] NPCs' and monsters' states, and walkers in whole frames
+  (`docs/world/states.md#npcs-and-monsters`, `docs/render/frame.md#in-the-port`):
+  `CNpc::SetState` (`0053fca0`, `vf10`), `CNpc`'s `ReportCell` and `ReportWalking` (`00540210`,
+  `005402e0`), and `ClientState`'s pet lines (`005a9f40`, `005aa3e0`). The port's NPCs had taken
+  `CGameActor::SetState`. `SetGameActorState` takes `CNpc`'s on an actor `MakeNpc` made
+  (`GameActor::npc`). `ragres draw-frame` and the frame oracle take `--move OBJECT DX DY SPEED`:
+  message 0 to an NPC or a player, through `g_PathFinder` on the world's attribute map.
+  - **Found on the way:** a standing monster is not held on its frame, as a `CGameActor` is:
+    its frames go round. An NPC (below job 1000) plays action 0 whatever its state, so it walks
+    in action 0. A monster's attack plays action 0x10 without turning toward its target, and
+    `CGameActor::LaunchRangedAttack` shoots arrows for jobs 0x3f8 and 0x505 and attacks as a
+    Mandragora for 0x3fc and 0x42c; dying reports walking (`vf12`), not the cell. `CNpc::SetState`
+    has no guard against dying again. State 4 in an action from 0x28 only steps the frame.
+  - **Checks:** `tools/npc_state_vectors.py` runs `CNpc::SetState` on 2,000 `CNpc`s (each job
+    about the tables' edges at each state, then at random), every field, message, effect, arrow
+    and attack recorded; `tests/unit/walk_test.cpp` matches all of them. The frame oracle with
+    five walkers added to the thirty objects, on all 287 maps: over three frames 374,556 calls
+    and 283,811 draws; over twelve frames 731 ms apart 1,472,489 calls and 1,116,244 draws. 25
+    of 29 mutants killed; the 4 survivors cannot differ (a portal's size is at least 10 before it is halved, so `<` for `<=` and a
+    shift for the halving; `SetAction` has already cleared +0x81 before the performance does;
+    every walker starts in its cell's centre).
+  - **Labels:** `CNpc::SetState`, `CNpc::ReportCell`, `CNpc::ReportWalking`,
+    `ClientState::GetPetLevel`, `ClientState::GetPetLine`.
 
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,

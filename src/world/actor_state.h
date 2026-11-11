@@ -117,6 +117,27 @@ struct PetTalk {
   std::int32_t pet_id = 0;
   std::int32_t first = 0;
   std::int32_t second = 0;
+  std::int32_t field_0x804 = 0;   // ClientState+0x804, whose level 005a9f40 gives
+  std::int32_t field_0x18d0 = 0;  // ClientState+0x18d0, which 005a4bd0 gives: 1 for one table
+                                  // of lines, otherwise the other
+};
+
+// ClientState 005a9f40: the level of a value, 4 above 90 to 100, 3 above 75, 2 above 25, 1 above
+// 10, otherwise 0.
+std::int32_t PetLevel(std::int32_t value);
+
+// ClientState 005aa3e0: a pet's line, by the monster's job, the kind of line and the level: the
+// level plus 10 × (the kind plus 10 × the job less 10000), wrapping, plus 50000 when
+// ClientState+0x18d0 is 1 (005a4bd0), otherwise 90000.
+std::int32_t PetLine(std::int32_t job, std::int32_t kind, std::int32_t level,
+                     std::int32_t field_0x18d0);
+
+// CGameMode::AddMandraAttackEffect (00510380), which CGameActor::LaunchRangedAttack (00504000)
+// asks for jobs 0x3fc and 0x42c: the target's id and the job.
+struct MandraAttack {
+  std::int32_t target_id = 0;
+  std::int32_t job = 0;
+  bool operator==(const MandraAttack&) const = default;
 };
 
 // What an actor does to one of its windows (docs/world/windows.md), beyond queueing it for
@@ -196,9 +217,10 @@ struct StateContext {
                                    // at own_id are queued on and whom own_id's hits are from;
                                    // `player` is its position
   std::vector<Arrow>* arrows{};    // the arrows shot, when kept
-  std::vector<std::int32_t>* launched{};  // the effects CAbleToMakeEffect::LaunchEffect
-                                          // (00501e10) is asked for, by id, which the port
-                                          // doesn't make, when kept
+  std::vector<MandraAttack>* mandra_attacks{};  // the Mandragoras' and Hydras' attacks, when kept
+  std::vector<std::int32_t>* launched{};        // the effects CAbleToMakeEffect::LaunchEffect
+                                                // (00501e10) is asked for, by id, which the port
+                                                // doesn't make, when kept
   std::vector<EffectMessage>* launched_messages{};  // what those it makes are sent, each by
                                                     // its place in `launched` from 1, when
                                                     // kept

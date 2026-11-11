@@ -6083,9 +6083,9 @@ mg::CMGNpc	005e8f54	0	6	00501840	CRenderObject::SetScreenPosition
 mg::CMGNpc	005e8f54	0	7	00502ff0	CGameActor::SetAction	
 mg::CMGNpc	005e8f54	0	8	00500830	CRenderObject::UpdateFrame	
 mg::CMGNpc	005e8f54	0	9	005038c0	CGameActor::ProcessState	
-mg::CMGNpc	005e8f54	0	10	0053fca0	CNpc::vf10	
-mg::CMGNpc	005e8f54	0	11	00540210	CNpc::vf11	
-mg::CMGNpc	005e8f54	0	12	005402e0	CNpc::vf12	
+mg::CMGNpc	005e8f54	0	10	0053fca0	CNpc::SetState	
+mg::CMGNpc	005e8f54	0	11	00540210	CNpc::ReportCell	
+mg::CMGNpc	005e8f54	0	12	005402e0	CNpc::ReportWalking	
 mg::CMGNpc	005e8f54	0	13	0053fb90	CNpc::vf13	
 mg::CMGNpc	005e8f54	0	14	004eb100	CGameActor::vf14	
 mg::CMGNpc	005e8f54	0	15	004eb110	CGameActor::vf15	
@@ -6208,8 +6208,8 @@ mg::mgType1::CMonster	005e91d8	116	7	00502ff0	CGameActor::SetAction
 mg::mgType1::CMonster	005e91d8	116	8	004efe90	mg::mgType1::CMonster::vf08_for_CMGNpc	
 mg::mgType1::CMonster	005e91d8	116	9	004efff0	mg::mgType1::CMonster::vf09_for_CMGNpc	
 mg::mgType1::CMonster	005e91d8	116	10	004efe40	mg::mgType1::CMonster::vf10_for_CMGNpc	
-mg::mgType1::CMonster	005e91d8	116	11	00540210	CNpc::vf11	
-mg::mgType1::CMonster	005e91d8	116	12	005402e0	CNpc::vf12	
+mg::mgType1::CMonster	005e91d8	116	11	00540210	CNpc::ReportCell	
+mg::mgType1::CMonster	005e91d8	116	12	005402e0	CNpc::ReportWalking	
 mg::mgType1::CMonster	005e91d8	116	13	0053fb90	CNpc::vf13	
 mg::mgType1::CMonster	005e91d8	116	14	004eb100	CGameActor::vf14	
 mg::mgType1::CMonster	005e91d8	116	15	004eb110	CGameActor::vf15	
@@ -6554,9 +6554,9 @@ CNpc	005e991c	0	6	00501840	CRenderObject::SetScreenPosition
 CNpc	005e991c	0	7	00502ff0	CGameActor::SetAction	
 CNpc	005e991c	0	8	00500830	CRenderObject::UpdateFrame	
 CNpc	005e991c	0	9	005038c0	CGameActor::ProcessState	
-CNpc	005e991c	0	10	0053fca0	CNpc::vf10	
-CNpc	005e991c	0	11	00540210	CNpc::vf11	
-CNpc	005e991c	0	12	005402e0	CNpc::vf12	
+CNpc	005e991c	0	10	0053fca0	CNpc::SetState	
+CNpc	005e991c	0	11	00540210	CNpc::ReportCell	
+CNpc	005e991c	0	12	005402e0	CNpc::ReportWalking	
 CNpc	005e991c	0	13	0053fb90	CNpc::vf13	
 CNpc	005e991c	0	14	004eb100	CGameActor::vf14	
 CNpc	005e991c	0	15	004eb110	CGameActor::vf15	

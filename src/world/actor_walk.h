@@ -30,6 +30,8 @@ struct QueuedHit {
 // The CGameActor fields the walk reads and writes (docs/world/walk.md).
 struct GameActor {
   render::RenderObject object;
+  bool npc = false;                // a CNpc, whose vf10, vf11 and vf12 are its own (0053fca0,
+                                   // 00540210, 005402e0)
   bool reports = true;             // vf11 and vf12 tell the game mode the cell the actor stands
                                    // on and that it walks; a CPlayer's (0054b3d0, 0054b3e0) are
                                    // empty
@@ -91,6 +93,10 @@ struct GameActor {
                                                 // and not yet gone, by number
   std::uint32_t repeated_at = 0;  // +0x290: a CNpc's when RepeatEffectPeriodically last launched;
                                   // a CPc's vf37's second argument
+  std::array<float, 4> portal_area{};  // +0x27c to +0x288 of a CNpc: a warp portal's left, near,
+                                       // right and far edges (x, z, x, z)
+  std::int32_t portal_effect = 0;      // +0x294 of a CNpc: 1 once a warp portal launched its
+                                       // effect (a CPc's +0x294 is PlayerActor::saved_frame)
 };
 
 // CGameActor's constructor (00502570) at timeGetTime `now` and the server's time `server_time`:
