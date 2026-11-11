@@ -136,6 +136,7 @@
 #include "world/actor_walk.h"
 #include "world/actor_window.h"
 #include "world/ground_item.h"
+#include "world/own_player.h"
 #include "world/path_finder.h"
 #include "world/player_look.h"
 #include "world/player_orders.h"
@@ -3132,12 +3133,18 @@ struct FrameLook {
   std::array<const ragexe::res::Palette*, ragexe::render::kPlayerLayerCount> palettes{};
 };
 
-// The numbers of --pc (vf14's ten, the action, the facing and the cell), --item, --corpse and
-// --move (the object, the goal's cell and the speed).
+// The numbers of --pc (vf14's ten, the action, the facing and the cell), --item, --corpse,
+// --move (the object, the goal's cell and the speed) and --own (vf14's ten and the direction).
 constexpr std::size_t kPcArgs = 14;
 constexpr std::size_t kItemArgs = 7;
 constexpr std::size_t kCorpseArgs = 6;
 constexpr std::size_t kMoveArgs = 4;
+constexpr std::size_t kOwnArgs = 11;
+// ClientState's +0xcdc and +0xd94 for --own: the own player's id and speed.
+constexpr std::int32_t kOwnId = 2000000;
+constexpr std::int32_t kOwnSpeed = 150;
+// The job whose name CRenderObject's constructor names the body's actions by (00686dc8 +0xb8).
+constexpr std::int32_t kConstructedBodyJob = 0x2e;
 
 int DrawFrame(std::vector<std::string> args) {
   bool raw = false;
@@ -3148,6 +3155,7 @@ int DrawFrame(std::vector<std::string> args) {
   std::vector<std::array<std::int32_t, kItemArgs>> item_args;
   std::vector<std::array<std::int32_t, kCorpseArgs>> corpse_args;
   std::vector<std::array<std::int32_t, kMoveArgs>> move_args;
+  std::vector<std::array<std::int32_t, kOwnArgs>> own_args;
   const auto take = [&args](auto& into) {
     auto& values = into.emplace_back();
     for (std::size_t k = 0; k < values.size(); ++k)
@@ -3174,6 +3182,8 @@ int DrawFrame(std::vector<std::string> args) {
       take(corpse_args);
     } else if (args.front() == "--move" && args.size() >= kMoveArgs + 1) {
       take(move_args);
+    } else if (args.front() == "--own" && args.size() >= kOwnArgs + 1) {
+      take(own_args);
     } else {
       break;
     }
@@ -3185,7 +3195,8 @@ int DrawFrame(std::vector<std::string> args) {
         "[--pc JOB SEX HAIR WEAPON "
         "TOP MID BOTTOM SHIELD HAIR_COLOR CLOTHES_COLOR ACTION FACING DX DY]... "
         "[--item ID IDENTIFIED DROPPED SUB_X SUB_Y DX DY]... [--corpse JOB ACTION FRAME "
-        "FACING DX DY]... [--move OBJECT DX DY SPEED]... INSTALL MAP CELL_X CELL_Y\n");
+        "FACING DX DY]... [--move OBJECT DX DY SPEED]... [--own JOB SEX HAIR WEAPON TOP MID "
+        "BOTTOM SHIELD HAIR_COLOR CLOTHES_COLOR DIRECTION] INSTALL MAP CELL_X CELL_Y\n");
     return 2;
   }
   const std::filesystem::path install = args[0];
@@ -3239,6 +3250,76 @@ int DrawFrame(std::vector<std::string> args) {
   const auto place = [&](ragexe::render::RenderObject& o, std::int32_t dx, std::int32_t dy) {
     o.position = cell_centre(dx, dy);
   };
+  // A player's look as CPc's vf14 dressed it, naming its layers, its .imf and its palettes; a
+  // layer is drawn only with both names (GetLayerActName, GetLayerSpriteName). The body (layer 0)
+  // takes the clothes' palette and the head (1) the hair's, when named.
+  ragexe::world::StateContext dress_context{};
+  dress_context.attr = &scene.attr;
+  dress_context.service_type = 1;
+  const auto dressed_look = [&](const ragexe::world::PlayerActor& pc, FrameLook& look) -> bool {
+    const ragexe::world::PlayerLook& dress = pc.look;
+    for (std::size_t l = 0; l < look.layers.size(); ++l) {
+      const ragexe::render::PlayerSpriteNames& names = dress.layers[l];
+      if (names.act.empty() || names.sprite.empty()) continue;
+      const FrameBody layer = body_of(names.act, names.sprite);
+      if (layer.sprite == nullptr || layer.act == nullptr) {
+        std::fprintf(stderr, "ragres: no sprite %s\n", names.sprite.c_str());
+        return false;
+      }
+      look.layers[l] = {layer.act, layer.sprite};
+      look.palettes[l] = &layer.sprite->palette;
+      if (l == ragexe::render::kPlayerBody) look.body = layer;
+    }
+    look.imf = resources.Imf(dress.imf);
+    if (look.imf == nullptr) {
+      std::fprintf(stderr, "ragres: no %s\n", dress.imf.c_str());
+      return false;
+    }
+    const auto recolour = [&](std::size_t layer, const std::string& name) {
+      if (name.empty()) return true;
+      look.palettes[layer] = resources.Palette(name);
+      if (look.palettes[layer] != nullptr) return true;
+      std::fprintf(stderr, "ragres: no palette %s\n", name.c_str());
+      return false;
+    };
+    return recolour(ragexe::render::kPlayerBody, dress.body_palette) &&
+           recolour(ragexe::render::kPlayerHead, dress.head_palette);
+  };
+  // CWorld::CreatePlayer (004c4e60), which LoadWorld calls before any other object joins: the
+  // own player made by CPlayer's constructor from the session --own gives, on the player's
+  // cell, its body's actions still CRenderObject's constructor's when it first stands.
+  for (const std::array<std::int32_t, kOwnArgs>& a : own_args) {
+    ragexe::world::OwnSession session;
+    session.cell_x = cell_x;
+    session.cell_y = cell_y;
+    session.direction = a[10];
+    session.id = kOwnId;
+    session.speed = kOwnSpeed;
+    session.job = a[0];
+    session.sex = a[1];
+    session.hair = a[2];
+    session.weapon = a[3];
+    session.headgear = {a[4], a[5], a[6]};
+    session.shield = a[7];
+    session.hair_color = a[8];
+    session.body_color = a[9];
+    const ragexe::render::PlayerSpriteNames first =
+        ragexe::render::NpcSpriteNames(kConstructedBodyJob, kConstructedBodyJob, 1);
+    const FrameBody constructed = body_of(first.act + ".act", first.sprite + ".spr");
+    if (constructed.act == nullptr) {
+      std::fprintf(stderr, "ragres: no %s.act\n", first.act.c_str());
+      return 1;
+    }
+    ragexe::world::StateContext context = dress_context;
+    context.act = constructed.act;
+    context.own_id = kOwnId;
+    ragexe::world::PlayerActor own = ragexe::world::MakeOwnPlayer(
+        session, {state.projection.origin_x, state.projection.origin_y}, context, kFrameTime,
+        kFrameServerTime);
+    FrameLook look;
+    if (!dressed_look(own, look)) return 1;
+    looks.emplace(&world.CreatePlayer(std::move(own)), look);
+  }
   // CNpc's constructor and vf16, which names its sprite (iRO's service type, 1) and keeps the
   // job's shadow scale.
   for (const auto& [job, dx, dy] : npc_args) {
@@ -3255,46 +3336,14 @@ int DrawFrame(std::vector<std::string> args) {
     npc.object.shadow_scale = ragexe::res::JobShadowScale(job);
     add_object(std::move(npc), look);
   }
-  // CPc's constructor and vf14, which dresses it, naming its layers, its .imf and its palettes; a
-  // layer is drawn only with both names (GetLayerActName, GetLayerSpriteName). The body (layer
-  // 0) takes the clothes' palette and the head (1) the hair's, when named. Then the action played
-  // in a loop (CGameActor::SetAction, vf07) and the facing.
-  ragexe::world::StateContext dress_context{};
-  dress_context.attr = &scene.attr;
-  dress_context.service_type = 1;
+  // CPc's constructor and vf14, which dresses it, then the action played in a loop
+  // (CGameActor::SetAction, vf07) and the facing.
   for (const std::array<std::int32_t, kPcArgs>& a : pc_args) {
     ragexe::world::PlayerActor pc = ragexe::world::MakePlayerActor(kFrameTime, kFrameServerTime);
     FrameLook look;
     ragexe::world::DressPlayer(pc, {a[0], a[1], a[2], a[3], {a[4], a[5], a[6]}, a[7], a[8], a[9]},
                                false, dress_context);
-    const ragexe::world::PlayerLook& dress = pc.look;
-    for (std::size_t l = 0; l < look.layers.size(); ++l) {
-      const ragexe::render::PlayerSpriteNames& names = dress.layers[l];
-      if (names.act.empty() || names.sprite.empty()) continue;
-      const FrameBody layer = body_of(names.act, names.sprite);
-      if (layer.sprite == nullptr || layer.act == nullptr) {
-        std::fprintf(stderr, "ragres: no sprite %s\n", names.sprite.c_str());
-        return 1;
-      }
-      look.layers[l] = {layer.act, layer.sprite};
-      look.palettes[l] = &layer.sprite->palette;
-      if (l == ragexe::render::kPlayerBody) look.body = layer;
-    }
-    look.imf = resources.Imf(dress.imf);
-    if (look.imf == nullptr) {
-      std::fprintf(stderr, "ragres: no %s\n", dress.imf.c_str());
-      return 1;
-    }
-    const auto recolour = [&](std::size_t layer, const std::string& name) {
-      if (name.empty()) return true;
-      look.palettes[layer] = resources.Palette(name);
-      if (look.palettes[layer] != nullptr) return true;
-      std::fprintf(stderr, "ragres: no palette %s\n", name.c_str());
-      return false;
-    };
-    if (!recolour(ragexe::render::kPlayerBody, dress.body_palette) ||
-        !recolour(ragexe::render::kPlayerHead, dress.head_palette))
-      return 1;
+    if (!dressed_look(pc, look)) return 1;
     ragexe::world::SetGameActorAction(pc, *look.body.act, a[10], 0);
     pc.object.facing = static_cast<float>(a[11]);
     place(pc.object, a[12], a[13]);
@@ -3356,6 +3405,7 @@ int DrawFrame(std::vector<std::string> args) {
     context.camera_yaw = state.camera.yaw;
     context.service_type = 1;
     context.player = &state.player;
+    if (!own_args.empty()) context.own_id = kOwnId;
     return context;
   };
   // Message 0 (vf02) to the OBJECT-th object of the list, an NPC or a player, at the speed given
@@ -3372,11 +3422,12 @@ int DrawFrame(std::vector<std::string> args) {
     for (const auto& object : world.objects()) {
       if (++k != number) continue;
       if (auto* npc = std::get_if<ragexe::world::GameActor>(object.get())) actor = npc;
-      if (auto* pc = std::get_if<ragexe::world::PlayerActor>(object.get())) actor = player = pc;
+      if (auto* pc = std::get_if<ragexe::world::PlayerActor>(object.get()); pc && !pc->own)
+        actor = player = pc;
       look = &looks.at(address(*object));
     }
     if (actor == nullptr) {
-      std::fprintf(stderr, "ragres: object %d is not an actor\n", number);
+      std::fprintf(stderr, "ragres: object %d is not an actor other than the own player\n", number);
       return 1;
     }
     actor->speed = speed;
@@ -3412,6 +3463,9 @@ int DrawFrame(std::vector<std::string> args) {
             if constexpr (std::is_same_v<T, ragexe::world::GameActor>) {
               return ragexe::world::UpdateNpc(o, context, now, server_time) == StateResult::kDone;
             } else if constexpr (std::is_same_v<T, ragexe::world::PlayerActor>) {
+              if (o.own)
+                return ragexe::world::UpdateOwnPlayer(o, context, now, server_time) ==
+                       StateResult::kDone;
               return ragexe::world::UpdatePlayer(o, context, now, server_time) ==
                      StateResult::kDone;
             } else if constexpr (std::is_same_v<T, ragexe::world::GroundItem>) {

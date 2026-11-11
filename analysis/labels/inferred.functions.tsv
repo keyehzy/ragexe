@@ -2361,7 +2361,7 @@ address	namespace	name	calling_convention	evidence
 0059d360	Global	IsBit2Set	__cdecl	(flags): returns bit 2; called by CGameActor::vf02, CGameActor::SetStatus, CGameMode::method_00516a80 and others.
 0059d370	Global	IsAnyOfBits3And7To10Set	__cdecl	(flags): returns 1 when any of bits 3, 7, 8, 9 or 10 is set; UIEquipWnd::AreStateFlagsClear, GetStateFlagButtonText and SendStateFlagCommand use it on g_ClientState+0x61c.
 0059d3c0	Global	IsBit4Set	__cdecl	(flags): returns bit 4; used with 0059d370 by UIEquipWnd::AreStateFlagsClear, GetStateFlagButtonText and SendStateFlagCommand.
-0059d3d0	Global	IsBit5Set	__cdecl	(flags): returns bit 5; used by UIEquipWnd::AreStateFlagsClear, CGameActor::method_00503490, ClientState::method_0059d2e0 and others.
+0059d3d0	Global	IsBit5Set	__cdecl	(flags): returns bit 5; used by UIEquipWnd::AreStateFlagsClear, CGameActor::method_00503490, ClientState::GetDressJob and others.
 0059d3e0	Global	IsBit6Set	__cdecl	(flags): returns bit 6; 12 calls from CGameActor::vf02, CPc::SendMsg, CGrannyPc::vf02, CGameMode::HandlePacket_0079/0080 and others.
 0059d400	Global	DoBit0sDiffer	__cdecl	(a, b): returns (a xor b) & 1; called once by CGameActor::SetStatus (00506cd0).
 0059d410	Global	DoBit1sDiffer	__cdecl	(a, b): returns ((a xor b) >> 1) & 1; plain ret, called once by CGameActor::SetStatus (00506d35); one of the bit helpers with DoBit0sDiffer 0059d400.
@@ -2936,4 +2936,8 @@ address	namespace	name	calling_convention	evidence
 00540210	CNpc	ReportCell	__thiscall	vf11: CGameActor's message 0xc with the cell (GetAttrCell), but nothing for jobs 0x2d, 0x68, 0x6f and 0x8b (00540280)
 005402e0	CNpc	ReportWalking	__thiscall	vf12: CGameActor's message 0xd, but nothing for jobs 0x2d, 0x68, 0x6f and 0x8b (00540328)
 005a9f40	ClientState	GetPetLevel	__thiscall	(value), ret 4: 4 above 90 to 100, 3 above 75, 2 above 25, 1 above 10, otherwise 0; CNpc::SetState passes +0x804 (docs/world/states.md#npcs-and-monsters)
-005aa3e0	ClientState	GetPetLine	__thiscall	(job, kind, level), ret 0xc: level + 10 x (kind + 10 x job - 10000), plus 50000 when 005a4bd0 gives 1, otherwise 90000
+005aa3e0	ClientState	GetPetLine	__thiscall	(job, kind, level), ret 0xc: level + 10 x (kind + 10 x job - 10000), plus 50000 when ClientState::GetSex (005a4bd0) gives 1, otherwise 90000
+0054b4a0	CPlayer	ResetPlayerFields	__thiscall	the own player from ClientState's session: in the centre of the cell +0x620, +0x624 on the ground, its goal +0x308, +0x30c the cell under it, facing (+0x628 x 5 + 20) x 9, the id +0xcdc, the guild 0067cb38 and 0067cb3c, its own fields at the start (+0x310, +0x338, +0x33c 1200 ms before timeGetTime), vf10(0), the speed +0xd94, SetSex, vf14 with the session's look and status words meanwhile, SetStatus, vf02 message 0x6d with 0xa4, effect 0xa4 at +0x3d8 and LaunchStatusEffects; CPlayer::CPlayer 0054b3a6 (docs/world/own.md)
+0054cf80	CPlayer	LaunchStatusEffects	__thiscall	for each of the player's statuses (00641f9c to 00641fa0): 2, 0x19, 0x1f and 0x44 effect 0xa6 sent message 0x2c with 0xffff and 0x82, 0x80, 0xa9 or 0xfa; 0x56 effect 0xcb; 0x57 effect 0xfe; CPlayer::ResetPlayerFields (docs/world/own.md)
+0059d2e0	ClientState	GetDressJob	__thiscall	the job +0xcec, but 7 and 0xe as 0xd and 0x15 while bit 5 of +0x61c (00686c8c) is set; CPlayer::ResetPlayerFields passes it to vf14 (docs/world/own.md)
+005a4bd0	ClientState	GetSex	__thiscall	the sex +0x18d0, copied to +0x5b8 when they differ; CPlayer::ResetPlayerFields passes it to CGameActor::SetSex and vf14 (docs/world/own.md)

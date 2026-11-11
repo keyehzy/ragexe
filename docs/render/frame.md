@@ -147,13 +147,13 @@ the primitive's address ([scene.md](scene.md#sorting)). On a heap that only grow
 **The world's objects.** `DrawWorld` takes a function that adds what the objects of
 `CWorld`+0xc draw, after the cell cursor, as `DrawWorld` has them draw themselves. ragview
 adds its actor and its effects there ([gpu.md](gpu.md#ragview)). `ragres draw-frame` keeps its
-objects in a `world::WorldObjects`, in the order of the list: the NPCs, the players, the items,
-then the corpses, each kind in the order given, all made at the first frame's time. `--npc JOB
-DX DY` adds NPCs and monsters, each in the centre of the cell DX and DY from the player's, as
-`CNpc`'s constructor ([world/arrival.md](../world/arrival.md#the-constructors)) and `vf16` leave
-one: through `CNpc::Render` ([world/npc_draw.md](../world/npc_draw.md)), its shadow and its body
-tinted by the ground under it ([ground.md](ground.md#the-cell-tints)), each quad through
-`AddSpriteQuad`.
+objects in a `world::WorldObjects`, in the order of the list: the own player, the NPCs, the
+players, the items, then the corpses, each kind in the order given, all made at the first frame's
+time. `--npc JOB DX DY` adds NPCs and monsters, each in the centre of the cell DX and DY from the
+player's, as `CNpc`'s constructor ([world/arrival.md](../world/arrival.md#the-constructors)) and
+`vf16` leave one: through `CNpc::Render` ([world/npc_draw.md](../world/npc_draw.md)), its shadow
+and its body tinted by the ground under it ([ground.md](ground.md#the-cell-tints)), each quad
+through `AddSpriteQuad`.
 
 `--pc JOB SEX HAIR WEAPON TOP MID BOTTOM SHIELD HAIR_COLOR CLOTHES_COLOR ACTION FACING DX DY`
 adds players after them, each as `CPc`'s constructor and its `vf14` leave one, dressed in the
@@ -162,6 +162,15 @@ in a loop (`CGameActor::SetAction`, `vf07`, as the states start theirs) and faci
 degrees (+0x38). Each is drawn through `CPc::Render` ([player.md](player.md#drawing)): its
 shadow, then its layers, the body in the clothes' palette and the head in the hair's, each quad
 through `AddSpriteQuad` with the palette it is drawn in.
+
+`--own JOB SEX HAIR WEAPON TOP MID BOTTOM SHIELD HAIR_COLOR CLOTHES_COLOR DIRECTION` makes the
+own player first, as `CWorld::CreatePlayer` does when `LoadWorld` calls it, before any other
+object joins: `MakeOwnPlayer` ([world/own.md](../world/own.md)) from a session with vf14's ten
+values, the direction, the player's cell, the id 2000000 and the speed 150. It stands where the
+camera's stand-in stood, so the camera is placed as before. Its body's actions when it first
+stands are `CRenderObject`'s constructor's (`NPC\` and job 46's name). It is drawn as a player
+is. Its status icons' effect (0xa4), which joins the original's list before it, is not kept:
+with no statuses it draws nothing, and the oracle doesn't count it for `--move`.
 
 `--item ID IDENTIFIED DROPPED SUB_X SUB_Y DX DY` adds items after the players, each as
 `CItem`'s constructor and its message 4 leave one ([world/items.md](../world/items.md)): the id
@@ -175,9 +184,9 @@ names are the monster's actions and sprite as `CRes::GetName` gives them, lower-
 `sprite\`. Each is drawn through `CRenderObject::Render` (`00501870`): its shadow at its scale,
 then its body.
 
-`--move OBJECT DX DY SPEED` then sends the OBJECT-th object of the list (counting from 1, an NPC
-or a player) message 0 at that speed (+0xc8, which no constructor sets), as a server's move would
-([world/states.md](../world/states.md#the-move)): at the server's time, from the cell and
+`--move OBJECT DX DY SPEED` then sends the OBJECT-th object of the list (counting from 1, the own
+player among them; an NPC or another player) message 0 at that speed (+0xc8, which no constructor
+sets), as a server's move would ([world/states.md](../world/states.md#the-move)): at the server's time, from the cell and
 sixteenths under it (`CGameMode::GetCellPoint`) to the cell DX and DY from the player's, through
 `g_PathFinder` on the world's attribute map (`SetAttrMap`, as `CGameMode` `0050de37` sets it
 after loading). It walks if a path is found, and stands where it is if not. An NPC or a monster
@@ -186,7 +195,8 @@ so an NPC walks in action 0.
 
 **The updates.** Each world step runs `CWorld::UpdateGameObjects` on the list
 (`WorldObjects::Update`): each NPC through `CNpc::Update`, each player through `CPc::Update`
-([world/update.md](../world/update.md)), with its body's actions and heard by the player; each
+([world/update.md](../world/update.md)) and the own player through `CPlayer::Update`
+([world/pursuit.md](../world/pursuit.md)), with its body's actions and heard by the player; each
 item through `CItem::Update` and each corpse through `CCorpse::Update`
 ([world/items.md](../world/items.md)). One whose update returns 0 is let go, as a corpse is
 255 ticks after it was left. The update reads the camera's yaw, which the view's step after it
@@ -275,8 +285,10 @@ It prints the textures in the order made, then each frame's device calls.
   constructor (`0053abb0`) and sent message 4 with the item tables `LoadItemTables` loads. Each
   `--corpse` comes last, from `CGameMode::AddCorpse` with the names a `CNpc` of the job gives.
   Each `--move` is message 0 through the object's `vf02`, with `g_PathFinder` constructed and
-  given the attribute map. All are made at the first frame's time, and the world's steps update them for real; `PlayWave`
-  (`004352a0`), which the frames' sounds call, is stood in for. `CNpc::Render` records its pick
+  given the attribute map. `--own` makes a `CPlayer` before them all, by its constructor
+  (`0054b1d0`) from `ClientState`'s session, and keeps it at `CWorld`+0x3c in place of the
+  stand-in the camera follows. All are made at the first frame's time, and the world's steps
+  update them for real; `PlayWave` (`004352a0`), which the frames' sounds call, is stood in for. `CNpc::Render` records its pick
   bounds in `g_CActorPickNode`, which the oracle constructs and clears before each frame as
   `OnFrame` does. `ctest` runs two maps with the objects below (`frame_oracle_actors`), and one
   over twelve frames 731 ms apart (`frame_oracle_actors_long`).
@@ -293,6 +305,11 @@ It prints the textures in the order made, then each frame's device calls.
   - five walkers, sent message 0 to cells about the player: a poring, the job 50 NPC, the
     poporing, the swordsman and a novice, at 100 to 200 ms a cell. Each finds its path or
     not by the map, and walks or stands.
+
+  With the own player before them (`--own`: a mage with a staff and a headgear, whose sprites no
+  other object shares, its direction 2, so facing 270°): over three frames 35,658 textures made,
+  380,147 device calls and 287,255 draws; over twelve frames 731 ms apart 44,279 textures made,
+  1,493,796 device calls and 1,130,020 draws.
 
   Over three frames: 35,658 textures made, 374,556 device calls and 283,811
   draws. Over twelve frames 731 ms apart (45 or 46 world steps each, 8.8 s
@@ -322,8 +339,9 @@ It prints the textures in the order made, then each frame's device calls.
   frames and rewound after each: the order of every node's address.
 
 **What the frames leave out:**
-- **No own player:** `CWorld::CreatePlayer` is stood in, so the list at `CWorld`+0xc holds only
-  the objects the options put there, and none without them.
+- **No own player without `--own`:** `CWorld::CreatePlayer` is stood in during the load, so
+  the list at `CWorld`+0xc holds only the objects the options put there. The camera then
+  follows a stand-in on the player's cell.
 - **No sprite pages let go:** `CGameMode::ReleaseSpritePagesPeriodically`, which `OnFrame` runs
   before the steps, is not run. It lets go only pages unused for 15 s, longer than any run.
 - **No sky, Granny models, effects, UI or cursor.**

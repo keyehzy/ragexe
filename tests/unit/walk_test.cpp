@@ -22,6 +22,7 @@
 #include "world/actor_walk.h"
 #include "world/actor_window.h"
 #include "world/ground_item.h"
+#include "world/own_player.h"
 #include "world/path_finder.h"
 #include "world/player_look.h"
 #include "world/player_orders.h"
@@ -3083,5 +3084,120 @@ TEST_CASE("Four NPC jobs report no cell", "[walk]") {
     const bool silent = job == 0x2d || job == 0x68 || job == 0x6f || job == 0x8b;
     INFO("job " << job);
     CHECK(messages.size() == (silent ? 0u : 1u));
+  }
+}
+
+struct OwnMakeVector {
+  std::array<std::uint32_t, 29> in;
+  std::array<std::uint32_t, 256> out;
+};
+
+#include "own_make_vectors.inc"
+
+// CPlayer's constructor on the vector's map and session, as the vector's words.
+std::vector<std::uint32_t> RunOwnMake(const OwnMakeVector& v) {
+  const auto& in = v.in;
+  const auto i = [&](std::size_t k) { return static_cast<std::int32_t>(in[k]); };
+  const AttrMap map = MakeMap(kWalkMaps[in[0]]);
+  ragexe::world::OwnSession session;
+  session.cell_x = i(2);
+  session.cell_y = i(3);
+  session.direction = i(4);
+  session.id = i(5);
+  session.speed = i(6);
+  session.job = i(7);
+  session.sex = i(8);
+  session.hair = i(9);
+  session.weapon = i(10);
+  session.shield = i(11);
+  session.headgear = {i(12), i(13), i(14)};
+  session.body_color = i(15);
+  session.hair_color = i(16);
+  session.body_state = i(17);
+  session.health_state = in[18];
+  session.effect_state = in[19];
+  session.guild = i(20);
+  session.emblem = i(21);
+  const auto first = in.begin() + 26;
+  const std::vector<std::int32_t> statuses(first, first + in[25]);
+  const ragexe::res::Act act = NpcStateAct(1);
+  std::vector<ragexe::world::ModeMessage> messages, own;
+  std::vector<std::int32_t> launched;
+  std::vector<ragexe::world::EffectMessage> sent;
+  std::int32_t field_0x2a0 = 0x5a5a5a5a;
+  ragexe::world::StateContext context{};
+  context.attr = &map;
+  context.act = &act;
+  context.service_type = 1;
+  context.messages = &messages;
+  context.actor_messages = &own;
+  context.launched = &launched;
+  context.launched_messages = &sent;
+  context.effects_on = in[24] != 0;
+  context.own_statuses = &statuses;
+  context.mode_field_0x2a0 = &field_0x2a0;
+  context.own_id = session.id;
+  const ragexe::world::PlayerActor p =
+      ragexe::world::MakeOwnPlayer(session, {i(22), i(23)}, context, in[1], in[1] - 72);
+  const ragexe::render::RenderObject& o = p.object;
+  std::vector<std::uint32_t> got;
+  for (const float x : {o.position[0], o.position[1], o.position[2], o.facing})
+    got.push_back(Word(x));
+  for (const std::int32_t x :
+       {p.id, p.guild, p.emblem, p.segment, p.speed, p.state, o.base_action, o.action, o.frame})
+    got.push_back(Word(x));
+  got.push_back(Word(o.delay));
+  got.push_back(Word(o.play_mode));
+  got.push_back(o.start_time);
+  got.push_back(Word(p.field_0x1bc));
+  got.push_back(Word(p.body_state));
+  got.push_back(p.effect_state);
+  got.push_back(p.health_state);
+  got.push_back(o.color);
+  got.push_back(Word(o.screen_x));
+  got.push_back(Word(o.screen_y));
+  for (const bool x : {o.finished, o.held, o.visible, o.body_shown, o.tinted, o.shadow, o.pickable})
+    got.push_back(Word(x));
+  const ragexe::world::OwnPlayer& w = *p.own;
+  for (const std::int32_t x : {w.goal_x, w.goal_y}) got.push_back(Word(x));
+  got.push_back(w.acted_at);
+  got.push_back(w.premove_at);
+  for (const std::int32_t x : {w.pursuit, w.premove, w.attack_mode, w.acted, w.walk_asked,
+                               w.move_queued, w.target_id, w.acts})
+    got.push_back(Word(x));
+  got.push_back(w.asked_at);
+  got.push_back(w.walk_asked_at);
+  for (const std::int32_t x : {w.skill, w.range, w.level, w.cell_x, w.cell_y, w.queued_x,
+                               w.queued_y, w.status_icons, field_0x2a0})
+    got.push_back(Word(x));
+  const ragexe::world::PlayerDress d = ragexe::world::OwnDress(session);
+  for (const std::int32_t x : {d.job, d.sex, d.hair, d.weapon, d.headgear[0], d.headgear[1],
+                               d.headgear[2], d.shield, d.hair_color, d.body_color})
+    got.push_back(Word(x));
+  got.push_back(static_cast<std::uint32_t>(messages.size()));
+  for (const auto& m : messages)
+    for (const std::int32_t x : {m.id, m.a, m.b, m.c}) got.push_back(Word(x));
+  got.push_back(static_cast<std::uint32_t>(own.size()));
+  for (const auto& m : own)
+    for (const std::int32_t x : {m.id, m.a, m.b, m.c}) got.push_back(Word(x));
+  got.push_back(static_cast<std::uint32_t>(launched.size()));
+  for (const std::int32_t x : launched) got.push_back(Word(x));
+  got.push_back(static_cast<std::uint32_t>(sent.size()));
+  for (const auto& m : sent)
+    for (const std::int32_t x : {m.effect, m.id, m.a, m.b, m.c}) got.push_back(Word(x));
+  got.resize(v.out.size());
+  return got;
+}
+
+TEST_CASE("The own player is made as the original's CPlayer constructor", "[walk]") {
+  for (const OwnMakeVector& v : kOwnMakes) {
+    INFO("map " << v.in[0] << " job " << v.in[7] << " effect " << v.in[19] << " body " << v.in[17]
+                << " health " << v.in[18]);
+    std::vector<std::uint32_t> got = RunOwnMake(v);
+    std::vector<std::uint32_t> want(v.out.begin(), v.out.end());
+    // +0x1bc: vf14, which the vectors stand in for, makes a bard male and a dancer female
+    // (CPc::UpdateBody, look_vectors.inc's).
+    if (v.in[7] == 0x13 || v.in[7] == 0x14) got[16] = want[16] = 0;
+    CHECK(got == want);
   }
 }

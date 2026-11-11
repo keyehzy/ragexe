@@ -4,7 +4,8 @@ usage: .venv/bin/python -I tools/frame_oracle.py [--sample N] [--jobs J] [--raw]
            [--original-only] [--frames N] [--frame-time MS] [--npc JOB DX DY]... [--pc JOB SEX
            HAIR WEAPON TOP MID BOTTOM SHIELD HAIR_COLOR CLOTHES_COLOR ACTION FACING DX DY]...
            [--item ID IDENTIFIED DROPPED SUB_X SUB_Y DX DY]... [--corpse JOB ACTION FRAME FACING DX
-           DY]... [--move OBJECT DX DY SPEED]... [MAP...]
+           DY]... [--move OBJECT DX DY SPEED]... [--own JOB SEX HAIR WEAPON TOP MID BOTTOM SHIELD
+           HAIR_COLOR CLOTHES_COLOR DIRECTION] [MAP...]
 
 Each map is loaded as tools/world_oracle.py loads it, but with the player on the walkable cell
 nearest the attribute map's centre, and with the textures made for real:
@@ -41,7 +42,15 @@ names GetActName and GetSpriteName give a CNpc of the job, as CGameActor::LeaveC
 DrawWorld draws it through CRenderObject::Render. With --move, the OBJECT-th object of the list (an
 NPC or a player, counting from 1) is sent message 0 through its vf02 at SPEED ms a cell (+0xc8):
 at the server's time, from the cell and sixteenths under it (CGameMode::GetCellPoint) to the cell
-DX and DY from the player's, with g_PathFinder constructed and given the world's attribute map. The
+DX and DY from the player's, with g_PathFinder constructed and given the world's attribute map. With
+--own, the own player is a CPlayer before them all, as CWorld::CreatePlayer (004c4e60) makes it
+when LoadWorld calls it: made by its constructor (0054b1d0) from ClientState's session (the job
++0xcec, the sex +0x18d0, the hair to the clothes' colour +0x5f4 to +0x610, the direction +0x628,
+the id +0xcdc 2000000 and the speed +0xd94 150, the status words 0, no statuses) on the player's
+cell, kept at CWorld+0x3c in place of the stand-in the camera follows, which stood where it
+stands. Its status icons' effect (0xa4, a CRagEffect) joins the list before it, as
+CAbleToMakeEffect::LaunchEffect puts it there. UpdateGameObjects updates the player through
+CPlayer::Update; a --move OBJECT counts the player, not the effect. The
 sprites, actions, .imf files and palettes are read from a second cache.
 All are made at the first frame's time, and UpdateGameObjects updates them; PlayWave (004352a0),
 which the frames' sounds call, is stood in for. timeGetTime answers 1,000,000 ms in the first
@@ -105,6 +114,11 @@ PC_ARGS = ("JOB", "SEX", "HAIR", "WEAPON", "TOP", "MID", "BOTTOM", "SHIELD", "HA
 ITEM_ARGS = ("ID", "IDENTIFIED", "DROPPED", "SUB_X", "SUB_Y", "DX", "DY")
 CORPSE_ARGS = ("JOB", "ACTION", "FRAME", "FACING", "DX", "DY")
 MOVE_ARGS = ("OBJECT", "DX", "DY", "SPEED")
+OWN_ARGS = ("JOB", "SEX", "HAIR", "WEAPON", "TOP", "MID", "BOTTOM", "SHIELD", "HAIR_COLOR", "CLOTHES_COLOR",
+            "DIRECTION")
+PLAYER_CTOR, PLAYER_SIZE, OWN_ID, OWN_SPEED, RAG_EFFECT_VTABLE = 0x54B1D0, 0x3DC, 2000000, 150, 0x5E9DC8
+# ClientState's session, by offset, in OWN_ARGS's order but the direction.
+OWN_SESSION = (0xCEC, 0x18D0, 0x5F4, 0x5F8, 0x600, 0x604, 0x608, 0x5FC, 0x610, 0x60C, 0x628)
 RAW = "--raw" in sys.argv
 
 _draw_primitive = directx.Device.DrawPrimitive
@@ -239,6 +253,19 @@ def add_npc(emu, world, mode, attr, cell, job, dx, dy):
     place(emu, world, mode, attr, cell, npc, dx, dy)
 
 
+def add_own(emu, world, look):
+    """The own player as CWorld::CreatePlayer makes it, from ClientState's session: at CWorld+0x3c
+    and at the end of the world's list."""
+    for offset, value in zip(OWN_SESSION, look):
+        emu.write_u32(G_CLIENT_STATE + offset, value & 0xFFFFFFFF)
+    for offset, value in ((0xCDC, OWN_ID), (0xD94, OWN_SPEED), (0x614, 0), (0x618, 0), (0x61C, 0)):
+        emu.write_u32(G_CLIENT_STATE + offset, value)
+    player = emu.alloc(PLAYER_SIZE)
+    emu.call(PLAYER_CTOR, this=player)
+    emu.write_u32(world + 0x3C, player)
+    append(emu, world, player)
+
+
 def add_pc(emu, world, mode, attr, cell, look):
     """A CPc dressed by vf14 (job, sex, hair, weapon kind, the three headgear, shield, hair and
     clothes colours), the action played in a loop (CGameActor::SetAction, vf07), facing so many
@@ -297,11 +324,16 @@ def add_corpse(emu, mode, attr, cell, look):
 
 
 def world_object(emu, world, number):
-    """The number-th object of the world's list (CWorld+0xc), counting from 1."""
+    """The number-th object of the world's list (CWorld+0xc) but its effects (CRagEffect, which
+    the port doesn't keep there: the own player's status icons), counting from 1."""
     node = emu.read_u32(emu.read_u32(world + 0xC))
-    for _ in range(number - 1):
+    while True:
+        obj = emu.read_u32(node + 8)
+        if emu.read_u32(obj) != RAG_EFFECT_VTABLE:
+            number -= 1
+            if number == 0:
+                return obj
         node = emu.read_u32(node)
-    return emu.read_u32(node + 8)
 
 
 def move(emu, world, mode, cell, order):
@@ -320,13 +352,13 @@ def move(emu, world, mode, cell, order):
 
 
 def frames(item):
-    ragres, install, cache, sprites, npcs, pcs, items, corpses, moves, (frame_count, frame_time), mapname = item
+    ragres, install, cache, sprites, npcs, pcs, items, corpses, moves, own, (frame_count, frame_time), mapname = item
     with tempfile.TemporaryDirectory() as tmp:
         world_oracle.extract_world(ragres, install, tmp, mapname)
         emu = world_oracle.boot()
         emu.serve_data_files({})
         emu.data_files = CachedFiles(cache, world_oracle.served(tmp))
-        if npcs or pcs or items or corpses:
+        if npcs or pcs or items or corpses or own:
             emu.data_files.paths.update(CachedFiles(sprites, {}).paths)
     stand_in_jpeg(emu)
     textures = queued_textures(emu, emu.read_u32(G_PSCENE_RENDERER))
@@ -368,14 +400,16 @@ def frames(item):
     now[0] = FRAME_TIME
     emu.hook_code(PLAY_WAVE, PLAY_WAVE, lambda uc, address, size, _: emu.complete(0, emu.read_u32(emu.esp()),
                                                                                   emu.esp() + 4))
-    actors = npcs or pcs or items or corpses
+    actors = npcs or pcs or items or corpses or own
     if actors:
         emu.write_u32(SERVICE_TYPE, 1)
         emu.call(INIT_JOB_NAMES, this=G_CLIENT_STATE)
         emu.call(INIT_SHADOWS, this=G_CLIENT_STATE)
-        if pcs:
+        if pcs or own:
             emu.call(INIT_NAME_TABLES, this=G_CLIENT_STATE)
         emu.call(CONSTRUCT_PICK_TREE)
+        for look in own:
+            add_own(emu, world, look)
         for job, dx, dy in npcs:
             add_npc(emu, world, mode, attr, cell, job, dx, dy)
         for look in pcs:
@@ -485,12 +519,14 @@ def main():
     ap.add_argument("--move", nargs=len(MOVE_ARGS), type=int, action="append", default=[], metavar=MOVE_ARGS,
                     help="message 0 to the OBJECT-th object (an NPC or a player, counting from 1), to the cell "
                     "that far from the player's, at SPEED ms a cell")
+    ap.add_argument("--own", nargs=len(OWN_ARGS), type=int, action="append", default=[], metavar=OWN_ARGS,
+                    help="the own player so dressed, on the player's cell, facing the direction")
     ap.add_argument("--frames", type=int, default=FRAMES, help="frames to draw")
     ap.add_argument("--frame-time", type=int, default=FRAME_TIME_STEP,
                     help="milliseconds from one frame to the next, %(default)s each world step")
     args = ap.parse_args()
     build_cache(args.ragres, args.install, args.cache)
-    if args.npc or args.pc or args.item or args.corpse:
+    if args.npc or args.pc or args.item or args.corpse or args.own:
         build_cache(args.ragres, args.install, args.sprites, ACTOR_PATTERNS)
     maps = args.maps or world_oracle.sample_maps(args.ragres, args.install, args.sample)
     npcs = [tuple(n) for n in args.npc]
@@ -498,8 +534,9 @@ def main():
     items = [tuple(i) for i in args.item]
     corpses = [tuple(c) for c in args.corpse]
     moves = [tuple(m) for m in args.move]
+    own = [tuple(o) for o in args.own]
     clock = (args.frames, args.frame_time)
-    given = (npcs, pcs, items, corpses, moves, clock)
+    given = (npcs, pcs, items, corpses, moves, own, clock)
     results = oracle_pool.run([(args.ragres, args.install, args.cache, args.sprites, *given, m) for m in maps], init,
                               work, args.jobs or None, label="frames")
     mismatches = 0
@@ -516,7 +553,7 @@ def main():
             print(f"{mapname} {cell[0]} {cell[1]}\n{want}")
             continue
         npc_args = [str(v) for kind, given in (("--npc", npcs), ("--pc", pcs), ("--item", items), ("--corpse", corpses),
-                                               ("--move", moves))
+                                               ("--move", moves), ("--own", own))
                     for one in given for v in (kind, *one)]
         clock_args = ["--frames", str(args.frames), "--frame-time", str(args.frame_time)]
         got = subprocess.run([args.ragres, "draw-frame", *(["--raw"] if args.raw else []), *clock_args, *npc_args,

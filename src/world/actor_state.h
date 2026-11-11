@@ -288,6 +288,8 @@ struct OwnPlayer {
   std::int32_t cell_y = 0;
   std::int32_t queued_x = -1;  // +0x358 and +0x35c
   std::int32_t queued_y = -1;
+  std::int32_t status_icons = 0;  // +0x3d8, the status icons' effect (0xa4), by its number in
+                                  // StateContext::launched, 0 for none
 };
 
 // A player's look (docs/world/look.md): what CPc's vf14 and vf15 dress it in, and the names its

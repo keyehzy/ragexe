@@ -24,8 +24,9 @@ Unlike `CPc`'s, it moves no gauge. It returns what the state's update returns.
 
 ## The fields
 
-`CPlayer::SendMsg` (`0054c5d0`) sets them; `0054b4a0` starts them at 0, but +0x348 at 1 and
-+0x358, +0x35c at -1.
+`CPlayer::SendMsg` (`0054c5d0`) sets them; `CPlayer::ResetPlayerFields` (`0054b4a0`,
+[own.md](own.md)) starts them at 0, but +0x348 at 1, +0x358 and +0x35c at -1, and +0x310,
++0x338 and +0x33c 1200 ms back.
 
 | Offset | What |
 |--------|------|

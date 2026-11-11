@@ -38,7 +38,8 @@ is `CGameMode::SendMsg` (vf05) with its id and three words.
 `CGameMode`+0x364 is the range of the skill being aimed: `CGameMode::SendMsg` takes it from the
 skill's record (+0x18, `00521cde`), and packet 0x019e sets it to 5.
 
-Two fields join the pursuit's ([pursuit.md](pursuit.md#the-fields)), both 0 from `0054b4a0`:
+Two fields join the pursuit's ([pursuit.md](pursuit.md#the-fields)). `CPlayer::ResetPlayerFields`
+(`0054b4a0`, [own.md](own.md)) starts +0x328 at 0 and +0x33c 1200 ms back:
 
 | Offset | What |
 |--------|------|

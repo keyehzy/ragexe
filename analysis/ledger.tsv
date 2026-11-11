@@ -5257,7 +5257,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0054b3e0	1	code	0	world		named	CPlayer	ReportWalking	
 0054b3f0	33	code	0	world		named	CPlayer	`scalar_deleting_destructor'	
 0054b420	123	code	0	world		named	CPlayer	~CPlayer	
-0054b4a0	694	code	0	world		named	CPlayer	method_0054b4a0	
+0054b4a0	694	code	0	world		named	CPlayer	ResetPlayerFields	
 0054b760	1	code	0	world		named	CPlayer	NoOp	
 0054b770	270	code	0	world		named	CPlayer	Update	
 0054b880	81	code	0	world		named	CPlayer	SendQueuedMove	
@@ -5265,7 +5265,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0054c540	5	thunk	0	world		-	CPlayer	ProcessState	
 0054c550	114	code	0	world		named	CPlayer	SetState	
 0054c5d0	2291	code	0	world		named	CPlayer	SendMsg	
-0054cf80	585	code	0	world		named	CPlayer	method_0054cf80	
+0054cf80	585	code	0	world		named	CPlayer	LaunchStatusEffects	
 0054d1d0	37	code	0	world		named	Global	static_init_182	
 0054d200	5	thunk	0	world		-	Global	static_init_183	
 0054d210	11	code	0	world		named	Global	static_init_183_body	
@@ -5922,7 +5922,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 0059d1d0	32	code	0	game		named	Global	destroy_global_006865f8	
 0059d1f0	208	code	0	game		named	ClientState	IndexSpAmountBySkillId	
 0059d2c0	19	code	0	game		named	ClientState	method_0059d2c0	
-0059d2e0	78	code	0	game		named	ClientState	method_0059d2e0	
+0059d2e0	78	code	0	game		named	ClientState	GetDressJob	
 0059d330	15	code	0	game		named	Global	IsZero	
 0059d340	10	code	0	game		named	Global	IsBit0Set	
 0059d350	12	code	0	game		named	Global	IsBit1Set	
@@ -6058,7 +6058,7 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005a4b10	71	code	0	game		named	ClientState	method_005a4b10	
 005a4b60	56	code	0	game		named	ClientState	method_005a4b60	
 005a4ba0	43	code	0	game		named	ClientState	method_005a4ba0	
-005a4bd0	29	code	0	game		named	ClientState	method_005a4bd0	
+005a4bd0	29	code	0	game		named	ClientState	GetSex	
 005a4bf0	18	code	0	game		named	ClientState	method_005a4bf0	
 005a4c10	20	code	0	game		named	ClientState	method_005a4c10	
 005a4c30	17	code	0	game		named	ClientState	method_005a4c30	

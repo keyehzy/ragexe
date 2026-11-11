@@ -490,8 +490,6 @@ address	namespace	name	calling_convention	evidence
 0054a4e0	CGrannyPc	method_0054a4e0	__thiscall	__thiscall; called with this from 1 functions of CGrannyPc, e.g. 005494e0
 0054a910	CGrannyPc	method_0054a910	__thiscall	__thiscall; called with this from 1 functions of CGrannyPc, e.g. 00549660
 0054ac00	CGrannyPc	method_0054ac00	__thiscall	__thiscall; called with this from 1 functions of CGrannyPc, e.g. 0054aa90
-0054b4a0	CPlayer	method_0054b4a0	__thiscall	__thiscall; called with this from 1 functions of CPlayer, e.g. 0054b1d0
-0054cf80	CPlayer	method_0054cf80	__thiscall	__thiscall; called with this from 1 functions of CPlayer, e.g. 0054b4a0
 0056cfb0	WorldColorFade	method_0056cfb0	__thiscall	__thiscall; called with this from 2 functions of WorldColorFade, e.g. 0050dc90
 0056d0b0	WorldColorFade	method_0056d0b0	__thiscall	__thiscall; called with this from 1 functions of WorldColorFade, e.g. 0050dc90
 00586650	WorldColorFade	method_00586650	__thiscall	__thiscall; called with this from 1 functions of WorldColorFade, e.g. 00435dd0
@@ -682,12 +680,10 @@ address	namespace	name	calling_convention	evidence
 0059ca40	ClientState	method_0059ca40	__thiscall	__thiscall; called with this from 4 functions of ClientState, e.g. 00456ef0
 0059d0d0	ClientState	method_0059d0d0	__thiscall	__thiscall; called with this from 3 functions of ClientState, e.g. 0045e370
 0059d2c0	ClientState	method_0059d2c0	__thiscall	__thiscall; called with this from 5 functions of ClientState, e.g. 00496d00
-0059d2e0	ClientState	method_0059d2e0	__thiscall	__thiscall; called with this from 5 functions of ClientState, e.g. 0045cfa0
 0059e360	std::list	method_0059e360	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 00591f00
 005a4b10	ClientState	method_005a4b10	__thiscall	__thiscall; called with this from 20 functions of ClientState, e.g. 00454170
 005a4b60	ClientState	method_005a4b60	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0044eb50
 005a4ba0	ClientState	method_005a4ba0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 0053de30
-005a4bd0	ClientState	method_005a4bd0	__thiscall	__thiscall; called with this from 8 functions of ClientState, e.g. 0044dad0
 005a4bf0	ClientState	method_005a4bf0	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 004aaa00
 005a4c10	ClientState	method_005a4c10	__thiscall	__thiscall; called with this from 1 functions of ClientState, e.g. 004aaa00
 005a4c30	ClientState	method_005a4c30	__thiscall	__thiscall; called with this from 2 functions of ClientState, e.g. 0045ee00

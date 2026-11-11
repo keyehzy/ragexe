@@ -3266,6 +3266,27 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     of 29 mutants killed; the 4 survivors cannot differ (a portal's size is at least 10 before it is halved, so `<` for `<=` and a
     shift for the halving; `SetAction` has already cleared +0x81 before the performance does;
     every walker starts in its cell's centre).
+- [x] The own player made, and in whole frames (`docs/world/own.md`, `src/world/own_player`):
+  `CPlayer`'s constructor (`0054b1d0`) and `CPlayer::ResetPlayerFields` (`0054b4a0`), which makes
+  the own player from `ClientState`'s session: its cell, facing, id, speed, guild, look (vf14
+  with `ClientState::GetDressJob`, `0059d2e0`, and `GetSex`, `005a4bd0`) and status words, its
+  status icons (0xa4) and the effects of its statuses (`CPlayer::LaunchStatusEffects`,
+  `0054cf80`). `ragres draw-frame` and the frame oracle take `--own`, the own player first in the
+  world's list as `CWorld::CreatePlayer` makes it, in place of the stand-in the camera followed.
+  - **Found on the way:** the player first stands in the actions `CRenderObject`'s constructor
+    named (`NPC\` and job 46's name), so their delay is the one it keeps; dressing plays no
+    action again. A facing past 2^24 hangs `CGameActor::GetDirection`, which takes 360 off until
+    it is below 360. `006864f8`, which the constructor clears, is never read.
+  - **Checks:** `tools/own_make_vectors.py` runs the constructor 600 times on the three small maps
+    (vf02 and vf14 recorded); `tests/unit/walk_test.cpp` matches every field, message, word and
+    effect. The frame oracle with the own player before the objects, on all 287 maps: over three
+    frames 380,147 calls and 287,255 draws; over twelve frames 731 ms apart 1,493,796 calls and
+    1,130,020 draws. 26 of 29 mutants killed; the 3 survivors cannot differ: the goal, which
+    `SetState(0)` forgets at once; the constructor's body's delay, which a standing player's frame
+    never steps by (its head picks it); `CPc::Update` for `CPlayer::Update`, with nothing pursued
+    and no PreMove.
+  - **Labels:** `CPlayer::ResetPlayerFields`, `CPlayer::LaunchStatusEffects`,
+    `ClientState::GetDressJob`, `ClientState::GetSex`.
   - **Labels:** `CNpc::SetState`, `CNpc::ReportCell`, `CNpc::ReportWalking`,
     `ClientState::GetPetLevel`, `ClientState::GetPetLine`.
 
