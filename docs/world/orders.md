@@ -48,14 +48,14 @@ Two fields join the pursuit's ([pursuit.md](pursuit.md#the-fields)). `CPlayer::R
 
 ## The move
 
-Message 0 (`0054ca73`) is `CGameActor`'s ([states.md](states.md)) at the player's own speed:
-`ClientState`+0xd94 (`00687404`), which packet 0x00b0 sets, not +0xc8. First +0x328 and PreMove
-(+0x31c) are cleared and +0x18c takes the order's time. `CGameActor::FindMovePath` from the
-order's cell; found, the goal (+0xc0, +0xc4) is the order's, the player walks (`SetState(1)`,
-through `CPlayer::SetState`) and +0x194 is 0. Not found, `FindMovePath` again from the cell and
-sixteenths under the player (`CGameMode::GetCellPoint`, `00511c30`); found, the goal and walking
-as before, but +0x194 stays as it was. Found neither time, nothing more: the player does not
-stand, as `CGameActor`'s does.
+Message 0 (`0054ca73`), which packet 0x0087 sends ([server.md](server.md)), is `CGameActor`'s
+([states.md](states.md)) at the player's own speed: `ClientState`+0xd94 (`00687404`), which packet
+0x00b0 sets, not +0xc8. First +0x328 and PreMove (+0x31c) are cleared and +0x18c takes the order's
+time. `CGameActor::FindMovePath` from the order's cell; found, the goal (+0xc0, +0xc4) is the
+order's, the player walks (`SetState(1)`, through `CPlayer::SetState`) and +0x194 is 0. Not found,
+`FindMovePath` again from the cell and sixteenths under the player (`CGameMode::GetCellPoint`,
+`00511c30`); found, the goal and walking as before, but +0x194 stays as it was. Found neither time,
+nothing more: the player does not stand, as `CGameActor`'s does.
 
 ## The attack
 

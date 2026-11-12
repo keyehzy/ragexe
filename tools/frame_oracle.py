@@ -50,7 +50,9 @@ the id +0xcdc 2000000 and the speed +0xd94 150, the status words 0, no statuses)
 cell, kept at CWorld+0x3c in place of the stand-in the camera follows, which stood where it
 stands. Its status icons' effect (0xa4, a CRagEffect) joins the list before it, as
 CAbleToMakeEffect::LaunchEffect puts it there. UpdateGameObjects updates the player through
-CPlayer::Update; a --move OBJECT counts the player, not the effect. The
+CPlayer::Update; a --move OBJECT counts the player, not the effect, and moves it as the server
+does, packet 0x0087 through CGameMode::HandlePacket_0087 (00526d60) at the speed ClientState+0xd94,
+which SPEED sets. The camera follows it (CView::Update's target is CWorld+0x3c). The
 sprites, actions, .imf files and palettes are read from a second cache.
 All are made at the first frame's time, and UpdateGameObjects updates them; PlayWave (004352a0),
 which the frames' sounds call, is stood in for. timeGetTime answers 1,000,000 ms in the first
@@ -117,6 +119,7 @@ MOVE_ARGS = ("OBJECT", "DX", "DY", "SPEED")
 OWN_ARGS = ("JOB", "SEX", "HAIR", "WEAPON", "TOP", "MID", "BOTTOM", "SHIELD", "HAIR_COLOR", "CLOTHES_COLOR",
             "DIRECTION")
 PLAYER_CTOR, PLAYER_SIZE, OWN_ID, OWN_SPEED, RAG_EFFECT_VTABLE = 0x54B1D0, 0x3DC, 2000000, 150, 0x5E9DC8
+HANDLE_OWN_MOVE = 0x526D60
 # ClientState's session, by offset, in OWN_ARGS's order but the direction.
 OWN_SESSION = (0xCEC, 0x18D0, 0x5F4, 0x5F8, 0x600, 0x604, 0x608, 0x5FC, 0x610, 0x60C, 0x628)
 RAW = "--raw" in sys.argv
@@ -339,15 +342,30 @@ def world_object(emu, world, number):
 def move(emu, world, mode, cell, order):
     """Message 0 (vf02) to the number-th object of the world's list at the speed given (+0xc8): the
     move time the server's (ClientState::GetServerTime), from the cell and sixteenths under it
-    (CGameMode::GetCellPoint) to the cell dx and dy from cell."""
+    (CGameMode::GetCellPoint) to the cell dx and dy from cell. The own player (CWorld+0x3c) gets
+    it as the server sends it, through CGameMode::HandlePacket_0087 (00526d60), at the speed
+    CPlayer::SendMsg's move takes, ClientState+0xd94, which packet 0x00b0 sets (0052a416)."""
     number, dx, dy, speed = order
     actor = world_object(emu, world, number)
-    emu.write_u32(actor + 0xC8, speed & 0xFFFFFFFF)
+    own = actor == emu.read_u32(world + 0x3C)
+    if own:
+        emu.write_u32(G_CLIENT_STATE + 0xD94, speed & 0xFFFFFFFF)
+    else:
+        emu.write_u32(actor + 0xC8, speed & 0xFFFFFFFF)
     out = emu.scratch(size=16)
     x, _, z = struct.unpack("<3I", emu.mem_read(actor + 4, 12))
     emu.call(GET_CELL_POINT, x, z, out, out + 4, out + 8, out + 12, this=mode)
-    record = emu.scratch(struct.pack("<I", emu.call(GET_SERVER_TIME, this=G_CLIENT_STATE).eax) + emu.mem_read(out, 16)
-                         + struct.pack("<2i", cell[0] + dx, cell[1] + dy))
+    time = emu.call(GET_SERVER_TIME, this=G_CLIENT_STATE).eax
+    start_x, start_y, sub_x, sub_y = struct.unpack("<4i", emu.mem_read(out, 16))
+    goal_x, goal_y = cell[0] + dx, cell[1] + dy
+    if own:
+        # As the server answers a move: packet 0x0087, the cells packed 10 bits each and the
+        # sixteenths 4.
+        cells = ((start_x & 0x3FF) << 38 | (start_y & 0x3FF) << 28 | (goal_x & 0x3FF) << 18 | (goal_y & 0x3FF) << 8
+                 | (sub_x & 0xF) << 4 | sub_y & 0xF)
+        emu.call(HANDLE_OWN_MOVE, emu.scratch(struct.pack("<HI", 0x87, time) + cells.to_bytes(6, "big")), this=mode)
+        return
+    record = emu.scratch(struct.pack("<I4i2i", time, start_x, start_y, sub_x, sub_y, goal_x, goal_y))
     emu.call(emu.read_u32(emu.read_u32(actor) + 4 * SEND_MSG_SLOT), 0, 0, record, 0, 0, this=actor)
 
 

@@ -147,6 +147,7 @@ add_library(ragexe_world STATIC
   world/player_look.cpp
   world/player_orders.cpp
   world/own_player.cpp
+  world/server_moves.cpp
   world/player_pursuit.cpp
   world/actor_window.cpp
   world/actor_effects.cpp

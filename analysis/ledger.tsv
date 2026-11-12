@@ -5815,8 +5815,8 @@ entry	size	kind	library	subsystem	reach	status	namespace	name	notes
 005930a0	33	code	0	game		named	ClientState	method_005930a0	
 005930d0	112	code	0	game	unreferenced	raw	Global	FUN_005930d0	
 00593140	34	code	0	game		named	ClientState	method_00593140	
-00593170	95	code	0	game		named	ClientState	method_00593170	
-005931d0	38	code	0	game		named	ClientState	method_005931d0	
+00593170	95	code	0	game		named	ClientState	SyncServerTime	
+005931d0	38	code	0	game		named	ClientState	SetServerTime	
 00593200	26	code	0	game		named	ClientState	GetServerTime	
 00593220	20	code	0	game		named	ClientState	method_00593220	
 00593240	66	code	0	game		named	ClientState	method_00593240	

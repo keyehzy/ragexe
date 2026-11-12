@@ -185,25 +185,32 @@ names are the monster's actions and sprite as `CRes::GetName` gives them, lower-
 then its body.
 
 `--move OBJECT DX DY SPEED` then sends the OBJECT-th object of the list (counting from 1, the own
-player among them; an NPC or another player) message 0 at that speed (+0xc8, which no constructor
-sets), as a server's move would ([world/states.md](../world/states.md#the-move)): at the server's time, from the cell and
+player among them) message 0 at that speed (+0xc8, which no constructor sets), as a server's move
+would ([world/states.md](../world/states.md#the-move)): at the server's time, from the cell and
 sixteenths under it (`CGameMode::GetCellPoint`) to the cell DX and DY from the player's, through
-`g_PathFinder` on the world's attribute map (`SetAttrMap`, as `CGameMode` `0050de37` sets it
-after loading). It walks if a path is found, and stands where it is if not. An NPC or a monster
-does both through `CNpc::SetState` ([world/states.md](../world/states.md#npcs-and-monsters)),
-so an NPC walks in action 0.
+`g_PathFinder` on the world's attribute map (`SetAttrMap`, as `CGameMode` `0050de37` sets it after
+loading). It walks if a path is found, and stands where it is if not. An NPC or a monster does both
+through `CNpc::SetState` ([world/states.md](../world/states.md#npcs-and-monsters)), so an NPC walks
+in action 0. The own player gets its move as the server sends it, packet 0x0087 through
+`CGameMode::HandlePacket_0087` ([world/server.md](../world/server.md)), which keeps the server's
+clock in step and sends message 0 to `CPlayer::SendMsg`
+([world/orders.md](../world/orders.md#the-move)). It moves at the speed `ClientState`+0xd94, which
+packet 0x00b0 sets, so SPEED goes there. As it walks, the camera follows it: each world step
+`CView::Update` takes its point (`CWorld`+0x3c) as the target, after the objects' update. The other
+actors read the same point for the sounds they make and where they turn to the player.
 
 **The updates.** Each world step runs `CWorld::UpdateGameObjects` on the list
 (`WorldObjects::Update`): each NPC through `CNpc::Update`, each player through `CPc::Update`
 ([world/update.md](../world/update.md)) and the own player through `CPlayer::Update`
 ([world/pursuit.md](../world/pursuit.md)), with its body's actions and heard by the player; each
 item through `CItem::Update` and each corpse through `CCorpse::Update`
-([world/items.md](../world/items.md)). One whose update returns 0 is let go, as a corpse is
-255 ticks after it was left. The update reads the camera's yaw, which the view's step after it
-keeps, and the server's time, `timeGetTime` less 72 (`ClientState::GetServerTime`, its offset
-+0x504 0). So the first update sets each actor's action to its base action plus its direction
-from the camera, and its frame by the time since the action started, at its delay (1 tick, 24
-ms, for an action the constructor left); a corpse takes its action's last frame and fades.
+([world/items.md](../world/items.md)). One whose update returns 0 is let go, as a corpse is 255
+ticks after it was left. The update reads the camera's yaw, which the view's step after it keeps,
+and the server's time, `timeGetTime` less 72 (`ClientState::GetServerTime`, its offset +0x504 0: the
+own player's move carries the clock's own time, so it doesn't move it). So the first update sets
+each actor's action to its base action plus its direction from the camera, and its frame by the time
+since the action started, at its delay (1 tick, 24 ms, for an action the constructor left); a corpse
+takes its action's last frame and fades.
 
 **The clock.** `--frames N` draws N frames (3 by default), `--frame-time MS` apart (16 by
 default). The frame timer is set to 60 frames a second (`SetFrameRate`) 16 ms before the first
@@ -285,7 +292,8 @@ It prints the textures in the order made, then each frame's device calls.
   constructor (`0053abb0`) and sent message 4 with the item tables `LoadItemTables` loads. Each
   `--corpse` comes last, from `CGameMode::AddCorpse` with the names a `CNpc` of the job gives.
   Each `--move` is message 0 through the object's `vf02`, with `g_PathFinder` constructed and
-  given the attribute map. `--own` makes a `CPlayer` before them all, by its constructor
+  given the attribute map; the own player's is packet 0x0087 through
+  `CGameMode::HandlePacket_0087` (`00526d60`). `--own` makes a `CPlayer` before them all, by its constructor
   (`0054b1d0`) from `ClientState`'s session, and keeps it at `CWorld`+0x3c in place of the
   stand-in the camera follows. All are made at the first frame's time, and the world's steps
   update them for real; `PlayWave` (`004352a0`), which the frames' sounds call, is stood in for. `CNpc::Render` records its pick
@@ -307,9 +315,11 @@ It prints the textures in the order made, then each frame's device calls.
     not by the map, and walks or stands.
 
   With the own player before them (`--own`: a mage with a staff and a headgear, whose sprites no
-  other object shares, its direction 2, so facing 270°): over three frames 35,658 textures made,
-  380,147 device calls and 287,255 draws; over twelve frames 731 ms apart 44,279 textures made,
-  1,493,796 device calls and 1,130,020 draws.
+  other object shares, its direction 2, so facing 270°), sent its move last, to the cell 5 along x
+  and −3 along y from its own at 200 ms a cell, the camera following it: over three frames 35,658
+  textures made, 380,367 device calls and 287,305 draws; over twelve frames 731 ms apart 44,279
+  textures made, 1,492,681 device calls and 1,128,134 draws. On prontera and `moc_pryd03` it walks;
+  where the finder finds no path, it stands.
 
   Over three frames: 35,658 textures made, 374,556 device calls and 283,811
   draws. Over twelve frames 731 ms apart (45 or 46 world steps each, 8.8 s

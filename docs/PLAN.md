@@ -3266,6 +3266,8 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     of 29 mutants killed; the 4 survivors cannot differ (a portal's size is at least 10 before it is halved, so `<` for `<=` and a
     shift for the halving; `SetAction` has already cleared +0x81 before the performance does;
     every walker starts in its cell's centre).
+  - **Labels:** `CNpc::SetState`, `CNpc::ReportCell`, `CNpc::ReportWalking`,
+    `ClientState::GetPetLevel`, `ClientState::GetPetLine`.
 - [x] The own player made, and in whole frames (`docs/world/own.md`, `src/world/own_player`):
   `CPlayer`'s constructor (`0054b1d0`) and `CPlayer::ResetPlayerFields` (`0054b4a0`), which makes
   the own player from `ClientState`'s session: its cell, facing, id, speed, guild, look (vf14
@@ -3287,8 +3289,28 @@ framework part of M7 can run in parallel with M4 and M5 once M2 is done.
     and no PreMove.
   - **Labels:** `CPlayer::ResetPlayerFields`, `CPlayer::LaunchStatusEffects`,
     `ClientState::GetDressJob`, `ClientState::GetSex`.
-  - **Labels:** `CNpc::SetState`, `CNpc::ReportCell`, `CNpc::ReportWalking`,
-    `ClientState::GetPetLevel`, `ClientState::GetPetLine`.
+- [x] The server's moves, and the own player walking in whole frames (`docs/world/server.md`,
+  `src/world/server_moves`, `docs/render/frame.md#in-the-port`): `CGameMode::HandlePacket_0087`
+  (`00526d60`) and `HandlePacket_0086` (`00526ca0`), which read a move's time and its two cells and
+  sixteenths packed 10 and 4 bits each, keep the server's clock in step
+  (`ClientState::SyncServerTime`, `00593170`, and `SetServerTime`, `005931d0`) and send message 0
+  to the own player or the actor `CWorld::GetActorById` finds. `ragres draw-frame` and the frame
+  oracle send the own player its `--move` as packet 0x0087, at `ClientState`+0xd94, and the camera
+  and the actors follow its point (`CWorld`+0x3c).
+  - **Found on the way:** a time over 72 ms ahead of the clock sets it at once, one over 72 ms
+    behind only at the 4th in a row, which sets it back 72 ms; the count wraps (`inc`) and is
+    compared signed, so while it is past 2^31 − 1 it reads negative and doesn't set the clock.
+    Packet 0x00b0's speed goes only to `ClientState`+0xd94, never to the player's +0xc8.
+  - **Checks:** `tools/server_move_vectors.py` runs both handlers 800 times (cells at each byte's
+    edges, times about the clock's bounds, the count at its wrap, an actor found or not);
+    `tests/unit/server_moves_test.cpp` matches the clock, the ids asked for and every message. The
+    frame oracle with the own player walking after the other moves, on all 287 maps: over three
+    frames 380,367 calls and 287,305 draws; over twelve frames 731 ms apart 1,492,681 calls and
+    1,128,134 draws. 21 of 22 mutants killed: the 17 of the clock and the packets through the
+    vectors, and 4 of the frames (the camera not following, following a step late, the speed at
+    +0xc8, the move as a `CPc`'s); the survivor cannot differ: the point of the player the other
+    actors read, which only their sounds and actions on the player use, and the frames have neither.
+  - **Labels:** `ClientState::SyncServerTime`, `ClientState::SetServerTime`.
 
 ### Next actions
 1. Give `vfNN` and `method_` functions descriptive names as their classes are ported,

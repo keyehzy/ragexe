@@ -40,6 +40,7 @@ add_executable(ragexe_tests
   walk_test.cpp
   player_test.cpp
   prim_test.cpp
+  server_moves_test.cpp
   settings_test.cpp
   sprite_test.cpp
   str_test.cpp
@@ -190,8 +191,10 @@ if(RAGEXE_ARCHIVES)
     # alike, a sword identified and a knife dropped); three corpses made by CGameMode::AddCorpse,
     # two of them porings, whose sprite the live ones share. Then five of them sent message 0 to
     # walk (a poring, an NPC, a poporing, the swordsman and a novice, counted from the own player),
-    # each finding its path or standing where it is. The sprite cache and the ground's tints with
-    # them (the sprites, actions, .imf files and palettes are extracted on the first run).
+    # each finding its path or standing where it is, and the own player sent its move as packet
+    # 0x0087 (CGameMode::HandlePacket_0087), the camera following it. The sprite cache and the
+    # ground's tints with them (the sprites, actions, .imf files and palettes are extracted on the
+    # first run).
     set(RAGEXE_FRAME_OBJECTS
         --own 2 0 8 10 5 0 0 0 6 1 2
         --npc 1002 2 1 --npc 50 -2 0 --npc 1013 0 3 --npc 84 1 -2 --npc 1031 -3 -3 --npc 120 4 0
@@ -204,7 +207,7 @@ if(RAGEXE_ARCHIVES)
         --item 1104 1 0 8 8 -2 -1 --item 909 1 0 0 0 3 2 --item 2301 0 0 15 15 -3 0
         --corpse 1002 32 2 90 2 0 --corpse 1031 32 0 225 -2 -2 --corpse 1002 0 0 0 3 3
         --move 2 -2 -2 150 --move 3 -1 -3 120 --move 6 3 -3 200 --move 9 -3 -4 150
-        --move 14 4 2 100)
+        --move 14 4 2 100 --move 1 5 -3 200)
     add_test(NAME frame_oracle_actors
       COMMAND "${RAGEXE_PYTHON}" -I "${PROJECT_SOURCE_DIR}/tools/frame_oracle.py"
         moc_pryd03 prontera ${RAGEXE_FRAME_OBJECTS}

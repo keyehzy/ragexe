@@ -140,6 +140,7 @@
 #include "world/path_finder.h"
 #include "world/player_look.h"
 #include "world/player_orders.h"
+#include "world/server_moves.h"
 #include "world/world_objects.h"
 
 namespace {
@@ -3078,7 +3079,8 @@ constexpr std::uint32_t kFrameTime = 1000000;
 constexpr std::uint32_t kFrameTimeStep = 16;
 constexpr std::uint32_t kFrameRate = 60;
 constexpr float kFrameTurn = 120.0f;
-// ClientState::GetServerTime (00593200): timeGetTime less 72 and the offset +0x504, 0 here.
+// ClientState::GetServerTime (00593200): timeGetTime less 72 and the offset +0x504, 0 until a
+// server's move keeps the clock in step.
 constexpr std::uint32_t kServerTimeLag = 72;
 constexpr std::uint32_t kFrameServerTime = kFrameTime - kServerTimeLag;
 
@@ -3285,6 +3287,10 @@ int DrawFrame(std::vector<std::string> args) {
     return recolour(ragexe::render::kPlayerBody, dress.body_palette) &&
            recolour(ragexe::render::kPlayerHead, dress.head_palette);
   };
+  // CWorld+0x3c, the own player --own makes, and ClientState+0xd94 (00687404), the speed its
+  // move takes, which packet 0x00b0 sets.
+  ragexe::world::PlayerActor* own_player = nullptr;
+  std::int32_t own_speed = kOwnSpeed;
   // CWorld::CreatePlayer (004c4e60), which LoadWorld calls before any other object joins: the
   // own player made by CPlayer's constructor from the session --own gives, on the player's
   // cell, its body's actions still CRenderObject's constructor's when it first stands.
@@ -3318,7 +3324,8 @@ int DrawFrame(std::vector<std::string> args) {
         kFrameServerTime);
     FrameLook look;
     if (!dressed_look(own, look)) return 1;
-    looks.emplace(&world.CreatePlayer(std::move(own)), look);
+    own_player = &world.CreatePlayer(std::move(own));
+    looks.emplace(own_player, look);
   }
   // CNpc's constructor and vf16, which names its sprite (iRO's service type, 1) and keeps the
   // job's shadow scale.
@@ -3398,22 +3405,30 @@ int DrawFrame(std::vector<std::string> args) {
                look);
   }
   // What an actor's messages and update read: the world's attribute map, the camera's yaw, iRO's
-  // service type and the player who hears its sounds.
+  // service type, the player (CWorld+0x3c), whose point hears the sounds and is where actors
+  // turn to it, and the own player's id and speed.
   const auto actor_context = [&] {
     ragexe::world::StateContext context{};
     context.attr = &scene.attr;
     context.camera_yaw = state.camera.yaw;
     context.service_type = 1;
     context.player = &state.player;
-    if (!own_args.empty()) context.own_id = kOwnId;
+    if (own_player != nullptr) {
+      context.player = &own_player->object.position;
+      context.own_id = kOwnId;
+      context.own_speed = own_speed;
+    }
     return context;
   };
-  // Message 0 (vf02) to the OBJECT-th object of the list, an NPC or a player, at the speed given
-  // (+0xc8): at the server's time, from the cell and sixteenths under it (GetCellPoint) to the
-  // cell DX and DY from the player's, through g_PathFinder on the world's attribute map
-  // (SetAttrMap, as CGameMode 0050de37 sets it).
+  // Message 0 (vf02) to the OBJECT-th object of the list, an NPC or a player, at the speed given:
+  // +0xc8, or for the own player ClientState+0xd94, which CPlayer::SendMsg's move takes. At the
+  // server's time, from the cell and sixteenths under it (GetCellPoint) to the cell DX and DY
+  // from the player's, through g_PathFinder on the world's attribute map (SetAttrMap, as
+  // CGameMode 0050de37 sets it).
   ragexe::world::PathFinder finder;
   finder.SetAttrMap(&scene.attr);
+  // ClientState's server clock, which the server's moves keep in step.
+  ragexe::world::ServerClock server_clock;
   for (const auto& [number, dx, dy, speed] : move_args) {
     ragexe::world::GameActor* actor = nullptr;
     ragexe::world::PlayerActor* player = nullptr;
@@ -3422,15 +3437,18 @@ int DrawFrame(std::vector<std::string> args) {
     for (const auto& object : world.objects()) {
       if (++k != number) continue;
       if (auto* npc = std::get_if<ragexe::world::GameActor>(object.get())) actor = npc;
-      if (auto* pc = std::get_if<ragexe::world::PlayerActor>(object.get()); pc && !pc->own)
-        actor = player = pc;
+      if (auto* pc = std::get_if<ragexe::world::PlayerActor>(object.get())) actor = player = pc;
       look = &looks.at(address(*object));
     }
     if (actor == nullptr) {
-      std::fprintf(stderr, "ragres: object %d is not an actor other than the own player\n", number);
+      std::fprintf(stderr, "ragres: object %d is not an actor\n", number);
       return 1;
     }
-    actor->speed = speed;
+    if (actor == own_player) {
+      own_speed = speed;
+    } else {
+      actor->speed = speed;
+    }
     ragexe::world::StateContext context = actor_context();
     context.act = look->body.act;
     const ragexe::world::CellPoint at = ragexe::world::CellPointAt(
@@ -3442,7 +3460,25 @@ int DrawFrame(std::vector<std::string> args) {
                                          .sub_y = at.sub_y,
                                          .goal_x = cell_x + dx,
                                          .goal_y = cell_y + dy};
-    if (player != nullptr) {
+    if (player != nullptr && player == own_player) {
+      // As the server answers a move: packet 0x0087 with the order, its cells packed 10 bits
+      // each and the sixteenths 4, which CGameMode::HandlePacket_0087 reads.
+      std::array<std::uint8_t, 12> packet{0x87, 0};
+      for (std::size_t i = 0; i < 4; ++i)
+        packet[2 + i] = static_cast<std::uint8_t>(order.time >> (8 * i));
+      const auto u = [](std::int32_t v) { return static_cast<std::uint32_t>(v); };
+      const std::uint64_t packed = std::uint64_t{u(order.start_x) & 0x3ff} << 38 |
+                                   std::uint64_t{u(order.start_y) & 0x3ff} << 28 |
+                                   std::uint64_t{u(order.goal_x) & 0x3ff} << 18 |
+                                   std::uint64_t{u(order.goal_y) & 0x3ff} << 8 |
+                                   (u(order.sub_x) & 0xf) << 4 | (u(order.sub_y) & 0xf);
+      for (std::size_t i = 0; i < 6; ++i)
+        packet[6 + i] = static_cast<std::uint8_t>(packed >> (8 * (5 - i)));
+      const ragexe::world::MoveOrder received =
+          ragexe::world::ReceiveOwnMove(server_clock, packet, kFrameTime);
+      ragexe::world::SendOwnPlayerMessage(*player, finder, {.id = 0, .order = received}, context,
+                                          kFrameTime, server_clock.Time(kFrameTime));
+    } else if (player != nullptr) {
       ragexe::world::MoveGameActor(*player, finder, order, kFrameServerTime, context, kFrameTime);
     } else {
       ragexe::world::MoveGameActor(*actor, finder, order, kFrameServerTime, context, kFrameTime);
@@ -3452,7 +3488,7 @@ int DrawFrame(std::vector<std::string> args) {
   // actor's with its body's actions, heard by the player; one that returns 0 is let go.
   const auto update_objects = [&](std::uint32_t now) {
     ragexe::world::StateContext context = actor_context();
-    const std::uint32_t server_time = now - kServerTimeLag;
+    const std::uint32_t server_time = server_clock.Time(now);
     world.Update([&](ragexe::world::WorldObject& object) {
       const void* key = address(object);
       const FrameLook& look = looks.at(key);
@@ -3572,6 +3608,8 @@ int DrawFrame(std::vector<std::string> args) {
     }
     for (std::uint32_t steps = timer.StepsDue(now); steps != 0; --steps) {
       update_objects(now);
+      // CView::Update's target, the own player's point (CWorld+0x3c).
+      if (own_player != nullptr) state.player = own_player->object.position;
       ragexe::render::StepWorld(scene, state, now);
     }
     frame_draws.emplace_back();
